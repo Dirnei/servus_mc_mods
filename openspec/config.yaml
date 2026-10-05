@@ -1,0 +1,57 @@
+schema: spec-driven
+
+# Project context shown to the AI when creating artifacts.
+context: |
+  Servus mod family for Minecraft 1.21.1 on NeoForge 21.1.x, Java 21, ModDevGradle, Parchment mappings.
+  Multi project Gradle repo: lib (servus_lib), manufacturing (servus_manufacturing),
+  logistics (servus_logistics), storage (servus_storage).
+  Roadmap, architecture principles and milestones live in PLAN.md at the repo root. Read it first.
+  Project rules live in CLAUDE.md at the repo root.
+
+  Hard constraints:
+  - Content mods depend only on servus_lib, never on each other.
+  - World, block entity and capability access only on the server thread.
+  - Networks use the mailbox pattern: events queued, drained once per server tick. No Akka, no Pekko.
+  - Never scan blocks every tick. React to placement and removal events.
+  - Balance numbers, recipes, techs and deposits live in datapack JSON, not in code.
+  - Pure logic (graphs, planning, ratios) has no Minecraft imports and is covered by JUnit tests.
+  - Use datagen for blockstates, models, loot tables, recipes, tags and lang.
+  - Expose standard capabilities (IItemHandler, IEnergyStorage) so other mods integrate.
+  - Verify NeoForge 1.21.1 APIs in the docs or source instead of guessing.
+  - No em dashes anywhere.
+
+  Conventions:
+  - One change per milestone item from PLAN.md. Change names are kebab-case with a milestone
+    prefix, for example m1-network-graph.
+  - Capability paths are <mod>/<capability>, for example lib/network-graph or storage/crates.
+    Cross mod integration specs go under lib/.
+
+# Per-artifact rules.
+rules:
+  proposal:
+    - Name the PLAN.md milestone and item this change implements.
+    - Include a Non-goals section listing what is deferred to later changes.
+  specs:
+    - Describe observable behavior of blocks, networks and APIs, not implementation.
+    - Concrete balance numbers are examples only. The real values live in datapack JSON.
+    - Pure logic requirements must be testable with JUnit without Minecraft.
+  design:
+    - Record which PLAN.md open decisions this change settles and how.
+    - Name the NeoForge APIs, events and capabilities used, with a source or docs reference.
+    - State which logic is pure Java (unit tested) and which touches Minecraft (GameTest or manual).
+  tasks:
+    - Each task names the files or packages it touches and ends with a build or test step.
+    - Pure logic tasks list the JUnit tests to add.
+    - "The last task is always: full gradle build, tests green, game launches with all four mods."
+
+# Per-operation guidance.
+operations:
+  apply:
+    guidance:
+      - After each task run gradlew build and gradlew test before checking it off.
+      - Launch the client run config when block, GUI or worldgen behavior changed.
+      - If a decision during implementation contradicts the design, stop and update the artifacts first.
+  archive:
+    guidance:
+      - Confirm the full build and tests are green before archiving.
+      - Mention any PLAN.md updates the change made in the archive summary.
