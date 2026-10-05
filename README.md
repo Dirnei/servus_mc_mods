@@ -53,7 +53,7 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 1. Find or place deposits (iron, copper, coal, stone patches on the surface).
 2. Burner Extractor on a deposit, Burner Smelter next to it, coal in both. Machines push output into adjacent inventories.
 3. Coal Generator plus Power Cables carry FE to an Assembler Mk1 and a Research Lab.
-4. In the Assembler, pick iron gear, copper wire or red pack in the recipe panel.
+4. In the Assembler, lay out a recipe in the pattern grid and press plus, or press the plus button on any recipe in JEI. An Assembler Mk1 holds two recipes and alternates between them. Every machine GUI has a side panel on the left to set which sides take input and give output.
 5. Item Ducts route pushed items to the next inventory on the duct network.
 6. Red packs go into the Research Lab; open the Tech Tree from its GUI and pick a tech.
 

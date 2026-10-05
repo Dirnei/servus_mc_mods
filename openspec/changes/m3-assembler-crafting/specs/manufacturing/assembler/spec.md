@@ -17,6 +17,14 @@ The assembler GUI SHALL let the player configure up to its recipe slot count of 
 - **WHEN** the player clicks a configured recipe
 - **THEN** it is removed and the machine stops crafting it
 
+#### Scenario: Select a recipe
+- **WHEN** the player adds the iron gear recipe through the pattern grid or the recipe viewer
+- **THEN** it shows in the configured list and the machine starts crafting it when inputs are present
+
+#### Scenario: No recipe selected
+- **WHEN** no recipe is configured
+- **THEN** the assembler accepts no inputs from automation and does not craft
+
 ### Requirement: Crafting the selected recipe
 The assembler SHALL craft any of its configured recipes whose required items are all present in the input slots and whose result fits the output slot, taking turns between craftable recipes. A crafting recipe takes the machine's work time; an assembling recipe takes its own time. Crafting remainders such as empty buckets return to the input slots.
 
