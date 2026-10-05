@@ -28,13 +28,22 @@ Each content mod depends only on Servus Lib. No content mod depends on another. 
 ```
 servus_mc_mods/
   settings.gradle
-  build.gradle              shared config
+  build.gradle              shared config for all mod projects, combined run configs
   gradle.properties         versions in one place
+  gradlew, gradle/wrapper/  Gradle wrapper
+  .github/workflows/        CI: build and unit tests on every push
+  openspec/                 specs and changes (OpenSpec)
   lib/                      servus_lib
   manufacturing/            servus_manufacturing
   logistics/                servus_logistics
   storage/                  servus_storage
-  docs/                     design notes, this plan
+    gradle.properties       mod id and name
+    build.gradle            dependencies and loaded mods
+    src/main/java           mod code
+    src/main/templates      neoforge.mods.toml template
+    src/generated/resources datagen output
+    src/test/java           JUnit tests
+    runs/                   game directories per run config, gitignored
 ```
 
 Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `lib`, `manufacturing`, `logistics`, `storage`. License: MIT.

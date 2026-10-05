@@ -1,0 +1,20 @@
+// Servus: Logistics. Shared configuration lives in the root build.gradle.
+evaluationDependsOn(':lib')
+
+dependencies {
+    implementation project(':lib')
+}
+
+// Resolved outside the neoForge block: inside it, project(':lib') would be
+// read as a dependency notation instead of the Gradle project.
+def libMod = project(':lib').neoForge.mods.getByName('servus_lib')
+def ownMod = neoForge.mods.getByName(project.mod_id)
+
+neoForge {
+    runs {
+        configureEach {
+            // Content mods are always launched together with Servus Lib.
+            loadedMods = [ownMod, libMod]
+        }
+    }
+}

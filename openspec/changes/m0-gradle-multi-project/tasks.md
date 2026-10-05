@@ -2,20 +2,20 @@
 
 ## 1. Toolchain
 
-- [ ] 1.1 Install Temurin JDK 21 with `winget install EclipseAdoptium.Temurin.21.JDK` and verify `java -version` reports 21 in a fresh shell.
-- [ ] 1.2 Bootstrap the Gradle wrapper (`gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`, `gradle/wrapper/gradle-wrapper.properties` for Gradle 9.2.1) from the MDK-1.21.1-ModDevGradle template and verify `gradlew --version` runs.
+- [x] 1.1 Install Temurin JDK 21 with `winget install EclipseAdoptium.Temurin.21.JDK` and verify `java -version` reports 21 in a fresh shell.
+- [x] 1.2 Bootstrap the Gradle wrapper (`gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`, `gradle/wrapper/gradle-wrapper.properties` for Gradle 9.2.1) from the MDK-1.21.1-ModDevGradle template and verify `gradlew --version` runs.
 
 ## 2. Build skeleton
 
-- [ ] 2.1 Write `settings.gradle` (foojay resolver 1.0.0, root project name `servus_mc_mods`, include `lib`, `manufacturing`, `logistics`, `storage`) and the root `gradle.properties` with shared versions (NeoForge 21.1.255, Parchment 1.21.1 / 2024.11.17, Minecraft 1.21.1, JUnit 5.11.4, mod version 0.1.0, license MIT, loader range) and Gradle JVM args. Verify `gradlew projects` lists the four subprojects.
-- [ ] 2.2 Write the root `build.gradle` with the `subprojects {}` block: ModDevGradle 2.0.148, Java 21 toolchain, UTF-8, Parchment, NeoForge version, `src/generated/resources`, JUnit 5 with `useJUnitPlatform()`, shared `generateModMetadata` task wired via `neoForge.ideSyncTask`. Verify `gradlew help` configures without errors.
-- [ ] 2.3 Write `lib/build.gradle` with mod id `servus_lib`, name `Servus Lib`, the `mods {}` binding and runs `client`, `server`, `data`, `gameTestServer` under `runs/`. Add `lib/src/main/templates/META-INF/neoforge.mods.toml`. Verify `gradlew :lib:generateModMetadata` produces a toml with the expanded values.
-- [ ] 2.4 Write `manufacturing/build.gradle`, `logistics/build.gradle`, `storage/build.gradle` with their mod ids, `implementation project(':lib')`, runs whose `loadedMods` include Lib, and templates declaring `servus_lib` as a required dependency. Verify `gradlew generateModMetadata` succeeds for all three and each toml contains the Lib dependency block.
+- [x] 2.1 Write `settings.gradle` (foojay resolver 1.0.0, root project name `servus_mc_mods`, include `lib`, `manufacturing`, `logistics`, `storage`) and the root `gradle.properties` with shared versions (NeoForge 21.1.255, Parchment 1.21.1 / 2024.11.17, Minecraft 1.21.1, JUnit 5.11.4, mod version 0.1.0, license MIT, loader range) and Gradle JVM args. Verify `gradlew projects` lists the four subprojects.
+- [x] 2.2 Write the root `build.gradle` with the `subprojects {}` block: ModDevGradle 2.0.148, Java 21 toolchain, UTF-8, Parchment, NeoForge version, `src/generated/resources`, JUnit 5 with `useJUnitPlatform()`, shared `generateModMetadata` task wired via `neoForge.ideSyncTask`. Verify `gradlew help` configures without errors.
+- [x] 2.3 Write `lib/build.gradle` with mod id `servus_lib`, name `Servus Lib`, the `mods {}` binding and runs `client`, `server`, `data`, `gameTestServer` under `runs/`. Add `lib/src/main/templates/META-INF/neoforge.mods.toml`. Verify `gradlew :lib:generateModMetadata` produces a toml with the expanded values.
+- [x] 2.4 Write `manufacturing/build.gradle`, `logistics/build.gradle`, `storage/build.gradle` with their mod ids, `implementation project(':lib')`, runs whose `loadedMods` include Lib, and templates declaring `servus_lib` as a required dependency. Verify `gradlew generateModMetadata` succeeds for all three and each toml contains the Lib dependency block.
 
 ## 3. Mod classes and tests
 
-- [ ] 3.1 Add `io.github.dirnei.mc.servus.lib.ServusLib` (`@Mod`, logger, constructor logging one line) plus the pure constants class `ServusLibIds` with `MOD_ID`. Add JUnit test `ServusLibIdsTest` asserting `MOD_ID` equals `servus_lib`. Verify `gradlew :lib:test` passes.
-- [ ] 3.2 Add `ServusManufacturing`, `ServusLogistics`, `ServusStorage` main classes and their `*Ids` constants classes in their packages, each with a JUnit test asserting the mod id. Verify `gradlew test` passes in all four projects and `gradlew build` produces `lib/build/libs/servus_lib-0.1.0.jar` and the three content jars.
+- [x] 3.1 Add `io.github.dirnei.mc.servus.lib.ServusLib` (`@Mod`, logger, constructor logging one line) plus the pure constants class `ServusLibIds` with `MOD_ID`. Add JUnit test `ServusLibIdsTest` asserting `MOD_ID` equals `servus_lib`. Verify `gradlew :lib:test` passes.
+- [x] 3.2 Add `ServusManufacturing`, `ServusLogistics`, `ServusStorage` main classes and their `*Ids` constants classes in their packages, each with a JUnit test asserting the mod id. Verify `gradlew test` passes in all four projects and `gradlew build` produces `lib/build/libs/servus_lib-0.1.0.jar` and the three content jars.
 
 ## 4. Combined runs and repository files
 

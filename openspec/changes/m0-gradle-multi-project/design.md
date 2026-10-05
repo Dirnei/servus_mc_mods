@@ -30,7 +30,7 @@ Install `EclipseAdoptium.Temurin.21.JDK` with winget on the dev machine. Keep th
 Alternative: point `JAVA_HOME` at the GoLand JBR 21. Rejected because that runtime disappears on a GoLand update and is not a full JDK.
 
 ### D2: ModDevGradle applied per subproject, shared config in the root `subprojects` block
-Each of `lib`, `manufacturing`, `logistics`, `storage` has a small `build.gradle` that applies `net.neoforged.moddev`, sets `mod_id` and `mod_name` as project ext properties, and declares its `mods {}` binding and its run configs. The root `build.gradle` holds the `subprojects {}` block with the shared parts: Java 21 toolchain, UTF-8, Parchment, NeoForge version from `gradle.properties`, JUnit 5, the `generateModMetadata` task and `src/generated/resources` as a resource dir.
+Each of `lib`, `manufacturing`, `logistics`, `storage` sets `mod_id`, `mod_name` and `mod_description` in its own `gradle.properties` (loaded before evaluation, so the root can read them) and has a small `build.gradle` with only what differs: the content mods add `implementation project(':lib')` and set `loadedMods` to themselves plus Lib. The root `build.gradle` holds the `subprojects {}` block with everything shared: the ModDevGradle plugin, Java 21 toolchain, UTF-8, Parchment, NeoForge version from `gradle.properties`, the `mods {}` binding, the four run configs, JUnit 5, the `generateModMetadata` task and `src/generated/resources` as a resource dir. Applied during implementation: the run configs moved from the subprojects into the shared block because all four were identical.
 Alternative: a buildSrc convention plugin. Rejected as too much machinery for four nearly identical projects.
 
 ### D3: Per mod metadata from a template per subproject
