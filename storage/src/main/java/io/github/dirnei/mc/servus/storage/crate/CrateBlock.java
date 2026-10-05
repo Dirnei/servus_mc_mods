@@ -1,0 +1,157 @@
+package io.github.dirnei.mc.servus.storage.crate;
+
+import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.lib.item.WrenchItem;
+import io.github.dirnei.mc.servus.lib.item.Wrenchable;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.BlockHitResult;
+
+/**
+ * Crate: right click inserts, double right click inserts all, left click takes
+ * (handled in the left click event so creative mode does not break it).
+ */
+public class CrateBlock extends BaseEntityBlock implements Wrenchable {
+
+    public static final MapCodec<CrateBlock> CODEC = simpleCodec(CrateBlock::new);
+    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+
+    public CrateBlock(Properties properties) {
+        super(properties);
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(FACING);
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
+
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new CrateBlockEntity(pos, state);
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (level.isClientSide()) {
+            return null;
+        }
+        return createTickerHelper(type, ServusStorageBlockEntities.CRATE.get(), CrateBlockEntity::serverTick);
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                              Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (stack.getItem() instanceof WrenchItem) {
+            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (stack.isEmpty() || !(level.getBlockEntity(pos) instanceof CrateBlockEntity crate)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (!crate.matches(stack)) {
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        }
+        if (!level.isClientSide()) {
+            boolean doubleClick = crate.registerRightClick(player, level);
+            insertHeld(crate, player, hand, stack);
+            if (doubleClick) {
+                insertAllMatching(crate, player);
+            }
+        }
+        return ItemInteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    private static void insertHeld(CrateBlockEntity crate, Player player, InteractionHand hand, ItemStack stack) {
+        int inserted = crate.insert(stack, false);
+        if (inserted > 0) {
+            stack.shrink(inserted);
+            player.setItemInHand(hand, stack);
+        }
+    }
+
+    private static void insertAllMatching(CrateBlockEntity crate, Player player) {
+        Inventory inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.items.size(); slot++) {
+            ItemStack stack = inventory.items.get(slot);
+            if (stack.isEmpty() || crate.isEmpty() || !crate.matches(stack)) {
+                continue;
+            }
+            int inserted = crate.insert(stack, false);
+            if (inserted > 0) {
+                stack.shrink(inserted);
+                inventory.setItem(slot, stack);
+            }
+        }
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof CrateBlockEntity crate) {
+            while (!crate.isEmpty()) {
+                Block.popResource(level, pos, crate.extract(crate.type().getMaxStackSize(), false));
+            }
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
+    public InteractionResult onWrench(UseOnContext context, BlockState state) {
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        Player player = context.getPlayer();
+        boolean dismantle = player != null && player.isShiftKeyDown();
+        if (!level.isClientSide()) {
+            if (dismantle) {
+                ItemStack drop = new ItemStack(this);
+                if (level.getBlockEntity(pos) instanceof CrateBlockEntity crate) {
+                    crate.saveToItem(drop, level.registryAccess());
+                    // Empty the crate first so onRemove does not spill the contents we just saved.
+                    crate.extract(Integer.MAX_VALUE, false);
+                    while (!crate.isEmpty()) {
+                        crate.extract(Integer.MAX_VALUE, false);
+                    }
+                }
+                Block.popResource(level, pos, drop);
+                level.removeBlock(pos, false);
+            } else {
+                level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);
+            }
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+}

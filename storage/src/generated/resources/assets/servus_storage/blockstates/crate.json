@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "servus_storage:block/crate",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "servus_storage:block/crate"
+    },
+    "facing=south": {
+      "model": "servus_storage:block/crate",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "servus_storage:block/crate",
+      "y": 270
+    }
+  }
+}
