@@ -17,5 +17,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.COPPER_DEPOSIT.get(), "Copper Deposit");
         add(ServusManufacturingBlocks.COAL_DEPOSIT.get(), "Coal Deposit");
         add(ServusManufacturingBlocks.STONE_DEPOSIT.get(), "Stone Deposit");
+        add(ServusManufacturingBlocks.BURNER_EXTRACTOR.get(), "Burner Extractor");
+        add(ServusManufacturingBlocks.BURNER_SMELTER.get(), "Burner Smelter");
     }
 }

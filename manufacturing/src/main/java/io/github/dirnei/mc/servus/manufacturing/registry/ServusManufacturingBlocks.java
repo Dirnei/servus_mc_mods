@@ -1,6 +1,9 @@
 package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -17,6 +20,11 @@ public final class ServusManufacturingBlocks {
     public static final DeferredBlock<Block> COAL_DEPOSIT = deposit("coal_deposit", MapColor.COLOR_BLACK);
     public static final DeferredBlock<Block> STONE_DEPOSIT = deposit("stone_deposit", MapColor.STONE);
 
+    public static final DeferredBlock<BurnerExtractorBlock> BURNER_EXTRACTOR =
+            BLOCKS.registerBlock("burner_extractor", BurnerExtractorBlock::new, machine());
+    public static final DeferredBlock<BurnerSmelterBlock> BURNER_SMELTER =
+            BLOCKS.registerBlock("burner_smelter", BurnerSmelterBlock::new, machine());
+
     private ServusManufacturingBlocks() {
     }
 
@@ -26,5 +34,15 @@ public final class ServusManufacturingBlocks {
                 .mapColor(color)
                 .strength(-1.0F, 3600000.0F)
                 .sound(SoundType.STONE));
+    }
+
+    /** Shared properties of machine blocks: metal, pickaxe, glow when lit. */
+    public static BlockBehaviour.Properties machine() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.METAL)
+                .strength(3.5F)
+                .requiresCorrectToolForDrops()
+                .sound(SoundType.METAL)
+                .lightLevel(state -> state.getValue(MachineBlock.LIT) ? 13 : 0);
     }
 }

@@ -2,9 +2,13 @@ package io.github.dirnei.mc.servus.manufacturing;
 
 import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;
+import io.github.dirnei.mc.servus.manufacturing.machine.MachineStatsManager;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
@@ -18,6 +22,7 @@ public final class ServusManufacturingEvents {
     @SubscribeEvent
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(DepositManager.INSTANCE);
+        event.addListener(MachineStatsManager.INSTANCE);
     }
 
     /** Mod bus hooks. */
@@ -30,11 +35,16 @@ public final class ServusManufacturingEvents {
         @SubscribeEvent
         public static void onBuildCreativeTab(BuildCreativeModeTabContentsEvent event) {
             if (event.getTabKey().equals(ServusLibCreativeTabs.SERVUS_KEY)) {
-                event.accept(ServusManufacturingItems.IRON_DEPOSIT);
-                event.accept(ServusManufacturingItems.COPPER_DEPOSIT);
-                event.accept(ServusManufacturingItems.COAL_DEPOSIT);
-                event.accept(ServusManufacturingItems.STONE_DEPOSIT);
+                ServusManufacturingItems.CREATIVE_TAB_ORDER.forEach(event::accept);
             }
+        }
+
+        @SubscribeEvent
+        public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.BURNER_EXTRACTOR.get(),
+                    (machine, side) -> machine.sideHandler());
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.BURNER_SMELTER.get(),
+                    (machine, side) -> machine.sideHandler());
         }
     }
 }

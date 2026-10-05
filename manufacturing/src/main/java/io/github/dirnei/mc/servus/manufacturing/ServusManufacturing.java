@@ -1,7 +1,9 @@
 package io.github.dirnei.mc.servus.manufacturing;
 
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingMenus;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -19,6 +21,8 @@ public final class ServusManufacturing {
     public ServusManufacturing(IEventBus modEventBus, ModContainer container) {
         ServusManufacturingBlocks.BLOCKS.register(modEventBus);
         ServusManufacturingItems.ITEMS.register(modEventBus);
+        ServusManufacturingBlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        ServusManufacturingMenus.MENUS.register(modEventBus);
         LOGGER.info("Servus: Manufacturing loaded");
     }
 }

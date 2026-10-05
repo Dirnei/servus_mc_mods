@@ -1,4 +1,6 @@
 {
+  "block.servus_manufacturing.burner_extractor": "Burner Extractor",
+  "block.servus_manufacturing.burner_smelter": "Burner Smelter",
   "block.servus_manufacturing.coal_deposit": "Coal Deposit",
   "block.servus_manufacturing.copper_deposit": "Copper Deposit",
   "block.servus_manufacturing.iron_deposit": "Iron Deposit",
