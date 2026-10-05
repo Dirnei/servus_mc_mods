@@ -208,7 +208,11 @@ dependencies {
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
     runtimeOnly "maven.modrinth:jade:${jade_version}"
     runtimeOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
-    runtimeOnly "dev.ftb.mods:ftb-ultimine-neoforge:${ftb_ultimine_version}"
+    runtimeOnly("dev.ftb.mods:ftb-ultimine-neoforge:${ftb_ultimine_version}") {
+        // Only Ultimine itself; its metadata also lists Ranks and EZ Crystals.
+        exclude group: 'dev.ftb.mods', module: 'ftb-ranks-neoforge'
+        exclude group: 'dev.ftb.mods', module: 'ftb-ez-crystals'
+    }
 }
 
 tasks.named('jar').configure {
