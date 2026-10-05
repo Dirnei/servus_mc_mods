@@ -1,0 +1,22 @@
+{
+  "type": "servus_manufacturing:assembling",
+  "ingredients": [
+    {
+      "count": 4,
+      "item": "servus_manufacturing:iron_gear"
+    },
+    {
+      "count": 8,
+      "item": "servus_manufacturing:copper_wire"
+    },
+    {
+      "count": 1,
+      "item": "minecraft:ender_pearl"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_manufacturing:chunk_loader"
+  },
+  "time": 200
+}

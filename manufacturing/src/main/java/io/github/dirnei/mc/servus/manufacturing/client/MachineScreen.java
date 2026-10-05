@@ -21,6 +21,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         public static final Layout LAB = new Layout(false, true, true, gui("research_lab"));
         public static final Layout ELECTRIC = new Layout(false, true, true, gui("electric_extractor"));
         public static final Layout CRUSHER = new Layout(false, true, true, gui("crusher"));
+        public static final Layout LOADER = new Layout(false, false, true, gui("chunk_loader"));
 
         private static ResourceLocation gui(String name) {
             return ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "textures/gui/" + name + ".png");

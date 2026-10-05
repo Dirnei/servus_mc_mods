@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing;
 
 import io.github.dirnei.mc.servus.lib.network.NetworkTypes;
 import io.github.dirnei.mc.servus.manufacturing.cable.PowerCableNetwork;
+import io.github.dirnei.mc.servus.manufacturing.config.ServusManufacturingConfig;
 import io.github.dirnei.mc.servus.manufacturing.duct.ItemDuctNetwork;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
@@ -11,6 +12,7 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingReci
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +31,7 @@ public final class ServusManufacturing {
         ServusManufacturingMenus.MENUS.register(modEventBus);
         ServusManufacturingRecipes.RECIPE_TYPES.register(modEventBus);
         ServusManufacturingRecipes.RECIPE_SERIALIZERS.register(modEventBus);
+        container.registerConfig(ModConfig.Type.COMMON, ServusManufacturingConfig.SPEC);
         NetworkTypes.register(PowerCableNetwork.TYPE);
         NetworkTypes.register(ItemDuctNetwork.TYPE);
         LOGGER.info("Servus: Manufacturing loaded");

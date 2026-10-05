@@ -32,6 +32,15 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.RESEARCH_LAB.get(), "Research Lab");
         add(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(), "Electric Extractor");
         add(ServusManufacturingBlocks.CRUSHER.get(), "Crusher");
+        add(ServusManufacturingBlocks.CHUNK_LOADER.get(), "Chunk Loader");
+        add("gui.servus_manufacturing.chunk_loader.no_power", "Inactive: no power");
+        add("gui.servus_manufacturing.chunk_loader.active", "Active: chunk kept loaded");
+        add("gui.servus_manufacturing.chunk_loader.team_limit", "Inactive: team limit reached");
+        add("gui.servus_manufacturing.chunk_loader.ftb_chunks", "Inactive: use FTB Chunks");
+        add("gui.servus_manufacturing.chunk_loader.no_owner", "Inactive: no owner");
+        add("servus_manufacturing.configuration.chunkLoader", "Chunk Loader");
+        add("servus_manufacturing.configuration.maxChunkLoadersPerTeam", "Max chunk loaders per team");
+        add("servus_manufacturing.configuration.chunkLoaderRespectsFtbChunks", "Chunk loader respects FTB Chunks");
         add(ServusManufacturingItems.IRON_GRIT.get(), "Iron Grit");
         add(ServusManufacturingItems.COPPER_GRIT.get(), "Copper Grit");
         add("gui.servus_manufacturing.jei.crushing", "Crushing");

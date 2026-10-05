@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.menu.AssemblerMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerExtractorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerSmelterMenu;
+import io.github.dirnei.mc.servus.manufacturing.menu.ChunkLoaderMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.CrusherMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ElectricExtractorMenu;
@@ -37,6 +38,9 @@ public final class ServusManufacturingMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<CrusherMenu>> CRUSHER =
             MENUS.register("crusher", () -> IMenuTypeExtension.create(CrusherMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<ChunkLoaderMenu>> CHUNK_LOADER =
+            MENUS.register("chunk_loader", () -> IMenuTypeExtension.create(ChunkLoaderMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ResearchLabMenu>> RESEARCH_LAB =
             MENUS.register("research_lab", () -> IMenuTypeExtension.create(ResearchLabMenu::fromNetwork));
