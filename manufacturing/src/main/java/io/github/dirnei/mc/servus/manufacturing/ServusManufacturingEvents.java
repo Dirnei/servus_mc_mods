@@ -6,12 +6,18 @@ import io.github.dirnei.mc.servus.manufacturing.duct.ItemDuctBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStatsManager;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
+import io.github.dirnei.mc.servus.manufacturing.research.ResearchManager;
+import io.github.dirnei.mc.servus.manufacturing.research.TechDefinition;
+import io.github.dirnei.mc.servus.manufacturing.research.Techs;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 /** Game bus hooks of Servus: Manufacturing. */
 @EventBusSubscriber(modid = ServusManufacturingIds.MOD_ID)
@@ -24,6 +30,13 @@ public final class ServusManufacturingEvents {
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(DepositManager.INSTANCE);
         event.addListener(MachineStatsManager.INSTANCE);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            ResearchManager.syncPlayer(player);
+        }
     }
 
     /** Mod bus hooks. */
@@ -41,6 +54,11 @@ public final class ServusManufacturingEvents {
         }
 
         @SubscribeEvent
+        public static void onNewDatapackRegistries(DataPackRegistryEvent.NewRegistry event) {
+            event.dataPackRegistry(Techs.REGISTRY, TechDefinition.CODEC, TechDefinition.CODEC);
+        }
+
+        @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.BURNER_EXTRACTOR.get(),
                     (machine, side) -> machine.sideHandler());
@@ -53,6 +71,10 @@ public final class ServusManufacturingEvents {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.ASSEMBLER.get(),
                     (machine, side) -> machine.sideHandler());
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.ASSEMBLER.get(),
+                    (machine, side) -> machine.energyStorage());
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.RESEARCH_LAB.get(),
+                    (machine, side) -> machine.sideHandler());
+            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.RESEARCH_LAB.get(),
                     (machine, side) -> machine.energyStorage());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.ITEM_DUCT.get(),
                     ItemDuctBlockEntity::handlerFor);

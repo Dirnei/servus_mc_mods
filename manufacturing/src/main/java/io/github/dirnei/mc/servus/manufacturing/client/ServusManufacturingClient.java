@@ -20,5 +20,6 @@ public final class ServusManufacturingClient {
         event.register(ServusManufacturingMenus.BURNER_SMELTER.get(), MachineScreen::burner);
         event.register(ServusManufacturingMenus.COAL_GENERATOR.get(), MachineScreen::generator);
         event.register(ServusManufacturingMenus.ASSEMBLER.get(), AssemblerScreen::new);
+        event.register(ServusManufacturingMenus.RESEARCH_LAB.get(), ResearchLabScreen::new);
     }
 }

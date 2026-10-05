@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.manufacturing.menu.AssemblerMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerExtractorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerSmelterMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.CoalGeneratorMenu;
+import io.github.dirnei.mc.servus.manufacturing.menu.ResearchLabMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -27,6 +28,9 @@ public final class ServusManufacturingMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<AssemblerMenu>> ASSEMBLER =
             MENUS.register("assembler", () -> IMenuTypeExtension.create(AssemblerMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<ResearchLabMenu>> RESEARCH_LAB =
+            MENUS.register("research_lab", () -> IMenuTypeExtension.create(ResearchLabMenu::fromNetwork));
 
     private ServusManufacturingMenus() {
     }

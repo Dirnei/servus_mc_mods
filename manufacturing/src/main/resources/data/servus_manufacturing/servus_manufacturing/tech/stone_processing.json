@@ -1,0 +1,16 @@
+{
+  "icon": {
+    "id": "servus_manufacturing:stone_deposit"
+  },
+  "parents": [],
+  "cost": [
+    {
+      "id": "servus_manufacturing:red_pack",
+      "count": 10
+    }
+  ],
+  "ticks_per_pack": 100,
+  "unlocks": [
+    "servus_manufacturing:assembling/stone_brick"
+  ]
+}

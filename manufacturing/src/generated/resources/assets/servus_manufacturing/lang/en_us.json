@@ -8,8 +8,21 @@
   "block.servus_manufacturing.iron_deposit": "Iron Deposit",
   "block.servus_manufacturing.item_duct": "Item Duct",
   "block.servus_manufacturing.power_cable": "Power Cable",
+  "block.servus_manufacturing.research_lab": "Research Lab",
   "block.servus_manufacturing.stone_deposit": "Stone Deposit",
+  "gui.servus_manufacturing.locked": "Locked: requires research",
+  "gui.servus_manufacturing.no_research": "No research selected",
+  "gui.servus_manufacturing.research.available": "Available",
+  "gui.servus_manufacturing.research.completed": "Completed",
+  "gui.servus_manufacturing.research.locked": "Locked",
+  "gui.servus_manufacturing.research.researching": "Researching %s / %s",
+  "gui.servus_manufacturing.tech_tree": "Tech Tree",
   "item.servus_manufacturing.copper_wire": "Copper Wire",
   "item.servus_manufacturing.iron_gear": "Iron Gear",
-  "item.servus_manufacturing.red_pack": "Red Pack"
+  "item.servus_manufacturing.red_pack": "Red Pack",
+  "tech.servus_manufacturing.crusher": "Crusher",
+  "tech.servus_manufacturing.electric_extractor": "Electric Extractor",
+  "tech.servus_manufacturing.logistics": "Logistics",
+  "tech.servus_manufacturing.splitter_filter_ducts": "Splitter and Filter Ducts",
+  "tech.servus_manufacturing.stone_processing": "Stone Processing"
 }

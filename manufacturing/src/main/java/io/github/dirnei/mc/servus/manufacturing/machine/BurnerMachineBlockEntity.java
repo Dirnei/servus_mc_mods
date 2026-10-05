@@ -58,7 +58,7 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
             return false;
         }
         progress++;
-        if (progress >= stats().workTicks()) {
+        if (progress >= workTicks()) {
             progress = 0;
             finishWork();
         }

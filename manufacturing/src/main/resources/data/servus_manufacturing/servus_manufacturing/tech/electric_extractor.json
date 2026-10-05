@@ -1,0 +1,16 @@
+{
+  "icon": {
+    "id": "servus_manufacturing:burner_extractor"
+  },
+  "parents": [],
+  "cost": [
+    {
+      "id": "servus_manufacturing:red_pack",
+      "count": 10
+    }
+  ],
+  "ticks_per_pack": 100,
+  "unlocks": [
+    "servus_manufacturing:electric_extractor"
+  ]
+}

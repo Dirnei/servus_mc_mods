@@ -1,0 +1,18 @@
+{
+  "icon": {
+    "id": "minecraft:iron_pickaxe"
+  },
+  "parents": [
+    "servus_manufacturing:electric_extractor"
+  ],
+  "cost": [
+    {
+      "id": "servus_manufacturing:red_pack",
+      "count": 15
+    }
+  ],
+  "ticks_per_pack": 100,
+  "unlocks": [
+    "servus_manufacturing:crusher"
+  ]
+}

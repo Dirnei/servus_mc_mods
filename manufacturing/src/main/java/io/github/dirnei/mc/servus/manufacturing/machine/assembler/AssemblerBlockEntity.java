@@ -139,13 +139,21 @@ public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
         });
     }
 
+    /** The selected recipe's time; a missing recipe never completes. */
+    @Override
+    protected int workTicks() {
+        return selectedRecipe().map(holder -> Math.max(1, holder.value().time())).orElse(Integer.MAX_VALUE);
+    }
+
     @Override
     protected int getData(int index) {
-        return switch (index) {
-            case DATA_WORK_TICKS -> selectedRecipe().map(holder -> holder.value().time()).orElse(0);
-            case DATA_SELECTED_RECIPE -> selectedIndex();
-            default -> super.getData(index);
-        };
+        if (index == DATA_SELECTED_RECIPE) {
+            return selectedIndex();
+        }
+        if (index == DATA_WORK_TICKS) {
+            return selectedRecipe().map(holder -> holder.value().time()).orElse(0);
+        }
+        return super.getData(index);
     }
 
     private int selectedIndex() {

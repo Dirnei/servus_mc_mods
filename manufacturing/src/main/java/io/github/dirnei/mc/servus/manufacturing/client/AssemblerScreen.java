@@ -80,6 +80,9 @@ public class AssemblerScreen extends MachineScreen {
                 lines.add(Component.literal("  " + ingredient.count() + "x ").append(name));
             }
             lines.add(Component.literal(String.format("  %.1f s", recipe.time() / 20.0)));
+            if (!assemblerMenu().isUnlocked(hovered)) {
+                lines.add(Component.translatable("gui.servus_manufacturing.locked"));
+            }
             guiGraphics.renderComponentTooltip(font, lines, mouseX, mouseY);
         }
     }
@@ -97,7 +100,9 @@ public class AssemblerScreen extends MachineScreen {
         for (int i = 0; i < recipes.size(); i++) {
             int cx = cellX(i);
             int cy = cellY(i);
-            if (i == selected) {
+            if (!assemblerMenu().isUnlocked(i)) {
+                guiGraphics.fill(cx, cy, cx + CELL, cy + CELL, 0xFF404040);
+            } else if (i == selected) {
                 guiGraphics.fill(cx, cy, cx + CELL, cy + CELL, 0xFF60C060);
             } else if (i == hovered) {
                 guiGraphics.fill(cx, cy, cx + CELL, cy + CELL, 0xFFFFFFFF);
@@ -111,6 +116,9 @@ public class AssemblerScreen extends MachineScreen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         int clicked = cellAt(mouseX, mouseY);
+        if (clicked >= 0 && !assemblerMenu().isUnlocked(clicked)) {
+            return true;
+        }
         if (clicked >= 0 && minecraft != null && minecraft.gameMode != null) {
             int id = clicked == assemblerMenu().selectedIndex() ? assemblerMenu().recipes().size() : clicked;
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);

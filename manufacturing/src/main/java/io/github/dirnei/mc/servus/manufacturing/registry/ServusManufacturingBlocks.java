@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.cable.PowerCableBlock;
 import io.github.dirnei.mc.servus.manufacturing.duct.ItemDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlock;
@@ -32,6 +33,8 @@ public final class ServusManufacturingBlocks {
             BLOCKS.registerBlock("coal_generator", CoalGeneratorBlock::new, machine());
     public static final DeferredBlock<AssemblerBlock> ASSEMBLER =
             BLOCKS.registerBlock("assembler", AssemblerBlock::new, machine());
+    public static final DeferredBlock<ResearchLabBlock> RESEARCH_LAB =
+            BLOCKS.registerBlock("research_lab", ResearchLabBlock::new, machine());
 
     public static final DeferredBlock<PowerCableBlock> POWER_CABLE =
             BLOCKS.registerBlock("power_cable", PowerCableBlock::new, connectable(MapColor.COLOR_ORANGE));

@@ -4,6 +4,7 @@
     "servus_manufacturing:burner_smelter",
     "servus_manufacturing:coal_generator",
     "servus_manufacturing:assembler",
+    "servus_manufacturing:research_lab",
     "servus_manufacturing:power_cable",
     "servus_manufacturing:item_duct"
   ]

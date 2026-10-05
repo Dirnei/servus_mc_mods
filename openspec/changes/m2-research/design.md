@@ -49,7 +49,9 @@ APIs verified in the NeoForge 21.1.255 sources:
 ## Pure Java vs Minecraft
 
 - Pure Java, JUnit tested: `ResearchState`.
-- Minecraft, verified by server runs over RCON (place a lab as a fake player is impossible, so the owner is set through `data merge`; research started through a server side command path is not available either, so the test calls `ResearchManager.start` indirectly by merging `current` into the saved state is not possible from commands). Verification therefore: unit tests for the rules, server start with five techs loaded (log line), client launch for screens, and a manual in game check. Added to the manual checklist for the playtest.
+- Minecraft, verified end to end on a dev server: the saved data file `world/data/servus_research.dat` was seeded with a team that has a current research, a lab got that team as owner through `data merge`, and ten packs completed the research in the expected 50 seconds with the completion logged. The tech tree screen and the sync payloads are checked manually in the playtest.
+
+Applied during implementation: the powered and burner bases used the generic `work_ticks` stat for the cycle length, so the lab and assembler finished every tick. `MachineBlockEntity.workTicks()` is now overridable; the assembler returns the recipe time and the lab the tech's ticks per pack, and both tick logic and display use it.
 
 ## PLAN.md decisions settled
 

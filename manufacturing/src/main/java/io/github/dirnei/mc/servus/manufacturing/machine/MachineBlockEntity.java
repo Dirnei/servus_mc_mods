@@ -114,6 +114,11 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         stats = null;
     }
 
+    /** Ticks per work cycle. Machines whose time depends on a recipe or tech override this. */
+    protected int workTicks() {
+        return stats().workTicks();
+    }
+
     public ItemStackHandler inventory() {
         return inventory;
     }
@@ -139,7 +144,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     protected int getData(int index) {
         return switch (index) {
             case DATA_PROGRESS -> progress;
-            case DATA_WORK_TICKS -> stats().workTicks();
+            case DATA_WORK_TICKS -> workTicks();
             default -> 0;
         };
     }
