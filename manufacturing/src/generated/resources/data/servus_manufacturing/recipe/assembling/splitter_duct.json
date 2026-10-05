@@ -1,0 +1,19 @@
+{
+  "type": "servus_manufacturing:assembling",
+  "ingredients": [
+    {
+      "count": 4,
+      "item": "servus_manufacturing:item_duct"
+    },
+    {
+      "count": 1,
+      "item": "servus_manufacturing:iron_gear"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "servus_manufacturing:splitter_duct"
+  },
+  "tech": "servus_manufacturing:splitter_filter_ducts",
+  "time": 40
+}

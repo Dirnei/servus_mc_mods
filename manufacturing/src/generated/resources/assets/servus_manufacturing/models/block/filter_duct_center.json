@@ -1,0 +1,40 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#skin"
+        },
+        "east": {
+          "texture": "#skin"
+        },
+        "north": {
+          "texture": "#skin"
+        },
+        "south": {
+          "texture": "#skin"
+        },
+        "up": {
+          "texture": "#skin"
+        },
+        "west": {
+          "texture": "#skin"
+        }
+      },
+      "from": [
+        4,
+        4,
+        4
+      ],
+      "to": [
+        12,
+        12,
+        12
+      ]
+    }
+  ],
+  "textures": {
+    "particle": "servus_manufacturing:block/filter_duct",
+    "skin": "servus_manufacturing:block/filter_duct"
+  }
+}

@@ -93,6 +93,10 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.energyStorage());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.ITEM_DUCT.get(),
                     ItemDuctBlockEntity::handlerFor);
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.SPLITTER_DUCT.get(),
+                    ItemDuctBlockEntity::handlerFor);
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.FILTER_DUCT.get(),
+                    ItemDuctBlockEntity::handlerFor);
         }
     }
 }

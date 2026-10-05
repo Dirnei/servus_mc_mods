@@ -24,6 +24,8 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.POWER_CABLE.get(), "Power Cable");
         add(ServusManufacturingBlocks.ASSEMBLER.get(), "Assembler Mk1");
         add(ServusManufacturingBlocks.ITEM_DUCT.get(), "Item Duct");
+        add(ServusManufacturingBlocks.SPLITTER_DUCT.get(), "Splitter Duct");
+        add(ServusManufacturingBlocks.FILTER_DUCT.get(), "Filter Duct");
         add(ServusManufacturingItems.IRON_GEAR.get(), "Iron Gear");
         add(ServusManufacturingItems.COPPER_WIRE.get(), "Copper Wire");
         add(ServusManufacturingItems.RED_PACK.get(), "Red Pack");

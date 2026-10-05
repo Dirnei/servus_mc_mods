@@ -146,6 +146,20 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .tech("stone_processing")
                 .save(output, "glass");
 
+        assembling(ServusManufacturingItems.SPLITTER_DUCT.get(), 4)
+                .requires(ServusManufacturingItems.ITEM_DUCT.get(), 4)
+                .requires(ServusManufacturingItems.IRON_GEAR.get(), 1)
+                .time(40)
+                .tech("splitter_filter_ducts")
+                .save(output, "splitter_duct");
+
+        assembling(ServusManufacturingItems.FILTER_DUCT.get(), 4)
+                .requires(ServusManufacturingItems.ITEM_DUCT.get(), 4)
+                .requires(ServusManufacturingItems.COPPER_WIRE.get(), 2)
+                .time(40)
+                .tech("splitter_filter_ducts")
+                .save(output, "filter_duct");
+
         assembling(ServusManufacturingItems.RED_PACK.get(), 1)
                 .requires(ServusManufacturingItems.IRON_GEAR.get(), 1)
                 .requires(ServusManufacturingItems.COPPER_WIRE.get(), 2)

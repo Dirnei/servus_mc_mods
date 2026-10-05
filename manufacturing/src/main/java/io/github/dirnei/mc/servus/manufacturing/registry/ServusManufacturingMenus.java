@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.manufacturing.menu.BurnerSmelterMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.CrusherMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ElectricExtractorMenu;
+import io.github.dirnei.mc.servus.manufacturing.menu.FilterDuctMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ResearchLabMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -39,6 +40,9 @@ public final class ServusManufacturingMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<ResearchLabMenu>> RESEARCH_LAB =
             MENUS.register("research_lab", () -> IMenuTypeExtension.create(ResearchLabMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<FilterDuctMenu>> FILTER_DUCT =
+            MENUS.register("filter_duct", () -> IMenuTypeExtension.create(FilterDuctMenu::fromNetwork));
 
     private ServusManufacturingMenus() {
     }

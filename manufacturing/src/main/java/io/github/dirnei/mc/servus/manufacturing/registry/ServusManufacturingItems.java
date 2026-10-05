@@ -25,6 +25,8 @@ public final class ServusManufacturingItems {
     public static final DeferredItem<BlockItem> RESEARCH_LAB = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.RESEARCH_LAB);
     public static final DeferredItem<BlockItem> POWER_CABLE = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.POWER_CABLE);
     public static final DeferredItem<BlockItem> ITEM_DUCT = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ITEM_DUCT);
+    public static final DeferredItem<BlockItem> SPLITTER_DUCT = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.SPLITTER_DUCT);
+    public static final DeferredItem<BlockItem> FILTER_DUCT = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.FILTER_DUCT);
 
     public static final DeferredItem<Item> IRON_GEAR = ITEMS.registerSimpleItem("iron_gear");
     public static final DeferredItem<Item> COPPER_WIRE = ITEMS.registerSimpleItem("copper_wire");
@@ -34,7 +36,7 @@ public final class ServusManufacturingItems {
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(
-            BURNER_EXTRACTOR, BURNER_SMELTER, ELECTRIC_EXTRACTOR, CRUSHER, COAL_GENERATOR, ASSEMBLER, RESEARCH_LAB, POWER_CABLE, ITEM_DUCT,
+            BURNER_EXTRACTOR, BURNER_SMELTER, ELECTRIC_EXTRACTOR, CRUSHER, COAL_GENERATOR, ASSEMBLER, RESEARCH_LAB, POWER_CABLE, ITEM_DUCT, SPLITTER_DUCT, FILTER_DUCT,
             IRON_GEAR, COPPER_WIRE, RED_PACK, IRON_GRIT, COPPER_GRIT,
             IRON_DEPOSIT, COPPER_DEPOSIT, COAL_DEPOSIT, STONE_DEPOSIT);
 

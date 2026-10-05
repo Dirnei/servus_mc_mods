@@ -38,6 +38,8 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
 
         connectable(ServusManufacturingBlocks.POWER_CABLE.get(), "power_cable", 3);
         connectable(ServusManufacturingBlocks.ITEM_DUCT.get(), "item_duct", 4);
+        connectable(ServusManufacturingBlocks.SPLITTER_DUCT.get(), "splitter_duct", 4);
+        connectable(ServusManufacturingBlocks.FILTER_DUCT.get(), "filter_duct", 4);
     }
 
     private void cubeAllWithItem(Block block) {

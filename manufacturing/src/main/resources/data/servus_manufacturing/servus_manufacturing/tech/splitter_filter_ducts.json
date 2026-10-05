@@ -1,6 +1,6 @@
 {
   "icon": {
-    "id": "servus_manufacturing:item_duct"
+    "id": "servus_manufacturing:filter_duct"
   },
   "parents": [],
   "cost": [
@@ -11,7 +11,7 @@
   ],
   "ticks_per_pack": 100,
   "unlocks": [
-    "servus_manufacturing:splitter_duct",
-    "servus_manufacturing:filter_duct"
+    "servus_manufacturing:assembling/splitter_duct",
+    "servus_manufacturing:assembling/filter_duct"
   ]
 }

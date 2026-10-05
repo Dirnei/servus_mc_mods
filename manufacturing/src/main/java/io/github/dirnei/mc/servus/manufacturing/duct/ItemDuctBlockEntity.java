@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.duct;
 
+import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.lib.network.NetworkBlockEntity;
 import io.github.dirnei.mc.servus.lib.network.NetworkManager;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
@@ -10,6 +11,7 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 
@@ -20,7 +22,11 @@ public class ItemDuctBlockEntity extends NetworkBlockEntity<ItemDuctBlockEntity>
     private IItemHandler unsidedHandler;
 
     public ItemDuctBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusManufacturingBlockEntities.ITEM_DUCT.get(), pos, state);
+        this(ServusManufacturingBlockEntities.ITEM_DUCT.get(), pos, state);
+    }
+
+    protected ItemDuctBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
     @Override
@@ -38,8 +44,7 @@ public class ItemDuctBlockEntity extends NetworkBlockEntity<ItemDuctBlockEntity>
         if (!(level instanceof ServerLevel server)) {
             return Optional.empty();
         }
-        return NetworkManager.of(server).set(ItemDuctNetwork.TYPE).networkAt(
-                io.github.dirnei.mc.servus.lib.network.Conversions.toNodePos(worldPosition));
+        return NetworkManager.of(server).set(ItemDuctNetwork.TYPE).networkAt(Conversions.toNodePos(worldPosition));
     }
 
     /**
