@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "servus_storage:block/rack",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "servus_storage:block/rack"
+    },
+    "facing=south": {
+      "model": "servus_storage:block/rack",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "servus_storage:block/rack",
+      "y": 270
+    }
+  }
+}

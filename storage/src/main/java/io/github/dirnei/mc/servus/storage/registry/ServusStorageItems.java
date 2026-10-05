@@ -12,9 +12,10 @@ public final class ServusStorageItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ServusStorageIds.MOD_ID);
 
     public static final DeferredItem<BlockItem> CRATE = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.CRATE);
+    public static final DeferredItem<BlockItem> RACK = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.RACK);
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, RACK);
 
     private ServusStorageItems() {
     }

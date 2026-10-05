@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.Block;
 
 final class ServusStorageBlockLoot extends BlockLootSubProvider {
 
-    private static final List<Block> SELF_DROPPING = List.of(ServusStorageBlocks.CRATE.get());
+    private static final List<Block> SELF_DROPPING = List.of(ServusStorageBlocks.CRATE.get(), ServusStorageBlocks.RACK.get());
 
     ServusStorageBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

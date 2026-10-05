@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.registry;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
+import io.github.dirnei.mc.servus.storage.rack.RackBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -16,6 +17,12 @@ public final class ServusStorageBlocks {
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
+                    .sound(SoundType.WOOD));
+
+    public static final DeferredBlock<RackBlock> RACK = BLOCKS.registerBlock("rack", RackBlock::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F)
                     .sound(SoundType.WOOD));
 
     private ServusStorageBlocks() {

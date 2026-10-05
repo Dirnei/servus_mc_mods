@@ -1,5 +1,6 @@
 {
   "values": [
-    "servus_storage:crate"
+    "servus_storage:crate",
+    "servus_storage:rack"
   ]
 }
