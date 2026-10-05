@@ -31,3 +31,6 @@ Thumbs.db
 # Logs and local files
 *.log
 *.launch
+
+# Datagen cache
+**/src/generated/resources/.cache/

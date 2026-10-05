@@ -1,0 +1,6 @@
+{
+  "item.servus_lib.wrench": "Wrench",
+  "itemGroup.servus": "Servus",
+  "servus_lib.configuration.wrench": "Wrench",
+  "servus_lib.configuration.wrenchRotatesBlocks": "Wrench rotates blocks"
+}
