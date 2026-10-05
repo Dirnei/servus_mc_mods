@@ -107,7 +107,7 @@ public final class ServusManufacturingGameTests {
         BlockPos pos = new BlockPos(4, 2, z);
         helper.setBlock(pos, facing(ServusManufacturingBlocks.ASSEMBLER.get(), Direction.WEST));
         AssemblerBlockEntity assembler = helper.getBlockEntity(pos);
-        assembler.selectRecipe(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "assembling/" + recipe));
+        assembler.addRecipe(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "assembling/" + recipe), null);
         generator(helper, new BlockPos(5, 2, z));
     }
 

@@ -7,10 +7,12 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItem
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.IRecipeTransferRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -46,6 +48,12 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.ASSEMBLER.get()), ASSEMBLING);
+        registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.ASSEMBLER.get()), ASSEMBLING, RecipeTypes.CRAFTING);
+    }
+
+    @Override
+    public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
+        registration.addRecipeTransferHandler(new AssemblerRecipeTransferHandler<>(ASSEMBLING), ASSEMBLING);
+        registration.addRecipeTransferHandler(new AssemblerRecipeTransferHandler<>(RecipeTypes.CRAFTING), RecipeTypes.CRAFTING);
     }
 }

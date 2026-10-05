@@ -32,6 +32,14 @@ The assembler SHALL craft any of its configured recipes whose required items are
 - **WHEN** a configured recipe lacks an ingredient
 - **THEN** it is skipped and no energy is spent on it
 
+#### Scenario: Iron gear
+- **WHEN** iron gear is configured, four iron ingots are in the inputs, the machine has energy
+- **THEN** after 20 ticks one iron gear is in the output and two ingots remain, and after 20 more ticks a second gear is produced
+
+#### Scenario: No power
+- **WHEN** a configured recipe could be crafted but the energy buffer is empty
+- **THEN** progress does not advance and the inputs are untouched
+
 ### Requirement: Input slots accept only useful items
 The assembler SHALL accept into its input slots only items used by at least one configured recipe.
 
@@ -45,6 +53,10 @@ An assembling recipe with a `tech` field SHALL be refused when added until the p
 #### Scenario: Locked recipe
 - **WHEN** a recipe requires a tech the team has not completed and the player adds it
 - **THEN** it is refused and the action bar says research is needed
+
+#### Scenario: Unlocked after research
+- **WHEN** the team completes the tech
+- **THEN** the recipe can be added from then on
 
 ## ADDED Requirements
 

@@ -31,6 +31,18 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
 
         add("gui.servus_manufacturing.tech_tree", "Tech Tree");
         add("gui.servus_manufacturing.jei.assembling", "Assembling");
+        add("gui.servus_manufacturing.assembler.recipes", "Recipes");
+        add("gui.servus_manufacturing.assembler.add", "Add the recipe laid out in the pattern grid");
+        add("gui.servus_manufacturing.assembler.clear", "Clear the pattern grid");
+        add("gui.servus_manufacturing.assembler.remove", "Click to remove");
+        add("gui.servus_manufacturing.assembler.empty_slot", "Empty recipe slot. Lay out a recipe and press +, or use the JEI + button.");
+        add("message.servus_manufacturing.assembler.unknown", "Unknown recipe");
+        add("message.servus_manufacturing.assembler.unsupported", "The assembler cannot make this kind of recipe");
+        add("message.servus_manufacturing.assembler.empty_pattern", "Lay out a recipe in the pattern grid first");
+        add("message.servus_manufacturing.assembler.no_match", "No crafting or assembling recipe matches the pattern");
+        add("message.servus_manufacturing.assembler.duplicate", "This recipe is already configured");
+        add("message.servus_manufacturing.assembler.full", "All recipe slots of this assembler are in use");
+        add("message.servus_manufacturing.assembler.locked", "This recipe needs research first");
         add("gui.servus_manufacturing.side.front", "Front");
         add("gui.servus_manufacturing.side.back", "Back");
         add("gui.servus_manufacturing.side.left", "Left");

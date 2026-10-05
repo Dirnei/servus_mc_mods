@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.network;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.menu.AssemblerMenu;
 import io.github.dirnei.mc.servus.manufacturing.research.ClientResearch;
 import io.github.dirnei.mc.servus.manufacturing.research.ResearchManager;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,6 +26,13 @@ public final class ServusManufacturingNetwork {
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player) {
                         ResearchManager.start(player, payload.tech());
+                    }
+                });
+        registrar.playToServer(ConfigureRecipePayload.TYPE, ConfigureRecipePayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof AssemblerMenu menu) {
+                        menu.assembler().addRecipe(payload.recipe(), player);
                     }
                 });
     }
