@@ -35,12 +35,16 @@ The network SHALL poll at most `sources_per_tick` sources per tick (default 4, f
 The network SHALL answer counts per item, SHALL extract a requested amount of an item from its sources, and SHALL insert a stack preferring sources that already hold that item, then empty crates, then other storage nodes, then foreign inventories that already hold something.
 
 #### Scenario: Extract across sources
-- **WHEN** 70 cobblestone are requested and two sources hold 50 and 30
-- **THEN** 70 are returned and the index drops to 10
+- **WHEN** one stack of cobblestone is requested and two sources hold 50 and 30
+- **THEN** 64 are returned, taken from both sources, and the index drops to 16
 
-### Requirement: Info command
-`/servus_warehouse info <pos>` SHALL print the online state, source count and the indexed items with counts for the network containing the storage node at the position.
+### Requirement: Warehouse command
+`/servus_warehouse info <pos>` SHALL print the online state, source count and the indexed items with counts for the network containing the storage node at the position. `/servus_warehouse take <pos> <item> <count>` SHALL extract up to one stack of the item from that network and drop it above the position.
 
 #### Scenario: Op checks a warehouse
 - **WHEN** an op runs the command on a crate position
 - **THEN** chat lists each indexed item with its total
+
+#### Scenario: Op takes items
+- **WHEN** an op runs the take command for 64 cobblestone on a crate position
+- **THEN** a stack of up to 64 cobblestone drops above the crate and the index shrinks by that amount

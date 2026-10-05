@@ -21,7 +21,7 @@ Controller count is tracked in `onNodeAdded`, `onNodeRemoved` and `onAbsorb`. `s
 `extract(key, amount)`: iterate `sourcesHolding(key)`, extract matching stacks slot by slot until satisfied or a full stack is reached, mark those sources dirty. `insert(stack)`: holders of the key, then empty crates, then other node sources, then foreign sources whose snapshot is not empty (so item ducts and unused machines are not fed by accident); mark dirty.
 
 ### D5: Controller block and command
-`WarehouseControllerBlock` (horizontal facing, right click sends the summary with `displayClientMessage`). `ServusStorageCommands` registers `/servus_warehouse info <pos>` on `RegisterCommandsEvent`, permission level 2.
+`WarehouseControllerBlock` (horizontal facing, right click sends the summary with `displayClientMessage`). `ServusStorageCommands` registers `/servus_warehouse info <pos>` and `/servus_warehouse take <pos> <item> <count>` on `RegisterCommandsEvent`, permission level 2. Take drops the extracted stack above the position through `Block.popResource`, so extraction is testable over RCON.
 
 ### D6: Nodes report
 `StorageNodeBlockEntity` gains `network()`, `postDirty()` and a static `neighborsChanged(level, pos)`. Crate and rack call `postDirty()` from their change hooks; the three storage blocks override `neighborChanged` and call the static helper.
