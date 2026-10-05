@@ -19,6 +19,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         public static final Layout GENERATOR = new Layout(true, false, true, gui("burner_machine"));
         public static final Layout ASSEMBLER = new Layout(false, true, true, gui("assembler"));
         public static final Layout LAB = new Layout(false, true, true, gui("research_lab"));
+        public static final Layout ELECTRIC = new Layout(false, true, true, gui("electric_extractor"));
 
         private static ResourceLocation gui(String name) {
             return ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "textures/gui/" + name + ".png");
@@ -59,6 +60,10 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     public static MachineScreen burner(MachineMenu menu, Inventory playerInventory, Component title) {
         return new MachineScreen(menu, playerInventory, title, Layout.BURNER);
+    }
+
+    public static MachineScreen electric(MachineMenu menu, Inventory playerInventory, Component title) {
+        return new MachineScreen(menu, playerInventory, title, Layout.ELECTRIC);
     }
 
     public static MachineScreen generator(MachineMenu menu, Inventory playerInventory, Component title) {

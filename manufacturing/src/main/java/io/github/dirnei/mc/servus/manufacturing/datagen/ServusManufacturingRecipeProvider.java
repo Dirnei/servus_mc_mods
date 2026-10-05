@@ -107,6 +107,14 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .time(10)
                 .save(output, "copper_wire");
 
+        assembling(ServusManufacturingItems.ELECTRIC_EXTRACTOR.get(), 1)
+                .requires(ServusManufacturingItems.BURNER_EXTRACTOR.get(), 1)
+                .requires(ServusManufacturingItems.IRON_GEAR.get(), 4)
+                .requires(ServusManufacturingItems.COPPER_WIRE.get(), 6)
+                .time(200)
+                .tech("electric_extractor")
+                .save(output, "electric_extractor");
+
         assembling(ServusManufacturingItems.RED_PACK.get(), 1)
                 .requires(ServusManufacturingItems.IRON_GEAR.get(), 1)
                 .requires(ServusManufacturingItems.COPPER_WIRE.get(), 2)

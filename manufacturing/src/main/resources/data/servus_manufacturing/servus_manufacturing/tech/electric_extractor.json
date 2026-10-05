@@ -1,6 +1,6 @@
 {
   "icon": {
-    "id": "servus_manufacturing:burner_extractor"
+    "id": "servus_manufacturing:electric_extractor"
   },
   "parents": [],
   "cost": [
@@ -11,6 +11,6 @@
   ],
   "ticks_per_pack": 100,
   "unlocks": [
-    "servus_manufacturing:electric_extractor"
+    "servus_manufacturing:assembling/electric_extractor"
   ]
 }

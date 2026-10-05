@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.manufacturing.duct.ItemDuctBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
 import net.minecraft.core.registries.Registries;
@@ -36,6 +37,11 @@ public final class ServusManufacturingBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AssemblerBlockEntity>> ASSEMBLER =
             BLOCK_ENTITIES.register("assembler", () -> BlockEntityType.Builder
                     .of(AssemblerBlockEntity::new, ServusManufacturingBlocks.ASSEMBLER.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricExtractorBlockEntity>> ELECTRIC_EXTRACTOR =
+            BLOCK_ENTITIES.register("electric_extractor", () -> BlockEntityType.Builder
+                    .of(ElectricExtractorBlockEntity::new, ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ResearchLabBlockEntity>> RESEARCH_LAB =

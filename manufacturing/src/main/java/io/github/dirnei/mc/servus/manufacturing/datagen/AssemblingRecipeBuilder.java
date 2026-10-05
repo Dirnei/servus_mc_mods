@@ -17,6 +17,7 @@ final class AssemblingRecipeBuilder {
     private final List<SizedIngredient> ingredients = new ArrayList<>();
     private final ItemStack result;
     private int time = 20;
+    private Optional<ResourceLocation> tech = Optional.empty();
 
     private AssemblingRecipeBuilder(ItemStack result) {
         this.result = result;
@@ -36,8 +37,14 @@ final class AssemblingRecipeBuilder {
         return this;
     }
 
+    /** Requires the tech to be researched before the assembler accepts the recipe. */
+    AssemblingRecipeBuilder tech(String techPath) {
+        this.tech = Optional.of(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, techPath));
+        return this;
+    }
+
     void save(RecipeOutput output, String name) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "assembling/" + name);
-        output.accept(id, new AssemblingRecipe(List.copyOf(ingredients), result, time, Optional.empty()), null);
+        output.accept(id, new AssemblingRecipe(List.copyOf(ingredients), result, time, tech), null);
     }
 }

@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.manufacturing.duct.ItemDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtractorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlock;
 import net.minecraft.world.level.block.Block;
@@ -33,6 +34,8 @@ public final class ServusManufacturingBlocks {
             BLOCKS.registerBlock("coal_generator", CoalGeneratorBlock::new, machine());
     public static final DeferredBlock<AssemblerBlock> ASSEMBLER =
             BLOCKS.registerBlock("assembler", AssemblerBlock::new, machine());
+    public static final DeferredBlock<ElectricExtractorBlock> ELECTRIC_EXTRACTOR =
+            BLOCKS.registerBlock("electric_extractor", ElectricExtractorBlock::new, machine());
     public static final DeferredBlock<ResearchLabBlock> RESEARCH_LAB =
             BLOCKS.registerBlock("research_lab", ResearchLabBlock::new, machine());
 
