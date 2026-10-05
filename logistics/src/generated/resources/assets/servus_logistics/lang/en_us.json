@@ -1,0 +1,21 @@
+{
+  "block.servus_logistics.utility_duct": "Utility Duct",
+  "gui.servus_logistics.channel.energy": "Energy",
+  "gui.servus_logistics.channel.item": "Items",
+  "gui.servus_logistics.mode.auto": "In and out",
+  "gui.servus_logistics.mode.both": "In and out",
+  "gui.servus_logistics.mode.disabled": "Disabled",
+  "gui.servus_logistics.mode.input": "Pull in",
+  "gui.servus_logistics.mode.output": "Push out",
+  "gui.servus_logistics.no_channels": "No channels",
+  "gui.servus_logistics.remove": "Remove",
+  "gui.servus_logistics.side.down": "Down",
+  "gui.servus_logistics.side.east": "East",
+  "gui.servus_logistics.side.north": "North",
+  "gui.servus_logistics.side.south": "South",
+  "gui.servus_logistics.side.up": "Up",
+  "gui.servus_logistics.side.west": "West",
+  "gui.servus_logistics.utility_duct": "Utility Duct",
+  "item.servus_logistics.energy_channel": "Energy Channel",
+  "item.servus_logistics.item_channel": "Item Channel"
+}

@@ -1,0 +1,283 @@
+package io.github.dirnei.mc.servus.logistics.duct;
+
+import io.github.dirnei.mc.servus.lib.network.Conversions;
+import io.github.dirnei.mc.servus.lib.network.NetworkManager;
+import io.github.dirnei.mc.servus.lib.network.NetworkNode;
+import io.github.dirnei.mc.servus.lib.network.NetworkType;
+import io.github.dirnei.mc.servus.lib.network.core.ServusNetwork;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.logistics.network.DuctEvent;
+import io.github.dirnei.mc.servus.logistics.network.EnergyChannelNetwork;
+import io.github.dirnei.mc.servus.logistics.network.ItemChannelNetwork;
+import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlockEntities;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.items.IItemHandler;
+
+/**
+ * A utility duct: a set of channels, each with a mode per side. Each present
+ * channel joins its own network type, so items and energy form separate
+ * graphs through the same blocks.
+ */
+public class UtilityDuctBlockEntity extends BlockEntity {
+
+    private final EnumSet<Channel> channels = EnumSet.noneOf(Channel.class);
+    private final SideMode[][] modes = new SideMode[Channel.VALUES.length][Direction.values().length];
+    private final EnumSet<Channel> joined = EnumSet.noneOf(Channel.class);
+    private final Map<Channel, ChannelNode> nodes = new EnumMap<>(Channel.class);
+    private final Map<Direction, DuctItemHandler> itemHandlers = new EnumMap<>(Direction.class);
+
+    public UtilityDuctBlockEntity(BlockPos pos, BlockState state) {
+        super(ServusLogisticsBlockEntities.UTILITY_DUCT.get(), pos, state);
+        for (SideMode[] row : modes) {
+            java.util.Arrays.fill(row, SideMode.BOTH);
+        }
+        for (Channel channel : Channel.VALUES) {
+            nodes.put(channel, new ChannelNode(channel));
+        }
+    }
+
+    // Channels
+
+    public Set<Channel> channels() {
+        return channels;
+    }
+
+    public boolean has(Channel channel) {
+        return channels.contains(channel);
+    }
+
+    /** @return true when the channel was added */
+    public boolean addChannel(Channel channel) {
+        if (!channels.add(channel)) {
+            return false;
+        }
+        join(channel);
+        changed();
+        return true;
+    }
+
+    /** @return true when the channel was present */
+    public boolean removeChannel(Channel channel) {
+        if (!channels.remove(channel)) {
+            return false;
+        }
+        leave(channel);
+        changed();
+        return true;
+    }
+
+    // Modes
+
+    public SideMode mode(Channel channel, Direction side) {
+        return modes[channel.ordinal()][side.ordinal()];
+    }
+
+    public void setMode(Channel channel, Direction side, SideMode mode) {
+        if (mode == SideMode.AUTO) {
+            mode = SideMode.BOTH;
+        }
+        if (modes[channel.ordinal()][side.ordinal()] == mode) {
+            return;
+        }
+        modes[channel.ordinal()][side.ordinal()] = mode;
+        changed();
+        network(channel).ifPresent(network -> network.post(new DuctEvent.ModesChanged(Conversions.toNodePos(worldPosition))));
+    }
+
+    /** The next mode in the duct cycle: both, input, output, disabled. */
+    public static SideMode cycle(SideMode mode) {
+        return switch (mode) {
+            case BOTH, AUTO -> SideMode.INPUT;
+            case INPUT -> SideMode.OUTPUT;
+            case OUTPUT -> SideMode.DISABLED;
+            case DISABLED -> SideMode.BOTH;
+        };
+    }
+
+    private void changed() {
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            if (getBlockState().getBlock() instanceof UtilityDuctBlock duct) {
+                duct.refreshConnections(level, worldPosition);
+            }
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    // Capabilities
+
+    /** Item handler shown to the neighbour on {@code side}, null without an item channel. */
+    public IItemHandler itemHandler(Direction side) {
+        if (!has(Channel.ITEM) || side == null) {
+            return null;
+        }
+        return itemHandlers.computeIfAbsent(side, s -> new DuctItemHandler(this, s));
+    }
+
+    // Networks
+
+    @SuppressWarnings("unchecked")
+    public <T extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent>> Optional<T> network(Channel channel) {
+        if (!(level instanceof ServerLevel server)) {
+            return Optional.empty();
+        }
+        NetworkType<UtilityDuctBlockEntity, DuctEvent, T> type = (NetworkType<UtilityDuctBlockEntity, DuctEvent, T>) typeOf(channel);
+        return NetworkManager.of(server).set(type).networkAt(Conversions.toNodePos(worldPosition));
+    }
+
+    private static NetworkType<UtilityDuctBlockEntity, DuctEvent, ?> typeOf(Channel channel) {
+        return channel == Channel.ITEM ? ItemChannelNetwork.TYPE : EnergyChannelNetwork.TYPE;
+    }
+
+    private void join(Channel channel) {
+        if (level instanceof ServerLevel server && !isRemoved() && joined.add(channel)) {
+            NetworkManager.of(server).join(worldPosition, nodes.get(channel));
+        }
+    }
+
+    private void leave(Channel channel) {
+        if (level instanceof ServerLevel server && joined.remove(channel)) {
+            NetworkManager.of(server).leave(worldPosition, nodes.get(channel));
+        }
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        for (Channel channel : channels) {
+            join(channel);
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        for (Channel channel : Channel.VALUES) {
+            leave(channel);
+        }
+        super.setRemoved();
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        for (Channel channel : Channel.VALUES) {
+            leave(channel);
+        }
+    }
+
+    /** Adapter so one block entity can sit in two network types. */
+    private final class ChannelNode implements NetworkNode<UtilityDuctBlockEntity> {
+
+        private final Channel channel;
+
+        private ChannelNode(Channel channel) {
+            this.channel = channel;
+        }
+
+        @Override
+        public NetworkType<UtilityDuctBlockEntity, ?, ?> networkType() {
+            return typeOf(channel);
+        }
+
+        @Override
+        public UtilityDuctBlockEntity networkNode() {
+            return UtilityDuctBlockEntity.this;
+        }
+    }
+
+    // Persistence and sync
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        ListTag list = new ListTag();
+        channels.forEach(channel -> list.add(StringTag.valueOf(channel.id())));
+        tag.put("Channels", list);
+        CompoundTag all = new CompoundTag();
+        for (Channel channel : Channel.VALUES) {
+            CompoundTag perSide = new CompoundTag();
+            for (Direction direction : Direction.values()) {
+                SideMode mode = mode(channel, direction);
+                if (mode != SideMode.BOTH) {
+                    perSide.putString(direction.getSerializedName(), mode.name().toLowerCase(Locale.ROOT));
+                }
+            }
+            if (!perSide.isEmpty()) {
+                all.put(channel.id(), perSide);
+            }
+        }
+        tag.put("Modes", all);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        channels.clear();
+        for (Tag entry : tag.getList("Channels", Tag.TAG_STRING)) {
+            Channel channel = Channel.byId(entry.getAsString());
+            if (channel != null) {
+                channels.add(channel);
+            }
+        }
+        for (SideMode[] row : modes) {
+            java.util.Arrays.fill(row, SideMode.BOTH);
+        }
+        CompoundTag all = tag.getCompound("Modes");
+        for (Channel channel : Channel.VALUES) {
+            CompoundTag perSide = all.getCompound(channel.id());
+            for (Direction direction : Direction.values()) {
+                String name = perSide.getString(direction.getSerializedName());
+                if (!name.isEmpty()) {
+                    try {
+                        modes[channel.ordinal()][direction.ordinal()] = SideMode.valueOf(name.toUpperCase(Locale.ROOT));
+                    } catch (IllegalArgumentException ignored) {
+                        // Unknown mode names fall back to BOTH.
+                    }
+                }
+            }
+        }
+        if (level instanceof ServerLevel) {
+            // A data merge or reload changed channels and modes while loaded: reconcile memberships.
+            for (Channel channel : Channel.VALUES) {
+                if (channels.contains(channel)) {
+                    join(channel);
+                    network(channel).ifPresent(network ->
+                            network.post(new DuctEvent.ModesChanged(Conversions.toNodePos(worldPosition))));
+                } else {
+                    leave(channel);
+                }
+            }
+        }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        saveAdditional(tag, registries);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+}

@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.manufacturing.connectable;
+package io.github.dirnei.mc.servus.lib.block;
 
 import io.github.dirnei.mc.servus.lib.item.WrenchItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;

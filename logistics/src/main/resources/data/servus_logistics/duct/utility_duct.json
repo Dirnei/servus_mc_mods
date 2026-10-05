@@ -1,0 +1,6 @@
+{
+  "items_per_tick": 16,
+  "items_per_pull": 8,
+  "pull_interval": 8,
+  "energy_per_tick": 512
+}

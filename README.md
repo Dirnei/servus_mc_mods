@@ -67,6 +67,12 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 4. Counter Terminal: glass, iron, chest and planks. Opens the stock view: type to search, click to pull a stack to the cursor, shift click to pull into the inventory, click the grid with a carried stack or shift click an inventory slot to store.
 5. Ops can inspect any warehouse with `/servus_warehouse info <x> <y> <z>` on a storage block.
 
+## Logistics playtest guide
+
+1. Item Channel (iron, glass, chest) and Energy Channel (copper, redstone, glass) place a Utility Duct carrying that channel. Use a channel item on an existing duct to add the other channel.
+2. Right click a duct to open its side configuration: per channel and per side choose in and out, pull in, push out or disabled. Pull in actively empties the neighbouring inventory; push out delivers. Remove buttons take a channel back out.
+3. Sneak wrench removes a duct and drops its channels.
+
 The wrench rotates machines and sneak wrench dismantles them. Balance numbers live in `manufacturing/src/main/resources/data/servus_manufacturing/machine/` and the deposit, recipe and tech JSON files next to them.
 
 ## Development workflow

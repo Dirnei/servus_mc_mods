@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.duct;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.manufacturing.connectable.ConnectableBlock;
+import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;

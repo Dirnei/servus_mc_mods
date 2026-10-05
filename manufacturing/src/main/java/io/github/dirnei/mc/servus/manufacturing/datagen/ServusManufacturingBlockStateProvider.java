@@ -1,18 +1,16 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.connectable.ConnectableBlock;
+import io.github.dirnei.mc.servus.lib.datagen.ConnectableModels;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
@@ -66,31 +64,6 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
 
     /** Multipart cable or duct: a centre cube plus one arm per connected side. */
     private void connectable(Block block, String name, int radius) {
-        int lo = 8 - radius;
-        int hi = 8 + radius;
-        ResourceLocation texture = modLoc("block/" + name);
-        BlockModelBuilder center = models().getBuilder(name + "_center")
-                .texture("particle", texture).texture("skin", texture)
-                .element().from(lo, lo, lo).to(hi, hi, hi)
-                .allFaces((direction, face) -> face.texture("#skin")).end();
-        BlockModelBuilder arm = models().getBuilder(name + "_arm")
-                .texture("particle", texture).texture("skin", texture)
-                .element().from(lo, lo, 0).to(hi, hi, lo)
-                .allFaces((direction, face) -> face.texture("#skin")).end();
-        BlockModelBuilder inventory = models().getBuilder(name + "_inventory")
-                .texture("particle", texture).texture("skin", texture)
-                .element().from(lo, lo, 0).to(hi, hi, 16)
-                .allFaces((direction, face) -> face.texture("#skin")).end();
-
-        MultiPartBlockStateBuilder builder = getMultipartBuilder(block);
-        builder.part().modelFile(center).addModel();
-        builder.part().modelFile(arm).addModel().condition(ConnectableBlock.NORTH, true);
-        builder.part().modelFile(arm).rotationY(90).addModel().condition(ConnectableBlock.EAST, true);
-        builder.part().modelFile(arm).rotationY(180).addModel().condition(ConnectableBlock.SOUTH, true);
-        builder.part().modelFile(arm).rotationY(270).addModel().condition(ConnectableBlock.WEST, true);
-        builder.part().modelFile(arm).rotationX(270).addModel().condition(ConnectableBlock.UP, true);
-        builder.part().modelFile(arm).rotationX(90).addModel().condition(ConnectableBlock.DOWN, true);
-
-        simpleBlockItem(block, inventory);
+        ConnectableModels.connectable(this, block, name, radius, true);
     }
 }
