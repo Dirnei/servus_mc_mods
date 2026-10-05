@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "servus_storage:block/counter_terminal_front",
+    "side": "servus_storage:block/counter_terminal_side",
+    "top": "servus_storage:block/counter_terminal_top"
+  }
+}

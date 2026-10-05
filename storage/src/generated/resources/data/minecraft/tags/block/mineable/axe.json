@@ -1,6 +1,7 @@
 {
   "values": [
     "servus_storage:crate",
-    "servus_storage:rack"
+    "servus_storage:rack",
+    "servus_storage:counter_terminal"
   ]
 }

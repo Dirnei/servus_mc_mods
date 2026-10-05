@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "servus_storage:counter_terminal"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "servus_storage:blocks/counter_terminal"
+}

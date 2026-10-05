@@ -19,6 +19,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         oriented(ServusStorageBlocks.CRATE.get(), "crate");
         oriented(ServusStorageBlocks.RACK.get(), "rack");
         oriented(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "warehouse_controller");
+        oriented(ServusStorageBlocks.COUNTER_TERMINAL.get(), "counter_terminal");
     }
 
     /** Horizontal block with its own front texture, shared side and top. */

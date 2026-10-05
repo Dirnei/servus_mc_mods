@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.rack.RackBlock;
+import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -33,6 +34,13 @@ public final class ServusStorageBlocks {
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
                             .sound(SoundType.METAL));
+
+    public static final DeferredBlock<CounterTerminalBlock> COUNTER_TERMINAL =
+            BLOCKS.registerBlock("counter_terminal", CounterTerminalBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.WOOD)
+                            .strength(2.5F)
+                            .sound(SoundType.WOOD));
 
     private ServusStorageBlocks() {
     }

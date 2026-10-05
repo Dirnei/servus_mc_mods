@@ -59,6 +59,14 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 7. Researched machines are assembled, not hand crafted: Electric Extractor (twice as fast, powered), Crusher (ore to two grit, grit smelts to ingots), Splitter Duct (pulls from chests into the duct network) and Filter Duct (whitelist in its GUI). Stone Processing adds stone, stone bricks and glass recipes to the assembler.
 8. The Chunk Loader keeps its chunk running while powered. The per team limit and the FTB Chunks rule are in `config/servus_manufacturing-common.toml`.
 
+## Storage playtest guide
+
+1. Crate: planks around a chest. Right click with items to fill it (double right click empties your inventory of that item), left click to take a stack, sneak left click for one. It shows its item and count on the front.
+2. Shelving Rack: planks and sticks. Four compartments on the front; right click a compartment to put the held stack there, right click with an empty hand to take it.
+3. Warehouse Controller: iron, redstone, chest and planks. Touching crates, racks and terminals form a warehouse; chests and machines touching any of them are indexed too. Exactly one controller per warehouse. Right click it for a summary.
+4. Counter Terminal: glass, iron, chest and planks. Opens the stock view: type to search, click to pull a stack to the cursor, shift click to pull into the inventory, click the grid with a carried stack or shift click an inventory slot to store.
+5. Ops can inspect any warehouse with `/servus_warehouse info <x> <y> <z>` on a storage block.
+
 The wrench rotates machines and sneak wrench dismantles them. Balance numbers live in `manufacturing/src/main/resources/data/servus_manufacturing/machine/` and the deposit, recipe and tech JSON files next to them.
 
 ## Development workflow

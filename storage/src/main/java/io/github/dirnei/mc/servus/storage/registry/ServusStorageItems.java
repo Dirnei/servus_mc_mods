@@ -14,9 +14,10 @@ public final class ServusStorageItems {
     public static final DeferredItem<BlockItem> CRATE = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.CRATE);
     public static final DeferredItem<BlockItem> RACK = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.RACK);
     public static final DeferredItem<BlockItem> WAREHOUSE_CONTROLLER = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.WAREHOUSE_CONTROLLER);
+    public static final DeferredItem<BlockItem> COUNTER_TERMINAL = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.COUNTER_TERMINAL);
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, RACK, WAREHOUSE_CONTROLLER);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, RACK, WAREHOUSE_CONTROLLER, COUNTER_TERMINAL);
 
     private ServusStorageItems() {
     }

@@ -1,5 +1,11 @@
 {
+  "block.servus_storage.counter_terminal": "Counter Terminal",
   "block.servus_storage.crate": "Crate",
   "block.servus_storage.rack": "Shelving Rack",
-  "block.servus_storage.warehouse_controller": "Warehouse Controller"
+  "block.servus_storage.warehouse_controller": "Warehouse Controller",
+  "gui.servus_storage.search": "Search",
+  "gui.servus_storage.stored": "Stored: %s",
+  "gui.servus_storage.terminal.multiple_controllers": "Warehouse has more than one controller",
+  "gui.servus_storage.terminal.no_controller": "Warehouse has no controller",
+  "gui.servus_storage.terminal.not_connected": "Not connected to a warehouse"
 }

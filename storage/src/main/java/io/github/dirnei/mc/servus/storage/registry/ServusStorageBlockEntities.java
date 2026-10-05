@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.RackBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -27,6 +28,11 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WarehouseControllerBlockEntity>> WAREHOUSE_CONTROLLER =
             BLOCK_ENTITIES.register("warehouse_controller", () -> BlockEntityType.Builder
                     .of(WarehouseControllerBlockEntity::new, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CounterTerminalBlockEntity>> COUNTER_TERMINAL =
+            BLOCK_ENTITIES.register("counter_terminal", () -> BlockEntityType.Builder
+                    .of(CounterTerminalBlockEntity::new, ServusStorageBlocks.COUNTER_TERMINAL.get())
                     .build(null));
 
     private ServusStorageBlockEntities() {

@@ -13,7 +13,9 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import io.github.dirnei.mc.servus.storage.gametest.ServusStorageGameTests;
 
 /** Game bus hooks of Servus: Storage. */
 @EventBusSubscriber(modid = ServusStorageIds.MOD_ID)
@@ -57,6 +59,11 @@ public final class ServusStorageEvents {
             if (event.getTabKey().equals(ServusLibCreativeTabs.SERVUS_KEY)) {
                 ServusStorageItems.CREATIVE_TAB_ORDER.forEach(event::accept);
             }
+        }
+
+        @SubscribeEvent
+        public static void onRegisterGameTests(RegisterGameTestsEvent event) {
+            event.register(ServusStorageGameTests.class);
         }
 
         @SubscribeEvent
