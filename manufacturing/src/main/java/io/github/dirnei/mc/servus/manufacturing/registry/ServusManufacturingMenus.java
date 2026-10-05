@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.manufacturing.menu.AssemblerMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerExtractorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerSmelterMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.CoalGeneratorMenu;
+import io.github.dirnei.mc.servus.manufacturing.menu.CrusherMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ElectricExtractorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ResearchLabMenu;
 import net.minecraft.core.registries.Registries;
@@ -32,6 +33,9 @@ public final class ServusManufacturingMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<ElectricExtractorMenu>> ELECTRIC_EXTRACTOR =
             MENUS.register("electric_extractor", () -> IMenuTypeExtension.create(ElectricExtractorMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<CrusherMenu>> CRUSHER =
+            MENUS.register("crusher", () -> IMenuTypeExtension.create(CrusherMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ResearchLabMenu>> RESEARCH_LAB =
             MENUS.register("research_lab", () -> IMenuTypeExtension.create(ResearchLabMenu::fromNetwork));

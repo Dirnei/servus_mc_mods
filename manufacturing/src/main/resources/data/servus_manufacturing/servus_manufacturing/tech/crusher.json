@@ -1,6 +1,6 @@
 {
   "icon": {
-    "id": "minecraft:iron_pickaxe"
+    "id": "servus_manufacturing:crusher"
   },
   "parents": [
     "servus_manufacturing:electric_extractor"
@@ -13,6 +13,6 @@
   ],
   "ticks_per_pack": 100,
   "unlocks": [
-    "servus_manufacturing:crusher"
+    "servus_manufacturing:assembling/crusher"
   ]
 }

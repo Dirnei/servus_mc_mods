@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import static io.github.dirnei.mc.servus.manufacturing.datagen.AssemblingRecipeBuilder.assembling;
+import static io.github.dirnei.mc.servus.manufacturing.datagen.CrushingRecipeBuilder.crushing;
 
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import java.util.concurrent.CompletableFuture;
@@ -10,6 +11,8 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.Items;
 
 final class ServusManufacturingRecipeProvider extends RecipeProvider {
@@ -22,6 +25,8 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     protected void buildRecipes(RecipeOutput output) {
         crafting(output);
         assemblingRecipes(output);
+        crushingRecipes(output);
+        smeltingRecipes(output);
     }
 
     private void crafting(RecipeOutput output) {
@@ -115,10 +120,40 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .tech("electric_extractor")
                 .save(output, "electric_extractor");
 
+        assembling(ServusManufacturingItems.CRUSHER.get(), 1)
+                .requires(ServusManufacturingItems.ELECTRIC_EXTRACTOR.get(), 1)
+                .requires(ServusManufacturingItems.IRON_GEAR.get(), 4)
+                .requires(ServusManufacturingItems.COPPER_WIRE.get(), 6)
+                .time(200)
+                .tech("crusher")
+                .save(output, "crusher");
+
         assembling(ServusManufacturingItems.RED_PACK.get(), 1)
                 .requires(ServusManufacturingItems.IRON_GEAR.get(), 1)
                 .requires(ServusManufacturingItems.COPPER_WIRE.get(), 2)
                 .time(100)
                 .save(output, "red_pack");
+    }
+
+    private void crushingRecipes(RecipeOutput output) {
+        crushing(Items.RAW_IRON, 1, ServusManufacturingItems.IRON_GRIT.get(), 2).time(60).save(output, "raw_iron");
+        crushing(Items.RAW_COPPER, 1, ServusManufacturingItems.COPPER_GRIT.get(), 2).time(60).save(output, "raw_copper");
+        crushing(Items.COBBLESTONE, 1, Items.GRAVEL, 1).time(40).save(output, "cobblestone");
+        crushing(Items.GRAVEL, 1, Items.SAND, 1).time(40).save(output, "gravel");
+    }
+
+    private void smeltingRecipes(RecipeOutput output) {
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ServusManufacturingItems.IRON_GRIT.get()), RecipeCategory.MISC, Items.IRON_INGOT, 0.7F, 200)
+                .unlockedBy("has_iron_grit", has(ServusManufacturingItems.IRON_GRIT.get()))
+                .save(output, "servus_manufacturing:iron_ingot_from_grit_smelting");
+        SimpleCookingRecipeBuilder.blasting(Ingredient.of(ServusManufacturingItems.IRON_GRIT.get()), RecipeCategory.MISC, Items.IRON_INGOT, 0.7F, 100)
+                .unlockedBy("has_iron_grit", has(ServusManufacturingItems.IRON_GRIT.get()))
+                .save(output, "servus_manufacturing:iron_ingot_from_grit_blasting");
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ServusManufacturingItems.COPPER_GRIT.get()), RecipeCategory.MISC, Items.COPPER_INGOT, 0.7F, 200)
+                .unlockedBy("has_copper_grit", has(ServusManufacturingItems.COPPER_GRIT.get()))
+                .save(output, "servus_manufacturing:copper_ingot_from_grit_smelting");
+        SimpleCookingRecipeBuilder.blasting(Ingredient.of(ServusManufacturingItems.COPPER_GRIT.get()), RecipeCategory.MISC, Items.COPPER_INGOT, 0.7F, 100)
+                .unlockedBy("has_copper_grit", has(ServusManufacturingItems.COPPER_GRIT.get()))
+                .save(output, "servus_manufacturing:copper_ingot_from_grit_blasting");
     }
 }

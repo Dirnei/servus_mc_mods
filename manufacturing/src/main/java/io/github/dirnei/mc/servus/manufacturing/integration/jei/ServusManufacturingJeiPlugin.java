@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.integration.jei;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.recipe.AssemblingRecipe;
 import io.github.dirnei.mc.servus.manufacturing.recipe.AssemblingRecipes;
+import io.github.dirnei.mc.servus.manufacturing.recipe.CrushingRecipe;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import mezz.jei.api.IModPlugin;
@@ -27,6 +28,9 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
     public static final RecipeType<RecipeHolder<AssemblingRecipe>> ASSEMBLING =
             RecipeType.createRecipeHolderType(ServusManufacturingRecipes.ASSEMBLING_ID);
 
+    public static final RecipeType<RecipeHolder<CrushingRecipe>> CRUSHING =
+            RecipeType.createRecipeHolderType(ServusManufacturingRecipes.CRUSHING_ID);
+
     @Override
     public ResourceLocation getPluginUid() {
         return UID;
@@ -34,7 +38,9 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
-        registration.addRecipeCategories(new AssemblingRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(
+                new AssemblingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new CrushingRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
@@ -44,11 +50,13 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
             return;
         }
         registration.addRecipes(ASSEMBLING, AssemblingRecipes.sorted(minecraft.level));
+        registration.addRecipes(CRUSHING, minecraft.level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.CRUSHING.get()));
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.ASSEMBLER.get()), ASSEMBLING, RecipeTypes.CRAFTING);
+        registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.CRUSHER.get()), CRUSHING);
     }
 
     @Override

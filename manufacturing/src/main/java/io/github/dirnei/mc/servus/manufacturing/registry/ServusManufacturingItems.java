@@ -21,6 +21,7 @@ public final class ServusManufacturingItems {
     public static final DeferredItem<BlockItem> COAL_GENERATOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.COAL_GENERATOR);
     public static final DeferredItem<BlockItem> ASSEMBLER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ASSEMBLER);
     public static final DeferredItem<BlockItem> ELECTRIC_EXTRACTOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR);
+    public static final DeferredItem<BlockItem> CRUSHER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.CRUSHER);
     public static final DeferredItem<BlockItem> RESEARCH_LAB = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.RESEARCH_LAB);
     public static final DeferredItem<BlockItem> POWER_CABLE = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.POWER_CABLE);
     public static final DeferredItem<BlockItem> ITEM_DUCT = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ITEM_DUCT);
@@ -28,11 +29,13 @@ public final class ServusManufacturingItems {
     public static final DeferredItem<Item> IRON_GEAR = ITEMS.registerSimpleItem("iron_gear");
     public static final DeferredItem<Item> COPPER_WIRE = ITEMS.registerSimpleItem("copper_wire");
     public static final DeferredItem<Item> RED_PACK = ITEMS.registerSimpleItem("red_pack");
+    public static final DeferredItem<Item> IRON_GRIT = ITEMS.registerSimpleItem("iron_grit");
+    public static final DeferredItem<Item> COPPER_GRIT = ITEMS.registerSimpleItem("copper_grit");
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(
-            BURNER_EXTRACTOR, BURNER_SMELTER, ELECTRIC_EXTRACTOR, COAL_GENERATOR, ASSEMBLER, RESEARCH_LAB, POWER_CABLE, ITEM_DUCT,
-            IRON_GEAR, COPPER_WIRE, RED_PACK,
+            BURNER_EXTRACTOR, BURNER_SMELTER, ELECTRIC_EXTRACTOR, CRUSHER, COAL_GENERATOR, ASSEMBLER, RESEARCH_LAB, POWER_CABLE, ITEM_DUCT,
+            IRON_GEAR, COPPER_WIRE, RED_PACK, IRON_GRIT, COPPER_GRIT,
             IRON_DEPOSIT, COPPER_DEPOSIT, COAL_DEPOSIT, STONE_DEPOSIT);
 
     private ServusManufacturingItems() {

@@ -17,5 +17,7 @@ final class ServusManufacturingItemModelProvider extends ItemModelProvider {
         basicItem(ServusManufacturingItems.IRON_GEAR.get());
         basicItem(ServusManufacturingItems.COPPER_WIRE.get());
         basicItem(ServusManufacturingItems.RED_PACK.get());
+        basicItem(ServusManufacturingItems.IRON_GRIT.get());
+        basicItem(ServusManufacturingItems.COPPER_GRIT.get());
     }
 }

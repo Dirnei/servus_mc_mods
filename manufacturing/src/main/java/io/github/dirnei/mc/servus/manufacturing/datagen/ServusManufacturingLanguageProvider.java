@@ -29,6 +29,10 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingItems.RED_PACK.get(), "Red Pack");
         add(ServusManufacturingBlocks.RESEARCH_LAB.get(), "Research Lab");
         add(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(), "Electric Extractor");
+        add(ServusManufacturingBlocks.CRUSHER.get(), "Crusher");
+        add(ServusManufacturingItems.IRON_GRIT.get(), "Iron Grit");
+        add(ServusManufacturingItems.COPPER_GRIT.get(), "Copper Grit");
+        add("gui.servus_manufacturing.jei.crushing", "Crushing");
 
         add("gui.servus_manufacturing.tech_tree", "Tech Tree");
         add("gui.servus_manufacturing.jei.assembling", "Assembling");

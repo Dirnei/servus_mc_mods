@@ -1,0 +1,12 @@
+{
+  "type": "servus_manufacturing:crushing",
+  "input": {
+    "count": 1,
+    "item": "minecraft:cobblestone"
+  },
+  "result": {
+    "count": 1,
+    "id": "minecraft:gravel"
+  },
+  "time": 40
+}

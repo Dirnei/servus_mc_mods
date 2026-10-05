@@ -22,5 +22,6 @@ public final class ServusManufacturingClient {
         event.register(ServusManufacturingMenus.ASSEMBLER.get(), AssemblerScreen::new);
         event.register(ServusManufacturingMenus.RESEARCH_LAB.get(), ResearchLabScreen::new);
         event.register(ServusManufacturingMenus.ELECTRIC_EXTRACTOR.get(), MachineScreen::electric);
+        event.register(ServusManufacturingMenus.CRUSHER.get(), MachineScreen::crusher);
     }
 }

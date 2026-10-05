@@ -34,6 +34,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         machine(ServusManufacturingBlocks.ASSEMBLER.get(), "assembler");
         machine(ServusManufacturingBlocks.RESEARCH_LAB.get(), "research_lab");
         machine(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(), "electric_extractor");
+        machine(ServusManufacturingBlocks.CRUSHER.get(), "crusher");
 
         connectable(ServusManufacturingBlocks.POWER_CABLE.get(), "power_cable", 3);
         connectable(ServusManufacturingBlocks.ITEM_DUCT.get(), "item_duct", 4);
