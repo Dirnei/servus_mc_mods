@@ -1,0 +1,8 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_overworld",
+  "features": [
+    "servus_manufacturing:coal_deposit"
+  ],
+  "step": "underground_ores"
+}

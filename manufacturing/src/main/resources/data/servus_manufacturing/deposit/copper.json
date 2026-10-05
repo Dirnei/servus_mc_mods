@@ -1,0 +1,7 @@
+{
+  "block": "servus_manufacturing:copper_deposit",
+  "yield": {
+    "id": "minecraft:raw_copper",
+    "count": 1
+  }
+}
