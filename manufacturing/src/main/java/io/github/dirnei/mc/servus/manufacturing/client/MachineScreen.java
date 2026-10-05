@@ -8,24 +8,26 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-/** Screen shared by all machines. The layout says which indicators to draw. */
+/** Screen shared by all machines. The layout says which indicators to draw and on which background. */
 public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
-    /** Which indicators a machine screen shows. */
-    public record Layout(boolean flame, boolean arrow, boolean energy) {
-        public static final Layout BURNER = new Layout(true, true, false);
-        public static final Layout GENERATOR = new Layout(true, false, true);
-        public static final Layout POWERED = new Layout(false, true, true);
+    /** Which indicators a machine screen shows and its background texture. */
+    public record Layout(boolean flame, boolean arrow, boolean energy, ResourceLocation texture) {
+        public static final Layout BURNER = new Layout(true, true, false, gui("burner_machine"));
+        public static final Layout GENERATOR = new Layout(true, false, true, gui("burner_machine"));
+        public static final Layout ASSEMBLER = new Layout(false, true, true, gui("assembler"));
+
+        private static ResourceLocation gui(String name) {
+            return ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "textures/gui/" + name + ".png");
+        }
     }
 
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "textures/gui/burner_machine.png");
-    private static final int ENERGY_X = 152;
-    private static final int ENERGY_Y = 17;
-    private static final int ENERGY_WIDTH = 12;
-    private static final int ENERGY_HEIGHT = 52;
+    protected static final int ENERGY_X = 152;
+    protected static final int ENERGY_Y = 17;
+    protected static final int ENERGY_WIDTH = 12;
+    protected static final int ENERGY_HEIGHT = 52;
 
-    private final Layout layout;
+    protected final Layout layout;
 
     public MachineScreen(MachineMenu menu, Inventory playerInventory, Component title, Layout layout) {
         super(menu, playerInventory, title);
@@ -40,10 +42,6 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     public static MachineScreen generator(MachineMenu menu, Inventory playerInventory, Component title) {
         return new MachineScreen(menu, playerInventory, title, Layout.GENERATOR);
-    }
-
-    public static MachineScreen powered(MachineMenu menu, Inventory playerInventory, Component title) {
-        return new MachineScreen(menu, playerInventory, title, Layout.POWERED);
     }
 
     @Override
@@ -64,14 +62,14 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        guiGraphics.blit(layout.texture(), leftPos, topPos, 0, 0, imageWidth, imageHeight);
         if (layout.flame() && menu.isBurning()) {
             int flame = menu.burnScaled(13);
-            guiGraphics.blit(TEXTURE, leftPos + 56, topPos + 36 + 12 - flame, 176, 12 - flame, 14, flame + 1);
+            guiGraphics.blit(layout.texture(), leftPos + 56, topPos + 36 + 12 - flame, 176, 12 - flame, 14, flame + 1);
         }
         if (layout.arrow()) {
             int arrow = menu.progressScaled(24);
-            guiGraphics.blit(TEXTURE, leftPos + 79, topPos + 34, 176, 14, arrow + 1, 16);
+            guiGraphics.blit(layout.texture(), leftPos + 79, topPos + 34, 176, 14, arrow + 1, 16);
         }
         if (layout.energy()) {
             int x = leftPos + ENERGY_X;

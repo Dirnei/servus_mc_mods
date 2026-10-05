@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.cable.PowerCableBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
@@ -28,6 +29,11 @@ public final class ServusManufacturingBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR =
             BLOCK_ENTITIES.register("coal_generator", () -> BlockEntityType.Builder
                     .of(CoalGeneratorBlockEntity::new, ServusManufacturingBlocks.COAL_GENERATOR.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AssemblerBlockEntity>> ASSEMBLER =
+            BLOCK_ENTITIES.register("assembler", () -> BlockEntityType.Builder
+                    .of(AssemblerBlockEntity::new, ServusManufacturingBlocks.ASSEMBLER.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PowerCableBlockEntity>> POWER_CABLE =

@@ -26,7 +26,7 @@ public final class ServusManufacturingEvents {
     }
 
     /** Mod bus hooks. */
-    @EventBusSubscriber(modid = ServusManufacturingIds.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+    @EventBusSubscriber(modid = ServusManufacturingIds.MOD_ID)
     public static final class ModBus {
 
         private ModBus() {
@@ -48,6 +48,10 @@ public final class ServusManufacturingEvents {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.COAL_GENERATOR.get(),
                     (machine, side) -> machine.sideHandler());
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.COAL_GENERATOR.get(),
+                    (machine, side) -> machine.energyStorage());
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.ASSEMBLER.get(),
+                    (machine, side) -> machine.sideHandler());
+            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.ASSEMBLER.get(),
                     (machine, side) -> machine.energyStorage());
         }
     }

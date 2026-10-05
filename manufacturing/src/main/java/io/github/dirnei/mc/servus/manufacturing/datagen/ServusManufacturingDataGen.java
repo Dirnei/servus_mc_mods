@@ -14,7 +14,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-@EventBusSubscriber(modid = ServusManufacturingIds.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ServusManufacturingIds.MOD_ID)
 public final class ServusManufacturingDataGen {
 
     private ServusManufacturingDataGen() {
@@ -29,6 +29,7 @@ public final class ServusManufacturingDataGen {
 
         generator.addProvider(event.includeClient(), new ServusManufacturingLanguageProvider(output));
         generator.addProvider(event.includeClient(), new ServusManufacturingBlockStateProvider(output, existingFileHelper));
+        generator.addProvider(event.includeClient(), new ServusManufacturingItemModelProvider(output, existingFileHelper));
 
         generator.addProvider(event.includeServer(), new ServusManufacturingBlockTagsProvider(output, lookup, existingFileHelper));
         generator.addProvider(event.includeServer(), new ServusManufacturingRecipeProvider(output, lookup));

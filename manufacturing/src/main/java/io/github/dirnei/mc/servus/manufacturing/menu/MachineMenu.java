@@ -72,6 +72,10 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         return machine;
     }
 
+    protected ContainerData data() {
+        return data;
+    }
+
     // Data for screens
 
     public int progressScaled(int pixels) {

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "T": {
+      "item": "minecraft:crafting_table"
+    }
+  },
+  "pattern": [
+    "ICI",
+    "RTR",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_manufacturing:assembler"
+  }
+}

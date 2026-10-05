@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -21,5 +22,9 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.BURNER_SMELTER.get(), "Burner Smelter");
         add(ServusManufacturingBlocks.COAL_GENERATOR.get(), "Coal Generator");
         add(ServusManufacturingBlocks.POWER_CABLE.get(), "Power Cable");
+        add(ServusManufacturingBlocks.ASSEMBLER.get(), "Assembler Mk1");
+        add(ServusManufacturingItems.IRON_GEAR.get(), "Iron Gear");
+        add(ServusManufacturingItems.COPPER_WIRE.get(), "Copper Wire");
+        add(ServusManufacturingItems.RED_PACK.get(), "Red Pack");
     }
 }

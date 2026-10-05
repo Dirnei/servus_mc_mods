@@ -1,4 +1,5 @@
 {
+  "block.servus_manufacturing.assembler": "Assembler Mk1",
   "block.servus_manufacturing.burner_extractor": "Burner Extractor",
   "block.servus_manufacturing.burner_smelter": "Burner Smelter",
   "block.servus_manufacturing.coal_deposit": "Coal Deposit",
@@ -6,5 +7,8 @@
   "block.servus_manufacturing.copper_deposit": "Copper Deposit",
   "block.servus_manufacturing.iron_deposit": "Iron Deposit",
   "block.servus_manufacturing.power_cable": "Power Cable",
-  "block.servus_manufacturing.stone_deposit": "Stone Deposit"
+  "block.servus_manufacturing.stone_deposit": "Stone Deposit",
+  "item.servus_manufacturing.copper_wire": "Copper Wire",
+  "item.servus_manufacturing.iron_gear": "Iron Gear",
+  "item.servus_manufacturing.red_pack": "Red Pack"
 }

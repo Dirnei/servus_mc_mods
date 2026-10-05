@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.registry;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.cable.PowerCableBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlock;
@@ -28,6 +29,8 @@ public final class ServusManufacturingBlocks {
             BLOCKS.registerBlock("burner_smelter", BurnerSmelterBlock::new, machine());
     public static final DeferredBlock<CoalGeneratorBlock> COAL_GENERATOR =
             BLOCKS.registerBlock("coal_generator", CoalGeneratorBlock::new, machine());
+    public static final DeferredBlock<AssemblerBlock> ASSEMBLER =
+            BLOCKS.registerBlock("assembler", AssemblerBlock::new, machine());
 
     public static final DeferredBlock<PowerCableBlock> POWER_CABLE =
             BLOCKS.registerBlock("power_cable", PowerCableBlock::new, BlockBehaviour.Properties.of()

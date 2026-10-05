@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.menu.AssemblerMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerExtractorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerSmelterMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.CoalGeneratorMenu;
@@ -23,6 +24,9 @@ public final class ServusManufacturingMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<CoalGeneratorMenu>> COAL_GENERATOR =
             MENUS.register("coal_generator", () -> IMenuTypeExtension.create(CoalGeneratorMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<AssemblerMenu>> ASSEMBLER =
+            MENUS.register("assembler", () -> IMenuTypeExtension.create(AssemblerMenu::fromNetwork));
 
     private ServusManufacturingMenus() {
     }

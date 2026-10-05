@@ -1,0 +1,13 @@
+{
+  "type": "servus_manufacturing:assembling",
+  "ingredients": [
+    {
+      "count": 2,
+      "item": "minecraft:iron_ingot"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_manufacturing:iron_gear"
+  }
+}

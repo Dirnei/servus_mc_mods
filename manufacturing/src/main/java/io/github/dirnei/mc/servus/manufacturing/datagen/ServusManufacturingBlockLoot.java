@@ -14,6 +14,7 @@ final class ServusManufacturingBlockLoot extends BlockLootSubProvider {
             ServusManufacturingBlocks.BURNER_EXTRACTOR.get(),
             ServusManufacturingBlocks.BURNER_SMELTER.get(),
             ServusManufacturingBlocks.COAL_GENERATOR.get(),
+            ServusManufacturingBlocks.ASSEMBLER.get(),
             ServusManufacturingBlocks.POWER_CABLE.get());
 
     ServusManufacturingBlockLoot(HolderLookup.Provider registries) {

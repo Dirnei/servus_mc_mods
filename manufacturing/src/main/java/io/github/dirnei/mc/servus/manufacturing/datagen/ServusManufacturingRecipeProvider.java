@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import static io.github.dirnei.mc.servus.manufacturing.datagen.AssemblingRecipeBuilder.assembling;
+
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -18,6 +20,11 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes(RecipeOutput output) {
+        crafting(output);
+        assemblingRecipes(output);
+    }
+
+    private void crafting(RecipeOutput output) {
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.BURNER_EXTRACTOR.get())
                 .pattern("III")
                 .pattern("IFI")
@@ -56,5 +63,34 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .define('C', Items.COPPER_INGOT)
                 .unlockedBy("has_copper_ingot", has(Items.COPPER_INGOT))
                 .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.ASSEMBLER.get())
+                .pattern("ICI")
+                .pattern("RTR")
+                .pattern("III")
+                .define('I', Items.IRON_INGOT)
+                .define('C', Items.COPPER_INGOT)
+                .define('R', Items.REDSTONE)
+                .define('T', Items.CRAFTING_TABLE)
+                .unlockedBy("has_redstone", has(Items.REDSTONE))
+                .save(output);
+    }
+
+    private void assemblingRecipes(RecipeOutput output) {
+        assembling(ServusManufacturingItems.IRON_GEAR.get(), 1)
+                .requires(Items.IRON_INGOT, 2)
+                .time(20)
+                .save(output, "iron_gear");
+
+        assembling(ServusManufacturingItems.COPPER_WIRE.get(), 2)
+                .requires(Items.COPPER_INGOT, 1)
+                .time(10)
+                .save(output, "copper_wire");
+
+        assembling(ServusManufacturingItems.RED_PACK.get(), 1)
+                .requires(ServusManufacturingItems.IRON_GEAR.get(), 1)
+                .requires(ServusManufacturingItems.COPPER_WIRE.get(), 2)
+                .time(100)
+                .save(output, "red_pack");
     }
 }
