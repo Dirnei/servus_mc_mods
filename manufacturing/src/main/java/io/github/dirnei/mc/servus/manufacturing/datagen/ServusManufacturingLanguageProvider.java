@@ -23,6 +23,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.COAL_GENERATOR.get(), "Coal Generator");
         add(ServusManufacturingBlocks.POWER_CABLE.get(), "Power Cable");
         add(ServusManufacturingBlocks.ASSEMBLER.get(), "Assembler Mk1");
+        add(ServusManufacturingBlocks.ITEM_DUCT.get(), "Item Duct");
         add(ServusManufacturingItems.IRON_GEAR.get(), "Iron Gear");
         add(ServusManufacturingItems.COPPER_WIRE.get(), "Copper Wire");
         add(ServusManufacturingItems.RED_PACK.get(), "Red Pack");

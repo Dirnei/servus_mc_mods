@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.cable.PowerCableBlock;
+import io.github.dirnei.mc.servus.manufacturing.connectable.ConnectableBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.core.Direction;
@@ -33,7 +33,8 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         machine(ServusManufacturingBlocks.COAL_GENERATOR.get(), "coal_generator");
         machine(ServusManufacturingBlocks.ASSEMBLER.get(), "assembler");
 
-        cable(ServusManufacturingBlocks.POWER_CABLE.get(), "power_cable");
+        connectable(ServusManufacturingBlocks.POWER_CABLE.get(), "power_cable", 3);
+        connectable(ServusManufacturingBlocks.ITEM_DUCT.get(), "item_duct", 4);
     }
 
     private void cubeAllWithItem(Block block) {
@@ -57,30 +58,32 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         simpleBlockItem(block, unlit);
     }
 
-    /** Multipart cable: a centre cube plus one arm per connected side. */
-    private void cable(Block block, String name) {
+    /** Multipart cable or duct: a centre cube plus one arm per connected side. */
+    private void connectable(Block block, String name, int radius) {
+        int lo = 8 - radius;
+        int hi = 8 + radius;
         ResourceLocation texture = modLoc("block/" + name);
         BlockModelBuilder center = models().getBuilder(name + "_center")
-                .texture("particle", texture).texture("cable", texture)
-                .element().from(5, 5, 5).to(11, 11, 11)
-                .allFaces((direction, face) -> face.texture("#cable")).end();
+                .texture("particle", texture).texture("skin", texture)
+                .element().from(lo, lo, lo).to(hi, hi, hi)
+                .allFaces((direction, face) -> face.texture("#skin")).end();
         BlockModelBuilder arm = models().getBuilder(name + "_arm")
-                .texture("particle", texture).texture("cable", texture)
-                .element().from(5, 5, 0).to(11, 11, 5)
-                .allFaces((direction, face) -> face.texture("#cable")).end();
+                .texture("particle", texture).texture("skin", texture)
+                .element().from(lo, lo, 0).to(hi, hi, lo)
+                .allFaces((direction, face) -> face.texture("#skin")).end();
         BlockModelBuilder inventory = models().getBuilder(name + "_inventory")
-                .texture("particle", texture).texture("cable", texture)
-                .element().from(5, 5, 0).to(11, 11, 16)
-                .allFaces((direction, face) -> face.texture("#cable")).end();
+                .texture("particle", texture).texture("skin", texture)
+                .element().from(lo, lo, 0).to(hi, hi, 16)
+                .allFaces((direction, face) -> face.texture("#skin")).end();
 
         MultiPartBlockStateBuilder builder = getMultipartBuilder(block);
         builder.part().modelFile(center).addModel();
-        builder.part().modelFile(arm).addModel().condition(PowerCableBlock.NORTH, true);
-        builder.part().modelFile(arm).rotationY(90).addModel().condition(PowerCableBlock.EAST, true);
-        builder.part().modelFile(arm).rotationY(180).addModel().condition(PowerCableBlock.SOUTH, true);
-        builder.part().modelFile(arm).rotationY(270).addModel().condition(PowerCableBlock.WEST, true);
-        builder.part().modelFile(arm).rotationX(270).addModel().condition(PowerCableBlock.UP, true);
-        builder.part().modelFile(arm).rotationX(90).addModel().condition(PowerCableBlock.DOWN, true);
+        builder.part().modelFile(arm).addModel().condition(ConnectableBlock.NORTH, true);
+        builder.part().modelFile(arm).rotationY(90).addModel().condition(ConnectableBlock.EAST, true);
+        builder.part().modelFile(arm).rotationY(180).addModel().condition(ConnectableBlock.SOUTH, true);
+        builder.part().modelFile(arm).rotationY(270).addModel().condition(ConnectableBlock.WEST, true);
+        builder.part().modelFile(arm).rotationX(270).addModel().condition(ConnectableBlock.UP, true);
+        builder.part().modelFile(arm).rotationX(90).addModel().condition(ConnectableBlock.DOWN, true);
 
         simpleBlockItem(block, inventory);
     }

@@ -23,6 +23,7 @@ final class ServusManufacturingBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusManufacturingBlocks.BURNER_SMELTER.get())
                 .add(ServusManufacturingBlocks.COAL_GENERATOR.get())
                 .add(ServusManufacturingBlocks.ASSEMBLER.get())
-                .add(ServusManufacturingBlocks.POWER_CABLE.get());
+                .add(ServusManufacturingBlocks.POWER_CABLE.get())
+                .add(ServusManufacturingBlocks.ITEM_DUCT.get());
     }
 }

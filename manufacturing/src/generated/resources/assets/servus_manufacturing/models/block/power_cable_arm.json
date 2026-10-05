@@ -3,22 +3,22 @@
     {
       "faces": {
         "down": {
-          "texture": "#cable"
+          "texture": "#skin"
         },
         "east": {
-          "texture": "#cable"
+          "texture": "#skin"
         },
         "north": {
-          "texture": "#cable"
+          "texture": "#skin"
         },
         "south": {
-          "texture": "#cable"
+          "texture": "#skin"
         },
         "up": {
-          "texture": "#cable"
+          "texture": "#skin"
         },
         "west": {
-          "texture": "#cable"
+          "texture": "#skin"
         }
       },
       "from": [
@@ -34,7 +34,7 @@
     }
   ],
   "textures": {
-    "cable": "servus_manufacturing:block/power_cable",
-    "particle": "servus_manufacturing:block/power_cable"
+    "particle": "servus_manufacturing:block/power_cable",
+    "skin": "servus_manufacturing:block/power_cable"
   }
 }

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "III",
+    "G G",
+    "III"
+  ],
+  "result": {
+    "count": 8,
+    "id": "servus_manufacturing:item_duct"
+  }
+}

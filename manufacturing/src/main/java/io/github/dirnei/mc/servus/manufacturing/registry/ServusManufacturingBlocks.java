@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.registry;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.cable.PowerCableBlock;
+import io.github.dirnei.mc.servus.manufacturing.duct.ItemDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlock;
@@ -33,11 +34,18 @@ public final class ServusManufacturingBlocks {
             BLOCKS.registerBlock("assembler", AssemblerBlock::new, machine());
 
     public static final DeferredBlock<PowerCableBlock> POWER_CABLE =
-            BLOCKS.registerBlock("power_cable", PowerCableBlock::new, BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_ORANGE)
-                    .strength(1.0F)
-                    .sound(SoundType.METAL)
-                    .noOcclusion());
+            BLOCKS.registerBlock("power_cable", PowerCableBlock::new, connectable(MapColor.COLOR_ORANGE));
+    public static final DeferredBlock<ItemDuctBlock> ITEM_DUCT =
+            BLOCKS.registerBlock("item_duct", ItemDuctBlock::new, connectable(MapColor.METAL));
+
+    /** Shared properties of cables and ducts: thin, quick to break, no occlusion. */
+    private static BlockBehaviour.Properties connectable(MapColor color) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(color)
+                .strength(1.0F)
+                .sound(SoundType.METAL)
+                .noOcclusion();
+    }
 
     private ServusManufacturingBlocks() {
     }
