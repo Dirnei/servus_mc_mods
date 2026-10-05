@@ -116,14 +116,16 @@ public class AssemblerScreen extends MachineScreen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         int clicked = cellAt(mouseX, mouseY);
-        if (clicked >= 0 && !assemblerMenu().isUnlocked(clicked)) {
+        if (clicked < 0) {
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
+        if (!assemblerMenu().isUnlocked(clicked)) {
             return true;
         }
-        if (clicked >= 0 && minecraft != null && minecraft.gameMode != null) {
+        if (minecraft != null && minecraft.gameMode != null) {
             int id = clicked == assemblerMenu().selectedIndex() ? assemblerMenu().recipes().size() : clicked;
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
-            return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return true;
     }
 }

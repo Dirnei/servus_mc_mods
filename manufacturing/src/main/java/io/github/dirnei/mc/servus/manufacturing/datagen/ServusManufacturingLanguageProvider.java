@@ -31,6 +31,17 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
 
         add("gui.servus_manufacturing.tech_tree", "Tech Tree");
         add("gui.servus_manufacturing.jei.assembling", "Assembling");
+        add("gui.servus_manufacturing.side.front", "Front");
+        add("gui.servus_manufacturing.side.back", "Back");
+        add("gui.servus_manufacturing.side.left", "Left");
+        add("gui.servus_manufacturing.side.right", "Right");
+        add("gui.servus_manufacturing.side.top", "Top");
+        add("gui.servus_manufacturing.side.bottom", "Bottom");
+        add("gui.servus_manufacturing.side_mode.auto", "Auto");
+        add("gui.servus_manufacturing.side_mode.input", "Input");
+        add("gui.servus_manufacturing.side_mode.output", "Output");
+        add("gui.servus_manufacturing.side_mode.both", "Input and Output");
+        add("gui.servus_manufacturing.side_mode.disabled", "Disabled");
         add("gui.servus_manufacturing.no_research", "No research selected");
         add("gui.servus_manufacturing.locked", "Locked: requires research");
         add("gui.servus_manufacturing.research.completed", "Completed");

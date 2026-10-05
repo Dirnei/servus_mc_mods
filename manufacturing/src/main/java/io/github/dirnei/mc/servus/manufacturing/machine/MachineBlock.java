@@ -115,10 +115,13 @@ public abstract class MachineBlock extends BaseEntityBlock implements Wrenchable
         boolean dismantle = player != null && player.isShiftKeyDown();
         if (!level.isClientSide()) {
             if (dismantle) {
+                ItemStack drop = new ItemStack(this);
                 if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
                     machine.dropContents();
+                    // Keep side config, selection and owner on the item for re-placement.
+                    machine.saveToItem(drop, level.registryAccess());
                 }
-                Block.popResource(level, pos, new ItemStack(this));
+                Block.popResource(level, pos, drop);
                 level.removeBlock(pos, false);
             } else {
                 level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);

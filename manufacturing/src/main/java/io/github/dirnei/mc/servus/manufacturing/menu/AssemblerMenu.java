@@ -90,6 +90,6 @@ public class AssemblerMenu extends MachineMenu {
             assembler.selectRecipe(recipes.get(id).id());
             return true;
         }
-        return false;
+        return super.clickMenuButton(player, id);
     }
 }

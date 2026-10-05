@@ -1,5 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.machine;
 
+import io.github.dirnei.mc.servus.lib.network.Conversions;
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideConfig;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
+import java.util.EnumMap;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -23,7 +29,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * Base block entity of every Servus machine. Owns the inventory, exposes it
- * with slot role rules, pushes outputs to neighbours and feeds menu data.
+ * per side with slot role and side mode rules, pushes outputs to neighbours
+ * and feeds menu data.
  */
 public abstract class MachineBlockEntity extends BlockEntity implements MenuProvider {
 
@@ -34,12 +41,15 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     public static final int DATA_ENERGY = 4;
     public static final int DATA_ENERGY_CAPACITY = 5;
     /** Index 6 is free for machine specific data, see the assembler. */
-    public static final int DATA_COUNT = 7;
+    public static final int DATA_SIDE_FIRST = 7;
+    public static final int DATA_COUNT = DATA_SIDE_FIRST + 6;
 
     private static final int PUSH_INTERVAL = 8;
 
     protected final ItemStackHandler inventory;
-    private final IItemHandler sideHandler = new SideHandler();
+    private final SideConfig sideConfig = new SideConfig();
+    private final IItemHandler autoHandler = new SideHandler(null);
+    private final Map<Direction, IItemHandler> sideHandlers = new EnumMap<>(Direction.class);
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
@@ -64,7 +74,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     protected MachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, int slots) {
         super(type, pos, state);
         // The raw inventory accepts anything so the machine itself can fill
-        // output slots. Role rules live in the side handler and the menu slots.
+        // output slots. Role rules live in the side handlers and the menu slots.
         this.inventory = new ItemStackHandler(slots) {
             @Override
             protected void onContentsChanged(int slot) {
@@ -123,12 +133,40 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         return inventory;
     }
 
-    public IItemHandler sideHandler() {
-        return sideHandler;
+    /** The item handler automation sees from {@code side}; null means no particular side. */
+    public IItemHandler sideHandler(Direction side) {
+        if (side == null) {
+            return autoHandler;
+        }
+        return sideHandlers.computeIfAbsent(side, SideHandler::new);
     }
 
     public ContainerData containerData() {
         return data;
+    }
+
+    // Sides
+
+    public SideConfig sideConfig() {
+        return sideConfig;
+    }
+
+    protected Direction facing() {
+        BlockState state = getBlockState();
+        return state.hasProperty(MachineBlock.FACING) ? state.getValue(MachineBlock.FACING) : Direction.NORTH;
+    }
+
+    public RelativeSide relativeSide(Direction absolute) {
+        return RelativeSide.fromSide(Conversions.toSide(facing()), Conversions.toSide(absolute));
+    }
+
+    public SideMode sideMode(Direction absolute) {
+        return sideConfig.mode(relativeSide(absolute));
+    }
+
+    public void cycleSide(RelativeSide side) {
+        sideConfig.cycle(side);
+        setChanged();
     }
 
     public boolean isItemValid(int slot, ItemStack stack) {
@@ -142,6 +180,9 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     }
 
     protected int getData(int index) {
+        if (index >= DATA_SIDE_FIRST && index < DATA_SIDE_FIRST + 6) {
+            return sideConfig.mode(RelativeSide.byOrdinal(index - DATA_SIDE_FIRST)).ordinal();
+        }
         return switch (index) {
             case DATA_PROGRESS -> progress;
             case DATA_WORK_TICKS -> workTicks();
@@ -150,7 +191,9 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     }
 
     protected void setData(int index, int value) {
-        if (index == DATA_PROGRESS) {
+        if (index >= DATA_SIDE_FIRST && index < DATA_SIDE_FIRST + 6) {
+            sideConfig.set(RelativeSide.byOrdinal(index - DATA_SIDE_FIRST), SideMode.byOrdinal(value));
+        } else if (index == DATA_PROGRESS) {
             progress = value;
         }
     }
@@ -169,6 +212,9 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         }
         pushCooldown = 0;
         for (Direction direction : Direction.values()) {
+            if (!sideMode(direction).allowsExtract()) {
+                continue;
+            }
             IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK,
                     worldPosition.relative(direction), direction.getOpposite());
             if (neighbour == null) {
@@ -203,6 +249,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         NonNullList<ItemStack> stacks = NonNullList.withSize(inventory.getSlots(), ItemStack.EMPTY);
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             stacks.set(slot, inventory.getStackInSlot(slot));
+            inventory.setStackInSlot(slot, ItemStack.EMPTY);
         }
         Containers.dropContents(level, worldPosition, stacks);
     }
@@ -214,6 +261,9 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         super.saveAdditional(tag, registries);
         tag.put("Inventory", inventory.serializeNBT(registries));
         tag.putInt("Progress", progress);
+        if (!sideConfig.isDefault()) {
+            tag.putByteArray("Sides", sideConfig.toBytes());
+        }
     }
 
     @Override
@@ -223,6 +273,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
             inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
         }
         progress = tag.getInt("Progress");
+        sideConfig.fromBytes(tag.contains("Sides") ? tag.getByteArray("Sides") : new byte[0]);
     }
 
     // MenuProvider
@@ -232,8 +283,18 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         return Component.translatable(getBlockState().getBlock().getDescriptionId());
     }
 
-    /** Exposes the inventory to automation with the slot role rules applied. */
+    /** Exposes the inventory to automation with slot role and side mode rules applied. */
     private final class SideHandler implements IItemHandler {
+
+        private final Direction side;
+
+        private SideHandler(Direction side) {
+            this.side = side;
+        }
+
+        private SideMode mode() {
+            return side == null ? SideMode.AUTO : sideMode(side);
+        }
 
         @Override
         public int getSlots() {
@@ -247,7 +308,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            if (!isItemValid(slot, stack)) {
+            if (!mode().allowsInsert() || !isItemValid(slot, stack)) {
                 return stack;
             }
             return inventory.insertItem(slot, stack, simulate);
@@ -255,7 +316,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            if (!isOutputSlot(slot)) {
+            if (!mode().allowsExtract() || !isOutputSlot(slot)) {
                 return ItemStack.EMPTY;
             }
             return inventory.extractItem(slot, amount, simulate);
@@ -268,7 +329,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return (isInputSlot(slot) || isFuelSlot(slot)) && MachineBlockEntity.this.isItemValid(slot, stack);
+            return mode().allowsInsert() && (isInputSlot(slot) || isFuelSlot(slot)) && MachineBlockEntity.this.isItemValid(slot, stack);
         }
     }
 }

@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.menu;
 
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -110,7 +112,26 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         return capacity <= 0 ? 0 : (int) ((long) energyStored() * pixels / capacity);
     }
 
+    // Side configuration
+
+    /** Button ids from this value on cycle the relative side with that offset. */
+    public static final int SIDE_BUTTON_FIRST = 1000;
+
+    public SideMode sideMode(RelativeSide side) {
+        return SideMode.byOrdinal(data.get(MachineBlockEntity.DATA_SIDE_FIRST + side.ordinal()));
+    }
+
     // Vanilla contract
+
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        int offset = id - SIDE_BUTTON_FIRST;
+        if (offset >= 0 && offset < RelativeSide.values().length) {
+            machine.cycleSide(RelativeSide.byOrdinal(offset));
+            return true;
+        }
+        return false;
+    }
 
     @Override
     public boolean stillValid(Player player) {

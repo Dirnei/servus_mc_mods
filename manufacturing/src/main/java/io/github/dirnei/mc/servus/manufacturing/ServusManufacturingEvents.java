@@ -68,19 +68,19 @@ public final class ServusManufacturingEvents {
         @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.BURNER_EXTRACTOR.get(),
-                    (machine, side) -> machine.sideHandler());
+                    (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.BURNER_SMELTER.get(),
-                    (machine, side) -> machine.sideHandler());
+                    (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.COAL_GENERATOR.get(),
-                    (machine, side) -> machine.sideHandler());
+                    (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.COAL_GENERATOR.get(),
                     (machine, side) -> machine.energyStorage());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.ASSEMBLER.get(),
-                    (machine, side) -> machine.sideHandler());
+                    (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.ASSEMBLER.get(),
                     (machine, side) -> machine.energyStorage());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.RESEARCH_LAB.get(),
-                    (machine, side) -> machine.sideHandler());
+                    (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.RESEARCH_LAB.get(),
                     (machine, side) -> machine.energyStorage());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.ITEM_DUCT.get(),
