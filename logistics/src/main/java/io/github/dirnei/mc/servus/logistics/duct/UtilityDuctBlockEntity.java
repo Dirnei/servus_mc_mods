@@ -6,6 +6,8 @@ import io.github.dirnei.mc.servus.lib.network.NetworkNode;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
 import io.github.dirnei.mc.servus.lib.network.core.ServusNetwork;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.logistics.client.UtilityDuctModel;
+import io.github.dirnei.mc.servus.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.logistics.network.DuctEvent;
 import io.github.dirnei.mc.servus.logistics.network.EnergyChannelNetwork;
@@ -21,6 +23,8 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -38,6 +42,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
@@ -59,6 +64,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
     private final EnumSet<Channel> joined = EnumSet.noneOf(Channel.class);
     private final Map<Channel, ChannelNode> nodes = new EnumMap<>(Channel.class);
     private final Map<Direction, DuctItemHandler> itemHandlers = new EnumMap<>(Direction.class);
+    private BlockState facade;
 
     public UtilityDuctBlockEntity(BlockPos pos, BlockState state) {
         super(ServusLogisticsBlockEntities.UTILITY_DUCT.get(), pos, state);
@@ -133,6 +139,34 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
             case OUTPUT -> SideMode.DISABLED;
             case DISABLED -> SideMode.BOTH;
         };
+    }
+
+    // Facade
+
+    /** The block this duct looks like, or null. */
+    public BlockState facade() {
+        return facade;
+    }
+
+    public void setFacade(BlockState facade) {
+        this.facade = facade;
+        changed();
+    }
+
+    /** Takes the facade off and returns its item, empty when there was none. */
+    public ItemStack removeFacade() {
+        if (facade == null) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack item = FacadeItem.of(facade.getBlock(), 1);
+        facade = null;
+        changed();
+        return item;
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return facade == null ? ModelData.EMPTY : ModelData.builder().with(DuctModelData.FACADE, facade).build();
     }
 
     // Filters and priorities (item channel)
@@ -228,6 +262,10 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
     @Override
     public void onLoad() {
         super.onLoad();
+        if (level != null && level.isClientSide()) {
+            DuctTracker.add(this);
+            return;
+        }
         for (Channel channel : channels) {
             join(channel);
         }
@@ -235,6 +273,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
 
     @Override
     public void setRemoved() {
+        DuctTracker.remove(this);
         for (Channel channel : Channel.VALUES) {
             leave(channel);
         }
@@ -244,6 +283,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
+        DuctTracker.remove(this);
         for (Channel channel : Channel.VALUES) {
             leave(channel);
         }
@@ -320,6 +360,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
         }
         tag.put("Filters", filterTag);
         tag.put("Priorities", priorityTag);
+        if (facade != null) {
+            tag.put("Facade", NbtUtils.writeBlockState(facade));
+        }
     }
 
     @Override
@@ -362,6 +405,14 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
             }
             priorities[direction.ordinal()] = Math.max(MIN_PRIORITY, Math.min(MAX_PRIORITY,
                     priorityTag.getInt(direction.getSerializedName())));
+        }
+        facade = tag.contains("Facade") ? NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound("Facade")) : null;
+        if (facade != null && facade.isAir()) {
+            facade = null;
+        }
+        if (level != null && level.isClientSide()) {
+            requestModelDataUpdate();
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
         }
         if (level instanceof ServerLevel) {
             // A data merge or reload changed the configuration while loaded: reconcile memberships.

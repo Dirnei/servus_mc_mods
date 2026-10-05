@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.logistics;
 
 import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
 import io.github.dirnei.mc.servus.logistics.duct.DuctStatsManager;
+import io.github.dirnei.mc.servus.logistics.gametest.ServusLogisticsGameTests;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -10,6 +11,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 
 /** Event hooks of Servus: Logistics. */
 @EventBusSubscriber(modid = ServusLogisticsIds.MOD_ID)
@@ -35,6 +37,11 @@ public final class ServusLogisticsEvents {
             if (event.getTabKey().equals(ServusLibCreativeTabs.SERVUS_KEY)) {
                 ServusLogisticsItems.CREATIVE_TAB_ORDER.forEach(event::accept);
             }
+        }
+
+        @SubscribeEvent
+        public static void onRegisterGameTests(RegisterGameTestsEvent event) {
+            event.register(ServusLogisticsGameTests.class);
         }
 
         @SubscribeEvent

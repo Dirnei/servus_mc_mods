@@ -15,5 +15,6 @@ final class ServusLibItemModelProvider extends ItemModelProvider {
     @Override
     protected void registerModels() {
         basicItem(ServusLibItems.WRENCH.get());
+        basicItem(ServusLibItems.GOGGLES.get());
     }
 }

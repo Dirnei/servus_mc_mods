@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.logistics.registry;
 import io.github.dirnei.mc.servus.logistics.ServusLogisticsIds;
 import io.github.dirnei.mc.servus.logistics.duct.Channel;
 import io.github.dirnei.mc.servus.logistics.duct.ChannelItem;
+import io.github.dirnei.mc.servus.logistics.facade.FacadeItem;
 import java.util.List;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -16,6 +17,8 @@ public final class ServusLogisticsItems {
             properties -> new ChannelItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), Channel.ITEM, properties));
     public static final DeferredItem<ChannelItem> ENERGY_CHANNEL = ITEMS.registerItem("energy_channel",
             properties -> new ChannelItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), Channel.ENERGY, properties));
+
+    public static final DeferredItem<FacadeItem> FACADE = ITEMS.registerItem("facade", FacadeItem::new, new Item.Properties());
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(ITEM_CHANNEL, ENERGY_CHANNEL);

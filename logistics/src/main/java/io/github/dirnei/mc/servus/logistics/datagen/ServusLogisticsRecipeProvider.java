@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.logistics.datagen;
 
+import io.github.dirnei.mc.servus.logistics.facade.FacadeRecipe;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -8,6 +9,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.world.item.Items;
 
 final class ServusLogisticsRecipeProvider extends RecipeProvider {
@@ -37,5 +39,7 @@ final class ServusLogisticsRecipeProvider extends RecipeProvider {
                 .define('G', Items.GLASS)
                 .unlockedBy("has_copper", has(Items.COPPER_INGOT))
                 .save(output);
+
+        SpecialRecipeBuilder.special(FacadeRecipe::new).save(output, "servus_logistics:facade");
     }
 }

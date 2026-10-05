@@ -14,6 +14,7 @@ final class ServusLibLanguageProvider extends LanguageProvider {
     @Override
     protected void addTranslations() {
         add(ServusLibItems.WRENCH.get(), "Wrench");
+        add(ServusLibItems.GOGGLES.get(), "Engineer Goggles");
         add("itemGroup.servus", "Servus");
         add("servus_lib.configuration.wrench", "Wrench");
         add("servus_lib.configuration.wrenchRotatesBlocks", "Wrench rotates blocks");

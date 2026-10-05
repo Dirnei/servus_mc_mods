@@ -71,7 +71,8 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 
 1. Item Channel (iron, glass, chest) and Energy Channel (copper, redstone, glass) place a Utility Duct carrying that channel. Use a channel item on an existing duct to add the other channel.
 2. Right click a duct to open its side configuration. Pick a side at the top, then set each channel's mode (in and out, pull in, push out, disabled), drop up to nine items into the filter row (empty means everything) and adjust the priority. Pull in actively empties the neighbouring inventory; push out delivers, highest priority first. Remove buttons take a channel back out.
-3. Sneak wrench removes a duct and drops its channels.
+3. Facades: craft any full block with an iron ingot for six facades, use one on a duct and it looks like that block. Sneak wrench takes the facade off first, a second sneak wrench removes the duct and drops its channels.
+4. Engineer Goggles (leather, iron, glass) go on your head. While wearing them, or holding the wrench, hidden ducts show through walls as an orange overlay.
 
 The wrench rotates machines and sneak wrench dismantles them. Balance numbers live in `manufacturing/src/main/resources/data/servus_manufacturing/machine/` and the deposit, recipe and tech JSON files next to them.
 

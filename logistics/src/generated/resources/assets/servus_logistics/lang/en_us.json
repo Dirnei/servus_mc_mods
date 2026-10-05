@@ -20,5 +20,8 @@
   "gui.servus_logistics.side.west": "West",
   "gui.servus_logistics.utility_duct": "Utility Duct",
   "item.servus_logistics.energy_channel": "Energy Channel",
+  "item.servus_logistics.facade": "Facade",
+  "item.servus_logistics.facade.hint": "Use on a utility duct to hide it",
+  "item.servus_logistics.facade.named": "Facade (%s)",
   "item.servus_logistics.item_channel": "Item Channel"
 }

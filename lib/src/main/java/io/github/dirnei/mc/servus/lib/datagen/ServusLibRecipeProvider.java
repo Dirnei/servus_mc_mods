@@ -26,5 +26,14 @@ final class ServusLibRecipeProvider extends RecipeProvider {
                 .define('S', Items.STICK)
                 .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
                 .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusLibItems.GOGGLES.get())
+                .pattern("LIL")
+                .pattern("G G")
+                .define('L', Items.LEATHER)
+                .define('I', Items.IRON_INGOT)
+                .define('G', Items.GLASS)
+                .unlockedBy("has_glass", has(Items.GLASS))
+                .save(output);
     }
 }

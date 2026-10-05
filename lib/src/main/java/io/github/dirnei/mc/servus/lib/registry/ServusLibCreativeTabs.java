@@ -26,7 +26,10 @@ public final class ServusLibCreativeTabs {
             CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.servus"))
                     .icon(() -> new ItemStack(ServusLibItems.WRENCH.get()))
-                    .displayItems((parameters, output) -> output.accept(ServusLibItems.WRENCH.get()))
+                    .displayItems((parameters, output) -> {
+                        output.accept(ServusLibItems.WRENCH.get());
+                        output.accept(ServusLibItems.GOGGLES.get());
+                    })
                     .build());
 
     private ServusLibCreativeTabs() {
