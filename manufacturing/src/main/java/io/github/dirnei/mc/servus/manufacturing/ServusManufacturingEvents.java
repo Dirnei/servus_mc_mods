@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing;
 import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;
 import io.github.dirnei.mc.servus.manufacturing.duct.ItemDuctBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.gametest.ServusManufacturingGameTests;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStatsManager;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
@@ -15,6 +16,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
@@ -51,6 +53,11 @@ public final class ServusManufacturingEvents {
             if (event.getTabKey().equals(ServusLibCreativeTabs.SERVUS_KEY)) {
                 ServusManufacturingItems.CREATIVE_TAB_ORDER.forEach(event::accept);
             }
+        }
+
+        @SubscribeEvent
+        public static void onRegisterGameTests(RegisterGameTestsEvent event) {
+            event.register(ServusManufacturingGameTests.class);
         }
 
         @SubscribeEvent
