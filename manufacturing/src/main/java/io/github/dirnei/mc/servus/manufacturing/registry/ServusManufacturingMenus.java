@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.registry;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerExtractorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerSmelterMenu;
+import io.github.dirnei.mc.servus.manufacturing.menu.CoalGeneratorMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -19,6 +20,9 @@ public final class ServusManufacturingMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<BurnerSmelterMenu>> BURNER_SMELTER =
             MENUS.register("burner_smelter", () -> IMenuTypeExtension.create(BurnerSmelterMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<CoalGeneratorMenu>> COAL_GENERATOR =
+            MENUS.register("coal_generator", () -> IMenuTypeExtension.create(CoalGeneratorMenu::fromNetwork));
 
     private ServusManufacturingMenus() {
     }

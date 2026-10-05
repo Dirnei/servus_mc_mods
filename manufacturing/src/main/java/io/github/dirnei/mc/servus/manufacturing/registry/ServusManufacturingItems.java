@@ -17,10 +17,12 @@ public final class ServusManufacturingItems {
 
     public static final DeferredItem<BlockItem> BURNER_EXTRACTOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.BURNER_EXTRACTOR);
     public static final DeferredItem<BlockItem> BURNER_SMELTER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.BURNER_SMELTER);
+    public static final DeferredItem<BlockItem> COAL_GENERATOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.COAL_GENERATOR);
+    public static final DeferredItem<BlockItem> POWER_CABLE = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.POWER_CABLE);
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends BlockItem>> CREATIVE_TAB_ORDER = List.of(
-            BURNER_EXTRACTOR, BURNER_SMELTER,
+            BURNER_EXTRACTOR, BURNER_SMELTER, COAL_GENERATOR, POWER_CABLE,
             IRON_DEPOSIT, COPPER_DEPOSIT, COAL_DEPOSIT, STONE_DEPOSIT);
 
     private ServusManufacturingItems() {

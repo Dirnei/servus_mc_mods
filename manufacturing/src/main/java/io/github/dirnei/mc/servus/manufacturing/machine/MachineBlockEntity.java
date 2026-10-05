@@ -31,7 +31,9 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     public static final int DATA_WORK_TICKS = 1;
     public static final int DATA_BURN_TIME = 2;
     public static final int DATA_BURN_DURATION = 3;
-    public static final int DATA_COUNT = 4;
+    public static final int DATA_ENERGY = 4;
+    public static final int DATA_ENERGY_CAPACITY = 5;
+    public static final int DATA_COUNT = 6;
 
     private static final int PUSH_INTERVAL = 8;
 

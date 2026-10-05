@@ -1,0 +1,41 @@
+package io.github.dirnei.mc.servus.manufacturing.machine;
+
+import java.util.function.BiConsumer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+
+/**
+ * Cached energy capabilities of the six neighbours of a position. NeoForge
+ * invalidates the caches when neighbours change, so there is no scanning.
+ */
+public final class EnergyNeighbors {
+
+    private final BlockCapabilityCache<IEnergyStorage, Direction>[] caches;
+
+    @SuppressWarnings("unchecked")
+    public EnergyNeighbors(ServerLevel level, BlockPos pos) {
+        caches = new BlockCapabilityCache[Direction.values().length];
+        for (Direction direction : Direction.values()) {
+            caches[direction.ordinal()] = BlockCapabilityCache.create(
+                    Capabilities.EnergyStorage.BLOCK, level, pos.relative(direction), direction.getOpposite());
+        }
+    }
+
+    public IEnergyStorage get(Direction direction) {
+        return caches[direction.ordinal()].getCapability();
+    }
+
+    /** Visits every neighbour that currently offers an energy capability. */
+    public void forEach(BiConsumer<Direction, IEnergyStorage> visitor) {
+        for (Direction direction : Direction.values()) {
+            IEnergyStorage storage = get(direction);
+            if (storage != null) {
+                visitor.accept(direction, storage);
+            }
+        }
+    }
+}

@@ -37,5 +37,24 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .define('B', Items.BRICKS)
                 .unlockedBy("has_furnace", has(Items.FURNACE))
                 .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.COAL_GENERATOR.get())
+                .pattern("ICI")
+                .pattern("CFC")
+                .pattern("ICI")
+                .define('I', Items.IRON_INGOT)
+                .define('C', Items.COPPER_INGOT)
+                .define('F', Items.FURNACE)
+                .unlockedBy("has_copper_ingot", has(Items.COPPER_INGOT))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.POWER_CABLE.get(), 8)
+                .pattern("ICI")
+                .pattern("ICI")
+                .pattern("ICI")
+                .define('I', Items.IRON_INGOT)
+                .define('C', Items.COPPER_INGOT)
+                .unlockedBy("has_copper_ingot", has(Items.COPPER_INGOT))
+                .save(output);
     }
 }

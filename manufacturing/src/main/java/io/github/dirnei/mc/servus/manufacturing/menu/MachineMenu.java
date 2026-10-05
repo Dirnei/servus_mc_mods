@@ -93,6 +93,19 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         return time * pixels / duration;
     }
 
+    public int energyStored() {
+        return data.get(MachineBlockEntity.DATA_ENERGY);
+    }
+
+    public int energyCapacity() {
+        return data.get(MachineBlockEntity.DATA_ENERGY_CAPACITY);
+    }
+
+    public int energyScaled(int pixels) {
+        int capacity = energyCapacity();
+        return capacity <= 0 ? 0 : (int) ((long) energyStored() * pixels / capacity);
+    }
+
     // Vanilla contract
 
     @Override

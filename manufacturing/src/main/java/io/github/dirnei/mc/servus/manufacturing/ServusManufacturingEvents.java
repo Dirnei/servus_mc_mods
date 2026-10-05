@@ -45,6 +45,10 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.sideHandler());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.BURNER_SMELTER.get(),
                     (machine, side) -> machine.sideHandler());
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.COAL_GENERATOR.get(),
+                    (machine, side) -> machine.sideHandler());
+            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.COAL_GENERATOR.get(),
+                    (machine, side) -> machine.energyStorage());
         }
     }
 }

@@ -20,6 +20,8 @@ final class ServusManufacturingBlockTagsProvider extends BlockTagsProvider {
     protected void addTags(HolderLookup.Provider provider) {
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(ServusManufacturingBlocks.BURNER_EXTRACTOR.get())
-                .add(ServusManufacturingBlocks.BURNER_SMELTER.get());
+                .add(ServusManufacturingBlocks.BURNER_SMELTER.get())
+                .add(ServusManufacturingBlocks.COAL_GENERATOR.get())
+                .add(ServusManufacturingBlocks.POWER_CABLE.get());
     }
 }

@@ -75,6 +75,7 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         if (time <= 0) {
             return;
         }
+        time = Math.max(1, time / stats().fuelDivisor());
         burnTime = time;
         burnDuration = time;
         ItemStack remainder = fuel.getCraftingRemainingItem();

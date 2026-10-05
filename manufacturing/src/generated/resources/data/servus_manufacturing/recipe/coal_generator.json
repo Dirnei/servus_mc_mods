@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "F": {
+      "item": "minecraft:furnace"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "ICI",
+    "CFC",
+    "ICI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_manufacturing:coal_generator"
+  }
+}

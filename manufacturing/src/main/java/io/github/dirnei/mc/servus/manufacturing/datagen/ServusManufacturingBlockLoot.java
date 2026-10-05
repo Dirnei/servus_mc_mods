@@ -10,20 +10,23 @@ import net.minecraft.world.level.block.Block;
 
 final class ServusManufacturingBlockLoot extends BlockLootSubProvider {
 
+    private static final List<Block> SELF_DROPPING = List.of(
+            ServusManufacturingBlocks.BURNER_EXTRACTOR.get(),
+            ServusManufacturingBlocks.BURNER_SMELTER.get(),
+            ServusManufacturingBlocks.COAL_GENERATOR.get(),
+            ServusManufacturingBlocks.POWER_CABLE.get());
+
     ServusManufacturingBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
     }
 
     @Override
     protected void generate() {
-        dropSelf(ServusManufacturingBlocks.BURNER_EXTRACTOR.get());
-        dropSelf(ServusManufacturingBlocks.BURNER_SMELTER.get());
+        SELF_DROPPING.forEach(this::dropSelf);
     }
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
-        return List.of(
-                ServusManufacturingBlocks.BURNER_EXTRACTOR.get(),
-                ServusManufacturingBlocks.BURNER_SMELTER.get());
+        return SELF_DROPPING;
     }
 }

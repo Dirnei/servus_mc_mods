@@ -1,7 +1,9 @@
 package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.cable.PowerCableBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -21,6 +23,16 @@ public final class ServusManufacturingBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BurnerSmelterBlockEntity>> BURNER_SMELTER =
             BLOCK_ENTITIES.register("burner_smelter", () -> BlockEntityType.Builder
                     .of(BurnerSmelterBlockEntity::new, ServusManufacturingBlocks.BURNER_SMELTER.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR =
+            BLOCK_ENTITIES.register("coal_generator", () -> BlockEntityType.Builder
+                    .of(CoalGeneratorBlockEntity::new, ServusManufacturingBlocks.COAL_GENERATOR.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PowerCableBlockEntity>> POWER_CABLE =
+            BLOCK_ENTITIES.register("power_cable", () -> BlockEntityType.Builder
+                    .of(PowerCableBlockEntity::new, ServusManufacturingBlocks.POWER_CABLE.get())
                     .build(null));
 
     private ServusManufacturingBlockEntities() {

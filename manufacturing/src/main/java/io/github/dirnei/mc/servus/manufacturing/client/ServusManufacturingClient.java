@@ -16,7 +16,8 @@ public final class ServusManufacturingClient {
 
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
-        event.register(ServusManufacturingMenus.BURNER_EXTRACTOR.get(), BurnerMachineScreen::new);
-        event.register(ServusManufacturingMenus.BURNER_SMELTER.get(), BurnerMachineScreen::new);
+        event.register(ServusManufacturingMenus.BURNER_EXTRACTOR.get(), MachineScreen::burner);
+        event.register(ServusManufacturingMenus.BURNER_SMELTER.get(), MachineScreen::burner);
+        event.register(ServusManufacturingMenus.COAL_GENERATOR.get(), MachineScreen::generator);
     }
 }

@@ -1,0 +1,6 @@
+{
+  "work_ticks": 1,
+  "energy_per_tick": 40,
+  "energy_capacity": 16000,
+  "fuel_divisor": 4
+}

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.lib.network;
 
+import io.github.dirnei.mc.servus.lib.ServusLib;
 import io.github.dirnei.mc.servus.lib.graph.NodePos;
 import io.github.dirnei.mc.servus.lib.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.lib.network.core.ServusNetwork;
@@ -55,7 +56,10 @@ public final class NetworkManager {
 
     /** Adds a node to its network type. Returns the network it ended up in. */
     public <N> ServusNetwork<N, ?> join(BlockPos pos, NetworkNode<N> node) {
-        return joinTyped(node.networkType(), Conversions.toNodePos(pos), node.networkNode());
+        ServusNetwork<N, ?> network = joinTyped(node.networkType(), Conversions.toNodePos(pos), node.networkNode());
+        ServusLib.LOGGER.debug("{} joined {} network {} (size {}) in {}", pos.toShortString(),
+                node.networkType().id(), network.id(), network.size(), dimension.location());
+        return network;
     }
 
     /** Removes a node. No-op when the position is not part of that network type. */
@@ -64,6 +68,8 @@ public final class NetworkManager {
         NodePos nodePos = Conversions.toNodePos(pos);
         if (set.graph().contains(nodePos)) {
             set.nodeRemoved(nodePos);
+            ServusLib.LOGGER.debug("{} left {} network; {} networks remain in {}", pos.toShortString(),
+                    node.networkType().id(), set.networks().size(), dimension.location());
         }
     }
 

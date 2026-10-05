@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing;
 
+import io.github.dirnei.mc.servus.lib.network.NetworkTypes;
+import io.github.dirnei.mc.servus.manufacturing.cable.PowerCableNetwork;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
@@ -23,6 +25,7 @@ public final class ServusManufacturing {
         ServusManufacturingItems.ITEMS.register(modEventBus);
         ServusManufacturingBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ServusManufacturingMenus.MENUS.register(modEventBus);
+        NetworkTypes.register(PowerCableNetwork.TYPE);
         LOGGER.info("Servus: Manufacturing loaded");
     }
 }

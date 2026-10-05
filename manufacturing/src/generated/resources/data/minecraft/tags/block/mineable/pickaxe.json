@@ -1,6 +1,8 @@
 {
   "values": [
     "servus_manufacturing:burner_extractor",
-    "servus_manufacturing:burner_smelter"
+    "servus_manufacturing:burner_smelter",
+    "servus_manufacturing:coal_generator",
+    "servus_manufacturing:power_cable"
   ]
 }

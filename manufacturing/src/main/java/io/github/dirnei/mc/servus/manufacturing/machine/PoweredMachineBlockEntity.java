@@ -1,0 +1,79 @@
+package io.github.dirnei.mc.servus.manufacturing.machine;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+
+/**
+ * A machine that runs on FE. Accepts energy from every side, spends
+ * {@code energyPerTick} while it has work, and keeps its progress when the
+ * buffer runs dry.
+ */
+public abstract class PoweredMachineBlockEntity extends MachineBlockEntity {
+
+    protected final MachineEnergyStorage energy;
+    private boolean capacityApplied;
+
+    protected PoweredMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, int slots) {
+        super(type, pos, state, slots);
+        this.energy = new MachineEnergyStorage(defaultStats().energyCapacity(), Integer.MAX_VALUE, 0, this::setChanged);
+    }
+
+    /** Whether the machine has something to do right now (input present, output has room). */
+    protected abstract boolean canWork();
+
+    /** Performs one finished work cycle. Only called when {@link #canWork()} was true. */
+    protected abstract void finishWork();
+
+    public MachineEnergyStorage energyStorage() {
+        return energy;
+    }
+
+    @Override
+    protected boolean tick() {
+        if (!capacityApplied) {
+            energy.setCapacity(stats().energyCapacity());
+            capacityApplied = true;
+        }
+        if (!canWork()) {
+            if (progress != 0) {
+                progress = 0;
+                setChanged();
+            }
+            return false;
+        }
+        if (!energy.consume(stats().energyPerTick())) {
+            return false;
+        }
+        progress++;
+        if (progress >= stats().workTicks()) {
+            progress = 0;
+            finishWork();
+        }
+        setChanged();
+        return true;
+    }
+
+    @Override
+    protected int getData(int index) {
+        return switch (index) {
+            case DATA_ENERGY -> energy.getEnergyStored();
+            case DATA_ENERGY_CAPACITY -> energy.getMaxEnergyStored();
+            default -> super.getData(index);
+        };
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.putInt("Energy", energy.getEnergyStored());
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        energy.setEnergy(tag.getInt("Energy"));
+    }
+}
