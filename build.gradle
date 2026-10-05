@@ -131,3 +131,45 @@ subprojects {
         }
     }
 }
+
+// Combined run configurations that load all four mods together. The root
+// project has no sources of its own; it only hosts these runs.
+apply plugin: 'net.neoforged.moddev'
+
+evaluationDependsOnChildren()
+
+def allServusMods = ['lib', 'manufacturing', 'logistics', 'storage'].collect { name ->
+    def sub = project(":${name}")
+    sub.neoForge.mods.getByName(sub.mod_id)
+}
+def allServusModIds = allServusMods.collect { it.name }.join(',')
+
+neoForge {
+    version = project.neo_version
+
+    runs {
+        clientAll {
+            client()
+            gameDirectory = project.file('runs/client')
+        }
+        serverAll {
+            server()
+            programArgument '--nogui'
+            gameDirectory = project.file('runs/server')
+        }
+        gameTestServerAll {
+            type = 'gameTestServer'
+            gameDirectory = project.file('runs/gametest')
+        }
+        configureEach {
+            loadedMods = allServusMods
+            systemProperty 'neoforge.enabledGameTestNamespaces', allServusModIds
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+}
+
+tasks.named('jar').configure {
+    enabled = false
+}

@@ -19,9 +19,9 @@
 
 ## 4. Combined runs and repository files
 
-- [ ] 4.1 Add the root project ModDevGradle setup with `clientAll`, `serverAll`, `gameTestServerAll` runs loading all four mods, `evaluationDependsOnChildren()` and the root `jar` task disabled. If ModDevGradle rejects runs without a `mods {}` block, move the combined runs to `lib` as described in design.md D5 and update the design. Verify `gradlew tasks --group "mod development"` lists the combined runs.
-- [ ] 4.2 Add `LICENSE` (MIT, copyright 2026 Dirnei), `README.md` (prerequisites, build, run commands, run configs) and `.github/workflows/build.yml` (push and pull_request, Temurin 21, setup-gradle, `./gradlew build`, upload jars). Verify `gradlew build` still passes and the workflow YAML parses.
-- [ ] 4.3 Update `PLAN.md` section 1 repository layout to show `runs/` per subproject, `.github/` and the wrapper files. Verify the layout matches `git ls-files`.
+- [x] 4.1 Add the root project ModDevGradle setup with `clientAll`, `serverAll`, `gameTestServerAll` runs loading all four mods, `evaluationDependsOnChildren()` and the root `jar` task disabled. If ModDevGradle rejects runs without a `mods {}` block, move the combined runs to `lib` as described in design.md D5 and update the design. Verify `gradlew tasks --group "mod development"` lists the combined runs.
+- [x] 4.2 Add `LICENSE` (MIT, copyright 2026 Dirnei), `README.md` (prerequisites, build, run commands, run configs) and `.github/workflows/build.yml` (push and pull_request, Temurin 21, setup-gradle, `./gradlew build`, upload jars). Verify `gradlew build` still passes and the workflow YAML parses.
+- [x] 4.3 Update `PLAN.md` section 1 repository layout to show `runs/` per subproject, `.github/` and the wrapper files. Verify the layout matches `git ls-files`.
 
 ## 5. Verification
 

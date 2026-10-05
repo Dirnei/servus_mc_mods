@@ -43,7 +43,7 @@ This puts Lib on the compile and runtime classpath. Because ModDevGradle only lo
 ### D5: Combined runs live in the root project
 The root project also applies ModDevGradle (with `neoForge.version` set, no sources) and defines `clientAll`, `serverAll` and `gameTestServerAll` runs whose `loadedMods` lists all four mods. The root uses `evaluationDependsOnChildren()` so the subproject `mods` are available. The root `jar` task is disabled because the root has no sources.
 Alternative: put the combined runs in `lib`. Rejected because Lib would then reference the content projects in its build script, which inverts the dependency direction we want to keep clean.
-Risk noted below in case ModDevGradle rejects a run in a project without a `mods {}` block.
+Verified during implementation: ModDevGradle 2.0.148 accepts runs in the root project without a `mods {}` block as long as `loadedMods` is set explicitly. The `project(':x')` lookups must happen outside the `neoForge {}` block, where that name resolves to a dependency notation instead.
 
 ### D6: Run config shape per subproject
 `client`, `server` (with `--nogui`), `data` and `gameTestServer`, same as the MDK template. `neoforge.enabledGameTestNamespaces` is set to the mod's id. The `data` run passes `--mod <id> --all --output src/generated/resources --existing src/main/resources`. Game directories: `runs/client`, `runs/server`, `runs/data`, `runs/gametest` under each subproject, all gitignored.
