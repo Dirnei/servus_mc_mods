@@ -1,6 +1,6 @@
 {
   "icon": {
-    "id": "servus_manufacturing:stone_deposit"
+    "id": "minecraft:stone_bricks"
   },
   "parents": [],
   "cost": [
@@ -11,6 +11,8 @@
   ],
   "ticks_per_pack": 100,
   "unlocks": [
-    "servus_manufacturing:assembling/stone_brick"
+    "servus_manufacturing:assembling/stone",
+    "servus_manufacturing:assembling/stone_bricks",
+    "servus_manufacturing:assembling/glass"
   ]
 }

@@ -1,0 +1,15 @@
+{
+  "type": "servus_manufacturing:assembling",
+  "ingredients": [
+    {
+      "count": 1,
+      "item": "minecraft:sand"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:glass"
+  },
+  "tech": "servus_manufacturing:stone_processing",
+  "time": 40
+}

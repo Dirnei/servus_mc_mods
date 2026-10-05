@@ -128,6 +128,24 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .tech("crusher")
                 .save(output, "crusher");
 
+        assembling(Items.STONE, 2)
+                .requires(Items.COBBLESTONE, 2)
+                .time(20)
+                .tech("stone_processing")
+                .save(output, "stone");
+
+        assembling(Items.STONE_BRICKS, 2)
+                .requires(Items.STONE, 2)
+                .time(20)
+                .tech("stone_processing")
+                .save(output, "stone_bricks");
+
+        assembling(Items.GLASS, 1)
+                .requires(Items.SAND, 1)
+                .time(40)
+                .tech("stone_processing")
+                .save(output, "glass");
+
         assembling(ServusManufacturingItems.RED_PACK.get(), 1)
                 .requires(ServusManufacturingItems.IRON_GEAR.get(), 1)
                 .requires(ServusManufacturingItems.COPPER_WIRE.get(), 2)
