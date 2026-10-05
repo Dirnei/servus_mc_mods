@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.crate;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.lib.item.WrenchItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -117,6 +118,12 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
                 inventory.setItem(slot, stack);
             }
         }
+    }
+
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        StorageNodeBlockEntity.neighborsChanged(level, pos);
     }
 
     @Override

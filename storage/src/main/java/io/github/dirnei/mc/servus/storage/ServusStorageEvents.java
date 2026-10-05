@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage;
 
 import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateStatsManager;
+import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.world.entity.player.Player;
@@ -24,7 +24,7 @@ public final class ServusStorageEvents {
 
     @SubscribeEvent
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
-        event.addListener(CrateStatsManager.INSTANCE);
+        event.addListener(StorageStatsManager.INSTANCE);
     }
 
     /** Left click on a crate with items takes a stack (one when sneaking) instead of breaking. */

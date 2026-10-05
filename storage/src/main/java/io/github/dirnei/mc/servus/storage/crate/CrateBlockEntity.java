@@ -38,7 +38,7 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
     // State
 
     public int capacity() {
-        return CrateStatsManager.INSTANCE.crateCapacity();
+        return StorageStatsManager.INSTANCE.crateCapacity();
     }
 
     public boolean isEmpty() {
@@ -110,6 +110,7 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
     private void changed() {
         setChanged();
         syncPending = true;
+        postDirty();
     }
 
     // Ticking: throttle client syncs

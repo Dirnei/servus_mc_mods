@@ -15,5 +15,6 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         add(ServusStorageBlocks.CRATE.get(), "Crate");
         add(ServusStorageBlocks.RACK.get(), "Shelving Rack");
+        add(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "Warehouse Controller");
     }
 }

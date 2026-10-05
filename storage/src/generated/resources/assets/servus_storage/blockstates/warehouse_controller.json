@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "servus_storage:block/warehouse_controller",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "servus_storage:block/warehouse_controller"
+    },
+    "facing=south": {
+      "model": "servus_storage:block/warehouse_controller",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "servus_storage:block/warehouse_controller",
+      "y": 270
+    }
+  }
+}

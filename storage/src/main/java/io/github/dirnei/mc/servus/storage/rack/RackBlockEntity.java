@@ -24,6 +24,7 @@ public class RackBlockEntity extends StorageNodeBlockEntity {
         protected void onContentsChanged(int slot) {
             setChanged();
             syncPending = true;
+            postDirty();
         }
     };
     private boolean syncPending;

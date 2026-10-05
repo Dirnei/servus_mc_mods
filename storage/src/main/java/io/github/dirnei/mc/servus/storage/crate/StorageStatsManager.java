@@ -13,34 +13,44 @@ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 /** Loads storage block stats from {@code data/<ns>/storage/<name>.json}. */
-public final class CrateStatsManager extends SimpleJsonResourceReloadListener {
+public final class StorageStatsManager extends SimpleJsonResourceReloadListener {
 
     public static final String DIRECTORY = "storage";
     public static final int DEFAULT_CRATE_CAPACITY = 4096;
+    public static final int DEFAULT_SOURCES_PER_TICK = 4;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
+    private static final ResourceLocation WAREHOUSE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
 
-    public static final CrateStatsManager INSTANCE = new CrateStatsManager();
+    public static final StorageStatsManager INSTANCE = new StorageStatsManager();
 
     private volatile int crateCapacity = DEFAULT_CRATE_CAPACITY;
+    private volatile int sourcesPerTick = DEFAULT_SOURCES_PER_TICK;
 
-    private CrateStatsManager() {
+    private StorageStatsManager() {
         super(GSON, DIRECTORY);
     }
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
-        JsonElement crate = files.get(CRATE);
-        int capacity = DEFAULT_CRATE_CAPACITY;
-        if (crate instanceof JsonObject object && object.has("capacity")) {
-            capacity = Math.max(1, object.get("capacity").getAsInt());
+        crateCapacity = intField(files.get(CRATE), "capacity", DEFAULT_CRATE_CAPACITY);
+        sourcesPerTick = intField(files.get(WAREHOUSE), "sources_per_tick", DEFAULT_SOURCES_PER_TICK);
+        ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
+    }
+
+    private static int intField(JsonElement element, String field, int fallback) {
+        if (element instanceof JsonObject object && object.has(field)) {
+            return Math.max(1, object.get(field).getAsInt());
         }
-        crateCapacity = capacity;
-        ServusStorage.LOGGER.info("Crate capacity {}", capacity);
+        return fallback;
     }
 
     public int crateCapacity() {
         return crateCapacity;
+    }
+
+    public int sourcesPerTick() {
+        return sourcesPerTick;
     }
 }

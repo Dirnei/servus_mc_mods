@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.RackBlockEntity;
 import net.minecraft.core.registries.Registries;
@@ -21,6 +22,11 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RackBlockEntity>> RACK =
             BLOCK_ENTITIES.register("rack", () -> BlockEntityType.Builder
                     .of(RackBlockEntity::new, ServusStorageBlocks.RACK.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WarehouseControllerBlockEntity>> WAREHOUSE_CONTROLLER =
+            BLOCK_ENTITIES.register("warehouse_controller", () -> BlockEntityType.Builder
+                    .of(WarehouseControllerBlockEntity::new, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get())
                     .build(null));
 
     private ServusStorageBlockEntities() {

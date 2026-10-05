@@ -19,5 +19,6 @@ final class ServusStorageBlockTagsProvider extends BlockTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider provider) {
         tag(BlockTags.MINEABLE_WITH_AXE).add(ServusStorageBlocks.CRATE.get()).add(ServusStorageBlocks.RACK.get());
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get());
     }
 }
