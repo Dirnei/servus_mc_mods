@@ -10,6 +10,7 @@
   "block.servus_manufacturing.power_cable": "Power Cable",
   "block.servus_manufacturing.research_lab": "Research Lab",
   "block.servus_manufacturing.stone_deposit": "Stone Deposit",
+  "gui.servus_manufacturing.jei.assembling": "Assembling",
   "gui.servus_manufacturing.locked": "Locked: requires research",
   "gui.servus_manufacturing.no_research": "No research selected",
   "gui.servus_manufacturing.research.available": "Available",

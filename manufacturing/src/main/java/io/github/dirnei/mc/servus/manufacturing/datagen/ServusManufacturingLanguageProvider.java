@@ -30,6 +30,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.RESEARCH_LAB.get(), "Research Lab");
 
         add("gui.servus_manufacturing.tech_tree", "Tech Tree");
+        add("gui.servus_manufacturing.jei.assembling", "Assembling");
         add("gui.servus_manufacturing.no_research", "No research selected");
         add("gui.servus_manufacturing.locked", "Locked: requires research");
         add("gui.servus_manufacturing.research.completed", "Completed");
