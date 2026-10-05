@@ -25,6 +25,6 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Run `gradlew :lib:runServer`, `gradlew :manufacturing:runServer`, `gradlew :logistics:runServer`, `gradlew :storage:runServer` once each (accept the EULA in `runs/server/eula.txt` first). Verify the log shows exactly the expected mod ids loaded (Lib alone, then Lib plus one content mod) and the server reaches "Done". Stop each server.
-- [ ] 5.2 Run `gradlew serverAll`. Verify the log lists all four Servus mod ids and the server reaches "Done".
+- [x] 5.1 Run `gradlew :lib:runServer`, `gradlew :manufacturing:runServer`, `gradlew :logistics:runServer`, `gradlew :storage:runServer` once each (accept the EULA in `runs/server/eula.txt` first). Verify the log shows exactly the expected mod ids loaded (Lib alone, then Lib plus one content mod) and the server reaches "Done". Stop each server.
+- [x] 5.2 Run `gradlew serverAll`. Verify the log lists all four Servus mod ids and the server reaches "Done".
 - [ ] 5.3 Full check: `gradlew clean build` green including tests, then `gradlew clientAll` launches the client to the title screen and the Mods screen shows all four mods with version 0.1.0 and license MIT. Commit.

@@ -37,8 +37,9 @@ Alternative: a buildSrc convention plugin. Rejected as too much machinery for fo
 Each subproject has `src/main/templates/META-INF/neoforge.mods.toml`. The shared `generateModMetadata` ProcessResources task expands `mod_id`, `mod_name`, `mod_version`, `mod_license`, `neo_version`, `minecraft_version_range`, `loader_version_range` and `lib_version_range`. Content mod templates add a `[[dependencies.<mod_id>]]` block for `servus_lib`, type `required`, version range `[${mod_version},)`. All four mods share one `mod_version` for now, so the range is simply the current version.
 Reference: NeoForge docs, Mod Files (`neoforge.mods.toml`): https://docs.neoforged.net/docs/gettingstarted/modfiles
 
-### D4: Content mods depend on Lib with `implementation project(':lib')`
-This puts Lib on the compile and runtime classpath. Because ModDevGradle only loads mods listed in `mods {}` or `loadedMods`, each content mod's runs set `loadedMods = [mods.<self>, project(':lib').neoForge.mods.servus_lib]`. Reference: ModDevGradle README, "Include Mods from Subprojects".
+### D4: Content mods depend on Lib with `compileOnly project(':lib')` plus `testImplementation project(':lib')`
+Because ModDevGradle only loads mods listed in `mods {}` or `loadedMods`, each content mod's runs set `loadedMods` to itself plus Lib's mod from the `:lib` project. ModDevGradle puts the loaded mods' source set outputs on the run classpath, so Lib does not need to be a runtime dependency. Reference: ModDevGradle README, "Include Mods from Subprojects".
+Changed during implementation: the first version used `implementation`, which also put the built Lib jar on the runtime classpath. FML then discovered `servus_lib` twice (source set and jar) and picked one by version. `compileOnly` avoids the duplicate, and `testImplementation` keeps Lib available to the content mods' unit tests.
 
 ### D5: Combined runs live in the root project
 The root project also applies ModDevGradle (with `neoForge.version` set, no sources) and defines `clientAll`, `serverAll` and `gameTestServerAll` runs whose `loadedMods` lists all four mods. The root uses `evaluationDependsOnChildren()` so the subproject `mods` are available. The root `jar` task is disabled because the root has no sources.

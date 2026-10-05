@@ -2,7 +2,11 @@
 evaluationDependsOn(':lib')
 
 dependencies {
-    implementation project(':lib')
+    // Compile against Lib, but do not put its jar on the run classpath: the run
+    // already loads Lib from its source set via loadedMods below. Using
+    // implementation here makes FML see servus_lib twice.
+    compileOnly project(':lib')
+    testImplementation project(':lib')
 }
 
 // Resolved outside the neoForge block: inside it, project(':lib') would be
