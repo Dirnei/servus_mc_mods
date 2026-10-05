@@ -46,6 +46,19 @@ gradlew runGameTestServerAll
 
 Game directories are `runs/client`, `runs/server`, `runs/data` and `runs/gametest` inside each project (or the repo root for the combined runs). They are gitignored. Dedicated server runs need `eula=true` in `runs/server/eula.txt`.
 
+## Playtest (Tier 1)
+
+Launch with `gradlew runClientAll`, create a new world, and take the Servus creative tab or craft from vanilla materials:
+
+1. Find or place deposits (iron, copper, coal, stone patches on the surface).
+2. Burner Extractor on a deposit, Burner Smelter next to it, coal in both. Machines push output into adjacent inventories.
+3. Coal Generator plus Power Cables carry FE to an Assembler Mk1 and a Research Lab.
+4. In the Assembler, pick iron gear, copper wire or red pack in the recipe panel.
+5. Item Ducts route pushed items to the next inventory on the duct network.
+6. Red packs go into the Research Lab; open the Tech Tree from its GUI and pick a tech.
+
+The wrench rotates machines and sneak wrench dismantles them. Balance numbers live in `manufacturing/src/main/resources/data/servus_manufacturing/machine/` and the deposit, recipe and tech JSON files next to them.
+
 ## Development workflow
 
 Work is planned and tracked with OpenSpec. See `CLAUDE.md` for the spec-driven workflow and `openspec/` for the specs and changes.
