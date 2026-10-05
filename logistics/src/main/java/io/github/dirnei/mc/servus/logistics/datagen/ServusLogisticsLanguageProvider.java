@@ -18,7 +18,10 @@ final class ServusLogisticsLanguageProvider extends LanguageProvider {
         add(ServusLogisticsItems.ITEM_CHANNEL.get(), "Item Channel");
         add(ServusLogisticsItems.ENERGY_CHANNEL.get(), "Energy Channel");
         add("gui.servus_logistics.utility_duct", "Utility Duct");
-        add("gui.servus_logistics.remove", "Remove");
+        add("gui.servus_logistics.remove.item", "Remove item channel");
+        add("gui.servus_logistics.remove.energy", "Remove energy channel");
+        add("gui.servus_logistics.filter", "Filter (empty = everything)");
+        add("gui.servus_logistics.priority", "Priority %s");
         add("gui.servus_logistics.no_channels", "No channels");
         add("gui.servus_logistics.channel.item", "Items");
         add("gui.servus_logistics.channel.energy", "Energy");

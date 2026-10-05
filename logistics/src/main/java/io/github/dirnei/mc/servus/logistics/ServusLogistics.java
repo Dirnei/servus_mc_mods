@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.logistics.network.ItemChannelNetwork;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
+import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsMenus;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ public final class ServusLogistics {
         ServusLogisticsBlocks.BLOCKS.register(modEventBus);
         ServusLogisticsItems.ITEMS.register(modEventBus);
         ServusLogisticsBlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        ServusLogisticsMenus.MENUS.register(modEventBus);
         NetworkTypes.register(ItemChannelNetwork.TYPE);
         NetworkTypes.register(EnergyChannelNetwork.TYPE);
         LOGGER.info("Servus: Logistics loaded");

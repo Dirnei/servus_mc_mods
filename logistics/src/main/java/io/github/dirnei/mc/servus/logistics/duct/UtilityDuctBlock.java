@@ -3,7 +3,6 @@ package io.github.dirnei.mc.servus.logistics.duct;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
-import io.github.dirnei.mc.servus.logistics.client.ClientHooks;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -78,8 +77,8 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide()) {
-            ClientHooks.openDuctScreen(pos);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
+            player.openMenu(duct, pos);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }

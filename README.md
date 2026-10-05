@@ -70,7 +70,7 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 ## Logistics playtest guide
 
 1. Item Channel (iron, glass, chest) and Energy Channel (copper, redstone, glass) place a Utility Duct carrying that channel. Use a channel item on an existing duct to add the other channel.
-2. Right click a duct to open its side configuration: per channel and per side choose in and out, pull in, push out or disabled. Pull in actively empties the neighbouring inventory; push out delivers. Remove buttons take a channel back out.
+2. Right click a duct to open its side configuration. Pick a side at the top, then set each channel's mode (in and out, pull in, push out, disabled), drop up to nine items into the filter row (empty means everything) and adjust the priority. Pull in actively empties the neighbouring inventory; push out delivers, highest priority first. Remove buttons take a channel back out.
 3. Sneak wrench removes a duct and drops its channels.
 
 The wrench rotates machines and sneak wrench dismantles them. Balance numbers live in `manufacturing/src/main/resources/data/servus_manufacturing/machine/` and the deposit, recipe and tech JSON files next to them.

@@ -50,7 +50,7 @@ public final class EnergyChannelNetwork extends ServusNetwork<UtilityDuctBlockEn
 
     @Override
     protected void handle(DuctEvent event) {
-        if (event instanceof DuctEvent.ModesChanged changed && level != null
+        if (event instanceof DuctEvent.ConfigChanged changed && level != null
                 && level.getBlockEntity(Conversions.toBlockPos(changed.pos())) instanceof UtilityDuctBlockEntity duct) {
             rebuild(changed.pos(), duct);
         }
