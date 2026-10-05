@@ -41,7 +41,7 @@ The assembler GUI SHALL let the player configure up to its recipe slot count of 
 - **THEN** the assembler accepts no inputs from automation and does not craft
 
 ### Requirement: Crafting the selected recipe
-The assembler SHALL craft any of its configured recipes whose required items are all present in the input slots and whose result fits the output slot, taking turns between craftable recipes. A crafting recipe takes the machine's work time; an assembling recipe takes its own time. Crafting remainders such as empty buckets return to the input slots.
+The assembler SHALL craft any of its configured recipes whose required items are all present in the input slots and whose result and remainders fit the output slots, taking turns between craftable recipes. A crafting recipe takes the machine's work time; an assembling recipe takes its own time. Crafting remainders such as empty buckets go to the output slots together with the result.
 
 #### Scenario: Vanilla recipe
 - **WHEN** the stick recipe is configured and two planks are in the inputs with energy available
@@ -62,6 +62,14 @@ The assembler SHALL craft any of its configured recipes whose required items are
 #### Scenario: No power
 - **WHEN** a configured recipe could be crafted but the energy buffer is empty
 - **THEN** progress does not advance and the inputs are untouched
+
+#### Scenario: Remainders
+- **WHEN** the cake recipe is configured and three milk buckets, two sugar, an egg and three wheat are in the inputs
+- **THEN** after one craft the outputs hold one cake and three empty buckets
+
+#### Scenario: Outputs full
+- **WHEN** the result or a remainder would not fit the output slots
+- **THEN** the craft waits and the inputs are untouched
 
 ### Requirement: Input slots accept only useful items
 The assembler SHALL accept into its input slots only items used by at least one configured recipe.
@@ -101,3 +109,10 @@ With JEI installed, the transfer button on a crafting or assembling recipe SHALL
 #### Scenario: Plus button
 - **WHEN** the player opens an assembler, looks up sticks in JEI and presses plus
 - **THEN** the stick recipe appears in the configured list
+
+### Requirement: Buffers
+The Assembler Mk1 SHALL have 18 input slots and 4 output slots, so two configured recipes can be buffered and results and remainders can accumulate.
+
+#### Scenario: Slot counts
+- **WHEN** the player opens the assembler GUI
+- **THEN** three rows of six input slots and a two by two block of output slots are shown
