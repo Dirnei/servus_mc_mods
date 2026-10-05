@@ -51,8 +51,9 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
 
     public static final int SLOT_INPUT_FIRST = 0;
-    public static final int INPUT_SLOTS = 9;
-    public static final int SLOT_OUTPUT = 9;
+    public static final int INPUT_SLOTS = 18;
+    public static final int SLOT_OUTPUT_FIRST = 18;
+    public static final int OUTPUT_SLOTS = 4;
     public static final int DATA_ACTIVE_RECIPE = 6;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "assembler");
     private static final MachineStats DEFAULTS = MachineStats.crafter(20, 20, 8000, 2);
@@ -69,7 +70,7 @@ public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
     private int active = -1;
 
     public AssemblerBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusManufacturingBlockEntities.ASSEMBLER.get(), pos, state, INPUT_SLOTS + 1);
+        super(ServusManufacturingBlockEntities.ASSEMBLER.get(), pos, state, INPUT_SLOTS + OUTPUT_SLOTS);
     }
 
     // Configuration
@@ -271,23 +272,28 @@ public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
         return Optional.empty();
     }
 
+    /** Simulates putting the result and every remainder into the output slots. */
     private boolean fits(ItemStack result, NonNullList<ItemStack> remainders) {
-        if (!canInsertOutput(SLOT_OUTPUT, result)) {
+        ItemStackHandler scratch = new ItemStackHandler(OUTPUT_SLOTS);
+        for (int i = 0; i < OUTPUT_SLOTS; i++) {
+            scratch.setStackInSlot(i, inventory.getStackInSlot(SLOT_OUTPUT_FIRST + i).copy());
+        }
+        if (!ItemHandlerHelper.insertItem(scratch, result.copy(), false).isEmpty()) {
             return false;
         }
         for (ItemStack remainder : remainders) {
-            if (remainder.isEmpty()) {
-                continue;
-            }
-            if (!ItemHandlerHelper.insertItem(inputHandler(), remainder.copy(), true).isEmpty()) {
+            if (!remainder.isEmpty() && !ItemHandlerHelper.insertItem(scratch, remainder.copy(), false).isEmpty()) {
                 return false;
             }
         }
         return true;
     }
 
-    private ItemStackHandler inputHandler() {
-        return inventory;
+    private void toOutputs(ItemStack stack) {
+        ItemStack left = stack.copy();
+        for (int i = 0; i < OUTPUT_SLOTS && !left.isEmpty(); i++) {
+            left = inventory.insertItem(SLOT_OUTPUT_FIRST + i, left, false);
+        }
     }
 
     @Override
@@ -319,13 +325,10 @@ public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
                 inventory.extractItem(SLOT_INPUT_FIRST + i, plan.take()[i], false);
             }
         }
-        insertOutput(SLOT_OUTPUT, plan.result());
+        toOutputs(plan.result());
         for (ItemStack remainder : plan.remainders()) {
             if (!remainder.isEmpty()) {
-                ItemStack left = ItemHandlerHelper.insertItem(inventory, remainder.copy(), false);
-                if (!left.isEmpty()) {
-                    insertOutput(SLOT_OUTPUT, left);
-                }
+                toOutputs(remainder);
             }
         }
         cursor = active + 1;
@@ -360,7 +363,7 @@ public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
 
     @Override
     protected boolean isOutputSlot(int slot) {
-        return slot == SLOT_OUTPUT;
+        return slot >= SLOT_OUTPUT_FIRST && slot < SLOT_OUTPUT_FIRST + OUTPUT_SLOTS;
     }
 
     @Override

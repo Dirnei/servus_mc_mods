@@ -41,17 +41,26 @@ public class AssemblerMenu extends MachineMenu {
     protected void addMachineSlots() {
         AssemblerBlockEntity assembler = (AssemblerBlockEntity) machine;
         for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                addSlot(new MachineSlot(machine, AssemblerBlockEntity.SLOT_INPUT_FIRST + row * 3 + col, 8 + col * 18, 17 + row * 18));
+            for (int col = 0; col < 6; col++) {
+                addSlot(new MachineSlot(machine, AssemblerBlockEntity.SLOT_INPUT_FIRST + row * 6 + col, 8 + col * 18, 17 + row * 18));
             }
         }
-        addSlot(new OutputSlot(machine, AssemblerBlockEntity.SLOT_OUTPUT, 124, 35));
+        for (int row = 0; row < 2; row++) {
+            for (int col = 0; col < 2; col++) {
+                addSlot(new OutputSlot(machine, AssemblerBlockEntity.SLOT_OUTPUT_FIRST + row * 2 + col, 202 + col * 18, 17 + row * 18));
+            }
+        }
         patternSlotFirst = slots.size();
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
-                addSlot(new PatternSlot(assembler.pattern(), row * 3 + col, 62 + col * 18, 17 + row * 18));
+                addSlot(new PatternSlot(assembler.pattern(), row * 3 + col, 124 + col * 18, 17 + row * 18));
             }
         }
+    }
+
+    @Override
+    protected int playerInventoryX() {
+        return 48;
     }
 
     public AssemblerBlockEntity assembler() {

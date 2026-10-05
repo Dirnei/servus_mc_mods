@@ -25,7 +25,10 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
     }
 
-    protected static final int ENERGY_X = 152;
+    /** Left edge of the energy bar; wider screens override. */
+    protected int energyX() {
+        return 152;
+    }
     protected static final int ENERGY_Y = 17;
     protected static final int ENERGY_WIDTH = 12;
     protected static final int ENERGY_HEIGHT = 52;
@@ -72,7 +75,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
-        if (layout.energy() && isHovering(ENERGY_X, ENERGY_Y, ENERGY_WIDTH, ENERGY_HEIGHT, mouseX, mouseY)) {
+        if (layout.energy() && isHovering(energyX(), ENERGY_Y, ENERGY_WIDTH, ENERGY_HEIGHT, mouseX, mouseY)) {
             guiGraphics.renderTooltip(font,
                     Component.literal(menu.energyStored() + " / " + menu.energyCapacity() + " FE"), mouseX, mouseY);
         }
@@ -164,7 +167,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             guiGraphics.blit(layout.texture(), leftPos + 79, topPos + 34, 176, 14, arrow + 1, 16);
         }
         if (layout.energy()) {
-            int x = leftPos + ENERGY_X;
+            int x = leftPos + energyX();
             int y = topPos + ENERGY_Y;
             guiGraphics.fill(x - 1, y - 1, x + ENERGY_WIDTH + 1, y + ENERGY_HEIGHT + 1, 0xFF373737);
             guiGraphics.fill(x, y, x + ENERGY_WIDTH, y + ENERGY_HEIGHT, 0xFF1E1E1E);

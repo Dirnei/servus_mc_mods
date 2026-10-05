@@ -59,14 +59,20 @@ public abstract class MachineMenu extends AbstractContainerMenu {
 
     protected abstract void addMachineSlots();
 
+    /** Left edge of the player inventory; wider GUIs centre it. */
+    protected int playerInventoryX() {
+        return 8;
+    }
+
     private void addPlayerSlots(Inventory playerInventory) {
+        int x = playerInventoryX();
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, 84 + row * 18));
+                addSlot(new Slot(playerInventory, column + row * 9 + 9, x + column * 18, 84 + row * 18));
             }
         }
         for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, 142));
+            addSlot(new Slot(playerInventory, column, x + column * 18, 142));
         }
     }
 

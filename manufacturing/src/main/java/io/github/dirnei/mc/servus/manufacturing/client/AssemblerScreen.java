@@ -17,14 +17,14 @@ import net.minecraft.world.item.ItemStack;
  */
 public class AssemblerScreen extends MachineScreen {
 
-    private static final int ADD_X = 124;
+    private static final int ADD_X = 182;
     private static final int ADD_Y = 17;
-    private static final int CLEAR_X = 124;
+    private static final int CLEAR_X = 182;
     private static final int CLEAR_Y = 55;
     private static final int BUTTON_W = 18;
     private static final int BUTTON_H = 12;
-    private static final int PROGRESS_X = 124;
-    private static final int PROGRESS_Y = 53;
+    private static final int PROGRESS_X = 182;
+    private static final int PROGRESS_Y = 38;
 
     private static final int PANEL_GAP = 4;
     private static final int PANEL_PADDING = 4;
@@ -32,6 +32,18 @@ public class AssemblerScreen extends MachineScreen {
 
     public AssemblerScreen(MachineMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, Layout.ASSEMBLER);
+        this.imageWidth = 256;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        this.inventoryLabelX = 48;
+    }
+
+    @Override
+    protected int energyX() {
+        return 240;
     }
 
     private AssemblerMenu assemblerMenu() {

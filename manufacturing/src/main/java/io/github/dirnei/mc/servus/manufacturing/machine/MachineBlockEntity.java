@@ -270,7 +270,12 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         if (tag.contains("Inventory")) {
-            inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
+            // Copy into the fixed size inventory: a saved size must never resize the machine.
+            ItemStackHandler saved = new ItemStackHandler();
+            saved.deserializeNBT(registries, tag.getCompound("Inventory"));
+            for (int slot = 0; slot < inventory.getSlots(); slot++) {
+                inventory.setStackInSlot(slot, slot < saved.getSlots() ? saved.getStackInSlot(slot) : ItemStack.EMPTY);
+            }
         }
         progress = tag.getInt("Progress");
         sideConfig.fromBytes(tag.contains("Sides") ? tag.getByteArray("Sides") : new byte[0]);
