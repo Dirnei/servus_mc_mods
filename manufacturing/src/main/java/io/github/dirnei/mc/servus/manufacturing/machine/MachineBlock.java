@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.machine;
 
-import io.github.dirnei.mc.servus.lib.item.WrenchItem;
+import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -76,7 +76,7 @@ public abstract class MachineBlock extends BaseEntityBlock implements Wrenchable
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof WrenchItem) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem) {
             // Let the wrench item handle the click instead of opening the GUI.
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }

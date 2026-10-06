@@ -13,10 +13,10 @@ final class ServusLibLanguageProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        add(ServusLibItems.WRENCH.get(), "Wrench");
+        add(ServusLibItems.CONFIGURATION_CARROT.get(), "Configuration Carrot");
         add(ServusLibItems.GOGGLES.get(), "Engineer Goggles");
         add("itemGroup.servus", "Servus");
-        add("servus_lib.configuration.wrench", "Wrench");
-        add("servus_lib.configuration.wrenchRotatesBlocks", "Wrench rotates blocks");
+        add("servus_lib.configuration.wrench", "Configuration Carrot");
+        add("servus_lib.configuration.wrenchRotatesBlocks", "Configuration Carrot rotates blocks");
     }
 }

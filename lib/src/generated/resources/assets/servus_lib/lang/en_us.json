@@ -1,7 +1,7 @@
 {
+  "item.servus_lib.configuration_carrot": "Configuration Carrot",
   "item.servus_lib.engineer_goggles": "Engineer Goggles",
-  "item.servus_lib.wrench": "Wrench",
   "itemGroup.servus": "Servus",
-  "servus_lib.configuration.wrench": "Wrench",
-  "servus_lib.configuration.wrenchRotatesBlocks": "Wrench rotates blocks"
+  "servus_lib.configuration.wrench": "Configuration Carrot",
+  "servus_lib.configuration.wrenchRotatesBlocks": "Configuration Carrot rotates blocks"
 }

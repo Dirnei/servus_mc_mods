@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.lib.block;
 
-import io.github.dirnei.mc.servus.lib.item.WrenchItem;
+import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import java.util.HashMap;
 import java.util.Map;
@@ -124,7 +124,7 @@ public abstract class ConnectableBlock extends BaseEntityBlock implements Wrench
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof WrenchItem) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;

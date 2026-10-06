@@ -18,13 +18,14 @@ final class ServusLibRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes(RecipeOutput output) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusLibItems.WRENCH.get())
-                .pattern("I I")
-                .pattern(" I ")
-                .pattern(" S ")
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusLibItems.CONFIGURATION_CARROT.get())
+                .pattern("R")
+                .pattern("I")
+                .pattern("C")
+                .define('R', Items.REDSTONE)
                 .define('I', Items.IRON_INGOT)
-                .define('S', Items.STICK)
-                .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
+                .define('C', Items.CARROT)
+                .unlockedBy("has_carrot", has(Items.CARROT))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusLibItems.GOGGLES.get())

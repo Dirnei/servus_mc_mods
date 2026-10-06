@@ -25,9 +25,9 @@ public final class ServusLibCreativeTabs {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> SERVUS = TABS.register("servus", () ->
             CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.servus"))
-                    .icon(() -> new ItemStack(ServusLibItems.WRENCH.get()))
+                    .icon(() -> new ItemStack(ServusLibItems.CONFIGURATION_CARROT.get()))
                     .displayItems((parameters, output) -> {
-                        output.accept(ServusLibItems.WRENCH.get());
+                        output.accept(ServusLibItems.CONFIGURATION_CARROT.get());
                         output.accept(ServusLibItems.GOGGLES.get());
                     })
                     .build());

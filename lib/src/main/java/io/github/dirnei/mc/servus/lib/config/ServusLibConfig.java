@@ -11,7 +11,7 @@ public final class ServusLibConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     private static final ModConfigSpec.BooleanValue WRENCH_ROTATES_BLOCKS = BUILDER
-            .comment("Whether the wrench rotates blocks that do not handle the wrench themselves.")
+            .comment("Whether the Configuration Carrot rotates blocks that do not handle the wrench role themselves.")
             .push("wrench")
             .define("wrenchRotatesBlocks", true);
 

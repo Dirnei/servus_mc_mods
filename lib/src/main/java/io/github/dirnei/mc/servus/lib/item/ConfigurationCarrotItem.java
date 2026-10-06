@@ -15,12 +15,13 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
 /**
- * The Servus wrench. Blocks implementing {@link Wrenchable} get the click;
- * everything else with a facing property is rotated.
+ * The Configuration Carrot, the item that fills the wrench role in Servus.
+ * Blocks implementing {@link Wrenchable} get the click; everything else with
+ * a facing property is rotated.
  */
-public class WrenchItem extends Item {
+public class ConfigurationCarrotItem extends Item {
 
-    public WrenchItem(Properties properties) {
+    public ConfigurationCarrotItem(Properties properties) {
         super(properties);
     }
 

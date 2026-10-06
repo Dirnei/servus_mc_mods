@@ -30,10 +30,10 @@ public class GogglesItem extends Item implements Equipable {
         return player.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof GogglesItem;
     }
 
-    /** The shared rule: goggles on the head or a wrench in either hand. */
+    /** The shared rule: goggles on the head or a Configuration Carrot in either hand. */
     public static boolean reveals(Player player) {
         return isWearing(player)
-                || player.getMainHandItem().getItem() instanceof WrenchItem
-                || player.getOffhandItem().getItem() instanceof WrenchItem;
+                || player.getMainHandItem().getItem() instanceof ConfigurationCarrotItem
+                || player.getOffhandItem().getItem() instanceof ConfigurationCarrotItem;
     }
 }

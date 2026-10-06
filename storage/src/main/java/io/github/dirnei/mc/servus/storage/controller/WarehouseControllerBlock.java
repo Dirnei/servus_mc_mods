@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.controller;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.lib.item.WrenchItem;
+import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -64,7 +64,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof WrenchItem) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;

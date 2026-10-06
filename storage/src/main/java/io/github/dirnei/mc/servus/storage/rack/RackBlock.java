@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.rack;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.lib.item.WrenchItem;
+import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
@@ -82,7 +82,7 @@ public class RackBlock extends BaseEntityBlock implements Wrenchable {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof WrenchItem) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
         if (!(level.getBlockEntity(pos) instanceof RackBlockEntity rack)) {

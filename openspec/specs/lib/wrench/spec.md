@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The wrench is the one tool for configuring Servus blocks. It rotates ordinary blocks and hands the click to blocks that know what a wrench means to them.
+The wrench is the role of the one tool for configuring Servus blocks. The item that fills it is the Configuration Carrot. Other specs say "wrench" for that role. The tool rotates ordinary blocks and hands the click to blocks that know what a wrench means to them.
 
 ## Requirements
 

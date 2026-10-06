@@ -4,7 +4,7 @@ A family of NeoForge mods for Minecraft 1.21.1, built to fit packs like ATM10 bu
 
 | Mod | Mod ID | Purpose |
 |---|---|---|
-| Servus Lib | `servus_lib` | Shared library: APIs, network graph, tick mailbox, wrench, config helpers |
+| Servus Lib | `servus_lib` | Shared library: APIs, network graph, tick mailbox, Configuration Carrot (the wrench role), config helpers |
 | Servus: Manufacturing | `servus_manufacturing` | Factorio style resource production with its own tech tree |
 | Servus: Logistics | `servus_logistics` | Bundled item and energy ducts (fluids later) with facades |
 | Servus: Storage | `servus_storage` | In-world warehouse storage that scales to shuttles, autocrafting and wireless access |
@@ -92,10 +92,10 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 ### 2.2 Servus: Logistics
 
 - **Utility Duct**: one block with several channels (items and energy first, fluids later).
-- Per side and per channel modes set with a wrench: input, output, both, disabled.
+- Per side and per channel modes set with the Configuration Carrot (the wrench role): input, output, both, disabled.
 - Item channels: filters and priorities per side. Energy channels: tiered transfer rate.
 - **Facades**: crafted from any full block plus an iron plate. The duct then looks like that block. Solid or hollow variants.
-- Holding the wrench or wearing engineer goggles shows hidden ducts as a translucent overlay.
+- Holding the Configuration Carrot or wearing engineer goggles shows hidden ducts as a translucent overlay.
 - Rendering: dynamic baked model driven by model data from the block entity. Facades reuse the target block's baked model.
 - Separate selection and collision shapes per part so a single channel can be removed.
 - Networks are cached graphs, rebuilt only on placement or removal, never by walking blocks every tick.
@@ -149,7 +149,7 @@ The bridge lives in Servus Lib as a small API (see section 3).
 - `ProductionProvider`: "this block can produce X from inputs Y at rate Z"
 - `StockProvider` / `StockSink`: "this inventory can supply or accept items"
 - `WorkOrder` model and a planner interface (implemented by Storage, fed by Manufacturing)
-- Shared wrench item and goggles
+- Shared Configuration Carrot (the wrench role) and goggles
 - Config helpers
 
 Keep the API small at first and grow it only when a second mod actually needs something.
@@ -171,7 +171,7 @@ Each milestone ends in something playable or testable.
 - Network graph library (pure Java) with split and merge, plus JUnit tests
 - Mailbox and tick scheduler
 - `NetworkManager` hooked into block place and break events
-- Wrench item
+- Configuration Carrot, the item that fills the wrench role
 - Config scaffolding
 
 ### M2: Manufacturing first playable slice
