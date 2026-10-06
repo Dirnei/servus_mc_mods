@@ -16,4 +16,4 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Full `gradlew clean build` green, `gradlew test` green, `gradlew :manufacturing:runGameTestServer` passes, `gradlew runClientAll` launches with all four mods. In game: craft the Configuration Carrot from redstone, iron ingot and carrot, check the icon has no green and shows the grey bar with red tip, check it is the Servus tab icon, rotate a furnace, sneak dismantle a machine, hold it near a faced duct and see the overlay, confirm it cannot be eaten. Commit.
+- [x] 4.1 Full `gradlew clean build` green, `gradlew test` green, `gradlew :manufacturing:runGameTestServer` passes, `gradlew runClientAll` launches with all four mods. In game: craft the Configuration Carrot from redstone, iron ingot and carrot, check the icon has no green and shows the grey bar with red tip, check it is the Servus tab icon, rotate a furnace, sneak dismantle a machine, hold it near a faced duct and see the overlay, confirm it cannot be eaten. Commit.
