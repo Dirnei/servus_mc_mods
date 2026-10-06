@@ -8,6 +8,8 @@
 
 - [x] 2.1 Edit the four front textures to carry a dark lamp and write the four `_front_online` textures with a scratchpad script; replace `oriented` in `ServusStorageBlockStateProvider` with the two model variant builder over `FACING` and `ONLINE`. Run `gradlew :storage:runData` and verify each of the four blockstates has eight variants and the `_online` models exist.
 
+- [x] 2.2 Add the four `dock_*` properties to `RailBlock` with placement and shape update logic, the `rail_dock` model and multipart conditions in `RailModels`, and draw `textures/block/rail_dock.png`. Run `gradlew :storage:runData` and verify the rail blockstate has nine multipart entries and `rail_dock.json` exists.
+
 ## 3. Verification
 
 - [x] 3.1 Extend `railsLinkCrateAndController` and `elevatorLinksFloors` in `ServusStorageGameTests` with the `ONLINE` assertions per design.md. Verify `gradlew :storage:runGameTestServer` passes all three storage tests.

@@ -10,6 +10,7 @@
         "model": "servus_storage:block/rail_arm"
       },
       "when": {
+        "dock_north": "false",
         "north": "true"
       }
     },
@@ -19,6 +20,7 @@
         "y": 90
       },
       "when": {
+        "dock_east": "false",
         "east": "true"
       }
     },
@@ -28,6 +30,7 @@
         "y": 180
       },
       "when": {
+        "dock_south": "false",
         "south": "true"
       }
     },
@@ -37,7 +40,43 @@
         "y": 270
       },
       "when": {
+        "dock_west": "false",
         "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/rail_dock"
+      },
+      "when": {
+        "dock_north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/rail_dock",
+        "y": 90
+      },
+      "when": {
+        "dock_east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/rail_dock",
+        "y": 180
+      },
+      "when": {
+        "dock_south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/rail_dock",
+        "y": 270
+      },
+      "when": {
+        "dock_west": "true"
       }
     }
   ]

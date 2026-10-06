@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Rails auto connect
-A rail SHALL connect to every neighbouring rail, every Rail Elevator segment and every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal) on the same level and SHALL render the matching piece: straight, curve, T or cross. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment or storage block is placed or removed.
+A rail SHALL connect to every neighbouring rail, every Rail Elevator segment and every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal) on the same level and SHALL render the matching piece: straight, curve, T or cross. Towards a storage block the piece SHALL be a dock, visibly different from the arm towards a rail or segment. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment or storage block is placed or removed.
 
 #### Scenario: Straight run
 - **WHEN** three rails are placed in a line
@@ -23,4 +23,4 @@ A rail SHALL connect to every neighbouring rail, every Rail Elevator segment and
 
 #### Scenario: Rail docks onto a rack
 - **WHEN** a rack is placed beside a rail
-- **THEN** the rail shows an arm towards the rack, and the arm disappears when the rack is broken
+- **THEN** the rail shows a dock piece towards the rack that looks different from an arm towards a rail, and the dock disappears when the rack is broken

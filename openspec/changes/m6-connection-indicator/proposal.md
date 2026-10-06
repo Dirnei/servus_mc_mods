@@ -8,7 +8,7 @@ A player cannot see whether a crate or rack is actually part of a working wareho
 
 - Crates, shelving racks, the warehouse controller and the counter terminal get a small lamp on their front face. The lamp is lit when the block belongs to an online warehouse (exactly one controller) and dark when the block stands alone or its network has no controller or more than one.
 - The lamp state is carried by the block state, so every client sees it without a renderer, and it changes only when the network membership or controller count changes, never by a per tick scan.
-- A Warehouse Rail renders an arm towards every crate, rack, controller or terminal beside it on its level, so the rail visibly docks onto the block it serves.
+- A Warehouse Rail renders a dock piece towards every crate, rack, controller or terminal beside it on its level: a short rail ending in a bumper plate in its own colour, visibly different from the plain arm towards another rail. The user asked for the distinct look on 2026-10-06 after seeing the plain arm in game.
 
 ## Capabilities
 
@@ -26,5 +26,5 @@ A player cannot see whether a crate or rack is actually part of a working wareho
 
 ## Impact
 
-- `servus_storage`: a shared `ONLINE` block state property on the four storage blocks, `WarehouseNetwork` pushes the state on membership and controller changes, `ServusStorageBlockStateProvider` writes two models per block, four new lit front textures and the four existing front textures gain a dark lamp, `RailBlock.connectsTo` accepts stock holding storage nodes, the GameTests assert the lamp state.
+- `servus_storage`: a shared `ONLINE` block state property on the four storage blocks, `WarehouseNetwork` pushes the state on membership and controller changes, `ServusStorageBlockStateProvider` writes two models per block, four new lit front textures and the four existing front textures gain a dark lamp, `RailBlock` gains four `dock_*` state flags and `connectsTo` accepts stock holding storage nodes, a dock model and texture, the GameTests assert the lamp state.
 - Generated resources: blockstates of the four blocks gain the `online` property.
