@@ -112,7 +112,7 @@ Progression:
 
 **Network topology (decided direction):**
 - Early: adjacency. The controller connects to touching crates and racks.
-- Mid: **rails are the wiring.** Any rack next to a rail joins the network. The same rails carry shuttles later. Decided: the Warehouse Rail is a flat floor rail, one block wide, that auto connects to neighbouring rails on the same level like ducts do. No slopes, no ceiling rails. Rails hold nothing and never pull plain inventories in.
+- Mid: **rails are the wiring.** Any rack next to a rail joins the network. The same rails carry shuttles later. Decided: the Warehouse Rail is a flat floor rail, one block wide, that auto connects to neighbouring rails on the same level like ducts do. No slopes, no ceiling rails. Rails hold nothing and never pull plain inventories in. Floors are linked by the Rail Elevator: a shaft of stacked segments, each taking rails on its sides, that shuttles will ride vertically.
 - Late: **Warehouse Relay** links remote depots wirelessly.
 
 Shuttles are **simulated as data** on the controller and only rendered moving on the client. No real entities.
@@ -208,6 +208,7 @@ Each milestone ends in something playable or testable.
 
 ### M6: Storage automation
 - Rails as network connections
+- Rail Elevator for multi level warehouses
 - Simulated shuttles with client rendering
 - Dispatch station, put-away rules, overflow zones
 - Pick rate stats screen

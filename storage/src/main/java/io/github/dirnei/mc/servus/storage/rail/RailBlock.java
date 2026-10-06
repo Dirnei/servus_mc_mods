@@ -36,7 +36,8 @@ public class RailBlock extends ConnectableBlock {
 
     @Override
     protected boolean connectsTo(LevelAccessor level, BlockPos neighborPos, BlockState neighborState, Direction direction) {
-        return direction.getAxis().isHorizontal() && neighborState.getBlock() instanceof RailBlock;
+        return direction.getAxis().isHorizontal()
+                && (neighborState.getBlock() instanceof RailBlock || neighborState.getBlock() instanceof ElevatorBlock);
     }
 
     @Override

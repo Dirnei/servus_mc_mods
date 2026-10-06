@@ -275,7 +275,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             case NO_CONTROLLER -> "offline, no controller";
             case MULTIPLE_CONTROLLERS -> "offline, more than one controller";
         };
-        return Component.literal("Warehouse #" + id() + ": " + state + ", " + size() + " nodes, " + connectors.size() + " rails, " + sources.size()
+        return Component.literal("Warehouse #" + id() + ": " + state + ", " + size() + " nodes, " + connectors.size() + " connectors, " + sources.size()
                 + " sources, " + index.typeCount() + " item types, " + index.totalItems() + " items");
     }
 

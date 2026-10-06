@@ -12,7 +12,7 @@ final class ServusStorageBlockLoot extends BlockLootSubProvider {
 
     private static final List<Block> SELF_DROPPING = List.of(ServusStorageBlocks.CRATE.get(), ServusStorageBlocks.RACK.get(),
             ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), ServusStorageBlocks.COUNTER_TERMINAL.get(),
-            ServusStorageBlocks.RAIL.get());
+            ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.ELEVATOR.get());
 
     ServusStorageBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

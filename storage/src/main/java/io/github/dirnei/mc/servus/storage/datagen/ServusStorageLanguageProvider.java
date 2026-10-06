@@ -18,6 +18,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "Warehouse Controller");
         add(ServusStorageBlocks.COUNTER_TERMINAL.get(), "Counter Terminal");
         add(ServusStorageBlocks.RAIL.get(), "Warehouse Rail");
+        add(ServusStorageBlocks.ELEVATOR.get(), "Rail Elevator");
         add("gui.servus_storage.search", "Search");
         add("gui.servus_storage.stored", "Stored: %s");
         add("gui.servus_storage.terminal.not_connected", "Not connected to a warehouse");

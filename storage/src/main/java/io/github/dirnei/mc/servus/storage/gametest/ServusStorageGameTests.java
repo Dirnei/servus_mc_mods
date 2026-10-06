@@ -77,6 +77,56 @@ public final class ServusStorageGameTests {
         });
     }
 
+    private static final BlockPos LIFT_CRATE = new BlockPos(2, 1, 3);
+    private static final BlockPos LIFT_RAIL_LOW = new BlockPos(3, 1, 3);
+    private static final BlockPos LIFT_BOTTOM = new BlockPos(4, 1, 3);
+    private static final BlockPos LIFT_MIDDLE = new BlockPos(4, 2, 3);
+    private static final BlockPos LIFT_TOP = new BlockPos(4, 3, 3);
+    private static final BlockPos LIFT_RAIL_HIGH = new BlockPos(5, 3, 3);
+    private static final BlockPos LIFT_CONTROLLER = new BlockPos(6, 3, 3);
+    private static final BlockPos LIFT_TERMINAL = new BlockPos(7, 3, 3);
+    private static final BlockPos LIFT_CHEST = new BlockPos(4, 2, 4);
+
+    /** A three segment shaft links a ground floor crate to a controller two floors up; a chest on the shaft stays out. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void elevatorLinksFloors(GameTestHelper helper) {
+        helper.setBlock(LIFT_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(LIFT_RAIL_LOW, ServusStorageBlocks.RAIL.get().defaultBlockState());
+        helper.setBlock(LIFT_BOTTOM, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(LIFT_MIDDLE, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(LIFT_TOP, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(LIFT_RAIL_HIGH.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(LIFT_CONTROLLER.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(LIFT_TERMINAL.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(LIFT_RAIL_HIGH, ServusStorageBlocks.RAIL.get().defaultBlockState());
+        helper.setBlock(LIFT_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(LIFT_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        helper.setBlock(LIFT_CHEST, Blocks.CHEST.defaultBlockState());
+        CrateBlockEntity crate = helper.getBlockEntity(LIFT_CRATE);
+        crate.insert(new ItemStack(Items.COBBLESTONE, 30), false);
+        ChestBlockEntity chest = helper.getBlockEntity(LIFT_CHEST);
+        chest.setItem(0, new ItemStack(Items.BREAD, 10));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(LIFT_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            helper.assertTrue(menu.stock().online(), "warehouse should be online through the shaft");
+            helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 30, "stock should list 30 cobblestone from the ground floor crate");
+            helper.assertTrue(stockOf(menu, Items.BREAD) == 0, "bread beside the shaft must not be indexed");
+
+            helper.setBlock(LIFT_MIDDLE, Blocks.AIR.defaultBlockState());
+            helper.runAfterDelay(10, () -> {
+                CounterTerminalMenu after = new CounterTerminalMenu(1, player.getInventory(), terminal);
+                helper.assertTrue(after.stock().online(), "controller side stays online");
+                helper.assertTrue(stockOf(after, Items.COBBLESTONE) == 0, "crate stock should leave the index after the shaft is cut");
+                helper.succeed();
+            });
+        });
+    }
+
     private static long stockOf(CounterTerminalMenu menu, Item item) {
         long total = 0;
         for (StockEntry entry : menu.stock().entries()) {
