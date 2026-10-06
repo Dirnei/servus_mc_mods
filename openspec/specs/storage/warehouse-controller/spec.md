@@ -14,7 +14,7 @@ A warehouse network SHALL be online when it contains exactly one Warehouse Contr
 - **THEN** the network reports offline with the reason "more than one controller"
 
 ### Requirement: Sources are nodes and adjacent inventories
-The index SHALL include every storage node of the network and every block with an item handler adjacent to a node that is not itself a node. Adjacent inventories SHALL be discovered when a node is placed and when a neighbour of a node changes.
+The index SHALL include every storage node of the network that holds stock and every block with an item handler adjacent to such a node that is not itself a node. Connector nodes such as rails SHALL NOT be sources and their neighbours SHALL NOT be discovered. Adjacent inventories SHALL be discovered when a node is placed and when a neighbour of a node changes.
 
 #### Scenario: Chest beside a crate
 - **WHEN** a chest with 10 bread is placed next to a crate of an online network
@@ -23,6 +23,10 @@ The index SHALL include every storage node of the network and every block with a
 #### Scenario: Chest removed
 - **WHEN** that chest is broken
 - **THEN** the bread leaves the index
+
+#### Scenario: Chest beside a rail
+- **WHEN** a chest with 10 bread is placed next to a rail of an online network and touches no stock holding node
+- **THEN** the index does not report the bread
 
 ### Requirement: Batched polling
 The network SHALL poll at most `sources_per_tick` sources per tick (default 4, from `data/<ns>/storage/warehouse.json`), round robin, and SHALL refresh a storage node's snapshot on the tick after it reports a change.

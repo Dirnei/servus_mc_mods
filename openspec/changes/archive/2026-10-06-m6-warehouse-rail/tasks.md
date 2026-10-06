@@ -19,4 +19,4 @@
 
 - [x] 4.1 Add `railsLinkCrateAndController` to `ServusStorageGameTests` per design.md (online through two rails, bread beside the rail not indexed, removal of a rail drops the crate stock). Verify `gradlew :storage:runGameTestServer` passes both storage tests.
 - [x] 4.2 Update `PLAN.md`: section 2.3 states floor rails that auto connect, section 5 drops the "Exact rail block design" bullet. Verify `openspec validate m6-warehouse-rail` passes.
-- [ ] 4.3 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game: place a run of rails with a curve and a crossing, walk over them, put a crate at one end and the controller plus terminal at the other, confirm the terminal lists the crate, sneak dismantle a rail with the Configuration Carrot. Commit.
+- [x] 4.3 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game: place a run of rails with a curve and a crossing, walk over them, put a crate at one end and the controller plus terminal at the other, confirm the terminal lists the crate, sneak dismantle a rail with the Configuration Carrot. Commit.
