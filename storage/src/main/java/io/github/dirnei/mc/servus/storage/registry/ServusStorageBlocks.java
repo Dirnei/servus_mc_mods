@@ -3,7 +3,8 @@ package io.github.dirnei.mc.servus.storage.registry;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.rack.RackBlock;
+import io.github.dirnei.mc.servus.storage.crate.DoubleCrateBlock;
+import io.github.dirnei.mc.servus.storage.crate.QuadCrateBlock;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
@@ -23,10 +24,16 @@ public final class ServusStorageBlocks {
                     .strength(2.5F)
                     .sound(SoundType.WOOD));
 
-    public static final DeferredBlock<RackBlock> RACK = BLOCKS.registerBlock("rack", RackBlock::new,
+    public static final DeferredBlock<DoubleCrateBlock> DOUBLE_CRATE = BLOCKS.registerBlock("double_crate", DoubleCrateBlock::new,
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
-                    .strength(2.0F)
+                    .strength(2.5F)
+                    .sound(SoundType.WOOD));
+
+    public static final DeferredBlock<QuadCrateBlock> QUAD_CRATE = BLOCKS.registerBlock("quad_crate", QuadCrateBlock::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.5F)
                     .sound(SoundType.WOOD));
 
     public static final DeferredBlock<WarehouseControllerBlock> WAREHOUSE_CONTROLLER =

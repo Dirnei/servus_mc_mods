@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_planks": {
+    "has_crate": {
       "conditions": {
         "items": [
           {
-            "items": "#minecraft:planks"
+            "items": "servus_storage:crate"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "servus_storage:rack"
+        "recipe": "servus_storage:double_crate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_planks"
+      "has_crate"
     ]
   ],
   "rewards": {
     "recipes": [
-      "servus_storage:rack"
+      "servus_storage:double_crate"
     ]
   }
 }

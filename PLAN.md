@@ -105,7 +105,7 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 **Core idea:** the player builds a real warehouse. In-world storage, no storage disks.
 
 Progression:
-1. **Crates and shelving racks** (early, no power). Crates hold lots of one item type and show it on the front. Racks render their contents visibly.
+1. **Crates** (early, no power). A crate has one, two or four compartments that split its capacity; each compartment holds one item type and shows it with its count on the front.
 2. **Warehouse Controller + Counter Terminal.** Search and pull items while standing at the counter. Vanilla and modded inventories in the network are indexed too.
 3. **Shuttles on rails.** Requests and put-away are done by shuttles that travel along rails to a dispatch station. Throughput depends on shuttle count, rails and layout. Stats screen shows pick rates per item for slotting optimization. Put-away rules ("all ores to aisle 3") with overflow zones.
 4. **Wireless.** Wireless Terminal with range tiers. Orders queue real picks. Delivery through an outbound dock: teleport for FE per item and distance, or courier drone to a landing pad.
@@ -195,7 +195,7 @@ Each milestone ends in something playable or testable.
 
 ### M4: Storage first playable slice
 - Crates with front item display
-- Shelving racks with visible contents (block entity renderer)
+- Crate family: Crate, Double Crate and Quad Crate with per compartment display (block entity renderer)
 - Warehouse Controller with adjacency networking
 - Counter Terminal with search and pull
 - Indexing of foreign inventories with batched polling

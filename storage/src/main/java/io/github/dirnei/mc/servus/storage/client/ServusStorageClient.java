@@ -24,6 +24,5 @@ public final class ServusStorageClient {
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.CRATE.get(), CrateRenderer::new);
-        event.registerBlockEntityRenderer(ServusStorageBlockEntities.RACK.get(), RackRenderer::new);
     }
 }

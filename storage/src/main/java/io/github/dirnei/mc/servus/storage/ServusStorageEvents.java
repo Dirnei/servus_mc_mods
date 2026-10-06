@@ -1,12 +1,14 @@
 package io.github.dirnei.mc.servus.storage;
 
 import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
+import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -40,8 +42,15 @@ public final class ServusStorageEvents {
             return;
         }
         Player player = event.getEntity();
-        int amount = player.isShiftKeyDown() ? 1 : crate.type().getMaxStackSize();
-        ItemStack taken = crate.extract(amount, false);
+        int compartment = 0;
+        if (player.pick(player.blockInteractionRange(), 1.0F, false) instanceof BlockHitResult hit && hit.getBlockPos().equals(event.getPos())) {
+            compartment = CrateBlock.compartmentAt(event.getLevel().getBlockState(event.getPos()), event.getPos(), hit.getDirection(), hit.getLocation());
+        }
+        if (crate.isEmpty(compartment)) {
+            return;
+        }
+        int amount = player.isShiftKeyDown() ? 1 : crate.type(compartment).getMaxStackSize();
+        ItemStack taken = crate.extract(compartment, amount, false);
         if (!taken.isEmpty() && !player.getInventory().add(taken)) {
             player.drop(taken, false);
         }
@@ -70,8 +79,6 @@ public final class ServusStorageEvents {
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.CRATE.get(),
                     (crate, side) -> crate.handler());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.RACK.get(),
-                    (rack, side) -> rack.items());
         }
     }
 }

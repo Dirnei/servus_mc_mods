@@ -8,6 +8,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 
@@ -28,13 +29,16 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_chest", has(Items.CHEST))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.RACK.get(), 2)
-                .pattern("PPP")
-                .pattern("S S")
-                .pattern("PPP")
-                .define('P', ItemTags.PLANKS)
-                .define('S', Items.STICK)
-                .unlockedBy("has_planks", has(ItemTags.PLANKS))
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.DECORATIONS, ServusStorageItems.DOUBLE_CRATE.get())
+                .requires(ServusStorageItems.CRATE.get())
+                .requires(Items.STICK)
+                .unlockedBy("has_crate", has(ServusStorageItems.CRATE.get()))
+                .save(output);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.DECORATIONS, ServusStorageItems.QUAD_CRATE.get())
+                .requires(ServusStorageItems.CRATE.get())
+                .requires(Items.STICK, 2)
+                .unlockedBy("has_crate", has(ServusStorageItems.CRATE.get()))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.WAREHOUSE_CONTROLLER.get())

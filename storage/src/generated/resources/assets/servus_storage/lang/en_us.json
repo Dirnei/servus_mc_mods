@@ -1,8 +1,9 @@
 {
   "block.servus_storage.counter_terminal": "Counter Terminal",
   "block.servus_storage.crate": "Crate",
+  "block.servus_storage.double_crate": "Double Crate",
   "block.servus_storage.elevator": "Rail Elevator",
-  "block.servus_storage.rack": "Shelving Rack",
+  "block.servus_storage.quad_crate": "Quad Crate",
   "block.servus_storage.rail": "Warehouse Rail",
   "block.servus_storage.warehouse_controller": "Warehouse Controller",
   "gui.servus_storage.search": "Search",

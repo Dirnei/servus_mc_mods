@@ -28,19 +28,32 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 /**
- * Crate: right click inserts, double right click inserts all, left click takes
- * (handled in the left click event so creative mode does not break it).
+ * Crate with one, two or four compartments. Right click inserts into the
+ * compartment aimed at, double right click inserts all matching, left click
+ * takes (handled in the left click event so creative mode does not break it).
  */
 public class CrateBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<CrateBlock> CODEC = simpleCodec(CrateBlock::new);
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
+    private final int compartments;
+
     public CrateBlock(Properties properties) {
+        this(properties, 1);
+    }
+
+    protected CrateBlock(Properties properties, int compartments) {
         super(properties);
+        this.compartments = compartments;
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(StorageNodeBlocks.ONLINE, false));
+    }
+
+    public int compartments() {
+        return compartments;
     }
 
     @Override
@@ -76,6 +89,16 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
         return createTickerHelper(type, ServusStorageBlockEntities.CRATE.get(), CrateBlockEntity::serverTick);
     }
 
+    /** Which compartment a hit on the block lands in; side faces mean the first one. */
+    public static int compartmentAt(BlockState state, BlockPos pos, Direction face, Vec3 location) {
+        if (!(state.getBlock() instanceof CrateBlock crate)) {
+            return 0;
+        }
+        Vec3 local = location.subtract(Vec3.atLowerCornerOf(pos));
+        boolean front = face == state.getValue(FACING);
+        return CrateCompartments.index(crate.compartments, state.getValue(FACING).get2DDataValue(), local.x, local.y, local.z, front);
+    }
+
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
@@ -85,35 +108,39 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
         if (stack.isEmpty() || !(level.getBlockEntity(pos) instanceof CrateBlockEntity crate)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        if (!crate.matches(stack)) {
+        int compartment = compartmentAt(state, pos, hitResult.getDirection(), hitResult.getLocation());
+        if (hitResult.getDirection() != state.getValue(FACING)) {
+            compartment = crate.preferredCompartment(stack);
+        }
+        if (compartment < 0 || !crate.matches(compartment, stack)) {
             return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
         if (!level.isClientSide()) {
-            boolean doubleClick = crate.registerRightClick(player, level);
-            insertHeld(crate, player, hand, stack);
+            boolean doubleClick = crate.registerRightClick(player, level, compartment);
+            insertHeld(crate, compartment, player, hand, stack);
             if (doubleClick) {
-                insertAllMatching(crate, player);
+                insertAllMatching(crate, compartment, player);
             }
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    private static void insertHeld(CrateBlockEntity crate, Player player, InteractionHand hand, ItemStack stack) {
-        int inserted = crate.insert(stack, false);
+    private static void insertHeld(CrateBlockEntity crate, int compartment, Player player, InteractionHand hand, ItemStack stack) {
+        int inserted = crate.insert(compartment, stack, false);
         if (inserted > 0) {
             stack.shrink(inserted);
             player.setItemInHand(hand, stack);
         }
     }
 
-    private static void insertAllMatching(CrateBlockEntity crate, Player player) {
+    private static void insertAllMatching(CrateBlockEntity crate, int compartment, Player player) {
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.items.size(); slot++) {
             ItemStack stack = inventory.items.get(slot);
-            if (stack.isEmpty() || crate.isEmpty() || !crate.matches(stack)) {
+            if (stack.isEmpty() || crate.isEmpty(compartment) || !crate.matches(compartment, stack)) {
                 continue;
             }
-            int inserted = crate.insert(stack, false);
+            int inserted = crate.insert(compartment, stack, false);
             if (inserted > 0) {
                 stack.shrink(inserted);
                 inventory.setItem(slot, stack);
@@ -130,8 +157,10 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof CrateBlockEntity crate) {
-            while (!crate.isEmpty()) {
-                Block.popResource(level, pos, crate.extract(crate.type().getMaxStackSize(), false));
+            for (int i = 0; i < crate.compartments(); i++) {
+                while (!crate.isEmpty(i)) {
+                    Block.popResource(level, pos, crate.extract(i, crate.type(i).getMaxStackSize(), false));
+                }
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
@@ -149,10 +178,7 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
                 if (level.getBlockEntity(pos) instanceof CrateBlockEntity crate) {
                     crate.saveToItem(drop, level.registryAccess());
                     // Empty the crate first so onRemove does not spill the contents we just saved.
-                    crate.extract(Integer.MAX_VALUE, false);
-                    while (!crate.isEmpty()) {
-                        crate.extract(Integer.MAX_VALUE, false);
-                    }
+                    crate.clear();
                 }
                 Block.popResource(level, pos, drop);
                 level.removeBlock(pos, false);

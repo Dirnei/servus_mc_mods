@@ -1,33 +1,33 @@
 {
   "variants": {
     "facing=east,online=false": {
-      "model": "servus_storage:block/rack",
+      "model": "servus_storage:block/quad_crate",
       "y": 90
     },
     "facing=east,online=true": {
-      "model": "servus_storage:block/rack_online",
+      "model": "servus_storage:block/quad_crate_online",
       "y": 90
     },
     "facing=north,online=false": {
-      "model": "servus_storage:block/rack"
+      "model": "servus_storage:block/quad_crate"
     },
     "facing=north,online=true": {
-      "model": "servus_storage:block/rack_online"
+      "model": "servus_storage:block/quad_crate_online"
     },
     "facing=south,online=false": {
-      "model": "servus_storage:block/rack",
+      "model": "servus_storage:block/quad_crate",
       "y": 180
     },
     "facing=south,online=true": {
-      "model": "servus_storage:block/rack_online",
+      "model": "servus_storage:block/quad_crate_online",
       "y": 180
     },
     "facing=west,online=false": {
-      "model": "servus_storage:block/rack",
+      "model": "servus_storage:block/quad_crate",
       "y": 270
     },
     "facing=west,online=true": {
-      "model": "servus_storage:block/rack_online",
+      "model": "servus_storage:block/quad_crate_online",
       "y": 270
     }
   }

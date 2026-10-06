@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "servus_storage:block/double_crate_front",
+    "side": "servus_storage:block/crate_side",
+    "top": "servus_storage:block/crate_top"
+  }
+}

@@ -2,12 +2,15 @@ package io.github.dirnei.mc.servus.storage.crate;
 
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -18,93 +21,185 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 
-/** Bulk storage of one item type. */
+/**
+ * Bulk storage in one, two or four compartments. Each compartment locks to
+ * one item type while it holds items and takes the crate capacity divided by
+ * the compartment count.
+ */
 public class CrateBlockEntity extends StorageNodeBlockEntity {
 
     private static final int SYNC_INTERVAL = 10;
     private static final long DOUBLE_CLICK_TICKS = 10;
 
-    private ItemStack type = ItemStack.EMPTY;
-    private int count;
+    private final ItemStack[] types;
+    private final int[] counts;
     private final CrateItemHandler handler = new CrateItemHandler(this);
-    private final Map<UUID, Long> lastRightClick = new HashMap<>();
+    private final Map<UUID, long[]> lastRightClick = new HashMap<>();
     private boolean syncPending;
     private int syncTimer;
 
     public CrateBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.CRATE.get(), pos, state);
+        int compartments = state.getBlock() instanceof CrateBlock crate ? crate.compartments() : 1;
+        types = new ItemStack[compartments];
+        Arrays.fill(types, ItemStack.EMPTY);
+        counts = new int[compartments];
     }
 
     // State
+
+    public int compartments() {
+        return types.length;
+    }
 
     public int capacity() {
         return StorageStatsManager.INSTANCE.crateCapacity();
     }
 
+    /** What one compartment holds at most. */
+    public int capacityPerCompartment() {
+        return Math.max(1, capacity() / compartments());
+    }
+
+    public boolean isEmpty(int compartment) {
+        return counts[compartment] <= 0 || types[compartment].isEmpty();
+    }
+
     public boolean isEmpty() {
-        return count <= 0 || type.isEmpty();
+        for (int i = 0; i < types.length; i++) {
+            if (!isEmpty(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    /** The stored item as a one item template, empty when the crate is empty. */
+    /** The stored item of a compartment as a one item template, empty when the compartment is empty. */
+    public ItemStack type(int compartment) {
+        return types[compartment];
+    }
+
+    /** The stored item of the first filled compartment, empty when the crate is empty. */
     public ItemStack type() {
-        return type;
+        for (int i = 0; i < types.length; i++) {
+            if (!isEmpty(i)) {
+                return types[i];
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
+    public int count(int compartment) {
+        return counts[compartment];
+    }
+
+    /** Items over all compartments. */
     public int count() {
-        return count;
+        int total = 0;
+        for (int i = 0; i < types.length; i++) {
+            total += isEmpty(i) ? 0 : counts[i];
+        }
+        return total;
     }
 
     public IItemHandler handler() {
         return handler;
     }
 
-    public boolean matches(ItemStack stack) {
-        return !stack.isEmpty() && (isEmpty() || ItemStack.isSameItemSameComponents(type, stack));
+    public boolean matches(int compartment, ItemStack stack) {
+        return !stack.isEmpty() && (isEmpty(compartment) || ItemStack.isSameItemSameComponents(types[compartment], stack));
     }
 
-    /** @return how many of the stack were (or would be) taken in */
-    public int insert(ItemStack stack, boolean simulate) {
-        if (!matches(stack)) {
+    /** Whether any compartment takes the stack: one already holding it, or an empty one. */
+    public boolean matches(ItemStack stack) {
+        return preferredCompartment(stack) >= 0;
+    }
+
+    /** The compartment an untargeted insert goes to: first holding the item, then first empty, or -1. */
+    public int preferredCompartment(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return -1;
+        }
+        for (int i = 0; i < types.length; i++) {
+            if (!isEmpty(i) && ItemStack.isSameItemSameComponents(types[i], stack) && counts[i] < capacityPerCompartment()) {
+                return i;
+            }
+        }
+        for (int i = 0; i < types.length; i++) {
+            if (isEmpty(i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /** @return how many of the stack were (or would be) taken into the compartment */
+    public int insert(int compartment, ItemStack stack, boolean simulate) {
+        if (!matches(compartment, stack)) {
             return 0;
         }
-        int accepted = Math.min(capacity() - count, stack.getCount());
+        int accepted = Math.min(capacityPerCompartment() - counts[compartment], stack.getCount());
         if (accepted <= 0) {
             return 0;
         }
         if (!simulate) {
-            if (isEmpty()) {
-                type = stack.copyWithCount(1);
-                count = 0;
+            if (isEmpty(compartment)) {
+                types[compartment] = stack.copyWithCount(1);
+                counts[compartment] = 0;
             }
-            count += accepted;
+            counts[compartment] += accepted;
             changed();
         }
         return accepted;
     }
 
-    /** @return up to a stack of the stored item, empty when there is nothing */
-    public ItemStack extract(int amount, boolean simulate) {
-        if (isEmpty() || amount <= 0) {
+    /** Inserts into the preferred compartment. @return how many were (or would be) taken in */
+    public int insert(ItemStack stack, boolean simulate) {
+        int compartment = preferredCompartment(stack);
+        return compartment < 0 ? 0 : insert(compartment, stack, simulate);
+    }
+
+    /** @return up to a stack of the compartment's item, empty when there is nothing */
+    public ItemStack extract(int compartment, int amount, boolean simulate) {
+        if (isEmpty(compartment) || amount <= 0) {
             return ItemStack.EMPTY;
         }
-        int taken = Math.min(Math.min(amount, count), type.getMaxStackSize());
+        ItemStack type = types[compartment];
+        int taken = Math.min(Math.min(amount, counts[compartment]), type.getMaxStackSize());
         ItemStack result = type.copyWithCount(taken);
         if (!simulate) {
-            count -= taken;
-            if (count <= 0) {
-                count = 0;
-                type = ItemStack.EMPTY;
+            counts[compartment] -= taken;
+            if (counts[compartment] <= 0) {
+                counts[compartment] = 0;
+                types[compartment] = ItemStack.EMPTY;
             }
             changed();
         }
         return result;
     }
 
-    /** Whether this right click is the second one within the double click window. */
-    public boolean registerRightClick(Player player, Level level) {
+    /** Extracts from the first filled compartment. */
+    public ItemStack extract(int amount, boolean simulate) {
+        for (int i = 0; i < types.length; i++) {
+            if (!isEmpty(i)) {
+                return extract(i, amount, simulate);
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    /** Empties every compartment without dropping anything. */
+    public void clear() {
+        Arrays.fill(types, ItemStack.EMPTY);
+        Arrays.fill(counts, 0);
+        changed();
+    }
+
+    /** Whether this right click on the compartment is the second one within the double click window. */
+    public boolean registerRightClick(Player player, Level level, int compartment) {
         long now = level.getGameTime();
-        Long last = lastRightClick.put(player.getUUID(), now);
-        return last != null && now - last <= DOUBLE_CLICK_TICKS;
+        long[] last = lastRightClick.put(player.getUUID(), new long[] {compartment, now});
+        return last != null && last[0] == compartment && now - last[1] <= DOUBLE_CLICK_TICKS;
     }
 
     private void changed() {
@@ -132,19 +227,32 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        if (!type.isEmpty()) {
-            tag.put("Type", type.save(registries));
+        ListTag list = new ListTag();
+        for (int i = 0; i < types.length; i++) {
+            CompoundTag entry = new CompoundTag();
+            if (!isEmpty(i)) {
+                entry.put("Type", types[i].save(registries));
+                entry.putInt("Count", counts[i]);
+            }
+            list.add(entry);
         }
-        tag.putInt("Count", count);
+        tag.put("Compartments", list);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        type = tag.contains("Type") ? ItemStack.parseOptional(registries, tag.getCompound("Type")) : ItemStack.EMPTY;
-        count = tag.getInt("Count");
-        if (type.isEmpty()) {
-            count = 0;
+        Arrays.fill(types, ItemStack.EMPTY);
+        Arrays.fill(counts, 0);
+        ListTag list = tag.getList("Compartments", Tag.TAG_COMPOUND);
+        for (int i = 0; i < Math.min(list.size(), types.length); i++) {
+            CompoundTag entry = list.getCompound(i);
+            ItemStack type = entry.contains("Type") ? ItemStack.parseOptional(registries, entry.getCompound("Type")) : ItemStack.EMPTY;
+            int count = entry.getInt("Count");
+            if (!type.isEmpty() && count > 0) {
+                types[i] = type;
+                counts[i] = count;
+            }
         }
     }
 

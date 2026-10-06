@@ -1,7 +1,8 @@
 {
   "values": [
     "servus_storage:crate",
-    "servus_storage:rack",
+    "servus_storage:double_crate",
+    "servus_storage:quad_crate",
     "servus_storage:counter_terminal"
   ]
 }

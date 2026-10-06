@@ -144,6 +144,42 @@ public final class ServusStorageGameTests {
         });
     }
 
+    private static final BlockPos QUAD = new BlockPos(8, 1, 8);
+    private static final BlockPos QUAD_CONTROLLER = new BlockPos(9, 1, 8);
+    private static final BlockPos QUAD_TERMINAL = new BlockPos(10, 1, 8);
+
+    /** A quad crate keeps two types in two compartments, refuses a mismatch, and the terminal lists both. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void quadCrateCompartments(GameTestHelper helper) {
+        helper.setBlock(QUAD, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(QUAD_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(QUAD_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        CrateBlockEntity crate = helper.getBlockEntity(QUAD);
+        helper.assertTrue(crate.compartments() == 4, "quad crate should have four compartments");
+        helper.assertTrue(crate.insert(0, new ItemStack(Items.COBBLESTONE, 40), false) == 40, "compartment 0 takes cobblestone");
+        helper.assertTrue(crate.insert(3, new ItemStack(Items.DIRT, 12), false) == 12, "compartment 3 takes dirt");
+        helper.assertTrue(crate.insert(0, new ItemStack(Items.DIRT, 1), false) == 0, "compartment 0 refuses dirt");
+        helper.assertTrue(crate.handler().getSlots() == 4, "handler exposes four slots");
+        helper.assertTrue(crate.handler().getStackInSlot(0).getCount() == 40, "slot 0 reports 40 cobblestone");
+        helper.assertTrue(crate.handler().getStackInSlot(3).is(Items.DIRT), "slot 3 reports dirt");
+        helper.assertTrue(crate.handler().getStackInSlot(1).isEmpty(), "slot 1 is empty");
+        helper.assertTrue(crate.insert(new ItemStack(Items.COBBLESTONE, 5), false) == 5 && crate.count(0) == 45,
+                "untargeted insert joins the cobblestone compartment");
+        helper.assertTrue(crate.capacityPerCompartment() * 4 == crate.capacity(), "compartments split the capacity");
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(QUAD_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            helper.assertTrue(menu.stock().online(), "warehouse should be online");
+            helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 45, "terminal lists 45 cobblestone");
+            helper.assertTrue(stockOf(menu, Items.DIRT) == 12, "terminal lists 12 dirt");
+            helper.succeed();
+        });
+    }
+
     private static boolean lit(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);
     }
