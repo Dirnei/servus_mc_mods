@@ -83,7 +83,7 @@ A rack SHALL show the item types it holds the most of, up to a display count (`d
 - **THEN** a small cobblestone cube and an upright ingot stand on the lower shelf between the posts, visible from the aisle and from the sides
 
 ### Requirement: Rack is a storage block
-A rack SHALL be a stock holding node of the warehouse network: its contents are indexed, it joins through touching storage blocks on any side and through rails on its front side only, and rails dock onto its front only. A rack SHALL NOT carry a connection lamp. Rotating a rack SHALL refresh which rails it links to.
+A rack SHALL be a stock holding node of the warehouse network: its contents are indexed, it joins through touching storage blocks on any side and through rails on its front side only, and rails dock onto its front only. A rack SHALL NOT carry a connection lamp.
 
 #### Scenario: Rack beside a rail
 - **WHEN** a rack is placed with a rail of an online warehouse in front of it
@@ -94,7 +94,7 @@ A rack SHALL be a stock holding node of the warehouse network: its contents are 
 - **THEN** the rail shows no dock, and the rack's contents are not listed
 
 ### Requirement: Rack is obtainable and dismantled
-The rack SHALL be craftable from vanilla materials, SHALL spill its contents when broken, and SHALL keep them on the dropped item when dismantled by sneaking with the Configuration Carrot.
+The rack SHALL be craftable from vanilla materials, SHALL spill its contents when broken, and SHALL keep them on the dropped item when dismantled by sneaking with the Configuration Carrot. The Configuration Carrot SHALL NOT turn a rack; its facing is set when it is placed.
 
 #### Scenario: Crafting
 - **WHEN** the player places iron ingots and planks in the rack pattern (for example ingots in the corners and planks across the middle)
@@ -103,3 +103,7 @@ The rack SHALL be craftable from vanilla materials, SHALL spill its contents whe
 #### Scenario: Dismantle
 - **WHEN** a player sneak dismantles a rack with two stacks and places it again
 - **THEN** the new rack holds the two stacks
+
+#### Scenario: Carrot click
+- **WHEN** a player uses the Configuration Carrot on a rack without sneaking
+- **THEN** the rack keeps its facing and its joins and nothing else happens

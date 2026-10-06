@@ -42,7 +42,7 @@ A rail SHALL connect to every neighbouring rail, every Rail Elevator segment and
 
 #### Scenario: Rail behind a heavy duty rack
 - **WHEN** a rail runs behind a Heavy Duty Rack
-- **THEN** the rail shows no dock towards it, and turning the rack to face the rail makes the dock appear
+- **THEN** the rail shows no dock towards it, and placing the rack again so that it faces the rail makes the dock appear
 
 ### Requirement: Storage blocks join through rails
 Every rail SHALL be a node of the warehouse network. Crates, shelving racks, warehouse controllers and counter terminals touching a rail on any side SHALL belong to the same network as that rail, and a chain of connected rails SHALL carry membership along its whole length. Rails SHALL link to each other sideways only; a rail directly above another rail does not link to it.
