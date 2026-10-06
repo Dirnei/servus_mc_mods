@@ -48,6 +48,11 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
 
     // State
 
+    @Override
+    public boolean zonable() {
+        return true;
+    }
+
     public int compartments() {
         return types.length;
     }

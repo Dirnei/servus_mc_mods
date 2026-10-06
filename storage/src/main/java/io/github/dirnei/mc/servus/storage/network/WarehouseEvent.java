@@ -12,4 +12,8 @@ public sealed interface WarehouseEvent {
     /** A block next to the node at {@code pos} changed; rediscover its neighbours. */
     record NeighborsChanged(BlockPos pos) implements WarehouseEvent {
     }
+
+    /** The node at {@code pos} was stamped into another zone or cleared. */
+    record ZoneChanged(BlockPos pos) implements WarehouseEvent {
+    }
 }

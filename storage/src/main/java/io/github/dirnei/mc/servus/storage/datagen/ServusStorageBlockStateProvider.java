@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.datagen;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -27,6 +28,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         RailModels.rail(this, ServusStorageBlocks.RAIL.get(), "rail");
         ElevatorModels.elevator(this, ServusStorageBlocks.ELEVATOR.get(), "elevator", "rail");
         HeavyRackModels.rack(this, ServusStorageBlocks.HEAVY_RACK.get(), "heavy_rack");
+        itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
         itemModels().getBuilder("shuttle").parent(new ModelFile.UncheckedModelFile("block/block"))
                 .texture("particle", modLoc("item/shuttle")).texture("skin", modLoc("item/shuttle"))
                 .element().from(2, 0, 2).to(14, 3, 14)

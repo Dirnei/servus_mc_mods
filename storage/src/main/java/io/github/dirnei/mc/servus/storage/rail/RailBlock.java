@@ -72,9 +72,9 @@ public class RailBlock extends ConnectableBlock {
         return docksTo(level, neighborPos, direction);
     }
 
-    /** Whether the neighbour is a storage block that holds stock and takes a rail on the side facing this rail. */
+    /** Whether the neighbour is a storage block or station that takes a rail on the side facing this rail. */
     private static boolean docksTo(LevelAccessor level, BlockPos neighborPos, Direction direction) {
-        return level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node && node.holdsStock()
+        return level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node && node.docksRail()
                 && node.acceptsRail(Conversions.toSide(direction.getOpposite()));
     }
 

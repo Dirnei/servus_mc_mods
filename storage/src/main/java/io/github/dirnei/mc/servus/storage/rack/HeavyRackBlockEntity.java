@@ -52,6 +52,11 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         super(ServusStorageBlockEntities.HEAVY_RACK.get(), pos, state);
     }
 
+    @Override
+    public boolean zonable() {
+        return true;
+    }
+
     /** Rails link and dock only on the front. */
     @Override
     public boolean acceptsRail(Side side) {
@@ -111,7 +116,8 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+        Component name = Component.translatable(getBlockState().getBlock().getDescriptionId());
+        return zone().isEmpty() ? name : name.copy().append(" (" + zone() + ")");
     }
 
     @Override
@@ -167,6 +173,9 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
+        if (!zone().isEmpty()) {
+            tag.putString("Zone", zone());
+        }
         ListTag list = new ListTag();
         for (ItemStack stack : displayed) {
             list.add(stack.save(registries));

@@ -11,6 +11,9 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
@@ -571,5 +574,60 @@ public final class ServusStorageGameTests {
             helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "inventory should be empty of cobblestone");
             helper.succeed();
         });
+    }
+
+    private static final BlockPos ZL_CRATE = new BlockPos(2, 1, 9);
+    private static final BlockPos ZL_RACK = new BlockPos(2, 1, 7);
+
+    /** Uses the held label on the block's north face. */
+    private static void useLabel(GameTestHelper helper, Player player, ItemStack label, BlockPos pos) {
+        BlockPos absolute = helper.absolutePos(pos);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).add(0, 0, -0.5), Direction.NORTH, absolute, false);
+        player.setItemInHand(InteractionHand.MAIN_HAND, label);
+        label.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+    }
+
+    /** A named label stamps crates and racks, a restamp replaces, sneaking clears, an unnamed label does nothing, and the label stays. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void zoneLabelStampsAndClears(GameTestHelper helper) {
+        helper.setBlock(ZL_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(ZL_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        CrateBlockEntity crate = helper.getBlockEntity(ZL_CRATE);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(ZL_RACK);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        ItemStack unnamed = new ItemStack(ServusStorageItems.ZONE_LABEL.get());
+        useLabel(helper, player, unnamed, ZL_CRATE);
+        helper.assertTrue(crate.zone().isEmpty(), "an unnamed label must not zone the crate");
+        helper.assertTrue(crate.isEmpty(), "the label must not be inserted into the crate");
+
+        ItemStack aisle = new ItemStack(ServusStorageItems.ZONE_LABEL.get());
+        aisle.set(DataComponents.CUSTOM_NAME, Component.literal(" Aisle 3 "));
+        useLabel(helper, player, aisle, ZL_CRATE);
+        useLabel(helper, player, aisle, ZL_RACK);
+        helper.assertTrue(crate.zone().equals("Aisle 3"), "crate zone should be trimmed to Aisle 3, was '" + crate.zone() + "'");
+        helper.assertTrue(rack.zone().equals("Aisle 3"), "rack zone should be Aisle 3, was '" + rack.zone() + "'");
+        helper.assertTrue(crate.zoneKey().equals("aisle 3"), "zone key should be lower case");
+        helper.assertTrue(rack.getDisplayName().getString().endsWith("(Aisle 3)"), "rack title should carry the zone, was " + rack.getDisplayName().getString());
+        helper.assertTrue(!aisle.isEmpty() && aisle.getCount() == 1, "the label must not be consumed");
+
+        ItemStack food = new ItemStack(ServusStorageItems.ZONE_LABEL.get());
+        food.set(DataComponents.CUSTOM_NAME, Component.literal("Food"));
+        useLabel(helper, player, food, ZL_RACK);
+        helper.assertTrue(rack.zone().equals("Food"), "restamp should replace the zone");
+
+        player.setShiftKeyDown(true);
+        useLabel(helper, player, food, ZL_CRATE);
+        player.setShiftKeyDown(false);
+        helper.assertTrue(crate.zone().isEmpty(), "sneak click should clear the zone");
+
+        ItemStack drop = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
+        rack.saveToItem(drop, helper.getLevel().registryAccess());
+        helper.setBlock(ZL_RACK, Blocks.AIR.defaultBlockState());
+        helper.setBlock(ZL_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        net.minecraft.world.item.BlockItem.updateCustomBlockEntityTag(helper.getLevel(), player, helper.absolutePos(ZL_RACK), drop);
+        HeavyRackBlockEntity placed = helper.getBlockEntity(ZL_RACK);
+        helper.assertTrue(placed.zone().equals("Food"), "a dismantled and placed rack keeps its zone, was '" + placed.zone() + "'");
+        helper.succeed();
     }
 }

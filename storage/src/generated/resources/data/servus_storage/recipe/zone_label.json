@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "tag": "c:dyes"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_storage:zone_label"
+  }
+}

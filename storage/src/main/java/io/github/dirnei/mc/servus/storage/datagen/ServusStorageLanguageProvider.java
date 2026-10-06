@@ -23,6 +23,10 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.ELEVATOR.get(), "Rail Elevator");
         add(ServusStorageBlocks.HEAVY_RACK.get(), "Heavy Duty Rack");
         add(ServusStorageItems.SHUTTLE.get(), "Shuttle");
+        add(ServusStorageItems.ZONE_LABEL.get(), "Zone Label");
+        add("message.servus_storage.zone_label.unnamed", "Name the label in an anvil first");
+        add("message.servus_storage.zone_label.stamped", "Zone: %s");
+        add("message.servus_storage.zone_label.cleared", "Zone cleared");
         add("gui.servus_storage.search", "Search");
         add("gui.servus_storage.stored", "Stored: %s");
         add("gui.servus_storage.terminal.not_connected", "Not connected to a warehouse");

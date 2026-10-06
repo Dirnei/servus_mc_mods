@@ -11,6 +11,7 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.common.Tags;
 
 final class ServusStorageRecipeProvider extends RecipeProvider {
 
@@ -88,6 +89,12 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('I', Items.IRON_INGOT)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
+                .save(output);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ServusStorageItems.ZONE_LABEL.get())
+                .requires(Items.PAPER)
+                .requires(Tags.Items.DYES)
+                .unlockedBy("has_paper", has(Items.PAPER))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.SHUTTLE.get())

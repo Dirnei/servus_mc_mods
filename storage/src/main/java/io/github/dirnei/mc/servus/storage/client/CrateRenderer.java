@@ -19,6 +19,8 @@ import net.minecraft.world.item.ItemStack;
 public class CrateRenderer implements BlockEntityRenderer<CrateBlockEntity> {
 
     private static final float OFFSET = 0.004F;
+    private static final double ZONE_Y = 0.40;
+    private static final float ZONE_SCALE = 0.007F;
 
     public CrateRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -26,7 +28,7 @@ public class CrateRenderer implements BlockEntityRenderer<CrateBlockEntity> {
     @Override
     public void render(CrateBlockEntity crate, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
                        int packedLight, int packedOverlay) {
-        if (crate.isEmpty() || crate.getLevel() == null) {
+        if (crate.getLevel() == null || (crate.isEmpty() && crate.zone().isEmpty())) {
             return;
         }
         Direction facing = crate.getBlockState().getValue(CrateBlock.FACING);
@@ -44,6 +46,10 @@ public class CrateRenderer implements BlockEntityRenderer<CrateBlockEntity> {
         poseStack.translate(0.0, 0.0, -0.5 - OFFSET);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         // Now x runs to the viewer's right and y up, origin at the face centre.
+
+        if (!crate.zone().isEmpty()) {
+            ZoneLabelText.draw(crate.zone(), poseStack, bufferSource, font, 0.0, ZONE_Y, -0.001, ZONE_SCALE, light);
+        }
 
         for (int i = 0; i < compartments; i++) {
             if (crate.isEmpty(i)) {

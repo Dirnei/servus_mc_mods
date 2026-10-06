@@ -6,19 +6,74 @@ import io.github.dirnei.mc.servus.lib.network.NetworkManager;
 import io.github.dirnei.mc.servus.lib.graph.Side;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
+import io.github.dirnei.mc.servus.storage.zone.ZoneNames;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 /** Base of every block that takes part in a warehouse network. */
 public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageNodeBlockEntity> {
 
+    /** The zone name as the player typed it; empty when unzoned. */
+    private String zone = "";
+
     protected StorageNodeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
+
+    // Zones
+
+    /** The zone name for display, empty when unzoned. */
+    public String zone() {
+        return zone;
+    }
+
+    /** The zone key for matching, empty when unzoned. */
+    public String zoneKey() {
+        return ZoneNames.key(zone);
+    }
+
+    /** Whether a Zone Label may stamp this node: stock blocks that are not the controller or terminal. */
+    public boolean zonable() {
+        return false;
+    }
+
+    /** Stamps or clears (empty name) the zone, syncs clients and tells the network. */
+    public void setZone(String name) {
+        String display = ZoneNames.display(name);
+        if (display.equals(zone)) {
+            return;
+        }
+        zone = display;
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+            network().ifPresent(network -> network.post(new WarehouseEvent.ZoneChanged(worldPosition)));
+        }
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        if (!zone.isEmpty()) {
+            tag.putString("Zone", zone);
+        }
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        zone = tag.contains("Zone") ? ZoneNames.display(tag.getString("Zone")) : "";
+    }
+
+    // Linking
 
     @Override
     public NetworkType<StorageNodeBlockEntity, ?, ?> networkType() {
@@ -41,6 +96,12 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     /** What this node is for linking: stock holding blocks by default. */
     public NodeKind kind() {
         return NodeKind.STOCK;
+    }
+
+    /** Whether rails dock onto this node: stock blocks and dispatch stations. */
+    public final boolean docksRail() {
+        NodeKind kind = kind();
+        return kind == NodeKind.STOCK || kind == NodeKind.STATION;
     }
 
     /**

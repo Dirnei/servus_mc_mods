@@ -23,6 +23,8 @@ public class HeavyRackRenderer implements BlockEntityRenderer<HeavyRackBlockEnti
     private static final double[] SHELF_TOPS = {1.0 / 16.0, 9.0 / 16.0};
     private static final double BACK = -0.05;
     private static final float YAW = 20.0F;
+    private static final double ZONE_Y = 0.93;
+    private static final float ZONE_SCALE = 0.008F;
 
     public HeavyRackRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -31,7 +33,7 @@ public class HeavyRackRenderer implements BlockEntityRenderer<HeavyRackBlockEnti
     public void render(HeavyRackBlockEntity rack, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
                        int packedLight, int packedOverlay) {
         List<ItemStack> sample = rack.displayed();
-        if (sample.isEmpty() || rack.getLevel() == null) {
+        if (rack.getLevel() == null || (sample.isEmpty() && rack.zone().isEmpty())) {
             return;
         }
         Direction facing = rack.getBlockState().getValue(HeavyRackBlock.FACING);
@@ -42,6 +44,10 @@ public class HeavyRackRenderer implements BlockEntityRenderer<HeavyRackBlockEnti
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - facing.toYRot()));
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         // Now x runs to the aisle viewer's right, y up and plus z towards the aisle.
+
+        if (!rack.zone().isEmpty()) {
+            ZoneLabelText.draw(rack.zone(), poseStack, bufferSource, Minecraft.getInstance().font, 0.0, ZONE_Y, 0.5 + 0.004, ZONE_SCALE, light);
+        }
 
         int shown = Math.min(sample.size(), COLUMNS.length * SHELF_TOPS.length);
         for (int i = 0; i < shown; i++) {

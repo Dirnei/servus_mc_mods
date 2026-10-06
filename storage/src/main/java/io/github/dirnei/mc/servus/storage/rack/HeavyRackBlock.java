@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.zone.ZoneLabelItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -198,7 +199,8 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof ConfigurationCarrotItem || hitResult.getDirection() != state.getValue(FACING)) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof ZoneLabelItem
+                || hitResult.getDirection() != state.getValue(FACING)) {
             // Only the front opens the rack; elsewhere the held item acts, which places blocks.
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }

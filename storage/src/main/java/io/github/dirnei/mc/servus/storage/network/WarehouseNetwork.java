@@ -60,9 +60,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return true;
         }
         if (toRail) {
-            return from.kind() != WarehouseConnectionRule.NodeKind.STOCK || from.acceptsRail(side);
+            return !from.docksRail() || from.acceptsRail(side);
         }
-        return to.kind() != WarehouseConnectionRule.NodeKind.STOCK || to.acceptsRail(opposite(side));
+        return !to.docksRail() || to.acceptsRail(opposite(side));
     }
 
     private static io.github.dirnei.mc.servus.lib.graph.Side opposite(io.github.dirnei.mc.servus.lib.graph.Side side) {
