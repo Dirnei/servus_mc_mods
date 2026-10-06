@@ -6,4 +6,4 @@
 
 ## 2. Verification
 
-- [ ] 2.1 `gradlew :manufacturing:runGameTestServer` passes, `gradlew clean build` green, `gradlew runClientAll` reaches the title screen; the user checks the popup flow in game. Commit.
+- [x] 2.1 `gradlew :manufacturing:runGameTestServer` passes, `gradlew clean build` green, `gradlew runClientAll` reaches the title screen; the user checks the popup flow in game. Commit.
