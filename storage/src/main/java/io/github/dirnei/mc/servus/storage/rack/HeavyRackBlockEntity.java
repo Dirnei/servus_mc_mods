@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.rack;
 
+import io.github.dirnei.mc.servus.lib.graph.Side;
+import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -48,6 +50,17 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
 
     public HeavyRackBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.HEAVY_RACK.get(), pos, state);
+    }
+
+    /** Rails link and dock only on the front. */
+    @Override
+    public boolean acceptsRail(Side side) {
+        return side == Conversions.toSide(getBlockState().getValue(HeavyRackBlock.FACING));
+    }
+
+    /** Called after a rotation so the rail links follow the new front. */
+    public void facingChanged() {
+        refreshNetworkConnections();
     }
 
     public ItemStackHandler items() {

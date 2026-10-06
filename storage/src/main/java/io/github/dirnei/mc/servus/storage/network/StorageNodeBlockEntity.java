@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.network;
 import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.lib.network.NetworkBlockEntity;
 import io.github.dirnei.mc.servus.lib.network.NetworkManager;
+import io.github.dirnei.mc.servus.lib.graph.Side;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import java.util.Optional;
@@ -27,6 +28,14 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     @Override
     public StorageNodeBlockEntity networkNode() {
         return this;
+    }
+
+    /**
+     * Whether a rail on that side of this node links to it and docks onto it.
+     * Stock blocks take rails on every side unless they say otherwise.
+     */
+    public boolean acceptsRail(Side side) {
+        return true;
     }
 
     /** What this node is for linking: stock holding blocks by default. */

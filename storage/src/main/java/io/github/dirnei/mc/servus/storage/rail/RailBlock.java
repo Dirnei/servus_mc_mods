@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.rail;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
@@ -68,12 +69,13 @@ public class RailBlock extends ConnectableBlock {
         if (neighborState.getBlock() instanceof RailBlock || neighborState.getBlock() instanceof ElevatorBlock) {
             return true;
         }
-        return docksTo(level, neighborPos);
+        return docksTo(level, neighborPos, direction);
     }
 
-    /** Whether the neighbour is a storage block that holds stock, so the rail side is a dock. */
-    private static boolean docksTo(LevelAccessor level, BlockPos neighborPos) {
-        return level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node && node.holdsStock();
+    /** Whether the neighbour is a storage block that holds stock and takes a rail on the side facing this rail. */
+    private static boolean docksTo(LevelAccessor level, BlockPos neighborPos, Direction direction) {
+        return level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node && node.holdsStock()
+                && node.acceptsRail(Conversions.toSide(direction.getOpposite()));
     }
 
     @Override
@@ -82,7 +84,7 @@ public class RailBlock extends ConnectableBlock {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            state = state.setValue(dock(direction), docksTo(level, pos.relative(direction)));
+            state = state.setValue(dock(direction), docksTo(level, pos.relative(direction), direction));
         }
         return state;
     }
@@ -92,7 +94,7 @@ public class RailBlock extends ConnectableBlock {
                                      LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         state = super.updateShape(state, direction, neighborState, level, pos, neighborPos);
         if (direction.getAxis().isHorizontal()) {
-            state = state.setValue(dock(direction), docksTo(level, neighborPos));
+            state = state.setValue(dock(direction), docksTo(level, neighborPos, direction));
         }
         return state;
     }

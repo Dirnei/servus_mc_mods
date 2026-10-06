@@ -2,7 +2,7 @@
   "multipart": [
     {
       "apply": {
-        "model": "servus_storage:block/heavy_rack_shelves"
+        "model": "servus_storage:block/heavy_rack_core"
       },
       "when": {
         "facing": "north"
@@ -19,6 +19,15 @@
     },
     {
       "apply": {
+        "model": "servus_storage:block/heavy_rack_ext_left"
+      },
+      "when": {
+        "facing": "north",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
         "model": "servus_storage:block/heavy_rack_post_right"
       },
       "when": {
@@ -28,10 +37,39 @@
     },
     {
       "apply": {
+        "model": "servus_storage:block/heavy_rack_ext_right"
+      },
+      "when": {
+        "facing": "north",
+        "right": "true"
+      }
+    },
+    {
+      "apply": {
         "model": "servus_storage:block/heavy_rack_top"
       },
       "when": {
         "facing": "north",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_top_left"
+      },
+      "when": {
+        "facing": "north",
+        "left": "true",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_top_right"
+      },
+      "when": {
+        "facing": "north",
+        "right": "true",
         "up": "false"
       }
     },
@@ -46,7 +84,27 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/heavy_rack_shelves",
+        "model": "servus_storage:block/heavy_rack_bottom_left"
+      },
+      "when": {
+        "down": "false",
+        "facing": "north",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_bottom_right"
+      },
+      "when": {
+        "down": "false",
+        "facing": "north",
+        "right": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_core",
         "y": 90
       },
       "when": {
@@ -65,6 +123,16 @@
     },
     {
       "apply": {
+        "model": "servus_storage:block/heavy_rack_ext_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
         "model": "servus_storage:block/heavy_rack_post_right",
         "y": 90
       },
@@ -75,11 +143,43 @@
     },
     {
       "apply": {
+        "model": "servus_storage:block/heavy_rack_ext_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "right": "true"
+      }
+    },
+    {
+      "apply": {
         "model": "servus_storage:block/heavy_rack_top",
         "y": 90
       },
       "when": {
         "facing": "east",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_top_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "left": "true",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_top_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "right": "true",
         "up": "false"
       }
     },
@@ -95,7 +195,29 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/heavy_rack_shelves",
+        "model": "servus_storage:block/heavy_rack_bottom_left",
+        "y": 90
+      },
+      "when": {
+        "down": "false",
+        "facing": "east",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_bottom_right",
+        "y": 90
+      },
+      "when": {
+        "down": "false",
+        "facing": "east",
+        "right": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_core",
         "y": 180
       },
       "when": {
@@ -114,6 +236,16 @@
     },
     {
       "apply": {
+        "model": "servus_storage:block/heavy_rack_ext_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
         "model": "servus_storage:block/heavy_rack_post_right",
         "y": 180
       },
@@ -124,11 +256,43 @@
     },
     {
       "apply": {
+        "model": "servus_storage:block/heavy_rack_ext_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "right": "true"
+      }
+    },
+    {
+      "apply": {
         "model": "servus_storage:block/heavy_rack_top",
         "y": 180
       },
       "when": {
         "facing": "south",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_top_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "left": "true",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_top_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "right": "true",
         "up": "false"
       }
     },
@@ -144,7 +308,29 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/heavy_rack_shelves",
+        "model": "servus_storage:block/heavy_rack_bottom_left",
+        "y": 180
+      },
+      "when": {
+        "down": "false",
+        "facing": "south",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_bottom_right",
+        "y": 180
+      },
+      "when": {
+        "down": "false",
+        "facing": "south",
+        "right": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_core",
         "y": 270
       },
       "when": {
@@ -163,12 +349,32 @@
     },
     {
       "apply": {
+        "model": "servus_storage:block/heavy_rack_ext_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
         "model": "servus_storage:block/heavy_rack_post_right",
         "y": 270
       },
       "when": {
         "facing": "west",
         "right": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_ext_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "right": "true"
       }
     },
     {
@@ -183,12 +389,56 @@
     },
     {
       "apply": {
+        "model": "servus_storage:block/heavy_rack_top_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "left": "true",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_top_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "right": "true",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
         "model": "servus_storage:block/heavy_rack_bottom",
         "y": 270
       },
       "when": {
         "down": "false",
         "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_bottom_left",
+        "y": 270
+      },
+      "when": {
+        "down": "false",
+        "facing": "west",
+        "left": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/heavy_rack_bottom_right",
+        "y": 270
+      },
+      "when": {
+        "down": "false",
+        "facing": "west",
+        "right": "true"
       }
     }
   ]

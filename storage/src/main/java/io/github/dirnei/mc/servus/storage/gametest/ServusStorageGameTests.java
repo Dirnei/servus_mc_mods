@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
@@ -23,7 +24,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import java.util.List;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -268,6 +271,59 @@ public final class ServusStorageGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    private static final BlockPos FR_RACK = new BlockPos(5, 1, 9);
+    private static final BlockPos FR_SIDE_RAIL = new BlockPos(6, 1, 9);
+    private static final BlockPos FR_SIDE_CONTROLLER = new BlockPos(7, 1, 9);
+    private static final BlockPos FR_SIDE_TERMINAL = new BlockPos(8, 1, 9);
+    private static final BlockPos FR_FRONT_RAIL = new BlockPos(5, 1, 8);
+    private static final BlockPos FR_FRONT_CONTROLLER = new BlockPos(4, 1, 8);
+    private static final BlockPos FR_FRONT_TERMINAL = new BlockPos(3, 1, 8);
+
+    /** A rail at the side of a rack does not link it; a rail at its front does. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void rackLinksRailOnlyFromFront(GameTestHelper helper) {
+        helper.setBlock(FR_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        helper.setBlock(FR_SIDE_RAIL.below(), Blocks.STONE.defaultBlockState());
+        placeRail(helper, FR_SIDE_RAIL);
+        helper.setBlock(FR_SIDE_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(FR_SIDE_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        HeavyRackBlockEntity rack = helper.getBlockEntity(FR_RACK);
+        rack.items().insertItem(0, new ItemStack(Items.SAND, 20), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity sideTerminal = helper.getBlockEntity(FR_SIDE_TERMINAL);
+            CounterTerminalMenu sideMenu = new CounterTerminalMenu(1, player.getInventory(), sideTerminal);
+            helper.assertTrue(sideMenu.stock().online(), "side warehouse is online");
+            helper.assertTrue(stockOf(sideMenu, Items.SAND) == 0, "a rail at the rack's side must not link it");
+            helper.assertTrue(!helper.getBlockState(FR_SIDE_RAIL).getValue(RailBlock.DOCK_WEST), "no dock onto the rack's side");
+
+            helper.setBlock(FR_FRONT_RAIL.below(), Blocks.STONE.defaultBlockState());
+            placeRail(helper, FR_FRONT_RAIL);
+            helper.setBlock(FR_FRONT_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                    .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+            helper.setBlock(FR_FRONT_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                    .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+            helper.runAfterDelay(10, () -> {
+                CounterTerminalBlockEntity frontTerminal = helper.getBlockEntity(FR_FRONT_TERMINAL);
+                CounterTerminalMenu frontMenu = new CounterTerminalMenu(1, player.getInventory(), frontTerminal);
+                helper.assertTrue(frontMenu.stock().online(), "front warehouse is online");
+                helper.assertTrue(stockOf(frontMenu, Items.SAND) == 20, "a rail at the rack's front links it");
+                helper.assertTrue(helper.getBlockState(FR_FRONT_RAIL).getValue(RailBlock.DOCK_SOUTH), "dock onto the rack's front");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Places a rail the way a player would: its connection and dock flags come from the neighbours. */
+    private static void placeRail(GameTestHelper helper, BlockPos pos) {
+        BlockState state = Block.updateFromNeighbourShapes(ServusStorageBlocks.RAIL.get().defaultBlockState(),
+                helper.getLevel(), helper.absolutePos(pos));
+        helper.setBlock(pos, state);
     }
 
     private static boolean lit(GameTestHelper helper, BlockPos pos) {

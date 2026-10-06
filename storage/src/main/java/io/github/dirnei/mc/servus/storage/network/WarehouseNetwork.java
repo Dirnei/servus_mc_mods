@@ -46,9 +46,35 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     public static final NetworkType<StorageNodeBlockEntity, WarehouseEvent, WarehouseNetwork> TYPE =
             new NetworkType<>(ID, (from, fromNode, side, to, toNode) ->
-                    WarehouseConnectionRule.accepts(fromNode.kind(), side, toNode.kind()), WarehouseNetwork::new);
+                    WarehouseConnectionRule.accepts(fromNode.kind(), side, toNode.kind())
+                            && railSideAccepted(fromNode, side, toNode), WarehouseNetwork::new);
 
     public enum Status { ONLINE, NO_CONTROLLER, MULTIPLE_CONTROLLERS }
+
+    /** A stock node may limit which of its sides take a rail; the rail side is asked from the stock node's view. */
+    private static boolean railSideAccepted(StorageNodeBlockEntity from, io.github.dirnei.mc.servus.lib.graph.Side side,
+                                            StorageNodeBlockEntity to) {
+        boolean fromRail = from.kind() == WarehouseConnectionRule.NodeKind.RAIL;
+        boolean toRail = to.kind() == WarehouseConnectionRule.NodeKind.RAIL;
+        if (fromRail == toRail) {
+            return true;
+        }
+        if (toRail) {
+            return from.kind() != WarehouseConnectionRule.NodeKind.STOCK || from.acceptsRail(side);
+        }
+        return to.kind() != WarehouseConnectionRule.NodeKind.STOCK || to.acceptsRail(opposite(side));
+    }
+
+    private static io.github.dirnei.mc.servus.lib.graph.Side opposite(io.github.dirnei.mc.servus.lib.graph.Side side) {
+        return switch (side) {
+            case UP -> io.github.dirnei.mc.servus.lib.graph.Side.DOWN;
+            case DOWN -> io.github.dirnei.mc.servus.lib.graph.Side.UP;
+            case NORTH -> io.github.dirnei.mc.servus.lib.graph.Side.SOUTH;
+            case SOUTH -> io.github.dirnei.mc.servus.lib.graph.Side.NORTH;
+            case WEST -> io.github.dirnei.mc.servus.lib.graph.Side.EAST;
+            case EAST -> io.github.dirnei.mc.servus.lib.graph.Side.WEST;
+        };
+    }
 
     private record Source(BlockPos pos, boolean node, BlockCapabilityCache<IItemHandler, Direction> cache) {
     }
