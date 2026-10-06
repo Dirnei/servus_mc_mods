@@ -11,4 +11,4 @@
 
 ## 3. Verification
 
-- [ ] 3.1 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game: stack three racks, climb the side posts to the top, step off while hugging the side and slide down without damage, sneak to hold, push against the front and back and stay on the ground, let a zombie stand against the side. Commit.
+- [x] 3.1 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game: stack three racks, climb the side posts to the top, step off while hugging the side and slide down without damage, sneak to hold, push against the front and back and stay on the ground, let a zombie stand against the side. Commit.
