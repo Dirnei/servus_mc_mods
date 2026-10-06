@@ -79,6 +79,8 @@ public final class ServusStorageEvents {
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.CRATE.get(),
                     (crate, side) -> crate.handler());
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.HEAVY_RACK.get(),
+                    (rack, side) -> rack.items());
         }
     }
 }

@@ -80,5 +80,14 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('R', ServusStorageItems.RAIL.get())
                 .unlockedBy("has_rail", has(ServusStorageItems.RAIL.get()))
                 .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.HEAVY_RACK.get())
+                .pattern("I I")
+                .pattern("PPP")
+                .pattern("I I")
+                .define('I', Items.IRON_INGOT)
+                .define('P', ItemTags.PLANKS)
+                .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
+                .save(output);
     }
 }

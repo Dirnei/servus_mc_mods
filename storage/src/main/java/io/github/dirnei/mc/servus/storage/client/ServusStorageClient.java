@@ -19,10 +19,12 @@ public final class ServusStorageClient {
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ServusStorageMenus.COUNTER_TERMINAL.get(), CounterTerminalScreen::new);
+        event.register(ServusStorageMenus.HEAVY_RACK.get(), HeavyRackScreen::new);
     }
 
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.CRATE.get(), CrateRenderer::new);
+        event.registerBlockEntityRenderer(ServusStorageBlockEntities.HEAVY_RACK.get(), HeavyRackRenderer::new);
     }
 }

@@ -22,6 +22,6 @@ final class ServusStorageBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusStorageBlocks.QUAD_CRATE.get())
                 .add(ServusStorageBlocks.COUNTER_TERMINAL.get());
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get()).add(ServusStorageBlocks.RAIL.get())
-                .add(ServusStorageBlocks.ELEVATOR.get());
+                .add(ServusStorageBlocks.ELEVATOR.get()).add(ServusStorageBlocks.HEAVY_RACK.get());
     }
 }

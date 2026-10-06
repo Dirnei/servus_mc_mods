@@ -6,6 +6,8 @@ import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
@@ -19,6 +21,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import java.util.List;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.GameType;
@@ -177,6 +180,47 @@ public final class ServusStorageGameTests {
             helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 45, "terminal lists 45 cobblestone");
             helper.assertTrue(stockOf(menu, Items.DIRT) == 12, "terminal lists 12 dirt");
             helper.succeed();
+        });
+    }
+
+    private static final BlockPos RACK = new BlockPos(8, 1, 2);
+    private static final BlockPos RACK_CONTROLLER = new BlockPos(9, 1, 2);
+    private static final BlockPos RACK_TERMINAL = new BlockPos(10, 1, 2);
+
+    /** A rack is indexed, lit, and shows the item types it holds the most of. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void heavyRackIndexesAndDisplays(GameTestHelper helper) {
+        helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        helper.setBlock(RACK_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(RACK_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK);
+        rack.items().insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
+        rack.items().insertItem(1, new ItemStack(Items.DIRT, 32), false);
+        rack.items().insertItem(2, new ItemStack(Items.SAND, 16), false);
+        rack.items().insertItem(3, new ItemStack(Items.GRAVEL, 8), false);
+        rack.items().insertItem(4, new ItemStack(Items.APPLE, 1), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(RACK_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            helper.assertTrue(menu.stock().online(), "warehouse should be online");
+            helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 64 && stockOf(menu, Items.APPLE) == 1, "terminal lists the rack contents");
+            helper.assertTrue(lit(helper, RACK), "rack lamp should be lit");
+            List<ItemStack> sample = rack.displayed();
+            helper.assertTrue(sample.size() == 4, "sample shows four types, had " + sample.size());
+            helper.assertTrue(sample.get(0).is(Items.COBBLESTONE) && sample.get(3).is(Items.GRAVEL), "sample is ordered by count");
+
+            rack.items().insertItem(5, new ItemStack(Items.APPLE, 64), false);
+            rack.items().insertItem(6, new ItemStack(Items.APPLE, 36), false);
+            helper.runAfterDelay(10, () -> {
+                List<ItemStack> after = rack.displayed();
+                helper.assertTrue(after.get(0).is(Items.APPLE), "apples lead the sample after the refill");
+                helper.assertTrue(after.stream().noneMatch(stack -> stack.is(Items.GRAVEL)), "gravel dropped out of the sample");
+                helper.succeed();
+            });
         });
     }
 

@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.registry;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
@@ -40,6 +41,11 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElevatorBlockEntity>> ELEVATOR =
             BLOCK_ENTITIES.register("elevator", () -> BlockEntityType.Builder
                     .of(ElevatorBlockEntity::new, ServusStorageBlocks.ELEVATOR.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HeavyRackBlockEntity>> HEAVY_RACK =
+            BLOCK_ENTITIES.register("heavy_rack", () -> BlockEntityType.Builder
+                    .of(HeavyRackBlockEntity::new, ServusStorageBlocks.HEAVY_RACK.get())
                     .build(null));
 
     private ServusStorageBlockEntities() {

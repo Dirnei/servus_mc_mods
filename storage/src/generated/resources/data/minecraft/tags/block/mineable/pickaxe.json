@@ -2,6 +2,7 @@
   "values": [
     "servus_storage:warehouse_controller",
     "servus_storage:rail",
-    "servus_storage:elevator"
+    "servus_storage:elevator",
+    "servus_storage:heavy_rack"
   ]
 }

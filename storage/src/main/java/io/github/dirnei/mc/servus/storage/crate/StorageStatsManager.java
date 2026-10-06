@@ -18,15 +18,20 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final String DIRECTORY = "storage";
     public static final int DEFAULT_CRATE_CAPACITY = 4096;
     public static final int DEFAULT_SOURCES_PER_TICK = 4;
+    public static final int DEFAULT_RACK_SLOTS = 27;
+    public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
     private static final ResourceLocation WAREHOUSE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
+    private static final ResourceLocation RACK = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack");
 
     public static final StorageStatsManager INSTANCE = new StorageStatsManager();
 
     private volatile int crateCapacity = DEFAULT_CRATE_CAPACITY;
     private volatile int sourcesPerTick = DEFAULT_SOURCES_PER_TICK;
+    private volatile int rackSlots = DEFAULT_RACK_SLOTS;
+    private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
 
     private StorageStatsManager() {
         super(GSON, DIRECTORY);
@@ -36,6 +41,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
         crateCapacity = intField(files.get(CRATE), "capacity", DEFAULT_CRATE_CAPACITY);
         sourcesPerTick = intField(files.get(WAREHOUSE), "sources_per_tick", DEFAULT_SOURCES_PER_TICK);
+        rackSlots = intField(files.get(RACK), "slots", DEFAULT_RACK_SLOTS);
+        rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
 
@@ -52,5 +59,13 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
 
     public int sourcesPerTick() {
         return sourcesPerTick;
+    }
+
+    public int rackSlots() {
+        return rackSlots;
+    }
+
+    public int rackDisplayCount() {
+        return rackDisplayCount;
     }
 }
