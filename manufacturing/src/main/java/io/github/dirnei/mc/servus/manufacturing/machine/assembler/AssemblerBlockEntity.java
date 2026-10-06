@@ -38,6 +38,7 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
@@ -92,32 +93,50 @@ public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
     }
 
     /** Adds a recipe by id, from a recipe viewer. Tells the player why when refused. */
-    public void addRecipe(ResourceLocation id, Player player) {
+    /** Resolves a recipe id to a configured recipe, telling the player when it cannot be used. */
+    public Optional<ConfiguredRecipe> configuredFor(ResourceLocation id, Player player) {
         if (level == null) {
-            return;
+            return Optional.empty();
         }
         Optional<RecipeHolder<?>> holder = level.getRecipeManager().byKey(id);
         if (holder.isEmpty()) {
             tell(player, "unknown");
-            return;
+            return Optional.empty();
         }
         if (holder.get().value() instanceof AssemblingRecipe) {
             @SuppressWarnings("unchecked")
             RecipeHolder<AssemblingRecipe> typed = (RecipeHolder<AssemblingRecipe>) holder.get();
-            add(ConfiguredRecipe.fromAssembling(typed), player);
-        } else if (holder.get().value() instanceof CraftingRecipe) {
+            return Optional.of(ConfiguredRecipe.fromAssembling(typed));
+        }
+        if (holder.get().value() instanceof CraftingRecipe) {
             @SuppressWarnings("unchecked")
             RecipeHolder<CraftingRecipe> typed = (RecipeHolder<CraftingRecipe>) holder.get();
-            add(ConfiguredRecipe.fromCrafting(typed), player);
-        } else {
-            tell(player, "unsupported");
+            return Optional.of(ConfiguredRecipe.fromCrafting(typed));
         }
+        tell(player, "unsupported");
+        return Optional.empty();
     }
 
-    /** Adds whatever recipe the pattern grid describes. */
-    public void addFromPattern(Player player) {
+    /** Adds a recipe by id, as a recipe viewer or test would. */
+    public void addRecipe(ResourceLocation id, Player player) {
+        configuredFor(id, player).ifPresent(recipe -> add(recipe, player));
+    }
+
+    /** The configured recipe a three by three layout describes: assembling recipes first, then crafting. */
+    public static Optional<ConfiguredRecipe> match(Level level, List<ItemStack> cells) {
+        AssemblerRecipeInput assemblingInput = new AssemblerRecipeInput(cells);
+        for (RecipeHolder<AssemblingRecipe> holder : AssemblingRecipes.sorted(level)) {
+            if (holder.value().matches(assemblingInput, level)) {
+                return Optional.of(ConfiguredRecipe.fromAssembling(holder));
+            }
+        }
+        return level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, cells), level)
+                .map(crafting -> ConfiguredRecipe.fromPattern(crafting.id(), cells));
+    }
+
+    private Optional<ConfiguredRecipe> matchPattern(Player player) {
         if (level == null) {
-            return;
+            return Optional.empty();
         }
         List<ItemStack> cells = new ArrayList<>(ConfiguredRecipe.GRID);
         for (int i = 0; i < ConfiguredRecipe.GRID; i++) {
@@ -125,39 +144,72 @@ public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
         }
         if (cells.stream().allMatch(ItemStack::isEmpty)) {
             tell(player, "empty_pattern");
-            return;
+            return Optional.empty();
         }
-        AssemblerRecipeInput assemblingInput = new AssemblerRecipeInput(cells);
-        for (RecipeHolder<AssemblingRecipe> holder : AssemblingRecipes.sorted(level)) {
-            if (holder.value().matches(assemblingInput, level)) {
-                add(ConfiguredRecipe.fromAssembling(holder), player);
-                return;
-            }
+        Optional<ConfiguredRecipe> matched = match(level, cells);
+        if (matched.isEmpty()) {
+            tell(player, "no_match");
         }
-        Optional<RecipeHolder<CraftingRecipe>> crafting =
-                level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, cells), level);
-        if (crafting.isPresent()) {
-            add(ConfiguredRecipe.fromPattern(crafting.get().id(), cells), player);
-            return;
-        }
-        tell(player, "no_match");
+        return matched;
     }
 
-    private void add(ConfiguredRecipe recipe, Player player) {
-        if (recipes.stream().anyMatch(existing -> existing.id().equals(recipe.id()))) {
-            tell(player, "duplicate");
-            return;
+    /** Adds whatever recipe the pattern grid describes. */
+    public boolean addFromPattern(Player player) {
+        return matchPattern(player).map(recipe -> add(recipe, player)).orElse(false);
+    }
+
+    /** Replaces the configured recipe at {@code index} with what the pattern grid describes. */
+    public boolean replaceFromPattern(int index, Player player) {
+        if (index < 0 || index >= recipes.size()) {
+            return false;
         }
-        if (recipes.size() >= recipeSlots()) {
-            tell(player, "full");
-            return;
+        Optional<ConfiguredRecipe> matched = matchPattern(player);
+        if (matched.isEmpty()) {
+            return false;
+        }
+        ConfiguredRecipe recipe = matched.get();
+        for (int i = 0; i < recipes.size(); i++) {
+            if (i != index && recipes.get(i).id().equals(recipe.id())) {
+                tell(player, "duplicate");
+                return false;
+            }
         }
         if (!isUnlocked(recipe, player)) {
             tell(player, "locked");
-            return;
+            return false;
+        }
+        recipes.set(index, recipe);
+        if (active == index) {
+            active = -1;
+            progress = 0;
+        }
+        recipesChanged();
+        return true;
+    }
+
+    /** Copies a recipe template into the pattern grid, counts included. */
+    public void loadPattern(List<ItemStack> template) {
+        for (int i = 0; i < ConfiguredRecipe.GRID; i++) {
+            pattern.setStackInSlot(i, i < template.size() ? template.get(i).copy() : ItemStack.EMPTY);
+        }
+    }
+
+    private boolean add(ConfiguredRecipe recipe, Player player) {
+        if (recipes.stream().anyMatch(existing -> existing.id().equals(recipe.id()))) {
+            tell(player, "duplicate");
+            return false;
+        }
+        if (recipes.size() >= recipeSlots()) {
+            tell(player, "full");
+            return false;
+        }
+        if (!isUnlocked(recipe, player)) {
+            tell(player, "locked");
+            return false;
         }
         recipes.add(recipe);
         recipesChanged();
+        return true;
     }
 
     public void removeRecipe(int index) {

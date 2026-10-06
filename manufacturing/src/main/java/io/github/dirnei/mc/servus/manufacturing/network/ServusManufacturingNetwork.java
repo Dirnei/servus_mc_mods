@@ -32,7 +32,7 @@ public final class ServusManufacturingNetwork {
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
                             && player.containerMenu instanceof AssemblerMenu menu) {
-                        menu.assembler().addRecipe(payload.recipe(), player);
+                        menu.openEditorWith(payload.recipe(), player);
                     }
                 });
     }

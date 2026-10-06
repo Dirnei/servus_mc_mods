@@ -2,7 +2,7 @@
 
 ## 1. Editor
 
-- [ ] 1.1 Add `match`, `loadPattern`, `replaceFromPattern` and `configuredFor` to `AssemblerBlockEntity`; rewrite `AssemblerMenu` with the editing state, slot activity and new button ids; rewrite `AssemblerScreen` with recipe cells, plus button and the popup; point the JEI payload at `openEditorWith`; update lang and the GUI texture. Verify `gradlew build` and `gradlew :manufacturing:runData` pass.
+- [x] 1.1 Add `match`, `loadPattern`, `replaceFromPattern` and `configuredFor` to `AssemblerBlockEntity`; rewrite `AssemblerMenu` with the editing state, slot activity and new button ids; rewrite `AssemblerScreen` with recipe cells, plus button and the popup; point the JEI payload at `openEditorWith`; update lang and the GUI texture. Verify `gradlew build` and `gradlew :manufacturing:runData` pass.
 
 ## 2. Verification
 
