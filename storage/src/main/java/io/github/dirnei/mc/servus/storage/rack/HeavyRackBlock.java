@@ -69,8 +69,12 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-        return withJoins(state, context.getLevel(), context.getClickedPos());
+        BlockPos pos = context.getClickedPos();
+        BlockState below = context.getLevel().getBlockState(pos.below());
+        Direction facing = below.getBlock() instanceof HeavyRackBlock
+                ? below.getValue(FACING)
+                : context.getHorizontalDirection().getOpposite();
+        return withJoins(defaultBlockState().setValue(FACING, facing), context.getLevel(), pos);
     }
 
     private static boolean sameRow(BlockState state, BlockState neighbour) {

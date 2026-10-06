@@ -21,7 +21,11 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.item.Items;
 import java.util.List;
 import net.minecraft.world.level.block.Block;
@@ -324,6 +328,29 @@ public final class ServusStorageGameTests {
         BlockState state = Block.updateFromNeighbourShapes(ServusStorageBlocks.RAIL.get().defaultBlockState(),
                 helper.getLevel(), helper.absolutePos(pos));
         helper.setBlock(pos, state);
+    }
+
+    private static final BlockPos STACK_BASE = new BlockPos(10, 1, 10);
+
+    /** A rack placed on top of a rack takes the lower rack's facing, whatever way the player looks. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackOnRackCopiesFacing(GameTestHelper helper) {
+        helper.setBlock(STACK_BASE, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0.0F);
+        BlockPos above = helper.absolutePos(STACK_BASE.above());
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(above), Direction.UP, above, false);
+        ItemStack rackItem = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, rackItem);
+        net.minecraft.world.InteractionResult placed = rackItem.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+        helper.runAfterDelay(2, () -> {
+            BlockState top = helper.getBlockState(STACK_BASE.above());
+            helper.assertTrue(top.getBlock() instanceof HeavyRackBlock, "a rack should have been placed on top, got " + top.getBlock() + " result " + placed);
+            helper.assertTrue(top.getValue(HeavyRackBlock.FACING) == Direction.EAST, "the top rack should face east like the one below");
+            helper.assertTrue(top.getValue(HeavyRackBlock.DOWN), "the top rack should join the rack below");
+            helper.assertTrue(helper.getBlockState(STACK_BASE).getValue(HeavyRackBlock.UP), "the lower rack should join the rack above");
+            helper.succeed();
+        });
     }
 
     private static boolean lit(GameTestHelper helper, BlockPos pos) {
