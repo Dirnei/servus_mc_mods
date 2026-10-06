@@ -58,11 +58,6 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         return side == Conversions.toSide(getBlockState().getValue(HeavyRackBlock.FACING));
     }
 
-    /** Called after a rotation so the rail links follow the new front. */
-    public void facingChanged() {
-        refreshNetworkConnections();
-    }
-
     public ItemStackHandler items() {
         return items;
     }

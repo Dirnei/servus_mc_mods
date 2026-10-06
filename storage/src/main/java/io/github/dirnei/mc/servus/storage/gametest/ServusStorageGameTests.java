@@ -464,6 +464,27 @@ public final class ServusStorageGameTests {
         }
     }
 
+    private static final BlockPos NR_RACK = new BlockPos(1, 1, 1);
+
+    /** The carrot leaves a rack's facing and joins alone. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void carrotDoesNotTurnRack(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0.0F);
+        placeRackByHand(helper, player, NR_RACK);
+        placeRackByHand(helper, player, NR_RACK.east());
+        BlockPos absolute = helper.absolutePos(NR_RACK);
+        ItemStack carrot = new ItemStack(io.github.dirnei.mc.servus.lib.registry.ServusLibItems.CONFIGURATION_CARROT.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+        carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
+        BlockState after = helper.getBlockState(NR_RACK);
+        helper.assertTrue(after.getBlock() instanceof HeavyRackBlock, "the rack is still there");
+        helper.assertTrue(after.getValue(HeavyRackBlock.FACING) == Direction.NORTH, "the carrot must not turn the rack");
+        helper.assertTrue(after.getValue(HeavyRackBlock.RIGHT), "the join to the neighbour survives the click");
+        helper.succeed();
+    }
+
     private static boolean lit(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);
     }

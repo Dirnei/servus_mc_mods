@@ -252,18 +252,9 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
                 }
                 Block.popResource(level, pos, drop);
                 level.removeBlock(pos, false);
-            } else {
-                BlockState rotated = state.setValue(FACING, state.getValue(FACING).getClockWise())
-                        .setValue(LEFT, false).setValue(RIGHT, false);
-                rotated = rotated
-                        .setValue(UP, sameRow(rotated, level.getBlockState(pos.above())))
-                        .setValue(DOWN, sameRow(rotated, level.getBlockState(pos.below())));
-                level.setBlock(pos, rotated, Block.UPDATE_ALL);
-                if (level.getBlockEntity(pos) instanceof HeavyRackBlockEntity rack) {
-                    rack.facingChanged();
-                }
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        // The carrot never turns a rack: its facing is a layout decision made at placement.
+        return dismantle ? InteractionResult.sidedSuccess(level.isClientSide()) : InteractionResult.PASS;
     }
 }
