@@ -12,5 +12,5 @@ import net.minecraft.core.BlockPos;
  * @param amount  how many at most
  * @param target  the storage block chosen for it
  */
-public record PutAwayJob(BlockPos station, int slot, ItemKey key, int amount, BlockPos target) {
+public record PutAwayJob(BlockPos station, int slot, ItemKey key, int amount, BlockPos target) implements ShuttleJob {
 }

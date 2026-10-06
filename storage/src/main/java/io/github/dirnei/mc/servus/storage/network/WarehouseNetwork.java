@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
+import io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
 import io.github.dirnei.mc.servus.storage.station.DispatchStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
@@ -582,7 +583,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             budget--;
             if (fleet.canCarry(pos, target.get())) {
                 station.claim(slot);
-                fleet.requestPutAway(new io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob(pos, slot, key, stack.getCount(), target.get()));
+                fleet.requestPutAway(new PutAwayJob(pos, slot, key, stack.getCount(), target.get()));
             } else {
                 ItemStack taken = station.buffer().extractItem(slot, stack.getCount(), false);
                 ItemStack left = insertAt(target.get(), taken);
@@ -617,6 +618,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /** Inserts into exactly that source; returns what did not fit. */
+    @Override
     public ItemStack insertAt(BlockPos pos, ItemStack stack) {
         if (stack.isEmpty()) {
             return stack;
@@ -634,6 +636,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /** Puts a stack back into a station's buffer, dropping what does not fit there. */
+    @Override
     public void returnToStation(BlockPos pos, ItemStack stack) {
         if (stack.isEmpty()) {
             return;
@@ -647,7 +650,16 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
+    @Override
+    public void releaseClaim(BlockPos station, int slot) {
+        if (level != null && level.getBlockEntity(station) instanceof DispatchStationBlockEntity be) {
+            be.release(slot);
+            pendingStations.add(station);
+        }
+    }
+
     /** Takes up to amount of the key out of a station's buffer and frees the slot's claim. */
+    @Override
     public ItemStack takeFromStation(BlockPos pos, int slot, ItemKey key, int amount) {
         if (!(level.getBlockEntity(pos) instanceof DispatchStationBlockEntity station)) {
             return ItemStack.EMPTY;

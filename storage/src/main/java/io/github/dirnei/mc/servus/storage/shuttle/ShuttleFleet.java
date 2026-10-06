@@ -18,7 +18,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The shuttles of one warehouse: parked on the home rail, sent out for pick
- * jobs, drawn on clients. Everything here is data; nothing scans blocks.
+ * and put-away jobs, drawn on clients. Everything here is data; nothing
+ * scans blocks.
  */
 public final class ShuttleFleet {
 
@@ -38,14 +39,29 @@ public final class ShuttleFleet {
         /** Takes up to amount of the key out of exactly that source. */
         ItemStack extractFrom(BlockPos source, ItemKey key, int amount);
 
+        /** Takes up to amount of the key out of a station's buffer and frees the slot's claim. */
+        ItemStack takeFromStation(BlockPos station, int slot, ItemKey key, int amount);
+
+        /** Inserts into exactly that storage block; returns what did not fit. */
+        ItemStack insertAt(BlockPos target, ItemStack stack);
+
+        /** Puts a stack back into a station's buffer, dropping what does not fit there. */
+        void returnToStation(BlockPos station, ItemStack stack);
+
+        /** Frees a station slot a job no longer waits for. */
+        void releaseClaim(BlockPos station, int slot);
+
         double shuttleSpeed();
     }
+
+    /** Where a shuttle is heading. */
+    private enum Leg { TO_SOURCE, TO_TARGET, TO_STATION, HOME }
 
     private static final int SYNC_INTERVAL = 5;
 
     private final Host host;
     private final List<Shuttle> shuttles = new ArrayList<>();
-    private final ArrayDeque<PickJob> jobs = new ArrayDeque<>();
+    private final ArrayDeque<ShuttleJob> jobs = new ArrayDeque<>();
     private BlockPos controller;
     private NodePos home;
     private boolean syncPending;
@@ -101,6 +117,11 @@ public final class ShuttleFleet {
             dropCargo(shuttle);
         }
         shuttles.clear();
+        for (ShuttleJob job : jobs) {
+            if (job instanceof PutAwayJob putAway) {
+                host.releaseClaim(putAway.station(), putAway.slot());
+            }
+        }
         jobs.clear();
         controller = null;
         home = null;
@@ -144,11 +165,25 @@ public final class ShuttleFleet {
             return false;
         }
         for (BlockPos source : host.sourcesHolding(key)) {
-            if (touchesRail(Conversions.toNodePos(source))) {
+            if (!railsBeside(Conversions.toNodePos(source)).isEmpty()) {
                 return true;
             }
         }
         return false;
+    }
+
+    /** Whether a put-away from the station to the target rides a shuttle: both reachable from home. */
+    public boolean canCarry(BlockPos station, BlockPos target) {
+        if (shuttles.isEmpty() || home == null) {
+            return false;
+        }
+        Set<NodePos> stationRails = railsBeside(Conversions.toNodePos(station));
+        Set<NodePos> targetRails = railsBeside(Conversions.toNodePos(target));
+        if (stationRails.isEmpty() || targetRails.isEmpty()) {
+            return false;
+        }
+        return !RailPaths.find(home, stationRails::contains, host::travelNeighbours).isEmpty()
+                && !RailPaths.find(home, targetRails::contains, host::travelNeighbours).isEmpty();
     }
 
     public void requestPick(PickJob job) {
@@ -156,35 +191,28 @@ public final class ShuttleFleet {
         syncPending = true;
     }
 
-    /** Whether a put-away from the station to the target rides a shuttle. Group 5 teaches the fleet to carry. */
-    public boolean canCarry(BlockPos station, BlockPos target) {
-        return false;
-    }
-
     public void requestPutAway(PutAwayJob job) {
-        throw new IllegalStateException("put-away jobs are not carried yet");
+        jobs.add(job);
+        syncPending = true;
     }
 
-    private boolean touchesRail(NodePos source) {
+    /** Travel nodes touching a position. */
+    private Set<NodePos> railsBeside(NodePos node) {
+        Set<NodePos> result = new HashSet<>();
         for (Side side : Side.ALL) {
-            if (host.isTravelNode(source.relative(side))) {
-                return true;
+            NodePos beside = node.relative(side);
+            if (host.isTravelNode(beside)) {
+                result.add(beside);
             }
         }
-        return false;
+        return result;
     }
 
     /** Travel nodes beside at least one source holding the key, as a goal test. */
     private Set<NodePos> goals(ItemKey key) {
         Set<NodePos> goals = new HashSet<>();
         for (BlockPos source : host.sourcesHolding(key)) {
-            NodePos node = Conversions.toNodePos(source);
-            for (Side side : Side.ALL) {
-                NodePos beside = node.relative(side);
-                if (host.isTravelNode(beside)) {
-                    goals.add(beside);
-                }
-            }
+            goals.addAll(railsBeside(Conversions.toNodePos(source)));
         }
         return goals;
     }
@@ -220,22 +248,33 @@ public final class ShuttleFleet {
 
     private void serveInstantly() {
         while (!jobs.isEmpty()) {
-            PickJob job = jobs.poll();
-            ItemStack stack = extractAnywhere(job);
-            deliver(job, stack);
+            serveInstantly(jobs.poll());
         }
     }
 
-    private void assign(Shuttle shuttle, PickJob job) {
-        Set<NodePos> goals = goals(job.key());
+    /** Does a job without a shuttle: picks extract anywhere, put-aways move station to target at once. */
+    private void serveInstantly(ShuttleJob job) {
+        if (job instanceof PickJob pick) {
+            deliver(pick, extractAnywhere(pick));
+        } else if (job instanceof PutAwayJob putAway) {
+            ItemStack taken = host.takeFromStation(putAway.station(), putAway.slot(), putAway.key(), putAway.amount());
+            if (!taken.isEmpty()) {
+                host.returnToStation(putAway.station(), host.insertAt(putAway.target(), taken));
+            }
+        }
+    }
+
+    private void assign(Shuttle shuttle, ShuttleJob job) {
+        Set<NodePos> goals = job instanceof PickJob pick ? goals(pick.key())
+                : railsBeside(Conversions.toNodePos(((PutAwayJob) job).station()));
         NodePos from = shuttle.motion == null ? home : shuttle.motion.currentNode();
         List<NodePos> path = goals.isEmpty() ? List.of() : RailPaths.find(from, goals::contains, host::travelNeighbours);
         if (path.isEmpty()) {
-            deliver(job, extractAnywhere(job));
+            serveInstantly(job);
             return;
         }
         shuttle.job = job;
-        shuttle.outbound = true;
+        shuttle.leg = Leg.TO_SOURCE;
         shuttle.motion = new ShuttleMotion(path);
         syncPending = true;
     }
@@ -244,19 +283,81 @@ public final class ShuttleFleet {
         if (shuttle.job == null) {
             return;
         }
-        if (shuttle.outbound) {
-            shuttle.cargo = extractBeside(shuttle.motion.end(), shuttle.job);
-            shuttle.outbound = false;
-            List<NodePos> homePath = RailPaths.find(shuttle.motion.end(), home::equals, host::travelNeighbours);
-            shuttle.motion = homePath.isEmpty() ? shuttle.motion.reverse() : new ShuttleMotion(homePath);
-            syncPending = true;
+        if (shuttle.job instanceof PickJob pick) {
+            arrivePick(shuttle, pick);
+        } else if (shuttle.job instanceof PutAwayJob putAway) {
+            arrivePutAway(shuttle, putAway);
+        }
+        syncPending = true;
+    }
+
+    private void arrivePick(Shuttle shuttle, PickJob job) {
+        if (shuttle.leg == Leg.TO_SOURCE) {
+            shuttle.cargo = extractBeside(shuttle.motion.end(), job);
+            goHome(shuttle);
             return;
         }
-        deliver(shuttle.job, shuttle.cargo);
+        deliver(job, shuttle.cargo);
         shuttle.cargo = ItemStack.EMPTY;
+        park(shuttle);
+    }
+
+    private void arrivePutAway(Shuttle shuttle, PutAwayJob job) {
+        switch (shuttle.leg) {
+            case TO_SOURCE -> {
+                shuttle.cargo = host.takeFromStation(job.station(), job.slot(), job.key(), job.amount());
+                if (shuttle.cargo.isEmpty()) {
+                    goHome(shuttle);
+                } else if (!go(shuttle, Leg.TO_TARGET, railsBeside(Conversions.toNodePos(job.target())))) {
+                    // No way to the target any more: the stack goes straight back, we are standing at the station.
+                    host.returnToStation(job.station(), shuttle.cargo);
+                    shuttle.cargo = ItemStack.EMPTY;
+                    goHome(shuttle);
+                }
+            }
+            case TO_TARGET -> {
+                shuttle.cargo = host.insertAt(job.target(), shuttle.cargo);
+                if (shuttle.cargo.isEmpty()) {
+                    goHome(shuttle);
+                } else if (!go(shuttle, Leg.TO_STATION, railsBeside(Conversions.toNodePos(job.station())))) {
+                    host.returnToStation(job.station(), shuttle.cargo);
+                    shuttle.cargo = ItemStack.EMPTY;
+                    goHome(shuttle);
+                }
+            }
+            case TO_STATION -> {
+                host.returnToStation(job.station(), shuttle.cargo);
+                shuttle.cargo = ItemStack.EMPTY;
+                goHome(shuttle);
+            }
+            case HOME -> park(shuttle);
+        }
+    }
+
+    /** Sends the shuttle towards any of the goal rails; false when no path exists. */
+    private boolean go(Shuttle shuttle, Leg leg, Set<NodePos> goals) {
+        if (goals.isEmpty()) {
+            return false;
+        }
+        List<NodePos> path = RailPaths.find(shuttle.motion.end(), goals::contains, host::travelNeighbours);
+        if (path.isEmpty()) {
+            return false;
+        }
+        shuttle.leg = leg;
+        shuttle.motion = new ShuttleMotion(path);
+        return true;
+    }
+
+    private void goHome(Shuttle shuttle) {
+        shuttle.leg = Leg.HOME;
+        List<NodePos> homePath = RailPaths.find(shuttle.motion.end(), home::equals, host::travelNeighbours);
+        shuttle.motion = homePath.isEmpty() ? shuttle.motion.reverse() : new ShuttleMotion(homePath);
+    }
+
+    private void park(Shuttle shuttle) {
         shuttle.job = null;
+        shuttle.leg = Leg.HOME;
         shuttle.motion = ShuttleMotion.parked(home);
-        syncPending = true;
     }
 
     private ItemStack extractBeside(NodePos rail, PickJob job) {
@@ -359,19 +460,30 @@ public final class ShuttleFleet {
         return list;
     }
 
+    /** Queued jobs that are put-aways. */
+    public int queuedPutAways() {
+        int count = 0;
+        for (ShuttleJob job : jobs) {
+            if (job instanceof PutAwayJob) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public String summary() {
         if (shuttles.isEmpty()) {
             return "no shuttles";
         }
         String rail = home == null ? ", parked without a rail" : "";
-        return shuttles.size() + " shuttles, " + busy() + " busy, " + jobs.size() + " queued" + rail;
+        return shuttles.size() + " shuttles, " + busy() + " busy, " + jobs.size() + " queued (" + queuedPutAways() + " put-aways)" + rail;
     }
 
     /** One shuttle: where it is, what it carries, what it is doing. */
     private static final class Shuttle {
         ShuttleMotion motion;
         ItemStack cargo = ItemStack.EMPTY;
-        PickJob job;
-        boolean outbound;
+        ShuttleJob job;
+        Leg leg = Leg.HOME;
     }
 }

@@ -25,8 +25,8 @@
 
 ## 5. Put-away by shuttle
 
-- [ ] 5.1 Add `ShuttleJob` (sealed) and `PutAwayJob` in `storage/src/main/java/io/github/dirnei/mc/servus/storage/shuttle/`, give `ShuttleFleet.java` the `Leg` states, `railsBeside(BlockPos)`, `canCarry(station, target)`, the shared queue, the `takeFromStation`, `insertAt` and `returnToStation` host calls and the put-away count in `summary()`, implement the host calls in `WarehouseNetwork.java`, and let the station drain queue jobs when `canCarry` holds. Verify `gradlew :storage:test` stays green (`RailPathsTest`, `ShuttleMotionTest`) and `gradlew :storage:build` is green.
-- [ ] 5.2 Add the GameTest `shuttleCarriesPutAway` to `ServusStorageGameTests.java` (rail from the controller past a station to a crate, one shuttle; the stack is still in the buffer after a few ticks, gone once the shuttle has reached the station, in the crate after the second leg) and keep `shuttlePicksFromRail` green. Verify `gradlew :storage:runGameTestServer` passes all storage tests and in the client the cart shows cargo only between the station and the crate.
+- [x] 5.1 Add `ShuttleJob` (sealed) and `PutAwayJob` in `storage/src/main/java/io/github/dirnei/mc/servus/storage/shuttle/`, give `ShuttleFleet.java` the `Leg` states, `railsBeside(BlockPos)`, `canCarry(station, target)`, the shared queue, the `takeFromStation`, `insertAt` and `returnToStation` host calls and the put-away count in `summary()`, implement the host calls in `WarehouseNetwork.java`, and let the station drain queue jobs when `canCarry` holds. Verify `gradlew :storage:test` stays green (`RailPathsTest`, `ShuttleMotionTest`) and `gradlew :storage:build` is green.
+- [x] 5.2 Add the GameTest `shuttleCarriesPutAway` to `ServusStorageGameTests.java` (rail from the controller past a station to a crate, one shuttle; the stack is still in the buffer after a few ticks, gone once the shuttle has reached the station, in the crate after the second leg) and keep `shuttlePicksFromRail` green. Verify `gradlew :storage:runGameTestServer` passes all storage tests and in the client the cart shows cargo only between the station and the crate.
 
 ## 6. Station GUI
 

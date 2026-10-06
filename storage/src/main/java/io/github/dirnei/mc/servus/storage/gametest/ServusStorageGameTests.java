@@ -813,4 +813,42 @@ public final class ServusStorageGameTests {
             });
         });
     }
+
+    private static final BlockPos PA_CONTROLLER = new BlockPos(2, 1, 1);
+    private static final BlockPos PA_STATION = new BlockPos(4, 1, 2);
+    private static final BlockPos PA_CRATE = new BlockPos(8, 1, 2);
+
+    /** A shuttle fetches a stack from the station and carries it along the rail to the crate. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void shuttleCarriesPutAway(GameTestHelper helper) {
+        helper.setBlock(PA_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        for (int x = 3; x <= 8; x++) {
+            helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
+            helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(PA_STATION, ServusStorageBlocks.DISPATCH_STATION.get().defaultBlockState()
+                .setValue(DispatchStationBlock.FACING, Direction.NORTH));
+        helper.setBlock(PA_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        DispatchStationBlockEntity station = helper.getBlockEntity(PA_STATION);
+        CrateBlockEntity crate = helper.getBlockEntity(PA_CRATE);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(PA_CONTROLLER);
+        helper.assertTrue(controller.addShuttle(), "one shuttle fits");
+
+        helper.runAfterDelay(10, () -> {
+            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
+            helper.runAfterDelay(2, () -> helper.assertTrue(!station.isEmpty(), "the stack waits in the buffer until the shuttle arrives"));
+            helper.runAfterDelay(12, () -> {
+                helper.assertTrue(station.isEmpty(), "the shuttle should have loaded the stack by now");
+                helper.assertTrue(crate.isEmpty(), "the crate must still be empty while the shuttle travels");
+            });
+            helper.runAfterDelay(70, () -> {
+                helper.assertTrue(crate.count() == 40, "the shuttle should have delivered 40 cobblestone, crate has " + crate.count());
+                helper.assertTrue(station.isEmpty(), "nothing should ride back");
+                helper.assertTrue(controller.network().orElseThrow().summary().getString().contains("0 busy"),
+                        "the shuttle should be home and idle: " + controller.network().orElseThrow().summary().getString());
+                helper.succeed();
+            });
+        });
+    }
 }

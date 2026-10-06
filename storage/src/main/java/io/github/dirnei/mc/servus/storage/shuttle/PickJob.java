@@ -12,5 +12,5 @@ import net.minecraft.world.entity.player.Player;
  * @param requester the player who asked; delivery goes to their inventory
  * @param terminal  where the pull was made; leftovers drop here
  */
-public record PickJob(ItemKey key, int amount, Player requester, BlockPos terminal) {
+public record PickJob(ItemKey key, int amount, Player requester, BlockPos terminal) implements ShuttleJob {
 }
