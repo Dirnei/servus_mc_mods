@@ -485,6 +485,46 @@ public final class ServusStorageGameTests {
         helper.succeed();
     }
 
+    private static final BlockPos CLIMB_RACK = new BlockPos(6, 2, 6);
+
+    /** A player pressed against a rack side climbs or slides without fall damage; the front stays a wall. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackSideClimbsAndFrontDoesNot(GameTestHelper helper) {
+        helper.setBlock(CLIMB_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos rack = helper.absolutePos(CLIMB_RACK);
+        double gravity = player.getGravity();
+
+        // West side: the player's east face rests on the rack's west face, feet a little above the rack bottom.
+        player.setPos(rack.getX() - 0.3, rack.getY() + 0.3, rack.getZ() + 0.5);
+        player.fallDistance = 4.0F;
+        player.setDeltaMovement(0.0, -0.5, 0.0);
+        player.horizontalCollision = false;
+        io.github.dirnei.mc.servus.storage.rack.RackClimbing.tick(player);
+        helper.assertTrue(player.fallDistance == 0.0F, "hanging on the side clears the fall distance");
+        helper.assertTrue(Math.abs(player.getDeltaMovement().y + 0.15) < 1.0E-9, "hanging slides at the ladder speed, got " + player.getDeltaMovement().y);
+
+        player.horizontalCollision = true;
+        io.github.dirnei.mc.servus.storage.rack.RackClimbing.tick(player);
+        helper.assertTrue(Math.abs(player.getDeltaMovement().y - (0.2 - gravity) * 0.98) < 1.0E-9, "pushing climbs at the ladder speed, got " + player.getDeltaMovement().y);
+
+        // Front: the player's south face rests on the rack's north face.
+        player.setPos(rack.getX() + 0.5, rack.getY() + 0.3, rack.getZ() - 0.3);
+        player.fallDistance = 4.0F;
+        player.setDeltaMovement(0.0, -0.5, 0.0);
+        player.horizontalCollision = true;
+        io.github.dirnei.mc.servus.storage.rack.RackClimbing.tick(player);
+        helper.assertTrue(player.fallDistance == 4.0F, "the front is not climbable");
+        helper.assertTrue(player.getDeltaMovement().y == -0.5, "the front leaves the motion alone");
+
+        // Back: the player's north face rests on the rack's south face.
+        player.setPos(rack.getX() + 0.5, rack.getY() + 0.3, rack.getZ() + 1.3);
+        player.horizontalCollision = true;
+        io.github.dirnei.mc.servus.storage.rack.RackClimbing.tick(player);
+        helper.assertTrue(player.fallDistance == 4.0F, "the back is not climbable");
+        helper.succeed();
+    }
+
     private static boolean lit(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);
     }
