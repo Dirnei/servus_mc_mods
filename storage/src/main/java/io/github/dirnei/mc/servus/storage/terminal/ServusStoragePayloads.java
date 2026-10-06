@@ -7,8 +7,8 @@ import io.github.dirnei.mc.servus.storage.menu.DispatchStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.zone.SetLabelNamePayload;
 import io.github.dirnei.mc.servus.storage.zone.SetLabelTagsPayload;
-import io.github.dirnei.mc.servus.storage.client.ClientZoneRules;
-import io.github.dirnei.mc.servus.storage.station.ZoneRulesSyncPayload;
+import io.github.dirnei.mc.servus.storage.client.ClientStationState;
+import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -39,8 +39,8 @@ public final class ServusStoragePayloads {
                         menu.pull(ItemKey.of(payload.item()), payload.toInventory());
                     }
                 });
-        registrar.playToClient(ZoneRulesSyncPayload.TYPE, ZoneRulesSyncPayload.STREAM_CODEC,
-                (payload, context) -> ClientZoneRules.update(payload));
+        registrar.playToClient(StationStatePayload.TYPE, StationStatePayload.STREAM_CODEC,
+                (payload, context) -> ClientStationState.update(payload));
         registrar.playToServer(SetLabelNamePayload.TYPE, SetLabelNamePayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player

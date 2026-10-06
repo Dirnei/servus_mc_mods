@@ -33,12 +33,6 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.not_connected", "Not connected to a warehouse");
         add("gui.servus_storage.terminal.no_controller", "Warehouse has no controller");
         add("gui.servus_storage.terminal.multiple_controllers", "Warehouse has more than one controller");
-        add("gui.servus_storage.station.zones", "Zones");
-        add("gui.servus_storage.station.no_zones", "No zones yet: define a Zone Label and stamp storage blocks");
-        add("gui.servus_storage.station.blocks", "%s blocks");
-        add("gui.servus_storage.station.items", "Items: %s");
-        add("gui.servus_storage.station.tags", "Tags: %s");
-        add("gui.servus_storage.station.takes_all", "Takes any item");
         add("gui.servus_storage.station.idle", "Idle");
         add("gui.servus_storage.station.busy", "Putting away");
         add("gui.servus_storage.station.blocked.no_room", "%s: no room in %s or in general storage");

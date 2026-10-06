@@ -911,33 +911,29 @@ public final class ServusStorageGameTests {
         });
     }
 
-    /** The station menu lists the zones with their block counts and filters, and shift click feeds the buffer. */
+    /** The station menu reports the warehouse state and shift click feeds the buffer. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void stationMenuShowsZones(GameTestHelper helper) {
+    public static void stationMenuFeedsBuffer(GameTestHelper helper) {
         DispatchStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        helper.setBlock(ST_CRATE_2, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         CrateBlockEntity ores = helper.getBlockEntity(ST_CRATE);
-        CrateBlockEntity food = helper.getBlockEntity(ST_CRATE_2);
         ores.setZone(zone("Ores", List.of(), List.of("c:ores")));
-        food.setZone(zone("Food", List.of(new ItemStack(Items.BREAD)), List.of()));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(5, () -> {
             DispatchStationMenu menu = new DispatchStationMenu(1, player.getInventory(), station);
             helper.assertTrue(menu.state().online(), "the station should see an online warehouse");
-            List<io.github.dirnei.mc.servus.storage.station.ZoneRulesSyncPayload.ZoneRow> rows = menu.state().zones();
-            helper.assertTrue(rows.size() == 2, "two zones expected, got " + rows);
-            helper.assertTrue(rows.get(0).key().equals("food") && rows.get(0).blocks() == 1 && rows.get(0).items().equals(List.of("Bread")),
-                    "Food should list one block with bread, got " + rows.get(0));
-            helper.assertTrue(rows.get(1).key().equals("ores") && rows.get(1).tags().equals(List.of("c:ores")),
-                    "Ores should list its tag, got " + rows.get(1));
+            helper.assertTrue(menu.state().idle(), "an empty buffer reads idle");
 
             player.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE, 20));
             menu.quickMoveStack(player, menu.inventoryStart() + 27);
             helper.assertTrue(station.buffer().getStackInSlot(0).getCount() == 20 && station.buffer().getStackInSlot(0).is(Items.COBBLESTONE),
                     "shift click should move the cobblestone into the buffer");
             helper.assertTrue(player.getInventory().getItem(0).isEmpty(), "the inventory slot should be empty");
-            helper.succeed();
+            helper.runAfterDelay(10, () -> {
+                helper.assertTrue(!menu.state().blockedReason().isEmpty() && menu.state().blockedStack().is(Items.COBBLESTONE),
+                        "cobblestone has no unzoned storage and the state should say so: " + menu.state());
+                helper.succeed();
+            });
         });
     }
 }

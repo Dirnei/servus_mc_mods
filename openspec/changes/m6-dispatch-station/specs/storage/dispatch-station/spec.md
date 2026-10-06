@@ -82,11 +82,7 @@ A stack that the routing cannot place anywhere SHALL wait in the buffer and the 
 - **THEN** the copper is put away within a few ticks and the lamp goes back to the online colour
 
 ### Requirement: Station GUI
-Right clicking the station SHALL open a GUI with the buffer slots, the player inventory, the zones of the warehouse and the station's state. The zone list SHALL show every zone name with its block count and, on hover, the filter items and tags its blocks carry. The list SHALL be read only: zones are defined on Zone Labels. Shift clicking an inventory stack SHALL move it into the buffer. While offline the GUI SHALL show the reason instead of the zones.
-
-#### Scenario: Zone overview
-- **WHEN** the warehouse has three "Ores" blocks carrying `c:ores` and one "Food" block carrying bread
-- **THEN** the list shows "Ores" with 3 blocks and "Food" with 1 block, and hovering "Ores" shows the tag `c:ores`
+Right clicking the station SHALL open a GUI with the buffer slots, the player inventory and a status line: idle, putting away, or the first waiting stack with its reason. Shift clicking an inventory stack SHALL move it into the buffer. While offline the status SHALL show the reason. Zones are defined on Zone Labels and seen on the blocks; the station does not list them.
 
 #### Scenario: Shift click into the buffer
 - **WHEN** the player shift clicks 20 cobblestone in the inventory
@@ -95,6 +91,10 @@ Right clicking the station SHALL open a GUI with the buffer slots, the player in
 #### Scenario: Offline
 - **WHEN** the station touches crates but no controller
 - **THEN** the GUI says the warehouse has no controller
+
+#### Scenario: Waiting stack
+- **WHEN** raw copper waits because its zone and general storage are full
+- **THEN** the status line names raw copper and the reason
 
 ### Requirement: Station is obtainable and dismantled
 The station SHALL be craftable from vanilla materials, SHALL drop itself when broken, and SHALL be dismantled by sneaking with the Configuration Carrot, dropping its buffer contents. The Configuration Carrot without sneaking SHALL turn its facing.

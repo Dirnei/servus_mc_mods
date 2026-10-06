@@ -9,7 +9,7 @@ The warehouse can be searched and picked from, and shuttles fetch pulls over the
 - **Zone Labels.** A new item. Right clicking the air with it opens a GUI where the player names the zone and sets its filter: nine ghost items and a line of item tags. Right clicking a crate or Heavy Duty Rack with the label copies name and filter onto that block; sneak right click clears it. The zone name is drawn on the block's front and shown in the rack GUI title. Blocks keep the copy they were stamped with.
 - **Zones are optional and prioritised.** A zoned block with a filter takes only matching items. Unzoned blocks, and zoned blocks with an empty filter, take anything. Put-away fills zoned blocks listing the exact item first, then zoned blocks matching by tag, then general storage. There is no separate overflow zone: unzoned storage is the overflow. Every insert obeys this, including terminal pushes and hoppers.
 - **Dispatch Station block.** A new warehouse node with an intake buffer exposed as an item handler, so hoppers, Utility Ducts and players feed it. The warehouse drains the buffer by routing every stack to a target block. With shuttles and a home rail, a put-away becomes a shuttle job: drive to the station, load, drive to the target, unload, return. Without them the move is instant, like pulls today. Stacks with no room stay in the buffer and the station shows a backed up lamp and the reason in its GUI.
-- **Dispatch Station GUI.** Shows the intake buffer, a read only overview of the warehouse's zones with block counts and filters, and the station's state.
+- **Dispatch Station GUI.** Shows the intake buffer and the station's state. Zones are seen on the blocks and listed by `/servus_warehouse zones`.
 - **Rails dock to stations.** The station links like a stock block: rails dock onto it on any side and shuttles stop beside it. The station is never indexed and never pulls neighbouring inventories in, so the chest feeding it is not warehouse stock.
 - **Shared job queue.** Pick jobs and put-away jobs share one queue and the free shuttles, taken in order. The controller summary and `/servus_warehouse` report zones and waiting put-aways.
 
@@ -17,7 +17,7 @@ The warehouse can be searched and picked from, and shuttles fetch pulls over the
 
 ### New Capabilities
 - `storage/zones`: the Zone Label item and its GUI, stamping zones onto storage blocks, zone display, zone filters on blocks and the put-away routing every insert follows.
-- `storage/dispatch-station`: the Dispatch Station block, its intake buffer and item handler, draining into targets instantly or by shuttle, the backed up state, its GUI for buffer and zone overview, and crafting.
+- `storage/dispatch-station`: the Dispatch Station block, its intake buffer and item handler, draining into targets instantly or by shuttle, the backed up state, its GUI for the buffer and state, and crafting.
 
 ### Modified Capabilities
 - `storage/warehouse-controller`: "Stock operations" inserts route through zones instead of the fixed preference order; `/servus_warehouse zones <pos>` lists zones; the summary reports waiting put-aways.
