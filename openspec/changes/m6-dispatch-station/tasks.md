@@ -35,5 +35,5 @@
 
 ## 7. Specs, plan and verification
 
-- [ ] 7.1 Run `openspec validate m6-dispatch-station --strict` and fix any finding; confirm `PLAN.md` section 2.3 and the M6 list need no text change (the item stays "Dispatch station, put-away rules, overflow zones"). Verify validate passes.
+- [x] 7.1 Run `openspec validate m6-dispatch-station --strict` and fix any finding; confirm `PLAN.md` section 2.3 and the M6 list need no text change (the item stays "Dispatch station, put-away rules, overflow zones"). Verify validate passes.
 - [ ] 7.2 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game: build a controller, rail, two zoned aisles and a station fed by a Utility Duct from a chest, with one shuttle; watch ores go to one aisle and food to the other, the overflow zone catch a full aisle, and the station back up with the red lamp when overflow is full too. Commit.
