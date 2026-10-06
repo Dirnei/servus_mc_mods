@@ -19,8 +19,8 @@ public final class PutAwayPlan {
     /** How a filter relates to an item. */
     public enum Match { EXACT, TAG, NONE }
 
-    /** Why nothing could be stored. */
-    public enum Reason { NO_ROOM, NO_STORAGE }
+    /** Why nothing could be stored: no room anywhere, no inventory at all, or room only in racks no shuttle reaches. */
+    public enum Reason { NO_ROOM, NO_STORAGE, NO_SHUTTLE }
 
     /**
      * A zone's filter as copied onto a block.

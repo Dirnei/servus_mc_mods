@@ -118,10 +118,10 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         return NodeKind.STOCK;
     }
 
-    /** Whether rails dock onto this node: stock blocks and dispatch stations. */
+    /** Whether rails dock onto this node: stock blocks, dispatch stations and garages. */
     public final boolean docksRail() {
         NodeKind kind = kind();
-        return kind == NodeKind.STOCK || kind == NodeKind.STATION;
+        return kind == NodeKind.STOCK || kind == NodeKind.STATION || kind == NodeKind.GARAGE;
     }
 
     /**
