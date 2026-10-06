@@ -22,6 +22,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.BlockHitResult;
@@ -431,6 +432,36 @@ public final class ServusStorageGameTests {
         helper.assertTrue(joined(helper, 4, HeavyRackBlock.RIGHT) && joined(helper, 5, HeavyRackBlock.LEFT), "filler joins the fourth");
         helper.assertTrue(joined(helper, 5, HeavyRackBlock.RIGHT) && joined(helper, 6, HeavyRackBlock.LEFT), "filler joins the sixth");
         helper.succeed();
+    }
+
+    private static final BlockPos FG_RACK = new BlockPos(2, 1, 11);
+
+    /** With a rack in hand, the side of a rack takes a new rack; the front opens the GUI instead. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackPlacesAgainstRackSide(GameTestHelper helper) {
+        helper.setBlock(FG_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0.0F);
+        useRackOn(helper, player, FG_RACK, Direction.EAST);
+        helper.assertTrue(helper.getBlockState(FG_RACK.east()).getBlock() instanceof HeavyRackBlock, "clicking the side places a rack beside it");
+        useRackOn(helper, player, FG_RACK, Direction.NORTH);
+        helper.assertTrue(!(helper.getBlockState(FG_RACK.north()).getBlock() instanceof HeavyRackBlock), "clicking the front opens the rack instead of placing");
+        helper.succeed();
+    }
+
+    /** Uses a rack item on the given face of the block at pos, through the block's own interaction. */
+    private static void useRackOn(GameTestHelper helper, Player player, BlockPos pos, Direction face) {
+        BlockPos absolute = helper.absolutePos(pos);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).relative(face, 0.5), face, absolute, false);
+        ItemStack rackItem = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, rackItem);
+        BlockState state = helper.getBlockState(pos);
+        ItemInteractionResult result = state.useItemOn(rackItem, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        if (result == ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION) {
+            rackItem.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+        } else if (result == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION) {
+            state.useWithoutItem(helper.getLevel(), player, hit);
+        }
     }
 
     private static boolean lit(GameTestHelper helper, BlockPos pos) {

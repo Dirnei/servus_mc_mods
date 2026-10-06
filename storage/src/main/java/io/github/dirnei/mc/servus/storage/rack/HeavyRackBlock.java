@@ -198,7 +198,8 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof ConfigurationCarrotItem) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem || hitResult.getDirection() != state.getValue(FACING)) {
+            // Only the front opens the rack; elsewhere the held item acts, which places blocks.
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
@@ -206,6 +207,9 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (hitResult.getDirection() != state.getValue(FACING)) {
+            return InteractionResult.PASS;
+        }
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof HeavyRackBlockEntity rack) {
             player.openMenu(rack, pos);
         }
