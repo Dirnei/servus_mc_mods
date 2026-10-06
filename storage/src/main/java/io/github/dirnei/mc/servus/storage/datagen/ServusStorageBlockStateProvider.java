@@ -20,6 +20,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         oriented(ServusStorageBlocks.RACK.get(), "rack");
         oriented(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "warehouse_controller");
         oriented(ServusStorageBlocks.COUNTER_TERMINAL.get(), "counter_terminal");
+        RailModels.rail(this, ServusStorageBlocks.RAIL.get(), "rail");
     }
 
     /** Horizontal block with its own front texture, shared side and top. */

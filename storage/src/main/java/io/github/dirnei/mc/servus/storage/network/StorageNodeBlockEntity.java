@@ -28,6 +28,14 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         return this;
     }
 
+    /**
+     * Whether this node is indexed as a source and pulls neighbouring
+     * inventories into the warehouse. Connector nodes such as rails return false.
+     */
+    public boolean holdsStock() {
+        return true;
+    }
+
     /** The warehouse network this node belongs to, when loaded on the server. */
     public Optional<WarehouseNetwork> network() {
         if (!(level instanceof ServerLevel server)) {

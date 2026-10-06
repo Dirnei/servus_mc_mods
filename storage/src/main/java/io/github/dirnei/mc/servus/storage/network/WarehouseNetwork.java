@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -49,6 +50,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     private final Map<BlockPos, Source> sources = new LinkedHashMap<>();
+    /** Members that hold no stock, such as rails. Never sources, never surrounded by candidates. */
+    private final Set<BlockPos> connectors = new HashSet<>();
     private final WarehouseIndex<BlockPos, ItemKey> index = new WarehouseIndex<>();
     private final ArrayDeque<BlockPos> dirtyQueue = new ArrayDeque<>();
     private final Set<BlockPos> dirtySet = new HashSet<>();
@@ -71,8 +74,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         level = server;
         BlockPos blockPos = Conversions.toBlockPos(pos);
-        addSource(blockPos, true);
-        addCandidatesAround(blockPos);
+        if (node.holdsStock()) {
+            addSource(blockPos, true);
+            addCandidatesAround(blockPos);
+        } else {
+            connectors.add(blockPos);
+        }
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers++;
         }
@@ -81,6 +88,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     @Override
     protected void onNodeRemoved(NodePos pos, StorageNodeBlockEntity node) {
         BlockPos blockPos = Conversions.toBlockPos(pos);
+        connectors.remove(blockPos);
         dropSource(blockPos);
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers--;
@@ -97,6 +105,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             level = that.level;
         }
         controllers += that.controllers;
+        connectors.addAll(that.connectors);
         that.sources.forEach((pos, source) -> {
             if (!sources.containsKey(pos) || source.node()) {
                 sources.put(pos, source);
@@ -109,6 +118,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     @Override
     protected void onDisposed() {
         sources.clear();
+        connectors.clear();
         dirtyQueue.clear();
         dirtySet.clear();
         pollOrder.clear();
@@ -135,6 +145,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     private void addCandidatesAround(BlockPos nodePos) {
+        if (connectors.contains(nodePos)) {
+            return;
+        }
         for (Direction direction : Direction.values()) {
             BlockPos neighbour = nodePos.relative(direction);
             if (!sources.containsKey(neighbour)) {
@@ -145,20 +158,16 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
-    /** Candidates are the neighbours of the remaining members that are not members. */
+    /** Candidates are the neighbours of the remaining stock holding members that are not members. */
     private void rebuildCandidates() {
-        Set<BlockPos> wanted = new LinkedHashSet<>();
-        Set<BlockPos> memberPositions = new HashSet<>();
-        for (NodePos member : members()) {
-            memberPositions.add(Conversions.toBlockPos(member));
+        Set<NodePos> memberPositions = new HashSet<>(members());
+        Set<NodePos> connectorPositions = new HashSet<>();
+        for (BlockPos connector : connectors) {
+            connectorPositions.add(Conversions.toNodePos(connector));
         }
-        for (BlockPos member : memberPositions) {
-            for (Direction direction : Direction.values()) {
-                BlockPos neighbour = member.relative(direction);
-                if (!memberPositions.contains(neighbour)) {
-                    wanted.add(neighbour);
-                }
-            }
+        Set<BlockPos> wanted = new LinkedHashSet<>();
+        for (NodePos pos : CandidateNeighbours.compute(memberPositions, connectorPositions)) {
+            wanted.add(Conversions.toBlockPos(pos));
         }
         for (BlockPos pos : new ArrayList<>(sources.keySet())) {
             Source source = sources.get(pos);
@@ -266,7 +275,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             case NO_CONTROLLER -> "offline, no controller";
             case MULTIPLE_CONTROLLERS -> "offline, more than one controller";
         };
-        return Component.literal("Warehouse #" + id() + ": " + state + ", " + size() + " nodes, " + sources.size()
+        return Component.literal("Warehouse #" + id() + ": " + state + ", " + size() + " nodes, " + connectors.size() + " rails, " + sources.size()
                 + " sources, " + index.typeCount() + " item types, " + index.totalItems() + " items");
     }
 

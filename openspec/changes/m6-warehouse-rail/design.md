@@ -36,6 +36,9 @@ The graph connection is separate from the visual flags: the network uses `Connec
 
 Alternative considered: a second network type for rails bridged through the controller. Rejected, one graph with a flag is far simpler and the always rule already gives the connectivity.
 
+### Split handover in Lib
+Found during the GameTest: `NetworkSet.apply` creates networks for split off components without telling them about their members, and the surviving network keeps the sources, endpoints or caches of nodes that moved away. The warehouse part cut off by a broken rail therefore had no level and crashed on chunk unload, and the same gap left duct and cable networks dead after a cut. `NetworkSet` gets a private `handOver(old, change)` that runs after `apply` in `nodeRemoved` and `nodeRefreshed`: for each created component it calls `old.onNodeRemoved` and `created.onNodeAdded` for every member. The refreshed node is always in the survivor, so it is never handed over twice. All five content networks only put and remove per node entries in those hooks, so they need no change. Alternative considered: a new `onSplit` hook. Rejected, the existing hooks already express leave and join and every network implements them.
+
 ### Pure candidate computation
 The neighbour set logic of `rebuildCandidates` moves into `io.github.dirnei.mc.servus.storage.index.CandidateNeighbours`, a final class with one static method `Set<NodePos> compute(Set<NodePos> members, Set<NodePos> connectors)`: for each member that is not a connector, add its six neighbours that are not members. `NodePos` lives in Lib's pure graph package, so the helper has no Minecraft imports. `WarehouseNetwork` converts with `Conversions` as it already does. JUnit: `CandidateNeighboursTest` covers a single member, two touching members sharing a neighbour, a connector between two members whose own neighbours are excluded, and a connector only network giving an empty set.
 

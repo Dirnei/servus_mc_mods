@@ -1,5 +1,6 @@
 {
   "values": [
-    "servus_storage:warehouse_controller"
+    "servus_storage:warehouse_controller",
+    "servus_storage:rail"
   ]
 }

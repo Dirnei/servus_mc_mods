@@ -68,6 +68,7 @@ public final class NetworkSet<N, E, T extends ServusNetwork<N, E>> {
         old.onNodeRemoved(pos, node);
         GraphChange change = graph.removeNode(pos);
         apply(change);
+        handOver(old, change);
     }
 
     /** A node changed in a way that affects its connections. */
@@ -77,8 +78,30 @@ public final class NetworkSet<N, E, T extends ServusNetwork<N, E>> {
         old.onNodeRemoved(pos, node);
         GraphChange change = graph.refresh(pos);
         T survivor = apply(change);
+        handOver(old, change);
         survivor.onNodeAdded(pos, node);
         return survivor;
+    }
+
+    /**
+     * After a split, every node that ended up in a newly created network is
+     * told to leave the old one and to join the new one, so both keep their
+     * state in step with the graph.
+     */
+    private void handOver(T old, GraphChange change) {
+        for (int id : change.created()) {
+            T created = networks.get(id);
+            if (created == null) {
+                continue;
+            }
+            for (NodePos member : new ArrayList<>(graph.members(id))) {
+                N node = graph.node(member).orElseThrow();
+                if (!old.isDisposed()) {
+                    old.onNodeRemoved(member, node);
+                }
+                created.onNodeAdded(member, node);
+            }
+        }
     }
 
     private T apply(GraphChange change) {

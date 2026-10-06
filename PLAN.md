@@ -112,7 +112,7 @@ Progression:
 
 **Network topology (decided direction):**
 - Early: adjacency. The controller connects to touching crates and racks.
-- Mid: **rails are the wiring.** Any rack next to a rail joins the network. The same rails carry shuttles later.
+- Mid: **rails are the wiring.** Any rack next to a rail joins the network. The same rails carry shuttles later. Decided: the Warehouse Rail is a flat floor rail, one block wide, that auto connects to neighbouring rails on the same level like ducts do. No slopes, no ceiling rails. Rails hold nothing and never pull plain inventories in.
 - Late: **Warehouse Relay** links remote depots wirelessly.
 
 Shuttles are **simulated as data** on the controller and only rendered moving on the client. No real entities.
@@ -232,7 +232,6 @@ Each milestone ends in something playable or testable.
 
 - Order prioritization: explicit priorities vs first come first served
 - Does a warehouse without shuttles feel complete enough on its own?
-- Exact rail block design (floor rails, ceiling rails, both?)
 - Tier 2 to 5 content details
 - Art style and texture direction (shared look across the family)
 - Final name for the storage mod (Servus: Storage vs Servus: Warehouse)

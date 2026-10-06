@@ -93,6 +93,25 @@ class NetworkSetTest {
     }
 
     @Test
+    void splitHandsMovedNodesOver() {
+        TestNetwork original = set.nodeAdded(x(0), "a");
+        for (int i = 1; i < 6; i++) {
+            set.nodeAdded(x(i), "n" + i);
+        }
+        TestNetwork.LOG.clear();
+
+        set.nodeRemoved(x(2));
+
+        TestNetwork smallPart = set.networkAt(x(0)).orElseThrow();
+        assertTrue(TestNetwork.LOG.contains("removed " + original.id() + " a size=3"));
+        assertTrue(TestNetwork.LOG.contains("removed " + original.id() + " n1 size=3"));
+        assertTrue(TestNetwork.LOG.contains("added " + smallPart.id() + " a"));
+        assertTrue(TestNetwork.LOG.contains("added " + smallPart.id() + " n1"));
+        assertTrue(TestNetwork.LOG.indexOf("create " + smallPart.id()) < TestNetwork.LOG.indexOf("added " + smallPart.id() + " a"));
+        assertTrue(TestNetwork.LOG.stream().noneMatch(line -> line.startsWith("added " + original.id())));
+    }
+
+    @Test
     void lastNodeDisposesNetwork() {
         TestNetwork network = set.nodeAdded(x(0), "a");
 
