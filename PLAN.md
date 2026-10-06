@@ -196,7 +196,7 @@ Each milestone ends in something playable or testable.
 ### M4: Storage first playable slice
 - Crates with front item display
 - Crate family: Crate, Double Crate and Quad Crate with per compartment display (block entity renderer)
-- Heavy Duty Rack: chest sized bay with a GUI, visual joins and a sample display
+- Heavy Duty Rack: chest sized bay with a GUI, visual joins, a sample display and climbable side posts
 - Warehouse Controller with adjacency networking
 - Counter Terminal with search and pull
 - Indexing of foreign inventories with batched polling

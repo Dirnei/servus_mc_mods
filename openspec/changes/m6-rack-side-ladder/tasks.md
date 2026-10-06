@@ -7,7 +7,7 @@
 ## 2. Player tick handler
 
 - [x] 2.1 Add `storage/src/main/java/io/github/dirnei/mc/servus/storage/rack/RackClimbing.java`: `@EventBusSubscriber` on the game bus handling `PlayerTickEvent.Post`, with a public static `tick(Player)` that applies the early exits, finds contacts, keeps those on a `HeavyRackBlock` side, and writes vertical motion and fall reset per design.md. Add the GameTest `rackSideClimbsAndFrontDoesNot` to `ServusStorageGameTests`. Verify `gradlew :storage:runGameTestServer` passes all storage tests.
-- [ ] 2.2 Append "climbable side posts" to the Heavy Duty Rack line of the M4 list in `PLAN.md` and verify `openspec validate m6-rack-side-ladder` passes.
+- [x] 2.2 Append "climbable side posts" to the Heavy Duty Rack line of the M4 list in `PLAN.md` and verify `openspec validate m6-rack-side-ladder` passes.
 
 ## 3. Verification
 
