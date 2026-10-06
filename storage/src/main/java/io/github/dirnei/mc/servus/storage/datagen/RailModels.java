@@ -28,8 +28,10 @@ final class RailModels {
         ResourceLocation dockTexture = provider.modLoc("block/" + name + "_dock");
         BlockModelBuilder dock = provider.models().getBuilder(name + "_dock")
                 .texture("particle", texture).texture("skin", texture).texture("dock", dockTexture)
-                .element().from(5, 0, 1).to(11, 1, 5)
-                .allFaces((direction, face) -> face.texture("#skin")).end()
+                .element().from(5, 0, 1).to(7, 1, 5)
+                .allFaces((direction, face) -> face.texture("#dock")).end()
+                .element().from(9, 0, 1).to(11, 1, 5)
+                .allFaces((direction, face) -> face.texture("#dock")).end()
                 .element().from(4, 0, 0).to(12, 3, 1)
                 .allFaces((direction, face) -> face.texture("#dock")).end();
 
