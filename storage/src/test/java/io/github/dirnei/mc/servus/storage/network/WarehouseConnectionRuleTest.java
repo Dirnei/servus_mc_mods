@@ -45,6 +45,25 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
+    void stationLinksLikeStock() {
+        for (Side side : Side.ALL) {
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.STOCK));
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.STATION));
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.RAIL));
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.RAIL, side, NodeKind.STATION));
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, NodeKind.STATION));
+        }
+    }
+
+    @Test
+    void stationNeverLinksToAnElevator() {
+        for (Side side : Side.ALL) {
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.ELEVATOR));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.ELEVATOR, side, NodeKind.STATION));
+        }
+    }
+
+    @Test
     void ruleIsSymmetric() {
         for (NodeKind a : NodeKind.values()) {
             for (NodeKind b : NodeKind.values()) {
