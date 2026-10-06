@@ -419,6 +419,20 @@ public final class ServusStorageGameTests {
         helper.succeed();
     }
 
+    /** Four in a row, a gap, one more, then the gap filled: the filler joins the lone bays on both sides. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void gapFillerJoinsBothLoneBays(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0.0F);
+        for (int x : new int[] {1, 2, 3, 4, 6, 5}) {
+            placeRackByHand(helper, player, new BlockPos(x, 1, SEC_Z));
+        }
+        helper.assertTrue(!joined(helper, 3, HeavyRackBlock.RIGHT) && !joined(helper, 4, HeavyRackBlock.LEFT), "the fourth bay stands apart from the first three");
+        helper.assertTrue(joined(helper, 4, HeavyRackBlock.RIGHT) && joined(helper, 5, HeavyRackBlock.LEFT), "filler joins the fourth");
+        helper.assertTrue(joined(helper, 5, HeavyRackBlock.RIGHT) && joined(helper, 6, HeavyRackBlock.LEFT), "filler joins the sixth");
+        helper.succeed();
+    }
+
     private static boolean lit(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);
     }
