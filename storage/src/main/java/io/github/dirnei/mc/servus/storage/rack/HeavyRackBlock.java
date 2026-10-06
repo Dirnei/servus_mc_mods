@@ -33,22 +33,23 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
- * Heavy Duty Rack: a chest sized bay that opens a GUI and joins neighbouring
- * bays with the same facing into one continuous rack with a post every few
- * bays. The joins are visual only; every bay keeps its own inventory.
+ * Heavy Duty Rack: a chest sized bay that opens a GUI. Bays with the same
+ * facing form sections of a few bays: a bay joins the section beside it when
+ * it is placed and that section has room, and the join never moves after
+ * that. Joins are visual only; every bay keeps its own inventory.
  */
 public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<HeavyRackBlock> CODEC = simpleCodec(HeavyRackBlock::new);
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
-    /** No post on the counter clockwise side; shelves and beams run through to that bay. */
+    /** Joined to the bay on the counter clockwise side: no post there, shelves run through. */
     public static final BooleanProperty LEFT = BooleanProperty.create("left");
-    /** No post on the clockwise side; shelves and beams run through to that bay. */
+    /** Joined to the bay on the clockwise side: no post there, shelves run through. */
     public static final BooleanProperty RIGHT = BooleanProperty.create("right");
     public static final BooleanProperty UP = BooleanProperty.create("up");
     public static final BooleanProperty DOWN = BooleanProperty.create("down");
 
-    private static final int MAX_ROW_WALK = 256;
+    private static final int MAX_SECTION_WALK = 64;
 
     public HeavyRackBlock(Properties properties) {
         super(properties);
@@ -67,76 +68,113 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
         builder.add(FACING, LEFT, RIGHT, UP, DOWN);
     }
 
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockPos pos = context.getClickedPos();
-        BlockState below = context.getLevel().getBlockState(pos.below());
-        Direction facing = below.getBlock() instanceof HeavyRackBlock
-                ? below.getValue(FACING)
-                : context.getHorizontalDirection().getOpposite();
-        return withJoins(defaultBlockState().setValue(FACING, facing), context.getLevel(), pos);
-    }
-
     private static boolean sameRow(BlockState state, BlockState neighbour) {
         return neighbour.getBlock() instanceof HeavyRackBlock && neighbour.getValue(FACING) == state.getValue(FACING);
     }
 
-    /** Same facing racks in a row from this position in the given direction, this one excluded. */
-    private static int countAlong(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        int count = 0;
+    /**
+     * Bays in the section that starts at the neighbour in {@code direction}
+     * and extends away from {@code pos}, following that section's joins.
+     * Zero when no same facing rack is there.
+     */
+    private static int sectionSize(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
+        BooleanProperty onward = direction == state.getValue(FACING).getCounterClockWise() ? LEFT : RIGHT;
         BlockPos cursor = pos.relative(direction);
-        while (count < MAX_ROW_WALK && sameRow(state, level.getBlockState(cursor))) {
-            count++;
-            cursor = cursor.relative(direction);
+        BlockState current = level.getBlockState(cursor);
+        if (!sameRow(state, current)) {
+            return 0;
         }
-        return count;
+        int size = 1;
+        while (size < MAX_SECTION_WALK && current.getValue(onward)) {
+            cursor = cursor.relative(direction);
+            current = level.getBlockState(cursor);
+            if (!sameRow(state, current)) {
+                break;
+            }
+            size++;
+        }
+        return size;
     }
 
-    /** Recomputes all four join flags from the row and the stack. */
-    private static BlockState withJoins(BlockState state, BlockGetter level, BlockPos pos) {
-        Direction facing = state.getValue(FACING);
-        int leftCount = countAlong(state, level, pos, facing.getCounterClockWise());
-        int rightCount = countAlong(state, level, pos, facing.getClockWise());
-        int every = StorageStatsManager.INSTANCE.rackPostsEvery();
-        int bayCount = leftCount + 1 + rightCount;
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        BlockPos pos = context.getClickedPos();
+        BlockGetter level = context.getLevel();
+        BlockState below = level.getBlockState(pos.below());
+        Direction facing = below.getBlock() instanceof HeavyRackBlock
+                ? below.getValue(FACING)
+                : context.getHorizontalDirection().getOpposite();
+        BlockState state = defaultBlockState().setValue(FACING, facing);
+        int max = StorageStatsManager.INSTANCE.rackBaysPerSection();
+        int leftSize = sectionSize(state, level, pos, facing.getCounterClockWise());
+        int rightSize = sectionSize(state, level, pos, facing.getClockWise());
+        Boolean leftBelow = joinFromBelow(state, level, pos, facing.getCounterClockWise(), LEFT, RIGHT);
+        Boolean rightBelow = joinFromBelow(state, level, pos, facing.getClockWise(), RIGHT, LEFT);
+        boolean joinLeft = leftBelow != null ? leftBelow && leftSize > 0 : RackRow.joinLeft(leftSize, max);
+        boolean joinRight = rightBelow != null ? rightBelow && rightSize > 0 : RackRow.joinRight(joinLeft, leftSize, rightSize, max);
         return state
-                .setValue(LEFT, RackRow.leftPostHidden(leftCount, every))
-                .setValue(RIGHT, RackRow.rightPostHidden(leftCount, bayCount, every))
+                .setValue(LEFT, joinLeft)
+                .setValue(RIGHT, joinRight)
                 .setValue(UP, sameRow(state, level.getBlockState(pos.above())))
                 .setValue(DOWN, sameRow(state, level.getBlockState(pos.below())));
     }
 
-    @Override
-    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
-                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
-        return withJoins(state, level, pos);
-    }
-
-    /** Re-evaluates every bay of the row this position belongs to, in both directions. */
-    private static void refreshRow(Level level, BlockPos pos, Direction facing) {
-        for (Direction direction : new Direction[] {facing.getCounterClockWise(), facing.getClockWise()}) {
-            BlockPos cursor = pos.relative(direction);
-            int walked = 0;
-            while (walked++ < MAX_ROW_WALK) {
-                BlockState state = level.getBlockState(cursor);
-                if (!(state.getBlock() instanceof HeavyRackBlock) || state.getValue(FACING) != facing) {
-                    break;
-                }
-                BlockState fresh = withJoins(state, level, cursor);
-                if (fresh != state) {
-                    level.setBlock(cursor, fresh, Block.UPDATE_CLIENTS);
-                }
-                cursor = cursor.relative(direction);
-            }
+    /**
+     * The row below decides where sections split: the rack under this bay, or
+     * the rack under the neighbour on that side, says whether the join exists.
+     * Null when no rack stands under either.
+     */
+    private static Boolean joinFromBelow(BlockState state, BlockGetter level, BlockPos pos, Direction side,
+                                         BooleanProperty ownFlag, BooleanProperty neighbourFlag) {
+        BlockState below = level.getBlockState(pos.below());
+        if (sameRow(state, below)) {
+            return below.getValue(ownFlag);
         }
+        BlockState belowNeighbour = level.getBlockState(pos.relative(side).below());
+        if (sameRow(state, belowNeighbour)) {
+            return belowNeighbour.getValue(neighbourFlag);
+        }
+        return null;
     }
 
+    /** Mirrors a fresh bay's joins onto its neighbours, since a join is mutual. */
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
-        if (!level.isClientSide() && !oldState.is(this)) {
-            refreshRow(level, pos, state.getValue(FACING));
+        if (level.isClientSide() || oldState.is(this)) {
+            return;
         }
+        Direction facing = state.getValue(FACING);
+        mirror(level, pos.relative(facing.getCounterClockWise()), RIGHT, state.getValue(LEFT), state);
+        mirror(level, pos.relative(facing.getClockWise()), LEFT, state.getValue(RIGHT), state);
+    }
+
+    private static void mirror(Level level, BlockPos neighbourPos, BooleanProperty flag, boolean joined, BlockState placed) {
+        BlockState neighbour = level.getBlockState(neighbourPos);
+        if (joined && sameRow(placed, neighbour) && !neighbour.getValue(flag)) {
+            level.setBlock(neighbourPos, neighbour.setValue(flag, true), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /** Only ever clears joins: a neighbour that is gone or turned away takes its join with it. */
+    @Override
+    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
+                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+        Direction facing = state.getValue(FACING);
+        boolean same = sameRow(state, neighborState);
+        if (direction == facing.getCounterClockWise()) {
+            return same ? state : state.setValue(LEFT, false);
+        }
+        if (direction == facing.getClockWise()) {
+            return same ? state : state.setValue(RIGHT, false);
+        }
+        if (direction == Direction.UP) {
+            return state.setValue(UP, same);
+        }
+        if (direction == Direction.DOWN) {
+            return state.setValue(DOWN, same);
+        }
+        return state;
     }
 
     @Override
@@ -193,9 +231,6 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
-        if (!level.isClientSide() && !state.is(newState.getBlock())) {
-            refreshRow(level, pos, state.getValue(FACING));
-        }
     }
 
     @Override
@@ -214,14 +249,15 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
                 Block.popResource(level, pos, drop);
                 level.removeBlock(pos, false);
             } else {
-                Direction oldFacing = state.getValue(FACING);
-                BlockState rotated = state.setValue(FACING, oldFacing.getClockWise());
-                level.setBlock(pos, withJoins(rotated, level, pos), Block.UPDATE_ALL);
+                BlockState rotated = state.setValue(FACING, state.getValue(FACING).getClockWise())
+                        .setValue(LEFT, false).setValue(RIGHT, false);
+                rotated = rotated
+                        .setValue(UP, sameRow(rotated, level.getBlockState(pos.above())))
+                        .setValue(DOWN, sameRow(rotated, level.getBlockState(pos.below())));
+                level.setBlock(pos, rotated, Block.UPDATE_ALL);
                 if (level.getBlockEntity(pos) instanceof HeavyRackBlockEntity rack) {
                     rack.facingChanged();
                 }
-                refreshRow(level, pos, oldFacing);
-                refreshRow(level, pos, oldFacing.getClockWise());
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide());

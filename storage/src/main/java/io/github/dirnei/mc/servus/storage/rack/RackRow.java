@@ -1,23 +1,30 @@
 package io.github.dirnei.mc.servus.storage.rack;
 
 /**
- * Where posts stand in a row of joined bays: at both ends and after every
- * {@code postsEvery} bays counted from the left. Pure, no Minecraft imports.
+ * Whether a newly placed bay joins the section beside it. Sections hold at
+ * most {@code max} bays and never change once built. Pure, no Minecraft imports.
  */
 public final class RackRow {
 
     private RackRow() {
     }
 
-    /** Whether the bay at this index shares a post free edge with the bay to its left. */
-    public static boolean leftPostHidden(int bayIndex, int postsEvery) {
-        int every = Math.max(1, postsEvery);
-        return bayIndex > 0 && bayIndex % every != 0;
+    /**
+     * @param leftSize bays in the section on the left, 0 when no rack is there
+     * @param max      bays a section may hold
+     */
+    public static boolean joinLeft(int leftSize, int max) {
+        return leftSize > 0 && leftSize < Math.max(1, max);
     }
 
-    /** Whether the bay at this index shares a post free edge with the bay to its right. */
-    public static boolean rightPostHidden(int bayIndex, int bayCount, int postsEvery) {
-        int every = Math.max(1, postsEvery);
-        return bayIndex < bayCount - 1 && (bayIndex + 1) % every != 0;
+    /**
+     * @param leftJoined whether the new bay joined the left section
+     * @param leftSize   bays in the section on the left, 0 when no rack is there
+     * @param rightSize  bays in the section on the right, 0 when no rack is there
+     * @param max        bays a section may hold
+     */
+    public static boolean joinRight(boolean leftJoined, int leftSize, int rightSize, int max) {
+        int own = leftJoined ? leftSize + 1 : 1;
+        return rightSize > 0 && own + rightSize <= Math.max(1, max);
     }
 }

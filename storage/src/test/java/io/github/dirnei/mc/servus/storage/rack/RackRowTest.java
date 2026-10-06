@@ -8,34 +8,41 @@ import org.junit.jupiter.api.Test;
 class RackRowTest {
 
     @Test
-    void singleBayShowsBothPosts() {
-        assertFalse(RackRow.leftPostHidden(0, 3));
-        assertFalse(RackRow.rightPostHidden(0, 1, 3));
+    void loneBayJoinsNothing() {
+        assertFalse(RackRow.joinLeft(0, 3));
+        assertFalse(RackRow.joinRight(false, 0, 0, 3));
     }
 
     @Test
-    void rowOfThreeHidesTheInnerPosts() {
-        assertFalse(RackRow.leftPostHidden(0, 3));
-        assertTrue(RackRow.rightPostHidden(0, 3, 3));
-        assertTrue(RackRow.leftPostHidden(1, 3));
-        assertTrue(RackRow.rightPostHidden(1, 3, 3));
-        assertTrue(RackRow.leftPostHidden(2, 3));
-        assertFalse(RackRow.rightPostHidden(2, 3, 3));
+    void joinsASectionWithRoom() {
+        assertTrue(RackRow.joinLeft(1, 3));
+        assertTrue(RackRow.joinLeft(2, 3));
+        assertTrue(RackRow.joinRight(false, 0, 2, 3));
     }
 
     @Test
-    void rowOfFiveHasAPostAfterTheThirdBay() {
-        assertFalse(RackRow.rightPostHidden(2, 5, 3), "post between bay 3 and 4");
-        assertFalse(RackRow.leftPostHidden(3, 3), "bay 4 shows its left post");
-        assertTrue(RackRow.rightPostHidden(3, 5, 3));
-        assertTrue(RackRow.leftPostHidden(4, 3));
-        assertFalse(RackRow.rightPostHidden(4, 5, 3), "row end");
+    void refusesAFullSection() {
+        assertFalse(RackRow.joinLeft(3, 3));
+        assertFalse(RackRow.joinRight(false, 0, 3, 3));
+        assertFalse(RackRow.joinLeft(4, 3));
     }
 
     @Test
-    void postsEveryOneMeansEveryBayHasPosts() {
-        assertFalse(RackRow.leftPostHidden(1, 1));
-        assertFalse(RackRow.rightPostHidden(1, 4, 1));
-        assertFalse(RackRow.leftPostHidden(2, 0), "zero is treated as one");
+    void joinsTwoSingleBaysIntoThree() {
+        assertTrue(RackRow.joinLeft(1, 3));
+        assertTrue(RackRow.joinRight(true, 1, 1, 3));
+    }
+
+    @Test
+    void refusesTheRightSideBeyondTheCap() {
+        assertTrue(RackRow.joinLeft(2, 3));
+        assertFalse(RackRow.joinRight(true, 2, 1, 3), "two plus one plus one would be four");
+        assertTrue(RackRow.joinRight(false, 3, 2, 3), "left was full, right section of two takes the bay");
+    }
+
+    @Test
+    void capOfOneNeverJoins() {
+        assertFalse(RackRow.joinLeft(1, 1));
+        assertFalse(RackRow.joinRight(false, 0, 1, 1));
     }
 }

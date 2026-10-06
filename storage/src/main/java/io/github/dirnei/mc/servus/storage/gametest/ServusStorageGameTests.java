@@ -31,6 +31,7 @@ import java.util.List;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -351,6 +352,71 @@ public final class ServusStorageGameTests {
             helper.assertTrue(helper.getBlockState(STACK_BASE).getValue(HeavyRackBlock.UP), "the lower rack should join the rack above");
             helper.succeed();
         });
+    }
+
+    private static final int SEC_Z = 11;
+
+    /** Places a rack through its item with the mock player looking south, so the rack faces north. */
+    private static void placeRackByHand(GameTestHelper helper, Player player, BlockPos pos) {
+        BlockPos absolute = helper.absolutePos(pos);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false);
+        ItemStack rackItem = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, rackItem);
+        rackItem.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+    }
+
+    private static boolean joined(GameTestHelper helper, int x, BooleanProperty side) {
+        return helper.getBlockState(new BlockPos(x, 1, SEC_Z)).getValue(side);
+    }
+
+    /** Sections form in placement order and never move: three join, a fourth at either end stands alone. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackSectionsStayPut(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0.0F);
+        for (int x = 4; x <= 6; x++) {
+            placeRackByHand(helper, player, new BlockPos(x, 1, SEC_Z));
+        }
+        helper.assertTrue(joined(helper, 4, HeavyRackBlock.RIGHT) && joined(helper, 5, HeavyRackBlock.LEFT), "bays 4 and 5 join");
+        helper.assertTrue(joined(helper, 5, HeavyRackBlock.RIGHT) && joined(helper, 6, HeavyRackBlock.LEFT), "bays 5 and 6 join");
+        helper.assertTrue(!joined(helper, 4, HeavyRackBlock.LEFT) && !joined(helper, 6, HeavyRackBlock.RIGHT), "the section has posts at both ends");
+
+        placeRackByHand(helper, player, new BlockPos(7, 1, SEC_Z));
+        helper.assertTrue(!joined(helper, 6, HeavyRackBlock.RIGHT) && !joined(helper, 7, HeavyRackBlock.LEFT), "a fourth bay on the right stands alone");
+        placeRackByHand(helper, player, new BlockPos(3, 1, SEC_Z));
+        helper.assertTrue(!joined(helper, 4, HeavyRackBlock.LEFT) && !joined(helper, 3, HeavyRackBlock.RIGHT), "a fourth bay on the left stands alone");
+        helper.assertTrue(joined(helper, 4, HeavyRackBlock.RIGHT) && joined(helper, 6, HeavyRackBlock.LEFT), "the first three are unchanged");
+
+        placeRackByHand(helper, player, new BlockPos(8, 1, SEC_Z));
+        helper.assertTrue(joined(helper, 7, HeavyRackBlock.RIGHT) && joined(helper, 8, HeavyRackBlock.LEFT), "a fifth bay joins the lone fourth");
+        helper.assertTrue(!joined(helper, 7, HeavyRackBlock.LEFT), "the fourth still does not join the full section");
+        helper.succeed();
+    }
+
+    private static final int UP_Z = 11;
+
+    /** An upper row placed shifted by one splits above the same post as the row below. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void upperRowFollowsLowerSections(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0.0F);
+        for (int x = 1; x <= 5; x++) {
+            placeRackByHand(helper, player, new BlockPos(x, 1, UP_Z));
+        }
+        helper.assertTrue(!joined(helper, 3, HeavyRackBlock.RIGHT), "lower row splits after the third bay");
+        for (int x = 2; x <= 6; x++) {
+            placeRackByHand(helper, player, new BlockPos(x, 2, UP_Z));
+        }
+        BlockState up2 = helper.getBlockState(new BlockPos(2, 2, UP_Z));
+        BlockState up3 = helper.getBlockState(new BlockPos(3, 2, UP_Z));
+        BlockState up4 = helper.getBlockState(new BlockPos(4, 2, UP_Z));
+        BlockState up5 = helper.getBlockState(new BlockPos(5, 2, UP_Z));
+        BlockState up6 = helper.getBlockState(new BlockPos(6, 2, UP_Z));
+        helper.assertTrue(up2.getValue(HeavyRackBlock.RIGHT) && up3.getValue(HeavyRackBlock.LEFT), "upper 2 and 3 join like below");
+        helper.assertTrue(!up3.getValue(HeavyRackBlock.RIGHT) && !up4.getValue(HeavyRackBlock.LEFT), "upper row splits above the lower post");
+        helper.assertTrue(up4.getValue(HeavyRackBlock.RIGHT) && up5.getValue(HeavyRackBlock.LEFT), "upper 4 and 5 join like below");
+        helper.assertTrue(!up5.getValue(HeavyRackBlock.RIGHT) && !up6.getValue(HeavyRackBlock.LEFT), "upper 6 has no rack below and the rack below 5 ends its section");
+        helper.succeed();
     }
 
     private static boolean lit(GameTestHelper helper, BlockPos pos) {

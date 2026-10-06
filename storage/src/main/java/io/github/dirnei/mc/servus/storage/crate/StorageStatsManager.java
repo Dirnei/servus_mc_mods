@@ -22,7 +22,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_MAX_SHUTTLES = 8;
     public static final double DEFAULT_SHUTTLE_SPEED = 0.25;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
-    public static final int DEFAULT_RACK_POSTS_EVERY = 3;
+    public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
@@ -37,7 +37,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int maxShuttles = DEFAULT_MAX_SHUTTLES;
     private volatile double shuttleSpeed = DEFAULT_SHUTTLE_SPEED;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
-    private volatile int rackPostsEvery = DEFAULT_RACK_POSTS_EVERY;
+    private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
 
     private StorageStatsManager() {
         super(GSON, DIRECTORY);
@@ -51,7 +51,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         maxShuttles = intField(files.get(WAREHOUSE), "max_shuttles", DEFAULT_MAX_SHUTTLES);
         shuttleSpeed = doubleField(files.get(WAREHOUSE), "shuttle_speed", DEFAULT_SHUTTLE_SPEED);
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
-        rackPostsEvery = intField(files.get(RACK), "posts_every", DEFAULT_RACK_POSTS_EVERY);
+        rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
 
@@ -93,7 +93,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         return rackDisplayCount;
     }
 
-    public int rackPostsEvery() {
-        return rackPostsEvery;
+    public int rackBaysPerSection() {
+        return rackBaysPerSection;
     }
 }
