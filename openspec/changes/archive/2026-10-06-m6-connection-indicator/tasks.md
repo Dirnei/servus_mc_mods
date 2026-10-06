@@ -13,4 +13,4 @@
 ## 3. Verification
 
 - [x] 3.1 Extend `railsLinkCrateAndController` and `elevatorLinksFloors` in `ServusStorageGameTests` with the `ONLINE` assertions per design.md. Verify `gradlew :storage:runGameTestServer` passes all three storage tests.
-- [ ] 3.2 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game: place a crate alone (dark lamp), add a controller beside it (both lit), add a second controller (all dark), remove it (lit again), lay a rail beside a rack and see the arm dock onto it. Commit.
+- [x] 3.2 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game: place a crate alone (dark lamp), add a controller beside it (both lit), add a second controller (all dark), remove it (lit again), lay a rail beside a rack and see the arm dock onto it. Commit.

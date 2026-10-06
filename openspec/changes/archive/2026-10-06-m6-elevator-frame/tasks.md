@@ -9,4 +9,4 @@
 
 ## 2. Verification
 
-- [ ] 2.1 Full `gradlew clean build` green, `gradlew test` green, `gradlew :storage:runGameTestServer` passes all three storage tests, `gradlew runClientAll` launches with all four mods. In game: stack three segments with rails on two sides, walk into the segment and stand in its middle, check the posts line up and the rail runs through; try to place a segment in the air (refused), break the block under a shaft (all segments drop), put a crate against a segment (lamp stays dark). Commit.
+- [x] 2.1 Full `gradlew clean build` green, `gradlew test` green, `gradlew :storage:runGameTestServer` passes all three storage tests, `gradlew runClientAll` launches with all four mods. In game: stack three segments with rails on two sides, walk into the segment and stand in its middle, check the posts line up and the rail runs through; try to place a segment in the air (refused), break the block under a shaft (all segments drop), put a crate against a segment (lamp stays dark). Commit.

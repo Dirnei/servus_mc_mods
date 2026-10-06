@@ -17,4 +17,4 @@
 
 - [x] 4.1 Add `heavyRackIndexesAndDisplays` to `ServusStorageGameTests` per design.md. Verify `gradlew :storage:runGameTestServer` passes all storage tests.
 - [x] 4.2 Update `PLAN.md`: section 2.3 and the M4 list mention the Heavy Duty Rack. Verify `openspec validate m6-heavy-duty-rack` passes.
-- [ ] 4.3 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game: craft a rack, open it, store mixed items, check the sample on the front, place three racks in a row and two stacked to see the continuous frame, rotate one and see it separate, dock a rail onto a rack, dismantle and replace a filled rack. Commit.
+- [x] 4.3 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game: craft a rack, open it, store mixed items, check the sample on the front, place three racks in a row and two stacked to see the continuous frame, rotate one and see it separate, dock a rail onto a rack, dismantle and replace a filled rack. Commit.
