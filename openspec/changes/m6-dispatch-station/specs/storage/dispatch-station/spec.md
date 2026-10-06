@@ -82,7 +82,7 @@ A stack that the routing cannot place anywhere SHALL wait in the buffer and the 
 - **THEN** the copper is put away within a few ticks and the lamp goes back to the online colour
 
 ### Requirement: Station GUI
-Right clicking the station SHALL open a GUI with the buffer slots, the player inventory and the zones of the warehouse. Clicking a zone SHALL select it and show its rule: nine ghost slots set from the cursor or by shift clicking an inventory item and cleared with an empty cursor, a text line of item tags separated by commas, and an overflow toggle. Zones without blocks SHALL be listed greyed. Edits SHALL apply at once for every station of the warehouse. While offline the GUI SHALL show the reason instead of the zones.
+Right clicking the station SHALL open a GUI with the buffer slots, the player inventory and the zones of the warehouse. Clicking a zone SHALL select it and show its rule: nine ghost slots set from the cursor and cleared with an empty cursor, a text line of item tags separated by commas, and an overflow toggle. Zones without blocks SHALL be listed greyed. Edits SHALL apply at once for every station of the warehouse. While offline the GUI SHALL show the reason instead of the zones.
 
 #### Scenario: Set a tag
 - **WHEN** the player selects "Ores" and types `c:ores` into the tag line

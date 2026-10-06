@@ -25,7 +25,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** The inbound dock of a warehouse. Right click shows its state; the carrot turns or dismantles it. */
+/** The inbound dock of a warehouse. Right click opens its GUI; the carrot turns or dismantles it. */
 public class DispatchStationBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<DispatchStationBlock> CODEC = simpleCodec(DispatchStationBlock::new);
@@ -74,14 +74,9 @@ public class DispatchStationBlock extends BaseEntityBlock implements Wrenchable 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof DispatchStationBlockEntity station) {
-            open(station, player, pos);
+            player.openMenu(station, pos);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
-    }
-
-    /** What a right click does on the server: the GUI once it exists, the status line until then. */
-    protected void open(DispatchStationBlockEntity station, Player player, BlockPos pos) {
-        player.displayClientMessage(station.statusLine(), false);
     }
 
     @Override

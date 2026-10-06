@@ -20,6 +20,7 @@ public final class ServusStorageClient {
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ServusStorageMenus.COUNTER_TERMINAL.get(), CounterTerminalScreen::new);
         event.register(ServusStorageMenus.HEAVY_RACK.get(), HeavyRackScreen::new);
+        event.register(ServusStorageMenus.DISPATCH_STATION.get(), DispatchStationScreen::new);
     }
 
     @SubscribeEvent

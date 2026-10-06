@@ -4,6 +4,8 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.DispatchStationMenu;
+import net.minecraft.world.inventory.ClickType;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -849,6 +851,53 @@ public final class ServusStorageGameTests {
                         "the shuttle should be home and idle: " + controller.network().orElseThrow().summary().getString());
                 helper.succeed();
             });
+        });
+    }
+
+    /** The station menu edits the warehouse's zone rules: selection, tags, overflow, ghost items, and shift click feeds the buffer. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void stationMenuEditsRules(GameTestHelper helper) {
+        DispatchStationBlockEntity station = stationSetup(helper);
+        helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity crate = helper.getBlockEntity(ST_CRATE);
+        crate.setZone("Ores");
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(ST_CONTROLLER);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(5, () -> {
+            DispatchStationMenu menu = new DispatchStationMenu(1, player.getInventory(), station);
+            helper.assertTrue(menu.state().online(), "the station should see an online warehouse");
+            helper.assertTrue(menu.state().zones().size() == 1 && menu.state().zones().get(0).key().equals("ores")
+                    && menu.state().zones().get(0).blocks() == 1, "the zone list should show Ores with one block: " + menu.state().zones());
+
+            menu.selectZone("Ores");
+            helper.assertTrue(menu.selected().equals("ores"), "Ores should be selected");
+            menu.setTags("c:ores, #minecraft:logs, not a tag!!");
+            ZoneRules rules = controller.rules();
+            helper.assertTrue(rules.get("ores").tags().equals(List.of("c:ores", "minecraft:logs")),
+                    "tags should be parsed and cleaned, were " + rules.get("ores").tags());
+            helper.assertTrue(menu.state().tagLine().equals("c:ores, minecraft:logs"), "the tag line should echo the tags, was " + menu.state().tagLine());
+
+            menu.setOverflow(true);
+            helper.assertTrue("ores".equals(rules.overflowKey()), "Ores should be the overflow zone");
+            helper.assertTrue(menu.state().overflow(), "the state should show the overflow flag");
+            menu.setOverflow(false);
+            helper.assertTrue(rules.overflowKey() == null, "overflow should be cleared again");
+
+            menu.setCarried(new ItemStack(Items.BREAD, 5));
+            menu.clicked(menu.ghostStart(), 0, ClickType.PICKUP, player);
+            helper.assertTrue(rules.get("ores").filter().getStackInSlot(0).is(Items.BREAD)
+                    && rules.get("ores").filter().getStackInSlot(0).getCount() == 1, "the ghost slot should hold one bread");
+            helper.assertTrue(menu.getCarried().getCount() == 5, "the cursor keeps its bread");
+            menu.setCarried(ItemStack.EMPTY);
+            menu.clicked(menu.ghostStart(), 0, ClickType.PICKUP, player);
+            helper.assertTrue(rules.get("ores").filter().getStackInSlot(0).isEmpty(), "an empty cursor clears the ghost slot");
+
+            player.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE, 20));
+            menu.quickMoveStack(player, menu.inventoryStart() + 27);
+            helper.assertTrue(station.buffer().getStackInSlot(0).getCount() == 20 && station.buffer().getStackInSlot(0).is(Items.COBBLESTONE),
+                    "shift click should move the cobblestone into the buffer");
+            helper.assertTrue(player.getInventory().getItem(0).isEmpty(), "the inventory slot should be empty");
+            helper.succeed();
         });
     }
 }

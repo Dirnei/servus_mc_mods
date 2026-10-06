@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.station;
 
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.menu.DispatchStationMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
@@ -13,6 +14,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -24,7 +29,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * The inbound dock: an intake buffer that hoppers, ducts and players fill and
  * the warehouse drains into storage by its zone rules. Never indexed.
  */
-public class DispatchStationBlockEntity extends StorageNodeBlockEntity {
+public class DispatchStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
 
     private final ItemStackHandler buffer = new ItemStackHandler(StorageStatsManager.INSTANCE.dispatchBufferSlots()) {
         @Override
@@ -160,17 +165,16 @@ public class DispatchStationBlockEntity extends StorageNodeBlockEntity {
         }
     }
 
-    /** A short status line for the block's right click until the GUI shows it. */
-    public Component statusLine() {
-        if (blockedReason == null) {
-            return Component.literal(isEmpty() ? "Dispatch Station: idle" : "Dispatch Station: putting away");
-        }
-        String item = blockedStack.getHoverName().getString();
-        return Component.literal(switch (blockedReason) {
-            case ZONE_FULL_NO_OVERFLOW -> item + " has no room in " + blockedZone + " and there is no overflow zone";
-            case OVERFLOW_FULL -> item + " has no room in " + (blockedZone.isEmpty() ? "general storage" : blockedZone) + " and the overflow zone is full";
-            case NO_STORAGE -> item + " has no storage to go to";
-        });
+    // Menu
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new DispatchStationMenu(containerId, playerInventory, this);
     }
 
     private void postIntake() {
