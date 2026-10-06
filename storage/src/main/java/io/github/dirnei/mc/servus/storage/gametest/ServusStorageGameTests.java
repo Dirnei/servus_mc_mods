@@ -30,6 +30,9 @@ import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
+import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -252,6 +255,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos SH_TERMINAL = new BlockPos(2, 1, 7);
     private static final BlockPos SH_DIRECT_CRATE = new BlockPos(1, 1, 6);
     private static final BlockPos SH_FAR_CRATE = new BlockPos(7, 1, 7);
+    private static final BlockPos SH_GARAGE = new BlockPos(3, 1, 7);
 
     /** A shuttle fetches from a crate at the end of the rail; a crate on the controller is still instant. */
     @GameTest(template = EMPTY, timeoutTicks = 400)
@@ -270,8 +274,9 @@ public final class ServusStorageGameTests {
         far.insert(new ItemStack(Items.COBBLESTONE, 40), false);
         CrateBlockEntity direct = helper.getBlockEntity(SH_DIRECT_CRATE);
         direct.insert(new ItemStack(Items.DIRT, 9), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(SH_CONTROLLER);
-        helper.assertTrue(controller.addShuttle(), "one shuttle fits");
+        helper.setBlock(SH_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SH_GARAGE);
+        helper.assertTrue(garage.addShuttle(), "one shuttle fits");
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(10, () -> {
@@ -876,6 +881,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos PA_CONTROLLER = new BlockPos(2, 1, 1);
     private static final BlockPos PA_STATION = new BlockPos(4, 1, 2);
     private static final BlockPos PA_CRATE = new BlockPos(8, 1, 2);
+    private static final BlockPos PA_GARAGE = new BlockPos(3, 1, 2);
 
     /** A shuttle fetches a stack from the station and carries it along the rail to the crate. */
     @GameTest(template = EMPTY, timeoutTicks = 400)
@@ -892,7 +898,9 @@ public final class ServusStorageGameTests {
         DispatchStationBlockEntity station = helper.getBlockEntity(PA_STATION);
         CrateBlockEntity crate = helper.getBlockEntity(PA_CRATE);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(PA_CONTROLLER);
-        helper.assertTrue(controller.addShuttle(), "one shuttle fits");
+        helper.setBlock(PA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(PA_GARAGE);
+        helper.assertTrue(garage.addShuttle(), "one shuttle fits");
 
         helper.runAfterDelay(10, () -> {
             ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
@@ -932,6 +940,77 @@ public final class ServusStorageGameTests {
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!menu.state().blockedReason().isEmpty() && menu.state().blockedStack().is(Items.COBBLESTONE),
                         "cobblestone has no unzoned storage and the state should say so: " + menu.state());
+                helper.succeed();
+            });
+        });
+    }
+
+    private static final BlockPos GA_GARAGE = new BlockPos(5, 1, 11);
+
+    /** A garage takes shuttles up to its capacity, hands them back, and drops them when broken. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void garageHoldsShuttles(GameTestHelper helper) {
+        helper.setBlock(GA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(GA_GARAGE);
+        int capacity = garage.capacity();
+        for (int i = 0; i < capacity; i++) {
+            helper.assertTrue(garage.addShuttle(), "shuttle " + (i + 1) + " should fit");
+        }
+        helper.assertTrue(!garage.addShuttle(), "a full garage refuses another shuttle");
+        helper.assertTrue(garage.takeShuttle() && garage.takeShuttle(), "two shuttles can be taken back");
+        helper.assertTrue(garage.shuttleCount() == capacity - 2, "count should drop by two");
+        helper.setBlock(GA_GARAGE, Blocks.AIR.defaultBlockState());
+        helper.runAfterDelay(2, () -> {
+            helper.assertItemEntityCountIs(ServusStorageItems.SHUTTLE.get(), GA_GARAGE, 2.0, capacity - 2);
+            helper.succeed();
+        });
+    }
+
+    private static final BlockPos TG_CONTROLLER = new BlockPos(1, 1, 3);
+    private static final BlockPos TG_TERMINAL = new BlockPos(1, 1, 4);
+    private static final BlockPos TG_GARAGE_A = new BlockPos(2, 1, 5);
+    private static final BlockPos TG_GARAGE_B = new BlockPos(10, 1, 5);
+    private static final BlockPos TG_CRATE = new BlockPos(9, 1, 5);
+
+    /** With two garages the nearer shuttle serves and each shuttle returns to its own garage. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void shuttlesParkAtTheirGarage(GameTestHelper helper) {
+        helper.setBlock(TG_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(TG_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        for (int x = 2; x <= 10; x++) {
+            helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
+            helper.setBlock(new BlockPos(x, 1, 4), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(TG_GARAGE_A, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.setBlock(TG_GARAGE_B, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.setBlock(TG_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garageA = helper.getBlockEntity(TG_GARAGE_A);
+        ShuttleGarageBlockEntity garageB = helper.getBlockEntity(TG_GARAGE_B);
+        helper.assertTrue(garageA.addShuttle() && garageB.addShuttle(), "each garage takes a shuttle");
+        CrateBlockEntity crate = helper.getBlockEntity(TG_CRATE);
+        crate.insert(new ItemStack(Items.COBBLESTONE, 30), false);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(TG_CONTROLLER);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            helper.assertTrue(network.summary().getString().contains("2 garages, 2 shuttles"), "summary should count both garages: " + network.summary().getString());
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(TG_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            menu.pull(ItemKey.of(new ItemStack(Items.COBBLESTONE)), true);
+            helper.runAfterDelay(6, () -> {
+                List<ShuttleView> a = network.shuttleViews(helper.absolutePos(TG_GARAGE_A));
+                List<ShuttleView> b = network.shuttleViews(helper.absolutePos(TG_GARAGE_B));
+                helper.assertTrue(a.size() == 1 && !a.get(0).moving(), "garage A's shuttle should stay parked");
+                helper.assertTrue(b.size() == 1 && b.get(0).moving(), "garage B's shuttle, the nearer one, should be on its way");
+            });
+            helper.runAfterDelay(120, () -> {
+                helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 30, "the cobblestone should have been delivered");
+                List<ShuttleView> b = network.shuttleViews(helper.absolutePos(TG_GARAGE_B));
+                helper.assertTrue(b.size() == 1 && !b.get(0).moving() && b.get(0).path().get(0).equals(helper.absolutePos(new BlockPos(10, 1, 4))),
+                        "garage B's shuttle should be parked on its own rail again");
                 helper.succeed();
             });
         });

@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
@@ -95,6 +96,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private boolean zonesDirty;
     /** Dispatch stations: members that are neither sources nor travel nodes. */
     private final Set<BlockPos> stations = new HashSet<>();
+    /** Shuttle garages: members that are neither sources nor travel nodes. */
+    private final Set<BlockPos> garages = new HashSet<>();
     /** Stations whose buffer changed; drained on the next tick. */
     private final Set<BlockPos> pendingStations = new LinkedHashSet<>();
     /** Stations holding a stack that found no room; retried on zone and rule changes and on a slow timer. */
@@ -137,16 +140,19 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             dropSource(blockPos);
             stations.add(blockPos);
             pendingStations.add(blockPos);
+        } else if (node instanceof ShuttleGarageBlockEntity garage) {
+            dropSource(blockPos);
+            garages.add(blockPos);
+            fleet.adoptGarage(blockPos, garage.shuttleCount());
         } else {
             dropSource(blockPos);
             connectors.add(blockPos);
         }
-        if (node instanceof WarehouseControllerBlockEntity controller) {
+        if (node instanceof WarehouseControllerBlockEntity) {
             controllers++;
-            fleet.adopt(blockPos, controller.shuttleCount());
         }
         lampsDirty = true;
-        fleet.refreshHome();
+        fleet.refreshHomes();
     }
 
     @Override
@@ -158,15 +164,15 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         blockedStations.remove(blockPos);
         zoneOf.remove(blockPos);
         dropSource(blockPos);
-        if (node instanceof WarehouseControllerBlockEntity && blockPos.equals(fleet.controller())) {
-            controllers--;
-            fleet.release();
-        } else if (node instanceof WarehouseControllerBlockEntity) {
+        if (garages.remove(blockPos)) {
+            fleet.releaseGarage(blockPos);
+        }
+        if (node instanceof WarehouseControllerBlockEntity) {
             controllers--;
         }
         lampsDirty = true;
         rebuildCandidates();
-        fleet.refreshHome();
+        fleet.refreshHomes();
     }
 
     @Override
@@ -181,6 +187,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         connectors.addAll(that.connectors);
         stations.addAll(that.stations);
         pendingStations.addAll(that.stations);
+        garages.addAll(that.garages);
         zoneOf.putAll(that.zoneOf);
         that.sources.forEach((pos, source) -> {
             if (!sources.containsKey(pos) || source.node()) {
@@ -193,9 +200,19 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         fleet.absorb(that.fleet);
     }
 
-    /** The controller's shuttle count changed. */
-    public void fleetChanged(WarehouseControllerBlockEntity controller) {
-        fleet.adopt(controller.getBlockPos(), controller.shuttleCount());
+    /** A garage's shuttle count changed. */
+    public void garageChanged(ShuttleGarageBlockEntity garage) {
+        fleet.adoptGarage(garage.getBlockPos(), garage.shuttleCount());
+    }
+
+    /** One garage's line for its right click. */
+    public Component garageSummary(BlockPos pos) {
+        return Component.literal("Garage: " + fleet.garageSummary(pos));
+    }
+
+    /** The shuttles of one garage as clients draw them. */
+    public List<io.github.dirnei.mc.servus.storage.shuttle.ShuttleView> shuttleViews(BlockPos garage) {
+        return fleet.views(garage);
     }
 
     // Zones
@@ -408,15 +425,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         fleet.requestPick(job);
     }
 
-    public List<io.github.dirnei.mc.servus.storage.shuttle.ShuttleView> shuttleViews() {
-        return fleet.views();
-    }
 
     @Override
     protected void onDisposed() {
         sources.clear();
         connectors.clear();
         stations.clear();
+        garages.clear();
         pendingStations.clear();
         blockedStations.clear();
         zoneOf.clear();
@@ -451,7 +466,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         for (Direction direction : Direction.values()) {
             BlockPos neighbour = nodePos.relative(direction);
-            if (connectors.contains(neighbour) || stations.contains(neighbour)) {
+            if (connectors.contains(neighbour) || stations.contains(neighbour) || garages.contains(neighbour)) {
                 continue;
             }
             if (!sources.containsKey(neighbour)) {
@@ -471,6 +486,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         for (BlockPos station : stations) {
             connectorPositions.add(Conversions.toNodePos(station));
+        }
+        for (BlockPos garage : garages) {
+            connectorPositions.add(Conversions.toNodePos(garage));
         }
         Set<BlockPos> wanted = new LinkedHashSet<>();
         for (NodePos pos : CandidateNeighbours.compute(memberPositions, connectorPositions)) {
@@ -796,7 +814,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             case MULTIPLE_CONTROLLERS -> "offline, more than one controller";
         };
         return Component.literal("Warehouse #" + id() + ": " + state + ", " + size() + " nodes, " + connectors.size() + " connectors, " + sources.size()
-                + " sources, " + stations.size() + " stations, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary());
+                + " sources, " + stations.size() + " stations, " + garages.size() + " garages, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary());
     }
 
     // Operations

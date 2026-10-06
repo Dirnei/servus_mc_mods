@@ -7,7 +7,9 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -17,9 +19,9 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The shuttles of one warehouse: parked on the home rail, sent out for pick
- * and put-away jobs, drawn on clients. Everything here is data; nothing
- * scans blocks.
+ * The shuttles of one warehouse, kept per garage: each parks on its garage's
+ * rail, all serve one queue of pick and put-away jobs, and clients draw them
+ * per garage. Everything here is data; nothing scans blocks.
  */
 public final class ShuttleFleet {
 
@@ -60,10 +62,8 @@ public final class ShuttleFleet {
     private static final int SYNC_INTERVAL = 5;
 
     private final Host host;
-    private final List<Shuttle> shuttles = new ArrayList<>();
+    private final Map<BlockPos, Garage> garages = new LinkedHashMap<>();
     private final ArrayDeque<ShuttleJob> jobs = new ArrayDeque<>();
-    private BlockPos controller;
-    private NodePos home;
     private boolean syncPending;
     private boolean wasMoving;
     private int syncTimer;
@@ -74,127 +74,115 @@ public final class ShuttleFleet {
 
     // Fleet shape
 
+    public int garageCount() {
+        return garages.size();
+    }
+
     public int size() {
-        return shuttles.size();
+        int count = 0;
+        for (Garage garage : garages.values()) {
+            count += garage.shuttles.size();
+        }
+        return count;
     }
 
     public int busy() {
         int count = 0;
-        for (Shuttle shuttle : shuttles) {
-            if (shuttle.job != null) {
-                count++;
+        for (Garage garage : garages.values()) {
+            for (Shuttle shuttle : garage.shuttles) {
+                if (shuttle.job != null) {
+                    count++;
+                }
             }
         }
         return count;
     }
 
-    public boolean hasHome() {
-        return home != null;
-    }
-
-    /** The controller this fleet belongs to, or null while no controller is in the network. */
-    public BlockPos controller() {
-        return controller;
-    }
-
-    /** Called when a controller joins: adopt its shuttle count. */
-    public void adopt(BlockPos controllerPos, int count) {
-        controller = controllerPos;
-        refreshHome();
-        while (shuttles.size() < count) {
-            shuttles.add(new Shuttle());
-        }
-        while (shuttles.size() > count) {
-            Shuttle removed = shuttles.remove(shuttles.size() - 1);
-            dropCargo(removed);
-        }
-        syncPending = true;
-    }
-
-    /** Called when the controller leaves: cargo drops there and the shuttles are forgotten. */
-    public void release() {
-        for (Shuttle shuttle : shuttles) {
-            dropCargo(shuttle);
-        }
-        shuttles.clear();
-        for (ShuttleJob job : jobs) {
-            if (job instanceof PutAwayJob putAway) {
-                host.releaseClaim(putAway.station(), putAway.slot());
+    /** Shuttles whose garage touches no rail. */
+    public int withoutRail() {
+        int count = 0;
+        for (Garage garage : garages.values()) {
+            if (garage.home == null) {
+                count += garage.shuttles.size();
             }
         }
-        jobs.clear();
-        controller = null;
-        home = null;
+        return count;
     }
 
-    /** Takes over another fleet's shuttles and queue, for network merges. */
-    public void absorb(ShuttleFleet other) {
-        if (controller == null) {
-            controller = other.controller;
-        }
-        shuttles.addAll(other.shuttles);
-        jobs.addAll(other.jobs);
-        other.shuttles.clear();
-        other.jobs.clear();
-        refreshHome();
-        syncPending = true;
-    }
-
-    /** Recomputes the home rail; call after membership changes. */
-    public void refreshHome() {
-        home = null;
-        if (controller == null) {
-            return;
-        }
-        for (NodePos neighbour : host.travelNeighbours(Conversions.toNodePos(controller))) {
-            home = neighbour;
-            break;
-        }
-        for (Shuttle shuttle : shuttles) {
-            if (shuttle.motion == null && home != null) {
-                shuttle.motion = ShuttleMotion.parked(home);
-            }
-        }
-    }
-
-    // Jobs
-
-    /** Whether a pull of this key should ride a shuttle instead of being instant. */
-    public boolean canShuttle(ItemKey key) {
-        if (shuttles.isEmpty() || home == null) {
-            return false;
-        }
-        for (BlockPos source : host.sourcesHolding(key)) {
-            if (!railsBeside(Conversions.toNodePos(source)).isEmpty()) {
+    /** Whether any garage with a rail has a shuttle. */
+    public boolean hasShuttles() {
+        for (Garage garage : garages.values()) {
+            if (garage.home != null && !garage.shuttles.isEmpty()) {
                 return true;
             }
         }
         return false;
     }
 
-    /** Whether a put-away from the station to the target rides a shuttle: both reachable from home. */
-    public boolean canCarry(BlockPos station, BlockPos target) {
-        if (shuttles.isEmpty() || home == null) {
-            return false;
+    /** Called when a garage joins or its count changes: match its shuttle list to the count. */
+    public void adoptGarage(BlockPos pos, int count) {
+        Garage garage = garages.computeIfAbsent(pos, Garage::new);
+        refreshHome(garage);
+        while (garage.shuttles.size() < count) {
+            Shuttle shuttle = new Shuttle(garage);
+            shuttle.motion = garage.home == null ? null : ShuttleMotion.parked(garage.home);
+            garage.shuttles.add(shuttle);
         }
-        Set<NodePos> stationRails = railsBeside(Conversions.toNodePos(station));
-        Set<NodePos> targetRails = railsBeside(Conversions.toNodePos(target));
-        if (stationRails.isEmpty() || targetRails.isEmpty()) {
-            return false;
+        while (garage.shuttles.size() > count) {
+            dropCargo(garage.shuttles.remove(garage.shuttles.size() - 1));
         }
-        return !RailPaths.find(home, stationRails::contains, host::travelNeighbours).isEmpty()
-                && !RailPaths.find(home, targetRails::contains, host::travelNeighbours).isEmpty();
-    }
-
-    public void requestPick(PickJob job) {
-        jobs.add(job);
         syncPending = true;
     }
 
-    public void requestPutAway(PutAwayJob job) {
-        jobs.add(job);
+    /** Called when a garage leaves: cargo drops there, jobs go back to the queue, the shuttles are forgotten. */
+    public void releaseGarage(BlockPos pos) {
+        Garage garage = garages.remove(pos);
+        if (garage == null) {
+            return;
+        }
+        for (Shuttle shuttle : garage.shuttles) {
+            dropCargo(shuttle);
+        }
+        garage.shuttles.clear();
         syncPending = true;
     }
+
+    /** Takes over another fleet's garages and queue, for network merges. */
+    public void absorb(ShuttleFleet other) {
+        garages.putAll(other.garages);
+        jobs.addAll(other.jobs);
+        other.garages.clear();
+        other.jobs.clear();
+        refreshHomes();
+        syncPending = true;
+    }
+
+    /** Recomputes every garage's home rail; call after membership changes. */
+    public void refreshHomes() {
+        for (Garage garage : garages.values()) {
+            refreshHome(garage);
+        }
+    }
+
+    private void refreshHome(Garage garage) {
+        NodePos previous = garage.home;
+        garage.home = null;
+        for (NodePos neighbour : host.travelNeighbours(Conversions.toNodePos(garage.pos))) {
+            garage.home = neighbour;
+            break;
+        }
+        if (garage.home == previous) {
+            return;
+        }
+        for (Shuttle shuttle : garage.shuttles) {
+            if (shuttle.job == null) {
+                shuttle.motion = garage.home == null ? null : ShuttleMotion.parked(garage.home);
+            }
+        }
+        syncPending = true;
+    }
+
+    // Reach
 
     /** Travel nodes touching a position. */
     private Set<NodePos> railsBeside(NodePos node) {
@@ -208,6 +196,48 @@ public final class ShuttleFleet {
         return result;
     }
 
+    /** Whether some garage with a rail and a shuttle can drive to a rail beside the position. */
+    public boolean canReach(BlockPos pos) {
+        Set<NodePos> rails = railsBeside(Conversions.toNodePos(pos));
+        if (rails.isEmpty()) {
+            return false;
+        }
+        for (Garage garage : garages.values()) {
+            if (garage.home != null && !garage.shuttles.isEmpty()
+                    && !RailPaths.find(garage.home, rails::contains, host::travelNeighbours).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether a pull of this key should ride a shuttle instead of being instant. */
+    public boolean canShuttle(ItemKey key) {
+        for (BlockPos source : host.sourcesHolding(key)) {
+            if (canReach(source)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether a put-away from the station to the target rides a shuttle. */
+    public boolean canCarry(BlockPos station, BlockPos target) {
+        return canReach(station) && canReach(target);
+    }
+
+    // Jobs
+
+    public void requestPick(PickJob job) {
+        jobs.add(job);
+        syncPending = true;
+    }
+
+    public void requestPutAway(PutAwayJob job) {
+        jobs.add(job);
+        syncPending = true;
+    }
+
     /** Travel nodes beside at least one source holding the key, as a goal test. */
     private Set<NodePos> goals(ItemKey key) {
         Set<NodePos> goals = new HashSet<>();
@@ -217,22 +247,27 @@ public final class ShuttleFleet {
         return goals;
     }
 
+    private Set<NodePos> firstGoals(ShuttleJob job) {
+        return job instanceof PickJob pick ? goals(pick.key())
+                : railsBeside(Conversions.toNodePos(((PutAwayJob) job).station()));
+    }
+
     // Ticking
 
     public void tick() {
-        if (home == null) {
+        if (!hasShuttles()) {
             serveInstantly();
             return;
         }
+        assignJobs();
         boolean moving = false;
-        for (Shuttle shuttle : shuttles) {
-            if (shuttle.job == null && !jobs.isEmpty()) {
-                assign(shuttle, jobs.poll());
-            }
-            if (shuttle.motion != null && !shuttle.motion.arrived()) {
-                moving = true;
-                if (shuttle.motion.advance(host.shuttleSpeed())) {
-                    arrive(shuttle);
+        for (Garage garage : garages.values()) {
+            for (Shuttle shuttle : garage.shuttles) {
+                if (shuttle.motion != null && !shuttle.motion.arrived()) {
+                    moving = true;
+                    if (shuttle.motion.advance(host.shuttleSpeed())) {
+                        arrive(shuttle);
+                    }
                 }
             }
         }
@@ -244,6 +279,52 @@ public final class ShuttleFleet {
             }
         }
         wasMoving = moving;
+    }
+
+    /** Hands queued jobs to the free shuttle with the shortest way, in queue order. */
+    private void assignJobs() {
+        while (!jobs.isEmpty()) {
+            List<Shuttle> free = freeShuttles();
+            if (free.isEmpty()) {
+                return;
+            }
+            ShuttleJob job = jobs.poll();
+            Set<NodePos> goals = firstGoals(job);
+            Shuttle best = null;
+            List<NodePos> bestPath = null;
+            if (!goals.isEmpty()) {
+                for (Shuttle shuttle : free) {
+                    List<NodePos> path = RailPaths.find(shuttle.motion.currentNode(), goals::contains, host::travelNeighbours);
+                    if (!path.isEmpty() && (bestPath == null || path.size() < bestPath.size())) {
+                        best = shuttle;
+                        bestPath = path;
+                    }
+                }
+            }
+            if (best == null) {
+                serveInstantly(job);
+                continue;
+            }
+            best.job = job;
+            best.leg = Leg.TO_SOURCE;
+            best.motion = new ShuttleMotion(bestPath);
+            syncPending = true;
+        }
+    }
+
+    private List<Shuttle> freeShuttles() {
+        List<Shuttle> free = new ArrayList<>();
+        for (Garage garage : garages.values()) {
+            if (garage.home == null) {
+                continue;
+            }
+            for (Shuttle shuttle : garage.shuttles) {
+                if (shuttle.job == null && shuttle.motion != null) {
+                    free.add(shuttle);
+                }
+            }
+        }
+        return free;
     }
 
     private void serveInstantly() {
@@ -262,21 +343,6 @@ public final class ShuttleFleet {
                 host.returnToStation(putAway.station(), host.insertAt(putAway.target(), taken));
             }
         }
-    }
-
-    private void assign(Shuttle shuttle, ShuttleJob job) {
-        Set<NodePos> goals = job instanceof PickJob pick ? goals(pick.key())
-                : railsBeside(Conversions.toNodePos(((PutAwayJob) job).station()));
-        NodePos from = shuttle.motion == null ? home : shuttle.motion.currentNode();
-        List<NodePos> path = goals.isEmpty() ? List.of() : RailPaths.find(from, goals::contains, host::travelNeighbours);
-        if (path.isEmpty()) {
-            serveInstantly(job);
-            return;
-        }
-        shuttle.job = job;
-        shuttle.leg = Leg.TO_SOURCE;
-        shuttle.motion = new ShuttleMotion(path);
-        syncPending = true;
     }
 
     private void arrive(Shuttle shuttle) {
@@ -309,7 +375,6 @@ public final class ShuttleFleet {
                 if (shuttle.cargo.isEmpty()) {
                     goHome(shuttle);
                 } else if (!go(shuttle, Leg.TO_TARGET, railsBeside(Conversions.toNodePos(job.target())))) {
-                    // No way to the target any more: the stack goes straight back, we are standing at the station.
                     host.returnToStation(job.station(), shuttle.cargo);
                     shuttle.cargo = ItemStack.EMPTY;
                     goHome(shuttle);
@@ -350,14 +415,15 @@ public final class ShuttleFleet {
 
     private void goHome(Shuttle shuttle) {
         shuttle.leg = Leg.HOME;
-        List<NodePos> homePath = RailPaths.find(shuttle.motion.end(), home::equals, host::travelNeighbours);
+        NodePos home = shuttle.garage.home;
+        List<NodePos> homePath = home == null ? List.of() : RailPaths.find(shuttle.motion.end(), home::equals, host::travelNeighbours);
         shuttle.motion = homePath.isEmpty() ? shuttle.motion.reverse() : new ShuttleMotion(homePath);
     }
 
     private void park(Shuttle shuttle) {
         shuttle.job = null;
         shuttle.leg = Leg.HOME;
-        shuttle.motion = ShuttleMotion.parked(home);
+        shuttle.motion = shuttle.garage.home == null ? null : ShuttleMotion.parked(shuttle.garage.home);
     }
 
     private ItemStack extractBeside(NodePos rail, PickJob job) {
@@ -422,9 +488,10 @@ public final class ShuttleFleet {
         }
     }
 
+    /** Cargo pops at the shuttle's garage and its job goes back to the front of the queue. */
     private void dropCargo(Shuttle shuttle) {
-        if (!shuttle.cargo.isEmpty() && controller != null) {
-            Block.popResource(host.level(), controller, shuttle.cargo);
+        if (!shuttle.cargo.isEmpty()) {
+            Block.popResource(host.level(), shuttle.garage.pos, shuttle.cargo);
             shuttle.cargo = ItemStack.EMPTY;
         }
         if (shuttle.job != null) {
@@ -436,17 +503,21 @@ public final class ShuttleFleet {
     // Sync
 
     private void send() {
-        if (controller == null) {
-            return;
+        for (Garage garage : garages.values()) {
+            PacketDistributor.sendToPlayersTrackingChunk(host.level(), new ChunkPos(garage.pos),
+                    new ShuttleSyncPayload(garage.pos, views(garage.pos)));
         }
-        PacketDistributor.sendToPlayersTrackingChunk(host.level(), new ChunkPos(controller),
-                new ShuttleSyncPayload(controller, views()));
     }
 
-    public List<ShuttleView> views() {
+    /** The shuttles of one garage as clients draw them; shuttles parked inside a rail-less garage are left out. */
+    public List<ShuttleView> views(BlockPos garagePos) {
         List<ShuttleView> list = new ArrayList<>();
+        Garage garage = garages.get(garagePos);
+        if (garage == null) {
+            return list;
+        }
         float speed = (float) host.shuttleSpeed();
-        for (Shuttle shuttle : shuttles) {
+        for (Shuttle shuttle : garage.shuttles) {
             ShuttleMotion motion = shuttle.motion;
             if (motion == null) {
                 continue;
@@ -471,19 +542,55 @@ public final class ShuttleFleet {
         return count;
     }
 
-    public String summary() {
-        if (shuttles.isEmpty()) {
-            return "no shuttles";
-        }
-        String rail = home == null ? ", parked without a rail" : "";
-        return shuttles.size() + " shuttles, " + busy() + " busy, " + jobs.size() + " queued (" + queuedPutAways() + " put-aways)" + rail;
+    public int queued() {
+        return jobs.size();
     }
 
-    /** One shuttle: where it is, what it carries, what it is doing. */
+    public String summary() {
+        if (garages.isEmpty()) {
+            return "no garages";
+        }
+        String rail = withoutRail() == 0 ? "" : ", " + withoutRail() + " parked without a rail";
+        return garages.size() + " garages, " + size() + " shuttles, " + busy() + " busy, " + jobs.size() + " queued ("
+                + queuedPutAways() + " put-aways)" + rail;
+    }
+
+    /** One garage's line: how many it holds, how many are out, whether it has a rail. */
+    public String garageSummary(BlockPos pos) {
+        Garage garage = garages.get(pos);
+        if (garage == null) {
+            return "not in a warehouse";
+        }
+        int out = 0;
+        for (Shuttle shuttle : garage.shuttles) {
+            if (shuttle.job != null) {
+                out++;
+            }
+        }
+        return garage.shuttles.size() + " shuttles, " + out + " out" + (garage.home == null ? ", no rail" : "");
+    }
+
+    /** A garage: its position, home rail and shuttles. */
+    private static final class Garage {
+        final BlockPos pos;
+        NodePos home;
+        final List<Shuttle> shuttles = new ArrayList<>();
+
+        Garage(BlockPos pos) {
+            this.pos = pos;
+        }
+    }
+
+    /** One shuttle: where it is, what it carries, what it is doing, where it lives. */
     private static final class Shuttle {
+        final Garage garage;
         ShuttleMotion motion;
         ItemStack cargo = ItemStack.EMPTY;
         ShuttleJob job;
         Leg leg = Leg.HOME;
+
+        Shuttle(Garage garage) {
+            this.garage = garage;
+        }
     }
 }

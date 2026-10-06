@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
 import java.util.List;
@@ -17,26 +17,26 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Draws every shuttle of the controller's warehouse: a cart on the rail at
- * the position extrapolated from the last sync, with its cargo on top.
+ * Draws every shuttle of this garage: a cart on the rail at the position
+ * extrapolated from the last sync, with its cargo on top.
  */
-public class WarehouseControllerRenderer implements BlockEntityRenderer<WarehouseControllerBlockEntity> {
+public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageBlockEntity> {
 
     private static final float CART_SCALE = 0.6F;
     private static final float CARGO_SCALE = 0.3F;
     private static final double RAIL_TOP = 2.0 / 16.0;
     private static final double PARK_SPACING = 0.15;
 
-    public WarehouseControllerRenderer(BlockEntityRendererProvider.Context context) {
+    public ShuttleGarageRenderer(BlockEntityRendererProvider.Context context) {
     }
 
     @Override
-    public boolean shouldRenderOffScreen(WarehouseControllerBlockEntity controller) {
+    public boolean shouldRenderOffScreen(ShuttleGarageBlockEntity garage) {
         return true;
     }
 
     @Override
-    public AABB getRenderBoundingBox(WarehouseControllerBlockEntity controller) {
+    public AABB getRenderBoundingBox(ShuttleGarageBlockEntity garage) {
         return AABB.INFINITE;
     }
 
@@ -46,16 +46,16 @@ public class WarehouseControllerRenderer implements BlockEntityRenderer<Warehous
     }
 
     @Override
-    public void render(WarehouseControllerBlockEntity controller, float partialTick, PoseStack poseStack,
+    public void render(ShuttleGarageBlockEntity garage, float partialTick, PoseStack poseStack,
                        MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        ClientShuttles.Fleet fleet = ClientShuttles.fleet(controller.getBlockPos());
-        if (fleet == null || fleet.views().isEmpty() || controller.getLevel() == null) {
+        ClientShuttles.Fleet fleet = ClientShuttles.fleet(garage.getBlockPos());
+        if (fleet == null || fleet.views().isEmpty() || garage.getLevel() == null) {
             return;
         }
-        long now = controller.getLevel().getGameTime();
+        long now = garage.getLevel().getGameTime();
         double elapsed = (now - fleet.receivedTick()) + partialTick;
         ItemStack cart = new ItemStack(ServusStorageItems.SHUTTLE.get());
-        BlockPos origin = controller.getBlockPos();
+        BlockPos origin = garage.getBlockPos();
         int parked = 0;
 
         for (ShuttleView view : fleet.views()) {
@@ -67,7 +67,7 @@ public class WarehouseControllerRenderer implements BlockEntityRenderer<Warehous
                 parked++;
             }
             BlockPos railPos = BlockPos.containing(pos[0], pos[1], pos[2]);
-            int light = LevelRenderer.getLightColor(controller.getLevel(), railPos.above());
+            int light = LevelRenderer.getLightColor(garage.getLevel(), railPos.above());
 
             poseStack.pushPose();
             poseStack.translate(pos[0] - origin.getX() + 0.5 + offset, pos[1] - origin.getY() + RAIL_TOP + 0.5 * CART_SCALE,
@@ -76,13 +76,13 @@ public class WarehouseControllerRenderer implements BlockEntityRenderer<Warehous
             poseStack.pushPose();
             poseStack.scale(CART_SCALE, CART_SCALE, CART_SCALE);
             Minecraft.getInstance().getItemRenderer().renderStatic(cart, ItemDisplayContext.NONE, light, packedOverlay,
-                    poseStack, bufferSource, controller.getLevel(), 0);
+                    poseStack, bufferSource, garage.getLevel(), 0);
             poseStack.popPose();
             if (!view.cargo().isEmpty()) {
                 poseStack.translate(0.0, 0.5 * CART_SCALE * (3.0 / 16.0) + 0.5 * CARGO_SCALE, 0.0);
                 poseStack.scale(CARGO_SCALE, CARGO_SCALE, CARGO_SCALE);
                 Minecraft.getInstance().getItemRenderer().renderStatic(view.cargo(), ItemDisplayContext.FIXED, light, packedOverlay,
-                        poseStack, bufferSource, controller.getLevel(), 1);
+                        poseStack, bufferSource, garage.getLevel(), 1);
             }
             poseStack.popPose();
         }

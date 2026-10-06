@@ -1,7 +1,8 @@
 {
   "sources_per_tick": 4,
-  "max_shuttles": 8,
   "shuttle_speed": 0.25,
   "dispatch_buffer_slots": 9,
-  "put_away_per_tick": 1
+  "put_away_per_tick": 1,
+  "garage_capacity": 4,
+  "terminal_output_slots": 9
 }

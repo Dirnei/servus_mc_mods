@@ -8,7 +8,7 @@ import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 
-/** Client side: the last known shuttles per controller and when they arrived. */
+/** Client side: the last known shuttles per garage and when they arrived. */
 public final class ClientShuttles {
 
     /** @param views the shuttles as sent; @param receivedTick client game time at receipt */
@@ -22,15 +22,15 @@ public final class ClientShuttles {
 
     public static void update(ShuttleSyncPayload payload) {
         long now = Minecraft.getInstance().level == null ? 0 : Minecraft.getInstance().level.getGameTime();
-        FLEETS.put(payload.controller(), new Fleet(payload.shuttles(), now));
+        FLEETS.put(payload.garage(), new Fleet(payload.shuttles(), now));
     }
 
-    public static Fleet fleet(BlockPos controller) {
-        return FLEETS.get(controller);
+    public static Fleet fleet(BlockPos garage) {
+        return FLEETS.get(garage);
     }
 
-    public static void forget(BlockPos controller) {
-        FLEETS.remove(controller);
+    public static void forget(BlockPos garage) {
+        FLEETS.remove(garage);
     }
 
     public static void clear() {

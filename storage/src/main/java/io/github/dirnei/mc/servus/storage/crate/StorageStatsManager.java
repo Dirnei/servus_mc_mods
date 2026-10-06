@@ -19,7 +19,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_CRATE_CAPACITY = 4096;
     public static final int DEFAULT_SOURCES_PER_TICK = 4;
     public static final int DEFAULT_RACK_SLOTS = 27;
-    public static final int DEFAULT_MAX_SHUTTLES = 8;
+    public static final int DEFAULT_GARAGE_CAPACITY = 4;
+    public static final int DEFAULT_TERMINAL_OUTPUT_SLOTS = 9;
     public static final double DEFAULT_SHUTTLE_SPEED = 0.25;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
@@ -36,7 +37,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int crateCapacity = DEFAULT_CRATE_CAPACITY;
     private volatile int sourcesPerTick = DEFAULT_SOURCES_PER_TICK;
     private volatile int rackSlots = DEFAULT_RACK_SLOTS;
-    private volatile int maxShuttles = DEFAULT_MAX_SHUTTLES;
+    private volatile int garageCapacity = DEFAULT_GARAGE_CAPACITY;
+    private volatile int terminalOutputSlots = DEFAULT_TERMINAL_OUTPUT_SLOTS;
     private volatile double shuttleSpeed = DEFAULT_SHUTTLE_SPEED;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
@@ -52,7 +54,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         crateCapacity = intField(files.get(CRATE), "capacity", DEFAULT_CRATE_CAPACITY);
         sourcesPerTick = intField(files.get(WAREHOUSE), "sources_per_tick", DEFAULT_SOURCES_PER_TICK);
         rackSlots = intField(files.get(RACK), "slots", DEFAULT_RACK_SLOTS);
-        maxShuttles = intField(files.get(WAREHOUSE), "max_shuttles", DEFAULT_MAX_SHUTTLES);
+        garageCapacity = intField(files.get(WAREHOUSE), "garage_capacity", DEFAULT_GARAGE_CAPACITY);
+        terminalOutputSlots = intField(files.get(WAREHOUSE), "terminal_output_slots", DEFAULT_TERMINAL_OUTPUT_SLOTS);
         shuttleSpeed = doubleField(files.get(WAREHOUSE), "shuttle_speed", DEFAULT_SHUTTLE_SPEED);
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
@@ -83,8 +86,12 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         return sourcesPerTick;
     }
 
-    public int maxShuttles() {
-        return maxShuttles;
+    public int garageCapacity() {
+        return garageCapacity;
+    }
+
+    public int terminalOutputSlots() {
+        return terminalOutputSlots;
     }
 
     public double shuttleSpeed() {
