@@ -46,24 +46,6 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/heavy_rack_lamp_off"
-      },
-      "when": {
-        "facing": "north",
-        "online": "false"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/heavy_rack_lamp_on"
-      },
-      "when": {
-        "facing": "north",
-        "online": "true"
-      }
-    },
-    {
-      "apply": {
         "model": "servus_storage:block/heavy_rack_shelves",
         "y": 90
       },
@@ -109,26 +91,6 @@
       "when": {
         "down": "false",
         "facing": "east"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/heavy_rack_lamp_off",
-        "y": 90
-      },
-      "when": {
-        "facing": "east",
-        "online": "false"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/heavy_rack_lamp_on",
-        "y": 90
-      },
-      "when": {
-        "facing": "east",
-        "online": "true"
       }
     },
     {
@@ -182,26 +144,6 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/heavy_rack_lamp_off",
-        "y": 180
-      },
-      "when": {
-        "facing": "south",
-        "online": "false"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/heavy_rack_lamp_on",
-        "y": 180
-      },
-      "when": {
-        "facing": "south",
-        "online": "true"
-      }
-    },
-    {
-      "apply": {
         "model": "servus_storage:block/heavy_rack_shelves",
         "y": 270
       },
@@ -247,26 +189,6 @@
       "when": {
         "down": "false",
         "facing": "west"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/heavy_rack_lamp_off",
-        "y": 270
-      },
-      "when": {
-        "facing": "west",
-        "online": "false"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/heavy_rack_lamp_on",
-        "y": 270
-      },
-      "when": {
-        "facing": "west",
-        "online": "true"
       }
     }
   ]

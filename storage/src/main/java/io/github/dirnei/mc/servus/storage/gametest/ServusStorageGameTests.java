@@ -208,7 +208,6 @@ public final class ServusStorageGameTests {
             CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "warehouse should be online");
             helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 64 && stockOf(menu, Items.APPLE) == 1, "terminal lists the rack contents");
-            helper.assertTrue(lit(helper, RACK), "rack lamp should be lit");
             List<ItemStack> sample = rack.displayed();
             helper.assertTrue(sample.size() == 4, "sample shows four types, had " + sample.size());
             helper.assertTrue(sample.get(0).is(Items.COBBLESTONE) && sample.get(3).is(Items.GRAVEL), "sample is ordered by count");

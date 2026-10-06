@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -11,8 +10,7 @@ import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder
 
 /**
  * Datagen for the heavy duty rack: shelves always, posts and top or bottom
- * beams only where no bay joins, a lamp part per online state, everything
- * rotated by the facing. The model space faces north: the front is z 0.
+ * beams only where no bay joins, everything rotated by the facing. The model space faces north: the front is z 0.
  */
 final class HeavyRackModels {
 
@@ -42,8 +40,6 @@ final class HeavyRackModels {
         BlockModelBuilder bottom = model(provider, name + "_bottom", steel, board);
         box(bottom, "#steel", 0, 0, 0, 16, 1, 2);
         box(bottom, "#steel", 0, 0, 14, 16, 1, 16);
-        BlockModelBuilder lampOff = lamp(provider, name, "off");
-        BlockModelBuilder lampOn = lamp(provider, name, "on");
 
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
         for (Direction facing : Direction.Plane.HORIZONTAL) {
@@ -57,10 +53,6 @@ final class HeavyRackModels {
                     .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.UP, false);
             builder.part().modelFile(bottom).rotationY(angle).addModel()
                     .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.DOWN, false);
-            builder.part().modelFile(lampOff).rotationY(angle).addModel()
-                    .condition(HeavyRackBlock.FACING, facing).condition(StorageNodeBlocks.ONLINE, false);
-            builder.part().modelFile(lampOn).rotationY(angle).addModel()
-                    .condition(HeavyRackBlock.FACING, facing).condition(StorageNodeBlocks.ONLINE, true);
         }
 
         BlockModelBuilder inventory = model(provider, name + "_inventory", steel, board);
@@ -80,13 +72,6 @@ final class HeavyRackModels {
     private static BlockModelBuilder model(BlockStateProvider provider, String name, ResourceLocation steel, ResourceLocation board) {
         return provider.models().getBuilder(name)
                 .texture("particle", steel).texture("steel", steel).texture("board", board);
-    }
-
-    private static BlockModelBuilder lamp(BlockStateProvider provider, String name, String state) {
-        ResourceLocation texture = provider.modLoc("block/" + name + "_lamp_" + state);
-        BlockModelBuilder builder = provider.models().getBuilder(name + "_lamp_" + state)
-                .texture("particle", texture).texture("lamp", texture);
-        return box(builder, "#lamp", 12, 12, 0, 14, 14, 1);
     }
 
     private static BlockModelBuilder box(BlockModelBuilder builder, String texture,
