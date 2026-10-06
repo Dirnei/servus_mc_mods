@@ -21,5 +21,5 @@
 
 ## 5. Plan, specs and verification
 
-- [ ] 5.1 Reword `PLAN.md` section 2.3 (shuttles in garages, racks need shuttles, crates instant, requests collected at the counter) and add the M6 item "Shuttle Garage, rack picks by shuttle, terminal requests". Run `openspec validate m6-shuttle-garage --strict` and fix any finding. Verify validate passes.
+- [x] 5.1 Reword `PLAN.md` section 2.3 (shuttles in garages, racks need shuttles, crates instant, requests collected at the counter) and add the M6 item "Shuttle Garage, rack picks by shuttle, terminal requests". Run `openspec validate m6-shuttle-garage --strict` and fix any finding. Verify validate passes.
 - [ ] 5.2 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game: build two aisles with a garage each, racks on the rails, a station and a terminal on a rail; request rack items and watch the nearer garage's cart deliver into the output slots; break a garage mid job and see shuttles and cargo drop; try a rack request with no garage and read the refusal. Commit.

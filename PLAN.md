@@ -106,7 +106,7 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 
 Progression:
 1. **Crates** (early, no power). A crate has one, two or four compartments that split its capacity; each compartment holds one item type and shows it with its count on the front. The Heavy Duty Rack is the chest sized bay for mixed items: bays with the same facing join into one continuous rack and the front shows the item types the bay holds the most of.
-2. **Warehouse Controller + Counter Terminal.** Search and pull items while standing at the counter. Vanilla and modded inventories in the network are indexed too.
+2. **Warehouse Controller + Counter Terminal.** Search and request items while standing at the counter; deliveries land in the counter's output slots. Vanilla and modded inventories in the network are indexed too.
 3. **Shuttles on rails.** Requests and put-away are done by shuttles that travel along rails to a dispatch station. Throughput depends on shuttle count, rails and layout. Stats screen shows pick rates per item for slotting optimization. Put-away rules ("all ores to aisle 3"): a Zone Label carries a name and an item filter and is stamped onto racks; stamped racks take matching items first, unzoned racks take everything and act as the overflow.
 4. **Wireless.** Wireless Terminal with range tiers. Orders queue real picks. Delivery through an outbound dock: teleport for FE per item and distance, or courier drone to a landing pad.
 
@@ -115,7 +115,7 @@ Progression:
 - Mid: **rails are the wiring.** Any rack next to a rail joins the network. The same rails carry shuttles later. Decided: the Warehouse Rail is a flat floor rail, one block wide, that auto connects to neighbouring rails on the same level like ducts do. No slopes, no ceiling rails. Rails hold nothing and never pull plain inventories in. Floors are linked by the Rail Elevator: a shaft of stacked segments, each taking rails on its sides, that shuttles will ride vertically.
 - Late: **Warehouse Relay** links remote depots wirelessly.
 
-Shuttles are **simulated as data** on the controller and only rendered moving on the client. No real entities. Decided: Shuttle items are added to the controller, park on the rail touching it, and fetch pulls from any storage block a rail reaches; a warehouse without shuttles stays instant, so shuttles are a throughput layer, not a requirement.
+Shuttles are **simulated as data** on the warehouse network and only rendered moving on the client. No real entities. Decided: Shuttle items go into Shuttle Garages, a few per garage, and park on the rail touching their garage; more garages mean more shuttles. Heavy Duty Racks are served only by shuttles, so a rack warehouse needs a garage; crates and foreign inventories stay instant when no shuttle reaches them. Players request items at the Counter Terminal with an amount and collect the delivery from its output slots.
 
 ### 2.4 Integration: Storage + Manufacturing (autocrafting)
 
@@ -212,6 +212,7 @@ Each milestone ends in something playable or testable.
 - Rail Elevator for multi level warehouses
 - Simulated shuttles with client rendering
 - Dispatch station, Zone Labels with put-away filters, unzoned storage as overflow
+- Shuttle Garage, rack picks by shuttle, terminal requests
 - Pick rate stats screen
 
 ### M7: Autocrafting integration
