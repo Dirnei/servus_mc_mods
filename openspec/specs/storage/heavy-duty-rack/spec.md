@@ -25,7 +25,7 @@ A rack SHALL expose an item handler on every side covering all of its slots.
 - **THEN** the cobblestone appears in the rack's slots and in the warehouse index
 
 ### Requirement: Bays connect visually
-A rack beside another rack with the same facing SHALL render as one continuous rack: posts stand at both ends of the row and after every few bays (`posts_every` in `rack.json`, example 3), and between them the floor board, the middle shelf and the beams run through from bay to bay. A rack directly above or below another rack SHALL continue the posts without a top or bottom frame between them. Each rack SHALL keep its own inventory. The frame SHALL render without flickering faces.
+A rack beside another rack with the same facing SHALL render as one continuous rack: posts stand at both ends of the row and after every few bays (`posts_every` in `rack.json`, example 3), and between them the floor board, the middle shelf and the beams run through from bay to bay. A rack directly above or below another rack SHALL continue the posts without a top or bottom frame between them. A rack placed directly on top of another rack SHALL take that rack's facing. Each rack SHALL keep its own inventory. The frame SHALL render without flickering faces.
 
 #### Scenario: Row of three
 - **WHEN** three racks facing the same way stand in a row
@@ -46,6 +46,10 @@ A rack beside another rack with the same facing SHALL render as one continuous r
 #### Scenario: Separate inventories
 - **WHEN** a player fills the left rack of a row
 - **THEN** the right rack's GUI stays empty
+
+#### Scenario: Placed on top
+- **WHEN** a player looking south places a rack on top of a rack that faces east
+- **THEN** the new rack faces east and the two render as one stacked bay
 
 ### Requirement: Sample display
 A rack SHALL show the item types it holds the most of, up to a display count (`display_count` in `rack.json`, example 4), as item models standing on its shelf boards inside the frame, two per shelf level, without counts, updated within a second of a change. Ties SHALL be broken by slot order. An empty rack SHALL show nothing.
