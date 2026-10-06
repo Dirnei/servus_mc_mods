@@ -8,8 +8,18 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-/** Server to client: the stock of the warehouse behind the open terminal. */
-public record StockSyncPayload(boolean online, String reason, List<StockEntry> entries) implements CustomPacketPayload {
+/**
+ * Server to client: the stock of the warehouse behind the open terminal, its
+ * open requests and the last refusal message.
+ *
+ * @param online   whether the warehouse is online
+ * @param reason   offline reason key, empty when online
+ * @param entries  the stock, largest first
+ * @param requests the terminal's open requests
+ * @param message  refusal key of the last request, empty when it went through
+ */
+public record StockSyncPayload(boolean online, String reason, List<StockEntry> entries, List<RequestRow> requests,
+                               String message) implements CustomPacketPayload {
 
     public static final Type<StockSyncPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "stock_sync"));
@@ -18,6 +28,8 @@ public record StockSyncPayload(boolean online, String reason, List<StockEntry> e
             ByteBufCodecs.BOOL, StockSyncPayload::online,
             ByteBufCodecs.STRING_UTF8, StockSyncPayload::reason,
             StockEntry.STREAM_CODEC.apply(ByteBufCodecs.list()), StockSyncPayload::entries,
+            RequestRow.STREAM_CODEC.apply(ByteBufCodecs.list()), StockSyncPayload::requests,
+            ByteBufCodecs.STRING_UTF8, StockSyncPayload::message,
             StockSyncPayload::new);
 
     @Override

@@ -1,15 +1,18 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
 import java.util.List;
 
-/** The last stock the server sent for the open terminal. */
+/** The last stock, requests and message the server sent for the open terminal. */
 public final class ClientStock {
 
     private static volatile boolean online;
     private static volatile String reason = "";
     private static volatile List<StockEntry> entries = List.of();
+    private static volatile List<RequestRow> requests = List.of();
+    private static volatile String message = "";
     private static volatile int version;
 
     private ClientStock() {
@@ -19,6 +22,8 @@ public final class ClientStock {
         online = payload.online();
         reason = payload.reason();
         entries = List.copyOf(payload.entries());
+        requests = List.copyOf(payload.requests());
+        message = payload.message();
         version++;
     }
 
@@ -26,6 +31,8 @@ public final class ClientStock {
         online = false;
         reason = "";
         entries = List.of();
+        requests = List.of();
+        message = "";
         version++;
     }
 
@@ -39,6 +46,14 @@ public final class ClientStock {
 
     public static List<StockEntry> entries() {
         return entries;
+    }
+
+    public static List<RequestRow> requests() {
+        return requests;
+    }
+
+    public static String message() {
+        return message;
     }
 
     /** Bumps on every update so screens can refilter lazily. */

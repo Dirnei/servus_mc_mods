@@ -5,8 +5,8 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
-import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
 import java.util.ArrayList;
@@ -22,19 +22,25 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** Player inventory plus the warehouse behind the terminal. */
+/** The terminal's output slots, the player inventory and the warehouse behind the terminal. */
 public class CounterTerminalMenu extends AbstractContainerMenu {
 
-    public static final int INVENTORY_Y = 112;
-    public static final int HOTBAR_Y = 170;
+    public static final int OUTPUT_Y = 154;
+    public static final int INVENTORY_Y = 176;
+    public static final int HOTBAR_Y = 234;
+    private static final int COLUMNS = 9;
     private static final int SYNC_INTERVAL = 10;
     private static final int MAX_ENTRIES = 4096;
 
     private final CounterTerminalBlockEntity terminal;
     private final ContainerLevelAccess access;
     private final Player player;
+    private final int outputSlots;
+    private final int inventoryStart;
+    private String message = "";
     private int syncTimer;
     private long lastSignature = Long.MIN_VALUE;
 
@@ -43,6 +49,16 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         this.terminal = terminal;
         this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(terminal.getLevel(), terminal.getBlockPos());
+        this.outputSlots = terminal.output().getSlots();
+        for (int slot = 0; slot < outputSlots; slot++) {
+            addSlot(new SlotItemHandler(terminal.output(), slot, 8 + (slot % COLUMNS) * 18, OUTPUT_Y + (slot / COLUMNS) * 18) {
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return false;
+                }
+            });
+        }
+        inventoryStart = slots.size();
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
                 addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
@@ -65,50 +81,30 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         return terminal;
     }
 
+    /** Index of the first player inventory slot. */
+    public int inventoryStart() {
+        return inventoryStart;
+    }
+
     private Optional<WarehouseNetwork> online() {
         return terminal.network().filter(network -> network.status() == WarehouseNetwork.Status.ONLINE);
     }
 
     // Operations (server side)
 
-    /** Pulls one stack of the key to the cursor, or into the inventory. */
-    public void pull(ItemKey key, boolean toInventory) {
+    /** Requests this many of the key; deliveries land in the output slots. */
+    public void request(ItemKey key, int amount) {
         Optional<WarehouseNetwork> network = online();
         if (network.isEmpty()) {
-            return;
-        }
-        ItemStack carried = getCarried();
-        int room;
-        if (toInventory) {
-            room = key.stack(1).getMaxStackSize();
-        } else if (carried.isEmpty()) {
-            room = key.stack(1).getMaxStackSize();
-        } else if (key.matches(carried)) {
-            room = carried.getMaxStackSize() - carried.getCount();
+            message = "offline";
         } else {
-            return;
+            message = network.get().request(terminal, key, Math.max(1, amount));
         }
-        if (room <= 0) {
-            return;
-        }
-        if (network.get().canShuttle(key)) {
-            network.get().requestPick(new PickJob(key, room, player, terminal.getBlockPos()));
-            forceSync();
-            return;
-        }
-        ItemStack taken = network.get().extract(key, room);
-        if (taken.isEmpty()) {
-            return;
-        }
-        if (toInventory) {
-            if (!player.getInventory().add(taken) && !taken.isEmpty()) {
-                giveBack(network.get(), taken);
-            }
-        } else if (carried.isEmpty()) {
-            setCarried(taken);
-        } else {
-            carried.grow(taken.getCount());
-        }
+        forceSync();
+    }
+
+    public void cancel(int requestId) {
+        terminal.network().ifPresent(network -> network.cancelRequest(terminal, requestId));
         forceSync();
     }
 
@@ -122,28 +118,36 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         forceSync();
     }
 
-    private void giveBack(WarehouseNetwork network, ItemStack stack) {
-        ItemStack left = network.insert(stack);
-        if (!left.isEmpty()) {
-            player.drop(left, false);
-        }
-    }
-
     private void forceSync() {
         lastSignature = Long.MIN_VALUE;
         syncTimer = SYNC_INTERVAL;
     }
 
-    /** Shift click in the inventory stores that slot. */
+    /** Shift click: an output slot goes to the inventory, an inventory slot is stored in the warehouse. */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        Optional<WarehouseNetwork> network = online();
-        if (network.isEmpty() || index < 0 || index >= slots.size()) {
+        if (index < 0 || index >= slots.size()) {
             return ItemStack.EMPTY;
         }
         Slot slot = slots.get(index);
         ItemStack stack = slot.getItem();
         if (stack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        if (index < outputSlots) {
+            ItemStack original = stack.copy();
+            if (!moveItemStackTo(stack, inventoryStart, slots.size(), true)) {
+                return ItemStack.EMPTY;
+            }
+            if (stack.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+            return original;
+        }
+        Optional<WarehouseNetwork> network = online();
+        if (network.isEmpty()) {
             return ItemStack.EMPTY;
         }
         ItemStack left = network.get().insert(stack);
@@ -178,17 +182,17 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         }
     }
 
-    /** The current stock as the client should see it. */
+    /** The current stock, requests and message as the client should see them. */
     public StockSyncPayload stock() {
         Optional<WarehouseNetwork> network = terminal.network();
         if (network.isEmpty()) {
-            return new StockSyncPayload(false, "not_connected", List.of());
+            return new StockSyncPayload(false, "not_connected", List.of(), List.of(), message);
         }
         WarehouseNetwork warehouse = network.get();
         return switch (warehouse.status()) {
-            case NO_CONTROLLER -> new StockSyncPayload(false, "no_controller", List.of());
-            case MULTIPLE_CONTROLLERS -> new StockSyncPayload(false, "multiple_controllers", List.of());
-            case ONLINE -> new StockSyncPayload(true, "", entries(warehouse.index()));
+            case NO_CONTROLLER -> new StockSyncPayload(false, "no_controller", List.of(), List.of(), message);
+            case MULTIPLE_CONTROLLERS -> new StockSyncPayload(false, "multiple_controllers", List.of(), List.of(), message);
+            case ONLINE -> new StockSyncPayload(true, "", entries(warehouse.index()), warehouse.requestRows(terminal), message);
         };
     }
 
@@ -206,9 +210,16 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
     private static long signature(StockSyncPayload payload) {
         long hash = payload.online() ? 1 : 0;
         hash = hash * 31 + payload.reason().hashCode();
+        hash = hash * 31 + payload.message().hashCode();
         for (StockEntry entry : payload.entries()) {
             hash = hash * 31 + entry.stack().getItem().hashCode();
             hash = hash * 31 + entry.count();
+        }
+        for (RequestRow row : payload.requests()) {
+            hash = hash * 31 + row.id();
+            hash = hash * 31 + row.delivered();
+            hash = hash * 31 + row.missing();
+            hash = hash * 31 + row.state().hashCode();
         }
         return hash;
     }

@@ -23,6 +23,7 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
+import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -252,10 +253,10 @@ public final class ServusStorageGameTests {
     }
 
     private static final BlockPos SH_CONTROLLER = new BlockPos(2, 1, 6);
-    private static final BlockPos SH_TERMINAL = new BlockPos(2, 1, 7);
+    private static final BlockPos SH_TERMINAL = new BlockPos(3, 1, 7);
     private static final BlockPos SH_DIRECT_CRATE = new BlockPos(1, 1, 6);
     private static final BlockPos SH_FAR_CRATE = new BlockPos(7, 1, 7);
-    private static final BlockPos SH_GARAGE = new BlockPos(3, 1, 7);
+    private static final BlockPos SH_GARAGE = new BlockPos(3, 1, 5);
 
     /** A shuttle fetches from a crate at the end of the rail; a crate on the controller is still instant. */
     @GameTest(template = EMPTY, timeoutTicks = 400)
@@ -283,17 +284,20 @@ public final class ServusStorageGameTests {
             CounterTerminalBlockEntity terminal = helper.getBlockEntity(SH_TERMINAL);
             CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "warehouse should be online");
-            menu.pull(ItemKey.of(new ItemStack(Items.COBBLESTONE)), true);
-            helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "cobblestone must not arrive at once");
-            menu.pull(ItemKey.of(new ItemStack(Items.DIRT)), true);
-            helper.assertTrue(player.getInventory().countItem(Items.DIRT) == 9, "dirt from the crate on the controller is instant");
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
+            helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "cobblestone must not arrive at once");
+            menu.request(ItemKey.of(new ItemStack(Items.DIRT)), 9);
+            helper.assertTrue(terminal.outputCount(Items.DIRT) == 9, "dirt from the crate on the controller is instant");
 
-            helper.runAfterDelay(20, () -> helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0,
+            helper.runAfterDelay(20, () -> helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0,
                     "shuttle is still on its way after 20 ticks"));
             helper.runAfterDelay(80, () -> {
-                helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 40,
-                        "shuttle should have delivered 40 cobblestone, had " + player.getInventory().countItem(Items.COBBLESTONE));
+                helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 40,
+                        "shuttle should have delivered 40 cobblestone into the output slots, had " + terminal.outputCount(Items.COBBLESTONE));
                 helper.assertTrue(far.isEmpty(), "far crate should be empty");
+                List<RequestRow> rows = menu.stock().requests();
+                helper.assertTrue(rows.size() == 1 && rows.get(0).missing() == 24 && rows.get(0).state().equals("MISSING"),
+                        "the dirt request is gone and the cobblestone request shows 24 missing, got " + rows);
                 helper.succeed();
             });
         });
@@ -559,9 +563,9 @@ public final class ServusStorageGameTests {
         return total;
     }
 
-    /** Terminal pulls a crate's stock into the player and stores a stack back. */
+    /** A request without shuttles lands in the output slots at once, the player collects it, and a push stores a stack back. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void terminalPullsAndPushes(GameTestHelper helper) {
+    public static void terminalRequestsAndPushes(GameTestHelper helper) {
         helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -578,17 +582,30 @@ public final class ServusStorageGameTests {
             helper.assertTrue(menu.stock().entries().size() == 1 && menu.stock().entries().get(0).count() == 50,
                     "stock should list 50 cobblestone");
 
-            menu.pull(ItemKey.of(new ItemStack(Items.COBBLESTONE)), true);
-            helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 50, "player should hold 50 cobblestone");
-            helper.assertTrue(crate.isEmpty(), "crate should be empty after the pull");
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
+            helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 50, "50 cobblestone should sit in the output slots, had " + terminal.outputCount(Items.COBBLESTONE));
+            helper.assertTrue(crate.isEmpty(), "crate should be empty after the request");
+            helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "nothing goes into the inventory by itself");
+            List<RequestRow> rows = menu.stock().requests();
+            helper.assertTrue(rows.size() == 1 && rows.get(0).delivered() == 50 && rows.get(0).missing() == 14 && rows.get(0).state().equals("MISSING"),
+                    "the request should show 50 delivered and 14 missing, got " + rows);
+
+            menu.quickMoveStack(player, 0);
+            helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 50, "shift click should collect the delivery");
+            helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "the output slot should be empty");
+
+            menu.cancel(rows.get(0).id());
+            helper.assertTrue(menu.stock().requests().isEmpty(), "the cancelled request leaves the list");
 
             int slot = player.getInventory().findSlotMatchingItem(new ItemStack(Items.COBBLESTONE));
-            helper.assertTrue(slot >= 0, "cobblestone should be in a slot");
             player.getInventory().setItem(slot, new ItemStack(Items.COBBLESTONE, 20));
-            int menuIndex = slot < 9 ? 27 + slot : slot - 9;
+            int menuIndex = menu.inventoryStart() + (slot < 9 ? 27 + slot : slot - 9);
             menu.quickMoveStack(player, menuIndex);
             helper.assertTrue(crate.count() == 20, "crate should hold 20 cobblestone after the push, had " + crate.count());
             helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "inventory should be empty of cobblestone");
+
+            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 5);
+            helper.assertTrue(menu.stock().message().equals("out_of_stock"), "a request for nothing in stock is refused, got " + menu.stock().message());
             helper.succeed();
         });
     }
@@ -999,7 +1016,7 @@ public final class ServusStorageGameTests {
             helper.assertTrue(network.summary().getString().contains("2 garages, 2 shuttles"), "summary should count both garages: " + network.summary().getString());
             CounterTerminalBlockEntity terminal = helper.getBlockEntity(TG_TERMINAL);
             CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
-            menu.pull(ItemKey.of(new ItemStack(Items.COBBLESTONE)), true);
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
             helper.runAfterDelay(6, () -> {
                 List<ShuttleView> a = network.shuttleViews(helper.absolutePos(TG_GARAGE_A));
                 List<ShuttleView> b = network.shuttleViews(helper.absolutePos(TG_GARAGE_B));
@@ -1007,7 +1024,7 @@ public final class ServusStorageGameTests {
                 helper.assertTrue(b.size() == 1 && b.get(0).moving(), "garage B's shuttle, the nearer one, should be on its way");
             });
             helper.runAfterDelay(120, () -> {
-                helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 30, "the cobblestone should have been delivered");
+                helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 30, "the cobblestone should have been delivered into the output slots");
                 List<ShuttleView> b = network.shuttleViews(helper.absolutePos(TG_GARAGE_B));
                 helper.assertTrue(b.size() == 1 && !b.get(0).moving() && b.get(0).path().get(0).equals(helper.absolutePos(new BlockPos(10, 1, 4))),
                         "garage B's shuttle should be parked on its own rail again");
@@ -1086,6 +1103,126 @@ public final class ServusStorageGameTests {
                     helper.assertTrue(inRack == 10, "the shuttle should have carried the bread into the rack, rack has " + inRack);
                     helper.assertTrue(station.isEmpty(), "the buffer should be empty");
                     helper.assertTrue(!helper.getBlockState(SW_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be normal again");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    private static final BlockPos RP_CONTROLLER = new BlockPos(8, 1, 10);
+    private static final BlockPos RP_TERMINAL = new BlockPos(9, 1, 11);
+    private static final BlockPos RP_RACK = new BlockPos(5, 1, 10);
+    private static final BlockPos RP_GARAGE = new BlockPos(3, 1, 10);
+
+    /** A rack request is refused without a garage and delivered into the output slots once a shuttle can reach the rack. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void rackPickByShuttle(GameTestHelper helper) {
+        helper.setBlock(RP_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        for (int x = 3; x <= 8; x++) {
+            helper.setBlock(new BlockPos(x, 0, 11), Blocks.STONE.defaultBlockState());
+            helper.setBlock(new BlockPos(x, 1, 11), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(RP_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState().setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        helper.setBlock(RP_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.SOUTH));
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RP_RACK);
+        rack.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(RP_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            helper.assertTrue(menu.stock().online(), "online");
+            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
+            helper.assertTrue(menu.stock().message().equals("needs_shuttle"), "a rack request without a garage is refused, got " + menu.stock().message());
+            helper.assertTrue(menu.stock().requests().isEmpty(), "no request is created");
+
+            helper.setBlock(RP_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+            ShuttleGarageBlockEntity garage = helper.getBlockEntity(RP_GARAGE);
+            helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
+            helper.runAfterDelay(5, () -> {
+                menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
+                helper.assertTrue(menu.stock().message().isEmpty(), "the request should go through now, got " + menu.stock().message());
+                helper.assertTrue(terminal.outputCount(Items.BREAD) == 0, "nothing arrives at once from a rack");
+                helper.runAfterDelay(120, () -> {
+                    helper.assertTrue(terminal.outputCount(Items.BREAD) == 30, "the shuttle should have brought 30 bread, output has " + terminal.outputCount(Items.BREAD));
+                    helper.assertTrue(rack.isEmpty(), "the rack should be empty");
+                    helper.assertTrue(menu.stock().requests().isEmpty(), "the request should be settled");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    private static final BlockPos RQ_CONTROLLER = new BlockPos(1, 1, 1);
+    private static final BlockPos RQ_TERMINAL = new BlockPos(2, 1, 2);
+    private static final BlockPos RQ_GARAGE = new BlockPos(3, 1, 2);
+    private static final BlockPos RQ_CRATE = new BlockPos(6, 1, 2);
+
+    private static CounterTerminalMenu requestSetup(GameTestHelper helper, Player player, int cobblestone) {
+        helper.setBlock(RQ_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        for (int x = 2; x <= 6; x++) {
+            helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
+            helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(RQ_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState().setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        helper.setBlock(RQ_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.setBlock(RQ_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(RQ_GARAGE);
+        garage.addShuttle();
+        CrateBlockEntity crate = helper.getBlockEntity(RQ_CRATE);
+        crate.insert(new ItemStack(Items.COBBLESTONE, cobblestone), false);
+        CounterTerminalBlockEntity terminal = helper.getBlockEntity(RQ_TERMINAL);
+        return new CounterTerminalMenu(1, player.getInventory(), terminal);
+    }
+
+    /** A request over a stack splits into two loads and shows its progress until both arrived. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void requestSplitsAndDelivers(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        CounterTerminalMenu menu = requestSetup(helper, player, 200);
+        CounterTerminalBlockEntity terminal = menu.terminal();
+        helper.runAfterDelay(10, () -> {
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 100);
+            helper.assertTrue(menu.stock().message().isEmpty(), "the request should go through");
+            helper.runAfterDelay(6, () -> {
+                List<RequestRow> rows = menu.stock().requests();
+                helper.assertTrue(rows.size() == 1 && rows.get(0).requested() == 100 && rows.get(0).delivered() == 0, "one open request for 100, got " + rows);
+                helper.assertTrue(rows.get(0).state().equals("PICKING") || rows.get(0).state().equals("WAITING_SHUTTLE"), "state should be picking or waiting, was " + rows.get(0).state());
+            });
+            helper.runAfterDelay(40, () -> {
+                List<RequestRow> rows = menu.stock().requests();
+                helper.assertTrue(rows.size() == 1 && rows.get(0).delivered() == 64 && rows.get(0).state().equals("PICKING"),
+                        "the first load of 64 should have arrived while the second is picked, got " + rows);
+            });
+            helper.runAfterDelay(140, () -> {
+                helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 100, "100 cobblestone should sit in the output slots, had " + terminal.outputCount(Items.COBBLESTONE));
+                helper.assertTrue(menu.stock().requests().isEmpty(), "the request should be settled and gone");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** When the output slots are full the shuttle waits beside the terminal and unloads once a slot frees up. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void outputFullShuttleWaits(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        CounterTerminalMenu menu = requestSetup(helper, player, 64);
+        CounterTerminalBlockEntity terminal = menu.terminal();
+        for (int i = 0; i < terminal.output().getSlots(); i++) {
+            terminal.output().setStackInSlot(i, new ItemStack(Items.DIRT, 64));
+        }
+        helper.runAfterDelay(10, () -> {
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
+            helper.runAfterDelay(60, () -> {
+                List<RequestRow> rows = menu.stock().requests();
+                helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("WAITING_ROOM") && rows.get(0).delivered() == 0,
+                        "the shuttle should be waiting for room, got " + rows);
+                helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "nothing can land yet");
+                terminal.output().setStackInSlot(0, ItemStack.EMPTY);
+                helper.runAfterDelay(10, () -> {
+                    helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 64, "the waiting shuttle should unload once a slot is free, had " + terminal.outputCount(Items.COBBLESTONE));
+                    helper.assertTrue(menu.stock().requests().isEmpty(), "the request should be settled");
                     helper.succeed();
                 });
             });

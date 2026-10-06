@@ -20,4 +20,8 @@ public sealed interface WarehouseEvent {
     /** The dispatch station at {@code pos} has something in its buffer. */
     record Intake(BlockPos pos) implements WarehouseEvent {
     }
+
+    /** The output slots of the terminal at {@code pos} changed; held deliveries may fit now. */
+    record OutputChanged(BlockPos pos) implements WarehouseEvent {
+    }
 }

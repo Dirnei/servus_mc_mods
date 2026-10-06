@@ -53,11 +53,26 @@ public final class ShuttleFleet {
         /** Frees a station slot a job no longer waits for. */
         void releaseClaim(BlockPos station, int slot);
 
+        /** Whether the source is a Heavy Duty Rack, which only shuttles serve. */
+        boolean isRack(BlockPos source);
+
+        /** A pick took this many from its source; the shortfall counts as missing. */
+        void pickLoaded(PickJob job, int loaded);
+
+        /** A loaded pick was lost with its garage; the count counts as missing. */
+        void pickDropped(PickJob job, int count);
+
+        /** Puts a load into the terminal's output slots; returns what did not fit. */
+        ItemStack deliverToTerminal(PickJob job, ItemStack stack);
+
+        /** Puts an instant load into the output slots, holding what does not fit until there is room. */
+        void deliverInstant(PickJob job, ItemStack stack);
+
         double shuttleSpeed();
     }
 
     /** Where a shuttle is heading. */
-    private enum Leg { TO_SOURCE, TO_TARGET, TO_STATION, HOME }
+    private enum Leg { TO_SOURCE, TO_TARGET, TO_STATION, TO_TERMINAL, WAITING_ROOM, HOME }
 
     private static final int SYNC_INTERVAL = 5;
 
@@ -211,16 +226,6 @@ public final class ShuttleFleet {
         return false;
     }
 
-    /** Whether a pull of this key should ride a shuttle instead of being instant. */
-    public boolean canShuttle(ItemKey key) {
-        for (BlockPos source : host.sourcesHolding(key)) {
-            if (canReach(source)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /** Whether a put-away from the station to the target rides a shuttle. */
     public boolean canCarry(BlockPos station, BlockPos target) {
         return canReach(station) && canReach(target);
@@ -238,18 +243,38 @@ public final class ShuttleFleet {
         syncPending = true;
     }
 
-    /** Travel nodes beside at least one source holding the key, as a goal test. */
-    private Set<NodePos> goals(ItemKey key) {
-        Set<NodePos> goals = new HashSet<>();
-        for (BlockPos source : host.sourcesHolding(key)) {
-            goals.addAll(railsBeside(Conversions.toNodePos(source)));
-        }
-        return goals;
+    private Set<NodePos> firstGoals(ShuttleJob job) {
+        return job instanceof PickJob pick ? railsBeside(Conversions.toNodePos(pick.source()))
+                : railsBeside(Conversions.toNodePos(((PutAwayJob) job).station()));
     }
 
-    private Set<NodePos> firstGoals(ShuttleJob job) {
-        return job instanceof PickJob pick ? goals(pick.key())
-                : railsBeside(Conversions.toNodePos(((PutAwayJob) job).station()));
+    /** Queued picks of a request. */
+    public int queuedFor(int requestId) {
+        int count = 0;
+        for (ShuttleJob job : jobs) {
+            if (job instanceof PickJob pick && pick.requestId() == requestId) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /** Picks of a request a shuttle is working on. */
+    public int ridingFor(int requestId) {
+        int count = 0;
+        for (Garage garage : garages.values()) {
+            for (Shuttle shuttle : garage.shuttles) {
+                if (shuttle.job instanceof PickJob pick && pick.requestId() == requestId) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    /** Drops the queued picks of a request; loads already on a shuttle still arrive. */
+    public void removeQueued(int requestId) {
+        jobs.removeIf(job -> job instanceof PickJob pick && pick.requestId() == requestId);
     }
 
     // Ticking
@@ -263,6 +288,15 @@ public final class ShuttleFleet {
         boolean moving = false;
         for (Garage garage : garages.values()) {
             for (Shuttle shuttle : garage.shuttles) {
+                if (shuttle.leg == Leg.WAITING_ROOM && shuttle.job instanceof PickJob pick) {
+                    shuttle.cargo = host.deliverToTerminal(pick, shuttle.cargo);
+                    if (shuttle.cargo.isEmpty()) {
+                        shuttle.job = null;
+                        goHome(shuttle);
+                        syncPending = true;
+                    }
+                    continue;
+                }
                 if (shuttle.motion != null && !shuttle.motion.arrived()) {
                     moving = true;
                     if (shuttle.motion.advance(host.shuttleSpeed())) {
@@ -336,7 +370,13 @@ public final class ShuttleFleet {
     /** Does a job without a shuttle: picks extract anywhere, put-aways move station to target at once. */
     private void serveInstantly(ShuttleJob job) {
         if (job instanceof PickJob pick) {
-            deliver(pick, extractAnywhere(pick));
+            if (host.isRack(pick.source())) {
+                host.pickLoaded(pick, 0);
+                return;
+            }
+            ItemStack taken = host.extractFrom(pick.source(), pick.key(), pick.amount());
+            host.pickLoaded(pick, taken.getCount());
+            host.deliverInstant(pick, taken);
         } else if (job instanceof PutAwayJob putAway) {
             ItemStack taken = host.takeFromStation(putAway.station(), putAway.slot(), putAway.key(), putAway.amount());
             if (!taken.isEmpty()) {
@@ -347,6 +387,8 @@ public final class ShuttleFleet {
 
     private void arrive(Shuttle shuttle) {
         if (shuttle.job == null) {
+            park(shuttle);
+            syncPending = true;
             return;
         }
         if (shuttle.job instanceof PickJob pick) {
@@ -358,14 +400,34 @@ public final class ShuttleFleet {
     }
 
     private void arrivePick(Shuttle shuttle, PickJob job) {
-        if (shuttle.leg == Leg.TO_SOURCE) {
-            shuttle.cargo = extractBeside(shuttle.motion.end(), job);
-            goHome(shuttle);
-            return;
+        switch (shuttle.leg) {
+            case TO_SOURCE -> {
+                shuttle.cargo = host.extractFrom(job.source(), job.key(), job.amount());
+                host.pickLoaded(job, shuttle.cargo.getCount());
+                if (shuttle.cargo.isEmpty()) {
+                    shuttle.job = null;
+                    goHome(shuttle);
+                } else if (!go(shuttle, Leg.TO_TERMINAL, railsBeside(Conversions.toNodePos(job.terminal())))) {
+                    // The terminal lost its rail meanwhile: the load still has to arrive somewhere safe.
+                    host.deliverInstant(job, shuttle.cargo);
+                    shuttle.cargo = ItemStack.EMPTY;
+                    shuttle.job = null;
+                    goHome(shuttle);
+                }
+            }
+            case TO_TERMINAL -> {
+                shuttle.cargo = host.deliverToTerminal(job, shuttle.cargo);
+                if (shuttle.cargo.isEmpty()) {
+                    shuttle.job = null;
+                    goHome(shuttle);
+                } else {
+                    shuttle.leg = Leg.WAITING_ROOM;
+                    shuttle.motion = ShuttleMotion.parked(shuttle.motion.end());
+                }
+            }
+            case HOME -> park(shuttle);
+            default -> goHome(shuttle);
         }
-        deliver(job, shuttle.cargo);
-        shuttle.cargo = ItemStack.EMPTY;
-        park(shuttle);
     }
 
     private void arrivePutAway(Shuttle shuttle, PutAwayJob job) {
@@ -373,6 +435,7 @@ public final class ShuttleFleet {
             case TO_SOURCE -> {
                 shuttle.cargo = host.takeFromStation(job.station(), job.slot(), job.key(), job.amount());
                 if (shuttle.cargo.isEmpty()) {
+                    shuttle.job = null;
                     goHome(shuttle);
                 } else if (!go(shuttle, Leg.TO_TARGET, railsBeside(Conversions.toNodePos(job.target())))) {
                     host.returnToStation(job.station(), shuttle.cargo);
@@ -383,6 +446,7 @@ public final class ShuttleFleet {
             case TO_TARGET -> {
                 shuttle.cargo = host.insertAt(job.target(), shuttle.cargo);
                 if (shuttle.cargo.isEmpty()) {
+                    shuttle.job = null;
                     goHome(shuttle);
                 } else if (!go(shuttle, Leg.TO_STATION, railsBeside(Conversions.toNodePos(job.station())))) {
                     host.returnToStation(job.station(), shuttle.cargo);
@@ -393,6 +457,7 @@ public final class ShuttleFleet {
             case TO_STATION -> {
                 host.returnToStation(job.station(), shuttle.cargo);
                 shuttle.cargo = ItemStack.EMPTY;
+                shuttle.job = null;
                 goHome(shuttle);
             }
             case HOME -> park(shuttle);
@@ -426,76 +491,23 @@ public final class ShuttleFleet {
         shuttle.motion = shuttle.garage.home == null ? null : ShuttleMotion.parked(shuttle.garage.home);
     }
 
-    private ItemStack extractBeside(NodePos rail, PickJob job) {
-        ItemStack result = ItemStack.EMPTY;
-        int wanted = job.amount();
-        for (BlockPos source : host.sourcesHolding(job.key())) {
-            NodePos node = Conversions.toNodePos(source);
-            boolean beside = false;
-            for (Side side : Side.ALL) {
-                if (node.relative(side).equals(rail)) {
-                    beside = true;
-                    break;
-                }
-            }
-            if (!beside || wanted <= 0) {
-                continue;
-            }
-            ItemStack taken = host.extractFrom(source, job.key(), wanted);
-            if (taken.isEmpty()) {
-                continue;
-            }
-            if (result.isEmpty()) {
-                result = taken;
-            } else {
-                result.grow(taken.getCount());
-            }
-            wanted -= taken.getCount();
-        }
-        return result;
-    }
-
-    private ItemStack extractAnywhere(PickJob job) {
-        ItemStack result = ItemStack.EMPTY;
-        int wanted = job.amount();
-        for (BlockPos source : host.sourcesHolding(job.key())) {
-            if (wanted <= 0) {
-                break;
-            }
-            ItemStack taken = host.extractFrom(source, job.key(), wanted);
-            if (taken.isEmpty()) {
-                continue;
-            }
-            if (result.isEmpty()) {
-                result = taken;
-            } else {
-                result.grow(taken.getCount());
-            }
-            wanted -= taken.getCount();
-        }
-        return result;
-    }
-
-    private void deliver(PickJob job, ItemStack stack) {
-        if (stack.isEmpty()) {
-            return;
-        }
-        if (job.requester() != null && job.requester().isAlive() && !job.requester().isRemoved()) {
-            job.requester().getInventory().add(stack);
-        }
-        if (!stack.isEmpty()) {
-            Block.popResource(host.level(), job.terminal(), stack);
-        }
-    }
-
-    /** Cargo pops at the shuttle's garage and its job goes back to the front of the queue. */
+    /**
+     * Cargo pops at the shuttle's garage. A job that was not loaded yet goes
+     * back to the front of the queue; a loaded pick counts as missing.
+     */
     private void dropCargo(Shuttle shuttle) {
-        if (!shuttle.cargo.isEmpty()) {
+        boolean loaded = !shuttle.cargo.isEmpty();
+        if (loaded) {
+            if (shuttle.job instanceof PickJob pick) {
+                host.pickDropped(pick, shuttle.cargo.getCount());
+            }
             Block.popResource(host.level(), shuttle.garage.pos, shuttle.cargo);
             shuttle.cargo = ItemStack.EMPTY;
         }
         if (shuttle.job != null) {
-            jobs.addFirst(shuttle.job);
+            if (!(shuttle.job instanceof PickJob) || shuttle.leg == Leg.TO_SOURCE) {
+                jobs.addFirst(shuttle.job);
+            }
             shuttle.job = null;
         }
     }

@@ -11,6 +11,9 @@ import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.storage.shuttle.RequestPlan;
+import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import java.util.function.Predicate;
 import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
@@ -100,6 +103,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Set<BlockPos> stations = new HashSet<>();
     /** Shuttle garages: members that are neither sources nor travel nodes. */
     private final Set<BlockPos> garages = new HashSet<>();
+    /** Counter terminals, for retrying requests with missing stock. */
+    private final Set<BlockPos> terminals = new HashSet<>();
+    private static final int MISSING_RETRY_TICKS = 40;
+    private int missingRetry;
     /** Stations whose buffer changed; drained on the next tick. */
     private final Set<BlockPos> pendingStations = new LinkedHashSet<>();
     /** Stations holding a stack that found no room; retried on zone and rule changes and on a slow timer. */
@@ -135,6 +142,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             addSource(blockPos, true);
             addCandidatesAround(blockPos);
             rememberZone(blockPos, node);
+            if (node instanceof CounterTerminalBlockEntity) {
+                terminals.add(blockPos);
+            }
             // A new storage block may give waiting stacks a place to go.
             zonesDirty = true;
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.STATION) {
@@ -169,6 +179,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (garages.remove(blockPos)) {
             fleet.releaseGarage(blockPos);
         }
+        terminals.remove(blockPos);
+        held.remove(blockPos);
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers--;
         }
@@ -190,6 +202,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         stations.addAll(that.stations);
         pendingStations.addAll(that.stations);
         garages.addAll(that.garages);
+        terminals.addAll(that.terminals);
+        that.held.forEach((pos, loads) -> held.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(loads));
         zoneOf.putAll(that.zoneOf);
         that.sources.forEach((pos, source) -> {
             if (!sources.containsKey(pos) || source.node()) {
@@ -220,6 +234,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     // Racks
 
     /** Whether the source is a Heavy Duty Rack, which only shuttles serve. */
+    @Override
     public boolean isRack(BlockPos pos) {
         return level != null && level.getBlockEntity(pos) instanceof HeavyRackBlockEntity;
     }
@@ -425,13 +440,207 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return StorageStatsManager.INSTANCE.shuttleSpeed();
     }
 
-    /** Whether a pull of this key rides a shuttle. */
-    public boolean canShuttle(ItemKey key) {
-        return status() == Status.ONLINE && fleet.canShuttle(key);
+    // Terminal requests
+
+    /** Instant loads that did not fit into a terminal's output slots yet, per terminal. */
+    private final Map<BlockPos, List<HeldLoad>> held = new HashMap<>();
+
+    private record HeldLoad(PickJob job, ItemStack stack) {
     }
 
-    public void requestPick(PickJob job) {
-        fleet.requestPick(job);
+    /** Whether some garage shuttle can drive to a rail beside the position. */
+    public boolean canReach(BlockPos pos) {
+        return fleet.canReach(pos);
+    }
+
+    /**
+     * Plans and starts a request at a terminal.
+     *
+     * @return an empty string when the request was made, else the refusal key:
+     *         {@code offline}, {@code needs_shuttle}, {@code no_rail} or {@code out_of_stock}
+     */
+    public String request(CounterTerminalBlockEntity terminal, ItemKey key, int amount) {
+        if (status() != Status.ONLINE) {
+            return "offline";
+        }
+        BlockPos terminalPos = terminal.getBlockPos();
+        boolean terminalReachable = fleet.canReach(terminalPos);
+        List<RequestPlan.Stock<BlockPos>> stock = new ArrayList<>();
+        for (BlockPos pos : index.sourcesHolding(key)) {
+            Integer count = index.snapshot(pos).get(key);
+            if (count == null || count <= 0 || !sources.containsKey(pos)) {
+                continue;
+            }
+            stock.add(new RequestPlan.Stock<>(pos, count, isRack(pos), fleet.canReach(pos)));
+        }
+        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), terminalReachable, stock);
+        if (plan.jobs().isEmpty()) {
+            if (plan.needsShuttle()) {
+                return fleet.hasShuttles() && !terminalReachable ? "no_rail" : "needs_shuttle";
+            }
+            return "out_of_stock";
+        }
+        CounterTerminalBlockEntity.Request request = terminal.newRequest(key, amount, plan.unservable());
+        for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
+            PickJob pick = new PickJob(request.id, key, job.count(), job.source(), terminalPos);
+            if (job.byShuttle()) {
+                fleet.requestPick(pick);
+            } else {
+                ItemStack taken = extractFrom(job.source(), key, job.count());
+                pickLoaded(pick, taken.getCount());
+                deliverInstant(pick, taken);
+            }
+        }
+        return "";
+    }
+
+    /** Plans the missing part of every idle request again; stock may have arrived meanwhile. */
+    private void retryMissing() {
+        if (status() != Status.ONLINE) {
+            return;
+        }
+        for (BlockPos pos : terminals) {
+            CounterTerminalBlockEntity terminal = terminalAt(pos);
+            if (terminal == null) {
+                continue;
+            }
+            for (CounterTerminalBlockEntity.Request request : new ArrayList<>(terminal.requests())) {
+                if (request.missing <= 0 || fleet.queuedFor(request.id) > 0 || fleet.ridingFor(request.id) > 0 || heldFor(pos, request.id) > 0) {
+                    continue;
+                }
+                boolean terminalReachable = fleet.canReach(pos);
+                List<RequestPlan.Stock<BlockPos>> stock = new ArrayList<>();
+                for (BlockPos source : index.sourcesHolding(request.key)) {
+                    Integer count = index.snapshot(source).get(request.key);
+                    if (count != null && count > 0 && sources.containsKey(source)) {
+                        stock.add(new RequestPlan.Stock<>(source, count, isRack(source), fleet.canReach(source)));
+                    }
+                }
+                RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(request.missing, request.key.stack(1).getMaxStackSize(), terminalReachable, stock);
+                for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
+                    request.missing -= job.count();
+                    PickJob pick = new PickJob(request.id, request.key, job.count(), job.source(), pos);
+                    if (job.byShuttle()) {
+                        fleet.requestPick(pick);
+                    } else {
+                        ItemStack taken = extractFrom(job.source(), request.key, job.count());
+                        pickLoaded(pick, taken.getCount());
+                        deliverInstant(pick, taken);
+                    }
+                }
+            }
+        }
+    }
+
+    /** Cancels a request: queued loads are dropped, loads on a shuttle still arrive in the output slots. */
+    public void cancelRequest(CounterTerminalBlockEntity terminal, int requestId) {
+        fleet.removeQueued(requestId);
+        terminal.removeRequest(requestId);
+        // Held and riding loads keep trying to land: the items are already out of the shelves.
+    }
+
+    /** The open requests of a terminal as the GUI shows them, after dropping finished ones. */
+    public List<RequestRow> requestRows(CounterTerminalBlockEntity terminal) {
+        BlockPos terminalPos = terminal.getBlockPos();
+        terminal.prune(request -> fleet.queuedFor(request.id) > 0 || fleet.ridingFor(request.id) > 0 || heldFor(terminalPos, request.id) > 0);
+        List<RequestRow> rows = new ArrayList<>();
+        for (CounterTerminalBlockEntity.Request request : terminal.requests()) {
+            int queued = fleet.queuedFor(request.id);
+            int riding = fleet.ridingFor(request.id);
+            int heldCount = heldFor(terminalPos, request.id);
+            CounterTerminalBlockEntity.RequestState state;
+            if (request.waitingRoom || heldCount > 0) {
+                state = CounterTerminalBlockEntity.RequestState.WAITING_ROOM;
+            } else if (riding > 0) {
+                state = CounterTerminalBlockEntity.RequestState.PICKING;
+            } else if (queued > 0) {
+                state = CounterTerminalBlockEntity.RequestState.WAITING_SHUTTLE;
+            } else {
+                state = CounterTerminalBlockEntity.RequestState.MISSING;
+            }
+            rows.add(new RequestRow(request.id, request.key.stack(1), request.requested, request.delivered, request.missing, state.name()));
+        }
+        return rows;
+    }
+
+    private int heldFor(BlockPos terminal, int requestId) {
+        int count = 0;
+        for (HeldLoad load : held.getOrDefault(terminal, List.of())) {
+            if (load.job().requestId() == requestId) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private CounterTerminalBlockEntity terminalAt(BlockPos pos) {
+        return level != null && level.getBlockEntity(pos) instanceof CounterTerminalBlockEntity terminal ? terminal : null;
+    }
+
+    @Override
+    public void pickLoaded(PickJob job, int loaded) {
+        CounterTerminalBlockEntity terminal = terminalAt(job.terminal());
+        CounterTerminalBlockEntity.Request request = terminal == null ? null : terminal.request(job.requestId());
+        if (request != null && loaded < job.amount()) {
+            request.missing += job.amount() - loaded;
+        }
+    }
+
+    @Override
+    public void pickDropped(PickJob job, int count) {
+        CounterTerminalBlockEntity terminal = terminalAt(job.terminal());
+        CounterTerminalBlockEntity.Request request = terminal == null ? null : terminal.request(job.requestId());
+        if (request != null) {
+            request.missing += count;
+        }
+    }
+
+    @Override
+    public ItemStack deliverToTerminal(PickJob job, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return stack;
+        }
+        CounterTerminalBlockEntity terminal = terminalAt(job.terminal());
+        if (terminal == null) {
+            Block.popResource(level, job.terminal(), stack);
+            return ItemStack.EMPTY;
+        }
+        int before = stack.getCount();
+        ItemStack left = ItemHandlerHelper.insertItem(terminal.output(), stack, false);
+        CounterTerminalBlockEntity.Request request = terminal.request(job.requestId());
+        if (request != null) {
+            request.delivered += before - left.getCount();
+            request.waitingRoom = !left.isEmpty();
+        }
+        return left;
+    }
+
+    @Override
+    public void deliverInstant(PickJob job, ItemStack stack) {
+        ItemStack left = deliverToTerminal(job, stack);
+        if (!left.isEmpty()) {
+            held.computeIfAbsent(job.terminal(), pos -> new ArrayList<>()).add(new HeldLoad(job, left));
+        }
+    }
+
+    /** Retries the held loads of a terminal after its output slots changed. */
+    private void retryHeld(BlockPos terminalPos) {
+        List<HeldLoad> loads = held.get(terminalPos);
+        if (loads == null) {
+            return;
+        }
+        List<HeldLoad> remaining = new ArrayList<>();
+        for (HeldLoad load : loads) {
+            ItemStack left = deliverToTerminal(load.job(), load.stack());
+            if (!left.isEmpty()) {
+                remaining.add(new HeldLoad(load.job(), left));
+            }
+        }
+        if (remaining.isEmpty()) {
+            held.remove(terminalPos);
+        } else {
+            held.put(terminalPos, remaining);
+        }
     }
 
 
@@ -441,6 +650,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         connectors.clear();
         stations.clear();
         garages.clear();
+        terminals.clear();
+        held.clear();
         pendingStations.clear();
         blockedStations.clear();
         zoneOf.clear();
@@ -528,6 +739,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (sources.containsKey(changed.pos())) {
                 addCandidatesAround(changed.pos());
             }
+        } else if (event instanceof WarehouseEvent.OutputChanged output) {
+            retryHeld(output.pos());
         } else if (event instanceof WarehouseEvent.Intake intake) {
             if (stations.contains(intake.pos())) {
                 pendingStations.add(intake.pos());
@@ -554,6 +767,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (level != null) {
             fleet.tick();
             tickStations();
+            if (!terminals.isEmpty() && ++missingRetry >= MISSING_RETRY_TICKS) {
+                missingRetry = 0;
+                retryMissing();
+            }
         }
         if (level == null || sources.isEmpty()) {
             return;

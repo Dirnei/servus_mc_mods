@@ -79,6 +79,14 @@ public class CounterTerminalBlock extends BaseEntityBlock implements Wrenchable 
     }
 
     @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof CounterTerminalBlockEntity terminal) {
+            terminal.dropOutput(level, pos);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
         StorageNodeBlockEntity.neighborsChanged(level, pos);

@@ -32,27 +32,18 @@ public final class ServusStoragePayloads {
                 (payload, context) -> ClientStock.update(payload));
         registrar.playToClient(ShuttleSyncPayload.TYPE, ShuttleSyncPayload.STREAM_CODEC,
                 (payload, context) -> ClientShuttles.update(payload));
-        registrar.playToServer(PullItemPayload.TYPE, PullItemPayload.STREAM_CODEC,
+        registrar.playToServer(RequestItemPayload.TYPE, RequestItemPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
                             && player.containerMenu instanceof CounterTerminalMenu menu) {
-                        menu.pull(ItemKey.of(payload.item()), payload.toInventory());
+                        menu.request(ItemKey.of(payload.item()), payload.amount());
                     }
                 });
-        registrar.playToClient(StationStatePayload.TYPE, StationStatePayload.STREAM_CODEC,
-                (payload, context) -> ClientStationState.update(payload));
-        registrar.playToServer(SetLabelNamePayload.TYPE, SetLabelNamePayload.STREAM_CODEC,
+        registrar.playToServer(CancelRequestPayload.TYPE, CancelRequestPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof ZoneLabelMenu menu) {
-                        menu.setName(payload.name());
-                    }
-                });
-        registrar.playToServer(SetLabelTagsPayload.TYPE, SetLabelTagsPayload.STREAM_CODEC,
-                (payload, context) -> {
-                    if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof ZoneLabelMenu menu) {
-                        menu.setTags(payload.line());
+                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                        menu.cancel(payload.id());
                     }
                 });
         registrar.playToServer(PushCarriedPayload.TYPE, PushCarriedPayload.STREAM_CODEC,
