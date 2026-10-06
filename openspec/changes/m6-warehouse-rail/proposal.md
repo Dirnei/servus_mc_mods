@@ -14,6 +14,7 @@ Today a warehouse grows only by touching blocks: every crate, rack, controller a
 - The candidate neighbour computation of the warehouse network moves into a pure Java helper with JUnit tests.
 - Lib fix found while testing rail removal: when removing a node splits a network, the Lib now hands every node of a split off part over to its new network, through the existing leave and join hooks. Before, the new part had no state at all and the old part kept stale state. This hit every Servus network when a cable or duct was broken in the middle of a line.
 - PLAN.md section 5 open decision "Exact rail block design" is settled: floor rails only, auto connecting.
+- Storage fix found while testing in game: crates and racks facing east or west drew their item icons on the back face. The renderers used the wrong rotation sign for those two directions.
 
 ## Capabilities
 

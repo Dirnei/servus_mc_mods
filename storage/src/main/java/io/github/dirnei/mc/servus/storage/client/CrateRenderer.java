@@ -36,7 +36,7 @@ public class CrateRenderer implements BlockEntityRenderer<CrateBlockEntity> {
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.5, 0.5);
-        poseStack.mulPose(Axis.YP.rotationDegrees(facing.toYRot() - 180.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - facing.toYRot()));
         poseStack.translate(0.0, 0.0, -0.5 - OFFSET);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
 

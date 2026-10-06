@@ -37,7 +37,7 @@ public class RackRenderer implements BlockEntityRenderer<RackBlockEntity> {
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.5, 0.5);
-        poseStack.mulPose(Axis.YP.rotationDegrees(facing.toYRot() - 180.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - facing.toYRot()));
         poseStack.translate(0.0, 0.0, -0.5 - OFFSET);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         // Now x runs to the viewer's right and y up, origin at the face centre.
