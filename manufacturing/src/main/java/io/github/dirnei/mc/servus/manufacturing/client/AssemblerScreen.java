@@ -36,6 +36,10 @@ public class AssemblerScreen extends MachineScreen {
     private static final int DELETE_Y = 38;
     private static final int CANCEL_Y = 56;
 
+    /** Height of the machine part of the GUI above the player inventory; dimmed while the popup is open. */
+    private static final int MACHINE_AREA_HEIGHT = 82;
+    private static final int DIM = 0x90000000;
+
     public AssemblerScreen(MachineMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, Layout.ASSEMBLER);
         this.imageWidth = 256;
@@ -159,11 +163,22 @@ public class AssemblerScreen extends MachineScreen {
         }
     }
 
+    /** The vanilla title and inventory labels would paint over the popup, so they are skipped while editing. */
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        if (!editing()) {
+            super.renderLabels(guiGraphics, mouseX, mouseY);
+        }
+    }
+
     private void renderPopup(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        guiGraphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + MACHINE_AREA_HEIGHT, DIM);
         int x = leftPos + AssemblerMenu.POPUP_X;
         int y = topPos + AssemblerMenu.POPUP_Y;
-        guiGraphics.fill(x, y, x + AssemblerMenu.POPUP_WIDTH, y + AssemblerMenu.POPUP_HEIGHT, 0xFF373737);
-        guiGraphics.fill(x + 1, y + 1, x + AssemblerMenu.POPUP_WIDTH - 1, y + AssemblerMenu.POPUP_HEIGHT - 1, 0xFFC6C6C6);
+        guiGraphics.fill(x + 2, y + 2, x + AssemblerMenu.POPUP_WIDTH + 2, y + AssemblerMenu.POPUP_HEIGHT + 2, DIM);
+        guiGraphics.fill(x, y, x + AssemblerMenu.POPUP_WIDTH, y + AssemblerMenu.POPUP_HEIGHT, 0xFF1E1E1E);
+        guiGraphics.fill(x + 1, y + 1, x + AssemblerMenu.POPUP_WIDTH - 1, y + AssemblerMenu.POPUP_HEIGHT - 1, 0xFFFFFFFF);
+        guiGraphics.fill(x + 2, y + 2, x + AssemblerMenu.POPUP_WIDTH - 2, y + AssemblerMenu.POPUP_HEIGHT - 2, 0xFFC6C6C6);
         boolean existing = assemblerMenu().editing() >= 0;
         Component title = existing
                 ? Component.translatable("gui.servus_manufacturing.assembler.edit_recipe", assemblerMenu().editing() + 1)
@@ -205,7 +220,7 @@ public class AssemblerScreen extends MachineScreen {
         int by = topPos + y;
         guiGraphics.fill(bx, by, bx + w, by + h, 0xFF373737);
         guiGraphics.fill(bx + 1, by + 1, bx + w - 1, by + h - 1, hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
-        guiGraphics.drawCenteredString(font, label, bx + w / 2, by + (h - 8) / 2, 0xFF202020);
+        guiGraphics.drawString(font, label, bx + (w - font.width(label)) / 2, by + (h - 8) / 2, 0xFF202020, false);
     }
 
     private void press(int id) {

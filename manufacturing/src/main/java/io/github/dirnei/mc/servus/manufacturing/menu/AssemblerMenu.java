@@ -33,7 +33,7 @@ public class AssemblerMenu extends MachineMenu {
 
     /** Popup geometry shared with the screen. */
     public static final int POPUP_X = 48;
-    public static final int POPUP_Y = 8;
+    public static final int POPUP_Y = 4;
     public static final int POPUP_WIDTH = 160;
     public static final int POPUP_HEIGHT = 72;
     public static final int GRID_X = 54;
