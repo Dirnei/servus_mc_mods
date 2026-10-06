@@ -18,7 +18,7 @@ The Warehouse Rail SHALL be a flat block that sits on the floor of its block spa
 - **THEN** the rail is placed with its flat side on the floor
 
 ### Requirement: Rails auto connect
-A rail SHALL connect to every neighbouring rail, every Rail Elevator segment and every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal) on the same level and SHALL render the matching piece: straight, curve, T or cross. Towards a storage block the piece SHALL be a dock, visibly different from the arm towards a rail or segment. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment or storage block is placed or removed.
+A rail SHALL connect to every neighbouring rail, every Rail Elevator segment and every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal) on the same level and SHALL render the matching piece: straight, curve, T or cross. Towards a storage block the piece SHALL be a dock, visibly different from the arm towards a rail or segment. A Heavy Duty Rack SHALL take a dock only on its front side. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment or storage block is placed, rotated or removed.
 
 #### Scenario: Straight run
 - **WHEN** three rails are placed in a line
@@ -39,6 +39,10 @@ A rail SHALL connect to every neighbouring rail, every Rail Elevator segment and
 #### Scenario: Rail docks onto a rack
 - **WHEN** a rack is placed beside a rail
 - **THEN** the rail shows a dock piece towards the rack that looks different from an arm towards a rail, and the dock disappears when the rack is broken
+
+#### Scenario: Rail behind a heavy duty rack
+- **WHEN** a rail runs behind a Heavy Duty Rack
+- **THEN** the rail shows no dock towards it, and turning the rack to face the rail makes the dock appear
 
 ### Requirement: Storage blocks join through rails
 Every rail SHALL be a node of the warehouse network. Crates, shelving racks, warehouse controllers and counter terminals touching a rail on any side SHALL belong to the same network as that rail, and a chain of connected rails SHALL carry membership along its whole length. Rails SHALL link to each other sideways only; a rail directly above another rail does not link to it.
