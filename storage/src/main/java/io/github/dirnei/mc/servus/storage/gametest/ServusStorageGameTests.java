@@ -1015,4 +1015,80 @@ public final class ServusStorageGameTests {
             });
         });
     }
+
+    private static final BlockPos RS_CONTROLLER = new BlockPos(1, 1, 8);
+    private static final BlockPos RS_TERMINAL = new BlockPos(1, 1, 9);
+    private static final BlockPos RS_RACK = new BlockPos(1, 1, 7);
+
+    /** A rack is never served instantly: extract skips it, insert and terminal pushes leave it alone. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackNeedsShuttle(GameTestHelper helper) {
+        helper.setBlock(RS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(RS_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        helper.setBlock(RS_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RS_RACK);
+        rack.items().insertItem(0, new ItemStack(Items.BREAD, 40), false);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(RS_CONTROLLER);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            helper.assertTrue(network.index().count(ItemKey.of(new ItemStack(Items.BREAD))) == 40, "the rack's bread is indexed");
+            helper.assertTrue(network.extract(ItemKey.of(new ItemStack(Items.BREAD)), 64).isEmpty(), "instant extract must skip the rack");
+            helper.assertTrue(network.insert(new ItemStack(Items.COBBLESTONE, 20)).getCount() == 20, "instant insert must skip the rack");
+
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(RS_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            player.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE, 20));
+            menu.quickMoveStack(player, 27);
+            helper.assertTrue(player.getInventory().getItem(0).getCount() == 20, "a terminal push must not fill the rack");
+            helper.assertTrue(rack.items().getStackInSlot(0).getCount() == 40 && rack.items().getStackInSlot(1).isEmpty(), "the rack is untouched");
+            helper.succeed();
+        });
+    }
+
+    private static final BlockPos SW_CONTROLLER = new BlockPos(1, 1, 11);
+    private static final BlockPos SW_STATION = new BlockPos(3, 1, 10);
+    private static final BlockPos SW_RACK = new BlockPos(5, 1, 10);
+    private static final BlockPos SW_GARAGE = new BlockPos(6, 1, 10);
+
+    /** A station stack whose only room is a rack waits with the needs a shuttle reason until a garage with a shuttle can reach the rack. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void stationWaitsForShuttleOnRacks(GameTestHelper helper) {
+        helper.setBlock(SW_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        for (int x = 1; x <= 6; x++) {
+            helper.setBlock(new BlockPos(x, 0, 11), Blocks.STONE.defaultBlockState());
+        }
+        for (int x = 2; x <= 6; x++) {
+            helper.setBlock(new BlockPos(x, 1, 11), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(SW_STATION, ServusStorageBlocks.DISPATCH_STATION.get().defaultBlockState().setValue(DispatchStationBlock.FACING, Direction.NORTH));
+        // The rack faces south, towards the rail behind it at z 11.
+        helper.setBlock(SW_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.SOUTH));
+        DispatchStationBlockEntity station = helper.getBlockEntity(SW_STATION);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(SW_RACK);
+        helper.runAfterDelay(10, () -> {
+            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
+            helper.runAfterDelay(10, () -> {
+                helper.assertTrue(!station.isEmpty(), "the bread should wait: only a rack has room");
+                helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.NO_SHUTTLE, "reason should be no shuttle, was " + station.blockedReason());
+                helper.assertTrue(helper.getBlockState(SW_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be red");
+                helper.setBlock(SW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+                ShuttleGarageBlockEntity garage = helper.getBlockEntity(SW_GARAGE);
+                helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
+                helper.runAfterDelay(120, () -> {
+                    int inRack = 0;
+                    for (int i = 0; i < rack.items().getSlots(); i++) {
+                        inRack += rack.items().getStackInSlot(i).is(Items.BREAD) ? rack.items().getStackInSlot(i).getCount() : 0;
+                    }
+                    helper.assertTrue(inRack == 10, "the shuttle should have carried the bread into the rack, rack has " + inRack);
+                    helper.assertTrue(station.isEmpty(), "the buffer should be empty");
+                    helper.assertTrue(!helper.getBlockState(SW_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be normal again");
+                    helper.succeed();
+                });
+            });
+        });
+    }
 }

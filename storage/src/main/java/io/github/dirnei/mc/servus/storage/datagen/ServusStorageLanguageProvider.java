@@ -41,6 +41,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.station.blocked.no_room", "%s: no room in %s or in general storage");
         add("gui.servus_storage.station.blocked.no_room_general", "%s: no room in general storage");
         add("gui.servus_storage.station.blocked.no_storage", "%s: no storage to go to");
+        add("gui.servus_storage.station.blocked.no_shuttle", "%s: only racks have room and no shuttle can reach them");
         add("gui.servus_storage.zone_label.title", "Zone Label");
         add("gui.servus_storage.zone_label.name", "Zone name");
         add("gui.servus_storage.zone_label.name_hint", "zone name");

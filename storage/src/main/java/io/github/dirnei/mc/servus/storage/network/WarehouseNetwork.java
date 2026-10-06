@@ -10,6 +10,8 @@ import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEnt
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
+import java.util.function.Predicate;
 import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
@@ -213,6 +215,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** The shuttles of one garage as clients draw them. */
     public List<io.github.dirnei.mc.servus.storage.shuttle.ShuttleView> shuttleViews(BlockPos garage) {
         return fleet.views(garage);
+    }
+
+    // Racks
+
+    /** Whether the source is a Heavy Duty Rack, which only shuttles serve. */
+    public boolean isRack(BlockPos pos) {
+        return level != null && level.getBlockEntity(pos) instanceof HeavyRackBlockEntity;
     }
 
     // Zones
@@ -602,6 +611,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         int budget = StorageStatsManager.INSTANCE.putAwayPerTick();
         ItemKey blockedKey = null;
         String blockedZone = null;
+        boolean blockedByRack = false;
         boolean more = false;
         for (int slot = 0; slot < station.buffer().getSlots(); slot++) {
             ItemStack stack = station.buffer().getStackInSlot(slot);
@@ -614,11 +624,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
             ItemKey key = ItemKey.of(stack);
             PutAwayPlan.Tiers<BlockPos> tiers = tiers(key);
-            Optional<BlockPos> target = chooseTarget(tiers, key, stack);
+            Optional<BlockPos> target = chooseTarget(tiers, key, stack, rack -> fleet.canCarry(pos, rack));
             if (target.isEmpty()) {
                 if (blockedKey == null) {
                     blockedKey = key;
                     blockedZone = matchedZone(tiers);
+                    blockedByRack = rackHasRoom(tiers, key, stack);
                 }
                 continue;
             }
@@ -637,7 +648,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         if (blockedKey != null) {
             blockedStations.add(pos);
-            station.setBlocked(hasStorage(blockedKey) ? PutAwayPlan.Reason.NO_ROOM : PutAwayPlan.Reason.NO_STORAGE, blockedKey, blockedZone);
+            PutAwayPlan.Reason reason = blockedByRack ? PutAwayPlan.Reason.NO_SHUTTLE
+                    : hasStorage(blockedKey) ? PutAwayPlan.Reason.NO_ROOM : PutAwayPlan.Reason.NO_STORAGE;
+            station.setBlocked(reason, blockedKey, blockedZone);
         } else {
             blockedStations.remove(pos);
             station.clearBlocked();
@@ -657,18 +670,40 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return false;
     }
 
-    /** The first block in tier order that takes at least one item of the stack. */
-    public Optional<BlockPos> chooseTarget(PutAwayPlan.Tiers<BlockPos> tiers, ItemKey key, ItemStack stack) {
+    /**
+     * The first block in tier order that takes at least one item of the stack.
+     * Racks count only when {@code rackAllowed} says a shuttle can carry to them.
+     */
+    public Optional<BlockPos> chooseTarget(PutAwayPlan.Tiers<BlockPos> tiers, ItemKey key, ItemStack stack, Predicate<BlockPos> rackAllowed) {
         for (List<BlockPos> tier : targetTiers(key, tiers)) {
             for (BlockPos pos : tier) {
-                Source source = sources.get(pos);
-                IItemHandler handler = source == null ? null : source.cache().getCapability();
-                if (handler != null && ItemHandlerHelper.insertItem(handler, stack, true).getCount() < stack.getCount()) {
+                if (isRack(pos) && !rackAllowed.test(pos)) {
+                    continue;
+                }
+                if (hasRoom(pos, stack)) {
                     return Optional.of(pos);
                 }
             }
         }
         return Optional.empty();
+    }
+
+    private boolean hasRoom(BlockPos pos, ItemStack stack) {
+        Source source = sources.get(pos);
+        IItemHandler handler = source == null ? null : source.cache().getCapability();
+        return handler != null && ItemHandlerHelper.insertItem(handler, stack, true).getCount() < stack.getCount();
+    }
+
+    /** Whether some rack in the tiers has room for the stack. */
+    private boolean rackHasRoom(PutAwayPlan.Tiers<BlockPos> tiers, ItemKey key, ItemStack stack) {
+        for (List<BlockPos> tier : targetTiers(key, tiers)) {
+            for (BlockPos pos : tier) {
+                if (isRack(pos) && hasRoom(pos, stack)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** Inserts into exactly that source; returns what did not fit. */
@@ -824,6 +859,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         ItemStack result = ItemStack.EMPTY;
         int wanted = Math.min(amount, key.stack(1).getMaxStackSize());
         for (BlockPos pos : index.sourcesHolding(key)) {
+            if (isRack(pos)) {
+                continue;
+            }
             Source source = sources.get(pos);
             IItemHandler handler = source == null ? null : source.cache().getCapability();
             if (handler == null) {
@@ -853,10 +891,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Puts a stack into the warehouse by the put-away routing: zoned blocks
-     * listing the exact item, then zoned blocks matching by tag, then general
-     * storage; within a tier sources already holding it, then empty crates,
-     * then other storage nodes, then foreign inventories in use.
+     * Puts a stack into the warehouse instantly by the put-away routing: zoned
+     * blocks listing the exact item, then zoned blocks matching by tag, then
+     * general storage; within a tier sources already holding it, then empty
+     * crates, then other storage nodes, then foreign inventories in use.
+     * Racks are skipped: only shuttles fill them.
      *
      * @return what did not fit
      */
@@ -867,7 +906,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         ItemKey key = ItemKey.of(stack);
         ItemStack remaining = stack.copy();
         for (List<BlockPos> tier : targetTiers(key, tiers(key))) {
-            remaining = insertInto(tier, remaining);
+            for (BlockPos pos : tier) {
+                if (remaining.isEmpty()) {
+                    break;
+                }
+                if (!isRack(pos)) {
+                    remaining = insertInto(List.of(pos), remaining);
+                }
+            }
             if (remaining.isEmpty()) {
                 break;
             }

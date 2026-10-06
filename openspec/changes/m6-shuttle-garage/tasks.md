@@ -12,7 +12,7 @@
 
 ## 3. Racks are shuttle only
 
-- [ ] 3.1 In `WarehouseNetwork.java` add `isRack(pos)` and skip racks in `extract`, in the instant tiers of `insert` and in the station's `chooseTarget` unless `fleet.canCarry` holds; report `NO_SHUTTLE` from the station drain when only racks have room and no shuttle reaches them; add the "needs a shuttle" text to `DispatchStationScreen.java` and lang. Add GameTests `rackNeedsShuttle`, `terminalPushSkipsRacks` and `stationWaitsForShuttleOnRacks`. Verify `gradlew :storage:runGameTestServer` passes all storage tests.
+- [x] 3.1 In `WarehouseNetwork.java` add `isRack(pos)` and skip racks in `extract`, in the instant tiers of `insert` and in the station's `chooseTarget` unless `fleet.canCarry` holds; report `NO_SHUTTLE` from the station drain when only racks have room and no shuttle reaches them; add the "needs a shuttle" text to `DispatchStationScreen.java` and lang. Add GameTests `rackNeedsShuttle`, `terminalPushSkipsRacks` and `stationWaitsForShuttleOnRacks`. Verify `gradlew :storage:runGameTestServer` passes all storage tests.
 
 ## 4. Terminal requests and output slots
 
