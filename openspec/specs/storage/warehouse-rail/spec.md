@@ -18,7 +18,7 @@ The Warehouse Rail SHALL be a flat block that sits on the floor of its block spa
 - **THEN** the rail is placed with its flat side on the floor
 
 ### Requirement: Rails auto connect
-A rail SHALL connect to every neighbouring rail on the same level and SHALL render the matching piece: straight, curve, T or cross. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail is placed or removed.
+A rail SHALL connect to every neighbouring rail and every Rail Elevator segment on the same level and SHALL render the matching piece: straight, curve, T or cross. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail or segment is placed or removed.
 
 #### Scenario: Straight run
 - **WHEN** three rails are placed in a line
@@ -31,6 +31,10 @@ A rail SHALL connect to every neighbouring rail on the same level and SHALL rend
 #### Scenario: Different level
 - **WHEN** a rail is placed directly above another rail
 - **THEN** the two rails are not connected to each other
+
+#### Scenario: Rail meets a shaft
+- **WHEN** a rail is placed beside an elevator segment
+- **THEN** the rail shows an arm towards the segment
 
 ### Requirement: Storage blocks join through rails
 Every rail SHALL be a node of the warehouse network. Crates, shelving racks, warehouse controllers and counter terminals touching a rail on any side SHALL belong to the same network as that rail, and a chain of connected rails SHALL carry membership along its whole length.
