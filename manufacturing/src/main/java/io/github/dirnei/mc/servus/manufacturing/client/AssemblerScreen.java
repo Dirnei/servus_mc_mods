@@ -152,7 +152,8 @@ public class AssemblerScreen extends MachineScreen {
             int color = i == hovered ? 0xFFFFFFFF : i == active ? 0xFF60C060 : 0xFF8B8B8B;
             guiGraphics.fill(cx, cy, cx + CELL, cy + CELL, 0xFF373737);
             guiGraphics.fill(cx + 1, cy + 1, cx + CELL - 1, cy + CELL - 1, color);
-            if (i < recipes.size() && minecraft != null && minecraft.level != null) {
+            // Items render above flat fills, so the popup could not cover them: skip them while editing.
+            if (!editing() && i < recipes.size() && minecraft != null && minecraft.level != null) {
                 guiGraphics.renderItem(recipes.get(i).displayResult(minecraft.level), cx + 1, cy + 1);
             }
         }
