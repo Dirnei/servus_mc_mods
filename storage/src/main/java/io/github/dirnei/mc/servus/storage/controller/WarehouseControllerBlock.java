@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -26,7 +27,10 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** Right click prints the warehouse summary. */
+/**
+ * Right click prints the warehouse summary. A Shuttle item adds a shuttle to
+ * the warehouse, sneak right click with an empty hand takes one back out.
+ */
 public class WarehouseControllerBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<WarehouseControllerBlock> CODEC = simpleCodec(WarehouseControllerBlock::new);
@@ -68,13 +72,35 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
         if (stack.getItem() instanceof ConfigurationCarrotItem) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        if (!stack.is(ServusStorageItems.SHUTTLE.get())) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
+            if (controller.addShuttle()) {
+                stack.shrink(1);
+                player.setItemInHand(hand, stack);
+                player.displayClientMessage(Component.literal("Shuttles: " + controller.shuttleCount()), true);
+            } else {
+                player.displayClientMessage(Component.literal("The warehouse cannot take more shuttles"), true);
+            }
+        }
+        return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof StorageNodeBlockEntity node) {
-            Component message = node.network().map(network -> network.summary())
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
+            if (player.isShiftKeyDown()) {
+                if (controller.takeShuttle()) {
+                    ItemStack shuttle = new ItemStack(ServusStorageItems.SHUTTLE.get());
+                    if (!player.getInventory().add(shuttle)) {
+                        player.drop(shuttle, false);
+                    }
+                    player.displayClientMessage(Component.literal("Shuttles: " + controller.shuttleCount()), true);
+                }
+                return InteractionResult.sidedSuccess(false);
+            }
+            Component message = controller.network().map(network -> network.summary())
                     .orElse(Component.literal("Warehouse: not in a network"));
             player.displayClientMessage(message, false);
         }
@@ -85,6 +111,22 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
         StorageNodeBlockEntity.neighborsChanged(level, pos);
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
+            dropShuttles(level, pos, controller);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    private static void dropShuttles(Level level, BlockPos pos, WarehouseControllerBlockEntity controller) {
+        int count = controller.shuttleCount();
+        if (count > 0) {
+            Block.popResource(level, pos, new ItemStack(ServusStorageItems.SHUTTLE.get(), count));
+            controller.clearShuttles();
+        }
     }
 
     @Override

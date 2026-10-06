@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
+import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
@@ -88,6 +89,11 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
             return;
         }
         if (room <= 0) {
+            return;
+        }
+        if (network.get().canShuttle(key)) {
+            network.get().requestPick(new PickJob(key, room, player, terminal.getBlockPos()));
+            forceSync();
             return;
         }
         ItemStack taken = network.get().extract(key, room);

@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
+import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -218,6 +219,52 @@ public final class ServusStorageGameTests {
                 List<ItemStack> after = rack.displayed();
                 helper.assertTrue(after.get(0).is(Items.APPLE), "apples lead the sample after the refill");
                 helper.assertTrue(after.stream().noneMatch(stack -> stack.is(Items.GRAVEL)), "gravel dropped out of the sample");
+                helper.succeed();
+            });
+        });
+    }
+
+    private static final BlockPos SH_CONTROLLER = new BlockPos(2, 1, 6);
+    private static final BlockPos SH_TERMINAL = new BlockPos(2, 1, 7);
+    private static final BlockPos SH_DIRECT_CRATE = new BlockPos(1, 1, 6);
+    private static final BlockPos SH_FAR_CRATE = new BlockPos(7, 1, 7);
+
+    /** A shuttle fetches from a crate at the end of the rail; a crate on the controller is still instant. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void shuttlePicksFromRail(GameTestHelper helper) {
+        helper.setBlock(SH_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(SH_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        helper.setBlock(SH_DIRECT_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        for (int x = 3; x <= 7; x++) {
+            helper.setBlock(new BlockPos(x, 0, 6), Blocks.STONE.defaultBlockState());
+            helper.setBlock(new BlockPos(x, 1, 6), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(SH_FAR_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity far = helper.getBlockEntity(SH_FAR_CRATE);
+        far.insert(new ItemStack(Items.COBBLESTONE, 40), false);
+        CrateBlockEntity direct = helper.getBlockEntity(SH_DIRECT_CRATE);
+        direct.insert(new ItemStack(Items.DIRT, 9), false);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(SH_CONTROLLER);
+        helper.assertTrue(controller.addShuttle(), "one shuttle fits");
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(SH_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            helper.assertTrue(menu.stock().online(), "warehouse should be online");
+            menu.pull(ItemKey.of(new ItemStack(Items.COBBLESTONE)), true);
+            helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "cobblestone must not arrive at once");
+            menu.pull(ItemKey.of(new ItemStack(Items.DIRT)), true);
+            helper.assertTrue(player.getInventory().countItem(Items.DIRT) == 9, "dirt from the crate on the controller is instant");
+
+            helper.runAfterDelay(20, () -> helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0,
+                    "shuttle is still on its way after 20 ticks"));
+            helper.runAfterDelay(80, () -> {
+                helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 40,
+                        "shuttle should have delivered 40 cobblestone, had " + player.getInventory().countItem(Items.COBBLESTONE));
+                helper.assertTrue(far.isEmpty(), "far crate should be empty");
                 helper.succeed();
             });
         });

@@ -11,6 +11,8 @@ import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
+import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
+import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +40,7 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
  * Keeps an index of everything they hold, refreshed in batches, and offers
  * extract and insert over all of it.
  */
-public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity, WarehouseEvent> {
+public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity, WarehouseEvent> implements ShuttleFleet.Host {
 
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
 
@@ -64,6 +66,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private int cursor;
     private ServerLevel level;
     private int controllers;
+    private final ShuttleFleet fleet = new ShuttleFleet(this);
 
     public WarehouseNetwork(int id, NetworkSet<StorageNodeBlockEntity, WarehouseEvent, ?> owner) {
         super(id, owner);
@@ -84,10 +87,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else {
             connectors.add(blockPos);
         }
-        if (node instanceof WarehouseControllerBlockEntity) {
+        if (node instanceof WarehouseControllerBlockEntity controller) {
             controllers++;
+            fleet.adopt(blockPos, controller.shuttleCount());
         }
         lampsDirty = true;
+        fleet.refreshHome();
     }
 
     @Override
@@ -95,11 +100,15 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         BlockPos blockPos = Conversions.toBlockPos(pos);
         connectors.remove(blockPos);
         dropSource(blockPos);
-        if (node instanceof WarehouseControllerBlockEntity) {
+        if (node instanceof WarehouseControllerBlockEntity && blockPos.equals(fleet.controller())) {
+            controllers--;
+            fleet.release();
+        } else if (node instanceof WarehouseControllerBlockEntity) {
             controllers--;
         }
         lampsDirty = true;
         rebuildCandidates();
+        fleet.refreshHome();
     }
 
     @Override
@@ -120,6 +129,88 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         });
         pollOrderStale = true;
         lampsDirty = true;
+        fleet.absorb(that.fleet);
+    }
+
+    /** The controller's shuttle count changed. */
+    public void fleetChanged(WarehouseControllerBlockEntity controller) {
+        fleet.adopt(controller.getBlockPos(), controller.shuttleCount());
+    }
+
+    // Shuttle host
+
+    @Override
+    public ServerLevel level() {
+        return level;
+    }
+
+    @Override
+    public Set<NodePos> travelNeighbours(NodePos node) {
+        Set<NodePos> result = new HashSet<>();
+        for (NodePos neighbour : owner().graph().neighbors(node)) {
+            if (isTravelNode(neighbour)) {
+                result.add(neighbour);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public boolean isTravelNode(NodePos node) {
+        return connectors.contains(Conversions.toBlockPos(node)) && members().contains(node);
+    }
+
+    @Override
+    public List<BlockPos> sourcesHolding(ItemKey key) {
+        return index.sourcesHolding(key);
+    }
+
+    @Override
+    public ItemStack extractFrom(BlockPos pos, ItemKey key, int amount) {
+        Source source = sources.get(pos);
+        IItemHandler handler = source == null ? null : source.cache().getCapability();
+        if (handler == null) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack result = ItemStack.EMPTY;
+        int wanted = Math.min(amount, key.stack(1).getMaxStackSize());
+        for (int slot = 0; slot < handler.getSlots() && wanted > 0; slot++) {
+            if (!key.matches(handler.getStackInSlot(slot))) {
+                continue;
+            }
+            ItemStack taken = handler.extractItem(slot, wanted, false);
+            if (taken.isEmpty()) {
+                continue;
+            }
+            if (result.isEmpty()) {
+                result = taken;
+            } else {
+                result.grow(taken.getCount());
+            }
+            wanted -= taken.getCount();
+        }
+        if (!result.isEmpty()) {
+            markDirty(pos);
+        }
+        return result;
+    }
+
+    @Override
+    public double shuttleSpeed() {
+        return StorageStatsManager.INSTANCE.shuttleSpeed();
+    }
+
+    /** Whether a pull of this key rides a shuttle. */
+    public boolean canShuttle(ItemKey key) {
+        return status() == Status.ONLINE && fleet.canShuttle(key);
+    }
+
+    public void requestPick(PickJob job) {
+        fleet.requestPick(job);
+    }
+
+    public List<io.github.dirnei.mc.servus.storage.shuttle.ShuttleView> shuttleViews() {
+        return fleet.views();
     }
 
     @Override
@@ -215,6 +306,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (lampsDirty && level != null) {
             pushLamps();
         }
+        if (level != null) {
+            fleet.tick();
+        }
         if (level == null || sources.isEmpty()) {
             return;
         }
@@ -302,7 +396,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             case MULTIPLE_CONTROLLERS -> "offline, more than one controller";
         };
         return Component.literal("Warehouse #" + id() + ": " + state + ", " + size() + " nodes, " + connectors.size() + " connectors, " + sources.size()
-                + " sources, " + index.typeCount() + " item types, " + index.totalItems() + " items");
+                + " sources, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary());
     }
 
     // Operations

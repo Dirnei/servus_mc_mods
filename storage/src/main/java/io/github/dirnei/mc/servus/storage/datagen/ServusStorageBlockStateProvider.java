@@ -27,6 +27,10 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         RailModels.rail(this, ServusStorageBlocks.RAIL.get(), "rail");
         ElevatorModels.elevator(this, ServusStorageBlocks.ELEVATOR.get(), "elevator", "rail");
         HeavyRackModels.rack(this, ServusStorageBlocks.HEAVY_RACK.get(), "heavy_rack");
+        itemModels().getBuilder("shuttle").parent(new ModelFile.UncheckedModelFile("block/block"))
+                .texture("particle", modLoc("item/shuttle")).texture("skin", modLoc("item/shuttle"))
+                .element().from(2, 0, 2).to(14, 3, 14)
+                .allFaces((direction, face) -> face.texture("#skin")).end();
     }
 
     /**

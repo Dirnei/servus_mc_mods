@@ -1,3 +1,5 @@
 {
-  "sources_per_tick": 4
+  "sources_per_tick": 4,
+  "max_shuttles": 8,
+  "shuttle_speed": 0.25
 }

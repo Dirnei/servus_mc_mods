@@ -19,6 +19,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_CRATE_CAPACITY = 4096;
     public static final int DEFAULT_SOURCES_PER_TICK = 4;
     public static final int DEFAULT_RACK_SLOTS = 27;
+    public static final int DEFAULT_MAX_SHUTTLES = 8;
+    public static final double DEFAULT_SHUTTLE_SPEED = 0.25;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
 
     private static final Gson GSON = new GsonBuilder().create();
@@ -31,6 +33,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int crateCapacity = DEFAULT_CRATE_CAPACITY;
     private volatile int sourcesPerTick = DEFAULT_SOURCES_PER_TICK;
     private volatile int rackSlots = DEFAULT_RACK_SLOTS;
+    private volatile int maxShuttles = DEFAULT_MAX_SHUTTLES;
+    private volatile double shuttleSpeed = DEFAULT_SHUTTLE_SPEED;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
 
     private StorageStatsManager() {
@@ -42,8 +46,17 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         crateCapacity = intField(files.get(CRATE), "capacity", DEFAULT_CRATE_CAPACITY);
         sourcesPerTick = intField(files.get(WAREHOUSE), "sources_per_tick", DEFAULT_SOURCES_PER_TICK);
         rackSlots = intField(files.get(RACK), "slots", DEFAULT_RACK_SLOTS);
+        maxShuttles = intField(files.get(WAREHOUSE), "max_shuttles", DEFAULT_MAX_SHUTTLES);
+        shuttleSpeed = doubleField(files.get(WAREHOUSE), "shuttle_speed", DEFAULT_SHUTTLE_SPEED);
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
+    }
+
+    private static double doubleField(JsonElement element, String field, double fallback) {
+        if (element instanceof JsonObject object && object.has(field)) {
+            return Math.max(0.01, object.get(field).getAsDouble());
+        }
+        return fallback;
     }
 
     private static int intField(JsonElement element, String field, int fallback) {
@@ -59,6 +72,14 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
 
     public int sourcesPerTick() {
         return sourcesPerTick;
+    }
+
+    public int maxShuttles() {
+        return maxShuttles;
+    }
+
+    public double shuttleSpeed() {
+        return shuttleSpeed;
     }
 
     public int rackSlots() {

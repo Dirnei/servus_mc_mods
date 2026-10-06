@@ -115,7 +115,7 @@ Progression:
 - Mid: **rails are the wiring.** Any rack next to a rail joins the network. The same rails carry shuttles later. Decided: the Warehouse Rail is a flat floor rail, one block wide, that auto connects to neighbouring rails on the same level like ducts do. No slopes, no ceiling rails. Rails hold nothing and never pull plain inventories in. Floors are linked by the Rail Elevator: a shaft of stacked segments, each taking rails on its sides, that shuttles will ride vertically.
 - Late: **Warehouse Relay** links remote depots wirelessly.
 
-Shuttles are **simulated as data** on the controller and only rendered moving on the client. No real entities.
+Shuttles are **simulated as data** on the controller and only rendered moving on the client. No real entities. Decided: Shuttle items are added to the controller, park on the rail touching it, and fetch pulls from any storage block a rail reaches; a warehouse without shuttles stays instant, so shuttles are a throughput layer, not a requirement.
 
 ### 2.4 Integration: Storage + Manufacturing (autocrafting)
 
@@ -233,7 +233,6 @@ Each milestone ends in something playable or testable.
 ## 5. Open decisions
 
 - Order prioritization: explicit priorities vs first come first served
-- Does a warehouse without shuttles feel complete enough on its own?
 - Tier 2 to 5 content details
 - Art style and texture direction (shared look across the family)
 - Final name for the storage mod (Servus: Storage vs Servus: Warehouse)

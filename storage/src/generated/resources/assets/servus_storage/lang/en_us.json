@@ -11,5 +11,6 @@
   "gui.servus_storage.stored": "Stored: %s",
   "gui.servus_storage.terminal.multiple_controllers": "Warehouse has more than one controller",
   "gui.servus_storage.terminal.no_controller": "Warehouse has no controller",
-  "gui.servus_storage.terminal.not_connected": "Not connected to a warehouse"
+  "gui.servus_storage.terminal.not_connected": "Not connected to a warehouse",
+  "item.servus_storage.shuttle": "Shuttle"
 }

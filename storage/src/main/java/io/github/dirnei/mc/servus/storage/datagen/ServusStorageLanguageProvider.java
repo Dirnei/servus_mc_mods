@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.datagen;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -21,6 +22,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.RAIL.get(), "Warehouse Rail");
         add(ServusStorageBlocks.ELEVATOR.get(), "Rail Elevator");
         add(ServusStorageBlocks.HEAVY_RACK.get(), "Heavy Duty Rack");
+        add(ServusStorageItems.SHUTTLE.get(), "Shuttle");
         add("gui.servus_storage.search", "Search");
         add("gui.servus_storage.stored", "Stored: %s");
         add("gui.servus_storage.terminal.not_connected", "Not connected to a warehouse");
