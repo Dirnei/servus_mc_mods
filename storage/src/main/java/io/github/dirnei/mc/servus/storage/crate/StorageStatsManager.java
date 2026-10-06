@@ -23,6 +23,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final double DEFAULT_SHUTTLE_SPEED = 0.25;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
+    public static final int DEFAULT_DISPATCH_BUFFER_SLOTS = 9;
+    public static final int DEFAULT_PUT_AWAY_PER_TICK = 1;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
@@ -38,6 +40,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile double shuttleSpeed = DEFAULT_SHUTTLE_SPEED;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
+    private volatile int dispatchBufferSlots = DEFAULT_DISPATCH_BUFFER_SLOTS;
+    private volatile int putAwayPerTick = DEFAULT_PUT_AWAY_PER_TICK;
 
     private StorageStatsManager() {
         super(GSON, DIRECTORY);
@@ -52,6 +56,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         shuttleSpeed = doubleField(files.get(WAREHOUSE), "shuttle_speed", DEFAULT_SHUTTLE_SPEED);
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
+        dispatchBufferSlots = intField(files.get(WAREHOUSE), "dispatch_buffer_slots", DEFAULT_DISPATCH_BUFFER_SLOTS);
+        putAwayPerTick = intField(files.get(WAREHOUSE), "put_away_per_tick", DEFAULT_PUT_AWAY_PER_TICK);
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
 
@@ -95,5 +101,13 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
 
     public int rackBaysPerSection() {
         return rackBaysPerSection;
+    }
+
+    public int dispatchBufferSlots() {
+        return dispatchBufferSlots;
+    }
+
+    public int putAwayPerTick() {
+        return putAwayPerTick;
     }
 }

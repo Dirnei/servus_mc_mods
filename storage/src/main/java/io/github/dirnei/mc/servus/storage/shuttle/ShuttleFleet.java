@@ -156,6 +156,15 @@ public final class ShuttleFleet {
         syncPending = true;
     }
 
+    /** Whether a put-away from the station to the target rides a shuttle. Group 5 teaches the fleet to carry. */
+    public boolean canCarry(BlockPos station, BlockPos target) {
+        return false;
+    }
+
+    public void requestPutAway(PutAwayJob job) {
+        throw new IllegalStateException("put-away jobs are not carried yet");
+    }
+
     private boolean touchesRail(NodePos source) {
         for (Side side : Side.ALL) {
             if (host.isTravelNode(source.relative(side))) {

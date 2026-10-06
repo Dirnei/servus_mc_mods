@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
+import io.github.dirnei.mc.servus.storage.station.DispatchStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.storage.zone.ZoneRules;
 import java.util.ArrayDeque;
@@ -93,6 +94,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Map<String, String> zoneDisplay = new HashMap<>();
     /** Set when a zone or rule changed; stations with waiting stacks retry on the next tick. */
     private boolean zonesDirty;
+    /** Dispatch stations: members that are neither sources nor travel nodes. */
+    private final Set<BlockPos> stations = new HashSet<>();
+    /** Stations whose buffer changed; drained on the next tick. */
+    private final Set<BlockPos> pendingStations = new LinkedHashSet<>();
+    /** Stations holding a stack that found no room; retried on zone and rule changes and on a slow timer. */
+    private final Set<BlockPos> blockedStations = new LinkedHashSet<>();
+    private static final int BLOCKED_RETRY_TICKS = 20;
+    private int blockedRetry;
     private final WarehouseIndex<BlockPos, ItemKey> index = new WarehouseIndex<>();
     private final ArrayDeque<BlockPos> dirtyQueue = new ArrayDeque<>();
     private final Set<BlockPos> dirtySet = new HashSet<>();
@@ -122,7 +131,15 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             addSource(blockPos, true);
             addCandidatesAround(blockPos);
             rememberZone(blockPos, node);
+            // A new storage block may give waiting stacks a place to go.
+            zonesDirty = true;
+        } else if (node.kind() == WarehouseConnectionRule.NodeKind.STATION) {
+            // A stock neighbour may have listed this position as a candidate inventory; the buffer is never stock.
+            dropSource(blockPos);
+            stations.add(blockPos);
+            pendingStations.add(blockPos);
         } else {
+            dropSource(blockPos);
             connectors.add(blockPos);
         }
         if (node instanceof WarehouseControllerBlockEntity controller) {
@@ -137,6 +154,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     protected void onNodeRemoved(NodePos pos, StorageNodeBlockEntity node) {
         BlockPos blockPos = Conversions.toBlockPos(pos);
         connectors.remove(blockPos);
+        stations.remove(blockPos);
+        pendingStations.remove(blockPos);
+        blockedStations.remove(blockPos);
         zoneOf.remove(blockPos);
         dropSource(blockPos);
         if (node instanceof WarehouseControllerBlockEntity && blockPos.equals(fleet.controller())) {
@@ -160,6 +180,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         controllers += that.controllers;
         connectors.addAll(that.connectors);
+        stations.addAll(that.stations);
+        pendingStations.addAll(that.stations);
         zoneOf.putAll(that.zoneOf);
         zoneDisplay.putAll(that.zoneDisplay);
         that.sources.forEach((pos, source) -> {
@@ -368,6 +390,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     protected void onDisposed() {
         sources.clear();
         connectors.clear();
+        stations.clear();
+        pendingStations.clear();
+        blockedStations.clear();
         zoneOf.clear();
         zoneDisplay.clear();
         dirtyQueue.clear();
@@ -401,6 +426,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         for (Direction direction : Direction.values()) {
             BlockPos neighbour = nodePos.relative(direction);
+            if (connectors.contains(neighbour) || stations.contains(neighbour)) {
+                continue;
+            }
             if (!sources.containsKey(neighbour)) {
                 addSource(neighbour, false);
             } else {
@@ -415,6 +443,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         Set<NodePos> connectorPositions = new HashSet<>();
         for (BlockPos connector : connectors) {
             connectorPositions.add(Conversions.toNodePos(connector));
+        }
+        for (BlockPos station : stations) {
+            connectorPositions.add(Conversions.toNodePos(station));
         }
         Set<BlockPos> wanted = new LinkedHashSet<>();
         for (NodePos pos : CandidateNeighbours.compute(memberPositions, connectorPositions)) {
@@ -445,6 +476,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (sources.containsKey(changed.pos())) {
                 addCandidatesAround(changed.pos());
             }
+        } else if (event instanceof WarehouseEvent.Intake intake) {
+            if (stations.contains(intake.pos())) {
+                pendingStations.add(intake.pos());
+            }
         } else if (event instanceof WarehouseEvent.ZoneChanged zoned) {
             if (level != null && level.getBlockEntity(zoned.pos()) instanceof StorageNodeBlockEntity node && node.holdsStock()) {
                 rememberZone(zoned.pos(), node);
@@ -466,6 +501,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         if (level != null) {
             fleet.tick();
+            tickStations();
         }
         if (level == null || sources.isEmpty()) {
             return;
@@ -493,6 +529,151 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
+    // Dispatch stations
+
+    private void tickStations() {
+        if (stations.isEmpty()) {
+            return;
+        }
+        if (zonesDirty) {
+            zonesDirty = false;
+            pendingStations.addAll(blockedStations);
+        }
+        if (!blockedStations.isEmpty() && ++blockedRetry >= BLOCKED_RETRY_TICKS) {
+            blockedRetry = 0;
+            pendingStations.addAll(blockedStations);
+        }
+        if (pendingStations.isEmpty() || status() != Status.ONLINE) {
+            return;
+        }
+        for (BlockPos pos : new ArrayList<>(pendingStations)) {
+            pendingStations.remove(pos);
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof DispatchStationBlockEntity station) {
+                drain(pos, station);
+            }
+        }
+    }
+
+    /** Moves up to {@code put_away_per_tick} unclaimed stacks out of the station's buffer. */
+    private void drain(BlockPos pos, DispatchStationBlockEntity station) {
+        int budget = StorageStatsManager.INSTANCE.putAwayPerTick();
+        PutAwayPlan.Route blockedRoute = null;
+        ItemKey blockedKey = null;
+        boolean more = false;
+        for (int slot = 0; slot < station.buffer().getSlots(); slot++) {
+            ItemStack stack = station.buffer().getStackInSlot(slot);
+            if (stack.isEmpty() || station.isClaimed(slot)) {
+                continue;
+            }
+            if (budget <= 0) {
+                more = true;
+                break;
+            }
+            ItemKey key = ItemKey.of(stack);
+            PutAwayPlan.Route route = route(key);
+            Optional<BlockPos> target = chooseTarget(route, key, stack);
+            if (target.isEmpty()) {
+                if (blockedRoute == null) {
+                    blockedRoute = route;
+                    blockedKey = key;
+                }
+                continue;
+            }
+            budget--;
+            if (fleet.canCarry(pos, target.get())) {
+                station.claim(slot);
+                fleet.requestPutAway(new io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob(pos, slot, key, stack.getCount(), target.get()));
+            } else {
+                ItemStack taken = station.buffer().extractItem(slot, stack.getCount(), false);
+                ItemStack left = insertAt(target.get(), taken);
+                returnToStation(pos, left);
+            }
+        }
+        if (more) {
+            pendingStations.add(pos);
+        }
+        if (blockedRoute != null) {
+            blockedStations.add(pos);
+            String zone = blockedRoute.matched() == null ? null : zoneDisplay(blockedRoute.matched());
+            station.setBlocked(blockedRoute.blocked(), blockedKey, zone);
+        } else {
+            blockedStations.remove(pos);
+            station.clearBlocked();
+        }
+    }
+
+    /** The first block of the route that takes at least one item of the stack. */
+    public Optional<BlockPos> chooseTarget(PutAwayPlan.Route route, ItemKey key, ItemStack stack) {
+        for (PutAwayPlan.Pool pool : route.pools()) {
+            for (BlockPos pos : targets(pool, key)) {
+                Source source = sources.get(pos);
+                IItemHandler handler = source == null ? null : source.cache().getCapability();
+                if (handler != null && ItemHandlerHelper.insertItem(handler, stack, true).getCount() < stack.getCount()) {
+                    return Optional.of(pos);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** Inserts into exactly that source; returns what did not fit. */
+    public ItemStack insertAt(BlockPos pos, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return stack;
+        }
+        Source source = sources.get(pos);
+        IItemHandler handler = source == null ? null : source.cache().getCapability();
+        if (handler == null) {
+            return stack;
+        }
+        ItemStack left = ItemHandlerHelper.insertItem(handler, stack, false);
+        if (left.getCount() != stack.getCount()) {
+            markDirty(pos);
+        }
+        return left;
+    }
+
+    /** Puts a stack back into a station's buffer, dropping what does not fit there. */
+    public void returnToStation(BlockPos pos, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        ItemStack left = stack;
+        if (level.getBlockEntity(pos) instanceof DispatchStationBlockEntity station) {
+            left = ItemHandlerHelper.insertItem(station.buffer(), stack, false);
+        }
+        if (!left.isEmpty()) {
+            Block.popResource(level, pos, left);
+        }
+    }
+
+    /** Takes up to amount of the key out of a station's buffer and frees the slot's claim. */
+    public ItemStack takeFromStation(BlockPos pos, int slot, ItemKey key, int amount) {
+        if (!(level.getBlockEntity(pos) instanceof DispatchStationBlockEntity station)) {
+            return ItemStack.EMPTY;
+        }
+        station.release(slot);
+        ItemStack result = ItemStack.EMPTY;
+        int wanted = amount;
+        for (int i = 0; i < station.buffer().getSlots() && wanted > 0; i++) {
+            ItemStack inSlot = station.buffer().getStackInSlot(i);
+            if (!key.matches(inSlot) || (i != slot && station.isClaimed(i))) {
+                continue;
+            }
+            ItemStack taken = station.buffer().extractItem(i, wanted, false);
+            if (taken.isEmpty()) {
+                continue;
+            }
+            if (result.isEmpty()) {
+                result = taken;
+            } else {
+                result.grow(taken.getCount());
+            }
+            wanted -= taken.getCount();
+        }
+        return result;
+    }
+
     /** Writes the online state into every loaded stock holding member whose lamp is wrong. */
     private void pushLamps() {
         lampsDirty = false;
@@ -512,6 +693,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private void poll(BlockPos pos) {
         Source source = sources.get(pos);
         IItemHandler handler = source.cache().getCapability();
+        long before = total(index.snapshot(pos));
         if (handler == null) {
             if (source.node()) {
                 index.remove(pos);
@@ -528,6 +710,18 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         }
         index.update(pos, snapshot);
+        if (!blockedStations.isEmpty() && total(snapshot) < before) {
+            // Room appeared somewhere; waiting stacks may fit now.
+            zonesDirty = true;
+        }
+    }
+
+    private static long total(Map<ItemKey, Integer> snapshot) {
+        long sum = 0;
+        for (int count : snapshot.values()) {
+            sum += count;
+        }
+        return sum;
     }
 
     // Queries
@@ -554,7 +748,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             case MULTIPLE_CONTROLLERS -> "offline, more than one controller";
         };
         return Component.literal("Warehouse #" + id() + ": " + state + ", " + size() + " nodes, " + connectors.size() + " connectors, " + sources.size()
-                + " sources, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary());
+                + " sources, " + stations.size() + " stations, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary());
     }
 
     // Operations

@@ -8,6 +8,11 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.zone.ZoneRules;
+import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
+import io.github.dirnei.mc.servus.storage.station.DispatchStationBlock;
+import io.github.dirnei.mc.servus.storage.station.DispatchStationBlockEntity;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
@@ -681,6 +686,129 @@ public final class ServusStorageGameTests {
                 ItemStack rest = network.insert(new ItemStack(Items.IRON_ORE, 7));
                 helper.assertTrue(rest.isEmpty(), "overflow should take the ore");
                 helper.assertTrue(spare.count() == 7, "the ore should be in the overflow crate, had " + spare.count());
+                helper.succeed();
+            });
+        });
+    }
+
+    private static final BlockPos ST_CONTROLLER = new BlockPos(9, 1, 3);
+    private static final BlockPos ST_STATION = new BlockPos(10, 1, 3);
+    private static final BlockPos ST_CRATE = new BlockPos(9, 1, 4);
+    private static final BlockPos ST_CRATE_2 = new BlockPos(8, 1, 3);
+    private static final BlockPos ST_CHEST = new BlockPos(11, 1, 3);
+
+    private static DispatchStationBlockEntity stationSetup(GameTestHelper helper) {
+        helper.setBlock(ST_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(ST_STATION, ServusStorageBlocks.DISPATCH_STATION.get().defaultBlockState()
+                .setValue(DispatchStationBlock.FACING, Direction.NORTH));
+        return helper.getBlockEntity(ST_STATION);
+    }
+
+    /** A stack fed into the station lands in a crate within a few ticks when there are no shuttles. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void stationPutsAwayInstantly(GameTestHelper helper) {
+        DispatchStationBlockEntity station = stationSetup(helper);
+        helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity crate = helper.getBlockEntity(ST_CRATE);
+        helper.runAfterDelay(5, () -> {
+            ItemStack left = ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
+            helper.assertTrue(left.isEmpty(), "the intake should take a stack");
+            helper.assertTrue(station.intake().extractItem(0, 64, false).isEmpty(), "the intake must refuse extraction");
+            helper.runAfterDelay(10, () -> {
+                helper.assertTrue(crate.count() == 64, "cobblestone should be in the crate, had " + crate.count());
+                helper.assertTrue(station.isEmpty(), "the buffer should be empty");
+                helper.assertTrue(!helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.BACKED_UP), "lamp must not be red");
+                helper.assertTrue(helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.ONLINE), "station shows the online lamp");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** With its zone full and no overflow the stack waits with a red lamp, and leaves once a zone block has room. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void stationBacksUpWhenZoneFull(GameTestHelper helper) {
+        DispatchStationBlockEntity station = stationSetup(helper);
+        helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity full = helper.getBlockEntity(ST_CRATE);
+        full.setZone("Ores");
+        full.insert(new ItemStack(Items.IRON_ORE, 5000), false);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(ST_CONTROLLER);
+        controller.rules().setTags("Ores", "c:ores");
+        helper.runAfterDelay(5, () -> {
+            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.IRON_ORE, 7), false);
+            helper.runAfterDelay(10, () -> {
+                helper.assertTrue(!station.isEmpty(), "the ore should wait in the buffer");
+                helper.assertTrue(helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be red");
+                helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.ZONE_FULL_NO_OVERFLOW,
+                        "reason should be zone full without overflow, was " + station.blockedReason());
+                helper.assertTrue("Ores".equals(station.blockedZone()), "blocked zone should read Ores, was " + station.blockedZone());
+                helper.setBlock(ST_CRATE_2, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+                CrateBlockEntity fresh = helper.getBlockEntity(ST_CRATE_2);
+                fresh.setZone("Ores");
+                helper.runAfterDelay(10, () -> {
+                    helper.assertTrue(fresh.count() == 7, "the waiting ore should land in the new Ores crate, had " + fresh.count());
+                    helper.assertTrue(station.isEmpty(), "the buffer should be empty again");
+                    helper.assertTrue(!helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be back to normal");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** Neither a chest feeding the station nor the buffer itself counts as warehouse stock. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void chestOnStationIsNotStock(GameTestHelper helper) {
+        DispatchStationBlockEntity station = stationSetup(helper);
+        helper.setBlock(ST_CHEST, Blocks.CHEST.defaultBlockState());
+        ChestBlockEntity chest = helper.getBlockEntity(ST_CHEST);
+        chest.setItem(0, new ItemStack(Items.BREAD, 30));
+        helper.runAfterDelay(5, () -> {
+            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
+            helper.runAfterDelay(15, () -> {
+                WarehouseControllerBlockEntity controller = helper.getBlockEntity(ST_CONTROLLER);
+                WarehouseNetwork network = controller.network().orElseThrow();
+                helper.assertTrue(network.index().count(ItemKey.of(new ItemStack(Items.BREAD))) == 0,
+                        "bread beside or inside the station must not be indexed");
+                helper.assertTrue(!station.isEmpty(), "with no storage the bread waits in the buffer");
+                helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.NO_STORAGE, "reason should be no storage");
+                helper.succeed();
+            });
+        });
+    }
+
+    private static final BlockPos DK_STATION = new BlockPos(5, 1, 5);
+
+    /** Rails dock onto a station on every side, and the carrot dismantles it with its buffer. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void stationDocksAndDismantles(GameTestHelper helper) {
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            helper.setBlock(DK_STATION.relative(direction).below(), Blocks.STONE.defaultBlockState());
+        }
+        helper.setBlock(DK_STATION, ServusStorageBlocks.DISPATCH_STATION.get().defaultBlockState()
+                .setValue(DispatchStationBlock.FACING, Direction.NORTH));
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            placeRail(helper, DK_STATION.relative(direction));
+        }
+        DispatchStationBlockEntity station = helper.getBlockEntity(DK_STATION);
+        ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
+        helper.runAfterDelay(2, () -> {
+            for (Direction direction : Direction.Plane.HORIZONTAL) {
+                BlockState rail = helper.getBlockState(DK_STATION.relative(direction));
+                helper.assertTrue(rail.getValue(RailBlock.dock(direction.getOpposite())),
+                        "rail " + direction + " of the station should dock towards it");
+            }
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            ItemStack carrot = new ItemStack(ServusLibItems.CONFIGURATION_CARROT.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+            player.setShiftKeyDown(true);
+            BlockPos absolute = helper.absolutePos(DK_STATION);
+            carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
+            helper.runAfterDelay(2, () -> {
+                helper.assertBlockPresent(Blocks.AIR, DK_STATION);
+                helper.assertItemEntityPresent(ServusStorageItems.DISPATCH_STATION.get(), DK_STATION, 2.0);
+                helper.assertItemEntityPresent(Items.BREAD, DK_STATION, 2.0);
                 helper.succeed();
             });
         });

@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.storage.crate.QuadCrateBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
+import io.github.dirnei.mc.servus.storage.station.DispatchStationBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -72,6 +73,14 @@ public final class ServusStorageBlocks {
                     .strength(3.0F)
                     .sound(SoundType.METAL)
                     .noOcclusion());
+
+    public static final DeferredBlock<DispatchStationBlock> DISPATCH_STATION =
+            BLOCKS.registerBlock("dispatch_station", DispatchStationBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .strength(3.0F)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL));
 
     private ServusStorageBlocks() {
     }

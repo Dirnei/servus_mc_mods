@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "backed_up=false,facing=east,online=false": {
+      "model": "servus_storage:block/dispatch_station",
+      "y": 90
+    },
+    "backed_up=false,facing=east,online=true": {
+      "model": "servus_storage:block/dispatch_station_online",
+      "y": 90
+    },
+    "backed_up=false,facing=north,online=false": {
+      "model": "servus_storage:block/dispatch_station"
+    },
+    "backed_up=false,facing=north,online=true": {
+      "model": "servus_storage:block/dispatch_station_online"
+    },
+    "backed_up=false,facing=south,online=false": {
+      "model": "servus_storage:block/dispatch_station",
+      "y": 180
+    },
+    "backed_up=false,facing=south,online=true": {
+      "model": "servus_storage:block/dispatch_station_online",
+      "y": 180
+    },
+    "backed_up=false,facing=west,online=false": {
+      "model": "servus_storage:block/dispatch_station",
+      "y": 270
+    },
+    "backed_up=false,facing=west,online=true": {
+      "model": "servus_storage:block/dispatch_station_online",
+      "y": 270
+    },
+    "backed_up=true,facing=east,online=false": {
+      "model": "servus_storage:block/dispatch_station_backed_up",
+      "y": 90
+    },
+    "backed_up=true,facing=east,online=true": {
+      "model": "servus_storage:block/dispatch_station_backed_up",
+      "y": 90
+    },
+    "backed_up=true,facing=north,online=false": {
+      "model": "servus_storage:block/dispatch_station_backed_up"
+    },
+    "backed_up=true,facing=north,online=true": {
+      "model": "servus_storage:block/dispatch_station_backed_up"
+    },
+    "backed_up=true,facing=south,online=false": {
+      "model": "servus_storage:block/dispatch_station_backed_up",
+      "y": 180
+    },
+    "backed_up=true,facing=south,online=true": {
+      "model": "servus_storage:block/dispatch_station_backed_up",
+      "y": 180
+    },
+    "backed_up=true,facing=west,online=false": {
+      "model": "servus_storage:block/dispatch_station_backed_up",
+      "y": 270
+    },
+    "backed_up=true,facing=west,online=true": {
+      "model": "servus_storage:block/dispatch_station_backed_up",
+      "y": 270
+    }
+  }
+}

@@ -8,6 +8,9 @@ public final class StorageNodeBlocks {
     /** Lit while the block belongs to an online warehouse. Set by the network, never by the player. */
     public static final BooleanProperty ONLINE = BooleanProperty.create("online");
 
+    /** Lit red on a dispatch station while a stack waits with no room. Set by the network. */
+    public static final BooleanProperty BACKED_UP = BooleanProperty.create("backed_up");
+
     private StorageNodeBlocks() {
     }
 }

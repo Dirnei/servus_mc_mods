@@ -16,4 +16,8 @@ public sealed interface WarehouseEvent {
     /** The node at {@code pos} was stamped into another zone or cleared. */
     record ZoneChanged(BlockPos pos) implements WarehouseEvent {
     }
+
+    /** The dispatch station at {@code pos} has something in its buffer. */
+    record Intake(BlockPos pos) implements WarehouseEvent {
+    }
 }

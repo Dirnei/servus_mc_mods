@@ -28,11 +28,27 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         RailModels.rail(this, ServusStorageBlocks.RAIL.get(), "rail");
         ElevatorModels.elevator(this, ServusStorageBlocks.ELEVATOR.get(), "elevator", "rail");
         HeavyRackModels.rack(this, ServusStorageBlocks.HEAVY_RACK.get(), "heavy_rack");
+        station(ServusStorageBlocks.DISPATCH_STATION.get(), "dispatch_station");
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
         itemModels().getBuilder("shuttle").parent(new ModelFile.UncheckedModelFile("block/block"))
                 .texture("particle", modLoc("item/shuttle")).texture("skin", modLoc("item/shuttle"))
                 .element().from(2, 0, 2).to(14, 3, 14)
                 .allFaces((direction, face) -> face.texture("#skin")).end();
+    }
+
+    /** Like {@link #oriented} with a third, red front while the station is backed up. */
+    private void station(Block block, String name) {
+        ModelFile dark = models().orientable(name, modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front"), modLoc("block/" + name + "_top"));
+        ModelFile lit = models().orientable(name + "_online", modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front_online"), modLoc("block/" + name + "_top"));
+        ModelFile red = models().orientable(name + "_backed_up", modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front_backed_up"), modLoc("block/" + name + "_top"));
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(StorageNodeBlocks.BACKED_UP) ? red : state.getValue(StorageNodeBlocks.ONLINE) ? lit : dark)
+                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                .build());
+        simpleBlockItem(block, dark);
     }
 
     /**
