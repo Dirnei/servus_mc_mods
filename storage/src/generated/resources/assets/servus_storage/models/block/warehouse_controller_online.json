@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "servus_storage:block/warehouse_controller_front_online",
+    "side": "servus_storage:block/warehouse_controller_side",
+    "top": "servus_storage:block/warehouse_controller_top"
+  }
+}

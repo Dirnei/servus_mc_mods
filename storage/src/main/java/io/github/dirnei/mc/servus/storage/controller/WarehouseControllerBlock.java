@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -33,7 +34,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
 
     public WarehouseControllerBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(StorageNodeBlocks.ONLINE, false));
     }
 
     @Override
@@ -43,7 +44,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, StorageNodeBlocks.ONLINE);
     }
 
     @Override

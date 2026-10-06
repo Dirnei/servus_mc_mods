@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
@@ -66,12 +67,15 @@ public final class ServusStorageGameTests {
             helper.assertTrue(menu.stock().online(), "warehouse should be online through the rails");
             helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 40, "stock should list 40 cobblestone from the crate");
             helper.assertTrue(stockOf(menu, Items.BREAD) == 0, "bread beside a rail must not be indexed");
+            helper.assertTrue(lit(helper, RAIL_CRATE), "crate lamp should be lit while online");
 
             helper.setBlock(RAIL_A, Blocks.AIR.defaultBlockState());
             helper.runAfterDelay(10, () -> {
                 CounterTerminalMenu after = new CounterTerminalMenu(1, player.getInventory(), terminal);
                 helper.assertTrue(after.stock().online(), "controller side stays online");
                 helper.assertTrue(stockOf(after, Items.COBBLESTONE) == 0, "crate stock should leave the index after the rail is broken");
+                helper.assertTrue(!lit(helper, RAIL_CRATE), "crate lamp should go dark once cut off");
+                helper.assertTrue(lit(helper, RAIL_TERMINAL), "terminal lamp stays lit beside the controller");
                 helper.succeed();
             });
         });
@@ -116,15 +120,22 @@ public final class ServusStorageGameTests {
             helper.assertTrue(menu.stock().online(), "warehouse should be online through the shaft");
             helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 30, "stock should list 30 cobblestone from the ground floor crate");
             helper.assertTrue(stockOf(menu, Items.BREAD) == 0, "bread beside the shaft must not be indexed");
+            helper.assertTrue(lit(helper, LIFT_CRATE), "crate lamp should be lit through the shaft");
 
             helper.setBlock(LIFT_MIDDLE, Blocks.AIR.defaultBlockState());
             helper.runAfterDelay(10, () -> {
                 CounterTerminalMenu after = new CounterTerminalMenu(1, player.getInventory(), terminal);
                 helper.assertTrue(after.stock().online(), "controller side stays online");
                 helper.assertTrue(stockOf(after, Items.COBBLESTONE) == 0, "crate stock should leave the index after the shaft is cut");
+                helper.assertTrue(!lit(helper, LIFT_CRATE), "crate lamp should go dark once the shaft is cut");
+                helper.assertTrue(lit(helper, LIFT_TERMINAL), "terminal lamp stays lit beside the controller");
                 helper.succeed();
             });
         });
+    }
+
+    private static boolean lit(GameTestHelper helper, BlockPos pos) {
+        return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);
     }
 
     private static long stockOf(CounterTerminalMenu menu, Item item) {

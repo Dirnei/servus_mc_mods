@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.rail;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -36,8 +37,13 @@ public class RailBlock extends ConnectableBlock {
 
     @Override
     protected boolean connectsTo(LevelAccessor level, BlockPos neighborPos, BlockState neighborState, Direction direction) {
-        return direction.getAxis().isHorizontal()
-                && (neighborState.getBlock() instanceof RailBlock || neighborState.getBlock() instanceof ElevatorBlock);
+        if (!direction.getAxis().isHorizontal()) {
+            return false;
+        }
+        if (neighborState.getBlock() instanceof RailBlock || neighborState.getBlock() instanceof ElevatorBlock) {
+            return true;
+        }
+        return level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node && node.holdsStock();
     }
 
     @Override

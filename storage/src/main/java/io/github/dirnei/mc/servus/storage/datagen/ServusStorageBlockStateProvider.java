@@ -1,10 +1,13 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
@@ -24,11 +27,16 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         ElevatorModels.elevator(this, ServusStorageBlocks.ELEVATOR.get(), "elevator", "rail");
     }
 
-    /** Horizontal block with its own front texture, shared side and top. */
+    /** Horizontal block with its own front texture, shared side and top, and a lit front while online. */
     private void oriented(Block block, String name) {
-        ModelFile model = models().orientable(name, modLoc("block/" + name + "_side"),
+        ModelFile dark = models().orientable(name, modLoc("block/" + name + "_side"),
                 modLoc("block/" + name + "_front"), modLoc("block/" + name + "_top"));
-        horizontalBlock(block, model);
-        simpleBlockItem(block, model);
+        ModelFile lit = models().orientable(name + "_online", modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front_online"), modLoc("block/" + name + "_top"));
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(StorageNodeBlocks.ONLINE) ? lit : dark)
+                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                .build());
+        simpleBlockItem(block, dark);
     }
 }

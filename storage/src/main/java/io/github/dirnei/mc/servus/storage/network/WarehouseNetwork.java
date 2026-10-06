@@ -27,6 +27,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -57,6 +59,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Set<BlockPos> dirtySet = new HashSet<>();
     private final List<BlockPos> pollOrder = new ArrayList<>();
     private boolean pollOrderStale = true;
+    /** Set whenever membership or the controller count changed; the next tick pushes the lamp state. */
+    private boolean lampsDirty;
     private int cursor;
     private ServerLevel level;
     private int controllers;
@@ -83,6 +87,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers++;
         }
+        lampsDirty = true;
     }
 
     @Override
@@ -93,6 +98,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers--;
         }
+        lampsDirty = true;
         rebuildCandidates();
     }
 
@@ -113,6 +119,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         });
         pollOrderStale = true;
+        lampsDirty = true;
     }
 
     @Override
@@ -205,6 +212,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     @Override
     protected void onTick() {
+        if (lampsDirty && level != null) {
+            pushLamps();
+        }
         if (level == null || sources.isEmpty()) {
             return;
         }
@@ -227,6 +237,22 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             BlockPos pos = pollOrder.get(cursor);
             if (sources.containsKey(pos)) {
                 poll(pos);
+            }
+        }
+    }
+
+    /** Writes the online state into every loaded stock holding member whose lamp is wrong. */
+    private void pushLamps() {
+        lampsDirty = false;
+        boolean online = status() == Status.ONLINE;
+        for (NodePos member : members()) {
+            BlockPos pos = Conversions.toBlockPos(member);
+            if (connectors.contains(pos) || !level.isLoaded(pos)) {
+                continue;
+            }
+            BlockState state = level.getBlockState(pos);
+            if (state.hasProperty(StorageNodeBlocks.ONLINE) && state.getValue(StorageNodeBlocks.ONLINE) != online) {
+                level.setBlock(pos, state.setValue(StorageNodeBlocks.ONLINE, online), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
             }
         }
     }
