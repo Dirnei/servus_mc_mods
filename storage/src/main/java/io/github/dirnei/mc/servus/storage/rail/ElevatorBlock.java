@@ -7,7 +7,9 @@ import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -66,6 +68,22 @@ public class ElevatorBlock extends ConnectableBlock {
             }
             return shape;
         });
+    }
+
+    /** A segment stands on a solid block or on another segment. */
+    @Override
+    protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+        BlockPos below = pos.below();
+        return level.getBlockState(below).getBlock() instanceof ElevatorBlock || canSupportRigidBlock(level, below);
+    }
+
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (!level.isClientSide() && !state.canSurvive(level, pos)) {
+            dropResources(state, level, pos, level.getBlockEntity(pos));
+            level.removeBlock(pos, false);
+        }
     }
 
     @Override

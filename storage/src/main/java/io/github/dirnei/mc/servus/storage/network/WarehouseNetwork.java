@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.network;
 
-import io.github.dirnei.mc.servus.lib.graph.ConnectionRule;
 import io.github.dirnei.mc.servus.lib.graph.NodePos;
 import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
@@ -44,7 +43,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
 
     public static final NetworkType<StorageNodeBlockEntity, WarehouseEvent, WarehouseNetwork> TYPE =
-            new NetworkType<>(ID, ConnectionRule.always(), WarehouseNetwork::new);
+            new NetworkType<>(ID, (from, fromNode, side, to, toNode) ->
+                    WarehouseConnectionRule.accepts(fromNode.kind(), side, toNode.kind()), WarehouseNetwork::new);
 
     public enum Status { ONLINE, NO_CONTROLLER, MULTIPLE_CONTROLLERS }
 

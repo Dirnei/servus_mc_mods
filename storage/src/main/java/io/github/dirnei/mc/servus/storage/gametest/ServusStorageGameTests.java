@@ -48,6 +48,8 @@ public final class ServusStorageGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void railsLinkCrateAndController(GameTestHelper helper) {
         helper.setBlock(RAIL_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(RAIL_A.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(RAIL_B.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(RAIL_A, ServusStorageBlocks.RAIL.get().defaultBlockState());
         helper.setBlock(RAIL_B, ServusStorageBlocks.RAIL.get().defaultBlockState());
         helper.setBlock(RAIL_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
@@ -90,11 +92,14 @@ public final class ServusStorageGameTests {
     private static final BlockPos LIFT_CONTROLLER = new BlockPos(6, 3, 3);
     private static final BlockPos LIFT_TERMINAL = new BlockPos(7, 3, 3);
     private static final BlockPos LIFT_CHEST = new BlockPos(4, 2, 4);
+    private static final BlockPos LIFT_SIDE_CRATE = new BlockPos(4, 1, 4);
 
     /** A three segment shaft links a ground floor crate to a controller two floors up; a chest on the shaft stays out. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void elevatorLinksFloors(GameTestHelper helper) {
         helper.setBlock(LIFT_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(LIFT_RAIL_LOW.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(LIFT_BOTTOM.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(LIFT_RAIL_LOW, ServusStorageBlocks.RAIL.get().defaultBlockState());
         helper.setBlock(LIFT_BOTTOM, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
         helper.setBlock(LIFT_MIDDLE, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
@@ -108,8 +113,11 @@ public final class ServusStorageGameTests {
         helper.setBlock(LIFT_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
                 .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
         helper.setBlock(LIFT_CHEST, Blocks.CHEST.defaultBlockState());
+        helper.setBlock(LIFT_SIDE_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         CrateBlockEntity crate = helper.getBlockEntity(LIFT_CRATE);
         crate.insert(new ItemStack(Items.COBBLESTONE, 30), false);
+        CrateBlockEntity sideCrate = helper.getBlockEntity(LIFT_SIDE_CRATE);
+        sideCrate.insert(new ItemStack(Items.APPLE, 7), false);
         ChestBlockEntity chest = helper.getBlockEntity(LIFT_CHEST);
         chest.setItem(0, new ItemStack(Items.BREAD, 10));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -121,6 +129,8 @@ public final class ServusStorageGameTests {
             helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 30, "stock should list 30 cobblestone from the ground floor crate");
             helper.assertTrue(stockOf(menu, Items.BREAD) == 0, "bread beside the shaft must not be indexed");
             helper.assertTrue(lit(helper, LIFT_CRATE), "crate lamp should be lit through the shaft");
+            helper.assertTrue(stockOf(menu, Items.APPLE) == 0, "a crate touching only a segment must not join through it");
+            helper.assertTrue(!lit(helper, LIFT_SIDE_CRATE), "that crate's lamp stays dark");
 
             helper.setBlock(LIFT_MIDDLE, Blocks.AIR.defaultBlockState());
             helper.runAfterDelay(10, () -> {

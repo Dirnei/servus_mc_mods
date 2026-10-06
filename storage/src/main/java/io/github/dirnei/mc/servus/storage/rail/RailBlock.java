@@ -13,7 +13,6 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -91,9 +90,6 @@ public class RailBlock extends ConnectableBlock {
     @Override
     protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
                                      LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
-        if (direction == Direction.DOWN && !state.canSurvive(level, pos)) {
-            return Blocks.AIR.defaultBlockState();
-        }
         state = super.updateShape(state, direction, neighborState, level, pos, neighborPos);
         if (direction.getAxis().isHorizontal()) {
             state = state.setValue(dock(direction), docksTo(level, neighborPos));
@@ -109,6 +105,15 @@ public class RailBlock extends ConnectableBlock {
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         return canSupportRigidBlock(level, pos.below());
+    }
+
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (!level.isClientSide() && !state.canSurvive(level, pos)) {
+            dropResources(state, level, pos, level.getBlockEntity(pos));
+            level.removeBlock(pos, false);
+        }
     }
 
     @Override

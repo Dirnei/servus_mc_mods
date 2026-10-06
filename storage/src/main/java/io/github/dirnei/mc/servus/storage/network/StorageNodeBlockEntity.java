@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.lib.network.NetworkBlockEntity;
 import io.github.dirnei.mc.servus.lib.network.NetworkManager;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
+import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -28,12 +29,17 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         return this;
     }
 
+    /** What this node is for linking: stock holding blocks by default. */
+    public NodeKind kind() {
+        return NodeKind.STOCK;
+    }
+
     /**
      * Whether this node is indexed as a source and pulls neighbouring
-     * inventories into the warehouse. Connector nodes such as rails return false.
+     * inventories into the warehouse. Connector nodes such as rails do not.
      */
-    public boolean holdsStock() {
-        return true;
+    public final boolean holdsStock() {
+        return kind() == NodeKind.STOCK;
     }
 
     /** The warehouse network this node belongs to, when loaded on the server. */

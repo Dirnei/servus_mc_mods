@@ -16,3 +16,42 @@ The Rail Elevator SHALL be a full height block that renders as a frame of four c
 #### Scenario: Rail through the middle
 - **WHEN** rails lie on the west and east sides of a segment
 - **THEN** the segment shows a rail from its west edge through its centre to its east edge
+
+### Requirement: Rail levels join through a shaft
+Every elevator segment SHALL be a node of the warehouse network. Segments SHALL link to the segments directly above and below them and to rails beside them, so rails on different floors linked by a shaft form one warehouse. A storage block touching a segment SHALL NOT join the warehouse through that segment; only rails and direct contact between storage blocks carry membership.
+
+#### Scenario: Two floors one controller
+- **WHEN** a crate stands beside a rail on the ground floor, the rail meets a shaft, and three segments up another rail leads to a controller and a terminal
+- **THEN** the warehouse is online and the terminal lists the crate's contents
+
+#### Scenario: Broken segment
+- **WHEN** the middle segment of that shaft is broken
+- **THEN** the ground floor leaves the controller's network and the crate's items leave the index
+
+#### Scenario: Crate against the shaft
+- **WHEN** a crate touches a segment of an online warehouse and no rail or storage block of it
+- **THEN** the crate is not part of the warehouse, its items are not listed and its lamp stays dark
+
+### Requirement: Elevator is obtainable and dismantled
+The elevator segment SHALL be craftable from vanilla materials and a Warehouse Rail in a batch, SHALL drop itself when broken, and SHALL be dismantled by sneaking with the Configuration Carrot.
+
+#### Scenario: Crafting
+- **WHEN** the player places iron ingots around a rail in the elevator pattern (for example a rail in the middle of a ring of six ingots)
+- **THEN** the result is several segments (for example four)
+
+#### Scenario: Sneak dismantle
+- **WHEN** the player sneaks and uses the Configuration Carrot on a segment
+- **THEN** the segment drops as an item, and the segments above it lose their support and drop too
+
+## ADDED Requirements
+
+### Requirement: Segments need support
+An elevator segment SHALL only be placed on a block with a solid top or on another segment. A segment whose support is removed SHALL drop as an item.
+
+#### Scenario: Placed in the air
+- **WHEN** the player tries to place a segment against a wall with nothing below it
+- **THEN** the segment is not placed
+
+#### Scenario: Floor removed
+- **WHEN** the block under the lowest segment of a three segment shaft is broken
+- **THEN** all three segments drop as items
