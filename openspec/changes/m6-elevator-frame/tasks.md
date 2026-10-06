@@ -2,7 +2,7 @@
 
 ## 1. Frame shape and models
 
-- [ ] 1.1 Change the shape in `storage/.../rail/ElevatorBlock.java` to four corner posts plus the rail centre plate and the arm boxes; rewrite `storage/.../datagen/ElevatorModels.java` to write `elevator_frame` with four post elements and a multipart blockstate of frame, `rail_center` and conditional `rail_arm` parts, item model `elevator_frame`. Run `gradlew :storage:runData` and verify the generated elevator blockstate has six multipart entries and `elevator_center.json` is gone.
+- [x] 1.1 Change the shape in `storage/.../rail/ElevatorBlock.java` to four corner posts plus the rail centre plate and the arm boxes; rewrite `storage/.../datagen/ElevatorModels.java` to write `elevator_frame` with four post elements and a multipart blockstate of frame, `rail_center` and conditional `rail_arm` parts, item model `elevator_frame`. Run `gradlew :storage:runData` and verify the generated elevator blockstate has six multipart entries and `elevator_center.json` is gone.
 
 ## 2. Verification
 

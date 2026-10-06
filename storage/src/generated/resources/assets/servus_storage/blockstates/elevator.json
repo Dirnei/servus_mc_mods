@@ -2,7 +2,12 @@
   "multipart": [
     {
       "apply": {
-        "model": "servus_storage:block/elevator_center"
+        "model": "servus_storage:block/elevator_frame"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/rail_center"
       }
     },
     {

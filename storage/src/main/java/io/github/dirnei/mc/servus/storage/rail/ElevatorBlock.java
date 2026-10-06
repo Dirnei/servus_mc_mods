@@ -17,13 +17,19 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * One segment of a rail elevator shaft. Segments stack vertically and take
- * rails on their four sides; the network joins anything touching them.
+ * One segment of a rail elevator shaft: four corner posts around an open
+ * middle with the rail running through it. Segments stack vertically and
+ * take rails on their four sides; the network joins anything touching them.
  */
 public class ElevatorBlock extends ConnectableBlock {
 
     public static final MapCodec<ElevatorBlock> CODEC = simpleCodec(ElevatorBlock::new);
-    private static final VoxelShape PILLAR = Block.box(4, 0, 4, 12, 16, 12);
+    private static final VoxelShape FRAME = Shapes.or(
+            Block.box(0, 0, 0, 2, 16, 2),
+            Block.box(14, 0, 0, 16, 16, 2),
+            Block.box(0, 0, 14, 2, 16, 16),
+            Block.box(14, 0, 14, 16, 16, 16),
+            Block.box(5, 0, 5, 11, 1, 11));
     private static final Map<Direction, VoxelShape> ARMS = Map.of(
             Direction.NORTH, Block.box(5, 0, 0, 11, 1, 5),
             Direction.SOUTH, Block.box(5, 0, 11, 11, 1, 16),
@@ -52,7 +58,7 @@ public class ElevatorBlock extends ConnectableBlock {
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return shapes.computeIfAbsent(state, s -> {
-            VoxelShape shape = PILLAR;
+            VoxelShape shape = FRAME;
             for (Map.Entry<Direction, VoxelShape> arm : ARMS.entrySet()) {
                 if (s.getValue(property(arm.getKey()))) {
                     shape = Shapes.or(shape, arm.getValue());
