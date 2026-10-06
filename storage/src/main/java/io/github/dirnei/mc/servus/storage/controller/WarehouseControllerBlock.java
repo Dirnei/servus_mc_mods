@@ -137,13 +137,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
         boolean dismantle = player != null && player.isShiftKeyDown();
         if (!level.isClientSide()) {
             if (dismantle) {
-                ItemStack drop = new ItemStack(this);
-                if (level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
-                    // Shuttles drop as items, so they must not ride along in the saved tag as well.
-                    dropShuttles(level, pos, controller);
-                    controller.saveToItem(drop, level.registryAccess());
-                }
-                Block.popResource(level, pos, drop);
+                Block.popResource(level, pos, new ItemStack(this));
                 level.removeBlock(pos, false);
             } else {
                 level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);

@@ -21,6 +21,7 @@ public final class ServusStorageClient {
         event.register(ServusStorageMenus.COUNTER_TERMINAL.get(), CounterTerminalScreen::new);
         event.register(ServusStorageMenus.HEAVY_RACK.get(), HeavyRackScreen::new);
         event.register(ServusStorageMenus.DISPATCH_STATION.get(), DispatchStationScreen::new);
+        event.register(ServusStorageMenus.ZONE_LABEL.get(), ZoneLabelScreen::new);
     }
 
     @SubscribeEvent

@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.registry;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.DispatchStationMenu;
+import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -22,6 +23,9 @@ public final class ServusStorageMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<DispatchStationMenu>> DISPATCH_STATION =
             MENUS.register("dispatch_station", () -> IMenuTypeExtension.create(DispatchStationMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<ZoneLabelMenu>> ZONE_LABEL =
+            MENUS.register("zone_label", () -> IMenuTypeExtension.create(ZoneLabelMenu::fromNetwork));
 
     private ServusStorageMenus() {
     }

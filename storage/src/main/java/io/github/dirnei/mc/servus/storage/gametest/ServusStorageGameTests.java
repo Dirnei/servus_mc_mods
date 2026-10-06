@@ -9,7 +9,10 @@ import net.minecraft.world.inventory.ClickType;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.storage.zone.ZoneRules;
+import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
+import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
+import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.storage.station.DispatchStationBlock;
 import io.github.dirnei.mc.servus.storage.station.DispatchStationBlockEntity;
@@ -596,7 +599,18 @@ public final class ServusStorageGameTests {
         label.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
     }
 
-    /** A named label stamps crates and racks, a restamp replaces, sneaking clears, an unnamed label does nothing, and the label stays. */
+    private static ItemStack label(String name, ZoneFilter filter) {
+        ItemStack label = new ItemStack(ServusStorageItems.ZONE_LABEL.get());
+        if (name != null) {
+            label.set(DataComponents.CUSTOM_NAME, Component.literal(name));
+        }
+        if (filter != null) {
+            label.set(ServusStorageComponents.ZONE_FILTER.get(), filter);
+        }
+        return label;
+    }
+
+    /** A named label copies name and filter onto crates and racks, a restamp replaces, sneaking clears, an unnamed label does nothing, and the label stays. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void zoneLabelStampsAndClears(GameTestHelper helper) {
         helper.setBlock(ZL_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
@@ -605,30 +619,30 @@ public final class ServusStorageGameTests {
         HeavyRackBlockEntity rack = helper.getBlockEntity(ZL_RACK);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        ItemStack unnamed = new ItemStack(ServusStorageItems.ZONE_LABEL.get());
+        ItemStack unnamed = label(null, new ZoneFilter(List.of(), List.of("c:ores")));
         useLabel(helper, player, unnamed, ZL_CRATE);
         helper.assertTrue(crate.zone().isEmpty(), "an unnamed label must not zone the crate");
         helper.assertTrue(crate.isEmpty(), "the label must not be inserted into the crate");
 
-        ItemStack aisle = new ItemStack(ServusStorageItems.ZONE_LABEL.get());
-        aisle.set(DataComponents.CUSTOM_NAME, Component.literal(" Aisle 3 "));
+        ItemStack aisle = label(" Aisle 3 ", new ZoneFilter(List.of(), List.of("c:ores")));
         useLabel(helper, player, aisle, ZL_CRATE);
         useLabel(helper, player, aisle, ZL_RACK);
         helper.assertTrue(crate.zone().equals("Aisle 3"), "crate zone should be trimmed to Aisle 3, was '" + crate.zone() + "'");
         helper.assertTrue(rack.zone().equals("Aisle 3"), "rack zone should be Aisle 3, was '" + rack.zone() + "'");
         helper.assertTrue(crate.zoneKey().equals("aisle 3"), "zone key should be lower case");
+        helper.assertTrue(crate.zoneFilter().tags().equals(List.of("c:ores")), "the crate should carry the label's tags, had " + crate.zoneFilter().tags());
         helper.assertTrue(rack.getDisplayName().getString().endsWith("(Aisle 3)"), "rack title should carry the zone, was " + rack.getDisplayName().getString());
         helper.assertTrue(!aisle.isEmpty() && aisle.getCount() == 1, "the label must not be consumed");
 
-        ItemStack food = new ItemStack(ServusStorageItems.ZONE_LABEL.get());
-        food.set(DataComponents.CUSTOM_NAME, Component.literal("Food"));
+        ItemStack food = label("Food", new ZoneFilter(List.of(new ItemStack(Items.BREAD)), List.of()));
         useLabel(helper, player, food, ZL_RACK);
         helper.assertTrue(rack.zone().equals("Food"), "restamp should replace the zone");
+        helper.assertTrue(rack.zoneFilter().items().size() == 1 && rack.zoneFilter().items().get(0).is(Items.BREAD), "restamp should replace the filter");
 
         player.setShiftKeyDown(true);
         useLabel(helper, player, food, ZL_CRATE);
         player.setShiftKeyDown(false);
-        helper.assertTrue(crate.zone().isEmpty(), "sneak click should clear the zone");
+        helper.assertTrue(crate.zone().isEmpty() && crate.zoneFilter().isEmpty(), "sneak click should clear the zone");
 
         ItemStack drop = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
         rack.saveToItem(drop, helper.getLevel().registryAccess());
@@ -637,6 +651,44 @@ public final class ServusStorageGameTests {
         net.minecraft.world.item.BlockItem.updateCustomBlockEntityTag(helper.getLevel(), player, helper.absolutePos(ZL_RACK), drop);
         HeavyRackBlockEntity placed = helper.getBlockEntity(ZL_RACK);
         helper.assertTrue(placed.zone().equals("Food"), "a dismantled and placed rack keeps its zone, was '" + placed.zone() + "'");
+        helper.assertTrue(placed.zoneFilter().items().size() == 1, "a dismantled and placed rack keeps its filter");
+        helper.succeed();
+    }
+
+    /** The label menu names the label, parses tags and takes ghost items; the result stamps. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void zoneLabelMenuEditsDefinition(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ServusStorageItems.ZONE_LABEL.get()));
+        ZoneLabelMenu menu = new ZoneLabelMenu(1, player.getInventory(), InteractionHand.MAIN_HAND);
+        helper.assertTrue(ZoneDefinition.of(player.getItemInHand(InteractionHand.MAIN_HAND)) == null, "a fresh label defines no zone");
+
+        menu.setName("  Ores ");
+        menu.setTags("c:ores, #minecraft:logs, not a tag!!");
+        menu.setCarried(new ItemStack(Items.BREAD, 5));
+        menu.clicked(0, 0, ClickType.PICKUP, player);
+        ItemStack labelStack = player.getItemInHand(InteractionHand.MAIN_HAND);
+        ZoneDefinition definition = ZoneDefinition.of(labelStack);
+        helper.assertTrue(definition != null && definition.name().equals("Ores"), "the label should be named Ores");
+        helper.assertTrue(definition.filter().tags().equals(List.of("c:ores", "minecraft:logs")), "tags should be parsed and cleaned, were " + definition.filter().tags());
+        helper.assertTrue(definition.filter().items().size() == 1 && definition.filter().items().get(0).is(Items.BREAD)
+                && definition.filter().items().get(0).getCount() == 1, "the ghost slot should put one bread on the label");
+        helper.assertTrue(menu.getCarried().getCount() == 5, "the cursor keeps its bread");
+        helper.assertTrue(labelStack.getHoverName().getString().equals("Ores"), "the item shows the zone name");
+
+        menu.setCarried(ItemStack.EMPTY);
+        menu.clicked(0, 0, ClickType.PICKUP, player);
+        helper.assertTrue(ZoneDefinition.of(player.getItemInHand(InteractionHand.MAIN_HAND)).filter().items().isEmpty(), "an empty cursor clears the ghost slot");
+
+        menu.setName("");
+        helper.assertTrue(ZoneDefinition.of(player.getItemInHand(InteractionHand.MAIN_HAND)) == null, "a blank name unnames the label");
+        menu.setName("Ores");
+
+        helper.setBlock(ZL_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity crate = helper.getBlockEntity(ZL_CRATE);
+        useLabel(helper, player, player.getItemInHand(InteractionHand.MAIN_HAND), ZL_CRATE);
+        helper.assertTrue(crate.zone().equals("Ores") && crate.zoneFilter().tags().equals(List.of("c:ores", "minecraft:logs")),
+                "the edited label should stamp name and tags, got " + crate.zone() + " " + crate.zoneFilter().tags());
         helper.succeed();
     }
 
@@ -645,51 +697,59 @@ public final class ServusStorageGameTests {
     private static final BlockPos IZ_PLAIN = new BlockPos(7, 1, 9);
     private static final BlockPos IZ_SPARE = new BlockPos(6, 1, 10);
 
-    /** Inserts follow the zone rules: a tag rule pulls ores into its zone, other items stay out of it, and overflow catches a full zone. */
+    private static final BlockPos IZ_IRON = new BlockPos(6, 1, 8);
+
+    private static ZoneDefinition zone(String name, List<ItemStack> items, List<String> tags) {
+        return new ZoneDefinition(name, new ZoneFilter(items, tags));
+    }
+
+    /** Inserts follow the zones: exact items beat tags, filtered blocks refuse other items, unzoned storage catches full zones. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void insertRespectsZones(GameTestHelper helper) {
         helper.setBlock(IZ_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        helper.setBlock(IZ_ORES, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        helper.setBlock(IZ_PLAIN, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        helper.setBlock(IZ_SPARE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        for (BlockPos pos : List.of(IZ_ORES, IZ_PLAIN, IZ_SPARE, IZ_IRON)) {
+            helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        }
         CrateBlockEntity ores = helper.getBlockEntity(IZ_ORES);
+        CrateBlockEntity iron = helper.getBlockEntity(IZ_IRON);
         CrateBlockEntity plain = helper.getBlockEntity(IZ_PLAIN);
         CrateBlockEntity spare = helper.getBlockEntity(IZ_SPARE);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(IZ_CONTROLLER);
-        ores.setZone("Ores");
-        controller.rules().setTags("Ores", "c:ores");
+        ores.setZone(zone("Ores", List.of(), List.of("c:ores")));
+        iron.setZone(zone("Iron", List.of(new ItemStack(Items.IRON_ORE)), List.of()));
         plain.insert(new ItemStack(Items.BREAD, 1), false);
 
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = controller.network().orElseThrow();
             helper.assertTrue(network.status() == WarehouseNetwork.Status.ONLINE, "warehouse should be online");
-            helper.assertTrue(network.zoneBlockCounts().getOrDefault("ores", 0) == 1, "one block in zone ores, got " + network.zoneBlockCounts());
+            helper.assertTrue(network.zoneBlockCounts().equals(java.util.Map.of("ores", 1, "iron", 1)), "two zones with one block each, got " + network.zoneBlockCounts());
 
             ItemStack left = network.insert(new ItemStack(Items.IRON_ORE, 10));
             helper.assertTrue(left.isEmpty(), "iron ore should fit");
-            helper.assertTrue(ores.count() == 10, "iron ore should land in the Ores crate, had " + ores.count());
-            helper.assertTrue(plain.count() == 1, "the unzoned crate must not take ore, had " + plain.count());
+            helper.assertTrue(iron.count() == 10, "iron ore should land in the Iron crate (exact beats tag), had " + iron.count());
+            helper.assertTrue(ores.isEmpty(), "the Ores crate should not take it while the exact match has room");
+
+            left = network.insert(new ItemStack(Items.COPPER_ORE, 10));
+            helper.assertTrue(left.isEmpty(), "copper ore should fit");
+            helper.assertTrue(ores.count() == 10, "copper ore should land in the Ores crate by tag, had " + ores.count());
+            helper.assertTrue(plain.count() == 1 && spare.isEmpty(), "unzoned crates must not take ore while a zone has room");
 
             left = network.insert(new ItemStack(Items.BREAD, 5));
             helper.assertTrue(left.isEmpty(), "bread should fit");
             helper.assertTrue(plain.count() == 6, "bread should join the unzoned crate already holding bread, had " + plain.count());
-            helper.assertTrue(ores.count() == 10, "the Ores crate must not take bread");
 
-            ores.insert(new ItemStack(Items.IRON_ORE, 5000), false);
-            helper.assertTrue(ores.count() == ores.capacity(), "the Ores crate should be full");
+            iron.insert(new ItemStack(Items.IRON_ORE, 5000), false);
+            ores.insert(new ItemStack(Items.COPPER_ORE, 5000), false);
+            helper.assertTrue(iron.count() == iron.capacity() && ores.count() == ores.capacity(), "both zoned crates should be full");
             left = network.insert(new ItemStack(Items.IRON_ORE, 7));
-            helper.assertTrue(left.getCount() == 7, "with the zone full and no overflow nothing is stored, left " + left.getCount());
-            helper.assertTrue(spare.isEmpty(), "the spare crate must not take ores before it is the overflow zone");
+            helper.assertTrue(left.isEmpty(), "with the zones full the unzoned crate takes the ore");
+            helper.assertTrue(spare.count() == 7, "the ore should be in the unzoned spare crate, had " + spare.count());
 
-            spare.setZone("Spare");
-            controller.rules().setOverflow("Spare", true);
-            helper.runAfterDelay(5, () -> {
-                ItemStack rest = network.insert(new ItemStack(Items.IRON_ORE, 7));
-                helper.assertTrue(rest.isEmpty(), "overflow should take the ore");
-                helper.assertTrue(spare.count() == 7, "the ore should be in the overflow crate, had " + spare.count());
-                helper.succeed();
-            });
+            spare.insert(new ItemStack(Items.IRON_ORE, 5000), false);
+            left = network.insert(new ItemStack(Items.IRON_ORE, 7));
+            helper.assertTrue(left.getCount() == 7, "with everything full nothing is stored, left " + left.getCount());
+            helper.succeed();
         });
     }
 
@@ -727,29 +787,26 @@ public final class ServusStorageGameTests {
         });
     }
 
-    /** With its zone full and no overflow the stack waits with a red lamp, and leaves once a zone block has room. */
+    /** With its zone full and no unzoned storage the stack waits with a red lamp, and leaves once an unzoned crate appears. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void stationBacksUpWhenZoneFull(GameTestHelper helper) {
         DispatchStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         CrateBlockEntity full = helper.getBlockEntity(ST_CRATE);
-        full.setZone("Ores");
+        full.setZone(zone("Ores", List.of(), List.of("c:ores")));
         full.insert(new ItemStack(Items.IRON_ORE, 5000), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(ST_CONTROLLER);
-        controller.rules().setTags("Ores", "c:ores");
         helper.runAfterDelay(5, () -> {
             ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.IRON_ORE, 7), false);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty(), "the ore should wait in the buffer");
                 helper.assertTrue(helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be red");
-                helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.ZONE_FULL_NO_OVERFLOW,
-                        "reason should be zone full without overflow, was " + station.blockedReason());
+                helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.NO_ROOM,
+                        "reason should be no room, was " + station.blockedReason());
                 helper.assertTrue("Ores".equals(station.blockedZone()), "blocked zone should read Ores, was " + station.blockedZone());
                 helper.setBlock(ST_CRATE_2, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
                 CrateBlockEntity fresh = helper.getBlockEntity(ST_CRATE_2);
-                fresh.setZone("Ores");
                 helper.runAfterDelay(10, () -> {
-                    helper.assertTrue(fresh.count() == 7, "the waiting ore should land in the new Ores crate, had " + fresh.count());
+                    helper.assertTrue(fresh.count() == 7, "the waiting ore should spill into the new unzoned crate, had " + fresh.count());
                     helper.assertTrue(station.isEmpty(), "the buffer should be empty again");
                     helper.assertTrue(!helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be back to normal");
                     helper.succeed();
@@ -854,43 +911,26 @@ public final class ServusStorageGameTests {
         });
     }
 
-    /** The station menu edits the warehouse's zone rules: selection, tags, overflow, ghost items, and shift click feeds the buffer. */
+    /** The station menu lists the zones with their block counts and filters, and shift click feeds the buffer. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void stationMenuEditsRules(GameTestHelper helper) {
+    public static void stationMenuShowsZones(GameTestHelper helper) {
         DispatchStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(ST_CRATE);
-        crate.setZone("Ores");
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(ST_CONTROLLER);
+        helper.setBlock(ST_CRATE_2, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity ores = helper.getBlockEntity(ST_CRATE);
+        CrateBlockEntity food = helper.getBlockEntity(ST_CRATE_2);
+        ores.setZone(zone("Ores", List.of(), List.of("c:ores")));
+        food.setZone(zone("Food", List.of(new ItemStack(Items.BREAD)), List.of()));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(5, () -> {
             DispatchStationMenu menu = new DispatchStationMenu(1, player.getInventory(), station);
             helper.assertTrue(menu.state().online(), "the station should see an online warehouse");
-            helper.assertTrue(menu.state().zones().size() == 1 && menu.state().zones().get(0).key().equals("ores")
-                    && menu.state().zones().get(0).blocks() == 1, "the zone list should show Ores with one block: " + menu.state().zones());
-
-            menu.selectZone("Ores");
-            helper.assertTrue(menu.selected().equals("ores"), "Ores should be selected");
-            menu.setTags("c:ores, #minecraft:logs, not a tag!!");
-            ZoneRules rules = controller.rules();
-            helper.assertTrue(rules.get("ores").tags().equals(List.of("c:ores", "minecraft:logs")),
-                    "tags should be parsed and cleaned, were " + rules.get("ores").tags());
-            helper.assertTrue(menu.state().tagLine().equals("c:ores, minecraft:logs"), "the tag line should echo the tags, was " + menu.state().tagLine());
-
-            menu.setOverflow(true);
-            helper.assertTrue("ores".equals(rules.overflowKey()), "Ores should be the overflow zone");
-            helper.assertTrue(menu.state().overflow(), "the state should show the overflow flag");
-            menu.setOverflow(false);
-            helper.assertTrue(rules.overflowKey() == null, "overflow should be cleared again");
-
-            menu.setCarried(new ItemStack(Items.BREAD, 5));
-            menu.clicked(menu.ghostStart(), 0, ClickType.PICKUP, player);
-            helper.assertTrue(rules.get("ores").filter().getStackInSlot(0).is(Items.BREAD)
-                    && rules.get("ores").filter().getStackInSlot(0).getCount() == 1, "the ghost slot should hold one bread");
-            helper.assertTrue(menu.getCarried().getCount() == 5, "the cursor keeps its bread");
-            menu.setCarried(ItemStack.EMPTY);
-            menu.clicked(menu.ghostStart(), 0, ClickType.PICKUP, player);
-            helper.assertTrue(rules.get("ores").filter().getStackInSlot(0).isEmpty(), "an empty cursor clears the ghost slot");
+            List<io.github.dirnei.mc.servus.storage.station.ZoneRulesSyncPayload.ZoneRow> rows = menu.state().zones();
+            helper.assertTrue(rows.size() == 2, "two zones expected, got " + rows);
+            helper.assertTrue(rows.get(0).key().equals("food") && rows.get(0).blocks() == 1 && rows.get(0).items().equals(List.of("Bread")),
+                    "Food should list one block with bread, got " + rows.get(0));
+            helper.assertTrue(rows.get(1).key().equals("ores") && rows.get(1).tags().equals(List.of("c:ores")),
+                    "Ores should list its tag, got " + rows.get(1));
 
             player.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE, 20));
             menu.quickMoveStack(player, menu.inventoryStart() + 27);

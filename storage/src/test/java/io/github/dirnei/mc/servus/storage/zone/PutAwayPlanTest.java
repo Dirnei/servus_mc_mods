@@ -1,14 +1,13 @@
 package io.github.dirnei.mc.servus.storage.zone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan.General;
-import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan.Pool;
-import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan.Reason;
-import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan.Route;
-import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan.Rule;
-import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan.Zone;
+import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan.Filter;
+import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan.Match;
+import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan.Tiers;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,80 +22,62 @@ class PutAwayPlanTest {
         default -> Set.of();
     };
 
-    private static Rule<String> items(String... items) {
-        return new Rule<>(Set.of(items), Set.of(), false);
+    private static Filter<String> items(String... items) {
+        return new Filter<>(Set.of(items), Set.of());
     }
 
-    private static Rule<String> tags(String... tags) {
-        return new Rule<>(Set.of(), Set.of(tags), false);
+    private static Filter<String> tags(String... tags) {
+        return new Filter<>(Set.of(), Set.of(tags));
     }
 
-    private static Rule<String> overflow() {
-        return new Rule<>(Set.of(), Set.of(), true);
-    }
-
-    private static final Rule<String> EMPTY = new Rule<>(Set.of(), Set.of(), false);
+    private static final Filter<String> EMPTY = new Filter<>(Set.of(), Set.of());
 
     @Test
-    void exactItemBeatsTag() {
-        Route route = PutAwayPlan.route("raw_iron", Map.of("ores", tags("c:ores"), "iron", items("raw_iron")), TAGS);
-        assertEquals(List.<Pool>of(new Zone("iron")), route.pools());
-        assertEquals("iron", route.matched());
+    void exactMatchGoesToTheFirstTier() {
+        Tiers<String> tiers = PutAwayPlan.tiers("raw_iron", Map.of("a", items("raw_iron")), TAGS);
+        assertEquals(Set.of("a"), tiers.exact());
+        assertTrue(tiers.byTag().isEmpty());
+        assertTrue(tiers.matched());
     }
 
     @Test
-    void twoTagMatchesPickTheAlphabeticallyFirst() {
-        Route route = PutAwayPlan.route("raw_iron", Map.of("raw", tags("c:raw_materials"), "ores", tags("c:ores")), TAGS);
-        assertEquals(List.<Pool>of(new Zone("ores")), route.pools());
+    void tagMatchGoesToTheSecondTier() {
+        Tiers<String> tiers = PutAwayPlan.tiers("raw_copper", Map.of("a", tags("c:ores")), TAGS);
+        assertTrue(tiers.exact().isEmpty());
+        assertEquals(Set.of("a"), tiers.byTag());
     }
 
     @Test
-    void noMatchGoesGeneralThenOverflow() {
-        Route route = PutAwayPlan.route("bread", Map.of("ores", tags("c:ores"), "spare", overflow()), TAGS);
-        assertEquals(List.of(General.INSTANCE, new Zone("spare")), route.pools());
-        assertNull(route.matched());
-        assertEquals(Reason.OVERFLOW_FULL, route.blocked());
+    void bothKindsAreSplitKeepingOrder() {
+        Map<String, Filter<String>> filtered = new LinkedHashMap<>();
+        filtered.put("tagged", tags("c:ores"));
+        filtered.put("exact2", items("raw_iron", "bread"));
+        filtered.put("exact1", items("raw_iron"));
+        filtered.put("other", items("bread"));
+        Tiers<String> tiers = PutAwayPlan.tiers("raw_iron", filtered, TAGS);
+        assertEquals(List.of("exact2", "exact1"), List.copyOf(tiers.exact()));
+        assertEquals(List.of("tagged"), List.copyOf(tiers.byTag()));
     }
 
     @Test
-    void matchGoesZoneThenOverflow() {
-        Route route = PutAwayPlan.route("raw_copper", Map.of("ores", tags("c:ores"), "spare", overflow()), TAGS);
-        assertEquals(List.of(new Zone("ores"), new Zone("spare")), route.pools());
-        assertEquals(Reason.OVERFLOW_FULL, route.blocked());
+    void noMatchGivesEmptyTiers() {
+        Tiers<String> tiers = PutAwayPlan.tiers("bread", Map.of("a", tags("c:ores"), "b", items("raw_iron")), TAGS);
+        assertFalse(tiers.matched());
     }
 
     @Test
-    void overflowZoneIsNeverPrimaryWithoutItsOwnMatch() {
-        Route route = PutAwayPlan.route("bread", Map.of("spare", overflow()), TAGS);
-        assertEquals(List.of(General.INSTANCE, new Zone("spare")), route.pools());
+    void emptyFilterNeverMatches() {
+        Tiers<String> tiers = PutAwayPlan.tiers("bread", Map.of("a", EMPTY), TAGS);
+        assertFalse(tiers.matched());
+        assertEquals(Match.NONE, EMPTY.match("bread", Set.of("c:foods")));
+        assertTrue(EMPTY.isEmpty());
     }
 
     @Test
-    void overflowZoneWithMatchingFilterIsPrimaryAndListedOnce() {
-        Rule<String> ores = new Rule<>(Set.of(), Set.of("c:ores"), true);
-        Route route = PutAwayPlan.route("raw_iron", Map.of("ores", ores), TAGS);
-        assertEquals(List.<Pool>of(new Zone("ores")), route.pools());
-        assertEquals(Reason.ZONE_FULL_NO_OVERFLOW, route.blocked());
-    }
-
-    @Test
-    void unfilteredZoneIsNotAPoolOfItsOwn() {
-        Route route = PutAwayPlan.route("bread", Map.of("back", EMPTY), TAGS);
-        assertEquals(List.<Pool>of(General.INSTANCE), route.pools());
-        assertEquals(Reason.NO_STORAGE, route.blocked());
-    }
-
-    @Test
-    void zoneFullWithoutOverflowReason() {
-        Route route = PutAwayPlan.route("raw_iron", Map.of("ores", tags("c:ores")), TAGS);
-        assertEquals(List.<Pool>of(new Zone("ores")), route.pools());
-        assertEquals(Reason.ZONE_FULL_NO_OVERFLOW, route.blocked());
-    }
-
-    @Test
-    void generalRuleFlags() {
-        assertEquals(true, EMPTY.general());
-        assertEquals(false, overflow().general());
-        assertEquals(false, tags("c:ores").general());
+    void exactWinsOverTagInsideOneFilter() {
+        Filter<String> both = new Filter<>(Set.of("raw_iron"), Set.of("c:ores"));
+        assertEquals(Match.EXACT, both.match("raw_iron", TAGS.apply("raw_iron")));
+        assertEquals(Match.TAG, both.match("raw_copper", TAGS.apply("raw_copper")));
+        assertEquals(Match.NONE, both.match("bread", TAGS.apply("bread")));
     }
 }

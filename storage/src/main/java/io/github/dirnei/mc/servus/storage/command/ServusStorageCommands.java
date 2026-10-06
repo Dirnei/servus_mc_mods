@@ -7,8 +7,6 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.storage.zone.ZoneRules;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -88,39 +86,23 @@ public final class ServusStorageCommands {
         if (network.isEmpty()) {
             return 0;
         }
-        WarehouseNetwork warehouse = network.get();
-        Map<String, Integer> counts = warehouse.zoneBlockCounts();
-        if (counts.isEmpty()) {
+        List<WarehouseNetwork.ZoneSummary> zones = network.get().zoneSummaries();
+        if (zones.isEmpty()) {
             source.sendSuccess(() -> Component.literal("No zones"), false);
             return 0;
         }
-        Optional<ZoneRules> rules = warehouse.rules();
-        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
-            StringBuilder line = new StringBuilder("  - ").append(warehouse.zoneDisplay(entry.getKey()))
-                    .append(": ").append(entry.getValue()).append(" blocks");
-            ZoneRules.Entry rule = rules.map(r -> r.get(entry.getKey())).orElse(null);
-            if (rule != null) {
-                List<String> items = new ArrayList<>();
-                for (int i = 0; i < rule.filter().getSlots(); i++) {
-                    ItemStack stack = rule.filter().getStackInSlot(i);
-                    if (!stack.isEmpty()) {
-                        items.add(stack.getHoverName().getString());
-                    }
-                }
-                if (!items.isEmpty()) {
-                    line.append(", items ").append(items);
-                }
-                if (!rule.tags().isEmpty()) {
-                    line.append(", tags ").append(rule.tags());
-                }
-                if (rule.overflow()) {
-                    line.append(", overflow");
-                }
+        for (WarehouseNetwork.ZoneSummary zone : zones) {
+            StringBuilder line = new StringBuilder("  - ").append(zone.display()).append(": ").append(zone.blocks()).append(" blocks");
+            if (!zone.items().isEmpty()) {
+                line.append(", items ").append(zone.items());
+            }
+            if (!zone.tags().isEmpty()) {
+                line.append(", tags ").append(zone.tags());
             }
             String text = line.toString();
             source.sendSuccess(() -> Component.literal(text), false);
         }
-        return counts.size();
+        return zones.size();
     }
 
     private static int info(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

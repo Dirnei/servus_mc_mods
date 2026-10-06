@@ -173,9 +173,7 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        if (!zone().isEmpty()) {
-            tag.putString("Zone", zone());
-        }
+        writeZone(tag, registries);
         ListTag list = new ListTag();
         for (ItemStack stack : displayed) {
             list.add(stack.save(registries));

@@ -1,14 +1,11 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.station.ZoneRulesSyncPayload;
-import java.util.List;
-import net.minecraft.world.item.ItemStack;
 
-/** The last zone list and rule the server sent for the open dispatch station. */
+/** The last zone overview the server sent for the open dispatch station. */
 public final class ClientZoneRules {
 
-    private static volatile ZoneRulesSyncPayload state =
-            new ZoneRulesSyncPayload(false, "", List.of(), "", "", false, "", ItemStack.EMPTY, "", true);
+    private static volatile ZoneRulesSyncPayload state = ZoneRulesSyncPayload.EMPTY;
     private static volatile int version;
 
     private ClientZoneRules() {
@@ -20,7 +17,7 @@ public final class ClientZoneRules {
     }
 
     public static void clear() {
-        state = new ZoneRulesSyncPayload(false, "", List.of(), "", "", false, "", ItemStack.EMPTY, "", true);
+        state = ZoneRulesSyncPayload.EMPTY;
         version++;
     }
 

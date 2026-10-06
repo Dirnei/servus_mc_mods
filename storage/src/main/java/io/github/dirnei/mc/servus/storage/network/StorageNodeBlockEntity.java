@@ -6,7 +6,9 @@ import io.github.dirnei.mc.servus.lib.network.NetworkManager;
 import io.github.dirnei.mc.servus.lib.graph.Side;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
-import io.github.dirnei.mc.servus.storage.zone.ZoneNames;
+import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
+import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
+import java.util.Objects;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -20,8 +22,8 @@ import net.minecraft.world.level.block.state.BlockState;
 /** Base of every block that takes part in a warehouse network. */
 public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageNodeBlockEntity> {
 
-    /** The zone name as the player typed it; empty when unzoned. */
-    private String zone = "";
+    /** The zone copied onto this block by a Zone Label, or null when unzoned. */
+    private ZoneDefinition zone;
 
     protected StorageNodeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -31,12 +33,22 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
 
     /** The zone name for display, empty when unzoned. */
     public String zone() {
+        return zone == null ? "" : zone.name();
+    }
+
+    /** The zone key for grouping, empty when unzoned. */
+    public String zoneKey() {
+        return zone == null ? "" : zone.key();
+    }
+
+    /** The zone as stamped, or null. */
+    public ZoneDefinition zoneDefinition() {
         return zone;
     }
 
-    /** The zone key for matching, empty when unzoned. */
-    public String zoneKey() {
-        return ZoneNames.key(zone);
+    /** The filter this block applies; empty for unzoned blocks and name only zones. */
+    public ZoneFilter zoneFilter() {
+        return zone == null ? ZoneFilter.EMPTY : zone.filter();
     }
 
     /** Whether a Zone Label may stamp this node: stock blocks that are not the controller or terminal. */
@@ -44,13 +56,12 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         return false;
     }
 
-    /** Stamps or clears (empty name) the zone, syncs clients and tells the network. */
-    public void setZone(String name) {
-        String display = ZoneNames.display(name);
-        if (display.equals(zone)) {
+    /** Stamps the zone (null clears), syncs clients and tells the network. */
+    public void setZone(ZoneDefinition definition) {
+        if (Objects.equals(definition, zone)) {
             return;
         }
-        zone = display;
+        zone = definition;
         setChanged();
         if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
@@ -59,18 +70,27 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         }
     }
 
+    public void clearZone() {
+        setZone(null);
+    }
+
+    /** Writes the zone into a tag; shared by save and update tags. */
+    protected void writeZone(CompoundTag tag, HolderLookup.Provider registries) {
+        if (zone != null) {
+            tag.put("Zone", zone.save(registries));
+        }
+    }
+
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        if (!zone.isEmpty()) {
-            tag.putString("Zone", zone);
-        }
+        writeZone(tag, registries);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        zone = tag.contains("Zone") ? ZoneNames.display(tag.getString("Zone")) : "";
+        zone = tag.contains("Zone", CompoundTag.TAG_COMPOUND) ? ZoneDefinition.load(tag.getCompound("Zone"), registries) : null;
     }
 
     // Linking

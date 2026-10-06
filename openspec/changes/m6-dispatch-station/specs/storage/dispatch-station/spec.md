@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Dispatch Station is the warehouse's inbound dock: items arrive in its buffer and the warehouse puts them away by its zone rules, carried by shuttles over the rails when the warehouse has them.
+The Dispatch Station is the warehouse's inbound dock: items arrive in its buffer and the warehouse puts them away by its zones, carried by shuttles over the rails when the warehouse has them.
 
 ## ADDED Requirements
 
@@ -37,7 +37,7 @@ The station SHALL be a member of the warehouse network like a storage block: it 
 - **THEN** the crate, the station and the controller form one online warehouse
 
 ### Requirement: Put-away without shuttles
-When the warehouse is online and has no shuttle or no home rail, or the station or the chosen target touches no rail the home rail reaches, the warehouse SHALL move a buffer stack to its target at once, at most `put_away_per_tick` stacks per station per tick (example 1). Targets SHALL follow the put-away routing of the zone rules. The buffer SHALL stay untouched while the warehouse is offline.
+When the warehouse is online and has no shuttle or no home rail, or the station or the chosen target touches no rail the home rail reaches, the warehouse SHALL move a buffer stack to its target at once, at most `put_away_per_tick` stacks per station per tick (example 1). Targets SHALL follow the put-away routing of the zones. The buffer SHALL stay untouched while the warehouse is offline.
 
 #### Scenario: Instant put-away
 - **WHEN** a station touching the controller receives 64 cobblestone and the warehouse has no shuttles
@@ -48,8 +48,8 @@ When the warehouse is online and has no shuttle or no home rail, or the station 
 - **THEN** the cobblestone stays in the buffer
 
 #### Scenario: Routed to its zone
-- **WHEN** "Ores" lists `c:ores` and raw iron arrives at the station
-- **THEN** the raw iron lands in a block of "Ores"
+- **WHEN** a crate is zoned "Ores" with `c:ores` and raw iron arrives at the station
+- **THEN** the raw iron lands in that crate
 
 ### Requirement: Put-away by shuttle
 When the warehouse has shuttles and a home rail, and both the station and the chosen target touch rails the home rail reaches, a buffer stack SHALL become a put-away job. A free shuttle SHALL drive to the station's rail, take the stack, drive to the target's rail, insert it, and return home. The stack SHALL stay in the buffer until the shuttle loads it and SHALL NOT be offered to a second shuttle meanwhile. What the target no longer accepts on arrival SHALL ride back and return to the buffer.
@@ -71,34 +71,30 @@ When the warehouse has shuttles and a home rail, and both the station and the ch
 - **THEN** the shuttle brings the stack back and it is in the buffer again
 
 ### Requirement: Backed up station
-A stack that the routing cannot place anywhere SHALL wait in the buffer and the station SHALL show a red lamp while any stack waits. The station GUI SHALL name the first waiting stack and the reason: no room in its zone and no overflow zone, overflow zone full, or no storage at all.
+A stack that the routing cannot place anywhere SHALL wait in the buffer and the station SHALL show a red lamp while any stack waits. The station GUI SHALL name the first waiting stack and the reason: no room in its zone and in general storage, or no storage at all.
 
-#### Scenario: Zone and overflow full
-- **WHEN** raw copper waits because "Aisle 3" and the overflow zone are full
-- **THEN** the station lamp is red and the GUI reads that raw copper has no room in "Aisle 3" and the overflow zone is full
+#### Scenario: Zone and general storage full
+- **WHEN** raw copper waits because every "Aisle 3" block and every unzoned block is full
+- **THEN** the station lamp is red and the GUI reads that raw copper has no room in "Aisle 3" or in general storage
 
 #### Scenario: Room appears
 - **WHEN** a new crate is stamped "Aisle 3" while raw copper waits
 - **THEN** the copper is put away within a few ticks and the lamp goes back to the online colour
 
 ### Requirement: Station GUI
-Right clicking the station SHALL open a GUI with the buffer slots, the player inventory and the zones of the warehouse. Clicking a zone SHALL select it and show its rule: nine ghost slots set from the cursor and cleared with an empty cursor, a text line of item tags separated by commas, and an overflow toggle. Zones without blocks SHALL be listed greyed. Edits SHALL apply at once for every station of the warehouse. While offline the GUI SHALL show the reason instead of the zones.
+Right clicking the station SHALL open a GUI with the buffer slots, the player inventory, the zones of the warehouse and the station's state. The zone list SHALL show every zone name with its block count and, on hover, the filter items and tags its blocks carry. The list SHALL be read only: zones are defined on Zone Labels. Shift clicking an inventory stack SHALL move it into the buffer. While offline the GUI SHALL show the reason instead of the zones.
 
-#### Scenario: Set a tag
-- **WHEN** the player selects "Ores" and types `c:ores` into the tag line
-- **THEN** raw iron arriving at any station of the warehouse is routed to "Ores"
-
-#### Scenario: Ghost item
-- **WHEN** the player selects "Food" and clicks a ghost slot with bread on the cursor
-- **THEN** the slot shows bread, the cursor still holds the bread and bread routes to "Food"
-
-#### Scenario: Greyed zone
-- **WHEN** zone "Ores" has a rule but no blocks
-- **THEN** it is listed greyed and can still be selected and edited
+#### Scenario: Zone overview
+- **WHEN** the warehouse has three "Ores" blocks carrying `c:ores` and one "Food" block carrying bread
+- **THEN** the list shows "Ores" with 3 blocks and "Food" with 1 block, and hovering "Ores" shows the tag `c:ores`
 
 #### Scenario: Shift click into the buffer
 - **WHEN** the player shift clicks 20 cobblestone in the inventory
 - **THEN** the cobblestone is in the buffer and is put away as if a hopper had fed it
+
+#### Scenario: Offline
+- **WHEN** the station touches crates but no controller
+- **THEN** the GUI says the warehouse has no controller
 
 ### Requirement: Station is obtainable and dismantled
 The station SHALL be craftable from vanilla materials, SHALL drop itself when broken, and SHALL be dismantled by sneaking with the Configuration Carrot, dropping its buffer contents. The Configuration Carrot without sneaking SHALL turn its facing.
