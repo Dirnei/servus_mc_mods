@@ -6,6 +6,8 @@ import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.storage.zone.ZoneRules;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
@@ -629,5 +631,58 @@ public final class ServusStorageGameTests {
         HeavyRackBlockEntity placed = helper.getBlockEntity(ZL_RACK);
         helper.assertTrue(placed.zone().equals("Food"), "a dismantled and placed rack keeps its zone, was '" + placed.zone() + "'");
         helper.succeed();
+    }
+
+    private static final BlockPos IZ_CONTROLLER = new BlockPos(6, 1, 9);
+    private static final BlockPos IZ_ORES = new BlockPos(5, 1, 9);
+    private static final BlockPos IZ_PLAIN = new BlockPos(7, 1, 9);
+    private static final BlockPos IZ_SPARE = new BlockPos(6, 1, 10);
+
+    /** Inserts follow the zone rules: a tag rule pulls ores into its zone, other items stay out of it, and overflow catches a full zone. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void insertRespectsZones(GameTestHelper helper) {
+        helper.setBlock(IZ_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(IZ_ORES, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(IZ_PLAIN, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(IZ_SPARE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity ores = helper.getBlockEntity(IZ_ORES);
+        CrateBlockEntity plain = helper.getBlockEntity(IZ_PLAIN);
+        CrateBlockEntity spare = helper.getBlockEntity(IZ_SPARE);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(IZ_CONTROLLER);
+        ores.setZone("Ores");
+        controller.rules().setTags("Ores", "c:ores");
+        plain.insert(new ItemStack(Items.BREAD, 1), false);
+
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            helper.assertTrue(network.status() == WarehouseNetwork.Status.ONLINE, "warehouse should be online");
+            helper.assertTrue(network.zoneBlockCounts().getOrDefault("ores", 0) == 1, "one block in zone ores, got " + network.zoneBlockCounts());
+
+            ItemStack left = network.insert(new ItemStack(Items.IRON_ORE, 10));
+            helper.assertTrue(left.isEmpty(), "iron ore should fit");
+            helper.assertTrue(ores.count() == 10, "iron ore should land in the Ores crate, had " + ores.count());
+            helper.assertTrue(plain.count() == 1, "the unzoned crate must not take ore, had " + plain.count());
+
+            left = network.insert(new ItemStack(Items.BREAD, 5));
+            helper.assertTrue(left.isEmpty(), "bread should fit");
+            helper.assertTrue(plain.count() == 6, "bread should join the unzoned crate already holding bread, had " + plain.count());
+            helper.assertTrue(ores.count() == 10, "the Ores crate must not take bread");
+
+            ores.insert(new ItemStack(Items.IRON_ORE, 5000), false);
+            helper.assertTrue(ores.count() == ores.capacity(), "the Ores crate should be full");
+            left = network.insert(new ItemStack(Items.IRON_ORE, 7));
+            helper.assertTrue(left.getCount() == 7, "with the zone full and no overflow nothing is stored, left " + left.getCount());
+            helper.assertTrue(spare.isEmpty(), "the spare crate must not take ores before it is the overflow zone");
+
+            spare.setZone("Spare");
+            controller.rules().setOverflow("Spare", true);
+            helper.runAfterDelay(5, () -> {
+                ItemStack rest = network.insert(new ItemStack(Items.IRON_ORE, 7));
+                helper.assertTrue(rest.isEmpty(), "overflow should take the ore");
+                helper.assertTrue(spare.count() == 7, "the ore should be in the overflow crate, had " + spare.count());
+                helper.succeed();
+            });
+        });
     }
 }

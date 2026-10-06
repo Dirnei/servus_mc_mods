@@ -13,6 +13,8 @@ import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
+import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
+import io.github.dirnei.mc.servus.storage.zone.ZoneRules;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +23,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -82,6 +87,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Map<BlockPos, Source> sources = new LinkedHashMap<>();
     /** Members that hold no stock, such as rails. Never sources, never surrounded by candidates. */
     private final Set<BlockPos> connectors = new HashSet<>();
+    /** Zone key per zoned stock node. Unzoned nodes and foreign inventories are absent. */
+    private final Map<BlockPos, String> zoneOf = new HashMap<>();
+    /** Display spelling per zone key, as seen on the blocks. */
+    private final Map<String, String> zoneDisplay = new HashMap<>();
+    /** Set when a zone or rule changed; stations with waiting stacks retry on the next tick. */
+    private boolean zonesDirty;
     private final WarehouseIndex<BlockPos, ItemKey> index = new WarehouseIndex<>();
     private final ArrayDeque<BlockPos> dirtyQueue = new ArrayDeque<>();
     private final Set<BlockPos> dirtySet = new HashSet<>();
@@ -110,6 +121,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (node.holdsStock()) {
             addSource(blockPos, true);
             addCandidatesAround(blockPos);
+            rememberZone(blockPos, node);
         } else {
             connectors.add(blockPos);
         }
@@ -125,6 +137,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     protected void onNodeRemoved(NodePos pos, StorageNodeBlockEntity node) {
         BlockPos blockPos = Conversions.toBlockPos(pos);
         connectors.remove(blockPos);
+        zoneOf.remove(blockPos);
         dropSource(blockPos);
         if (node instanceof WarehouseControllerBlockEntity && blockPos.equals(fleet.controller())) {
             controllers--;
@@ -147,6 +160,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         controllers += that.controllers;
         connectors.addAll(that.connectors);
+        zoneOf.putAll(that.zoneOf);
+        zoneDisplay.putAll(that.zoneDisplay);
         that.sources.forEach((pos, source) -> {
             if (!sources.containsKey(pos) || source.node()) {
                 sources.put(pos, source);
@@ -161,6 +176,116 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** The controller's shuttle count changed. */
     public void fleetChanged(WarehouseControllerBlockEntity controller) {
         fleet.adopt(controller.getBlockPos(), controller.shuttleCount());
+    }
+
+    // Zones and rules
+
+    private void rememberZone(BlockPos pos, StorageNodeBlockEntity node) {
+        String key = node.zoneKey();
+        if (key.isEmpty()) {
+            zoneOf.remove(pos);
+        } else {
+            zoneOf.put(pos, key);
+            zoneDisplay.put(key, node.zone());
+        }
+    }
+
+    /** The rules of this warehouse, present while a controller is in it and loaded. */
+    public Optional<ZoneRules> rules() {
+        BlockPos controller = fleet.controller();
+        if (controller == null || level == null || !level.isLoaded(controller)) {
+            return Optional.empty();
+        }
+        return level.getBlockEntity(controller) instanceof WarehouseControllerBlockEntity be
+                ? Optional.of(be.rules()) : Optional.empty();
+    }
+
+    private Map<String, PutAwayPlan.Rule<ItemKey>> rulesSnapshot() {
+        return rules().map(ZoneRules::snapshot).orElse(Map.of());
+    }
+
+    /** The controller's rules were edited. */
+    public void rulesChanged() {
+        zonesDirty = true;
+    }
+
+    /** Tag ids of an item, as the pure plan sees them. */
+    public static Set<String> tagsOf(ItemKey key) {
+        return key.stack(1).getTags().map(tag -> tag.location().toString()).collect(Collectors.toSet());
+    }
+
+    /** Where a stack of this key is tried, in order. */
+    public PutAwayPlan.Route route(ItemKey key) {
+        return PutAwayPlan.route(key, rulesSnapshot(), WarehouseNetwork::tagsOf);
+    }
+
+    /** Stock blocks per zone key, sorted by key. Zones that only have a rule show zero. */
+    public Map<String, Integer> zoneBlockCounts() {
+        Map<String, Integer> counts = new TreeMap<>();
+        for (String key : zoneOf.values()) {
+            counts.merge(key, 1, Integer::sum);
+        }
+        rules().ifPresent(rules -> rules.keys().forEach(key -> counts.putIfAbsent(key, 0)));
+        return counts;
+    }
+
+    /** The spelling of a zone as stamped on its blocks, or the rule's spelling, or the key. */
+    public String zoneDisplay(String key) {
+        String display = zoneDisplay.get(key);
+        if (display != null) {
+            return display;
+        }
+        return rules().map(rules -> rules.get(key)).map(ZoneRules.Entry::display).orElse(key);
+    }
+
+    /** Whether a source may take a stack routed to the pool. */
+    private boolean inPool(BlockPos pos, PutAwayPlan.Pool pool, Map<String, PutAwayPlan.Rule<ItemKey>> rules) {
+        String zone = zoneOf.get(pos);
+        if (pool instanceof PutAwayPlan.Zone target) {
+            return target.key().equals(zone);
+        }
+        if (zone == null) {
+            return true;
+        }
+        PutAwayPlan.Rule<ItemKey> rule = rules.get(zone);
+        return rule == null || rule.general();
+    }
+
+    /**
+     * The sources of a pool in insert order: holding the key, empty crates,
+     * other storage nodes, foreign inventories already in use.
+     */
+    private List<BlockPos> targets(PutAwayPlan.Pool pool, ItemKey key) {
+        Map<String, PutAwayPlan.Rule<ItemKey>> rules = rulesSnapshot();
+        List<BlockPos> holding = new ArrayList<>();
+        for (BlockPos pos : index.sourcesHolding(key)) {
+            if (sources.containsKey(pos) && inPool(pos, pool, rules)) {
+                holding.add(pos);
+            }
+        }
+        Set<BlockPos> holders = new HashSet<>(index.sourcesHolding(key));
+        List<BlockPos> emptyCrates = new ArrayList<>();
+        List<BlockPos> otherNodes = new ArrayList<>();
+        List<BlockPos> foreignInUse = new ArrayList<>();
+        for (Source source : sources.values()) {
+            if (holders.contains(source.pos()) || !inPool(source.pos(), pool, rules)) {
+                continue;
+            }
+            if (source.node()) {
+                if (level.getBlockEntity(source.pos()) instanceof CrateBlockEntity crate && crate.isEmpty()) {
+                    emptyCrates.add(source.pos());
+                } else {
+                    otherNodes.add(source.pos());
+                }
+            } else if (!index.isEmptySource(source.pos())) {
+                foreignInUse.add(source.pos());
+            }
+        }
+        List<BlockPos> result = new ArrayList<>(holding);
+        result.addAll(emptyCrates);
+        result.addAll(otherNodes);
+        result.addAll(foreignInUse);
+        return result;
     }
 
     // Shuttle host
@@ -243,6 +368,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     protected void onDisposed() {
         sources.clear();
         connectors.clear();
+        zoneOf.clear();
+        zoneDisplay.clear();
         dirtyQueue.clear();
         dirtySet.clear();
         pollOrder.clear();
@@ -317,6 +444,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else if (event instanceof WarehouseEvent.NeighborsChanged changed) {
             if (sources.containsKey(changed.pos())) {
                 addCandidatesAround(changed.pos());
+            }
+        } else if (event instanceof WarehouseEvent.ZoneChanged zoned) {
+            if (level != null && level.getBlockEntity(zoned.pos()) instanceof StorageNodeBlockEntity node && node.holdsStock()) {
+                rememberZone(zoned.pos(), node);
+                zonesDirty = true;
             }
         }
     }
@@ -461,8 +593,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Puts a stack into the warehouse: sources already holding it, then empty
-     * crates, then other storage nodes, then foreign inventories in use.
+     * Puts a stack into the warehouse by the put-away routing: its zone, else
+     * general storage, then the overflow zone; within a pool sources already
+     * holding it, then empty crates, then other storage nodes, then foreign
+     * inventories in use.
      *
      * @return what did not fit
      */
@@ -472,27 +606,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         ItemKey key = ItemKey.of(stack);
         ItemStack remaining = stack.copy();
-        remaining = insertInto(index.sourcesHolding(key), remaining);
-        if (remaining.isEmpty()) {
-            return remaining;
-        }
-        List<BlockPos> emptyCrates = new ArrayList<>();
-        List<BlockPos> otherNodes = new ArrayList<>();
-        List<BlockPos> foreignInUse = new ArrayList<>();
-        for (Source source : sources.values()) {
-            if (source.node()) {
-                if (level.getBlockEntity(source.pos()) instanceof CrateBlockEntity crate && crate.isEmpty()) {
-                    emptyCrates.add(source.pos());
-                } else {
-                    otherNodes.add(source.pos());
-                }
-            } else if (!index.isEmptySource(source.pos())) {
-                foreignInUse.add(source.pos());
+        for (PutAwayPlan.Pool pool : route(key).pools()) {
+            remaining = insertInto(targets(pool, key), remaining);
+            if (remaining.isEmpty()) {
+                break;
             }
         }
-        remaining = insertInto(emptyCrates, remaining);
-        remaining = insertInto(otherNodes, remaining);
-        remaining = insertInto(foreignInUse, remaining);
         return remaining;
     }
 

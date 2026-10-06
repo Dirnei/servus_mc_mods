@@ -7,6 +7,8 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.storage.zone.ZoneRules;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +24,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-/** {@code /servus_warehouse info <pos>}: prints the index of the network at a storage block. */
+/** {@code /servus_warehouse info|zones <pos>} and {@code take <pos> <item> <count>} for the network at a storage block. */
 @EventBusSubscriber(modid = ServusStorageIds.MOD_ID)
 public final class ServusStorageCommands {
 
@@ -38,6 +40,9 @@ public final class ServusStorageCommands {
                 .then(Commands.literal("info")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .executes(ServusStorageCommands::info)))
+                .then(Commands.literal("zones")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .executes(ServusStorageCommands::zones)))
                 .then(Commands.literal("take")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
@@ -74,6 +79,48 @@ public final class ServusStorageCommands {
             source.sendFailure(Component.literal("Storage block at " + pos.toShortString() + " is not in a network"));
         }
         return network;
+    }
+
+    private static int zones(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        WarehouseNetwork warehouse = network.get();
+        Map<String, Integer> counts = warehouse.zoneBlockCounts();
+        if (counts.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("No zones"), false);
+            return 0;
+        }
+        Optional<ZoneRules> rules = warehouse.rules();
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            StringBuilder line = new StringBuilder("  - ").append(warehouse.zoneDisplay(entry.getKey()))
+                    .append(": ").append(entry.getValue()).append(" blocks");
+            ZoneRules.Entry rule = rules.map(r -> r.get(entry.getKey())).orElse(null);
+            if (rule != null) {
+                List<String> items = new ArrayList<>();
+                for (int i = 0; i < rule.filter().getSlots(); i++) {
+                    ItemStack stack = rule.filter().getStackInSlot(i);
+                    if (!stack.isEmpty()) {
+                        items.add(stack.getHoverName().getString());
+                    }
+                }
+                if (!items.isEmpty()) {
+                    line.append(", items ").append(items);
+                }
+                if (!rule.tags().isEmpty()) {
+                    line.append(", tags ").append(rule.tags());
+                }
+                if (rule.overflow()) {
+                    line.append(", overflow");
+                }
+            }
+            String text = line.toString();
+            source.sendSuccess(() -> Component.literal(text), false);
+        }
+        return counts.size();
     }
 
     private static int info(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
