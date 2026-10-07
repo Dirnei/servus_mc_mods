@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackItem;
 import io.github.dirnei.mc.servus.storage.zone.ZoneLabelItem;
 import java.util.List;
 import net.minecraft.world.item.BlockItem;
@@ -15,7 +16,8 @@ public final class ServusStorageItems {
     public static final DeferredItem<BlockItem> CRATE = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.CRATE);
     public static final DeferredItem<BlockItem> DOUBLE_CRATE = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.DOUBLE_CRATE);
     public static final DeferredItem<BlockItem> QUAD_CRATE = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.QUAD_CRATE);
-    public static final DeferredItem<BlockItem> HEAVY_RACK = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.HEAVY_RACK);
+    public static final DeferredItem<HeavyRackItem> HEAVY_RACK = ITEMS.registerItem("heavy_rack",
+            properties -> new HeavyRackItem(ServusStorageBlocks.HEAVY_RACK.get(), properties));
     public static final DeferredItem<BlockItem> WAREHOUSE_CONTROLLER = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.WAREHOUSE_CONTROLLER);
     public static final DeferredItem<BlockItem> COUNTER_TERMINAL = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.COUNTER_TERMINAL);
     public static final DeferredItem<BlockItem> RAIL = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.RAIL);

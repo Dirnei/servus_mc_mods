@@ -22,6 +22,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.RAIL.get(), "Warehouse Rail");
         add(ServusStorageBlocks.ELEVATOR.get(), "Rail Elevator");
         add(ServusStorageBlocks.HEAVY_RACK.get(), "Heavy Duty Rack");
+        add("tooltip.servus_storage.heavy_rack.wood", "Wood: %s");
         add(ServusStorageBlocks.INBOUND_STATION.get(), "Inbound Station");
         add(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "Shuttle Garage");
         add(ServusStorageBlocks.OUTBOUND_STATION.get(), "Outbound Station");

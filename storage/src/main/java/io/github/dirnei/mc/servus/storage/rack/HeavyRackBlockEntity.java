@@ -7,12 +7,16 @@ import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -20,6 +24,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -27,7 +32,11 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
@@ -38,6 +47,12 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
 
     private static final int SYNC_INTERVAL = 10;
 
+    /** The planks block whose texture the boards show. */
+    public static final ModelProperty<ResourceLocation> WOOD = new ModelProperty<>();
+
+    /** Boards of a rack that remembers no wood. */
+    public static final ResourceLocation DEFAULT_WOOD = BuiltInRegistries.BLOCK.getKey(Blocks.OAK_PLANKS);
+
     private final ItemStackHandler items = new ItemStackHandler(StorageStatsManager.INSTANCE.rackSlots()) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -46,6 +61,8 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     };
     private List<ItemStack> displayed = List.of();
     private boolean syncPending;
+    /** The planks block the rack was crafted from, or null for oak. */
+    private ResourceLocation wood;
     private int syncTimer;
 
     public HeavyRackBlockEntity(BlockPos pos, BlockState state) {
@@ -61,6 +78,25 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     @Override
     public boolean acceptsRail(Side side) {
         return side == Conversions.toSide(getBlockState().getValue(HeavyRackBlock.FACING));
+    }
+
+    /** The planks block id whose texture the boards show; oak when none or unknown. */
+    public ResourceLocation wood() {
+        return orOak(wood);
+    }
+
+    /** The wood a rack item carries; oak when none or unknown. */
+    public static ResourceLocation woodOf(ItemStack stack) {
+        return orOak(stack.get(ServusStorageComponents.RACK_WOOD.get()));
+    }
+
+    private static ResourceLocation orOak(ResourceLocation id) {
+        return id != null && BuiltInRegistries.BLOCK.containsKey(id) ? id : DEFAULT_WOOD;
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return ModelData.builder().with(WOOD, wood()).build();
     }
 
     public ItemStackHandler items() {
@@ -139,12 +175,42 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
     }
 
+    // Item components: the wood travels with the item
+
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        wood = input.get(ServusStorageComponents.RACK_WOOD.get());
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        if (wood != null) {
+            builder.set(ServusStorageComponents.RACK_WOOD.get(), wood);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        tag.remove("Wood");
+    }
+
     // Persistence and sync
+
+    private void writeWood(CompoundTag tag) {
+        if (wood != null) {
+            tag.putString("Wood", wood.toString());
+        }
+    }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("Items", items.serializeNBT(registries));
+        writeWood(tag);
     }
 
     @Override
@@ -168,6 +234,13 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
             }
             displayed = List.copyOf(list);
         }
+        ResourceLocation loaded = tag.contains("Wood", Tag.TAG_STRING) ? ResourceLocation.tryParse(tag.getString("Wood")) : null;
+        boolean woodChanged = !Objects.equals(loaded, wood);
+        wood = loaded;
+        if (woodChanged && level != null && level.isClientSide()) {
+            requestModelDataUpdate();
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+        }
     }
 
     @Override
@@ -179,6 +252,7 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
             list.add(stack.save(registries));
         }
         tag.put("Display", list);
+        writeWood(tag);
         return tag;
     }
 

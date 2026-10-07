@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -17,6 +18,12 @@ public final class ServusStorageComponents {
             COMPONENTS.registerComponentType("zone_filter", builder -> builder
                     .persistent(ZoneFilter.CODEC)
                     .networkSynchronized(ZoneFilter.STREAM_CODEC));
+
+    /** The planks block a Heavy Duty Rack was crafted from; missing means oak. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> RACK_WOOD =
+            COMPONENTS.registerComponentType("rack_wood", builder -> builder
+                    .persistent(ResourceLocation.CODEC)
+                    .networkSynchronized(ResourceLocation.STREAM_CODEC));
 
     private ServusStorageComponents() {
     }
