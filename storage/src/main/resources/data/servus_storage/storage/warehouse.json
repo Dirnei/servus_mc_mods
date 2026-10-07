@@ -5,6 +5,7 @@
   "put_away_per_tick": 1,
   "garage_capacity": 4,
   "terminal_output_slots": 9,
-  "dock_feed_interval": 8,
-  "stock_rule_interval": 100
+  "stock_rule_interval": 100,
+  "push_interval": 8,
+  "outbound_check_interval": 40
 }

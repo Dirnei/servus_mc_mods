@@ -112,15 +112,15 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_crafting_table", has(Items.CRAFTING_TABLE))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.MACHINE_DOCK.get())
-                .pattern("IHI")
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.OUTBOUND_STATION.get())
                 .pattern("ICI")
-                .pattern("IRI")
+                .pattern("IDI")
+                .pattern("IHI")
                 .define('I', Items.IRON_INGOT)
-                .define('H', Items.HOPPER)
                 .define('C', Items.CHEST)
-                .define('R', ServusStorageItems.RAIL.get())
-                .unlockedBy("has_rail", has(ServusStorageItems.RAIL.get()))
+                .define('D', Items.DROPPER)
+                .define('H', Items.HOPPER)
+                .unlockedBy("has_hopper", has(Items.HOPPER))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.SHUTTLE_GARAGE.get())

@@ -10,18 +10,19 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-/** Buffer row, station state, player inventory. */
+/** Buffer row, side buttons, station state, player inventory. */
 public class InboundStationScreen extends AbstractContainerScreen<InboundStationMenu> {
 
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/inbound_station.png");
-    private static final int STATUS_Y = 40;
     private static final int COLOUR_ALERT = 0xB03030;
+
+    private SideButtons sideButtons;
 
     public InboundStationScreen(InboundStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 140;
+        this.imageHeight = 162;
         ClientStationState.clear();
     }
 
@@ -29,11 +30,16 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
     protected void init() {
         super.init();
         this.inventoryLabelY = InboundStationMenu.INVENTORY_Y - 11;
+        sideButtons = new SideButtons(this, leftPos + 8, topPos + InboundStationMenu.SIDES_Y, menu.station().facing(), this::addRenderableWidget);
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        sideButtons.refresh(ClientStationState.state().sides());
         super.render(graphics, mouseX, mouseY, partialTick);
+        if (sideButtons.renderTooltip(graphics, font, mouseX, mouseY)) {
+            return;
+        }
         renderTooltip(graphics, mouseX, mouseY);
     }
 
@@ -48,12 +54,12 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
         StationStatePayload state = ClientStationState.state();
         if (!state.online()) {
             Component reason = Component.translatable("gui.servus_storage.terminal." + state.reason());
-            graphics.drawString(font, reason, 8, STATUS_Y, COLOUR_ALERT, false);
+            graphics.drawString(font, reason, 8, InboundStationMenu.STATUS_Y, COLOUR_ALERT, false);
             return;
         }
         // The lamps on the block tell idle from working; the GUI only explains a red lamp.
         if (!state.blockedReason().isEmpty()) {
-            graphics.drawString(font, status(state), 8, STATUS_Y, COLOUR_ALERT, false);
+            graphics.drawString(font, status(state), 8, InboundStationMenu.STATUS_Y, COLOUR_ALERT, false);
         }
     }
 

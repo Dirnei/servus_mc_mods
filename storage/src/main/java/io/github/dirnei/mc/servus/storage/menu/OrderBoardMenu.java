@@ -104,7 +104,7 @@ public class OrderBoardMenu extends AbstractContainerMenu {
         long hash = payload.online() ? 1 : 0;
         hash = hash * 31 + payload.reason().hashCode();
         for (MachineRow machine : payload.machines()) {
-            hash = hash * 31 + machine.dock().hashCode();
+            hash = hash * 31 + machine.station().hashCode();
             hash = hash * 31 + machine.machine().hashCode();
             hash = hash * 31 + machine.working().getItem().hashCode();
             hash = hash * 31 + machine.state().hashCode();

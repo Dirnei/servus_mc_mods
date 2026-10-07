@@ -102,14 +102,14 @@ public final class WorkOrder {
         return state == State.RUNNING || state == State.BLOCKED;
     }
 
-    /** Whether a step is feeding or producing on the dock. */
-    public boolean occupies(net.minecraft.core.BlockPos dock, OrderStep except) {
+    /** Whether a step is feeding or producing on the station. */
+    public boolean occupies(net.minecraft.core.BlockPos station, OrderStep except) {
         if (!open()) {
             return false;
         }
         for (OrderStep step : steps) {
-            if (step != except && step.dock().equals(dock)
-                    && (step.state() == OrderStep.State.FEEDING || step.state() == OrderStep.State.PRODUCING)) {
+            if (step != except && step.station().equals(station)
+                    && (step.state() == OrderStep.State.DELIVERING || step.state() == OrderStep.State.PRODUCING)) {
                 return true;
             }
         }

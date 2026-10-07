@@ -5,7 +5,7 @@ import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
-import io.github.dirnei.mc.servus.storage.menu.MachineDockMenu;
+import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.OrderBoardMenu;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
@@ -34,8 +34,8 @@ public final class ServusStorageMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<ShuttleGarageMenu>> SHUTTLE_GARAGE =
             MENUS.register("shuttle_garage", () -> IMenuTypeExtension.create(ShuttleGarageMenu::fromNetwork));
 
-    public static final DeferredHolder<MenuType<?>, MenuType<MachineDockMenu>> MACHINE_DOCK =
-            MENUS.register("machine_dock", () -> IMenuTypeExtension.create(MachineDockMenu::fromNetwork));
+    public static final DeferredHolder<MenuType<?>, MenuType<OutboundStationMenu>> OUTBOUND_STATION =
+            MENUS.register("outbound_station", () -> IMenuTypeExtension.create(OutboundStationMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<CraftingStationMenu>> CRAFTING_STATION =
             MENUS.register("crafting_station", () -> IMenuTypeExtension.create(CraftingStationMenu::fromNetwork));

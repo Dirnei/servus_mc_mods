@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.dock;
+package io.github.dirnei.mc.servus.storage.outbound;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
@@ -6,8 +6,10 @@ import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.station.SideModes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -28,13 +30,13 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** Faces the machine it serves. Right click opens its GUI; the carrot turns or dismantles it. */
-public class MachineDockBlock extends BaseEntityBlock implements Wrenchable {
+/** Right click opens the station GUI; the carrot cycles the clicked side, sneak carrot dismantles. */
+public class OutboundStationBlock extends BaseEntityBlock implements Wrenchable {
 
-    public static final MapCodec<MachineDockBlock> CODEC = simpleCodec(MachineDockBlock::new);
+    public static final MapCodec<OutboundStationBlock> CODEC = simpleCodec(OutboundStationBlock::new);
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
-    public MachineDockBlock(Properties properties) {
+    public OutboundStationBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH)
                 .setValue(StorageNodeBlocks.ONLINE, false).setValue(StorageNodeBlocks.ACTIVITY, StorageNodeBlocks.Activity.IDLE));
@@ -50,10 +52,9 @@ public class MachineDockBlock extends BaseEntityBlock implements Wrenchable {
         builder.add(FACING, StorageNodeBlocks.ONLINE, StorageNodeBlocks.ACTIVITY);
     }
 
-    /** The dock faces away from the player, so placing it with your back to the machine points it at the machine. */
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection());
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
@@ -63,7 +64,7 @@ public class MachineDockBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new MachineDockBlockEntity(pos, state);
+        return new OutboundStationBlockEntity(pos, state);
     }
 
     @Override
@@ -71,7 +72,7 @@ public class MachineDockBlock extends BaseEntityBlock implements Wrenchable {
         if (level.isClientSide()) {
             return null;
         }
-        return createTickerHelper(type, ServusStorageBlockEntities.MACHINE_DOCK.get(), MachineDockBlockEntity::serverTick);
+        return createTickerHelper(type, ServusStorageBlockEntities.OUTBOUND_STATION.get(), OutboundStationBlockEntity::serverTick);
     }
 
     @Override
@@ -85,10 +86,18 @@ public class MachineDockBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof MachineDockBlockEntity dock) {
-            player.openMenu(dock, pos);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station) {
+            player.openMenu(station, pos);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station) {
+            station.dropContents(level, pos);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
@@ -98,30 +107,28 @@ public class MachineDockBlock extends BaseEntityBlock implements Wrenchable {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MachineDockBlockEntity dock) {
-            dock.dropAll(level, pos);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
-        boolean dismantle = player != null && player.isShiftKeyDown();
-        if (!level.isClientSide()) {
-            if (dismantle) {
-                Block.popResource(level, pos, new ItemStack(this));
-                level.removeBlock(pos, false);
-            } else {
-                level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);
-                if (level.getBlockEntity(pos) instanceof MachineDockBlockEntity dock) {
-                    dock.refreshRails();
-                }
+        if (level.isClientSide() || !(level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station)) {
+            return InteractionResult.sidedSuccess(level.isClientSide());
+        }
+        if (player != null && player.isShiftKeyDown()) {
+            station.dropContents(level, pos);
+            ItemStack drop = new ItemStack(this);
+            station.saveToItem(drop, level.registryAccess());
+            Block.popResource(level, pos, drop);
+            level.removeBlock(pos, false);
+        } else {
+            Direction side = context.getClickedFace();
+            SideModes.Mode mode = station.cycleSide(side);
+            if (player != null) {
+                player.displayClientMessage(Component.translatable("gui.servus_storage.station.side_set",
+                        Component.translatable("gui.servus_storage.station.side." + side.getSerializedName()),
+                        Component.translatable("gui.servus_storage.station.mode." + mode.name().toLowerCase(java.util.Locale.ROOT))), true);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

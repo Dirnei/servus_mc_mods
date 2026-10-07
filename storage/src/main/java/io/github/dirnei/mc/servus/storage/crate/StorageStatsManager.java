@@ -21,7 +21,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_RACK_SLOTS = 27;
     public static final int DEFAULT_GARAGE_CAPACITY = 4;
     public static final int DEFAULT_TERMINAL_OUTPUT_SLOTS = 9;
-    public static final int DEFAULT_DOCK_FEED_INTERVAL = 8;
+    public static final int DEFAULT_PUSH_INTERVAL = 8;
+    public static final int DEFAULT_OUTBOUND_CHECK_INTERVAL = 40;
     public static final int DEFAULT_CRAFTING_STATION_TICKS = 40;
     public static final int DEFAULT_STOCK_RULE_INTERVAL = 100;
     public static final int DEFAULT_CRAFTING_STATION_RECIPES = 4;
@@ -44,7 +45,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int rackSlots = DEFAULT_RACK_SLOTS;
     private volatile int garageCapacity = DEFAULT_GARAGE_CAPACITY;
     private volatile int terminalOutputSlots = DEFAULT_TERMINAL_OUTPUT_SLOTS;
-    private volatile int dockFeedInterval = DEFAULT_DOCK_FEED_INTERVAL;
+    private volatile int pushInterval = DEFAULT_PUSH_INTERVAL;
+    private volatile int outboundCheckInterval = DEFAULT_OUTBOUND_CHECK_INTERVAL;
     private volatile int craftingStationTicks = DEFAULT_CRAFTING_STATION_TICKS;
     private volatile int stockRuleInterval = DEFAULT_STOCK_RULE_INTERVAL;
     private volatile int craftingStationRecipes = DEFAULT_CRAFTING_STATION_RECIPES;
@@ -65,7 +67,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         rackSlots = intField(files.get(RACK), "slots", DEFAULT_RACK_SLOTS);
         garageCapacity = intField(files.get(WAREHOUSE), "garage_capacity", DEFAULT_GARAGE_CAPACITY);
         terminalOutputSlots = intField(files.get(WAREHOUSE), "terminal_output_slots", DEFAULT_TERMINAL_OUTPUT_SLOTS);
-        dockFeedInterval = intField(files.get(WAREHOUSE), "dock_feed_interval", DEFAULT_DOCK_FEED_INTERVAL);
+        pushInterval = intField(files.get(WAREHOUSE), "push_interval", DEFAULT_PUSH_INTERVAL);
+        outboundCheckInterval = intField(files.get(WAREHOUSE), "outbound_check_interval", DEFAULT_OUTBOUND_CHECK_INTERVAL);
         craftingStationTicks = intField(files.get(CRAFTING_STATION), "work_ticks", DEFAULT_CRAFTING_STATION_TICKS);
         stockRuleInterval = intField(files.get(WAREHOUSE), "stock_rule_interval", DEFAULT_STOCK_RULE_INTERVAL);
         craftingStationRecipes = intField(files.get(CRAFTING_STATION), "recipes", DEFAULT_CRAFTING_STATION_RECIPES);
@@ -107,8 +110,12 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         return terminalOutputSlots;
     }
 
-    public int dockFeedInterval() {
-        return dockFeedInterval;
+    public int pushInterval() {
+        return pushInterval;
+    }
+
+    public int outboundCheckInterval() {
+        return outboundCheckInterval;
     }
 
     public int craftingStationTicks() {

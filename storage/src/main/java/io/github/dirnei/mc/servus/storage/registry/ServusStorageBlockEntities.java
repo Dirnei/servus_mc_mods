@@ -7,7 +7,7 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlockEntity;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
-import io.github.dirnei.mc.servus.storage.dock.MachineDockBlockEntity;
+import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardBlockEntity;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
@@ -48,9 +48,9 @@ public final class ServusStorageBlockEntities {
                     .of(ShuttleGarageBlockEntity::new, ServusStorageBlocks.SHUTTLE_GARAGE.get())
                     .build(null));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MachineDockBlockEntity>> MACHINE_DOCK =
-            BLOCK_ENTITIES.register("machine_dock", () -> BlockEntityType.Builder
-                    .of(MachineDockBlockEntity::new, ServusStorageBlocks.MACHINE_DOCK.get())
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<OutboundStationBlockEntity>> OUTBOUND_STATION =
+            BLOCK_ENTITIES.register("outbound_station", () -> BlockEntityType.Builder
+                    .of(OutboundStationBlockEntity::new, ServusStorageBlocks.OUTBOUND_STATION.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CraftingStationBlockEntity>> CRAFTING_STATION =

@@ -46,7 +46,7 @@ public final class ServusStorageCommands {
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .executes(ServusStorageCommands::producers)))
                 .then(Commands.literal("feed")
-                        .then(Commands.argument("dock", BlockPosArgument.blockPos())
+                        .then(Commands.argument("station", BlockPosArgument.blockPos())
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
                                         .then(Commands.argument("count", IntegerArgumentType.integer(1, 4096))
                                                 .executes(ServusStorageCommands::feed)))))
@@ -178,7 +178,7 @@ public final class ServusStorageCommands {
                     + (order.requestId() > 0 ? " (request " + order.requestId() + ")" : "");
             source.sendSuccess(() -> Component.literal(head), false);
             for (io.github.dirnei.mc.servus.storage.order.OrderStep step : order.steps()) {
-                String line = "      dock " + step.dock().toShortString() + ": " + step.output().getHoverName().getString() + " x" + step.batches()
+                String line = "      station " + step.station().toShortString() + ": " + step.output().getHoverName().getString() + " x" + step.batches()
                         + " " + step.state().name().toLowerCase(java.util.Locale.ROOT) + (step.reason().isEmpty() ? "" : ", " + step.reason());
                 source.sendSuccess(() -> Component.literal(line), false);
             }
@@ -213,11 +213,11 @@ public final class ServusStorageCommands {
         }
         List<WarehouseNetwork.Producer> producers = network.get().producers();
         if (producers.isEmpty()) {
-            source.sendSuccess(() -> Component.literal("No docks"), false);
+            source.sendSuccess(() -> Component.literal("No outbound stations"), false);
             return 0;
         }
         for (WarehouseNetwork.Producer producer : producers) {
-            String head = "  - dock " + producer.dock().toShortString() + " faces " + producer.machineName().getString();
+            String head = "  - station " + producer.station().toShortString() + " faces " + producer.machineName().getString();
             if (!producer.producer()) {
                 source.sendSuccess(() -> Component.literal(head + ": no producer"), false);
                 continue;
@@ -244,10 +244,10 @@ public final class ServusStorageCommands {
     }
 
     private static int feed(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "dock");
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "station");
         CommandSourceStack source = context.getSource();
-        if (!(source.getLevel().getBlockEntity(pos) instanceof io.github.dirnei.mc.servus.storage.dock.MachineDockBlockEntity dock)) {
-            source.sendFailure(Component.literal("No machine dock at " + pos.toShortString()));
+        if (!(source.getLevel().getBlockEntity(pos) instanceof io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity station)) {
+            source.sendFailure(Component.literal("No outbound station at " + pos.toShortString()));
             return 0;
         }
         Optional<WarehouseNetwork> network = networkAt(source, pos);
@@ -256,12 +256,12 @@ public final class ServusStorageCommands {
         }
         ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1, false);
         int count = IntegerArgumentType.getInteger(context, "count");
-        String refused = network.get().feedDock(dock, ItemKey.of(wanted), count);
+        String refused = network.get().feedStation(station, ItemKey.of(wanted), count);
         if (!refused.isEmpty()) {
             source.sendFailure(Component.literal("Feed refused: " + refused.replace('_', ' ')));
             return 0;
         }
-        source.sendSuccess(() -> Component.literal("Feeding " + count + " " + wanted.getHoverName().getString() + " to the dock"), false);
+        source.sendSuccess(() -> Component.literal("Feeding " + count + " " + wanted.getHoverName().getString() + " to the station"), false);
         return count;
     }
 

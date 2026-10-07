@@ -5,23 +5,23 @@
     "C": {
       "item": "minecraft:chest"
     },
+    "D": {
+      "item": "minecraft:dropper"
+    },
     "H": {
       "item": "minecraft:hopper"
     },
     "I": {
       "item": "minecraft:iron_ingot"
-    },
-    "R": {
-      "item": "servus_storage:rail"
     }
   },
   "pattern": [
-    "IHI",
     "ICI",
-    "IRI"
+    "IDI",
+    "IHI"
   ],
   "result": {
     "count": 1,
-    "id": "servus_storage:machine_dock"
+    "id": "servus_storage:outbound_station"
   }
 }

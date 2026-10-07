@@ -10,6 +10,8 @@ import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import java.util.Arrays;
+import java.util.List;
+import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -77,6 +79,7 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     };
 
     private final boolean[] claimed = new boolean[StorageStatsManager.INSTANCE.inboundBufferSlots()];
+    private final SideModes sides = new SideModes(List.of(SideModes.Mode.ACCEPT, SideModes.Mode.OFF), SideModes.Mode.ACCEPT);
     private PutAwayPlan.Reason blockedReason;
     private ItemStack blockedStack = ItemStack.EMPTY;
     private String blockedZone = "";
@@ -107,6 +110,32 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     /** The insert only handler exposed as the item capability. */
     public IItemHandler intake() {
         return intake;
+    }
+
+    public SideModes sides() {
+        return sides;
+    }
+
+    public Direction facing() {
+        return getBlockState().hasProperty(InboundStationBlock.FACING) ? getBlockState().getValue(InboundStationBlock.FACING) : Direction.NORTH;
+    }
+
+    /** The item handler a neighbour on that side sees: the intake on accept sides, nothing on off sides. */
+    public IItemHandler handlerFor(Direction side) {
+        if (side == null || sides.mode(side) == SideModes.Mode.ACCEPT) {
+            return intake;
+        }
+        return null;
+    }
+
+    /** Toggles a side between accept and off, refreshes neighbour caches and returns the new mode. */
+    public SideModes.Mode cycleSide(Direction side) {
+        SideModes.Mode mode = sides.cycle(side);
+        setChanged();
+        if (level != null) {
+            level.invalidateCapabilities(worldPosition);
+        }
+        return mode;
     }
 
     public boolean isEmpty() {
@@ -209,6 +238,7 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("Items", buffer.serializeNBT(registries));
+        sides.save(tag);
     }
 
     @Override
@@ -222,5 +252,6 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
                 buffer.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         }
+        sides.load(tag);
     }
 }

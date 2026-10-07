@@ -9,7 +9,7 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
-import io.github.dirnei.mc.servus.storage.dock.MachineDockBlock;
+import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
@@ -94,8 +94,8 @@ public final class ServusStorageBlocks {
                             .requiresCorrectToolForDrops()
                             .sound(SoundType.METAL));
 
-    public static final DeferredBlock<MachineDockBlock> MACHINE_DOCK =
-            BLOCKS.registerBlock("machine_dock", MachineDockBlock::new,
+    public static final DeferredBlock<OutboundStationBlock> OUTBOUND_STATION =
+            BLOCKS.registerBlock("outbound_station", OutboundStationBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(3.0F)

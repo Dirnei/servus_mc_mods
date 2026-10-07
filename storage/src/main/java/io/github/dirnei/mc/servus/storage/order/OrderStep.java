@@ -8,22 +8,24 @@ import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 
-/** One recipe run a number of times on one dock. */
+/** One recipe run a number of times on the machine in front of one Outbound Station. */
 public final class OrderStep {
 
-    public enum State { WAITING_DOCK, FEEDING, PRODUCING, DONE }
+    public enum State { WAITING_STATION, DELIVERING, PRODUCING, DONE }
 
-    private final BlockPos dock;
+    private final BlockPos station;
+    private final BlockPos machine;
     private final ProductionRecipe recipe;
     private final int batches;
     private final Map<ItemKey, Integer> inputs = new LinkedHashMap<>();
     private final Map<ItemKey, Integer> fed = new HashMap<>();
     private final Map<ItemKey, Integer> collected = new HashMap<>();
-    private State state = State.WAITING_DOCK;
+    private State state = State.WAITING_STATION;
     private String reason = "";
 
-    public OrderStep(BlockPos dock, ProductionRecipe recipe, int batches) {
-        this.dock = dock;
+    public OrderStep(BlockPos station, BlockPos machine, ProductionRecipe recipe, int batches) {
+        this.station = station;
+        this.machine = machine;
         this.recipe = recipe;
         this.batches = batches;
         for (ItemStack input : recipe.inputs()) {
@@ -31,8 +33,14 @@ public final class OrderStep {
         }
     }
 
-    public BlockPos dock() {
-        return dock;
+    /** The Outbound Station the inputs are delivered to. */
+    public BlockPos station() {
+        return station;
+    }
+
+    /** The machine in front of the station. */
+    public BlockPos machine() {
+        return machine;
     }
 
     public ProductionRecipe recipe() {
@@ -94,6 +102,16 @@ public final class OrderStep {
             }
         }
         return false;
+    }
+
+    /** Whether the step is being delivered to or producing, so collected output may be its own. */
+    public boolean active() {
+        return state == State.DELIVERING || state == State.PRODUCING;
+    }
+
+    /** Whether an inbound station at the position touches this step's machine. */
+    public boolean collectsAt(BlockPos inbound) {
+        return machine.distManhattan(inbound) == 1;
     }
 
     void addCollected(ItemKey key, int count) {

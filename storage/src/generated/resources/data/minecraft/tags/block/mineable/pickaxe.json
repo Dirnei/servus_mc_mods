@@ -6,6 +6,6 @@
     "servus_storage:heavy_rack",
     "servus_storage:inbound_station",
     "servus_storage:shuttle_garage",
-    "servus_storage:machine_dock"
+    "servus_storage:outbound_station"
   ]
 }

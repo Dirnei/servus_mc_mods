@@ -1,0 +1,321 @@
+package io.github.dirnei.mc.servus.storage.outbound;
+
+import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
+import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
+import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
+import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
+import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
+import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.station.SideModes;
+import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
+
+/**
+ * The outbound dock: the warehouse keeps the buffer stocked at the keep
+ * amounts, push sides hand the buffer to neighbours, extract sides let
+ * neighbours take from it. Deliveries for work orders land here as well.
+ */
+public class OutboundStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider, DeliveryTarget {
+
+    public static final int KEEP_LIMIT = 4096;
+    private static final List<SideModes.Mode> CYCLE = List.of(SideModes.Mode.PUSH, SideModes.Mode.EXTRACT, SideModes.Mode.OFF);
+
+    private final ItemStackHandler buffer = new ItemStackHandler(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            setChanged();
+            network().ifPresent(network -> network.post(new WarehouseEvent.OutputChanged(worldPosition)));
+        }
+    };
+
+    /** Ghost stacks whose count is the amount to keep. */
+    private final ItemStackHandler keep = new ItemStackHandler(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            setChanged();
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return KEEP_LIMIT;
+        }
+    };
+
+    /** The outside view on extract sides: takes only, never inserts. */
+    private final IItemHandler extractOnly = new IItemHandler() {
+        @Override
+        public int getSlots() {
+            return buffer.getSlots();
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return buffer.getStackInSlot(slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            return stack;
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return buffer.extractItem(slot, amount, simulate);
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return buffer.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return false;
+        }
+    };
+
+    private final SideModes sides = new SideModes(CYCLE, SideModes.Mode.OFF);
+    private int pushTimer;
+    private ItemStack shortStack = ItemStack.EMPTY;
+    private String shortReason = "";
+
+    public OutboundStationBlockEntity(BlockPos pos, BlockState state) {
+        super(ServusStorageBlockEntities.OUTBOUND_STATION.get(), pos, state);
+        if (state.hasProperty(OutboundStationBlock.FACING)) {
+            sides.set(state.getValue(OutboundStationBlock.FACING), SideModes.Mode.PUSH);
+        }
+    }
+
+    @Override
+    public NodeKind kind() {
+        return NodeKind.STATION;
+    }
+
+    public Direction facing() {
+        return getBlockState().getValue(OutboundStationBlock.FACING);
+    }
+
+    /** The block in front, the machine this station serves when it is one. */
+    public BlockPos facingPos() {
+        return worldPosition.relative(facing());
+    }
+
+    public ItemStackHandler buffer() {
+        return buffer;
+    }
+
+    public ItemStackHandler keep() {
+        return keep;
+    }
+
+    @Override
+    public ItemStackHandler deliveries() {
+        return buffer;
+    }
+
+    public SideModes sides() {
+        return sides;
+    }
+
+    /** The item handler a neighbour on that side sees: the extract view on extract sides, nothing elsewhere. */
+    public IItemHandler handlerFor(Direction side) {
+        if (side == null || sides.mode(side) == SideModes.Mode.EXTRACT) {
+            return extractOnly;
+        }
+        return null;
+    }
+
+    /** Cycles a side's mode, refreshes neighbour caches and returns the new mode. */
+    public SideModes.Mode cycleSide(Direction side) {
+        SideModes.Mode mode = sides.cycle(side);
+        sidesChanged();
+        return mode;
+    }
+
+    private void sidesChanged() {
+        setChanged();
+        if (level != null) {
+            level.invalidateCapabilities(worldPosition);
+        }
+    }
+
+    public boolean isEmpty() {
+        for (int i = 0; i < buffer.getSlots(); i++) {
+            if (!buffer.getStackInSlot(i).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** How many of the key sit in the buffer. */
+    public int bufferCount(ItemKey key) {
+        int count = 0;
+        for (int i = 0; i < buffer.getSlots(); i++) {
+            ItemStack stack = buffer.getStackInSlot(i);
+            if (!stack.isEmpty() && ItemKey.of(stack).equals(key)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
+    }
+
+    /** Sets a keep slot; an empty item or an amount below one clears it. */
+    public void setKeep(int slot, ItemStack item, int amount) {
+        if (slot < 0 || slot >= keep.getSlots()) {
+            return;
+        }
+        if (item.isEmpty() || amount < 1) {
+            keep.setStackInSlot(slot, ItemStack.EMPTY);
+        } else {
+            keep.setStackInSlot(slot, item.copyWithCount(Math.min(KEEP_LIMIT, amount)));
+        }
+    }
+
+    /** The production view of the block in front, or null when it has none. */
+    public ProductionProvider producer() {
+        if (level == null) {
+            return null;
+        }
+        return level.getCapability(ServusLibCapabilities.PRODUCTION, facingPos(), facing().getOpposite());
+    }
+
+    // Restocking state, written by the warehouse
+
+    public ItemStack shortStack() {
+        return shortStack;
+    }
+
+    public String shortReason() {
+        return shortReason;
+    }
+
+    /** Records what the last check could not fill and sets the activity lamp. */
+    public void setRestockState(ItemStack shortStack, String shortReason, boolean pending) {
+        this.shortStack = shortStack.copy();
+        this.shortReason = shortReason == null ? "" : shortReason;
+        setActivity(!this.shortStack.isEmpty() ? StorageNodeBlocks.Activity.BLOCKED
+                : pending ? StorageNodeBlocks.Activity.WORKING : StorageNodeBlocks.Activity.IDLE);
+    }
+
+    private void setActivity(StorageNodeBlocks.Activity activity) {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        BlockState state = getBlockState();
+        if (state.hasProperty(StorageNodeBlocks.ACTIVITY) && state.getValue(StorageNodeBlocks.ACTIVITY) != activity) {
+            level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.ACTIVITY, activity), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+        }
+    }
+
+    // Pushing
+
+    /** Pushes the buffer into every push side's neighbour every push interval. */
+    public static void serverTick(Level level, BlockPos pos, BlockState state, OutboundStationBlockEntity station) {
+        if (++station.pushTimer < StorageStatsManager.INSTANCE.pushInterval()) {
+            return;
+        }
+        station.pushTimer = 0;
+        if (station.isEmpty()) {
+            return;
+        }
+        for (Direction direction : Direction.values()) {
+            if (station.sides.mode(direction) != SideModes.Mode.PUSH) {
+                continue;
+            }
+            IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK, pos.relative(direction), direction.getOpposite());
+            if (neighbour == null) {
+                continue;
+            }
+            for (int i = 0; i < station.buffer.getSlots(); i++) {
+                ItemStack stack = station.buffer.getStackInSlot(i);
+                if (stack.isEmpty()) {
+                    continue;
+                }
+                ItemStack left = ItemHandlerHelper.insertItem(neighbour, stack.copy(), false);
+                if (left.getCount() != stack.getCount()) {
+                    station.buffer.setStackInSlot(i, left);
+                }
+            }
+        }
+    }
+
+    /** Drops every stack in the buffer at the station; keep slots are configuration and stay. */
+    public void dropContents(Level level, BlockPos pos) {
+        for (int i = 0; i < buffer.getSlots(); i++) {
+            ItemStack stack = buffer.getStackInSlot(i);
+            if (!stack.isEmpty()) {
+                Block.popResource(level, pos, stack);
+                buffer.setStackInSlot(i, ItemStack.EMPTY);
+            }
+        }
+    }
+
+    // Menu
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new OutboundStationMenu(containerId, playerInventory, this);
+    }
+
+    // Persistence
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put("Items", buffer.serializeNBT(registries));
+        tag.put("Keep", keep.serializeNBT(registries));
+        sides.save(tag);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        if (tag.contains("Items")) {
+            load(buffer, tag.getCompound("Items"), registries);
+        }
+        if (tag.contains("Keep")) {
+            load(keep, tag.getCompound("Keep"), registries);
+        }
+        sides.load(tag);
+    }
+
+    private static void load(ItemStackHandler into, CompoundTag tag, HolderLookup.Provider registries) {
+        ItemStackHandler saved = new ItemStackHandler() {
+            @Override
+            public int getSlotLimit(int slot) {
+                return KEEP_LIMIT;
+            }
+        };
+        saved.deserializeNBT(registries, tag);
+        for (int i = 0; i < into.getSlots(); i++) {
+            into.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
+        }
+    }
+}

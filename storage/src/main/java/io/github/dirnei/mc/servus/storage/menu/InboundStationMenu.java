@@ -22,8 +22,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class InboundStationMenu extends AbstractContainerMenu {
 
     public static final int BUFFER_Y = 18;
-    public static final int INVENTORY_Y = 58;
-    public static final int HOTBAR_Y = 116;
+    public static final int SIDES_Y = 40;
+    public static final int STATUS_Y = 58;
+    public static final int INVENTORY_Y = 80;
+    public static final int HOTBAR_Y = 138;
     private static final int COLUMNS = 9;
     private static final int SYNC_INTERVAL = 5;
 
@@ -70,6 +72,15 @@ public class InboundStationMenu extends AbstractContainerMenu {
     /** Index of the first player inventory slot. */
     public int inventoryStart() {
         return inventoryStart;
+    }
+
+    /** Cycles a side's mode from the GUI. */
+    public void cycleSide(int direction) {
+        if (direction >= 0 && direction < net.minecraft.core.Direction.values().length) {
+            station.cycleSide(net.minecraft.core.Direction.values()[direction]);
+        }
+        lastSignature = Integer.MIN_VALUE;
+        syncTimer = SYNC_INTERVAL;
     }
 
     /** Shift click moves between the buffer and the player inventory. */
@@ -135,6 +146,7 @@ public class InboundStationMenu extends AbstractContainerMenu {
             case MULTIPLE_CONTROLLERS -> "multiple_controllers";
             case ONLINE -> "";
         };
-        return new StationStatePayload(offline.isEmpty(), offline, blockedReason, blockedStack, station.blockedZone(), station.isEmpty());
+        return new StationStatePayload(offline.isEmpty(), offline, blockedReason, blockedStack, station.blockedZone(), station.isEmpty(),
+                station.sides().symbols());
     }
 }

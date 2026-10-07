@@ -65,7 +65,7 @@ public class OrderBoardScreen extends AbstractContainerScreen<OrderBoardMenu> {
         if (hovered != null) {
             List<Component> tooltip = new ArrayList<>();
             if (hovered.step() != null) {
-                tooltip.add(Component.literal(hovered.step().machine() + " @ " + hovered.step().dock().toShortString()));
+                tooltip.add(Component.literal(hovered.step().machine() + " @ " + hovered.step().station().toShortString()));
                 if (!hovered.step().reason().isEmpty()) {
                     tooltip.add(Component.literal(hovered.step().reason()));
                 }
@@ -85,7 +85,7 @@ public class OrderBoardScreen extends AbstractContainerScreen<OrderBoardMenu> {
         }
         MachineRow machine = machineAt(mouseX, mouseY);
         if (machine != null) {
-            graphics.renderTooltip(font, Component.literal(machine.machine() + " @ " + machine.dock().toShortString()), mouseX, mouseY);
+            graphics.renderTooltip(font, Component.literal(machine.machine() + " @ " + machine.station().toShortString()), mouseX, mouseY);
         }
     }
 

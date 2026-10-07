@@ -122,7 +122,7 @@ Shuttles are **simulated as data** on the warehouse network and only rendered mo
 - **Work orders instead of patterns.** Requesting an item that is not in stock creates a work order.
 - **Bill of materials explosion**: the order is broken into sub-orders. Stock on hand is reserved, the rest is produced.
 - Recipes come from connected Manufacturing machines. Building an assembler for gears teaches the system to make gears.
-- Machines get **input and output docks** next to the rails. Shuttles deliver ingredients and pick up results.
+- Machines get an **Outbound Station** in front and an **Inbound Station** beside them, next to the rails. Shuttles deliver ingredients to the outbound station and pick up results from the inbound station.
 - **Min/max stock levels** per item create orders automatically ("keep 500 to 1,000 iron gears").
 - **Order board** shows open orders, which machine works on what, and what is blocked and why.
 - Standalone fallback: Storage alone gets a simple Crafting Station for vanilla recipes.
@@ -218,7 +218,7 @@ Each milestone ends in something playable or testable.
 ### M7: Autocrafting integration
 - Lib API for production and stock
 - Work orders, BOM explosion, reservations
-- Input and output docks on Manufacturing machines
+- Outbound Station feeds machines, Inbound Station collects their output
 - Min/max stock rules
 - Order board screen
 - Storage only Crafting Station fallback

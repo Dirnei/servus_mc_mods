@@ -21,7 +21,7 @@ import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.dock.MachineDockBlockEntity;
+import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
 import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -141,6 +141,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Rules whose last order attempt found no producer. */
     private final Set<ItemKey> rulesWithoutProducer = new HashSet<>();
     private int ruleTimer;
+    private int outboundTimer;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
     private final OrderBook orders = new OrderBook(new OrderBook.Host() {
         @Override
@@ -537,14 +538,67 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return "";
     }
 
-    /** Delivers items into a dock's feed buffer, planned and refused like a request. */
-    public String feedDock(MachineDockBlockEntity dock, ItemKey key, int amount) {
-        return planAndStart(dock.getBlockPos(), key, amount, 0).refusal();
+    /** Delivers items into an outbound station's buffer, planned and refused like a request. */
+    public String feedStation(OutboundStationBlockEntity station, ItemKey key, int amount) {
+        return planAndStart(station.getBlockPos(), key, amount, 0).refusal();
     }
 
     /** The work orders of this warehouse. */
     public OrderBook orders() {
         return orders;
+    }
+
+    // Outbound stations
+
+    /** Tops every outbound station's buffer up to its keep amounts and records what could not be filled. */
+    private void tickOutbound() {
+        if (status() != Status.ONLINE || level == null) {
+            return;
+        }
+        for (BlockPos pos : new ArrayList<>(stations)) {
+            if (!level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station)) {
+                continue;
+            }
+            ItemStack shortStack = ItemStack.EMPTY;
+            String shortReason = "";
+            boolean pending = false;
+            for (int slot = 0; slot < station.keep().getSlots(); slot++) {
+                ItemStack wanted = station.keep().getStackInSlot(slot);
+                if (wanted.isEmpty()) {
+                    continue;
+                }
+                ItemKey key = ItemKey.of(wanted);
+                int onTheWay = pendingTo(pos, key);
+                pending |= onTheWay > 0;
+                int have = station.bufferCount(key) + onTheWay;
+                if (have >= wanted.getCount()) {
+                    continue;
+                }
+                int missing = wanted.getCount() - have;
+                Started started = planAndStart(pos, key, missing, 0);
+                pending |= started.planned() > 0;
+                if (started.planned() < missing && shortStack.isEmpty()) {
+                    shortStack = key.stack(1);
+                    shortReason = started.refusal().isEmpty() ? "out_of_stock" : started.refusal();
+                }
+            }
+            station.setRestockState(shortStack, shortReason, pending);
+        }
+    }
+
+    /** Items of the key queued, riding or held for a destination. */
+    private int pendingTo(BlockPos destination, ItemKey key) {
+        return fleet.queuedAmount(destination, key) + fleet.ridingAmount(destination, key) + heldAmount(destination, key);
+    }
+
+    private int heldAmount(BlockPos destination, ItemKey key) {
+        int count = 0;
+        for (HeldLoad load : held.getOrDefault(destination, List.of())) {
+            if (load.job().key().equals(key)) {
+                count += load.stack().getCount();
+            }
+        }
+        return count;
     }
 
     // Order board
@@ -573,7 +627,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             } else {
                 state = "idle";
             }
-            rows.add(new MachineRow(producer.dock(), producer.machineName().getString(), working, state));
+            rows.add(new MachineRow(producer.station(), producer.machineName().getString(), working, state));
         }
         return rows;
     }
@@ -582,13 +636,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public List<OrderRow> orderRows() {
         Map<BlockPos, String> names = new HashMap<>();
         for (Producer producer : producers()) {
-            names.put(producer.dock(), producer.machineName().getString());
+            names.put(producer.station(), producer.machineName().getString());
         }
         List<OrderRow> rows = new ArrayList<>();
         for (WorkOrder order : orders.orders()) {
             List<StepRow> steps = new ArrayList<>();
             for (OrderStep step : order.steps()) {
-                steps.add(new StepRow(step.dock(), names.getOrDefault(step.dock(), "?"), step.output().copyWithCount(1), step.batches(),
+                steps.add(new StepRow(step.station(), names.getOrDefault(step.station(), "?"), step.output().copyWithCount(1), step.batches(),
                         step.state().name().toLowerCase(java.util.Locale.ROOT), step.reason()));
             }
             rows.add(new OrderRow(order.id(), order.key().stack(1), order.amount(), order.state().name().toLowerCase(java.util.Locale.ROOT),
@@ -717,21 +771,21 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
-    /** A dock and what the block it faces can make. */
-    public record Producer(BlockPos dock, BlockPos machine, Component machineName, boolean producer, List<ProductionRecipe> recipes,
+    /** An outbound station and what the block it faces can make. */
+    public record Producer(BlockPos station, BlockPos machine, Component machineName, boolean producer, List<ProductionRecipe> recipes,
                            Optional<ResourceLocation> active) {
     }
 
-    /** Every dock of the warehouse with its producer's recipes; docks without a producer list none. */
+    /** Every outbound station of the warehouse with its producer's recipes; stations without a producer list none. */
     public List<Producer> producers() {
         List<Producer> list = new ArrayList<>();
         if (level == null) {
             return list;
         }
         for (BlockPos pos : stations) {
-            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof MachineDockBlockEntity dock) {
-                ProductionProvider provider = dock.producer();
-                BlockPos machine = dock.facingPos();
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station) {
+                ProductionProvider provider = station.producer();
+                BlockPos machine = station.facingPos();
                 Component name = level.getBlockState(machine).getBlock().getName();
                 list.add(new Producer(pos, machine, name, provider != null, provider == null ? List.of() : provider.recipes(),
                         provider == null ? Optional.empty() : provider.active()));
@@ -1006,6 +1060,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             fleet.tick();
             tickStations();
             orders.tick();
+            if (++outboundTimer >= StorageStatsManager.INSTANCE.outboundCheckInterval()) {
+                outboundTimer = 0;
+                tickOutbound();
+            }
             if (++ruleTimer >= StorageStatsManager.INSTANCE.stockRuleInterval()) {
                 ruleTimer = 0;
                 tickStockRules();
@@ -1094,9 +1152,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 continue;
             }
             budget--;
-            if (station instanceof MachineDockBlockEntity) {
-                orders.collected(pos, key, stack.getCount());
-            }
+            orders.collected(pos, key, stack.getCount());
             if (fleet.canCarry(pos, target.get())) {
                 station.claim(slot);
                 fleet.requestPutAway(new PutAwayJob(pos, slot, key, stack.getCount(), target.get()));

@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -93,21 +94,30 @@ public class InboundStationBlock extends BaseEntityBlock implements Wrenchable {
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
+    /** The carrot cycles the clicked side's mode; sneaking dismantles with the side modes kept in the item. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
-        boolean dismantle = player != null && player.isShiftKeyDown();
-        if (!level.isClientSide()) {
-            if (dismantle) {
-                // onRemove drops the buffer, then the block itself follows.
-                Block.popResource(level, pos, new ItemStack(this));
-                level.removeBlock(pos, false);
-            } else {
-                level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);
+        if (level.isClientSide() || !(level.getBlockEntity(pos) instanceof InboundStationBlockEntity station)) {
+            return InteractionResult.sidedSuccess(level.isClientSide());
+        }
+        if (player != null && player.isShiftKeyDown()) {
+            station.dropContents(level, pos);
+            ItemStack drop = new ItemStack(this);
+            station.saveToItem(drop, level.registryAccess());
+            Block.popResource(level, pos, drop);
+            level.removeBlock(pos, false);
+        } else {
+            Direction side = context.getClickedFace();
+            SideModes.Mode mode = station.cycleSide(side);
+            if (player != null) {
+                player.displayClientMessage(Component.translatable("gui.servus_storage.station.side_set",
+                        Component.translatable("gui.servus_storage.station.side." + side.getSerializedName()),
+                        Component.translatable("gui.servus_storage.station.mode." + mode.name().toLowerCase(java.util.Locale.ROOT))), true);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

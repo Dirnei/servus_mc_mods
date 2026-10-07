@@ -51,8 +51,8 @@ public final class OrderBook {
         }
     }
 
-    /** Which dock runs which recipe; the planner's recipe id. */
-    public record StepKey(BlockPos dock, ResourceLocation recipe) {
+    /** Which station and machine run which recipe; the planner's recipe id. */
+    public record StepKey(BlockPos station, BlockPos machine, ResourceLocation recipe) {
     }
 
     /** The request id of orders a stock rule created. */
@@ -136,7 +136,7 @@ public final class OrderBook {
         List<OrderStep> steps = new ArrayList<>();
         for (OrderPlanner.Step<ItemKey> step : plan.steps()) {
             StepKey stepKey = (StepKey) step.recipe().id();
-            steps.add(new OrderStep(stepKey.dock(), byKey.get(stepKey), step.batches()));
+            steps.add(new OrderStep(stepKey.station(), stepKey.machine(), byKey.get(stepKey), step.batches()));
         }
         WorkOrder order = new WorkOrder(nextId++, key, amount, requestId, steps, plan.reserved(), plan.missing());
         if (!plan.missing().isEmpty()) {
@@ -146,7 +146,7 @@ public final class OrderBook {
         return new Created(order, "");
     }
 
-    /** The docks' recipes as the planner sees them, idle docks first, then by time. */
+    /** The stations' recipes as the planner sees them, idle stations first, then by time. */
     private List<OrderPlanner.Recipe<ItemKey>> recipes(Map<StepKey, ProductionRecipe> byKey) {
         List<WarehouseNetwork.Producer> producers = new ArrayList<>(host.producers());
         producers.sort(Comparator.comparing((WarehouseNetwork.Producer producer) -> producer.active().isPresent()));
@@ -156,7 +156,7 @@ public final class OrderBook {
                 if (recipe.outputs().isEmpty()) {
                     continue;
                 }
-                StepKey stepKey = new StepKey(producer.dock(), recipe.id());
+                StepKey stepKey = new StepKey(producer.station(), producer.machine(), recipe.id());
                 byKey.put(stepKey, recipe);
                 Map<ItemKey, Integer> inputs = new LinkedHashMap<>();
                 for (ItemStack input : recipe.inputs()) {
@@ -170,7 +170,7 @@ public final class OrderBook {
             }
         }
         list.sort(Comparator.comparingInt(OrderPlanner.Recipe::ticks));
-        // Stable sort keeps idle docks first among equal times.
+        // Stable sort keeps idle stations first among equal times.
         return list;
     }
 
@@ -202,19 +202,32 @@ public final class OrderBook {
 
     // Execution
 
-    /** A stack of the key left the dock's collect buffer; the oldest step producing it on that dock gets the credit. */
-    public void collected(BlockPos dock, ItemKey key, int count) {
+    /**
+     * A stack of the key left an inbound station's buffer: the oldest active step
+     * producing it whose machine touches that station gets the credit, else the
+     * oldest active step producing it anywhere.
+     */
+    public void collected(BlockPos inbound, ItemKey key, int count) {
+        OrderStep fallback = null;
         for (WorkOrder order : orders) {
             if (!order.open()) {
                 continue;
             }
             for (OrderStep step : order.steps()) {
-                if (step.dock().equals(dock) && step.produces(key)
-                        && (step.state() == OrderStep.State.PRODUCING || step.state() == OrderStep.State.FEEDING)) {
+                if (!step.active() || !step.produces(key)) {
+                    continue;
+                }
+                if (step.collectsAt(inbound)) {
                     step.addCollected(key, count);
                     return;
                 }
+                if (fallback == null) {
+                    fallback = step;
+                }
             }
+        }
+        if (fallback != null) {
+            fallback.addCollected(key, count);
         }
     }
 
@@ -242,17 +255,17 @@ public final class OrderBook {
         boolean allDone = true;
         for (OrderStep step : order.steps()) {
             switch (step.state()) {
-                case WAITING_DOCK -> {
-                    if (!dockBusy(step.dock(), step)) {
-                        step.setState(OrderStep.State.FEEDING);
+                case WAITING_STATION -> {
+                    if (!stationBusy(step.station(), step)) {
+                        step.setState(OrderStep.State.DELIVERING);
                         step.setReason("");
                         blocked = feed(order, step, blocked);
                     } else {
-                        step.setReason("dock busy");
+                        step.setReason("station busy");
                     }
                     allDone = false;
                 }
-                case FEEDING -> {
+                case DELIVERING -> {
                     blocked = feed(order, step, blocked);
                     allDone = false;
                 }
@@ -287,7 +300,7 @@ public final class OrderBook {
             if (owed <= 0) {
                 continue;
             }
-            Feed feed = host.feed(step.dock(), key, owed);
+            Feed feed = host.feed(step.station(), key, owed);
             if (feed.planned() > 0) {
                 step.addFed(key, feed.planned());
                 order.useReserved(key, feed.planned());
@@ -306,9 +319,9 @@ public final class OrderBook {
         return blocked == null ? reason : blocked;
     }
 
-    private boolean dockBusy(BlockPos dock, OrderStep except) {
+    private boolean stationBusy(BlockPos station, OrderStep except) {
         for (WorkOrder order : orders) {
-            if (order.occupies(dock, except)) {
+            if (order.occupies(station, except)) {
                 return true;
             }
         }

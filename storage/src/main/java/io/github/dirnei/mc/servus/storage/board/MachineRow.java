@@ -7,17 +7,17 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * One dock of the warehouse as the board shows it.
+ * One station of the warehouse as the board shows it.
  *
- * @param dock    the dock
- * @param machine the name of the block the dock faces
+ * @param station    the station
+ * @param machine the name of the block the station faces
  * @param working the first output of the active recipe, empty when none runs
  * @param state   working, idle, no_recipes or no_producer
  */
-public record MachineRow(BlockPos dock, String machine, ItemStack working, String state) {
+public record MachineRow(BlockPos station, String machine, ItemStack working, String state) {
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MachineRow> STREAM_CODEC = StreamCodec.composite(
-            BlockPos.STREAM_CODEC, MachineRow::dock,
+            BlockPos.STREAM_CODEC, MachineRow::station,
             ByteBufCodecs.STRING_UTF8, MachineRow::machine,
             ItemStack.OPTIONAL_STREAM_CODEC, MachineRow::working,
             ByteBufCodecs.STRING_UTF8, MachineRow::state,

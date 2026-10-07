@@ -272,6 +272,30 @@ public final class ShuttleFleet {
         return count;
     }
 
+    /** Items of the key on queued picks bound for a destination. */
+    public int queuedAmount(BlockPos destination, ItemKey key) {
+        int count = 0;
+        for (ShuttleJob job : jobs) {
+            if (job instanceof PickJob pick && pick.terminal().equals(destination) && pick.key().equals(key)) {
+                count += pick.amount();
+            }
+        }
+        return count;
+    }
+
+    /** Items of the key on picks a shuttle is working on, bound for a destination. */
+    public int ridingAmount(BlockPos destination, ItemKey key) {
+        int count = 0;
+        for (Garage garage : garages.values()) {
+            for (Shuttle shuttle : garage.shuttles) {
+                if (shuttle.job instanceof PickJob pick && pick.terminal().equals(destination) && pick.key().equals(key)) {
+                    count += pick.amount();
+                }
+            }
+        }
+        return count;
+    }
+
     /** Drops the queued picks of a request; loads already on a shuttle still arrive. */
     public void removeQueued(int requestId) {
         jobs.removeIf(job -> job instanceof PickJob pick && pick.requestId() == requestId);

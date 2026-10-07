@@ -31,7 +31,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         HeavyRackModels.rack(this, ServusStorageBlocks.HEAVY_RACK.get(), "heavy_rack");
         station(ServusStorageBlocks.INBOUND_STATION.get(), "inbound_station");
         oriented(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "shuttle_garage", "shuttle_garage");
-        station(ServusStorageBlocks.MACHINE_DOCK.get(), "machine_dock");
+        station(ServusStorageBlocks.OUTBOUND_STATION.get(), "outbound_station");
         machine(ServusStorageBlocks.CRAFTING_STATION.get(), "crafting_station");
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
         itemModels().getBuilder("shuttle").parent(new ModelFile.UncheckedModelFile("block/block"))
