@@ -34,6 +34,10 @@ On a side whose fluid mode is in and out, a block that accepts the fluid offered
 - **WHEN** tank A touches a pull in side and tank B an in and out side on the same channel
 - **THEN** fluid flows from tank A to tank B and never back
 
+#### Scenario: Two tanks on default sides
+- **WHEN** a full tank A and an empty tank B of the same size touch in and out sides on the same channel
+- **THEN** A's content moves into B and stays there; B keeps acting as a sink until the side's configuration changes
+
 ### Requirement: Fluid pushed into a duct
 A duct carrying the Fluid Pipe SHALL accept fluid filled into it on a side whose fluid mode allows input and SHALL pass it straight on to sinks on that side's channel, keeping nothing itself. With no sink that accepts the fluid it SHALL accept nothing.
 

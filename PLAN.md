@@ -6,7 +6,7 @@ A family of NeoForge mods for Minecraft 1.21.1, built to fit packs like ATM10 bu
 |---|---|---|
 | Servus Lib | `servus_lib` | Shared library: APIs, network graph, tick mailbox, Configuration Carrot (the wrench role), config helpers |
 | Servus: Manufacturing | `servus_manufacturing` | Factorio style resource production with its own tech tree |
-| Servus: Logistics | `servus_logistics` | Bundled item and energy ducts (fluids later) with facades |
+| Servus: Logistics | `servus_logistics` | Bundled item, energy and fluid ducts with facades |
 | Servus: Storage | `servus_storage` | In-world warehouse storage that scales to shuttles, autocrafting and wireless access |
 
 Storage and Logistics depend only on Servus Lib. Manufacturing depends on Servus Lib and Servus: Logistics, because its ducts are the Utility Duct. No other content mod depends on another. When several are installed, extra features light up through the Lib API.
@@ -92,13 +92,13 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 
 ### 2.2 Servus: Logistics
 
-- **Utility Duct**: one block with several lines (Item Pipe and Power Cable first, a fluid line later). Each line is placed as its own item and adds to a duct that lacks it.
-- Per side and per line modes (in and out, pull in, push out, disabled) and one of eight colored channels per line and side, set in an endpoint GUI that the Configuration Carrot (the wrench role) opens on the arm that touches an inventory or machine. Items and energy only flow between sides on the same channel. A bare hand opens nothing; sneak carrot removes the facade, then the duct.
-- Item Pipe: filters and priorities per side. Power Cable: tiered transfer rate (later).
+- **Utility Duct**: one block with several lines (Item Pipe, Power Cable and Fluid Pipe). Each line is placed as its own item and adds to a duct that lacks it.
+- Per side and per line modes (in and out, pull in, push out, disabled) and one of eight colored channels per line and side, set in an endpoint GUI that the Configuration Carrot (the wrench role) opens on the arm that touches an inventory or machine. Items, energy and fluids only flow between sides on the same channel. A bare hand opens nothing; sneak carrot removes the facade, then the duct.
+- Item Pipe: filters and priorities per side. Power Cable: tiered transfer rate (later). Fluid Pipe: moves any fluid between blocks with `IFluidHandler`, no rate limit of its own (pumps set the throughput), no filters or priorities.
 - **Facades**: crafted from any full block plus an iron plate. The duct then looks like that block. Solid or hollow variants.
 - Holding the Configuration Carrot or wearing engineer goggles shows hidden ducts as a translucent overlay.
-- Rendering: a dynamic baked model composed from part models (a centre and arms per line set) driven by model data from the block entity. A duct grows thicker with its lines, each line has its own color, both show on a two line duct, and an arm that ends at an inventory or machine carries a ring in its channel color. Facades reuse the target block's baked model.
-- The shape follows the lines: thin for one line, thicker for two, arms as thick as the lines that connect there. Lines are removed through the endpoint GUI, not by clicking a part.
+- Rendering: a dynamic baked model composed from part models (a centre and arms per line set) driven by model data from the block entity. A duct grows thicker with its lines, each line has its own color, all of them show as bands on a duct with several lines, and an arm that ends at an inventory or machine carries a ring in its channel color. Facades reuse the target block's baked model.
+- The shape follows the lines: thin for one line, thicker for two, thickest for three, arms as thick as the lines that connect there. Lines are removed through the endpoint GUI, not by clicking a part.
 - Networks are cached graphs, rebuilt only on placement or removal, never by walking blocks every tick.
 - **Fluid Tank**: a glass block holding one fluid. Touching tank blocks that fill a complete rectangular box form one tank with a shared content and a capacity of blocks times `capacity_per_block` from data (example 16,000 mB); a group that is not a full box works as single block tanks until it is. Every block stores its own share and the tank network lays the shares out lowest layer first, so forming, splitting and chunk unloads move no fluid. Joined blocks hide glass and frame toward each other through a multipart model. Buckets, an empty hand read out and `IFluidHandler` on every face; a broken block keeps its share in its item.
 
@@ -206,6 +206,7 @@ Each milestone ends in something playable or testable.
 
 ### M5: Logistics first release
 - Utility Duct with item and energy channels
+- Fluid Pipe line
 - Per side modes, filters, priorities
 - Facades and goggles overlay
 - Dynamic baked model, per part shapes

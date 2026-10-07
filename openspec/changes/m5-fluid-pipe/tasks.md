@@ -19,6 +19,6 @@
 
 ## 4. Docs and verification
 
-- [ ] 4.1 Update `PLAN.md` 2.2 and M5. Run `openspec validate m5-fluid-pipe --strict`.
+- [x] 4.1 Update `PLAN.md` 2.2 and M5. Run `openspec validate m5-fluid-pipe --strict`.
 - [ ] 4.2 Full `gradlew build` and `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
 - [ ] 4.3 Play check: three line duct size, bands and rings, Fluid Pipe GUI tab, a full tank empties into another through a duct run with default sides.
