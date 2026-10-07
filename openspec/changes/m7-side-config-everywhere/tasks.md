@@ -10,11 +10,11 @@
 
 ## 3. Storage stations and Crafting Station
 
-- [ ] 3.1 Replace `SideModes` with Lib `SideConfig` in `InboundStationBlockEntity.java` (Input, Pull, Off, pull ticker) and `OutboundStationBlockEntity.java` (Push, Output, Off); add `SideConfig.machine()` to `CraftingStationBlockEntity.java` with side aware handler, push and pull. Blocks use `SideConfigWrench`. Menus add `SideConfigData` and handle the buttons; `StationStatePayload` loses `sides`; delete `SideModes.java`, `CycleSidePayload.java`, `SideButtons.java`; screens draw the Lib panel and return to compact layouts (regenerate `inbound_station.png` and `outbound_station.png`). Rewrite the side GameTests for relative sides and add `inboundPullsFromChest` and `craftingStationSideOff`. Run `gradlew :storage:runData` and verify `gradlew :storage:build` and `gradlew :storage:runGameTestServer` are green.
+- [x] 3.1 Replace `SideModes` with Lib `SideConfig` in `InboundStationBlockEntity.java` (Input, Pull, Off, pull ticker) and `OutboundStationBlockEntity.java` (Push, Output, Off); add `SideConfig.machine()` to `CraftingStationBlockEntity.java` with side aware handler, push and pull. Blocks use `SideConfigWrench`. Menus add `SideConfigData` and handle the buttons; `StationStatePayload` loses `sides`; delete `SideModes.java`, `CycleSidePayload.java`, `SideButtons.java`; screens draw the Lib panel and return to compact layouts (regenerate `inbound_station.png` and `outbound_station.png`). Rewrite the side GameTests for relative sides and add `inboundPullsFromChest` and `craftingStationSideOff`. Run `gradlew :storage:runData` and verify `gradlew :storage:build` and `gradlew :storage:runGameTestServer` are green.
 
 ## 4. Side markers
 
-- [ ] 4.1 Add `lib/.../side/SidedBlockEntity.java` and `lib/.../client/SideMarkerRenderer.java`; implement the interface on `MachineBlockEntity`, `InboundStationBlockEntity`, `OutboundStationBlockEntity` and `CraftingStationBlockEntity`; register the renderer for those block entity types in `ServusManufacturingClient` and `ServusStorageClient`. Verify `gradlew build` is green and launch `gradlew runClientAll`: a Pull side shows its frame from afar, the carrot shows frames and glyphs on every face.
+- [x] 4.1 Add `lib/.../side/SidedBlockEntity.java` and `lib/.../client/SideMarkerRenderer.java`; implement the interface on `MachineBlockEntity`, `InboundStationBlockEntity`, `OutboundStationBlockEntity` and `CraftingStationBlockEntity`; register the renderer for those block entity types in `ServusManufacturingClient` and `ServusStorageClient`. Verify `gradlew build` is green and launch `gradlew runClientAll`: a Pull side shows its frame from afar, the carrot shows frames and glyphs on every face.
 
 ## 5. Verification
 

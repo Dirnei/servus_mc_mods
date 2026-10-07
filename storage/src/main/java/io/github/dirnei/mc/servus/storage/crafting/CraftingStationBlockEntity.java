@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.crafting;
 
+import io.github.dirnei.mc.servus.lib.block.SidedBlockEntity;
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideConfig;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.lib.craft.IngredientGatherer;
 import io.github.dirnei.mc.servus.lib.craft.RoundRobin;
 import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
@@ -48,7 +52,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * Storage's own producer: crafts the vanilla recipes the player configured
  * from a pattern grid, without power, and pushes results into neighbours.
  */
-public class CraftingStationBlockEntity extends BlockEntity implements MenuProvider {
+public class CraftingStationBlockEntity extends BlockEntity implements MenuProvider, SidedBlockEntity {
 
     public static final int INPUT_SLOTS = 9;
     public static final int OUTPUT_SLOTS = 4;
@@ -158,8 +162,22 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     private int active = -1;
     private int pushTimer;
 
-    /** All thirteen slots for automation: inputs take only used items, outputs only give. */
-    private final IItemHandler sideHandler = new IItemHandler() {
+    private final SideConfig sides = SideConfig.machine();
+    private final java.util.Map<Direction, IItemHandler> sideHandlers = new java.util.EnumMap<>(Direction.class);
+    private final IItemHandler anySide = new SideHandler(null);
+
+    /** All thirteen slots for automation: inputs take only used items, outputs only give, both only where the side allows it. */
+    private final class SideHandler implements IItemHandler {
+        private final Direction side;
+
+        private SideHandler(Direction side) {
+            this.side = side;
+        }
+
+        private SideMode mode() {
+            return side == null ? SideMode.AUTO : sideMode(side);
+        }
+
         @Override
         public int getSlots() {
             return INPUT_SLOTS + OUTPUT_SLOTS;
@@ -172,7 +190,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
 
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            if (slot >= INPUT_SLOTS || !uses(stack)) {
+            if (slot >= INPUT_SLOTS || !mode().allowsInsert() || !uses(stack)) {
                 return stack;
             }
             return inputs.insertItem(slot, stack, simulate);
@@ -180,7 +198,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
 
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return slot < INPUT_SLOTS ? ItemStack.EMPTY : outputs.extractItem(slot - INPUT_SLOTS, amount, simulate);
+            return slot < INPUT_SLOTS || !mode().allowsExtract() ? ItemStack.EMPTY : outputs.extractItem(slot - INPUT_SLOTS, amount, simulate);
         }
 
         @Override
@@ -190,9 +208,9 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return slot < INPUT_SLOTS && uses(stack);
+            return slot < INPUT_SLOTS && mode().allowsInsert() && uses(stack);
         }
-    };
+    }
 
     public CraftingStationBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.CRAFTING_STATION.get(), pos, state);
@@ -210,8 +228,36 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         return pattern;
     }
 
-    public IItemHandler sideHandler() {
-        return sideHandler;
+    /** The handler a neighbour on that side sees, or the unrestricted view for a null side. */
+    public IItemHandler handlerFor(Direction side) {
+        if (side == null) {
+            return anySide;
+        }
+        return sideHandlers.computeIfAbsent(side, SideHandler::new);
+    }
+
+    // Sides
+
+    @Override
+    public SideConfig sideConfig() {
+        return sides;
+    }
+
+    @Override
+    public Direction facing() {
+        return getBlockState().hasProperty(CraftingStationBlock.FACING) ? getBlockState().getValue(CraftingStationBlock.FACING) : Direction.NORTH;
+    }
+
+    @Override
+    public SideMode cycleSide(RelativeSide side) {
+        SideMode mode = sides.cycle(side);
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            level.invalidateCapabilities(worldPosition);
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+        return mode;
     }
 
     public List<StationRecipe> recipes() {
@@ -431,8 +477,18 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         }
         pushTimer = 0;
         for (Direction direction : Direction.values()) {
+            SideMode mode = sideMode(direction);
+            if (!mode.pushes() && !mode.pulls()) {
+                continue;
+            }
             IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK, worldPosition.relative(direction), direction.getOpposite());
             if (neighbour == null) {
+                continue;
+            }
+            if (mode.pulls()) {
+                pullFrom(neighbour);
+            }
+            if (!mode.pushes()) {
                 continue;
             }
             for (int i = 0; i < OUTPUT_SLOTS; i++) {
@@ -443,6 +499,25 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
                         outputs.setStackInSlot(i, left);
                     }
                 }
+            }
+        }
+    }
+
+    /** Takes one stack a configured recipe uses from the neighbour into the inputs. */
+    private void pullFrom(IItemHandler neighbour) {
+        for (int from = 0; from < neighbour.getSlots(); from++) {
+            ItemStack offered = neighbour.extractItem(from, 64, true);
+            if (offered.isEmpty() || !uses(offered)) {
+                continue;
+            }
+            int room = offered.getCount() - ItemHandlerHelper.insertItem(inputs, offered, true).getCount();
+            if (room <= 0) {
+                continue;
+            }
+            ItemStack taken = neighbour.extractItem(from, room, false);
+            if (!taken.isEmpty()) {
+                ItemHandlerHelper.insertItem(inputs, taken, false);
+                return;
             }
         }
     }
@@ -491,6 +566,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         tag.putInt("Progress", progress);
         tag.putInt("Cursor", cursor);
         tag.put("Recipes", saveRecipes(registries));
+        tag.putByteArray("Sides", sides.toBytes());
     }
 
     private ListTag saveRecipes(HolderLookup.Provider registries) {
@@ -520,12 +596,16 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
             StationRecipe.load((CompoundTag) entry, registries).ifPresent(recipes::add);
         }
         active = -1;
+        if (tag.contains("Sides")) {
+            sides.fromBytes(tag.getByteArray("Sides"));
+        }
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         tag.put("Recipes", saveRecipes(registries));
+        tag.putByteArray("Sides", sides.toBytes());
         return tag;
     }
 

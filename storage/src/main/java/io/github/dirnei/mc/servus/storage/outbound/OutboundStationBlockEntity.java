@@ -1,7 +1,11 @@
 package io.github.dirnei.mc.servus.storage.outbound;
 
+import io.github.dirnei.mc.servus.lib.block.SidedBlockEntity;
 import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
 import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideConfig;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
@@ -11,13 +15,14 @@ import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
-import io.github.dirnei.mc.servus.storage.station.SideModes;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -33,13 +38,12 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * The outbound dock: the warehouse keeps the buffer stocked at the keep
- * amounts, push sides hand the buffer to neighbours, extract sides let
+ * amounts, Push sides hand the buffer to neighbours, Output sides let
  * neighbours take from it. Deliveries for work orders land here as well.
  */
-public class OutboundStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider, DeliveryTarget {
+public class OutboundStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider, DeliveryTarget, SidedBlockEntity {
 
     public static final int KEEP_LIMIT = 4096;
-    private static final List<SideModes.Mode> CYCLE = List.of(SideModes.Mode.PUSH, SideModes.Mode.EXTRACT, SideModes.Mode.OFF);
 
     private final ItemStackHandler buffer = new ItemStackHandler(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
@@ -62,7 +66,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         }
     };
 
-    /** The outside view on extract sides: takes only, never inserts. */
+    /** The outside view on Output sides: takes only, never inserts. */
     private final IItemHandler extractOnly = new IItemHandler() {
         @Override
         public int getSlots() {
@@ -95,16 +99,14 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         }
     };
 
-    private final SideModes sides = new SideModes(CYCLE, SideModes.Mode.OFF);
+    private final SideConfig sides = SideConfig.outbound();
     private int pushTimer;
     private ItemStack shortStack = ItemStack.EMPTY;
     private String shortReason = "";
 
     public OutboundStationBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.OUTBOUND_STATION.get(), pos, state);
-        if (state.hasProperty(OutboundStationBlock.FACING)) {
-            sides.set(state.getValue(OutboundStationBlock.FACING), SideModes.Mode.PUSH);
-        }
+        sides.set(RelativeSide.FRONT, SideMode.PUSH);
     }
 
     @Override
@@ -112,8 +114,10 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         return NodeKind.STATION;
     }
 
+    @Override
     public Direction facing() {
-        return getBlockState().getValue(OutboundStationBlock.FACING);
+        BlockState state = getBlockState();
+        return state.hasProperty(OutboundStationBlock.FACING) ? state.getValue(OutboundStationBlock.FACING) : Direction.NORTH;
     }
 
     /** The block in front, the machine this station serves when it is one. */
@@ -134,30 +138,31 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         return buffer;
     }
 
-    public SideModes sides() {
+    // Sides
+
+    @Override
+    public SideConfig sideConfig() {
         return sides;
     }
 
-    /** The item handler a neighbour on that side sees: the extract view on extract sides, nothing elsewhere. */
+    /** The item handler a neighbour on that side sees: the extract view where extraction is allowed, nothing elsewhere. */
     public IItemHandler handlerFor(Direction side) {
-        if (side == null || sides.mode(side) == SideModes.Mode.EXTRACT) {
+        if (side == null || sideMode(side).allowsExtract()) {
             return extractOnly;
         }
         return null;
     }
 
-    /** Cycles a side's mode, refreshes neighbour caches and returns the new mode. */
-    public SideModes.Mode cycleSide(Direction side) {
-        SideModes.Mode mode = sides.cycle(side);
-        sidesChanged();
-        return mode;
-    }
-
-    private void sidesChanged() {
+    @Override
+    public SideMode cycleSide(RelativeSide side) {
+        SideMode mode = sides.cycle(side);
         setChanged();
-        if (level != null) {
+        if (level != null && !level.isClientSide()) {
             level.invalidateCapabilities(worldPosition);
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
+        return mode;
     }
 
     public boolean isEmpty() {
@@ -231,7 +236,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
 
     // Pushing
 
-    /** Pushes the buffer into every push side's neighbour every push interval. */
+    /** Pushes the buffer into every Push side's neighbour every push interval. */
     public static void serverTick(Level level, BlockPos pos, BlockState state, OutboundStationBlockEntity station) {
         if (++station.pushTimer < StorageStatsManager.INSTANCE.pushInterval()) {
             return;
@@ -241,7 +246,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
             return;
         }
         for (Direction direction : Direction.values()) {
-            if (station.sides.mode(direction) != SideModes.Mode.PUSH) {
+            if (!station.sideMode(direction).pushes()) {
                 continue;
             }
             IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK, pos.relative(direction), direction.getOpposite());
@@ -284,14 +289,14 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         return new OutboundStationMenu(containerId, playerInventory, this);
     }
 
-    // Persistence
+    // Persistence and sync
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("Items", buffer.serializeNBT(registries));
         tag.put("Keep", keep.serializeNBT(registries));
-        sides.save(tag);
+        tag.putByteArray("Sides", sides.toBytes());
     }
 
     @Override
@@ -303,7 +308,21 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         if (tag.contains("Keep")) {
             load(keep, tag.getCompound("Keep"), registries);
         }
-        sides.load(tag);
+        if (tag.contains("Sides")) {
+            sides.fromBytes(tag.getByteArray("Sides"));
+        }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        tag.putByteArray("Sides", sides.toBytes());
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     private static void load(ItemStackHandler into, CompoundTag tag, HolderLookup.Provider registries) {

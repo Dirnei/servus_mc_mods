@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.lib.block.SideConfigData;
+import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
@@ -22,10 +26,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class InboundStationMenu extends AbstractContainerMenu {
 
     public static final int BUFFER_Y = 18;
-    public static final int SIDES_Y = 40;
-    public static final int STATUS_Y = 58;
-    public static final int INVENTORY_Y = 80;
-    public static final int HOTBAR_Y = 138;
+    public static final int STATUS_Y = 40;
+    public static final int INVENTORY_Y = 58;
+    public static final int HOTBAR_Y = 116;
     private static final int COLUMNS = 9;
     private static final int SYNC_INTERVAL = 5;
 
@@ -55,6 +58,7 @@ public class InboundStationMenu extends AbstractContainerMenu {
         for (int column = 0; column < COLUMNS; column++) {
             addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
         }
+        addDataSlots(new SideConfigData(station.sideConfig()));
     }
 
     public static InboundStationMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -74,13 +78,20 @@ public class InboundStationMenu extends AbstractContainerMenu {
         return inventoryStart;
     }
 
-    /** Cycles a side's mode from the GUI. */
-    public void cycleSide(int direction) {
-        if (direction >= 0 && direction < net.minecraft.core.Direction.values().length) {
-            station.cycleSide(net.minecraft.core.Direction.values()[direction]);
+    public SideMode sideMode(RelativeSide side) {
+        return station.sideConfig().mode(side);
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        RelativeSide side = SideConfigMenus.sideOf(id);
+        if (side != null) {
+            if (!player.level().isClientSide()) {
+                station.cycleSide(side);
+            }
+            return true;
         }
-        lastSignature = Integer.MIN_VALUE;
-        syncTimer = SYNC_INTERVAL;
+        return false;
     }
 
     /** Shift click moves between the buffer and the player inventory. */
@@ -146,7 +157,6 @@ public class InboundStationMenu extends AbstractContainerMenu {
             case MULTIPLE_CONTROLLERS -> "multiple_controllers";
             case ONLINE -> "";
         };
-        return new StationStatePayload(offline.isEmpty(), offline, blockedReason, blockedStack, station.blockedZone(), station.isEmpty(),
-                station.sides().symbols());
+        return new StationStatePayload(offline.isEmpty(), offline, blockedReason, blockedStack, station.blockedZone(), station.isEmpty());
     }
 }

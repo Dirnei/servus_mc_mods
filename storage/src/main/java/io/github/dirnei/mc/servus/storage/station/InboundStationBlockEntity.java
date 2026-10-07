@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.station;
 
+import io.github.dirnei.mc.servus.lib.block.SidedBlockEntity;
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideConfig;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -10,10 +14,14 @@ import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import java.util.Arrays;
-import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
@@ -32,7 +40,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * The inbound dock: an intake buffer that hoppers, ducts and players fill and
  * the warehouse drains into storage by its zone rules. Never indexed.
  */
-public class InboundStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
+public class InboundStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider, SidedBlockEntity {
 
     private final ItemStackHandler buffer = new ItemStackHandler(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
@@ -79,7 +87,8 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     };
 
     private final boolean[] claimed = new boolean[StorageStatsManager.INSTANCE.inboundBufferSlots()];
-    private final SideModes sides = new SideModes(List.of(SideModes.Mode.ACCEPT, SideModes.Mode.OFF), SideModes.Mode.ACCEPT);
+    private final SideConfig sides = SideConfig.inbound();
+    private int pullTimer;
     private PutAwayPlan.Reason blockedReason;
     private ItemStack blockedStack = ItemStack.EMPTY;
     private String blockedZone = "";
@@ -112,30 +121,68 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
         return intake;
     }
 
-    public SideModes sides() {
+    // Sides
+
+    @Override
+    public SideConfig sideConfig() {
         return sides;
     }
 
+    @Override
     public Direction facing() {
         return getBlockState().hasProperty(InboundStationBlock.FACING) ? getBlockState().getValue(InboundStationBlock.FACING) : Direction.NORTH;
     }
 
-    /** The item handler a neighbour on that side sees: the intake on accept sides, nothing on off sides. */
+    /** The item handler a neighbour on that side sees: the intake where insertion is allowed, nothing elsewhere. */
     public IItemHandler handlerFor(Direction side) {
-        if (side == null || sides.mode(side) == SideModes.Mode.ACCEPT) {
+        if (side == null || sideMode(side).allowsInsert()) {
             return intake;
         }
         return null;
     }
 
-    /** Toggles a side between accept and off, refreshes neighbour caches and returns the new mode. */
-    public SideModes.Mode cycleSide(Direction side) {
-        SideModes.Mode mode = sides.cycle(side);
+    @Override
+    public SideMode cycleSide(RelativeSide side) {
+        SideMode mode = sides.cycle(side);
         setChanged();
-        if (level != null) {
+        if (level != null && !level.isClientSide()) {
             level.invalidateCapabilities(worldPosition);
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
         return mode;
+    }
+
+    /** Takes stacks from the neighbour on every Pull side while the buffer has room, every push interval. */
+    public static void serverTick(Level level, BlockPos pos, BlockState state, InboundStationBlockEntity station) {
+        if (++station.pullTimer < StorageStatsManager.INSTANCE.pushInterval()) {
+            return;
+        }
+        station.pullTimer = 0;
+        for (Direction direction : Direction.values()) {
+            if (!station.sideMode(direction).pulls()) {
+                continue;
+            }
+            IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK, pos.relative(direction), direction.getOpposite());
+            if (neighbour == null) {
+                continue;
+            }
+            for (int from = 0; from < neighbour.getSlots(); from++) {
+                ItemStack offered = neighbour.extractItem(from, 64, true);
+                if (offered.isEmpty()) {
+                    continue;
+                }
+                int room = offered.getCount() - ItemHandlerHelper.insertItem(station.buffer, offered, true).getCount();
+                if (room <= 0) {
+                    continue;
+                }
+                ItemStack taken = neighbour.extractItem(from, room, false);
+                if (!taken.isEmpty()) {
+                    ItemHandlerHelper.insertItem(station.buffer, taken, false);
+                    break;
+                }
+            }
+        }
     }
 
     public boolean isEmpty() {
@@ -238,7 +285,19 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("Items", buffer.serializeNBT(registries));
-        sides.save(tag);
+        tag.putByteArray("Sides", sides.toBytes());
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        tag.putByteArray("Sides", sides.toBytes());
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
@@ -252,6 +311,8 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
                 buffer.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         }
-        sides.load(tag);
+        if (tag.contains("Sides")) {
+            sides.fromBytes(tag.getByteArray("Sides"));
+        }
     }
 }

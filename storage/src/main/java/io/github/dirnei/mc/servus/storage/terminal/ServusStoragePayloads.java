@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.storage.menu.OrderBoardMenu;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
-import io.github.dirnei.mc.servus.storage.station.CycleSidePayload;
 import io.github.dirnei.mc.servus.storage.outbound.KeepSlotPayload;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.zone.SetLabelNamePayload;
@@ -50,16 +49,6 @@ public final class ServusStoragePayloads {
                 (payload, context) -> ClientShuttles.update(payload));
         registrar.playToClient(StationStatePayload.TYPE, StationStatePayload.STREAM_CODEC,
                 (payload, context) -> ClientStationState.update(payload));
-        registrar.playToServer(CycleSidePayload.TYPE, CycleSidePayload.STREAM_CODEC,
-                (payload, context) -> {
-                    if (context.player() instanceof ServerPlayer player) {
-                        if (player.containerMenu instanceof InboundStationMenu menu) {
-                            menu.cycleSide(payload.direction());
-                        } else if (player.containerMenu instanceof OutboundStationMenu menu) {
-                            menu.cycleSide(payload.direction());
-                        }
-                    }
-                });
         registrar.playToServer(KeepSlotPayload.TYPE, KeepSlotPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player

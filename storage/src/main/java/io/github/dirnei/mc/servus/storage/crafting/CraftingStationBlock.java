@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.crafting;
 
 import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.lib.block.SideConfigWrench;
 import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
@@ -98,24 +99,13 @@ public class CraftingStationBlock extends BaseEntityBlock implements Wrenchable 
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
+    /** The carrot cycles the clicked side; sneaking dismantles and keeps recipes and sides on the item. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        Player player = context.getPlayer();
-        boolean dismantle = player != null && player.isShiftKeyDown();
-        if (!level.isClientSide()) {
-            if (dismantle) {
-                ItemStack drop = new ItemStack(this);
-                if (level.getBlockEntity(pos) instanceof CraftingStationBlockEntity station) {
-                    station.dropContents(level, pos);
-                    station.saveToItem(drop, level.registryAccess());
-                }
-                Block.popResource(level, pos, drop);
-                level.removeBlock(pos, false);
-            } else {
-                level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);
-            }
+        if (level.getBlockEntity(pos) instanceof CraftingStationBlockEntity station) {
+            return SideConfigWrench.use(context, this, station, () -> station.dropContents(level, pos));
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }

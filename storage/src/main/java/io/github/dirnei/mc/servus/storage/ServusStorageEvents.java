@@ -96,7 +96,7 @@ public final class ServusStorageEvents {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.OUTBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.CRAFTING_STATION.get(),
-                    (station, side) -> station.sideHandler());
+                    (station, side) -> station.handlerFor(side));
             event.registerBlockEntity(ServusLibCapabilities.PRODUCTION, ServusStorageBlockEntities.CRAFTING_STATION.get(),
                     (station, side) -> station.production());
             event.registerBlockEntity(ServusLibCapabilities.STOCK_PROVIDER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),

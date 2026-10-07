@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.lib.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.outbound.KeepSlotPayload;
@@ -14,7 +16,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** Keep row, buffer row, side buttons, state line, player inventory. */
+/** Keep row, buffer row, state line, player inventory, the shared side panel on the left. */
 public class OutboundStationScreen extends AbstractContainerScreen<OutboundStationMenu> {
 
     private static final ResourceLocation TEXTURE =
@@ -22,12 +24,16 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
     private static final int COLOUR_TEXT = 0x404040;
     private static final int COLOUR_ALERT = 0xB03030;
 
-    private SideButtons sideButtons;
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> {
+        if (minecraft != null && minecraft.gameMode != null) {
+            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(side));
+        }
+    });
 
     public OutboundStationScreen(OutboundStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 186;
+        this.imageHeight = 166;
         ClientStationState.clear();
     }
 
@@ -35,12 +41,11 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
     protected void init() {
         super.init();
         this.inventoryLabelY = OutboundStationMenu.INVENTORY_Y - 11;
-        sideButtons = new SideButtons(this, leftPos + 8, topPos + OutboundStationMenu.SIDES_Y, menu.station().facing(), this::addRenderableWidget);
+        panel.placeBeside(leftPos, topPos);
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        sideButtons.refresh(ClientStationState.state().sides());
         super.render(graphics, mouseX, mouseY, partialTick);
         Slot hovered = hoveredSlot;
         if (hovered != null && hovered.index < menu.keepSlots()) {
@@ -52,7 +57,7 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
             graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
             return;
         }
-        if (sideButtons.renderTooltip(graphics, font, mouseX, mouseY)) {
+        if (panel.renderTooltip(graphics, font, mouseX, mouseY)) {
             return;
         }
         renderTooltip(graphics, mouseX, mouseY);
@@ -61,6 +66,7 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        panel.render(graphics, font, mouseX, mouseY);
     }
 
     @Override
@@ -77,6 +83,14 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
             graphics.drawString(font, Component.translatable("gui.servus_storage.outbound.short." + state.blockedReason(), state.blockedStack().getHoverName()),
                     8, OutboundStationMenu.STATUS_Y, COLOUR_ALERT, false);
         }
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (panel.mouseClicked(mouseX, mouseY)) {
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     /** Scrolling over a keep slot adjusts its amount by one, by a stack with shift. */

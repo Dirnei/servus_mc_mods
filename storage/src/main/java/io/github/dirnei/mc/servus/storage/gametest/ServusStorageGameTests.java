@@ -22,7 +22,8 @@ import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
 import io.github.dirnei.mc.servus.lib.production.StockProvider;
 import io.github.dirnei.mc.servus.lib.production.StockSink;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
-import io.github.dirnei.mc.servus.storage.station.SideModes;
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
@@ -1360,8 +1361,8 @@ public final class ServusStorageGameTests {
         int interval = StorageStatsManager.INSTANCE.outboundCheckInterval();
         helper.runAfterDelay(interval + 20, () -> {
             helper.assertTrue(station.handlerFor(Direction.DOWN) == null, "the bottom is off by default");
-            helper.assertTrue(station.cycleSide(Direction.DOWN) == SideModes.Mode.PUSH, "the first cycle turns the bottom to push");
-            helper.assertTrue(station.cycleSide(Direction.DOWN) == SideModes.Mode.EXTRACT, "the second cycle turns the bottom to extract");
+            helper.assertTrue(station.cycleFace(Direction.DOWN) == SideMode.PUSH, "the first cycle turns the bottom to push");
+            helper.assertTrue(station.cycleFace(Direction.DOWN) == SideMode.OUTPUT, "the second cycle turns the bottom to output");
             IItemHandler bottom = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(OS_STATION), Direction.DOWN);
             helper.assertTrue(bottom != null, "the extract side exposes a handler");
             helper.assertTrue(bottom.extractItem(0, 5, false).getCount() == 5, "5 sticks can be taken");
@@ -1392,14 +1393,16 @@ public final class ServusStorageGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void outboundSideModes(GameTestHelper helper) {
         OutboundStationBlockEntity station = outboundSetup(helper);
-        helper.assertTrue(station.sides().mode(Direction.EAST) == SideModes.Mode.PUSH, "the front starts as push");
-        helper.assertTrue(station.handlerFor(Direction.EAST) == null, "a push side exposes nothing");
-        helper.assertTrue(station.sides().mode(Direction.UP) == SideModes.Mode.OFF && station.handlerFor(Direction.UP) == null, "other sides start off");
-        helper.assertTrue(station.cycleSide(Direction.UP) == SideModes.Mode.PUSH, "off cycles to push");
-        helper.assertTrue(station.cycleSide(Direction.UP) == SideModes.Mode.EXTRACT, "push cycles to extract");
-        helper.assertTrue(station.handlerFor(Direction.UP) != null, "an extract side exposes the buffer");
-        helper.assertTrue(station.cycleSide(Direction.UP) == SideModes.Mode.OFF, "extract cycles to off");
+        helper.assertTrue(station.sideMode(Direction.EAST) == SideMode.PUSH, "the front starts as push");
+        helper.assertTrue(station.handlerFor(Direction.EAST) != null, "a push side also lets neighbours extract");
+        helper.assertTrue(station.sideMode(Direction.UP) == SideMode.DISABLED && station.handlerFor(Direction.UP) == null, "other sides start off");
+        helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.PUSH, "off cycles to push");
+        helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.OUTPUT, "push cycles to output");
+        helper.assertTrue(station.handlerFor(Direction.UP) != null, "an output side exposes the buffer");
+        helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.DISABLED, "output cycles to off");
         helper.assertTrue(station.handlerFor(Direction.UP) == null, "an off side exposes nothing");
+        station.sideConfig().set(RelativeSide.TOP, SideMode.BOTH);
+        helper.assertTrue(station.sideMode(Direction.UP) == SideMode.DISABLED, "an unsupported mode falls back to off");
         helper.succeed();
     }
 
@@ -1492,17 +1495,59 @@ public final class ServusStorageGameTests {
     public static void inboundSideOff(GameTestHelper helper) {
         helper.setBlock(IS_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
         InboundStationBlockEntity station = helper.getBlockEntity(IS_STATION);
-        helper.assertTrue(station.cycleSide(Direction.UP) == SideModes.Mode.OFF, "accept cycles to off");
+        helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.PULL, "input cycles to pull");
+        helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.DISABLED, "pull cycles to off");
         helper.setBlock(IS_STATION.above(), Blocks.HOPPER.defaultBlockState());
         HopperBlockEntity hopper = helper.getBlockEntity(IS_STATION.above());
         hopper.setItem(0, new ItemStack(Items.BREAD, 10));
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(station.isEmpty() && hopper.getItem(0).getCount() == 10, "the hopper should not get through an off side");
-            helper.assertTrue(station.cycleSide(Direction.UP) == SideModes.Mode.ACCEPT, "off cycles to accept");
+            helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.INPUT, "off cycles to input");
             helper.runAfterDelay(40, () -> {
                 helper.assertTrue(!station.isEmpty(), "the hopper should feed the accepting side");
                 helper.succeed();
             });
+        });
+    }
+
+    private static final BlockPos IP_STATION = new BlockPos(8, 1, 10);
+
+    /** A Pull side empties a chest into the buffer without a hopper. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void inboundPullsFromChest(GameTestHelper helper) {
+        helper.setBlock(IP_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
+        InboundStationBlockEntity station = helper.getBlockEntity(IP_STATION);
+        helper.setBlock(IP_STATION.south(), Blocks.CHEST.defaultBlockState());
+        ChestBlockEntity chest = helper.getBlockEntity(IP_STATION.south());
+        chest.setItem(0, new ItemStack(Items.BREAD, 30));
+        helper.assertTrue(station.relativeSide(Direction.SOUTH) == RelativeSide.BACK, "south is the back of a station facing north");
+        station.sideConfig().set(RelativeSide.BACK, SideMode.PULL);
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(chest.countItem(Items.BREAD) == 0, "the chest should be emptied, has " + chest.countItem(Items.BREAD));
+            helper.assertTrue(station.buffer().getStackInSlot(0).getCount() == 30, "the bread should be in the buffer");
+            helper.succeed();
+        });
+    }
+
+    private static final BlockPos CS_STATION = new BlockPos(9, 1, 2);
+
+    /** A Crafting Station side set to Off refuses a hopper; Pull takes used items from a chest. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void craftingStationSideOff(GameTestHelper helper) {
+        CraftingStationBlockEntity station = craftingStationWithSticks(helper, CS_STATION);
+        station.sideConfig().set(RelativeSide.TOP, SideMode.DISABLED);
+        helper.setBlock(CS_STATION.above(), Blocks.HOPPER.defaultBlockState());
+        HopperBlockEntity hopper = helper.getBlockEntity(CS_STATION.above());
+        hopper.setItem(0, new ItemStack(Items.OAK_PLANKS, 4));
+        helper.setBlock(CS_STATION.west(), Blocks.CHEST.defaultBlockState());
+        ChestBlockEntity chest = helper.getBlockEntity(CS_STATION.west());
+        chest.setItem(0, new ItemStack(Items.OAK_PLANKS, 6));
+        chest.setItem(1, new ItemStack(Items.COBBLESTONE, 2));
+        station.sideConfig().set(station.relativeSide(Direction.WEST), SideMode.PULL);
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(hopper.getItem(0).getCount() == 4, "the hopper above an off side keeps its planks");
+            helper.assertTrue(chest.countItem(Items.OAK_PLANKS) == 0 && chest.countItem(Items.COBBLESTONE) == 2, "the pull side takes planks and leaves cobblestone");
+            helper.succeed();
         });
     }
 

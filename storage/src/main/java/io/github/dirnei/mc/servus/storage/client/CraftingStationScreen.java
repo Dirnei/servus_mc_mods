@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.lib.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
@@ -24,6 +26,8 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
     private static final int COLOUR_TEXT = 0x404040;
     private static final int COLOUR_ALERT = 0xB03030;
 
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> press(SideConfigMenus.buttonOf(side)));
+
     public CraftingStationScreen(CraftingStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
@@ -34,6 +38,7 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
     protected void init() {
         super.init();
         this.inventoryLabelY = CraftingStationMenu.INVENTORY_Y - 11;
+        panel.placeBeside(leftPos, topPos);
         addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.crafting_station.save"), button -> press(CraftingStationMenu.BUTTON_SAVE))
                 .bounds(leftPos + CraftingStationMenu.GRID_X, topPos + SAVE_Y, 54, 14).build());
     }
@@ -64,7 +69,7 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
             ItemStack result = recipes.get(cell).result(menu.station().getLevel());
             graphics.renderTooltip(font, List.of(result.getHoverName(), Component.translatable("gui.servus_storage.crafting_station.remove_hint")),
                     java.util.Optional.empty(), mouseX, mouseY);
-        } else {
+        } else if (!panel.renderTooltip(graphics, font, mouseX, mouseY)) {
             renderTooltip(graphics, mouseX, mouseY);
         }
     }
@@ -72,6 +77,7 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        panel.render(graphics, font, mouseX, mouseY);
         int slots = menu.station().recipeSlots();
         for (int i = 0; i < slots; i++) {
             int x = leftPos + CELLS_X + i * 18;
@@ -114,6 +120,9 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (panel.mouseClicked(mouseX, mouseY)) {
+            return true;
+        }
         int cell = cellAt(mouseX, mouseY);
         if (cell >= 0 && cell < menu.station().recipes().size()) {
             press(CraftingStationMenu.BUTTON_REMOVE_FIRST + cell);

@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.lib.block.SideConfigData;
+import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
@@ -75,6 +79,7 @@ public class CraftingStationMenu extends AbstractContainerMenu {
             addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
         }
         addDataSlot(progress);
+        addDataSlots(new SideConfigData(station.sideConfig()));
         addDataSlot(workTicks);
         addDataSlot(message);
     }
@@ -89,6 +94,10 @@ public class CraftingStationMenu extends AbstractContainerMenu {
 
     public CraftingStationBlockEntity station() {
         return station;
+    }
+
+    public SideMode sideMode(RelativeSide side) {
+        return station.sideConfig().mode(side);
     }
 
     public int inventoryStart() {
@@ -122,6 +131,11 @@ public class CraftingStationMenu extends AbstractContainerMenu {
     public boolean clickMenuButton(Player player, int id) {
         if (player.level().isClientSide()) {
             return false;
+        }
+        RelativeSide side = SideConfigMenus.sideOf(id);
+        if (side != null) {
+            station.cycleSide(side);
+            return true;
         }
         if (id == BUTTON_SAVE) {
             String result = station.saveFromPattern();

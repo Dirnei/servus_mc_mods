@@ -6,6 +6,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
+import io.github.dirnei.mc.servus.lib.client.SideMarkerRenderer;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
@@ -31,6 +32,9 @@ public final class ServusStorageClient {
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.CRATE.get(), CrateRenderer::new);
+        event.registerBlockEntityRenderer(ServusStorageBlockEntities.INBOUND_STATION.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(ServusStorageBlockEntities.OUTBOUND_STATION.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(ServusStorageBlockEntities.CRAFTING_STATION.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.HEAVY_RACK.get(), HeavyRackRenderer::new);
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.SHUTTLE_GARAGE.get(), ShuttleGarageRenderer::new);
     }

@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.lib.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
@@ -10,19 +12,23 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-/** Buffer row, side buttons, station state, player inventory. */
+/** Buffer row, station state, player inventory, the shared side panel on the left. */
 public class InboundStationScreen extends AbstractContainerScreen<InboundStationMenu> {
 
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/inbound_station.png");
     private static final int COLOUR_ALERT = 0xB03030;
 
-    private SideButtons sideButtons;
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> {
+        if (minecraft != null && minecraft.gameMode != null) {
+            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(side));
+        }
+    });
 
     public InboundStationScreen(InboundStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 162;
+        this.imageHeight = 140;
         ClientStationState.clear();
     }
 
@@ -30,14 +36,13 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
     protected void init() {
         super.init();
         this.inventoryLabelY = InboundStationMenu.INVENTORY_Y - 11;
-        sideButtons = new SideButtons(this, leftPos + 8, topPos + InboundStationMenu.SIDES_Y, menu.station().facing(), this::addRenderableWidget);
+        panel.placeBeside(leftPos, topPos);
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        sideButtons.refresh(ClientStationState.state().sides());
         super.render(graphics, mouseX, mouseY, partialTick);
-        if (sideButtons.renderTooltip(graphics, font, mouseX, mouseY)) {
+        if (panel.renderTooltip(graphics, font, mouseX, mouseY)) {
             return;
         }
         renderTooltip(graphics, mouseX, mouseY);
@@ -46,6 +51,7 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        panel.render(graphics, font, mouseX, mouseY);
     }
 
     @Override
@@ -70,6 +76,14 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
             return Component.translatable("gui.servus_storage.station.blocked.no_room_general", item);
         }
         return Component.translatable("gui.servus_storage.station.blocked." + reason, item, state.blockedZone());
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (panel.mouseClicked(mouseX, mouseY)) {
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
