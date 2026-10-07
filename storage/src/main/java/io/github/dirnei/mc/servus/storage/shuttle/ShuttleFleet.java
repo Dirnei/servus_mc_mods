@@ -1,12 +1,10 @@
 package io.github.dirnei.mc.servus.storage.shuttle;
 
 import io.github.dirnei.mc.servus.lib.graph.NodePos;
-import io.github.dirnei.mc.servus.lib.graph.Side;
 import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +32,13 @@ public final class ShuttleFleet {
 
         /** Whether the node is a rail or an elevator segment of this warehouse. */
         boolean isTravelNode(NodePos node);
+
+        /**
+         * Travel nodes a shuttle may stand on to serve the block at that
+         * position: the front rails of a rack's section, every touching rail
+         * for other blocks.
+         */
+        Set<NodePos> dockRails(NodePos storage);
 
         /** Positions of storage blocks holding the key right now. */
         List<BlockPos> sourcesHolding(ItemKey key);
@@ -222,21 +227,9 @@ public final class ShuttleFleet {
 
     // Reach
 
-    /** Travel nodes touching a position. */
-    private Set<NodePos> railsBeside(NodePos node) {
-        Set<NodePos> result = new HashSet<>();
-        for (Side side : Side.ALL) {
-            NodePos beside = node.relative(side);
-            if (host.isTravelNode(beside)) {
-                result.add(beside);
-            }
-        }
-        return result;
-    }
-
-    /** Whether some garage with a rail and a shuttle can drive to a rail beside the position. */
+    /** Whether some garage with a rail and a shuttle can drive to a dock rail of the position. */
     public boolean canReach(BlockPos pos) {
-        Set<NodePos> rails = railsBeside(Conversions.toNodePos(pos));
+        Set<NodePos> rails = host.dockRails(Conversions.toNodePos(pos));
         if (rails.isEmpty()) {
             return false;
         }
@@ -267,8 +260,8 @@ public final class ShuttleFleet {
     }
 
     private Set<NodePos> firstGoals(ShuttleJob job) {
-        return job instanceof PickJob pick ? railsBeside(Conversions.toNodePos(pick.source()))
-                : railsBeside(Conversions.toNodePos(((PutAwayJob) job).station()));
+        return job instanceof PickJob pick ? host.dockRails(Conversions.toNodePos(pick.source()))
+                : host.dockRails(Conversions.toNodePos(((PutAwayJob) job).station()));
     }
 
     /** Queued picks of a request. */
@@ -461,7 +454,7 @@ public final class ShuttleFleet {
                 if (shuttle.cargo.isEmpty()) {
                     shuttle.job = null;
                     goHome(shuttle);
-                } else if (!go(shuttle, Leg.TO_TERMINAL, railsBeside(Conversions.toNodePos(job.terminal())))) {
+                } else if (!go(shuttle, Leg.TO_TERMINAL, host.dockRails(Conversions.toNodePos(job.terminal())))) {
                     // The terminal lost its rail meanwhile: the load still has to arrive somewhere safe.
                     host.deliverInstant(job, shuttle.cargo);
                     shuttle.cargo = ItemStack.EMPTY;
@@ -491,7 +484,7 @@ public final class ShuttleFleet {
                 if (shuttle.cargo.isEmpty()) {
                     shuttle.job = null;
                     goHome(shuttle);
-                } else if (!go(shuttle, Leg.TO_TARGET, railsBeside(Conversions.toNodePos(job.target())))) {
+                } else if (!go(shuttle, Leg.TO_TARGET, host.dockRails(Conversions.toNodePos(job.target())))) {
                     host.returnToStation(job.station(), shuttle.cargo);
                     shuttle.cargo = ItemStack.EMPTY;
                     goHome(shuttle);
@@ -502,7 +495,7 @@ public final class ShuttleFleet {
                 if (shuttle.cargo.isEmpty()) {
                     shuttle.job = null;
                     goHome(shuttle);
-                } else if (!go(shuttle, Leg.TO_STATION, railsBeside(Conversions.toNodePos(job.station())))) {
+                } else if (!go(shuttle, Leg.TO_STATION, host.dockRails(Conversions.toNodePos(job.station())))) {
                     host.returnToStation(job.station(), shuttle.cargo);
                     shuttle.cargo = ItemStack.EMPTY;
                     goHome(shuttle);

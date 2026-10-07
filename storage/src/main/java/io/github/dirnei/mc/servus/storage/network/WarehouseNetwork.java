@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.network;
 
 import io.github.dirnei.mc.servus.lib.graph.NodePos;
+import io.github.dirnei.mc.servus.lib.graph.Side;
 import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
 import io.github.dirnei.mc.servus.lib.network.core.NetworkSet;
@@ -10,6 +11,7 @@ import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEnt
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.shuttle.RequestPlan;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
@@ -460,6 +462,33 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     @Override
     public boolean isTravelNode(NodePos node) {
         return connectors.contains(Conversions.toBlockPos(node)) && members().contains(node);
+    }
+
+    /**
+     * A rack is reached only through the rails in front of the bays of its
+     * section; any other block through every travel node touching it.
+     */
+    @Override
+    public Set<NodePos> dockRails(NodePos storage) {
+        Set<NodePos> result = new HashSet<>();
+        BlockPos pos = Conversions.toBlockPos(storage);
+        BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof HeavyRackBlock) {
+            for (BlockPos bay : HeavyRackBlock.section(level, pos)) {
+                NodePos front = Conversions.toNodePos(bay.relative(level.getBlockState(bay).getValue(HeavyRackBlock.FACING)));
+                if (isTravelNode(front)) {
+                    result.add(front);
+                }
+            }
+            return result;
+        }
+        for (Side side : Side.ALL) {
+            NodePos beside = storage.relative(side);
+            if (isTravelNode(beside)) {
+                result.add(beside);
+            }
+        }
+        return result;
     }
 
     @Override

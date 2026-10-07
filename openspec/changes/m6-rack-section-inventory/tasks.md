@@ -13,7 +13,7 @@
 
 ## 3. Shuttle reach
 
-- [ ] 3.1 `shuttle/ShuttleFleet.java`: `Host.dockRails(NodePos)` replaces `railsBeside` in `canReach`, `canCarry`, `firstGoals` and the TO_TERMINAL, TO_TARGET and TO_STATION legs; `network/WarehouseNetwork.java` implements it with the front rails of a rack's section and every touching travel node for other blocks (D4). Verify `gradlew build`.
+- [x] 3.1 `shuttle/ShuttleFleet.java`: `Host.dockRails(NodePos)` replaces `railsBeside` in `canReach`, `canCarry`, `firstGoals` and the TO_TERMINAL, TO_TARGET and TO_STATION legs; `network/WarehouseNetwork.java` implements it with the front rails of a rack's section and every touching travel node for other blocks (D4). Verify `gradlew build`.
 - [ ] 3.2 GameTests: bread in the right bay of a section with only a left front rail reaches the terminal by shuttle; a lone rack beside that section without its own front rail is refused as needing a shuttle; a rack with a member rail only along its side is refused as needing a shuttle. Existing shuttle and rack tests stay green. Verify `gradlew :storage:runGameTestServer`.
 
 ## 4. Docs
