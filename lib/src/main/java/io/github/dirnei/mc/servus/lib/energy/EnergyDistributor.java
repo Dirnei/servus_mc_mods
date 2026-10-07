@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.lib.energy;
 
+import io.github.dirnei.mc.servus.lib.flow.WaterFilling;
 import java.util.List;
 
 /**
@@ -60,33 +61,6 @@ public final class EnergyDistributor {
 
     /** Water filling: equal shares per round, satisfied sinks drop out. */
     static int[] allocate(int[] demand, int budget) {
-        int[] allocation = new int[demand.length];
-        int active = 0;
-        for (int d : demand) {
-            if (d > 0) {
-                active++;
-            }
-        }
-        while (budget > 0 && active > 0) {
-            int share = Math.max(1, budget / active);
-            boolean progressed = false;
-            for (int i = 0; i < demand.length && budget > 0; i++) {
-                int remaining = demand[i] - allocation[i];
-                if (remaining <= 0) {
-                    continue;
-                }
-                int give = Math.min(Math.min(share, remaining), budget);
-                allocation[i] += give;
-                budget -= give;
-                progressed |= give > 0;
-                if (allocation[i] == demand[i]) {
-                    active--;
-                }
-            }
-            if (!progressed) {
-                break;
-            }
-        }
-        return allocation;
+        return WaterFilling.allocate(demand, budget);
     }
 }

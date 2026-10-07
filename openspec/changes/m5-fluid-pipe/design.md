@@ -22,7 +22,7 @@
 Alternative: draw the fluid line as a sleeve around the two line duct. Rejected, it breaks "size tells the line count".
 
 ### D2. Pure `FluidRouting` in Lib
-`lib/fluid/FluidRouting` works on opaque fluid keys: sources report what they can give (key, amount), sinks report how much of a given key they accept; a sink holding a fluid accepts only that key, an empty sink takes the first key offered to it in source order. Allocation per key reuses the water filling of `EnergyDistributor.allocate`, moved into a shared package private helper. No rate parameter: the amounts are whatever the handlers report.
+`lib/fluid/FluidRouting` works on opaque fluid keys: sources report what they can give (key, amount), sinks report how much of a given key they accept; a sink holding a fluid accepts only that key, an empty sink takes the first key offered to it in source order. Allocation per key reuses the water filling of `EnergyDistributor.allocate`, moved into the public helper `lib/flow/WaterFilling` (energy and fluid live in different packages, so package private cannot be shared; `EnergyDistributor.allocate` delegates to it). What a sink cannot take as its fair share, for example a cauldron that only fills in whole buckets, is offered to the sinks in order afterwards. No rate parameter: the amounts are whatever the handlers report.
 Alternative: one fluid per channel per tick. Rejected, the "Mixed fluids" scenario would starve the water tank whenever lava came first.
 
 ### D3. `FluidChannelNetwork`, no rate, roles per tick

@@ -2,8 +2,8 @@
 
 ## 1. Preconditions and pure logic
 
-- [ ] 1.1 Verify `gradlew build` is green. `m5-fluid-tank` is built in parallel, so GameTests here use vanilla water and lava cauldrons (NeoForge `CauldronWrapper`, 1,000 mB each) as sources and sinks.
-- [ ] 1.2 Move the water filling from `lib/energy/EnergyDistributor.java` into a shared helper and add `lib/fluid/FluidRouting.java`. JUnit `FluidRoutingTest`: one source to two sinks shares evenly, short supply, mixed keys reach only matching sinks, empty sink takes the first offered key, no supply moves nothing. `EnergyDistributorTest` stays green. Verify `gradlew :lib:test`.
+- [x] 1.1 Verify `gradlew build` is green. `m5-fluid-tank` is built in parallel, so GameTests here use vanilla water and lava cauldrons (NeoForge `CauldronWrapper`, 1,000 mB each) as sources and sinks.
+- [x] 1.2 Move the water filling from `lib/energy/EnergyDistributor.java` into a shared helper and add `lib/fluid/FluidRouting.java`. JUnit `FluidRoutingTest`: one source to two sinks shares evenly, short supply, mixed keys reach only matching sinks, empty sink takes the first offered key, no supply moves nothing. `EnergyDistributorTest` stays green. Verify `gradlew :lib:test`.
 
 ## 2. Line and look
 
