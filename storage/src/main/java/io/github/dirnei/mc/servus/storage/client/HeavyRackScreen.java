@@ -7,7 +7,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-/** Chest style screen drawn with the vanilla generic container texture, cropped to the rack's rows. */
+/**
+ * Chest style screen for a rack section, drawn with the vanilla generic
+ * container texture: one slot row strip per row, so it grows past six rows.
+ */
 public class HeavyRackScreen extends AbstractContainerScreen<HeavyRackMenu> {
 
     private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
@@ -33,8 +36,11 @@ public class HeavyRackScreen extends AbstractContainerScreen<HeavyRackMenu> {
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        int top = TOP_HEIGHT + rows * ROW_HEIGHT;
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, top);
-        graphics.blit(TEXTURE, leftPos, topPos + top, 0, 126, imageWidth, BOTTOM_HEIGHT);
+        // Header, then the texture's first slot row once per row, then the player inventory part.
+        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, TOP_HEIGHT);
+        for (int row = 0; row < rows; row++) {
+            graphics.blit(TEXTURE, leftPos, topPos + TOP_HEIGHT + row * ROW_HEIGHT, 0, TOP_HEIGHT, imageWidth, ROW_HEIGHT);
+        }
+        graphics.blit(TEXTURE, leftPos, topPos + TOP_HEIGHT + rows * ROW_HEIGHT, 0, 126, imageWidth, BOTTOM_HEIGHT);
     }
 }
