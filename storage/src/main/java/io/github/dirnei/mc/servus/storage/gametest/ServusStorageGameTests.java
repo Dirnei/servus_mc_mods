@@ -22,6 +22,12 @@ import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
 import io.github.dirnei.mc.servus.lib.production.StockProvider;
 import io.github.dirnei.mc.servus.lib.production.StockSink;
 import io.github.dirnei.mc.servus.storage.dock.MachineDockBlock;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
+import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
+import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
 import io.github.dirnei.mc.servus.storage.dock.MachineDockBlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
@@ -1407,6 +1413,92 @@ public final class ServusStorageGameTests {
         helper.runAfterDelay(2, () -> {
             helper.assertTrue(!helper.getBlockState(NR_DOCK.north()).getValue(RailBlock.dock(Direction.SOUTH)), "the rail in front must not dock onto the dock");
             helper.assertTrue(helper.getBlockState(NR_DOCK.south()).getValue(RailBlock.dock(Direction.NORTH)), "the rail behind should dock onto the dock");
+            helper.succeed();
+        });
+    }
+
+    private static final BlockPos CR_STATION = new BlockPos(9, 1, 9);
+
+    private static CraftingStationBlockEntity craftingStationWithSticks(GameTestHelper helper, BlockPos pos) {
+        helper.setBlock(pos, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        CraftingStationBlockEntity station = helper.getBlockEntity(pos);
+        station.pattern().setStackInSlot(1, new ItemStack(Items.OAK_PLANKS));
+        station.pattern().setStackInSlot(4, new ItemStack(Items.OAK_PLANKS));
+        String saved = station.saveFromPattern();
+        helper.assertTrue(saved.isEmpty(), "the stick pattern should save, got " + saved);
+        return station;
+    }
+
+    /** A configured vanilla recipe is crafted from the inputs, one craft per work time. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void craftingStationCraftsConfiguredRecipe(GameTestHelper helper) {
+        CraftingStationBlockEntity station = craftingStationWithSticks(helper, CR_STATION);
+        helper.assertTrue(station.recipes().size() == 1 && station.recipes().get(0).result(helper.getLevel()).is(Items.STICK), "the sticks recipe should be configured");
+        helper.assertTrue(station.saveFromPattern().equals("duplicate"), "saving the same pattern again is a duplicate");
+        station.inputs().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 4));
+        int ticks = station.workTicks();
+        helper.runAfterDelay(ticks + 5, () -> {
+            helper.assertTrue(station.outputs().getStackInSlot(0).is(Items.STICK) && station.outputs().getStackInSlot(0).getCount() == 4,
+                    "four sticks should be in the outputs after one work time, got " + station.outputs().getStackInSlot(0));
+            helper.assertTrue(station.inputs().getStackInSlot(0).getCount() == 2, "two planks should remain");
+            helper.runAfterDelay(ticks + 2, () -> {
+                helper.assertTrue(station.outputs().getStackInSlot(0).getCount() == 8, "eight sticks after the second craft, got " + station.outputs().getStackInSlot(0).getCount());
+                helper.assertTrue(station.inputs().getStackInSlot(0).isEmpty(), "all planks used");
+                station.removeRecipe(0);
+                helper.assertTrue(station.recipes().isEmpty(), "the recipe should be removed");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** The station exposes its configured recipe through the Lib production capability. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void craftingStationReportsProduction(GameTestHelper helper) {
+        CraftingStationBlockEntity station = craftingStationWithSticks(helper, CR_STATION);
+        ProductionProvider provider = helper.getLevel().getCapability(ServusLibCapabilities.PRODUCTION, helper.absolutePos(CR_STATION), null);
+        helper.assertTrue(provider != null && provider.recipes().size() == 1, "one recipe should be reported");
+        ProductionRecipe sticks = provider.recipes().get(0);
+        helper.assertTrue(sticks.inputs().size() == 1 && sticks.inputs().get(0).is(Items.OAK_PLANKS) && sticks.inputs().get(0).getCount() == 2,
+                "two planks in, got " + sticks.inputs());
+        helper.assertTrue(sticks.outputs().size() == 1 && sticks.outputs().get(0).is(Items.STICK) && sticks.outputs().get(0).getCount() == 4,
+                "four sticks out, got " + sticks.outputs());
+        helper.assertTrue(sticks.ticks() == station.workTicks(), "ticks should be the work time");
+        helper.succeed();
+    }
+
+    /** Automation can insert only used items into the inputs and extract only from the outputs. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void craftingStationRefusesUnusedItems(GameTestHelper helper) {
+        CraftingStationBlockEntity station = craftingStationWithSticks(helper, CR_STATION);
+        IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(CR_STATION), Direction.UP);
+        helper.assertTrue(handler != null, "the station should expose an item handler");
+        helper.assertTrue(ItemHandlerHelper.insertItem(handler, new ItemStack(Items.COBBLESTONE, 5), false).getCount() == 5, "cobblestone is refused");
+        helper.assertTrue(ItemHandlerHelper.insertItem(handler, new ItemStack(Items.OAK_PLANKS, 5), false).isEmpty(), "planks are accepted");
+        helper.assertTrue(handler.extractItem(0, 5, false).isEmpty(), "inputs cannot be extracted");
+        station.outputs().setStackInSlot(0, new ItemStack(Items.STICK, 3));
+        helper.assertTrue(handler.extractItem(CraftingStationBlockEntity.INPUT_SLOTS, 3, false).getCount() == 3, "outputs can be extracted");
+        helper.succeed();
+    }
+
+    private static final BlockPos DS_CONTROLLER = new BlockPos(2, 1, 5);
+    private static final BlockPos DS_CRATE = new BlockPos(1, 1, 5);
+    private static final BlockPos DS_DOCK = new BlockPos(3, 1, 5);
+    private static final BlockPos DS_STATION = new BlockPos(4, 1, 5);
+
+    /** A dock feeds planks into the station and collects the sticks it pushes out, which end in a crate. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void dockServesCraftingStation(GameTestHelper helper) {
+        helper.setBlock(DS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(DS_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(DS_DOCK, ServusStorageBlocks.MACHINE_DOCK.get().defaultBlockState().setValue(MachineDockBlock.FACING, Direction.EAST));
+        CraftingStationBlockEntity station = craftingStationWithSticks(helper, DS_STATION);
+        MachineDockBlockEntity dock = helper.getBlockEntity(DS_DOCK);
+        CrateBlockEntity crate = helper.getBlockEntity(DS_CRATE);
+        dock.feed().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 4));
+        helper.runAfterDelay(station.workTicks() * 2 + 60, () -> {
+            helper.assertTrue(crate.count() == 8 && crate.type(0).is(Items.STICK), "eight sticks should have flowed into the crate, crate has " + crate.count());
+            helper.assertTrue(dock.feedEmpty() && dock.isEmpty(), "both dock buffers should be empty");
             helper.succeed();
         });
     }

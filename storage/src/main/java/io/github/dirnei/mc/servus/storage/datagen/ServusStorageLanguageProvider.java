@@ -25,6 +25,16 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.INBOUND_STATION.get(), "Inbound Station");
         add(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "Shuttle Garage");
         add(ServusStorageBlocks.MACHINE_DOCK.get(), "Machine Dock");
+        add(ServusStorageBlocks.CRAFTING_STATION.get(), "Crafting Station");
+        add("gui.servus_storage.crafting_station.save", "Save");
+        add("gui.servus_storage.crafting_station.recipes", "Recipes");
+        add("gui.servus_storage.crafting_station.remove_hint", "Click to remove");
+        add("gui.servus_storage.crafting_station.progress", "Crafting %s%%");
+        add("gui.servus_storage.crafting_station.message.saved", "Recipe saved");
+        add("gui.servus_storage.crafting_station.message.empty", "Lay out a recipe in the grid first");
+        add("gui.servus_storage.crafting_station.message.no_match", "The grid matches no recipe");
+        add("gui.servus_storage.crafting_station.message.duplicate", "That recipe is already configured");
+        add("gui.servus_storage.crafting_station.message.full", "All recipe slots are in use");
         add("gui.servus_storage.dock.feed", "To machine");
         add("gui.servus_storage.dock.collect", "From machine");
         add("message.servus_storage.garage.occupied", "Take the shuttles out of the garage first");

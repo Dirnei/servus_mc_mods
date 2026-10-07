@@ -22,6 +22,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_GARAGE_CAPACITY = 4;
     public static final int DEFAULT_TERMINAL_OUTPUT_SLOTS = 9;
     public static final int DEFAULT_DOCK_FEED_INTERVAL = 8;
+    public static final int DEFAULT_CRAFTING_STATION_TICKS = 40;
+    public static final int DEFAULT_CRAFTING_STATION_RECIPES = 4;
     public static final double DEFAULT_SHUTTLE_SPEED = 0.25;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
@@ -32,6 +34,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
     private static final ResourceLocation WAREHOUSE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
     private static final ResourceLocation RACK = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack");
+    private static final ResourceLocation CRAFTING_STATION = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crafting_station");
 
     public static final StorageStatsManager INSTANCE = new StorageStatsManager();
 
@@ -41,6 +44,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int garageCapacity = DEFAULT_GARAGE_CAPACITY;
     private volatile int terminalOutputSlots = DEFAULT_TERMINAL_OUTPUT_SLOTS;
     private volatile int dockFeedInterval = DEFAULT_DOCK_FEED_INTERVAL;
+    private volatile int craftingStationTicks = DEFAULT_CRAFTING_STATION_TICKS;
+    private volatile int craftingStationRecipes = DEFAULT_CRAFTING_STATION_RECIPES;
     private volatile double shuttleSpeed = DEFAULT_SHUTTLE_SPEED;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
@@ -59,6 +64,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         garageCapacity = intField(files.get(WAREHOUSE), "garage_capacity", DEFAULT_GARAGE_CAPACITY);
         terminalOutputSlots = intField(files.get(WAREHOUSE), "terminal_output_slots", DEFAULT_TERMINAL_OUTPUT_SLOTS);
         dockFeedInterval = intField(files.get(WAREHOUSE), "dock_feed_interval", DEFAULT_DOCK_FEED_INTERVAL);
+        craftingStationTicks = intField(files.get(CRAFTING_STATION), "work_ticks", DEFAULT_CRAFTING_STATION_TICKS);
+        craftingStationRecipes = intField(files.get(CRAFTING_STATION), "recipes", DEFAULT_CRAFTING_STATION_RECIPES);
         shuttleSpeed = doubleField(files.get(WAREHOUSE), "shuttle_speed", DEFAULT_SHUTTLE_SPEED);
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
@@ -99,6 +106,14 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
 
     public int dockFeedInterval() {
         return dockFeedInterval;
+    }
+
+    public int craftingStationTicks() {
+        return craftingStationTicks;
+    }
+
+    public int craftingStationRecipes() {
+        return craftingStationRecipes;
     }
 
     public double shuttleSpeed() {

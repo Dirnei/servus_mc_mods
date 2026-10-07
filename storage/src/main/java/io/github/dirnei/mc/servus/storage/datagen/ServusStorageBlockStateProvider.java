@@ -31,11 +31,25 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         station(ServusStorageBlocks.INBOUND_STATION.get(), "inbound_station");
         oriented(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "shuttle_garage", "shuttle_garage");
         station(ServusStorageBlocks.MACHINE_DOCK.get(), "machine_dock");
+        machine(ServusStorageBlocks.CRAFTING_STATION.get(), "crafting_station");
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
         itemModels().getBuilder("shuttle").parent(new ModelFile.UncheckedModelFile("block/block"))
                 .texture("particle", modLoc("item/shuttle")).texture("skin", modLoc("item/shuttle"))
                 .element().from(2, 0, 2).to(14, 3, 14)
                 .allFaces((direction, face) -> face.texture("#skin")).end();
+    }
+
+    /** Horizontal block with a lit front while it works. */
+    private void machine(Block block, String name) {
+        ModelFile dark = models().orientable(name, modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front"), modLoc("block/" + name + "_top"));
+        ModelFile lit = models().orientable(name + "_lit", modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front_lit"), modLoc("block/" + name + "_top"));
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? lit : dark)
+                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                .build());
+        simpleBlockItem(block, dark);
     }
 
     /** Like {@link #oriented} with an activity lamp: idle, working and blocked fronts while online. */

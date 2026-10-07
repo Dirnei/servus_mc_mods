@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
 import io.github.dirnei.mc.servus.storage.menu.MachineDockMenu;
+import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -34,6 +35,9 @@ public final class ServusStorageMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<MachineDockMenu>> MACHINE_DOCK =
             MENUS.register("machine_dock", () -> IMenuTypeExtension.create(MachineDockMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<CraftingStationMenu>> CRAFTING_STATION =
+            MENUS.register("crafting_station", () -> IMenuTypeExtension.create(CraftingStationMenu::fromNetwork));
 
     private ServusStorageMenus() {
     }
