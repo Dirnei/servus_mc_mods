@@ -17,6 +17,7 @@ final class ServusLogisticsLanguageProvider extends LanguageProvider {
         add(ServusLogisticsBlocks.UTILITY_DUCT.get(), "Utility Duct");
         add(ServusLogisticsItems.ITEM_PIPE.get(), "Item Pipe");
         add(ServusLogisticsItems.POWER_CABLE.get(), "Power Cable");
+        add(ServusLogisticsItems.FLUID_PIPE.get(), "Fluid Pipe");
         add(ServusLogisticsItems.FACADE.get(), "Facade");
         add("item.servus_logistics.facade.named", "Facade (%s)");
         add("item.servus_logistics.facade.hint", "Use on a utility duct to hide it");
@@ -30,6 +31,7 @@ final class ServusLogisticsLanguageProvider extends LanguageProvider {
         add("gui.servus_logistics.utility_duct.title", "Utility Duct, %s: %s");
         add("gui.servus_logistics.remove.item", "Remove Item Pipe");
         add("gui.servus_logistics.remove.energy", "Remove Power Cable");
+        add("gui.servus_logistics.remove.fluid", "Remove Fluid Pipe");
         add("gui.servus_logistics.filter", "Filter (empty = everything)");
         add("gui.servus_logistics.priority", "Priority %s");
         add("gui.servus_logistics.no_lines", "No lines");
@@ -38,6 +40,7 @@ final class ServusLogisticsLanguageProvider extends LanguageProvider {
         }
         add("gui.servus_logistics.line.item", "Items");
         add("gui.servus_logistics.line.energy", "Energy");
+        add("gui.servus_logistics.line.fluid", "Fluids");
         add("gui.servus_logistics.mode.both", "In and out");
         add("gui.servus_logistics.mode.auto", "In and out");
         add("gui.servus_logistics.mode.input", "Pull in");

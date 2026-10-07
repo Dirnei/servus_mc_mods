@@ -21,7 +21,8 @@ import net.minecraft.world.item.ItemStack;
 /**
  * The endpoint GUI of one duct side: one tab per present line on the left
  * edge, and the page of the selected line with its mode, channels and remove
- * button; the Item Pipe page adds the filter slots and the priority.
+ * button; the Item Pipe page adds the filter slots and the priority. The
+ * Power Cable and Fluid Pipe pages have no filter or priority.
  */
 public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> {
 

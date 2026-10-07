@@ -16,6 +16,7 @@ final class ServusLogisticsItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         basicItem(ServusLogisticsItems.ITEM_PIPE.get());
         basicItem(ServusLogisticsItems.POWER_CABLE.get());
+        basicItem(ServusLogisticsItems.FLUID_PIPE.get());
         basicItem(ServusLogisticsItems.FACADE.get());
     }
 }

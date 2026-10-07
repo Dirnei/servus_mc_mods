@@ -49,6 +49,16 @@ final class ServusLogisticsRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_glass", has(Items.GLASS))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.FLUID_PIPE.get(), 8)
+                .pattern("III")
+                .pattern("GBG")
+                .pattern("III")
+                .define('I', Items.IRON_INGOT)
+                .define('G', Items.GLASS)
+                .define('B', Items.BUCKET)
+                .unlockedBy("has_bucket", has(Items.BUCKET))
+                .save(output);
+
         SpecialRecipeBuilder.special(FacadeRecipe::new).save(output, "servus_logistics:facade");
     }
 }

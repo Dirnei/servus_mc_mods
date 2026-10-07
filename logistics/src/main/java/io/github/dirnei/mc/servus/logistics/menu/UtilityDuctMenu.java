@@ -21,10 +21,10 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 
 /**
- * The endpoint configuration of one duct side: per present line the mode,
- * the channel and a remove button, for the Item Pipe the side's filter as
- * ghost slots and its priority, plus the player inventory. Everything but
- * the slots goes through button ids.
+ * The endpoint configuration of one duct side: per present line (Item Pipe,
+ * Power Cable, Fluid Pipe) the mode, the channel and a remove button, for the
+ * Item Pipe the side's filter as ghost slots and its priority, plus the
+ * player inventory. Everything but the slots goes through button ids.
  */
 public class UtilityDuctMenu extends AbstractContainerMenu {
 
