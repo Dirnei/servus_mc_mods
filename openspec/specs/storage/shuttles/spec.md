@@ -64,7 +64,7 @@ A request at the counter terminal SHALL be split into pick jobs of up to one sta
 - **THEN** the shuttle does the put-away first and the pick after it
 
 ### Requirement: Delivery
-A shuttle SHALL deliver its cargo into the output slots of the terminal the request was made at, driving to the rail touching that terminal. When the output slots have no room the shuttle SHALL wait beside the terminal with its cargo until there is room. When the terminal is gone the cargo SHALL drop where the terminal was. A terminal touching no rail SHALL NOT take shuttle deliveries, and requests at it SHALL be served instantly or refused.
+A shuttle SHALL deliver its cargo into the delivery buffer of the block the job names: the output slots of a Counter Terminal for a request, the feed buffer of a Machine Dock for a feed. It drives to the rail touching that block. When the buffer has no room the shuttle SHALL wait beside it with its cargo until there is room. When the block is gone the cargo SHALL drop where it was. A destination touching no rail SHALL NOT take shuttle deliveries, and requests for it SHALL be served instantly or refused.
 
 #### Scenario: Player left
 - **WHEN** the requesting player logs out before the shuttle arrives
@@ -81,6 +81,10 @@ A shuttle SHALL deliver its cargo into the output slots of the terminal the requ
 #### Scenario: Terminal off the rails
 - **WHEN** a terminal touches no rail and the player requests an item that only sits in a rack
 - **THEN** the request is refused with the reason that the terminal has no rail
+
+#### Scenario: Feed to a dock
+- **WHEN** a feed of 4 ingots is made for a dock on the rail
+- **THEN** the shuttle unloads the ingots into the dock's feed buffer
 
 ### Requirement: Shuttles are drawn moving
 Every player who can see a garage SHALL see its shuttles that are out on a job as small carts on the rails, moving smoothly along their paths with their cargo shown on top. Idle shuttles SHALL sit inside their garage and SHALL NOT be drawn on the rail; a cart appears on the garage's home rail when it leaves and disappears into the garage when it is back. A shuttle SHALL show its cargo only on the legs where it carries something.
