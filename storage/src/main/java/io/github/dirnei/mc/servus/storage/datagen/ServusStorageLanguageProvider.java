@@ -61,6 +61,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.state.waiting_shuttle", "waiting for a shuttle");
         add("gui.servus_storage.terminal.state.picking", "picking");
         add("gui.servus_storage.terminal.state.waiting_room", "waiting for room");
+        add("gui.servus_storage.terminal.state.producing", "producing");
         add("gui.servus_storage.terminal.state.missing", "%s missing");
         add("gui.servus_storage.terminal.message.offline", "The warehouse is offline");
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");

@@ -25,7 +25,8 @@ import io.github.dirnei.mc.servus.storage.dock.MachineDockBlockEntity;
 import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
 import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import java.util.function.ToIntFunction;
+import io.github.dirnei.mc.servus.storage.order.OrderBook;
+import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
 import java.util.ArrayDeque;
@@ -129,6 +130,32 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private ServerLevel level;
     private int controllers;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
+    private final OrderBook orders = new OrderBook(new OrderBook.Host() {
+        @Override
+        public List<Producer> producers() {
+            return WarehouseNetwork.this.producers();
+        }
+
+        @Override
+        public Map<ItemKey, Long> stock() {
+            Map<ItemKey, Long> stock = new HashMap<>();
+            for (Map.Entry<ItemKey, Long> entry : index.entries()) {
+                stock.put(entry.getKey(), entry.getValue());
+            }
+            return stock;
+        }
+
+        @Override
+        public OrderBook.Feed feed(BlockPos dock, ItemKey key, int amount) {
+            Started started = planAndStart(dock, key, amount, 0);
+            return new OrderBook.Feed(started.planned(), started.unservable(), started.refusal());
+        }
+
+        @Override
+        public long gameTime() {
+            return level == null ? 0 : level.getGameTime();
+        }
+    });
 
     public WarehouseNetwork(int id, NetworkSet<StorageNodeBlockEntity, WarehouseEvent, ?> owner) {
         super(id, owner);
@@ -470,12 +497,43 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      *         {@code offline}, {@code needs_shuttle}, {@code no_rail} or {@code out_of_stock}
      */
     public String request(CounterTerminalBlockEntity terminal, ItemKey key, int amount) {
-        return planAndStart(terminal.getBlockPos(), key, amount, plan -> terminal.newRequest(key, amount, plan.unservable()).id);
+        if (status() != Status.ONLINE) {
+            return "offline";
+        }
+        BlockPos destination = terminal.getBlockPos();
+        boolean reachable = fleet.canReach(destination);
+        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), reachable, stockOf(key));
+        if (plan.jobs().isEmpty() && plan.needsShuttle()) {
+            return fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle";
+        }
+        CounterTerminalBlockEntity.Request request = terminal.newRequest(key, amount, plan.unservable());
+        startJobs(plan, request.id, key, destination);
+        if (plan.unservable() > 0) {
+            OrderBook.Created created = orders.create(key, plan.unservable(), request.id);
+            if (!created.made() && plan.jobs().isEmpty()) {
+                terminal.removeRequest(request.id);
+                return "out_of_stock";
+            }
+        }
+        return "";
     }
 
     /** Delivers items into a dock's feed buffer, planned and refused like a request. */
     public String feedDock(MachineDockBlockEntity dock, ItemKey key, int amount) {
-        return planAndStart(dock.getBlockPos(), key, amount, plan -> 0);
+        return planAndStart(dock.getBlockPos(), key, amount, 0).refusal();
+    }
+
+    /** The work orders of this warehouse. */
+    public OrderBook orders() {
+        return orders;
+    }
+
+    /** Creates a work order by hand; returns the refusal key or an empty string. */
+    public String order(ItemKey key, int amount) {
+        if (status() != Status.ONLINE) {
+            return "offline";
+        }
+        return orders.create(key, amount, 0).refusal();
     }
 
     private List<RequestPlan.Stock<BlockPos>> stockOf(ItemKey key) {
@@ -490,21 +548,24 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return stock;
     }
 
-    private String planAndStart(BlockPos destination, ItemKey key, int amount, ToIntFunction<RequestPlan.Plan<BlockPos>> requestId) {
+    /** What a plan and start did: how many are on their way, how many the stock lacked, or why nothing happened. */
+    public record Started(String refusal, int planned, int unservable) {
+    }
+
+    private Started planAndStart(BlockPos destination, ItemKey key, int amount, int requestId) {
         if (status() != Status.ONLINE) {
-            return "offline";
+            return new Started("offline", 0, amount);
         }
         boolean reachable = fleet.canReach(destination);
         RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), reachable, stockOf(key));
         if (plan.jobs().isEmpty()) {
             if (plan.needsShuttle()) {
-                return fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle";
+                return new Started(fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle", 0, amount);
             }
-            return "out_of_stock";
+            return new Started("out_of_stock", 0, amount);
         }
-        int id = requestId.applyAsInt(plan);
-        startJobs(plan, id, key, destination);
-        return "";
+        startJobs(plan, requestId, key, destination);
+        return new Started("", plan.planned(), plan.unservable());
     }
 
     private void startJobs(RequestPlan.Plan<BlockPos> plan, int requestId, ItemKey key, BlockPos destination) {
@@ -557,6 +618,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 if (request.missing <= 0 || fleet.queuedFor(request.id) > 0 || fleet.ridingFor(request.id) > 0 || heldFor(pos, request.id) > 0) {
                     continue;
                 }
+                // While an order produces for it, only pick up what has actually arrived in storage.
+
                 RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(request.missing, request.key.stack(1).getMaxStackSize(),
                         fleet.canReach(pos), stockOf(request.key));
                 request.missing -= plan.planned();
@@ -569,13 +632,15 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public void cancelRequest(CounterTerminalBlockEntity terminal, int requestId) {
         fleet.removeQueued(requestId);
         terminal.removeRequest(requestId);
+        orders.cancelForRequest(requestId);
         // Held and riding loads keep trying to land: the items are already out of the shelves.
     }
 
     /** The open requests of a terminal as the GUI shows them, after dropping finished ones. */
     public List<RequestRow> requestRows(CounterTerminalBlockEntity terminal) {
         BlockPos terminalPos = terminal.getBlockPos();
-        terminal.prune(request -> fleet.queuedFor(request.id) > 0 || fleet.ridingFor(request.id) > 0 || heldFor(terminalPos, request.id) > 0);
+        terminal.prune(request -> fleet.queuedFor(request.id) > 0 || fleet.ridingFor(request.id) > 0 || heldFor(terminalPos, request.id) > 0
+                || orders.hasOpenOrderFor(request.id));
         List<RequestRow> rows = new ArrayList<>();
         for (CounterTerminalBlockEntity.Request request : terminal.requests()) {
             int queued = fleet.queuedFor(request.id);
@@ -588,6 +653,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 state = CounterTerminalBlockEntity.RequestState.PICKING;
             } else if (queued > 0) {
                 state = CounterTerminalBlockEntity.RequestState.WAITING_SHUTTLE;
+            } else if (orders.hasOpenOrderFor(request.id)) {
+                state = CounterTerminalBlockEntity.RequestState.PRODUCING;
             } else {
                 state = CounterTerminalBlockEntity.RequestState.MISSING;
             }
@@ -802,6 +869,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (level != null) {
             fleet.tick();
             tickStations();
+            orders.tick();
             if (!terminals.isEmpty() && ++missingRetry >= MISSING_RETRY_TICKS) {
                 missingRetry = 0;
                 retryMissing();
@@ -886,6 +954,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 continue;
             }
             budget--;
+            if (station instanceof MachineDockBlockEntity) {
+                orders.collected(pos, key, stack.getCount());
+            }
             if (fleet.canCarry(pos, target.get())) {
                 station.claim(slot);
                 fleet.requestPutAway(new PutAwayJob(pos, slot, key, stack.getCount(), target.get()));

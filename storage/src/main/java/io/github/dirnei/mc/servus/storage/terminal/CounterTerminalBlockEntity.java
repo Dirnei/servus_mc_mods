@@ -34,7 +34,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 public class CounterTerminalBlockEntity extends StorageNodeBlockEntity implements MenuProvider, DeliveryTarget {
 
     /** How a request is doing, as the GUI shows it. */
-    public enum RequestState { WAITING_SHUTTLE, PICKING, WAITING_ROOM, MISSING }
+    public enum RequestState { WAITING_SHUTTLE, PICKING, WAITING_ROOM, PRODUCING, MISSING }
 
     /** One open request: what was asked, what arrived, what cannot come. */
     public static final class Request {

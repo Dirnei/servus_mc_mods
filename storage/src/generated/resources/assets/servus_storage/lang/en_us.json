@@ -47,6 +47,7 @@
   "gui.servus_storage.terminal.requests": "Requests",
   "gui.servus_storage.terminal.state.missing": "%s missing",
   "gui.servus_storage.terminal.state.picking": "picking",
+  "gui.servus_storage.terminal.state.producing": "producing",
   "gui.servus_storage.terminal.state.waiting_room": "waiting for room",
   "gui.servus_storage.terminal.state.waiting_shuttle": "waiting for a shuttle",
   "gui.servus_storage.zone_label.items": "Items this zone takes",

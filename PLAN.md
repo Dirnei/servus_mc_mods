@@ -233,7 +233,6 @@ Each milestone ends in something playable or testable.
 
 ## 5. Open decisions
 
-- Order prioritization: explicit priorities vs first come first served
 - Tier 2 to 5 content details
 - Art style and texture direction (shared look across the family)
 - Final name for the storage mod (Servus: Storage vs Servus: Warehouse)

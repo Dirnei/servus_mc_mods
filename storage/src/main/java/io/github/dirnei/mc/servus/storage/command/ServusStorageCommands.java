@@ -50,6 +50,14 @@ public final class ServusStorageCommands {
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
                                         .then(Commands.argument("count", IntegerArgumentType.integer(1, 4096))
                                                 .executes(ServusStorageCommands::feed)))))
+                .then(Commands.literal("orders")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .executes(ServusStorageCommands::orders)))
+                .then(Commands.literal("order")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
+                                        .then(Commands.argument("count", IntegerArgumentType.integer(1, 4096))
+                                                .executes(ServusStorageCommands::order)))))
                 .then(Commands.literal("take")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
@@ -86,6 +94,50 @@ public final class ServusStorageCommands {
             source.sendFailure(Component.literal("Storage block at " + pos.toShortString() + " is not in a network"));
         }
         return network;
+    }
+
+    private static int orders(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        List<io.github.dirnei.mc.servus.storage.order.WorkOrder> orders = network.get().orders().orders();
+        if (orders.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("No orders"), false);
+            return 0;
+        }
+        for (io.github.dirnei.mc.servus.storage.order.WorkOrder order : orders) {
+            String head = "  #" + order.id() + " " + order.amount() + " " + order.key().stack(1).getHoverName().getString() + ": "
+                    + order.state().name().toLowerCase(java.util.Locale.ROOT) + (order.reason().isEmpty() ? "" : ", " + order.reason())
+                    + (order.requestId() > 0 ? " (request " + order.requestId() + ")" : "");
+            source.sendSuccess(() -> Component.literal(head), false);
+            for (io.github.dirnei.mc.servus.storage.order.OrderStep step : order.steps()) {
+                String line = "      dock " + step.dock().toShortString() + ": " + step.output().getHoverName().getString() + " x" + step.batches()
+                        + " " + step.state().name().toLowerCase(java.util.Locale.ROOT) + (step.reason().isEmpty() ? "" : ", " + step.reason());
+                source.sendSuccess(() -> Component.literal(line), false);
+            }
+        }
+        return orders.size();
+    }
+
+    private static int order(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        int count = IntegerArgumentType.getInteger(context, "count");
+        String refused = network.get().order(ItemKey.of(wanted), count);
+        if (!refused.isEmpty()) {
+            source.sendFailure(Component.literal("Order refused: " + refused.replace('_', ' ') + " for " + wanted.getHoverName().getString()));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal("Ordered " + count + " " + wanted.getHoverName().getString()), false);
+        return count;
     }
 
     private static int producers(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
