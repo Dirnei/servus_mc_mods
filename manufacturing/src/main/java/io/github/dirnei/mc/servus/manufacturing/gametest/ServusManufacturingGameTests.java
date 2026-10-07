@@ -16,6 +16,7 @@ import io.github.dirnei.mc.servus.lib.side.SideMode;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
@@ -265,5 +266,50 @@ public final class ServusManufacturingGameTests {
         smelter.inventory().setStackInSlot(BurnerSmelterBlockEntity.SLOT_OUTPUT, new ItemStack(Items.IRON_INGOT, 2));
         helper.assertTrue(front == null || front.extractItem(BurnerSmelterBlockEntity.SLOT_OUTPUT, 2, false).isEmpty(), "nothing comes out at the front");
         helper.succeed();
+    }
+
+    private static final BlockPos FR_DEPOSIT = new BlockPos(4, 1, 4);
+    private static final BlockPos FR_EXTRACTOR = new BlockPos(4, 2, 4);
+
+    /** Deposit, extractor on top lit with a single coal. */
+    private static MachineBlockEntity litExtractor(GameTestHelper helper, Block deposit) {
+        helper.setBlock(FR_DEPOSIT, deposit.defaultBlockState());
+        helper.setBlock(FR_EXTRACTOR, facing(ServusManufacturingBlocks.BURNER_EXTRACTOR.get(), Direction.NORTH));
+        MachineBlockEntity extractor = helper.getBlockEntity(FR_EXTRACTOR);
+        extractor.inventory().setStackInSlot(BurnerExtractorBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 1));
+        return extractor;
+    }
+
+    /**
+     * On coal the extractor first fills its fuel slot to the reserve target of
+     * four (one coal per 80 ticks, the lit coal is consumed at once), then the
+     * surplus goes to the output slot from tick 400 on.
+     */
+    @GameTest(template = EMPTY, timeoutTicks = 600)
+    public static void coalExtractorKeepsFuelReserve(GameTestHelper helper) {
+        MachineBlockEntity extractor = litExtractor(helper, ServusManufacturingBlocks.COAL_DEPOSIT.get());
+        helper.runAtTickTime(500, () -> {
+            ItemStack fuel = extractor.inventory().getStackInSlot(BurnerExtractorBlockEntity.SLOT_FUEL);
+            ItemStack output = extractor.inventory().getStackInSlot(BurnerExtractorBlockEntity.SLOT_OUTPUT);
+            helper.assertTrue(fuel.is(Items.COAL) && fuel.getCount() == 4,
+                    "expected 4 coal in the fuel slot, got " + fuel);
+            helper.assertTrue(output.is(Items.COAL) && output.getCount() >= 1,
+                    "expected surplus coal in the output slot, got " + output);
+            helper.succeed();
+        });
+    }
+
+    /** Raw iron is not a fuel, so it never enters the fuel slot however low the reserve is. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void ironExtractorNeverReservesOre(GameTestHelper helper) {
+        MachineBlockEntity extractor = litExtractor(helper, ServusManufacturingBlocks.IRON_DEPOSIT.get());
+        helper.runAtTickTime(200, () -> {
+            ItemStack fuel = extractor.inventory().getStackInSlot(BurnerExtractorBlockEntity.SLOT_FUEL);
+            ItemStack output = extractor.inventory().getStackInSlot(BurnerExtractorBlockEntity.SLOT_OUTPUT);
+            helper.assertTrue(!fuel.is(Items.RAW_IRON), "raw iron must not enter the fuel slot, got " + fuel);
+            helper.assertTrue(output.is(Items.RAW_IRON) && output.getCount() >= 1,
+                    "expected raw iron in the output slot, got " + output);
+            helper.succeed();
+        });
     }
 }

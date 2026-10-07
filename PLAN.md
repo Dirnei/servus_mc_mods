@@ -73,7 +73,7 @@ Decisions already made:
 
 | Machine | Rate | Power |
 |---|---|---|
-| Burner Extractor | 1 ore per 4 s | burns coal |
+| Burner Extractor | 1 ore per 4 s | burns coal; on a coal deposit keeps a small coal reserve in its fuel slot and pushes only the surplus |
 | Burner Smelter | 1 ingot per 4 s | burns coal |
 | Coal Generator | 40 FE/t | 1 coal per 20 s |
 | Assembler Mk1 | recipe speed x1 | 20 FE/t |
