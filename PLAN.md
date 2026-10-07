@@ -19,7 +19,7 @@ Storage and Logistics depend only on Servus Lib. Manufacturing depends on Servus
 - Build: Gradle with ModDevGradle, one multi project repo
 - Mappings: Parchment for readable parameter names
 - Data generation for blockstates, models, loot tables, recipes, tags, lang
-- Energy: NeoForge `IEnergyStorage` (FE). Items: `IItemHandler`. Fluids later: `IFluidHandler`
+- Energy: NeoForge `IEnergyStorage` (FE). Items: `IItemHandler`. Fluids: `IFluidHandler`, in mB
 - Optional integrations (soft dependencies only): JEI and/or EMI, FTB Teams, FTB Chunks
 - No Akka or Pekko. We use the actor pattern without the library (see section 3)
 
@@ -100,6 +100,7 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 - Rendering: a dynamic baked model composed from part models (a centre and arms per line set) driven by model data from the block entity. A duct grows thicker with its lines, each line has its own color, both show on a two line duct, and an arm that ends at an inventory or machine carries a ring in its channel color. Facades reuse the target block's baked model.
 - The shape follows the lines: thin for one line, thicker for two, arms as thick as the lines that connect there. Lines are removed through the endpoint GUI, not by clicking a part.
 - Networks are cached graphs, rebuilt only on placement or removal, never by walking blocks every tick.
+- **Fluid Tank**: a glass block holding one fluid. Touching tank blocks that fill a complete rectangular box form one tank with a shared content and a capacity of blocks times `capacity_per_block` from data (example 16,000 mB); a group that is not a full box works as single block tanks until it is. Every block stores its own share and the tank network lays the shares out lowest layer first, so forming, splitting and chunk unloads move no fluid. Joined blocks hide glass and frame toward each other through a multipart model. Buckets, an empty hand read out and `IFluidHandler` on every face; a broken block keeps its share in its item.
 
 ### 2.3 Servus: Storage
 
@@ -208,6 +209,7 @@ Each milestone ends in something playable or testable.
 - Per side modes, filters, priorities
 - Facades and goggles overlay
 - Dynamic baked model, per part shapes
+- Fluid Tank
 
 ### M6: Storage automation
 - Rails as network connections
