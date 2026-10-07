@@ -5,9 +5,11 @@ import io.github.dirnei.mc.servus.lib.network.NetworkManager;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
 import io.github.dirnei.mc.servus.lib.network.NetworkBlockEntity;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlockEntities;
+import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsComponents;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -16,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 /**
@@ -151,6 +154,33 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         if (tag.contains(TAG_CAPACITY)) {
             clientCapacity = tag.getInt(TAG_CAPACITY);
         }
+    }
+
+    // Item components: the broken block's share travels in its item
+
+    @Override
+    protected void applyImplicitComponents(DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        SimpleFluidContent content = input.get(ServusLogisticsComponents.FLUID);
+        if (content != null && !content.isEmpty()) {
+            setShare(content.copy());
+        }
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder components) {
+        super.collectImplicitComponents(components);
+        FluidStack current = share();
+        if (!current.isEmpty()) {
+            components.set(ServusLogisticsComponents.FLUID.get(), SimpleFluidContent.copyOf(current));
+        }
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        tag.remove(TAG_FLUID);
     }
 
     @Override
