@@ -12,7 +12,7 @@
 
 ## 3. Tests and docs
 
-- [ ] 3.1 GameTests in `gametest/ServusLogisticsGameTests.java` per the design list. Verify `gradlew :logistics:runGameTestServer`.
+- [x] 3.1 GameTests in `gametest/FluidTankGameTests.java` (own class, registered next to `ServusLogisticsGameTests` in `ServusLogisticsEvents.java`) per the design list. Verify `gradlew :logistics:runGameTestServer`.
 - [ ] 3.2 Update `PLAN.md` section 1, 2.2 and M5. Run `openspec validate m5-fluid-tank --strict`.
 - [ ] 3.3 Full `gradlew build` and `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
 - [ ] 3.4 Play check: build a 2 by 2 by 3 tank block by block (singles until complete, then one frame around the box), fill with buckets, fill level rises bottom up, break a corner and see the frames return.

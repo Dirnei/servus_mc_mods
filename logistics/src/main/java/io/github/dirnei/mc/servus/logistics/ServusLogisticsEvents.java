@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.logistics;
 
 import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
 import io.github.dirnei.mc.servus.logistics.duct.DuctStatsManager;
+import io.github.dirnei.mc.servus.logistics.gametest.FluidTankGameTests;
 import io.github.dirnei.mc.servus.logistics.gametest.ServusLogisticsGameTests;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
@@ -44,6 +45,7 @@ public final class ServusLogisticsEvents {
         @SubscribeEvent
         public static void onRegisterGameTests(RegisterGameTestsEvent event) {
             event.register(ServusLogisticsGameTests.class);
+            event.register(FluidTankGameTests.class);
         }
 
         @SubscribeEvent
