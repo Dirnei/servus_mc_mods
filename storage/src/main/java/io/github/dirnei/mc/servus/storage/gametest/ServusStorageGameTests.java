@@ -1,87 +1,90 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
-import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
-import net.minecraft.world.inventory.ClickType;
-import io.github.dirnei.mc.servus.storage.network.ItemKey;
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
-import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
-import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
-import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
-import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
+import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.lib.block.RecipeEditorButtons;
+import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
+import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
 import io.github.dirnei.mc.servus.lib.production.StockProvider;
 import io.github.dirnei.mc.servus.lib.production.StockSink;
-import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
+import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
 import io.github.dirnei.mc.servus.lib.side.RelativeSide;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
-import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
-import io.github.dirnei.mc.servus.storage.order.OrderBook;
-import io.github.dirnei.mc.servus.storage.order.OrderStep;
-import io.github.dirnei.mc.servus.storage.order.WorkOrder;
-import io.github.dirnei.mc.servus.storage.order.StockRule;
+import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardBlock;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardBlockEntity;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardPayload;
 import io.github.dirnei.mc.servus.storage.board.OrderRow;
-import io.github.dirnei.mc.servus.storage.menu.OrderBoardMenu;
-import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
+import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
+import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
-import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
+import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
+import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
+import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
+import io.github.dirnei.mc.servus.storage.menu.OrderBoardMenu;
+import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
+import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.storage.order.OrderBook;
+import io.github.dirnei.mc.servus.storage.order.OrderStep;
+import io.github.dirnei.mc.servus.storage.order.StockRule;
+import io.github.dirnei.mc.servus.storage.order.WorkOrder;
+import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
-import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
-import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
-import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.chat.Component;
+import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
-import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
-import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
-import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
+import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
+import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
+import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
+import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
+import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
+import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.item.Items;
-import java.util.List;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.entity.ChestBlockEntity;
-import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 @GameTestHolder(ServusStorageIds.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -2035,5 +2038,81 @@ public final class ServusStorageGameTests {
                 });
             });
         });
+    }
+
+    private static void pattern(CraftingStationBlockEntity station, Item... cells) {
+        station.clearPattern();
+        for (int i = 0; i < cells.length; i++) {
+            if (cells[i] != null) {
+                station.pattern().setStackInSlot(i, new ItemStack(cells[i]));
+            }
+        }
+    }
+
+    /** Plus, save, a refused save, cancel, edit and delete all go through the editor popup state. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void craftingStationEditorFlow(GameTestHelper helper) {
+        helper.setBlock(CR_STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        CraftingStationBlockEntity station = helper.getBlockEntity(CR_STATION);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        CraftingStationMenu menu = new CraftingStationMenu(0, player.getInventory(), station);
+        helper.assertTrue(!menu.isEditing(), "the editor starts closed");
+
+        menu.clickMenuButton(player, RecipeEditorButtons.OPEN_NEW);
+        helper.assertTrue(menu.editing() == RecipeEditorButtons.EDIT_NEW, "plus opens the editor for a new recipe");
+        pattern(station, null, Items.OAK_PLANKS, null, null, Items.OAK_PLANKS);
+        menu.clickMenuButton(player, RecipeEditorButtons.SAVE);
+        helper.assertTrue(!menu.isEditing(), "a successful save closes the editor");
+        helper.assertTrue(station.recipes().size() == 1 && station.recipes().get(0).result(helper.getLevel()).is(Items.STICK), "sticks are configured");
+        helper.assertTrue(station.pattern().getStackInSlot(1).isEmpty(), "closing the editor clears the grid");
+
+        menu.clickMenuButton(player, RecipeEditorButtons.OPEN_NEW);
+        pattern(station, Items.COBBLESTONE);
+        menu.clickMenuButton(player, RecipeEditorButtons.SAVE);
+        helper.assertTrue(menu.isEditing(), "a grid matching nothing keeps the editor open");
+        helper.assertTrue(station.recipes().size() == 1, "nothing is added for an unmatched grid");
+        menu.clickMenuButton(player, RecipeEditorButtons.CANCEL);
+        helper.assertTrue(!menu.isEditing() && station.recipes().size() == 1, "cancel closes and keeps the sticks");
+
+        menu.clickMenuButton(player, RecipeEditorButtons.OPEN_EDIT_FIRST);
+        helper.assertTrue(menu.editing() == 0 && station.pattern().getStackInSlot(1).is(Items.OAK_PLANKS), "a cell opens the editor prefilled");
+        pattern(station, null, Items.COAL, null, null, Items.STICK);
+        menu.clickMenuButton(player, RecipeEditorButtons.SAVE);
+        helper.assertTrue(station.recipes().size() == 1 && station.recipes().get(0).result(helper.getLevel()).is(Items.TORCH), "save replaces the edited recipe");
+
+        menu.clickMenuButton(player, RecipeEditorButtons.OPEN_EDIT_FIRST);
+        menu.clickMenuButton(player, RecipeEditorButtons.DELETE);
+        helper.assertTrue(!menu.isEditing() && station.recipes().isEmpty(), "delete removes the recipe and closes the editor");
+        helper.succeed();
+    }
+
+    /** With every slot used a new recipe is refused and the editor stays open; the recipe viewer path prefills the grid. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void craftingStationEditorFullAndViewer(GameTestHelper helper) {
+        helper.setBlock(CR_STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        CraftingStationBlockEntity station = helper.getBlockEntity(CR_STATION);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        CraftingStationMenu menu = new CraftingStationMenu(0, player.getInventory(), station);
+
+        menu.openEditorWith(ResourceLocation.withDefaultNamespace("stick"));
+        helper.assertTrue(menu.editing() == RecipeEditorButtons.EDIT_NEW, "the recipe viewer opens the editor");
+        menu.clickMenuButton(player, RecipeEditorButtons.SAVE);
+        helper.assertTrue(station.recipes().size() == 1 && station.recipes().get(0).result(helper.getLevel()).is(Items.STICK),
+                "the prefilled stick layout saves as sticks");
+
+        pattern(station, null, Items.COAL, null, null, Items.STICK);
+        helper.assertTrue(station.saveFromPattern().isEmpty(), "torch saves");
+        pattern(station, Items.OAK_LOG);
+        helper.assertTrue(station.saveFromPattern().isEmpty(), "planks save");
+        pattern(station, Items.OAK_PLANKS, Items.OAK_PLANKS, null, Items.OAK_PLANKS, Items.OAK_PLANKS);
+        helper.assertTrue(station.saveFromPattern().isEmpty(), "crafting table saves");
+        helper.assertTrue(station.recipes().size() == station.recipeSlots(), "every slot is used");
+
+        menu.clickMenuButton(player, RecipeEditorButtons.OPEN_NEW);
+        pattern(station, Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS, null, Items.OAK_PLANKS,
+                Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS);
+        menu.clickMenuButton(player, RecipeEditorButtons.SAVE);
+        helper.assertTrue(menu.isEditing() && station.recipes().size() == station.recipeSlots(), "a full station refuses and keeps the editor open");
+        helper.succeed();
     }
 }

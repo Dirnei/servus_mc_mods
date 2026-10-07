@@ -8,7 +8,7 @@
 
 - [x] 2.1 Editor state in `storage/crafting/CraftingStationMenu.java` (D2): synced state, ghost slots active only while editing, open new, open edit, save or replace, delete, cancel, clear on close; active recipe in the station's container data in `CraftingStationBlockEntity.java`. Verify `gradlew build`.
 - [x] 2.2 Redo `storage/client/CraftingStationScreen.java` with the D3 layout and the Lib popup, generate the new `textures/gui/crafting_station.png`, lang keys in the language provider. Run `gradlew :storage:runData` and `gradlew build`.
-- [ ] 2.3 GameTests in `gametest/ServusStorageGameTests.java`: save sticks through the editor, no match keeps the editor open, edit replaces, delete removes, cancel keeps, slots full refused. Fix the carrot wording in the spec if code differs. Verify `gradlew :storage:runGameTestServer`.
+- [x] 2.3 GameTests in `gametest/ServusStorageGameTests.java`: save sticks through the editor, no match keeps the editor open, edit replaces, delete removes, cancel keeps, slots full refused. Fix the carrot wording in the spec if code differs. Verify `gradlew :storage:runGameTestServer`.
 
 ## 3. JEI transfer
 
