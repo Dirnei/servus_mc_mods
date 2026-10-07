@@ -34,3 +34,6 @@ Thumbs.db
 
 # Datagen cache
 **/src/generated/resources/.cache/
+
+# Claude Code worktrees
+.claude/worktrees/
