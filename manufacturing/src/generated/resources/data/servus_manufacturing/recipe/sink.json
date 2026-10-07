@@ -5,20 +5,17 @@
     "B": {
       "item": "minecraft:bricks"
     },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
     "R": {
       "item": "minecraft:iron_bars"
     }
   },
   "pattern": [
     "BBB",
-    "RIR",
+    "BRB",
     "BBB"
   ],
   "result": {
-    "count": 1,
+    "count": 8,
     "id": "servus_manufacturing:sink"
   }
 }

@@ -3,9 +3,12 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.ChimneyBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkLayout;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.core.Direction;
@@ -16,6 +19,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
+import net.neoforged.neoforge.client.model.generators.ModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -50,61 +54,95 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     }
 
     /**
-     * Brick body with a recessed front: a brick frame, a sooty back wall three
-     * pixels deep and an iron grate just behind the front plane. The fan is
-     * drawn in the recess by the block entity renderer.
+     * The Sink: an unformed casing (bricks in an iron frame) and, once formed, one
+     * model per part in the north facing frame, turned by the facing. Parts show
+     * bricks on the outer faces of the cube only. The four front parts share one
+     * recess three pixels deep behind a quartered grate, framed by brick bars on
+     * the outer edges of the 2x2 front; the fan is drawn by the block entity renderer.
      */
     private void sink() {
+        ModelFile casing = models().cubeAll("sink_casing", modLoc("block/sink_casing"));
+        ModelFile[] parts = new ModelFile[SinkLayout.PARTS];
+        for (int part = 0; part < SinkLayout.PARTS; part++) {
+            parts[part] = sinkPart(part);
+        }
+        getVariantBuilder(ServusManufacturingBlocks.SINK.get()).forAllStates(state -> {
+            if (!state.getValue(SinkBlock.FORMED)) {
+                return ConfiguredModel.builder().modelFile(casing).build();
+            }
+            Direction facing = state.getValue(SinkBlock.FACING);
+            return ConfiguredModel.builder()
+                    .modelFile(parts[state.getValue(SinkBlock.PART)])
+                    .rotationY(((int) facing.toYRot() + 180) % 360)
+                    .uvLock(true)
+                    .build();
+        });
+        simpleBlockItem(ServusManufacturingBlocks.SINK.get(), casing);
+    }
+
+    /**
+     * One part of the formed Sink. Facing north the front is north, right is west
+     * (a player looking at the front), back is south.
+     */
+    private ModelFile sinkPart(int part) {
         ResourceLocation bricks = mcLoc("block/bricks");
-        BlockModelBuilder model = models().getBuilder("sink")
+        BlockModelBuilder model = models().getBuilder("sink_part_" + part)
                 .parent(models().getExistingFile(mcLoc("block/block")))
                 .renderType("cutout")
                 .texture("particle", bricks)
-                .texture("bricks", bricks)
-                .texture("recess", modLoc("block/sink_recess"))
-                .texture("grate", modLoc("block/sink_front"));
-        // Body behind the recess.
+                .texture("bricks", bricks);
+        boolean right = (part & SinkLayout.RIGHT) != 0;
+        boolean up = (part & SinkLayout.UP) != 0;
+        boolean front = SinkLayout.isFront(part);
+        Direction side = right ? Direction.WEST : Direction.EAST;
+        Direction vertical = up ? Direction.UP : Direction.DOWN;
+        Set<Direction> outer = EnumSet.of(side, vertical, front ? Direction.NORTH : Direction.SOUTH);
+        if (!front) {
+            model.element().from(0, 0, 0).to(16, 16, 16)
+                    .allFacesExcept((direction, face) -> face.texture("#bricks").cullface(direction), EnumSet.complementOf(EnumSet.copyOf(outer)))
+                    .end();
+            return model;
+        }
+        model.texture("recess", modLoc("block/sink_recess"))
+                .texture("grate", modLoc("block/sink_front_" + part));
+        // Body behind the recess: outer sides in bricks, the recess wall facing the front.
         model.element().from(0, 0, 3).to(16, 16, 16)
-                .allFaces((direction, face) -> {
+                .allFacesExcept((direction, face) -> {
                     if (direction == Direction.NORTH) {
                         face.texture("#recess");
                     } else {
                         face.texture("#bricks").cullface(direction);
                     }
-                })
+                }, EnumSet.complementOf(EnumSet.of(Direction.NORTH, side, vertical)))
                 .end();
-        // Frame around the recess: top, bottom, left and right bars.
-        frameBar(model, 0, 13, 16, 16, Direction.UP, Direction.DOWN);
-        frameBar(model, 0, 0, 16, 3, Direction.DOWN, Direction.UP);
-        frameBar(model, 0, 3, 3, 13, Direction.WEST, Direction.EAST);
-        frameBar(model, 13, 3, 16, 13, Direction.EAST, Direction.WEST);
-        // The grate, a flat plane just behind the front.
-        model.element().from(3, 3, 0.5F).to(13, 13, 0.5F)
-                .face(Direction.NORTH).texture("#grate").uvs(0, 0, 16, 16).end()
-                .face(Direction.SOUTH).texture("#grate").uvs(16, 0, 0, 16).end()
-                .end();
-        getVariantBuilder(ServusManufacturingBlocks.SINK.get()).forAllStates(state -> {
-            Direction facing = state.getValue(SinkBlock.FACING);
-            return ConfiguredModel.builder()
-                    .modelFile(model)
-                    .rotationY(((int) facing.toYRot() + 180) % 360)
-                    .build();
-        });
-        simpleBlockItem(ServusManufacturingBlocks.SINK.get(), model);
-    }
-
-    /** One bar of the Sink's front frame, three pixels deep; {@code outer} faces the world, {@code inner} the recess. */
-    private static void frameBar(BlockModelBuilder model, float x0, float y0, float x1, float y1, Direction outer, Direction inner) {
-        BlockModelBuilder.ElementBuilder bar = model.element().from(x0, y0, 0).to(x1, y1, 3)
+        // Frame bars on the outer edges of the 2x2 front: one upright on the side, one across at the top or bottom.
+        float sideX0 = right ? 0 : 13;
+        float sideX1 = right ? 3 : 16;
+        model.element().from(sideX0, 0, 0).to(sideX1, 16, 3)
                 .face(Direction.NORTH).texture("#bricks").cullface(Direction.NORTH).end()
-                .face(outer).texture("#bricks").cullface(outer).end()
-                .face(inner).texture("#bricks").end();
-        if (outer.getAxis() == Direction.Axis.Y) {
-            // Horizontal bars span the full width: their ends are on the block sides.
-            bar.face(Direction.EAST).texture("#bricks").cullface(Direction.EAST).end()
-                    .face(Direction.WEST).texture("#bricks").cullface(Direction.WEST).end();
-        }
-        bar.end();
+                .face(side).texture("#bricks").cullface(side).end()
+                .face(side.getOpposite()).texture("#bricks").end()
+                .face(vertical).texture("#bricks").cullface(vertical).end()
+                .end();
+        float acrossX0 = right ? 3 : 0;
+        float acrossX1 = right ? 16 : 13;
+        float acrossY0 = up ? 13 : 0;
+        float acrossY1 = up ? 16 : 3;
+        model.element().from(acrossX0, acrossY0, 0).to(acrossX1, acrossY1, 3)
+                .face(Direction.NORTH).texture("#bricks").cullface(Direction.NORTH).end()
+                .face(vertical).texture("#bricks").cullface(vertical).end()
+                .face(vertical.getOpposite()).texture("#bricks").end()
+                .end();
+        // The grate, a plane just behind the front over this quarter of the opening.
+        float gx0 = right ? 3 : 0;
+        float gx1 = right ? 16 : 13;
+        float gy0 = up ? 0 : 3;
+        float gy1 = up ? 13 : 16;
+        model.element().from(gx0, gy0, 0.5F).to(gx1, gy1, 0.5F)
+                .face(Direction.NORTH).texture("#grate").uvs(16 - gx1, 16 - gy1, 16 - gx0, 16 - gy0).end()
+                .face(Direction.SOUTH).texture("#grate").uvs(gx0, 16 - gy1, gx1, 16 - gy0).end()
+                .end();
+        return model;
     }
 
     /** Full brick block inside a column; the top block carries a wider cap with an open flue. */
@@ -134,24 +172,52 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     }
 
     /**
-     * The Sink fan for the block entity renderer: a hub and four pitched blades
-     * in the recess, centred on the front, in the model's north facing frame.
+     * The big Sink fan for the block entity renderer, sized for the 2x2 front: a
+     * hub, four pitched main blades and four flat blades between them, centred on
+     * (8, 8) in the model's north facing frame. Tips reach 12.5 pixels from the
+     * centre, inside the 26 pixel opening. Every face has explicit UVs because the
+     * elements reach outside the block.
      */
     private void sinkFan() {
         BlockModelBuilder fan = models().getBuilder("sink_fan")
                 .texture("particle", modLoc("block/sink_fan"))
                 .texture("fan", modLoc("block/sink_fan"));
-        fan.element().from(7, 7, 1.25F).to(9, 9, 2.5F).textureAll("#fan").end();
-        blade(fan, 7.25F, 9, 8.75F, 12.5F, Direction.Axis.Y, 22.5F);
-        blade(fan, 7.25F, 3.5F, 8.75F, 7, Direction.Axis.Y, -22.5F);
-        blade(fan, 9, 7.25F, 12.5F, 8.75F, Direction.Axis.X, -22.5F);
-        blade(fan, 3.5F, 7.25F, 7, 8.75F, Direction.Axis.X, 22.5F);
+        fan.element().from(5, 5, 1.0F).to(11, 11, 2.8F)
+                .allFaces((direction, face) -> face.texture("#fan").uvs(8, 8, 16, 9))
+                .face(Direction.NORTH).uvs(8, 0, 15, 7).end()
+                .face(Direction.SOUTH).uvs(8, 0, 15, 7).end()
+                .end();
+        // Main blades, pitched about their long axis like a propeller.
+        fanBlade(fan, 5.5F, 10, 10.5F, 20.5F, 1.6F, 2.1F, Direction.Axis.Y, 22.5F);
+        fanBlade(fan, 5.5F, -4.5F, 10.5F, 6, 1.6F, 2.1F, Direction.Axis.Y, -22.5F);
+        fanBlade(fan, 10, 5.5F, 20.5F, 10.5F, 1.6F, 2.1F, Direction.Axis.X, -22.5F);
+        fanBlade(fan, -4.5F, 5.5F, 6, 10.5F, 1.6F, 2.1F, Direction.Axis.X, 22.5F);
+        // Flat blades on the diagonals: an upright blade turned 45 degrees about the centre.
+        for (float angle : new float[] {45, -45}) {
+            fanDiagonal(fan, 6.75F, 10, 9.25F, 18.5F, angle);
+            fanDiagonal(fan, 6.75F, -2.5F, 9.25F, 6, angle);
+        }
     }
 
-    private static void blade(BlockModelBuilder fan, float x0, float y0, float x1, float y1, Direction.Axis axis, float angle) {
-        fan.element().from(x0, y0, 1.6F).to(x1, y1, 2.1F)
-                .textureAll("#fan")
-                .rotation().origin((x0 + x1) / 2, (y0 + y1) / 2, 1.85F).axis(axis).angle(angle).end()
+    private static void fanBlade(BlockModelBuilder fan, float x0, float y0, float x1, float y1, float z0, float z1,
+                                 Direction.Axis axis, float angle) {
+        boolean upright = axis == Direction.Axis.Y;
+        fan.element().from(x0, y0, z0).to(x1, y1, z1)
+                .allFaces((direction, face) -> face.texture("#fan").uvs(8, 8, 16, 9))
+                .face(Direction.NORTH).uvs(0, 0, 8, 16).rotation(upright ? ModelBuilder.FaceRotation.ZERO
+                        : ModelBuilder.FaceRotation.CLOCKWISE_90).end()
+                .face(Direction.SOUTH).uvs(0, 0, 8, 16).rotation(upright ? ModelBuilder.FaceRotation.ZERO
+                        : ModelBuilder.FaceRotation.CLOCKWISE_90).end()
+                .rotation().origin((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2).axis(axis).angle(angle).end()
+                .end();
+    }
+
+    private static void fanDiagonal(BlockModelBuilder fan, float x0, float y0, float x1, float y1, float angle) {
+        fan.element().from(x0, y0, 1.25F).to(x1, y1, 1.55F)
+                .allFaces((direction, face) -> face.texture("#fan").uvs(8, 8, 16, 9))
+                .face(Direction.NORTH).uvs(1, 0, 6, 16).end()
+                .face(Direction.SOUTH).uvs(1, 0, 6, 16).end()
+                .rotation().origin(8, 8, 1.4F).axis(Direction.Axis.Z).angle(angle).end()
                 .end();
     }
 

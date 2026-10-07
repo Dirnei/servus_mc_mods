@@ -97,13 +97,13 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
 
     /** The Sink and its Chimney: hand crafted from bricks and iron, no research. */
     private void sinkRecipes(RecipeOutput output) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.SINK.get())
+        // Eight Sink blocks build one 2x2x2 Sink.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.SINK.get(), 8)
                 .pattern("BBB")
-                .pattern("RIR")
+                .pattern("BRB")
                 .pattern("BBB")
                 .define('B', Items.BRICKS)
                 .define('R', Items.IRON_BARS)
-                .define('I', Items.IRON_INGOT)
                 .unlockedBy("has_bricks", has(Items.BRICKS))
                 .save(output);
 
