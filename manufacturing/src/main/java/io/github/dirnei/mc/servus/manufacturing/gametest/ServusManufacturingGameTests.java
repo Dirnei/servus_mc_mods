@@ -216,8 +216,8 @@ public final class ServusManufacturingGameTests {
         chest.setItem(0, new ItemStack(Items.RAW_IRON, 4));
         chest.setItem(1, new ItemStack(Items.DIAMOND, 3));
         MachineBlockEntity smelter = helper.getBlockEntity(SP_SMELTER);
-        helper.assertTrue(smelter.relativeSide(Direction.WEST) == RelativeSide.LEFT, "west is the left side of a machine facing north");
-        smelter.sideConfig().set(RelativeSide.LEFT, SideMode.PULL);
+        helper.assertTrue(smelter.relativeSide(Direction.WEST) == RelativeSide.RIGHT, "west is the right side of a machine facing north, as the player sees it");
+        smelter.sideConfig().set(RelativeSide.RIGHT, SideMode.PULL);
         helper.runAfterDelay(30, () -> {
             ItemStack input = smelter.inventory().getStackInSlot(BurnerSmelterBlockEntity.SLOT_INPUT);
             helper.assertTrue(input.is(Items.RAW_IRON) && input.getCount() == 4, "the raw iron should have been pulled in, input holds " + input);
@@ -235,11 +235,11 @@ public final class ServusManufacturingGameTests {
         ChestBlockEntity chest = helper.getBlockEntity(chestPos);
         MachineBlockEntity smelter = helper.getBlockEntity(SP_SMELTER);
         smelter.inventory().setStackInSlot(BurnerSmelterBlockEntity.SLOT_OUTPUT, new ItemStack(Items.IRON_INGOT, 5));
-        smelter.sideConfig().set(RelativeSide.RIGHT, SideMode.OUTPUT);
+        smelter.sideConfig().set(RelativeSide.LEFT, SideMode.OUTPUT);
         helper.runAfterDelay(20, () -> {
             helper.assertTrue(chest.countItem(Items.IRON_INGOT) == 0, "an Output side must not push");
-            helper.assertTrue(smelter.cycleSide(RelativeSide.RIGHT) == SideMode.BOTH, "Output cycles to Both");
-            smelter.sideConfig().set(RelativeSide.RIGHT, SideMode.PUSH);
+            helper.assertTrue(smelter.cycleSide(RelativeSide.LEFT) == SideMode.BOTH, "Output cycles to Both");
+            smelter.sideConfig().set(RelativeSide.LEFT, SideMode.PUSH);
             helper.runAfterDelay(20, () -> {
                 helper.assertTrue(chest.countItem(Items.IRON_INGOT) == 5, "a Push side pushes, chest has " + chest.countItem(Items.IRON_INGOT));
                 helper.succeed();

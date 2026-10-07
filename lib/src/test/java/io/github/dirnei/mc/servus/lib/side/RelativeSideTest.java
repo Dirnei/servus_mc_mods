@@ -11,8 +11,8 @@ class RelativeSideTest {
     void facingNorth() {
         assertEquals(Side.NORTH, RelativeSide.FRONT.toSide(Side.NORTH));
         assertEquals(Side.SOUTH, RelativeSide.BACK.toSide(Side.NORTH));
-        assertEquals(Side.WEST, RelativeSide.LEFT.toSide(Side.NORTH));
-        assertEquals(Side.EAST, RelativeSide.RIGHT.toSide(Side.NORTH));
+        assertEquals(Side.EAST, RelativeSide.LEFT.toSide(Side.NORTH));
+        assertEquals(Side.WEST, RelativeSide.RIGHT.toSide(Side.NORTH));
         assertEquals(Side.UP, RelativeSide.TOP.toSide(Side.NORTH));
         assertEquals(Side.DOWN, RelativeSide.BOTTOM.toSide(Side.NORTH));
     }
@@ -21,8 +21,8 @@ class RelativeSideTest {
     void facingEast() {
         assertEquals(Side.EAST, RelativeSide.FRONT.toSide(Side.EAST));
         assertEquals(Side.WEST, RelativeSide.BACK.toSide(Side.EAST));
-        assertEquals(Side.NORTH, RelativeSide.LEFT.toSide(Side.EAST));
-        assertEquals(Side.SOUTH, RelativeSide.RIGHT.toSide(Side.EAST));
+        assertEquals(Side.SOUTH, RelativeSide.LEFT.toSide(Side.EAST));
+        assertEquals(Side.NORTH, RelativeSide.RIGHT.toSide(Side.EAST));
     }
 
     @Test

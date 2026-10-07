@@ -3,8 +3,8 @@ package io.github.dirnei.mc.servus.lib.side;
 import io.github.dirnei.mc.servus.lib.graph.Side;
 
 /**
- * A side relative to a block's horizontal facing. Left and right are the
- * block's own left and right (facing north, left is west).
+ * A side relative to a block's horizontal facing. Left and right are those of
+ * a player looking at the block's front (facing north, left is east).
  */
 public enum RelativeSide {
     FRONT,
@@ -25,8 +25,8 @@ public enum RelativeSide {
         return switch (this) {
             case FRONT -> facing;
             case BACK -> facing.opposite();
-            case LEFT -> counterClockwise(facing);
-            case RIGHT -> clockwise(facing);
+            case LEFT -> clockwise(facing);
+            case RIGHT -> counterClockwise(facing);
             case TOP -> Side.UP;
             case BOTTOM -> Side.DOWN;
         };
