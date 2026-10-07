@@ -34,11 +34,14 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Heavy Duty Rack: a chest sized bay that opens a GUI. Bays with the same
  * facing and wood form sections of a few bays: a bay joins the section beside it when
  * it is placed and that section has room, and the join never moves after
- * that. Joins are visual only; every bay keeps its own inventory.
+ * that. A section shares one GUI; every bay still stores its own slots.
  */
 public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
 
@@ -104,6 +107,32 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
             size++;
         }
         return size;
+    }
+
+    /**
+     * The bays of the section the rack at {@code pos} belongs to, from left to
+     * right as seen from the front. Two bays share a section only when both
+     * carry the join towards each other. Empty when no rack stands there.
+     */
+    public static List<BlockPos> section(BlockGetter level, BlockPos pos) {
+        BlockState start = level.getBlockState(pos);
+        if (!(start.getBlock() instanceof HeavyRackBlock)) {
+            return List.of();
+        }
+        Direction right = start.getValue(FACING).getClockWise();
+        int[] offsets = RackSection.bays(
+                offset -> joined(start, level.getBlockState(pos.relative(right, offset)), LEFT),
+                offset -> joined(start, level.getBlockState(pos.relative(right, offset)), RIGHT),
+                MAX_SECTION_WALK);
+        List<BlockPos> bays = new ArrayList<>(offsets.length);
+        for (int offset : offsets) {
+            bays.add(pos.relative(right, offset));
+        }
+        return List.copyOf(bays);
+    }
+
+    private static boolean joined(BlockState start, BlockState state, BooleanProperty flag) {
+        return sameRow(start, state) && state.getValue(flag);
     }
 
     @Override
