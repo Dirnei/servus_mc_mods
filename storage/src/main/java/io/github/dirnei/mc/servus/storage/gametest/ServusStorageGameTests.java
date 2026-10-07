@@ -406,8 +406,6 @@ public final class ServusStorageGameTests {
             BlockState top = helper.getBlockState(STACK_BASE.above());
             helper.assertTrue(top.getBlock() instanceof HeavyRackBlock, "a rack should have been placed on top, got " + top.getBlock() + " result " + placed);
             helper.assertTrue(top.getValue(HeavyRackBlock.FACING) == Direction.EAST, "the top rack should face east like the one below");
-            helper.assertTrue(top.getValue(HeavyRackBlock.DOWN), "the top rack should join the rack below");
-            helper.assertTrue(helper.getBlockState(STACK_BASE).getValue(HeavyRackBlock.UP), "the lower rack should join the rack above");
             helper.succeed();
         });
     }
@@ -492,7 +490,7 @@ public final class ServusStorageGameTests {
                 new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
     }
 
-    /** Spruce beside oak and spruce on oak stay apart; spruce beside spruce joins. */
+    /** Spruce beside oak stays apart, spruce beside spruce joins, and a rack on top copies the facing whatever its wood. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void rackJoinsOnlySameWood(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -512,8 +510,6 @@ public final class ServusStorageGameTests {
             helper.assertTrue(helper.getBlockState(spruce).getValue(HeavyRackBlock.RIGHT)
                     && helper.getBlockState(spruce2).getValue(HeavyRackBlock.LEFT), "two spruce racks join");
             helper.assertTrue(helper.getBlockState(top).getValue(HeavyRackBlock.FACING) == Direction.NORTH, "the stacked rack copies the facing");
-            helper.assertTrue(!helper.getBlockState(top).getValue(HeavyRackBlock.DOWN), "spruce on oak keeps its bottom frame");
-            helper.assertTrue(!helper.getBlockState(oak).getValue(HeavyRackBlock.UP), "oak under spruce keeps its top frame");
             helper.succeed();
         });
     }

@@ -13,7 +13,8 @@ Milestone: M6 (Storage automation), a follow up to the Heavy Duty Rack. Only the
 - The frame (posts, beams, edges) gets a blackened wrought iron texture instead of the orange steel, for every rack.
 - The wood stays with the rack: on the placed block, in the dropped or dismantled item, in the item's look in hand and inventory, in its tooltip, and in the breaking particles.
 - A rack without a stored wood (for example from `/give` or placed before this change) shows oak boards. The creative tab and JEI show one rack, the oak one.
-- Bays of different woods do not join, neither side by side nor stacked. A rack placed on top still takes the facing of the rack below.
+- Bays of different woods do not join. A rack placed on top still takes the facing of the rack below.
+- Stacked racks keep their top and bottom beams, so an iron band shows where one bay ends and the next begins.
 
 ## Capabilities
 

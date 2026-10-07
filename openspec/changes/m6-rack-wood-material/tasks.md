@@ -14,9 +14,10 @@
 
 ## 3. Joins by wood
 
-- [x] 3.1 `rack/HeavyRackBlock.java`: joins and `UP`/`DOWN` need the same wood at placement, neighbours fixed in `setPlacedBy` (D6). GameTest in `gametest/ServusStorageGameTests.java`: spruce beside oak and spruce on oak do not join, spruce beside spruce does. Verify `gradlew build` and `gradlew :storage:runGameTestServer`.
+- [x] 3.1 `rack/HeavyRackBlock.java`: joins and `UP`/`DOWN` need the same wood at placement, neighbours fixed in `setPlacedBy` (D6). GameTest in `gametest/ServusStorageGameTests.java`: spruce beside oak does not join, spruce beside spruce does. Verify `gradlew build` and `gradlew :storage:runGameTestServer`.
+- [x] 3.2 Stacked racks keep their frames (D7): drop `UP` and `DOWN` from `rack/HeavyRackBlock.java` and the beam conditions in `datagen/HeavyRackModels.java`, adjust the rack GameTests. Run `gradlew :storage:runData`, `gradlew build` and `gradlew :storage:runGameTestServer`.
 
 ## 4. Verification
 
 - [x] 4.1 Run `openspec validate m6-rack-wood-material --strict`, full `gradlew build` and `gradlew test` green, all GameTests green. Commit. Launch the client from main only when the user asks.
-- [ ] 4.2 Play check: racks crafted from different woods show their boards in world and in hand, the tooltip names the wood, breaking particles show it, the frame is dark iron, different woods do not join.
+- [ ] 4.2 Play check: racks crafted from different woods show their boards in world and in hand, the tooltip names the wood, breaking particles show it, the frame is dark iron, different woods do not join, stacked bays show an iron band between them.

@@ -13,7 +13,7 @@ import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder
  * no faces fight. The model space faces north: front at z 0, back panel at
  * z 15 to 16 behind the posts, which sit at z 0 to 2 and 13 to 15.
  * Parts: core always; posts where no bay joins; extensions where one does;
- * top and bottom beams where no bay stacks.
+ * top and bottom beams always, so stacked bays show where they meet.
  */
 final class HeavyRackModels {
 
@@ -60,17 +60,17 @@ final class HeavyRackModels {
             builder.part().modelFile(extRight).rotationY(angle).addModel()
                     .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.RIGHT, true);
             builder.part().modelFile(top).rotationY(angle).addModel()
-                    .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.UP, false);
+                    .condition(HeavyRackBlock.FACING, facing);
             builder.part().modelFile(topLeft).rotationY(angle).addModel()
-                    .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.UP, false).condition(HeavyRackBlock.LEFT, true);
+                    .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.LEFT, true);
             builder.part().modelFile(topRight).rotationY(angle).addModel()
-                    .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.UP, false).condition(HeavyRackBlock.RIGHT, true);
+                    .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.RIGHT, true);
             builder.part().modelFile(bottom).rotationY(angle).addModel()
-                    .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.DOWN, false);
+                    .condition(HeavyRackBlock.FACING, facing);
             builder.part().modelFile(bottomLeft).rotationY(angle).addModel()
-                    .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.DOWN, false).condition(HeavyRackBlock.LEFT, true);
+                    .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.LEFT, true);
             builder.part().modelFile(bottomRight).rotationY(angle).addModel()
-                    .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.DOWN, false).condition(HeavyRackBlock.RIGHT, true);
+                    .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.RIGHT, true);
         }
 
         BlockModelBuilder inventory = model(provider, name + "_inventory", iron, board);

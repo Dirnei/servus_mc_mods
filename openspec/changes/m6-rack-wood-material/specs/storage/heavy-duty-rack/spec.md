@@ -28,7 +28,7 @@ The rack SHALL be craftable from vanilla materials, SHALL spill its contents whe
 - **THEN** the rack keeps its facing and its joins and nothing else happens
 
 ### Requirement: Bays connect visually
-Racks with the same facing and the same wood that stand in a row SHALL form sections of up to `bays_per_section` bays (`rack.json`, example 3). A bay joins the section beside it on placement only while that section has room; otherwise it starts a new section. Joins SHALL be decided when a bay is placed and SHALL NOT move when further bays are placed anywhere. A bay placed on top of a row SHALL copy the section boundaries of the row below wherever a rack stands below it or below its neighbour. Within a section the shared posts disappear and the floor board, the middle shelf and the beams run through; posts stand at section ends. A rack directly above or below another rack of the same wood SHALL continue the posts without a top or bottom frame between them. A rack placed directly on top of another rack SHALL take that rack's facing, whatever its wood. Racks of different woods SHALL NOT join, side by side or stacked. Each rack SHALL keep its own inventory. The frame SHALL render without flickering faces.
+Racks with the same facing and the same wood that stand in a row SHALL form sections of up to `bays_per_section` bays (`rack.json`, example 3). A bay joins the section beside it on placement only while that section has room; otherwise it starts a new section. Joins SHALL be decided when a bay is placed and SHALL NOT move when further bays are placed anywhere. A bay placed on top of a row SHALL copy the section boundaries of the row below wherever a rack stands below it or below its neighbour. Within a section the shared posts disappear and the floor board, the middle shelf and the beams run through; posts stand at section ends. Stacked racks SHALL keep their top and bottom beams, so an iron band marks where two bays meet; the posts run through. A rack placed directly on top of another rack SHALL take that rack's facing, whatever its wood. Racks of different woods SHALL NOT join. Each rack SHALL keep its own inventory. The frame SHALL render without flickering faces.
 
 #### Scenario: Row of three
 - **WHEN** three racks facing the same way are placed one after another in a row
@@ -60,15 +60,15 @@ Racks with the same facing and the same wood that stand in a row SHALL form sect
 
 #### Scenario: Placed on top
 - **WHEN** a player looking south places a rack on top of a rack that faces east
-- **THEN** the new rack faces east and the two render as one stacked bay
+- **THEN** the new rack faces east
 
 #### Scenario: Different woods
 - **WHEN** a spruce rack is placed beside an oak rack with the same facing
 - **THEN** each renders as its own bay with posts between them
 
-#### Scenario: Different wood stacked
-- **WHEN** a spruce rack is placed on top of an oak rack
-- **THEN** it takes the oak rack's facing and both keep their top and bottom frames
+#### Scenario: Stacked bays
+- **WHEN** a rack is placed on top of another rack
+- **THEN** both keep their top and bottom beams and an iron band shows where they meet
 
 ## ADDED Requirements
 

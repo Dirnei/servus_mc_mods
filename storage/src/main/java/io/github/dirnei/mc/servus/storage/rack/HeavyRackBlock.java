@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -34,7 +33,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.items.ItemStackHandler;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Heavy Duty Rack: a chest sized bay that opens a GUI. Bays with the same
@@ -50,8 +48,6 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
     public static final BooleanProperty LEFT = BooleanProperty.create("left");
     /** Joined to the bay on the clockwise side: no post there, shelves run through. */
     public static final BooleanProperty RIGHT = BooleanProperty.create("right");
-    public static final BooleanProperty UP = BooleanProperty.create("up");
-    public static final BooleanProperty DOWN = BooleanProperty.create("down");
 
     private static final int MAX_SECTION_WALK = 64;
 
@@ -59,7 +55,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
         super(properties);
         registerDefaultState(stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
-                .setValue(LEFT, false).setValue(RIGHT, false).setValue(UP, false).setValue(DOWN, false));
+                .setValue(LEFT, false).setValue(RIGHT, false));
     }
 
     @Override
@@ -69,7 +65,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, LEFT, RIGHT, UP, DOWN);
+        builder.add(FACING, LEFT, RIGHT);
     }
 
     private static boolean sameRow(BlockState state, BlockState neighbour) {
@@ -129,9 +125,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
         boolean joinRight = rightBelow != null ? rightBelow && rightSize > 0 : RackRow.joinRight(joinLeft, leftSize, rightSize, max);
         return state
                 .setValue(LEFT, joinLeft)
-                .setValue(RIGHT, joinRight)
-                .setValue(UP, sameBay(state, wood, level, pos.above()))
-                .setValue(DOWN, sameBay(state, wood, level, pos.below()));
+                .setValue(RIGHT, joinRight);
     }
 
     /**
@@ -164,27 +158,6 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
         mirror(level, pos.relative(facing.getClockWise()), LEFT, state.getValue(RIGHT), state);
     }
 
-    /**
-     * The item's wood reaches the block entity only after {@link #onPlace} and
-     * the neighbours' shape updates, which saw this rack as oak. Sets the
-     * stack's top and bottom frames from this rack's own flags.
-     */
-    @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        super.setPlacedBy(level, pos, state, placer, stack);
-        if (level.isClientSide()) {
-            return;
-        }
-        BlockState above = level.getBlockState(pos.above());
-        if (above.getBlock() instanceof HeavyRackBlock && above.getValue(DOWN) != state.getValue(UP)) {
-            level.setBlock(pos.above(), above.setValue(DOWN, state.getValue(UP)), Block.UPDATE_CLIENTS);
-        }
-        BlockState below = level.getBlockState(pos.below());
-        if (below.getBlock() instanceof HeavyRackBlock && below.getValue(UP) != state.getValue(DOWN)) {
-            level.setBlock(pos.below(), below.setValue(UP, state.getValue(DOWN)), Block.UPDATE_CLIENTS);
-        }
-    }
-
     private static void mirror(Level level, BlockPos neighbourPos, BooleanProperty flag, boolean joined, BlockState placed) {
         BlockState neighbour = level.getBlockState(neighbourPos);
         if (joined && sameRow(placed, neighbour) && !neighbour.getValue(flag)) {
@@ -194,9 +167,8 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
 
     /**
      * Only ever clears side joins: a neighbour that is gone or turned away
-     * takes its join with it. Woods never change in place, so side joins skip
-     * the wood check, which would misread a rack still being placed as oak.
-     * Stacking compares the wood; {@link #setPlacedBy} fixes the placement case.
+     * takes its join with it. Woods never change in place, so this skips the
+     * wood check, which would misread a rack still being placed as oak.
      */
     @Override
     protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
@@ -208,10 +180,6 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
         }
         if (direction == facing.getClockWise()) {
             return same ? state : state.setValue(RIGHT, false);
-        }
-        if (direction == Direction.UP || direction == Direction.DOWN) {
-            boolean stacked = same && woodAt(level, pos).equals(woodAt(level, neighborPos));
-            return state.setValue(direction == Direction.UP ? UP : DOWN, stacked);
         }
         return state;
     }
