@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -28,8 +27,8 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
- * Holds shuttles: a Shuttle item adds one, sneak right click with an empty
- * hand takes one back, an empty hand shows the count. Breaking drops them.
+ * Holds shuttles behind a doorway with a rail. Right click opens the slot GUI.
+ * While it holds shuttles it cannot be broken or dismantled.
  */
 public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
 
@@ -66,44 +65,24 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
         return new ShuttleGarageBlockEntity(pos, state);
     }
 
+    /** Whether the garage holds shuttles and therefore stays put. */
+    public static boolean occupied(Level level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof ShuttleGarageBlockEntity garage && garage.shuttleCount() > 0;
+    }
+
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
-        if (!stack.is(ServusStorageItems.SHUTTLE.get())) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        }
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ShuttleGarageBlockEntity garage) {
-            if (garage.addShuttle()) {
-                stack.shrink(1);
-                player.setItemInHand(hand, stack);
-                player.displayClientMessage(Component.translatable("message.servus_storage.garage.count", garage.shuttleCount(), garage.capacity()), true);
-            } else {
-                player.displayClientMessage(Component.translatable("message.servus_storage.garage.full"), true);
-            }
-        }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ShuttleGarageBlockEntity garage) {
-            if (player.isShiftKeyDown()) {
-                if (garage.takeShuttle()) {
-                    ItemStack shuttle = new ItemStack(ServusStorageItems.SHUTTLE.get());
-                    if (!player.getInventory().add(shuttle)) {
-                        player.drop(shuttle, false);
-                    }
-                    player.displayClientMessage(Component.translatable("message.servus_storage.garage.count", garage.shuttleCount(), garage.capacity()), true);
-                }
-                return InteractionResult.sidedSuccess(false);
-            }
-            Component message = garage.network()
-                    .map(network -> network.garageSummary(pos))
-                    .orElse(Component.translatable("message.servus_storage.garage.count", garage.shuttleCount(), garage.capacity()));
-            player.displayClientMessage(message, false);
+            player.openMenu(garage, pos);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
@@ -117,17 +96,9 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof ShuttleGarageBlockEntity garage) {
-            dropShuttles(level, pos, garage);
+            garage.dropShuttles(level, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    private static void dropShuttles(Level level, BlockPos pos, ShuttleGarageBlockEntity garage) {
-        int count = garage.shuttleCount();
-        if (count > 0) {
-            Block.popResource(level, pos, new ItemStack(ServusStorageItems.SHUTTLE.get(), count));
-            garage.clearShuttles();
-        }
     }
 
     @Override
@@ -138,9 +109,12 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
         boolean dismantle = player != null && player.isShiftKeyDown();
         if (!level.isClientSide()) {
             if (dismantle) {
-                // onRemove drops the shuttles, then the block itself follows.
-                Block.popResource(level, pos, new ItemStack(this));
-                level.removeBlock(pos, false);
+                if (occupied(level, pos)) {
+                    player.displayClientMessage(Component.translatable("message.servus_storage.garage.occupied"), true);
+                } else {
+                    Block.popResource(level, pos, new ItemStack(this));
+                    level.removeBlock(pos, false);
+                }
             } else {
                 level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);
             }

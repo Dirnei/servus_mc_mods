@@ -24,8 +24,8 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.HEAVY_RACK.get(), "Heavy Duty Rack");
         add(ServusStorageBlocks.INBOUND_STATION.get(), "Inbound Station");
         add(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "Shuttle Garage");
-        add("message.servus_storage.garage.count", "Shuttles: %s of %s");
-        add("message.servus_storage.garage.full", "This garage is full, build another one");
+        add("message.servus_storage.garage.occupied", "Take the shuttles out of the garage first");
+        add("gui.servus_storage.garage.status", "%s of %s shuttles, %s out");
         add(ServusStorageItems.SHUTTLE.get(), "Shuttle");
         add(ServusStorageItems.ZONE_LABEL.get(), "Zone Label");
         add("message.servus_storage.zone_label.unnamed", "Give the label a name first: right click the air with it");

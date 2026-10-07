@@ -9,6 +9,7 @@
   "block.servus_storage.rail": "Warehouse Rail",
   "block.servus_storage.shuttle_garage": "Shuttle Garage",
   "block.servus_storage.warehouse_controller": "Warehouse Controller",
+  "gui.servus_storage.garage.status": "%s of %s shuttles, %s out",
   "gui.servus_storage.search": "Search",
   "gui.servus_storage.station.blocked.no_room": "%s: no room in %s or in general storage",
   "gui.servus_storage.station.blocked.no_room_general": "%s: no room in general storage",
@@ -43,8 +44,7 @@
   "gui.servus_storage.zone_label.title": "Zone Label",
   "item.servus_storage.shuttle": "Shuttle",
   "item.servus_storage.zone_label": "Zone Label",
-  "message.servus_storage.garage.count": "Shuttles: %s of %s",
-  "message.servus_storage.garage.full": "This garage is full, build another one",
+  "message.servus_storage.garage.occupied": "Take the shuttles out of the garage first",
   "message.servus_storage.zone_label.cleared": "Zone cleared",
   "message.servus_storage.zone_label.stamped": "Zone: %s",
   "message.servus_storage.zone_label.unnamed": "Give the label a name first: right click the air with it"

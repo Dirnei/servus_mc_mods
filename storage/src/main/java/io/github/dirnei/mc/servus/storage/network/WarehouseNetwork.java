@@ -221,6 +221,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         fleet.adoptGarage(garage.getBlockPos(), garage.shuttleCount());
     }
 
+    /** Shuttles of one garage that are out on a job. */
+    public int garageOut(BlockPos pos) {
+        return fleet.outOf(pos);
+    }
+
     /** One garage's line for its right click. */
     public Component garageSummary(BlockPos pos) {
         return Component.literal("Garage: " + fleet.garageSummary(pos));

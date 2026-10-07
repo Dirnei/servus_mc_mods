@@ -275,7 +275,7 @@ public final class ServusStorageGameTests {
         far.insert(new ItemStack(Items.COBBLESTONE, 40), false);
         CrateBlockEntity direct = helper.getBlockEntity(SH_DIRECT_CRATE);
         direct.insert(new ItemStack(Items.DIRT, 9), false);
-        helper.setBlock(SH_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.setBlock(SH_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(SH_GARAGE);
         helper.assertTrue(garage.addShuttle(), "one shuttle fits");
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -968,21 +968,37 @@ public final class ServusStorageGameTests {
 
     private static final BlockPos GA_GARAGE = new BlockPos(5, 1, 11);
 
-    /** A garage takes shuttles up to its capacity, hands them back, and drops them when broken. */
+    /** A garage takes shuttle items up to its capacity, refuses to be dismantled while it holds them, and breaks when empty. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void garageHoldsShuttles(GameTestHelper helper) {
         helper.setBlock(GA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(GA_GARAGE);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         int capacity = garage.capacity();
-        for (int i = 0; i < capacity; i++) {
-            helper.assertTrue(garage.addShuttle(), "shuttle " + (i + 1) + " should fit");
+        io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu menu = new io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu(1, player.getInventory(), garage);
+        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE.get(), capacity + 1));
+        for (int i = 0; i <= capacity; i++) {
+            menu.quickMoveStack(player, menu.inventoryStart() + 27);
         }
-        helper.assertTrue(!garage.addShuttle(), "a full garage refuses another shuttle");
+        helper.assertTrue(garage.shuttleCount() == capacity, "one shift click per shuttle should fill every slot, filled " + garage.shuttleCount());
+        helper.assertTrue(player.getInventory().getItem(0).getCount() == 1, "one shuttle item should not fit");
+        helper.assertTrue(!garage.shuttles().isItemValid(0, new ItemStack(Items.BREAD)), "only shuttles fit the slots");
         helper.assertTrue(garage.takeShuttle() && garage.takeShuttle(), "two shuttles can be taken back");
         helper.assertTrue(garage.shuttleCount() == capacity - 2, "count should drop by two");
-        helper.setBlock(GA_GARAGE, Blocks.AIR.defaultBlockState());
+
+        ItemStack carrot = new ItemStack(ServusLibItems.CONFIGURATION_CARROT.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+        player.setShiftKeyDown(true);
+        BlockPos absolute = helper.absolutePos(GA_GARAGE);
+        carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
+        helper.assertTrue(helper.getBlockState(GA_GARAGE).getBlock() instanceof ShuttleGarageBlock, "an occupied garage must not be dismantled");
+        while (garage.takeShuttle()) {
+            // empty it
+        }
+        carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
         helper.runAfterDelay(2, () -> {
-            helper.assertItemEntityCountIs(ServusStorageItems.SHUTTLE.get(), GA_GARAGE, 2.0, capacity - 2);
+            helper.assertBlockPresent(Blocks.AIR, GA_GARAGE);
+            helper.assertItemEntityPresent(ServusStorageItems.SHUTTLE_GARAGE.get(), GA_GARAGE, 2.0);
             helper.succeed();
         });
     }
@@ -1095,7 +1111,7 @@ public final class ServusStorageGameTests {
                 helper.assertTrue(!station.isEmpty(), "the bread should wait: only a rack has room");
                 helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.NO_SHUTTLE, "reason should be no shuttle, was " + station.blockedReason());
                 helper.assertTrue(blocked(helper, SW_STATION), "the lamp should be red");
-                helper.setBlock(SW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+                helper.setBlock(SW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
                 ShuttleGarageBlockEntity garage = helper.getBlockEntity(SW_GARAGE);
                 helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
                 helper.runAfterDelay(120, () -> {
@@ -1139,7 +1155,7 @@ public final class ServusStorageGameTests {
             helper.assertTrue(menu.stock().message().equals("needs_shuttle"), "a rack request without a garage is refused, got " + menu.stock().message());
             helper.assertTrue(menu.stock().requests().isEmpty(), "no request is created");
 
-            helper.setBlock(RP_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+            helper.setBlock(RP_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
             ShuttleGarageBlockEntity garage = helper.getBlockEntity(RP_GARAGE);
             helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
             helper.runAfterDelay(5, () -> {

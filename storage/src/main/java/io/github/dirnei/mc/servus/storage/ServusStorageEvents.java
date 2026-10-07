@@ -4,6 +4,8 @@ import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
+import net.minecraft.network.chat.Component;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.world.entity.player.Player;
@@ -31,9 +33,16 @@ public final class ServusStorageEvents {
         event.addListener(StorageStatsManager.INSTANCE);
     }
 
-    /** Left click on a crate with items takes a stack (one when sneaking) instead of breaking. */
+    /** Left click on a crate with items takes a stack (one when sneaking) instead of breaking. A garage with shuttles stays put. */
     @SubscribeEvent
     public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
+        if (ShuttleGarageBlock.occupied(event.getLevel(), event.getPos())) {
+            event.setCanceled(true);
+            if (!event.getLevel().isClientSide() && event.getAction() == PlayerInteractEvent.LeftClickBlock.Action.START) {
+                event.getEntity().displayClientMessage(Component.translatable("message.servus_storage.garage.occupied"), true);
+            }
+            return;
+        }
         if (!(event.getLevel().getBlockEntity(event.getPos()) instanceof CrateBlockEntity crate) || crate.isEmpty()) {
             return;
         }

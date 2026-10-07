@@ -567,6 +567,21 @@ public final class ShuttleFleet {
                 + queuedPutAways() + " put-aways)" + rail;
     }
 
+    /** Shuttles of one garage that are out on a job. */
+    public int outOf(BlockPos pos) {
+        Garage garage = garages.get(pos);
+        if (garage == null) {
+            return 0;
+        }
+        int out = 0;
+        for (Shuttle shuttle : garage.shuttles) {
+            if (shuttle.job != null || (shuttle.motion != null && !shuttle.motion.arrived())) {
+                out++;
+            }
+        }
+        return out;
+    }
+
     /** One garage's line: how many it holds, how many are out, whether it has a rail. */
     public String garageSummary(BlockPos pos) {
         Garage garage = garages.get(pos);
