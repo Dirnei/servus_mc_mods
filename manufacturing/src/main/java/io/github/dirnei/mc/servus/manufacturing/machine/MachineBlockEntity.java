@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.machine;
 
 import io.github.dirnei.mc.servus.lib.network.Conversions;
+import io.github.dirnei.mc.servus.lib.block.SidedBlockEntity;
 import io.github.dirnei.mc.servus.lib.side.RelativeSide;
 import io.github.dirnei.mc.servus.lib.side.SideConfig;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
@@ -32,7 +33,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * per side with slot role and side mode rules, pushes outputs to neighbours
  * and feeds menu data.
  */
-public abstract class MachineBlockEntity extends BlockEntity implements MenuProvider {
+public abstract class MachineBlockEntity extends BlockEntity implements MenuProvider, SidedBlockEntity {
 
     public static final int DATA_PROGRESS = 0;
     public static final int DATA_WORK_TICKS = 1;
@@ -151,7 +152,8 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         return sideConfig;
     }
 
-    protected Direction facing() {
+    @Override
+    public Direction facing() {
         BlockState state = getBlockState();
         return state.hasProperty(MachineBlock.FACING) ? state.getValue(MachineBlock.FACING) : Direction.NORTH;
     }
@@ -164,9 +166,21 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         return sideConfig.mode(relativeSide(absolute));
     }
 
-    public void cycleSide(RelativeSide side) {
-        sideConfig.cycle(side);
+    @Override
+    public SideMode cycleSide(RelativeSide side) {
+        SideMode mode = sideConfig.cycle(side);
+        sidesChanged();
+        return mode;
+    }
+
+    /** After a side mode changed: save, refresh neighbour capability caches and show the markers. */
+    private void sidesChanged() {
         setChanged();
+        if (level != null && !level.isClientSide()) {
+            level.invalidateCapabilities(worldPosition);
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
     }
 
     public boolean isItemValid(int slot, ItemStack stack) {
@@ -206,13 +220,52 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         inventory.insertItem(slot, stack, false);
     }
 
+    /** Takes stacks the inputs or fuel slot accept from the neighbour on every pulling side, one move per side. */
+    private void pullInputs() {
+        for (Direction direction : Direction.values()) {
+            if (!sideMode(direction).pulls()) {
+                continue;
+            }
+            IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK,
+                    worldPosition.relative(direction), direction.getOpposite());
+            if (neighbour != null) {
+                pullFrom(neighbour);
+            }
+        }
+    }
+
+    private boolean pullFrom(IItemHandler neighbour) {
+        for (int from = 0; from < neighbour.getSlots(); from++) {
+            ItemStack offered = neighbour.extractItem(from, 64, true);
+            if (offered.isEmpty()) {
+                continue;
+            }
+            for (int slot = 0; slot < inventory.getSlots(); slot++) {
+                if (!(isInputSlot(slot) || isFuelSlot(slot)) || !isItemValid(slot, offered)) {
+                    continue;
+                }
+                int moved = offered.getCount() - inventory.insertItem(slot, offered, true).getCount();
+                if (moved <= 0) {
+                    continue;
+                }
+                ItemStack taken = neighbour.extractItem(from, moved, false);
+                if (!taken.isEmpty()) {
+                    inventory.insertItem(slot, taken, false);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private void pushOutputs() {
         if (level == null || ++pushCooldown < PUSH_INTERVAL) {
             return;
         }
         pushCooldown = 0;
+        pullInputs();
         for (Direction direction : Direction.values()) {
-            if (!sideMode(direction).allowsExtract()) {
+            if (!sideMode(direction).pushes()) {
                 continue;
             }
             IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK,
@@ -279,6 +332,20 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         }
         progress = tag.getInt("Progress");
         sideConfig.fromBytes(tag.contains("Sides") ? tag.getByteArray("Sides") : new byte[0]);
+    }
+
+    // Client sync: the side markers need the modes
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        tag.putByteArray("Sides", sideConfig.toBytes());
+        return tag;
+    }
+
+    @Override
+    public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getUpdatePacket() {
+        return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
     }
 
     // MenuProvider

@@ -64,17 +64,6 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("message.servus_manufacturing.assembler.duplicate", "This recipe is already configured");
         add("message.servus_manufacturing.assembler.full", "All recipe slots of this assembler are in use");
         add("message.servus_manufacturing.assembler.locked", "This recipe needs research first");
-        add("gui.servus_manufacturing.side.front", "Front");
-        add("gui.servus_manufacturing.side.back", "Back");
-        add("gui.servus_manufacturing.side.left", "Left");
-        add("gui.servus_manufacturing.side.right", "Right");
-        add("gui.servus_manufacturing.side.top", "Top");
-        add("gui.servus_manufacturing.side.bottom", "Bottom");
-        add("gui.servus_manufacturing.side_mode.auto", "Auto");
-        add("gui.servus_manufacturing.side_mode.input", "Input");
-        add("gui.servus_manufacturing.side_mode.output", "Output");
-        add("gui.servus_manufacturing.side_mode.both", "Input and Output");
-        add("gui.servus_manufacturing.side_mode.disabled", "Disabled");
         add("gui.servus_manufacturing.no_research", "No research selected");
         add("gui.servus_manufacturing.locked", "Locked: requires research");
         add("gui.servus_manufacturing.research.completed", "Completed");

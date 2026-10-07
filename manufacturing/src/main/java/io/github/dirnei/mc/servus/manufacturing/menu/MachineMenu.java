@@ -121,7 +121,7 @@ public abstract class MachineMenu extends AbstractContainerMenu {
     // Side configuration
 
     /** Button ids from this value on cycle the relative side with that offset. */
-    public static final int SIDE_BUTTON_FIRST = 1000;
+    public static final int SIDE_BUTTON_FIRST = io.github.dirnei.mc.servus.lib.block.SideConfigMenus.BUTTON_FIRST;
 
     public SideMode sideMode(RelativeSide side) {
         return SideMode.byOrdinal(data.get(MachineBlockEntity.DATA_SIDE_FIRST + side.ordinal()));

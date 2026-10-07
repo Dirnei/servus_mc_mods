@@ -6,6 +6,11 @@ import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
@@ -145,5 +150,48 @@ public final class ServusManufacturingGameTests {
         assembler.removeRecipe(0);
         helper.assertTrue(provider.recipes().isEmpty(), "no recipes after removal");
         helper.succeed();
+    }
+
+    private static final BlockPos SP_SMELTER = new BlockPos(3, 2, 9);
+
+    /** A Pull side takes what the machine accepts from the neighbour and leaves the rest. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void machinePullsFromNeighbour(GameTestHelper helper) {
+        helper.setBlock(SP_SMELTER, facing(ServusManufacturingBlocks.BURNER_SMELTER.get(), Direction.NORTH));
+        BlockPos chestPos = SP_SMELTER.west();
+        helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        chest.setItem(0, new ItemStack(Items.RAW_IRON, 4));
+        chest.setItem(1, new ItemStack(Items.DIAMOND, 3));
+        MachineBlockEntity smelter = helper.getBlockEntity(SP_SMELTER);
+        helper.assertTrue(smelter.relativeSide(Direction.WEST) == RelativeSide.LEFT, "west is the left side of a machine facing north");
+        smelter.sideConfig().set(RelativeSide.LEFT, SideMode.PULL);
+        helper.runAfterDelay(30, () -> {
+            ItemStack input = smelter.inventory().getStackInSlot(BurnerSmelterBlockEntity.SLOT_INPUT);
+            helper.assertTrue(input.is(Items.RAW_IRON) && input.getCount() == 4, "the raw iron should have been pulled in, input holds " + input);
+            helper.assertTrue(chest.countItem(Items.RAW_IRON) == 0 && chest.countItem(Items.DIAMOND) == 3, "the diamonds stay in the chest");
+            helper.succeed();
+        });
+    }
+
+    /** An Output side lets neighbours take but pushes nothing; a Push side pushes. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void outputSideDoesNotPush(GameTestHelper helper) {
+        helper.setBlock(SP_SMELTER, facing(ServusManufacturingBlocks.BURNER_SMELTER.get(), Direction.NORTH));
+        BlockPos chestPos = SP_SMELTER.east();
+        helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        MachineBlockEntity smelter = helper.getBlockEntity(SP_SMELTER);
+        smelter.inventory().setStackInSlot(BurnerSmelterBlockEntity.SLOT_OUTPUT, new ItemStack(Items.IRON_INGOT, 5));
+        smelter.sideConfig().set(RelativeSide.RIGHT, SideMode.OUTPUT);
+        helper.runAfterDelay(20, () -> {
+            helper.assertTrue(chest.countItem(Items.IRON_INGOT) == 0, "an Output side must not push");
+            helper.assertTrue(smelter.cycleSide(RelativeSide.RIGHT) == SideMode.BOTH, "Output cycles to Both");
+            smelter.sideConfig().set(RelativeSide.RIGHT, SideMode.PUSH);
+            helper.runAfterDelay(20, () -> {
+                helper.assertTrue(chest.countItem(Items.IRON_INGOT) == 5, "a Push side pushes, chest has " + chest.countItem(Items.IRON_INGOT));
+                helper.succeed();
+            });
+        });
     }
 }

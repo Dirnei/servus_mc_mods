@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.machine;
 
+import io.github.dirnei.mc.servus.lib.block.SideConfigWrench;
 import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import net.minecraft.core.BlockPos;
@@ -107,25 +108,12 @@ public abstract class MachineBlock extends BaseEntityBlock implements Wrenchable
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
+    /** The carrot cycles the clicked side; sneaking dismantles and keeps the configuration on the item. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        Player player = context.getPlayer();
-        boolean dismantle = player != null && player.isShiftKeyDown();
-        if (!level.isClientSide()) {
-            if (dismantle) {
-                ItemStack drop = new ItemStack(this);
-                if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
-                    machine.dropContents();
-                    // Keep side config, selection and owner on the item for re-placement.
-                    machine.saveToItem(drop, level.registryAccess());
-                }
-                Block.popResource(level, pos, drop);
-                level.removeBlock(pos, false);
-            } else {
-                level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);
-            }
+        if (level.getBlockEntity(context.getClickedPos()) instanceof MachineBlockEntity machine) {
+            return SideConfigWrench.use(context, this, machine, machine::dropContents);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }

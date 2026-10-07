@@ -6,7 +6,7 @@
 
 ## 2. Manufacturing machines
 
-- [ ] 2.1 `MachineBlockEntity.java`: `SideConfig.machine()`, push only on pushing sides, `pullInputs` on pulling sides, `cycleFace`. `MachineBlock.onWrench` through `SideConfigWrench`. `MachineScreen.java` draws the Lib panel and drops its own panel code; `MachineMenu` uses `SideConfigMenus.BUTTON_FIRST`. Remove the side lang keys from `ServusManufacturingLanguageProvider.java`. Add GameTests `machinePullsFromNeighbour` and `outputSideDoesNotPush` to `ServusManufacturingGameTests.java`. Run `gradlew :manufacturing:runData` and verify `gradlew :manufacturing:build` and the manufacturing GameTests are green.
+- [x] 2.1 `MachineBlockEntity.java`: `SideConfig.machine()`, push only on pushing sides, `pullInputs` on pulling sides, `cycleFace`. `MachineBlock.onWrench` through `SideConfigWrench`. `MachineScreen.java` draws the Lib panel and drops its own panel code; `MachineMenu` uses `SideConfigMenus.BUTTON_FIRST`. Remove the side lang keys from `ServusManufacturingLanguageProvider.java`. Add GameTests `machinePullsFromNeighbour` and `outputSideDoesNotPush` to `ServusManufacturingGameTests.java`. Run `gradlew :manufacturing:runData` and verify `gradlew :manufacturing:build` and the manufacturing GameTests are green.
 
 ## 3. Storage stations and Crafting Station
 
