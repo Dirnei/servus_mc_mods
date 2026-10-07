@@ -22,7 +22,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.RAIL.get(), "Warehouse Rail");
         add(ServusStorageBlocks.ELEVATOR.get(), "Rail Elevator");
         add(ServusStorageBlocks.HEAVY_RACK.get(), "Heavy Duty Rack");
-        add(ServusStorageBlocks.DISPATCH_STATION.get(), "Dispatch Station");
+        add(ServusStorageBlocks.INBOUND_STATION.get(), "Inbound Station");
         add(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "Shuttle Garage");
         add("message.servus_storage.garage.count", "Shuttles: %s of %s");
         add("message.servus_storage.garage.full", "This garage is full, build another one");

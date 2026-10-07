@@ -2,15 +2,15 @@
 
 ## Why
 
-Shuttles are a throughput layer bolted onto the controller: you add them to the controller block, they park on its rail, and every pull quietly falls back to instant when no shuttle fits, so a warehouse full of racks never needs them. The play test of the dispatch station (2026-10-07) made the user want the opposite: shuttles should be the thing that makes a rack warehouse work, with a dedicated garage block that scales by building more garages, and a counter where you order items and wait for the cart to bring them. This change adds that to the M6 "Storage automation" milestone as the item "Shuttle Garage, rack picks by shuttle, terminal requests" (new line in `PLAN.md`).
+Shuttles are a throughput layer bolted onto the controller: you add them to the controller block, they park on its rail, and every pull quietly falls back to instant when no shuttle fits, so a warehouse full of racks never needs them. The play test of the inbound station (2026-10-07) made the user want the opposite: shuttles should be the thing that makes a rack warehouse work, with a dedicated garage block that scales by building more garages, and a counter where you order items and wait for the cart to bring them. This change adds that to the M6 "Storage automation" milestone as the item "Shuttle Garage, rack picks by shuttle, terminal requests" (new line in `PLAN.md`).
 
 ## What Changes
 
 - **Shuttle Garage block.** A new warehouse node that holds up to `garage_capacity` shuttles (example 4, from `warehouse.json`). Right click it with a Shuttle item to add one, sneak right click with an empty hand to take one back, break it and they drop. Shuttles park on the rail touching their garage and return there after every job. A warehouse gets more shuttles by building more garages. The Warehouse Controller no longer takes shuttles.
 - **Racks are served only by shuttles.** A Heavy Duty Rack is picked from and filled only by a shuttle driving to its front rail. No instant extract or insert touches a rack. Crates and foreign inventories keep working instantly when no shuttle can reach them, and ride shuttles when one can. A rack no shuttle can reach is still indexed but cannot be served, and the GUIs say so.
 - **Terminal requests.** Clicking an item at the Counter Terminal opens an amount prompt with +1, +10 and +stack buttons; shift click requests one stack at once. A request is split into pick jobs of up to a stack each, served by shuttles for rail reached stock and instantly for the rest. Deliveries land in new output slots at the terminal, never on the cursor or in the player's inventory. Open requests are listed in the GUI with their progress and can be cancelled. When the output slots are full a shuttle waits beside the terminal until there is room.
-- **Terminal pushes skip racks.** Stacks handed in at the counter go instantly into crates and foreign inventories by the zone routing; racks are filled through a Dispatch Station and its shuttles.
-- **Dispatch Station and racks.** A station stack whose only room is in racks waits for a shuttle instead of moving instantly, with the reason "needs a shuttle" when none can reach them.
+- **Terminal pushes skip racks.** Stacks handed in at the counter go instantly into crates and foreign inventories by the zone routing; racks are filled through a Inbound Station and its shuttles.
+- **Inbound Station and racks.** A station stack whose only room is in racks waits for a shuttle instead of moving instantly, with the reason "needs a shuttle" when none can reach them.
 
 ## Capabilities
 
@@ -22,7 +22,7 @@ Shuttles are a throughput layer bolted onto the controller: you add them to the 
 - `storage/counter-terminal`: the pull to cursor or inventory is removed; requests with an amount prompt, output slots and an open requests list are added; pushes skip racks; offline refuses requests.
 - `storage/warehouse-controller`: the controller no longer holds the fleet; instant stock operations skip racks; the summary counts garages.
 - `storage/heavy-duty-rack`: a rack is served only by shuttles.
-- `storage/dispatch-station`: put-away never moves a stack into a rack instantly and reports "needs a shuttle".
+- `storage/inbound-station`: put-away never moves a stack into a rack instantly and reports "needs a shuttle".
 
 ## Non-goals
 

@@ -7,7 +7,7 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlockEntity;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
-import io.github.dirnei.mc.servus.storage.station.DispatchStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -35,9 +35,9 @@ public final class ServusStorageBlockEntities {
                     .of(CounterTerminalBlockEntity::new, ServusStorageBlocks.COUNTER_TERMINAL.get())
                     .build(null));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DispatchStationBlockEntity>> DISPATCH_STATION =
-            BLOCK_ENTITIES.register("dispatch_station", () -> BlockEntityType.Builder
-                    .of(DispatchStationBlockEntity::new, ServusStorageBlocks.DISPATCH_STATION.get())
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<InboundStationBlockEntity>> INBOUND_STATION =
+            BLOCK_ENTITIES.register("inbound_station", () -> BlockEntityType.Builder
+                    .of(InboundStationBlockEntity::new, ServusStorageBlocks.INBOUND_STATION.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShuttleGarageBlockEntity>> SHUTTLE_GARAGE =

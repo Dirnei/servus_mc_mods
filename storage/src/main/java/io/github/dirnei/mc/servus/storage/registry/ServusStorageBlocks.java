@@ -9,7 +9,7 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
-import io.github.dirnei.mc.servus.storage.station.DispatchStationBlock;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -75,8 +75,8 @@ public final class ServusStorageBlocks {
                     .sound(SoundType.METAL)
                     .noOcclusion());
 
-    public static final DeferredBlock<DispatchStationBlock> DISPATCH_STATION =
-            BLOCKS.registerBlock("dispatch_station", DispatchStationBlock::new,
+    public static final DeferredBlock<InboundStationBlock> INBOUND_STATION =
+            BLOCKS.registerBlock("inbound_station", InboundStationBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(3.0F)

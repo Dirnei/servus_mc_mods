@@ -100,7 +100,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_rail", has(ServusStorageItems.RAIL.get()))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.DISPATCH_STATION.get())
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.INBOUND_STATION.get())
                 .pattern("III")
                 .pattern("ICI")
                 .pattern("IHI")

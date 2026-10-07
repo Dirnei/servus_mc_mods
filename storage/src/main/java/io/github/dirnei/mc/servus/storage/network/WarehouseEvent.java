@@ -17,7 +17,7 @@ public sealed interface WarehouseEvent {
     record ZoneChanged(BlockPos pos) implements WarehouseEvent {
     }
 
-    /** The dispatch station at {@code pos} has something in its buffer. */
+    /** The inbound station at {@code pos} has something in its buffer. */
     record Intake(BlockPos pos) implements WarehouseEvent {
     }
 

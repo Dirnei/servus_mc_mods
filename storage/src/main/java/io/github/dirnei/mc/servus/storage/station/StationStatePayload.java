@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Server to client: the state of the open dispatch station.
+ * Server to client: the state of the open inbound station.
  *
  * @param online        whether the warehouse is online
  * @param reason        offline reason key, empty when online

@@ -26,12 +26,12 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 /** The inbound dock of a warehouse. Right click opens its GUI; the carrot turns or dismantles it. */
-public class DispatchStationBlock extends BaseEntityBlock implements Wrenchable {
+public class InboundStationBlock extends BaseEntityBlock implements Wrenchable {
 
-    public static final MapCodec<DispatchStationBlock> CODEC = simpleCodec(DispatchStationBlock::new);
+    public static final MapCodec<InboundStationBlock> CODEC = simpleCodec(InboundStationBlock::new);
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
-    public DispatchStationBlock(Properties properties) {
+    public InboundStationBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH)
                 .setValue(StorageNodeBlocks.ONLINE, false).setValue(StorageNodeBlocks.BACKED_UP, false));
@@ -59,7 +59,7 @@ public class DispatchStationBlock extends BaseEntityBlock implements Wrenchable 
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new DispatchStationBlockEntity(pos, state);
+        return new InboundStationBlockEntity(pos, state);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class DispatchStationBlock extends BaseEntityBlock implements Wrenchable 
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof DispatchStationBlockEntity station) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof InboundStationBlockEntity station) {
             player.openMenu(station, pos);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
@@ -87,7 +87,7 @@ public class DispatchStationBlock extends BaseEntityBlock implements Wrenchable 
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof DispatchStationBlockEntity station) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof InboundStationBlockEntity station) {
             station.dropContents(level, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

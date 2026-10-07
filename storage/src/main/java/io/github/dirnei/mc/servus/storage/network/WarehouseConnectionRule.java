@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.lib.graph.Side;
 
 /**
  * Which warehouse nodes link up when they touch. Stock holding blocks,
- * dispatch stations and garages link to each other and to rails on any side. Rails link
+ * inbound stations and garages link to each other and to rails on any side. Rails link
  * sideways to rails and to elevator segments. Segments link vertically to
  * segments and sideways to rails, never straight to a storage block or a
  * station. Pure, no Minecraft imports.

@@ -20,7 +20,7 @@ import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
-import io.github.dirnei.mc.servus.storage.station.DispatchStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
 import java.util.ArrayDeque;
@@ -99,7 +99,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Map<BlockPos, ZoneDefinition> zoneOf = new LinkedHashMap<>();
     /** Set when a zone or rule changed; stations with waiting stacks retry on the next tick. */
     private boolean zonesDirty;
-    /** Dispatch stations: members that are neither sources nor travel nodes. */
+    /** Inbound stations: members that are neither sources nor travel nodes. */
     private final Set<BlockPos> stations = new HashSet<>();
     /** Shuttle garages: members that are neither sources nor travel nodes. */
     private final Set<BlockPos> garages = new HashSet<>();
@@ -798,7 +798,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
-    // Dispatch stations
+    // Inbound stations
 
     private void tickStations() {
         if (stations.isEmpty()) {
@@ -817,14 +817,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         for (BlockPos pos : new ArrayList<>(pendingStations)) {
             pendingStations.remove(pos);
-            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof DispatchStationBlockEntity station) {
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof InboundStationBlockEntity station) {
                 drain(pos, station);
             }
         }
     }
 
     /** Moves up to {@code put_away_per_tick} unclaimed stacks out of the station's buffer. */
-    private void drain(BlockPos pos, DispatchStationBlockEntity station) {
+    private void drain(BlockPos pos, InboundStationBlockEntity station) {
         int budget = StorageStatsManager.INSTANCE.putAwayPerTick();
         ItemKey blockedKey = null;
         String blockedZone = null;
@@ -948,7 +948,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return;
         }
         ItemStack left = stack;
-        if (level.getBlockEntity(pos) instanceof DispatchStationBlockEntity station) {
+        if (level.getBlockEntity(pos) instanceof InboundStationBlockEntity station) {
             left = ItemHandlerHelper.insertItem(station.buffer(), stack, false);
         }
         if (!left.isEmpty()) {
@@ -958,7 +958,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     @Override
     public void releaseClaim(BlockPos station, int slot) {
-        if (level != null && level.getBlockEntity(station) instanceof DispatchStationBlockEntity be) {
+        if (level != null && level.getBlockEntity(station) instanceof InboundStationBlockEntity be) {
             be.release(slot);
             pendingStations.add(station);
         }
@@ -967,7 +967,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Takes up to amount of the key out of a station's buffer and frees the slot's claim. */
     @Override
     public ItemStack takeFromStation(BlockPos pos, int slot, ItemKey key, int amount) {
-        if (!(level.getBlockEntity(pos) instanceof DispatchStationBlockEntity station)) {
+        if (!(level.getBlockEntity(pos) instanceof InboundStationBlockEntity station)) {
             return ItemStack.EMPTY;
         }
         station.release(slot);

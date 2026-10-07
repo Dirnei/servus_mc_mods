@@ -81,7 +81,7 @@ public final class ServusStorageEvents {
                     (crate, side) -> crate.handler());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.HEAVY_RACK.get(),
                     (rack, side) -> rack.items());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.DISPATCH_STATION.get(),
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.intake());
         }
     }

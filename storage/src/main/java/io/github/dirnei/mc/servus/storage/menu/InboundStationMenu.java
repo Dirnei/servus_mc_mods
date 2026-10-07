@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.menu;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
-import io.github.dirnei.mc.servus.storage.station.DispatchStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -19,7 +19,7 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /** The station's buffer and the player inventory; the state line comes along as a payload. */
-public class DispatchStationMenu extends AbstractContainerMenu {
+public class InboundStationMenu extends AbstractContainerMenu {
 
     public static final int BUFFER_Y = 18;
     public static final int INVENTORY_Y = 58;
@@ -27,7 +27,7 @@ public class DispatchStationMenu extends AbstractContainerMenu {
     private static final int COLUMNS = 9;
     private static final int SYNC_INTERVAL = 5;
 
-    private final DispatchStationBlockEntity station;
+    private final InboundStationBlockEntity station;
     private final ContainerLevelAccess access;
     private final Player player;
     private final int bufferSlots;
@@ -35,8 +35,8 @@ public class DispatchStationMenu extends AbstractContainerMenu {
     private int syncTimer;
     private int lastSignature = Integer.MIN_VALUE;
 
-    public DispatchStationMenu(int containerId, Inventory playerInventory, DispatchStationBlockEntity station) {
-        super(ServusStorageMenus.DISPATCH_STATION.get(), containerId);
+    public InboundStationMenu(int containerId, Inventory playerInventory, InboundStationBlockEntity station) {
+        super(ServusStorageMenus.INBOUND_STATION.get(), containerId);
         this.station = station;
         this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(station.getLevel(), station.getBlockPos());
@@ -55,15 +55,15 @@ public class DispatchStationMenu extends AbstractContainerMenu {
         }
     }
 
-    public static DispatchStationMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+    public static InboundStationMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         BlockPos pos = buf.readBlockPos();
-        if (playerInventory.player.level().getBlockEntity(pos) instanceof DispatchStationBlockEntity station) {
-            return new DispatchStationMenu(containerId, playerInventory, station);
+        if (playerInventory.player.level().getBlockEntity(pos) instanceof InboundStationBlockEntity station) {
+            return new InboundStationMenu(containerId, playerInventory, station);
         }
-        throw new IllegalStateException("No dispatch station at " + pos);
+        throw new IllegalStateException("No inbound station at " + pos);
     }
 
-    public DispatchStationBlockEntity station() {
+    public InboundStationBlockEntity station() {
         return station;
     }
 
@@ -97,7 +97,7 @@ public class DispatchStationMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ServusStorageBlocks.DISPATCH_STATION.get());
+        return stillValid(access, player, ServusStorageBlocks.INBOUND_STATION.get());
     }
 
     // Sync

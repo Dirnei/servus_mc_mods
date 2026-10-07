@@ -1,10 +1,10 @@
 {
   "block.servus_storage.counter_terminal": "Counter Terminal",
   "block.servus_storage.crate": "Crate",
-  "block.servus_storage.dispatch_station": "Dispatch Station",
   "block.servus_storage.double_crate": "Double Crate",
   "block.servus_storage.elevator": "Rail Elevator",
   "block.servus_storage.heavy_rack": "Heavy Duty Rack",
+  "block.servus_storage.inbound_station": "Inbound Station",
   "block.servus_storage.quad_crate": "Quad Crate",
   "block.servus_storage.rail": "Warehouse Rail",
   "block.servus_storage.shuttle_garage": "Shuttle Garage",

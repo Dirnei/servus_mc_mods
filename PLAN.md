@@ -107,7 +107,7 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 Progression:
 1. **Crates** (early, no power). A crate has one, two or four compartments that split its capacity; each compartment holds one item type and shows it with its count on the front. The Heavy Duty Rack is the chest sized bay for mixed items: bays with the same facing join into one continuous rack and the front shows the item types the bay holds the most of.
 2. **Warehouse Controller + Counter Terminal.** Search and request items while standing at the counter; deliveries land in the counter's output slots. Vanilla and modded inventories in the network are indexed too.
-3. **Shuttles on rails.** Requests and put-away are done by shuttles that travel along rails to a dispatch station. Throughput depends on shuttle count, rails and layout. Stats screen shows pick rates per item for slotting optimization. Put-away rules ("all ores to aisle 3"): a Zone Label carries a name and an item filter and is stamped onto racks; stamped racks take matching items first, unzoned racks take everything and act as the overflow.
+3. **Shuttles on rails.** Requests and put-away are done by shuttles that travel along rails to a inbound station. Throughput depends on shuttle count, rails and layout. Stats screen shows pick rates per item for slotting optimization. Put-away rules ("all ores to aisle 3"): a Zone Label carries a name and an item filter and is stamped onto racks; stamped racks take matching items first, unzoned racks take everything and act as the overflow.
 4. **Wireless.** Wireless Terminal with range tiers. Orders queue real picks. Delivery through an outbound dock: teleport for FE per item and distance, or courier drone to a landing pad.
 
 **Network topology (decided direction):**
@@ -211,7 +211,7 @@ Each milestone ends in something playable or testable.
 - Rails as network connections
 - Rail Elevator for multi level warehouses
 - Simulated shuttles with client rendering
-- Dispatch station, Zone Labels with put-away filters, unzoned storage as overflow
+- Inbound station, Zone Labels with put-away filters, unzoned storage as overflow
 - Shuttle Garage, rack picks by shuttle, terminal requests
 - Pick rate stats screen
 

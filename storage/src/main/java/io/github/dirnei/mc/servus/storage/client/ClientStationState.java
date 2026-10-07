@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
 
-/** The last state the server sent for the open dispatch station. */
+/** The last state the server sent for the open inbound station. */
 public final class ClientStationState {
 
     private static volatile StationStatePayload state = StationStatePayload.EMPTY;

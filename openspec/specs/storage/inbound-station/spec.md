@@ -1,13 +1,13 @@
-# storage/dispatch-station Specification
+# storage/inbound-station Specification
 
 ## Purpose
 
-The Dispatch Station is the warehouse's inbound dock: items arrive in its buffer and the warehouse puts them away by its zones, carried by shuttles over the rails when the warehouse has them.
+The Inbound Station is the warehouse's inbound dock: items arrive in its buffer and the warehouse puts them away by its zones, carried by shuttles over the rails when the warehouse has them.
 
 ## Requirements
 
 ### Requirement: Station block and buffer
-The Dispatch Station SHALL be a block with a horizontal facing and an intake buffer of `dispatch_buffer_slots` slots (example 9, from `data/<ns>/storage/warehouse.json`). The buffer SHALL be exposed as an item handler on every side that accepts inserts and refuses extraction, so hoppers and ducts feed it but never take from it. Breaking the station SHALL drop the buffer contents.
+The Inbound Station SHALL be a block with a horizontal facing and an intake buffer of `inbound_buffer_slots` slots (example 9, from `data/<ns>/storage/warehouse.json`). The buffer SHALL be exposed as an item handler on every side that accepts inserts and refuses extraction, so hoppers and ducts feed it but never take from it. Breaking the station SHALL drop the buffer contents.
 
 #### Scenario: Hopper feeds the station
 - **WHEN** a hopper above the station holds 20 cobblestone
@@ -101,7 +101,7 @@ The station SHALL be craftable from vanilla materials, SHALL drop itself when br
 
 #### Scenario: Crafting
 - **WHEN** the player places iron ingots, a chest and a hopper in the station pattern (for example a chest over a hopper framed by ingots)
-- **THEN** a Dispatch Station is produced
+- **THEN** a Inbound Station is produced
 
 #### Scenario: Dismantle
 - **WHEN** the player sneaks and uses the Configuration Carrot on a station holding bread

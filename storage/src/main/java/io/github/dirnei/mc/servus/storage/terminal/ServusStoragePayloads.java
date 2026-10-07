@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.terminal;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.client.ClientStock;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
-import io.github.dirnei.mc.servus.storage.menu.DispatchStationMenu;
+import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.zone.SetLabelNamePayload;
 import io.github.dirnei.mc.servus.storage.zone.SetLabelTagsPayload;

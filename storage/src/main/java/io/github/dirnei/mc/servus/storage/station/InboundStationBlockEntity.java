@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.station;
 
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
-import io.github.dirnei.mc.servus.storage.menu.DispatchStationMenu;
+import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
@@ -29,9 +29,9 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * The inbound dock: an intake buffer that hoppers, ducts and players fill and
  * the warehouse drains into storage by its zone rules. Never indexed.
  */
-public class DispatchStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
+public class InboundStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
 
-    private final ItemStackHandler buffer = new ItemStackHandler(StorageStatsManager.INSTANCE.dispatchBufferSlots()) {
+    private final ItemStackHandler buffer = new ItemStackHandler(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
         protected void onContentsChanged(int slot) {
             if (getStackInSlot(slot).isEmpty()) {
@@ -75,13 +75,13 @@ public class DispatchStationBlockEntity extends StorageNodeBlockEntity implement
         }
     };
 
-    private final boolean[] claimed = new boolean[StorageStatsManager.INSTANCE.dispatchBufferSlots()];
+    private final boolean[] claimed = new boolean[StorageStatsManager.INSTANCE.inboundBufferSlots()];
     private PutAwayPlan.Reason blockedReason;
     private ItemStack blockedStack = ItemStack.EMPTY;
     private String blockedZone = "";
 
-    public DispatchStationBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusStorageBlockEntities.DISPATCH_STATION.get(), pos, state);
+    public InboundStationBlockEntity(BlockPos pos, BlockState state) {
+        super(ServusStorageBlockEntities.INBOUND_STATION.get(), pos, state);
     }
 
     @Override
@@ -174,7 +174,7 @@ public class DispatchStationBlockEntity extends StorageNodeBlockEntity implement
 
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new DispatchStationMenu(containerId, playerInventory, this);
+        return new InboundStationMenu(containerId, playerInventory, this);
     }
 
     private void postIntake() {

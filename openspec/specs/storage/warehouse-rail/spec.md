@@ -18,7 +18,7 @@ The Warehouse Rail SHALL be a flat block that sits on the floor of its block spa
 - **THEN** the rail is placed with its flat side on the floor
 
 ### Requirement: Rails auto connect
-A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal) and every Dispatch Station on the same level and SHALL render the matching piece: straight, curve, T or cross. Towards a storage block or a station the piece SHALL be a dock, visibly different from the arm towards a rail or segment. A Heavy Duty Rack SHALL take a dock only on its front side. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment, storage block or station is placed, rotated or removed.
+A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal) and every Inbound Station on the same level and SHALL render the matching piece: straight, curve, T or cross. Towards a storage block or a station the piece SHALL be a dock, visibly different from the arm towards a rail or segment. A Heavy Duty Rack SHALL take a dock only on its front side. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment, storage block or station is placed, rotated or removed.
 
 #### Scenario: Straight run
 - **WHEN** three rails are placed in a line
@@ -45,11 +45,11 @@ A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, ev
 - **THEN** the rail shows no dock towards it, and placing the rack again so that it faces the rail makes the dock appear
 
 #### Scenario: Rail docks onto a station
-- **WHEN** a Dispatch Station is placed beside a rail, on any of its sides
+- **WHEN** a Inbound Station is placed beside a rail, on any of its sides
 - **THEN** the rail shows a dock piece towards the station
 
 ### Requirement: Storage blocks join through rails
-Every rail SHALL be a node of the warehouse network. Crates, shelving racks, warehouse controllers, counter terminals and dispatch stations touching a rail on any side SHALL belong to the same network as that rail, and a chain of connected rails SHALL carry membership along its whole length. Rails SHALL link to each other sideways only; a rail directly above another rail does not link to it.
+Every rail SHALL be a node of the warehouse network. Crates, shelving racks, warehouse controllers, counter terminals and inbound stations touching a rail on any side SHALL belong to the same network as that rail, and a chain of connected rails SHALL carry membership along its whole length. Rails SHALL link to each other sideways only; a rail directly above another rail does not link to it.
 
 #### Scenario: Two aisles one controller
 - **WHEN** a controller touches a rail, the rail runs ten blocks, and racks stand beside the rail at both ends
@@ -64,11 +64,11 @@ Every rail SHALL be a node of the warehouse network. Crates, shelving racks, war
 - **THEN** the two rails are in different networks
 
 #### Scenario: Station at the end of a rail
-- **WHEN** a controller touches a rail and a Dispatch Station stands beside the far end of the rail
+- **WHEN** a controller touches a rail and a Inbound Station stands beside the far end of the rail
 - **THEN** the station is in the controller's warehouse and shows the online lamp
 
 ### Requirement: Rails hold nothing
-A rail SHALL NOT be indexed as a source and SHALL NOT make the inventories beside it part of the warehouse. Only storage blocks pull neighbouring inventories in; a Dispatch Station does not.
+A rail SHALL NOT be indexed as a source and SHALL NOT make the inventories beside it part of the warehouse. Only storage blocks pull neighbouring inventories in; a Inbound Station does not.
 
 #### Scenario: Chest beside a rail
 - **WHEN** a chest with bread stands beside a rail of an online warehouse and touches no storage block
@@ -79,7 +79,7 @@ A rail SHALL NOT be indexed as a source and SHALL NOT make the inventories besid
 - **THEN** the bread is in the index
 
 #### Scenario: Chest beside a station
-- **WHEN** a chest with bread touches a Dispatch Station and nothing else of the warehouse
+- **WHEN** a chest with bread touches a Inbound Station and nothing else of the warehouse
 - **THEN** the bread is not in the index
 
 ### Requirement: Rail is obtainable and dismantled

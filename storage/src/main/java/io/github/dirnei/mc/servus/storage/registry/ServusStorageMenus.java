@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.registry;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
-import io.github.dirnei.mc.servus.storage.menu.DispatchStationMenu;
+import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import net.minecraft.core.registries.Registries;
@@ -21,8 +21,8 @@ public final class ServusStorageMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<HeavyRackMenu>> HEAVY_RACK =
             MENUS.register("heavy_rack", () -> IMenuTypeExtension.create(HeavyRackMenu::fromNetwork));
 
-    public static final DeferredHolder<MenuType<?>, MenuType<DispatchStationMenu>> DISPATCH_STATION =
-            MENUS.register("dispatch_station", () -> IMenuTypeExtension.create(DispatchStationMenu::fromNetwork));
+    public static final DeferredHolder<MenuType<?>, MenuType<InboundStationMenu>> INBOUND_STATION =
+            MENUS.register("inbound_station", () -> IMenuTypeExtension.create(InboundStationMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ZoneLabelMenu>> ZONE_LABEL =
             MENUS.register("zone_label", () -> IMenuTypeExtension.create(ZoneLabelMenu::fromNetwork));

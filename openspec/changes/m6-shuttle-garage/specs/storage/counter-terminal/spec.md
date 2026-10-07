@@ -52,7 +52,7 @@ The GUI SHALL list the terminal's open requests with the item, the delivered and
 ## MODIFIED Requirements
 
 ### Requirement: Push into the warehouse
-Clicking the grid with a carried stack SHALL store it in the warehouse; shift clicking an inventory slot SHALL store that slot. Pushes SHALL follow the zone routing but SHALL only go into crates and foreign inventories; racks are filled through a Dispatch Station. Items that fit nowhere stay where they were.
+Clicking the grid with a carried stack SHALL store it in the warehouse; shift clicking an inventory slot SHALL store that slot. Pushes SHALL follow the zone routing but SHALL only go into crates and foreign inventories; racks are filled through a Inbound Station. Items that fit nowhere stay where they were.
 
 #### Scenario: Shift click to store
 - **WHEN** the player shift clicks 20 cobblestone in the inventory while an empty crate is on the network

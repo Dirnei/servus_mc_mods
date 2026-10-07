@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
-import io.github.dirnei.mc.servus.storage.menu.DispatchStationMenu;
+import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import net.minecraft.world.inventory.ClickType;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
@@ -14,8 +14,8 @@ import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
-import io.github.dirnei.mc.servus.storage.station.DispatchStationBlock;
-import io.github.dirnei.mc.servus.storage.station.DispatchStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
@@ -781,18 +781,18 @@ public final class ServusStorageGameTests {
     private static final BlockPos ST_CRATE_2 = new BlockPos(8, 1, 3);
     private static final BlockPos ST_CHEST = new BlockPos(11, 1, 3);
 
-    private static DispatchStationBlockEntity stationSetup(GameTestHelper helper) {
+    private static InboundStationBlockEntity stationSetup(GameTestHelper helper) {
         helper.setBlock(ST_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        helper.setBlock(ST_STATION, ServusStorageBlocks.DISPATCH_STATION.get().defaultBlockState()
-                .setValue(DispatchStationBlock.FACING, Direction.NORTH));
+        helper.setBlock(ST_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
+                .setValue(InboundStationBlock.FACING, Direction.NORTH));
         return helper.getBlockEntity(ST_STATION);
     }
 
     /** A stack fed into the station lands in a crate within a few ticks when there are no shuttles. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void stationPutsAwayInstantly(GameTestHelper helper) {
-        DispatchStationBlockEntity station = stationSetup(helper);
+        InboundStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         CrateBlockEntity crate = helper.getBlockEntity(ST_CRATE);
         helper.runAfterDelay(5, () -> {
@@ -812,7 +812,7 @@ public final class ServusStorageGameTests {
     /** With its zone full and no unzoned storage the stack waits with a red lamp, and leaves once an unzoned crate appears. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void stationBacksUpWhenZoneFull(GameTestHelper helper) {
-        DispatchStationBlockEntity station = stationSetup(helper);
+        InboundStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         CrateBlockEntity full = helper.getBlockEntity(ST_CRATE);
         full.setZone(zone("Ores", List.of(), List.of("c:ores")));
@@ -840,7 +840,7 @@ public final class ServusStorageGameTests {
     /** Neither a chest feeding the station nor the buffer itself counts as warehouse stock. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void chestOnStationIsNotStock(GameTestHelper helper) {
-        DispatchStationBlockEntity station = stationSetup(helper);
+        InboundStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CHEST, Blocks.CHEST.defaultBlockState());
         ChestBlockEntity chest = helper.getBlockEntity(ST_CHEST);
         chest.setItem(0, new ItemStack(Items.BREAD, 30));
@@ -866,12 +866,12 @@ public final class ServusStorageGameTests {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             helper.setBlock(DK_STATION.relative(direction).below(), Blocks.STONE.defaultBlockState());
         }
-        helper.setBlock(DK_STATION, ServusStorageBlocks.DISPATCH_STATION.get().defaultBlockState()
-                .setValue(DispatchStationBlock.FACING, Direction.NORTH));
+        helper.setBlock(DK_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
+                .setValue(InboundStationBlock.FACING, Direction.NORTH));
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             placeRail(helper, DK_STATION.relative(direction));
         }
-        DispatchStationBlockEntity station = helper.getBlockEntity(DK_STATION);
+        InboundStationBlockEntity station = helper.getBlockEntity(DK_STATION);
         ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
         helper.runAfterDelay(2, () -> {
             for (Direction direction : Direction.Plane.HORIZONTAL) {
@@ -888,7 +888,7 @@ public final class ServusStorageGameTests {
                     new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
             helper.runAfterDelay(2, () -> {
                 helper.assertBlockPresent(Blocks.AIR, DK_STATION);
-                helper.assertItemEntityPresent(ServusStorageItems.DISPATCH_STATION.get(), DK_STATION, 2.0);
+                helper.assertItemEntityPresent(ServusStorageItems.INBOUND_STATION.get(), DK_STATION, 2.0);
                 helper.assertItemEntityPresent(Items.BREAD, DK_STATION, 2.0);
                 helper.succeed();
             });
@@ -909,10 +909,10 @@ public final class ServusStorageGameTests {
             helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
-        helper.setBlock(PA_STATION, ServusStorageBlocks.DISPATCH_STATION.get().defaultBlockState()
-                .setValue(DispatchStationBlock.FACING, Direction.NORTH));
+        helper.setBlock(PA_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
+                .setValue(InboundStationBlock.FACING, Direction.NORTH));
         helper.setBlock(PA_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        DispatchStationBlockEntity station = helper.getBlockEntity(PA_STATION);
+        InboundStationBlockEntity station = helper.getBlockEntity(PA_STATION);
         CrateBlockEntity crate = helper.getBlockEntity(PA_CRATE);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(PA_CONTROLLER);
         helper.setBlock(PA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
@@ -939,13 +939,13 @@ public final class ServusStorageGameTests {
     /** The station menu reports the warehouse state and shift click feeds the buffer. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void stationMenuFeedsBuffer(GameTestHelper helper) {
-        DispatchStationBlockEntity station = stationSetup(helper);
+        InboundStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         CrateBlockEntity ores = helper.getBlockEntity(ST_CRATE);
         ores.setZone(zone("Ores", List.of(), List.of("c:ores")));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(5, () -> {
-            DispatchStationMenu menu = new DispatchStationMenu(1, player.getInventory(), station);
+            InboundStationMenu menu = new InboundStationMenu(1, player.getInventory(), station);
             helper.assertTrue(menu.state().online(), "the station should see an online warehouse");
             helper.assertTrue(menu.state().idle(), "an empty buffer reads idle");
 
@@ -1081,10 +1081,10 @@ public final class ServusStorageGameTests {
         for (int x = 2; x <= 6; x++) {
             helper.setBlock(new BlockPos(x, 1, 11), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
-        helper.setBlock(SW_STATION, ServusStorageBlocks.DISPATCH_STATION.get().defaultBlockState().setValue(DispatchStationBlock.FACING, Direction.NORTH));
+        helper.setBlock(SW_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
         // The rack faces south, towards the rail behind it at z 11.
         helper.setBlock(SW_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.SOUTH));
-        DispatchStationBlockEntity station = helper.getBlockEntity(SW_STATION);
+        InboundStationBlockEntity station = helper.getBlockEntity(SW_STATION);
         HeavyRackBlockEntity rack = helper.getBlockEntity(SW_RACK);
         helper.runAfterDelay(10, () -> {
             ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
