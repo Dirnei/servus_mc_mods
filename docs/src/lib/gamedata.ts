@@ -19,6 +19,7 @@ export const machineSchema = z.object({
 	fuel_divisor: z.number().int().positive(),
 	items_per_tick: z.number().int(),
 	recipe_slots: z.number().int(),
+	fuel_reserve: z.number().int().nonnegative().default(0),
 });
 
 export const recipeSchema = z.object({

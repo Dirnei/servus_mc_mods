@@ -10,7 +10,8 @@
       "energy_capacity": 8000,
       "fuel_divisor": 1,
       "items_per_tick": 0,
-      "recipe_slots": 2
+      "recipe_slots": 2,
+      "fuel_reserve": 0
     },
     "servus_manufacturing:burner_extractor": {
       "kind": "burner",
@@ -20,7 +21,8 @@
       "energy_capacity": 0,
       "fuel_divisor": 1,
       "items_per_tick": 0,
-      "recipe_slots": 1
+      "recipe_slots": 1,
+      "fuel_reserve": 4
     },
     "servus_manufacturing:burner_smelter": {
       "kind": "burner",
@@ -30,7 +32,8 @@
       "energy_capacity": 0,
       "fuel_divisor": 1,
       "items_per_tick": 0,
-      "recipe_slots": 1
+      "recipe_slots": 1,
+      "fuel_reserve": 0
     },
     "servus_manufacturing:chunk_loader": {
       "kind": "powered",
@@ -40,7 +43,8 @@
       "energy_capacity": 4000,
       "fuel_divisor": 1,
       "items_per_tick": 0,
-      "recipe_slots": 1
+      "recipe_slots": 1,
+      "fuel_reserve": 0
     },
     "servus_manufacturing:coal_generator": {
       "kind": "generator",
@@ -50,7 +54,8 @@
       "energy_capacity": 16000,
       "fuel_divisor": 4,
       "items_per_tick": 0,
-      "recipe_slots": 1
+      "recipe_slots": 1,
+      "fuel_reserve": 0
     },
     "servus_manufacturing:crusher": {
       "kind": "powered",
@@ -60,7 +65,8 @@
       "energy_capacity": 8000,
       "fuel_divisor": 1,
       "items_per_tick": 0,
-      "recipe_slots": 1
+      "recipe_slots": 1,
+      "fuel_reserve": 0
     },
     "servus_manufacturing:electric_extractor": {
       "kind": "powered",
@@ -70,7 +76,8 @@
       "energy_capacity": 8000,
       "fuel_divisor": 1,
       "items_per_tick": 0,
-      "recipe_slots": 1
+      "recipe_slots": 1,
+      "fuel_reserve": 0
     },
     "servus_manufacturing:research_lab": {
       "kind": "powered",
@@ -80,7 +87,8 @@
       "energy_capacity": 4000,
       "fuel_divisor": 1,
       "items_per_tick": 0,
-      "recipe_slots": 1
+      "recipe_slots": 1,
+      "fuel_reserve": 0
     }
   },
   "recipes": {
