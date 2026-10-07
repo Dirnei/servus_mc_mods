@@ -1,0 +1,18 @@
+# Tasks
+
+## 1. Wood on the rack
+
+- [ ] 1.1 Add pure `rack/RackWood.java` with JUnit `RackWoodTest` (three equal, two to one in both orders, three different picks the middle, single entry, empty list). Verify `gradlew :storage:test`.
+- [ ] 1.2 Add the `rack_wood` component in `registry/ServusStorageComponents.java`, store, sync and expose it in `rack/HeavyRackBlockEntity.java` (D1), add `rack/HeavyRackItem.java` with the tooltip and register it in `registry/ServusStorageItems.java`. Verify `gradlew build`.
+- [ ] 1.3 Add `rack/HeavyRackRecipe.java` and its serializer (D2), register it, switch the rack recipe in `datagen/ServusStorageRecipeProvider.java`. Run `gradlew :storage:runData` and `gradlew build`.
+- [ ] 1.4 GameTests in `gametest/ServusStorageGameTests.java`: recipe picks spruce, majority and middle; placed item carries the wood; drops keep it; no component means oak. Verify `gradlew :storage:runGameTestServer`.
+
+## 2. Look
+
+- [ ] 2.1 Client: `client/HeavyRackModel.java` (D3) and the item override (D4), installed in `client/ServusStorageClient.java` through `ModelEvent.ModifyBakingResult`. Verify `gradlew build`.
+- [ ] 2.2 Generate `heavy_rack_iron.png`, repaint `heavy_rack_board.png` oak-like, point `datagen/HeavyRackModels.java` at the iron texture and remove `heavy_rack_steel.png`, lang for the tooltip. Run `gradlew :storage:runData` and `gradlew build`.
+
+## 3. Verification
+
+- [ ] 3.1 Run `openspec validate m6-rack-wood-material --strict`, full `gradlew build` and `gradlew test` green, all GameTests green. Commit. Launch the client from main only when the user asks.
+- [ ] 3.2 Play check: racks crafted from different woods show their boards in world and in hand, the tooltip names the wood, breaking particles show it, the frame is dark iron, a mixed row joins.
