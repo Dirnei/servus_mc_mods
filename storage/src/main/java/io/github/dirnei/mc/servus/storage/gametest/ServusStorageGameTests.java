@@ -2458,4 +2458,185 @@ public final class ServusStorageGameTests {
         helper.assertTrue(menu.isEditing() && station.recipes().size() == station.recipeSlots(), "a full station refuses and keeps the editor open");
         helper.succeed();
     }
+
+    // Lift car: a shaft at x 4, z 3 from y 1 to 3. Ground rails x 1 to 3, garage north of x 3,
+    // controller north of x 1, terminal south of x 2.
+
+    private static final BlockPos LC_BOTTOM = new BlockPos(4, 1, 3);
+    private static final BlockPos LC_MIDDLE = new BlockPos(4, 2, 3);
+    private static final BlockPos LC_TOP = new BlockPos(4, 3, 3);
+    private static final BlockPos LC_GARAGE = new BlockPos(3, 1, 2);
+    private static final BlockPos LC_CONTROLLER = new BlockPos(1, 1, 2);
+    private static final BlockPos LC_TERMINAL = new BlockPos(2, 1, 4);
+
+    /** Ground floor rails, garage with the given shuttles, controller, terminal and a three segment shaft. */
+    private static void liftBase(GameTestHelper helper, int shuttles) {
+        for (int x = 0; x <= 6; x++) {
+            for (int z = 0; z <= 5; z++) {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE.defaultBlockState());
+            }
+        }
+        for (int x = 1; x <= 3; x++) {
+            helper.setBlock(new BlockPos(x, 1, 3), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(LC_BOTTOM, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(LC_MIDDLE, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(LC_TOP, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(LC_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(LC_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        helper.setBlock(LC_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(LC_GARAGE);
+        for (int i = 0; i < shuttles; i++) {
+            helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
+        }
+    }
+
+    /** A rail beside a shaft floor with a rack behind it facing the rail, both standing on stone. */
+    private static HeavyRackBlockEntity liftRack(GameTestHelper helper, BlockPos rail, Item item, int count) {
+        BlockPos rackPos = rail.south();
+        helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(rackPos.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(rail, ServusStorageBlocks.RAIL.get().defaultBlockState());
+        helper.setBlock(rackPos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        HeavyRackBlockEntity rack = helper.getBlockEntity(rackPos);
+        rack.items().insertItem(0, new ItemStack(item, count), false);
+        return rack;
+    }
+
+    private static WarehouseNetwork liftNetwork(GameTestHelper helper) {
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(LC_CONTROLLER);
+        return controller.network().orElseThrow();
+    }
+
+    /** A ground floor shuttle rides the car up to a rack two floors up and back down to the terminal. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void shuttleRidesCarToUpperRack(GameTestHelper helper) {
+        liftBase(helper, 1);
+        HeavyRackBlockEntity rack = liftRack(helper, new BlockPos(5, 3, 3), Items.BREAD, 20);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos bottom = helper.absolutePos(LC_BOTTOM);
+        double[] highest = {Double.NEGATIVE_INFINITY};
+        helper.onEachTick(() -> {
+            if (helper.getBlockEntity(LC_CONTROLLER) instanceof WarehouseControllerBlockEntity controller) {
+                controller.network().map(network -> network.lift(bottom)).ifPresent(car -> highest[0] = Math.max(highest[0], car.y()));
+            }
+        });
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = liftNetwork(helper);
+            helper.assertTrue(network.lift(bottom) != null, "the shaft has a car");
+            helper.assertTrue(network.lift(bottom).y() == bottom.getY(), "the car starts at the lowest segment");
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(LC_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            helper.assertTrue(menu.stock().online(), "online");
+            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 20);
+            helper.assertTrue(menu.stock().message().isEmpty(), "the request goes through, got " + menu.stock().message());
+            helper.runAfterDelay(200, () -> {
+                helper.assertTrue(terminal.outputCount(Items.BREAD) == 20, "the shuttle should have brought 20 bread, output has " + terminal.outputCount(Items.BREAD));
+                helper.assertTrue(rack.isEmpty(), "the rack should be empty");
+                helper.assertTrue(highest[0] == bottom.getY() + 2, "the car went up to the top floor, highest was " + highest[0]);
+                helper.assertTrue(network.lift(bottom).y() == bottom.getY(), "the car brought the shuttle back down");
+                helper.assertTrue(network.garageOut(helper.absolutePos(LC_GARAGE)) == 0, "the shuttle is home");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Two shuttles call the car at the same floor: the first caller rides first, the second waits for the car. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void shuttlesQueueForCar(GameTestHelper helper) {
+        liftBase(helper, 2);
+        HeavyRackBlockEntity top = liftRack(helper, new BlockPos(3, 3, 3), Items.BREAD, 10);
+        HeavyRackBlockEntity middle = liftRack(helper, new BlockPos(5, 2, 3), Items.APPLE, 10);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(LC_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 10);
+            menu.request(ItemKey.of(new ItemStack(Items.APPLE)), 10);
+            helper.runAfterDelay(40, () -> {
+                helper.assertTrue(top.isEmpty(), "the first caller rode up first and loaded the top rack");
+                helper.assertTrue(!middle.isEmpty(), "the second caller is still waiting for the car, although its floor is nearer");
+                helper.runAfterDelay(200, () -> {
+                    helper.assertTrue(terminal.outputCount(Items.BREAD) == 10 && terminal.outputCount(Items.APPLE) == 10,
+                            "both loads arrive, output has " + terminal.outputCount(Items.BREAD) + " bread and " + terminal.outputCount(Items.APPLE) + " apples");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** A shuttle crosses the shaft on the ground floor deck while the car stays parked at the top. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void shuttleCrossesShaftWithoutCar(GameTestHelper helper) {
+        liftBase(helper, 1);
+        BlockPos crossRail = new BlockPos(5, 1, 3);
+        BlockPos cratePos = new BlockPos(6, 1, 3);
+        helper.setBlock(crossRail.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(crossRail, ServusStorageBlocks.RAIL.get().defaultBlockState());
+        helper.setBlock(cratePos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity crate = helper.getBlockEntity(cratePos);
+        crate.insert(new ItemStack(Items.COBBLESTONE, 16), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos bottom = helper.absolutePos(LC_BOTTOM);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = liftNetwork(helper);
+            // Park the car at the top floor with a call nobody answers, then take the call back.
+            network.lift(bottom).call(-1, bottom.getY() + 2);
+            helper.runAfterDelay(40, () -> {
+                network.lift(bottom).remove(-1);
+                helper.assertTrue(network.lift(bottom).y() == bottom.getY() + 2, "the car is parked at the top");
+                CounterTerminalBlockEntity terminal = helper.getBlockEntity(LC_TERMINAL);
+                CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+                menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 16);
+                helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "the crate behind the shaft is served by the shuttle");
+                helper.runAfterDelay(60, () -> {
+                    helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 16,
+                            "the shuttle crossed both ways without waiting, output has " + terminal.outputCount(Items.COBBLESTONE));
+                    helper.assertTrue(network.lift(bottom).y() == bottom.getY() + 2 && !network.lift(bottom).moving(), "the car did not move");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** Breaking the middle segment while the car carries a loaded shuttle drops the load at its garage. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void shaftBreakDropsRiderCargo(GameTestHelper helper) {
+        liftBase(helper, 1);
+        liftRack(helper, new BlockPos(5, 3, 3), Items.BREAD, 20);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos bottom = helper.absolutePos(LC_BOTTOM);
+        BlockPos garagePos = helper.absolutePos(LC_GARAGE);
+        long[] brokeAt = {-1};
+        CounterTerminalMenu[] menu = {null};
+        // One top level tick hook: scheduling from inside a scheduled task is not safe.
+        helper.onEachTick(() -> {
+            if (helper.getTick() == 10) {
+                menu[0] = new CounterTerminalMenu(1, player.getInventory(), helper.<CounterTerminalBlockEntity>getBlockEntity(LC_TERMINAL));
+                menu[0].request(ItemKey.of(new ItemStack(Items.BREAD)), 20);
+            }
+            if (menu[0] == null) {
+                return;
+            }
+            WarehouseNetwork network = liftNetwork(helper);
+            if (brokeAt[0] < 0) {
+                var car = network.lift(bottom);
+                boolean loaded = network.shuttleViews(garagePos).stream().anyMatch(view -> !view.cargo().isEmpty());
+                if (car != null && car.carrying() && loaded && car.y() < bottom.getY() + 1.5) {
+                    brokeAt[0] = helper.getTick();
+                    helper.setBlock(LC_MIDDLE, Blocks.AIR.defaultBlockState());
+                }
+            } else if (helper.getTick() == brokeAt[0] + 40) {
+                CounterTerminalBlockEntity terminal = helper.getBlockEntity(LC_TERMINAL);
+                List<RequestRow> rows = menu[0].stock().requests();
+                helper.assertItemEntityPresent(Items.BREAD, LC_GARAGE, 3.0);
+                helper.assertTrue(rows.size() == 1 && rows.get(0).missing() == 20, "the request shows the bread missing, got " + rows);
+                helper.assertTrue(terminal.outputCount(Items.BREAD) == 0, "no bread arrived");
+                helper.assertTrue(network.garageOut(garagePos) == 0, "the shuttle is back in its garage");
+                helper.succeed();
+            }
+        });
+    }
 }

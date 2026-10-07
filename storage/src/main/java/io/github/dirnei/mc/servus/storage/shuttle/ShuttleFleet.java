@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.shuttle;
 import io.github.dirnei.mc.servus.lib.graph.NodePos;
 import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.shuttle.Shafts.Shaft;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -74,6 +75,12 @@ public final class ShuttleFleet {
         void deliverInstant(PickJob job, ItemStack stack);
 
         double shuttleSpeed();
+
+        /** Blocks per tick the lift car of a shaft moves. */
+        double liftSpeed();
+
+        /** The shaft the node is a segment of, or null when it is not an elevator segment. */
+        Shaft shaftOf(NodePos node);
     }
 
     /** Where a shuttle is heading. */
@@ -84,6 +91,9 @@ public final class ShuttleFleet {
     private final Host host;
     private final Map<BlockPos, Garage> garages = new LinkedHashMap<>();
     private final ArrayDeque<ShuttleJob> jobs = new ArrayDeque<>();
+    /** One lift car per shaft, keyed by the shaft's lowest segment. */
+    private final Map<BlockPos, LiftCar> lifts = new LinkedHashMap<>();
+    private static int nextShuttleId;
     private boolean syncPending;
     private boolean wasMoving;
     private int syncTimer;
@@ -150,7 +160,9 @@ public final class ShuttleFleet {
             garage.shuttles.add(shuttle);
         }
         while (garage.shuttles.size() > count) {
-            dropCargo(garage.shuttles.remove(garage.shuttles.size() - 1));
+            Shuttle removed = garage.shuttles.remove(garage.shuttles.size() - 1);
+            releaseLift(removed);
+            dropCargo(removed);
         }
         syncPending = true;
     }
@@ -162,6 +174,7 @@ public final class ShuttleFleet {
             return;
         }
         for (Shuttle shuttle : garage.shuttles) {
+            releaseLift(shuttle);
             dropCargo(shuttle);
         }
         garage.shuttles.clear();
@@ -172,8 +185,10 @@ public final class ShuttleFleet {
     public void absorb(ShuttleFleet other) {
         garages.putAll(other.garages);
         jobs.addAll(other.jobs);
+        lifts.putAll(other.lifts);
         other.garages.clear();
         other.jobs.clear();
+        other.lifts.clear();
         refreshHomes();
         syncPending = true;
     }
@@ -202,6 +217,7 @@ public final class ShuttleFleet {
         }
         for (Shuttle shuttle : garage.shuttles) {
             if (shuttle.job == null) {
+                releaseLift(shuttle);
                 shuttle.motion = ShuttleMotion.parked(garage.home);
             }
         }
@@ -218,6 +234,7 @@ public final class ShuttleFleet {
 
     private void recallShuttles(Garage garage) {
         for (Shuttle shuttle : garage.shuttles) {
+            releaseLift(shuttle);
             dropCargo(shuttle);
             shuttle.leg = Leg.HOME;
             shuttle.motion = garage.home == null ? null : ShuttleMotion.parked(garage.home);
@@ -326,6 +343,10 @@ public final class ShuttleFleet {
         } else {
             serveInstantly();
         }
+        double liftSpeed = host.liftSpeed();
+        for (LiftCar car : lifts.values()) {
+            car.tick(liftSpeed);
+        }
         boolean moving = false;
         for (Garage garage : garages.values()) {
             for (Shuttle shuttle : garage.shuttles) {
@@ -341,9 +362,25 @@ public final class ShuttleFleet {
                 if (shuttle.motion == null) {
                     continue;
                 }
+                if (shuttle.riding) {
+                    moving = true;
+                    if (!rideOver(shuttle)) {
+                        continue;
+                    }
+                    if (shuttle.motion.arrived()) {
+                        arrive(shuttle);
+                        continue;
+                    }
+                }
                 if (!shuttle.motion.arrived()) {
                     moving = true;
-                    if (shuttle.motion.advance(host.shuttleSpeed())) {
+                    boolean wasHeld = shuttle.motion.held();
+                    boolean done = shuttle.motion.advance(host.shuttleSpeed(), segment -> mayStart(shuttle, segment));
+                    observeLift(shuttle, shuttle.motion.currentNode());
+                    if (wasHeld != shuttle.motion.held()) {
+                        syncPending = true;
+                    }
+                    if (done) {
                         arrive(shuttle);
                     }
                 } else if (shuttle.job != null) {
@@ -400,7 +437,7 @@ public final class ShuttleFleet {
                 continue;
             }
             for (Shuttle shuttle : garage.shuttles) {
-                if (shuttle.job == null && shuttle.motion != null) {
+                if (shuttle.job == null && shuttle.motion != null && shuttle.lift == null) {
                     free.add(shuttle);
                 }
             }
@@ -533,6 +570,7 @@ public final class ShuttleFleet {
     }
 
     private void park(Shuttle shuttle) {
+        releaseLift(shuttle);
         shuttle.job = null;
         shuttle.leg = Leg.HOME;
         shuttle.motion = shuttle.garage.home == null ? null : ShuttleMotion.parked(shuttle.garage.home);
@@ -557,6 +595,211 @@ public final class ShuttleFleet {
             }
             shuttle.job = null;
         }
+    }
+
+    // Lifts
+
+    /** The network's shafts changed: keep, resize, drop and create cars to match. */
+    public void refreshShafts(List<Shaft> shafts) {
+        Map<BlockPos, Shaft> byBottom = new LinkedHashMap<>();
+        for (Shaft shaft : shafts) {
+            byBottom.put(Conversions.toBlockPos(shaft.bottom()), shaft);
+        }
+        for (Map.Entry<BlockPos, LiftCar> entry : new ArrayList<>(lifts.entrySet())) {
+            BlockPos bottom = entry.getKey();
+            LiftCar car = entry.getValue();
+            Shaft shaft = byBottom.get(bottom);
+            if (shaft == null) {
+                lifts.remove(bottom);
+                breakLift(bottom);
+            } else if (shaft.topY() < car.topY()) {
+                car.resize(shaft.bottomY(), shaft.topY());
+                breakLift(bottom);
+            } else if (shaft.topY() != car.topY()) {
+                car.resize(shaft.bottomY(), shaft.topY());
+            }
+        }
+        for (Map.Entry<BlockPos, Shaft> entry : byBottom.entrySet()) {
+            if (!lifts.containsKey(entry.getKey())) {
+                lifts.put(entry.getKey(), new LiftCar(entry.getValue().bottomY(), entry.getValue().topY()));
+            }
+        }
+        syncPending = true;
+    }
+
+    /** The car of the shaft at that bottom, or null. For tests and the network. */
+    public LiftCar lift(BlockPos bottom) {
+        return lifts.get(bottom);
+    }
+
+    /**
+     * The shaft lost segments: its riders and callers lose their cargo and go
+     * home, or into their garage when no way home is left. Crossers carry on.
+     */
+    private void breakLift(BlockPos bottom) {
+        for (Garage garage : garages.values()) {
+            for (Shuttle shuttle : garage.shuttles) {
+                if (!bottom.equals(shuttle.lift) || shuttle.crossing) {
+                    continue;
+                }
+                releaseLift(shuttle);
+                dropCargo(shuttle);
+                shuttle.leg = Leg.HOME;
+                NodePos home = garage.home;
+                NodePos at = shuttle.motion == null ? null : shuttle.motion.currentNode();
+                List<NodePos> path = home == null || at == null || !host.isTravelNode(at) ? List.of()
+                        : RailPaths.find(at, home::equals, host::travelNeighbours);
+                if (path.isEmpty()) {
+                    park(shuttle);
+                } else {
+                    shuttle.motion = new ShuttleMotion(path);
+                }
+                syncPending = true;
+            }
+        }
+    }
+
+    /** Forgets the shuttle's call, ride or crossing. */
+    private void releaseLift(Shuttle shuttle) {
+        if (shuttle.lift != null) {
+            LiftCar car = lifts.get(shuttle.lift);
+            if (car != null) {
+                car.remove(shuttle.id);
+            }
+        }
+        shuttle.lift = null;
+        shuttle.crossing = false;
+        shuttle.inside = false;
+        shuttle.riding = false;
+    }
+
+    private LiftCar carFor(Shaft shaft) {
+        return shaft == null ? null : lifts.get(Conversions.toBlockPos(shaft.bottom()));
+    }
+
+    private static boolean inShaft(BlockPos bottom, LiftCar car, NodePos node) {
+        return node.x() == bottom.getX() && node.z() == bottom.getZ() && node.y() >= car.bottomY() && node.y() <= car.topY();
+    }
+
+    /** Notes when a shuttle got onto a shaft and lets the car go once it is off again. */
+    private void observeLift(Shuttle shuttle, NodePos at) {
+        if (shuttle.lift == null) {
+            return;
+        }
+        LiftCar car = lifts.get(shuttle.lift);
+        if (car == null) {
+            releaseLift(shuttle);
+            return;
+        }
+        if (inShaft(shuttle.lift, car, at)) {
+            shuttle.inside = true;
+        } else if (shuttle.inside) {
+            releaseLift(shuttle);
+        }
+    }
+
+    /**
+     * The gate before each path segment: shuttles wait for the car before a
+     * ride, wait for a folded deck before a crossing, and never drive up or
+     * down a shaft by themselves.
+     */
+    private boolean mayStart(Shuttle shuttle, int segment) {
+        List<NodePos> path = shuttle.motion.path();
+        observeLift(shuttle, path.get(segment));
+        ShaftSteps.Kind kind = ShaftSteps.classify(path, segment, host::shaftOf);
+        switch (kind) {
+            case ENTER_RIDE -> {
+                NodePos entry = path.get(segment + 1);
+                Shaft shaft = host.shaftOf(entry);
+                LiftCar car = carFor(shaft);
+                if (car == null) {
+                    return false;
+                }
+                if (car.rider() != null && car.rider() == shuttle.id) {
+                    return true;
+                }
+                bindLift(shuttle, shaft, false);
+                car.call(shuttle.id, entry.y());
+                if (car.canBoard(shuttle.id, entry.y())) {
+                    car.board(shuttle.id);
+                    syncPending = true;
+                    return true;
+                }
+                return false;
+            }
+            case ENTER_CROSS -> {
+                NodePos entry = path.get(segment + 1);
+                Shaft shaft = host.shaftOf(entry);
+                LiftCar car = carFor(shaft);
+                if (car == null) {
+                    return false;
+                }
+                if (car.isCrossing(shuttle.id)) {
+                    return true;
+                }
+                if (car.canCross(entry.y())) {
+                    bindLift(shuttle, shaft, true);
+                    car.beginCross(shuttle.id, entry.y());
+                    return true;
+                }
+                return false;
+            }
+            case RIDE -> {
+                NodePos from = path.get(segment);
+                Shaft shaft = host.shaftOf(from);
+                LiftCar car = carFor(shaft);
+                if (car == null) {
+                    return false;
+                }
+                boolean rider = car.rider() != null && car.rider() == shuttle.id;
+                if (!rider) {
+                    // A leg that starts on a segment without the car: call it to this floor first.
+                    bindLift(shuttle, shaft, false);
+                    shuttle.inside = true;
+                    car.call(shuttle.id, from.y());
+                    if (!car.canBoard(shuttle.id, from.y())) {
+                        return false;
+                    }
+                    car.board(shuttle.id);
+                }
+                bindLift(shuttle, shaft, false);
+                shuttle.inside = true;
+                shuttle.rideEnd = ShaftSteps.rideEnd(path, segment);
+                car.send(shuttle.id, path.get(shuttle.rideEnd).y());
+                shuttle.riding = true;
+                syncPending = true;
+                return false;
+            }
+            default -> {
+                return true;
+            }
+        }
+    }
+
+    private void bindLift(Shuttle shuttle, Shaft shaft, boolean crossing) {
+        BlockPos bottom = Conversions.toBlockPos(shaft.bottom());
+        if (!bottom.equals(shuttle.lift)) {
+            releaseLift(shuttle);
+            shuttle.lift = bottom;
+        }
+        shuttle.crossing = crossing;
+    }
+
+    /** Whether the car has brought the riding shuttle to its floor; moves it to the exit node when so. */
+    private boolean rideOver(Shuttle shuttle) {
+        LiftCar car = shuttle.lift == null ? null : lifts.get(shuttle.lift);
+        if (car == null) {
+            shuttle.riding = false;
+            return true;
+        }
+        int floor = shuttle.motion.path().get(shuttle.rideEnd).y();
+        if (!car.arrivedFor(shuttle.id, floor)) {
+            return false;
+        }
+        shuttle.motion.skipTo(shuttle.rideEnd);
+        shuttle.riding = false;
+        syncPending = true;
+        return true;
     }
 
     // Sync
@@ -585,7 +828,8 @@ public final class ShuttleFleet {
             for (NodePos node : motion.path()) {
                 path.add(Conversions.toBlockPos(node));
             }
-            list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), speed, shuttle.cargo.copy()));
+            float shown = shuttle.riding || motion.held() ? 0 : speed;
+            list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.cargo.copy()));
         }
         return list;
     }
@@ -663,6 +907,16 @@ public final class ShuttleFleet {
         ItemStack cargo = ItemStack.EMPTY;
         ShuttleJob job;
         Leg leg = Leg.HOME;
+        final int id = nextShuttleId++;
+        /** Bottom of the shaft whose car the shuttle calls, rides or crosses; null when none. */
+        BlockPos lift;
+        /** Whether the shuttle crosses that shaft's deck rather than calling its car. */
+        boolean crossing;
+        /** Whether the shuttle has been on a segment of that shaft yet. */
+        boolean inside;
+        /** Whether the car carries the shuttle right now, towards path node rideEnd. */
+        boolean riding;
+        int rideEnd;
 
         Shuttle(Garage garage) {
             this.garage = garage;

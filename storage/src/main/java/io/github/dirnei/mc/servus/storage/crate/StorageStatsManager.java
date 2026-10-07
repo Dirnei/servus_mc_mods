@@ -27,6 +27,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_STOCK_RULE_INTERVAL = 100;
     public static final int DEFAULT_CRAFTING_STATION_RECIPES = 4;
     public static final double DEFAULT_SHUTTLE_SPEED = 0.25;
+    public static final double DEFAULT_LIFT_SPEED = 0.1;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
     public static final int DEFAULT_INBOUND_BUFFER_SLOTS = 9;
@@ -51,6 +52,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int stockRuleInterval = DEFAULT_STOCK_RULE_INTERVAL;
     private volatile int craftingStationRecipes = DEFAULT_CRAFTING_STATION_RECIPES;
     private volatile double shuttleSpeed = DEFAULT_SHUTTLE_SPEED;
+    private volatile double liftSpeed = DEFAULT_LIFT_SPEED;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
     private volatile int inboundBufferSlots = DEFAULT_INBOUND_BUFFER_SLOTS;
@@ -73,6 +75,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         stockRuleInterval = intField(files.get(WAREHOUSE), "stock_rule_interval", DEFAULT_STOCK_RULE_INTERVAL);
         craftingStationRecipes = intField(files.get(CRAFTING_STATION), "recipes", DEFAULT_CRAFTING_STATION_RECIPES);
         shuttleSpeed = doubleField(files.get(WAREHOUSE), "shuttle_speed", DEFAULT_SHUTTLE_SPEED);
+        liftSpeed = doubleField(files.get(WAREHOUSE), "lift_speed", DEFAULT_LIFT_SPEED);
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
         inboundBufferSlots = intField(files.get(WAREHOUSE), "inbound_buffer_slots", DEFAULT_INBOUND_BUFFER_SLOTS);
@@ -132,6 +135,11 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
 
     public double shuttleSpeed() {
         return shuttleSpeed;
+    }
+
+    /** Blocks per tick the lift car of an elevator shaft moves. */
+    public double liftSpeed() {
+        return liftSpeed;
     }
 
     public int rackSlots() {

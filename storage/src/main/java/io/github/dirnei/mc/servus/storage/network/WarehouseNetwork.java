@@ -22,6 +22,8 @@ import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
+import io.github.dirnei.mc.servus.storage.shuttle.Shafts;
+import io.github.dirnei.mc.servus.storage.shuttle.Shafts.Shaft;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
@@ -110,6 +112,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Map<BlockPos, Source> sources = new LinkedHashMap<>();
     /** Members that hold no stock, such as rails. Never sources, never surrounded by candidates. */
     private final Set<BlockPos> connectors = new HashSet<>();
+    /** Elevator segments, a subset of the connectors; grouped into shafts on the tick after a change. */
+    private final Set<NodePos> elevators = new HashSet<>();
+    private Map<NodePos, Shaft> shaftFloors = Map.of();
+    private boolean shaftsDirty;
     /** The zone each zoned stock node carries. Unzoned nodes and foreign inventories are absent. */
     private final Map<BlockPos, ZoneDefinition> zoneOf = new LinkedHashMap<>();
     /** Set when a zone or rule changed; stations with waiting stacks retry on the next tick. */
@@ -206,6 +212,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else {
             dropSource(blockPos);
             connectors.add(blockPos);
+            if (node.kind() == WarehouseConnectionRule.NodeKind.ELEVATOR) {
+                elevators.add(pos);
+                shaftsDirty = true;
+            }
         }
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers++;
@@ -219,6 +229,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     protected void onNodeRemoved(NodePos pos, StorageNodeBlockEntity node) {
         BlockPos blockPos = Conversions.toBlockPos(pos);
         connectors.remove(blockPos);
+        if (elevators.remove(pos)) {
+            shaftsDirty = true;
+        }
         stations.remove(blockPos);
         pendingStations.remove(blockPos);
         blockedStations.remove(blockPos);
@@ -253,6 +266,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             controllerPos = that.controllerPos;
         }
         connectors.addAll(that.connectors);
+        elevators.addAll(that.elevators);
+        shaftsDirty = true;
         stations.addAll(that.stations);
         pendingStations.addAll(that.stations);
         garages.addAll(that.garages);
@@ -288,6 +303,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** One garage's line for its right click. */
     public Component garageSummary(BlockPos pos) {
         return Component.literal("Garage: " + fleet.garageSummary(pos));
+    }
+
+    /** The lift car of the shaft whose lowest segment is at that position, or null. */
+    public io.github.dirnei.mc.servus.storage.shuttle.LiftCar lift(BlockPos bottom) {
+        return fleet.lift(bottom);
     }
 
     /** The shuttles of one garage as clients draw them. */
@@ -529,6 +549,16 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     @Override
     public double shuttleSpeed() {
         return StorageStatsManager.INSTANCE.shuttleSpeed();
+    }
+
+    @Override
+    public double liftSpeed() {
+        return StorageStatsManager.INSTANCE.liftSpeed();
+    }
+
+    @Override
+    public Shaft shaftOf(NodePos node) {
+        return shaftFloors.get(node);
     }
 
     // Terminal requests
@@ -974,6 +1004,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     protected void onDisposed() {
         sources.clear();
         connectors.clear();
+        elevators.clear();
+        shaftFloors = Map.of();
         stations.clear();
         garages.clear();
         terminals.clear();
@@ -1091,6 +1123,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             pushLamps();
         }
         if (level != null) {
+            if (shaftsDirty) {
+                shaftsDirty = false;
+                List<Shaft> shafts = Shafts.group(elevators);
+                shaftFloors = Shafts.floorsOf(shafts);
+                fleet.refreshShafts(shafts);
+            }
             fleet.tick();
             tickStations();
             orders.tick();
