@@ -1,7 +1,11 @@
 package io.github.dirnei.mc.servus.logistics.client;
 
 import io.github.dirnei.mc.servus.logistics.duct.DuctModelData;
+import io.github.dirnei.mc.servus.logistics.duct.DuctParts;
+import io.github.dirnei.mc.servus.logistics.duct.Line;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -17,17 +21,32 @@ import net.neoforged.neoforge.client.model.IDynamicBakedModel;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
-/** Wraps the duct's baked model: with a facade in the model data it looks like that block. */
+/**
+ * The duct's baked model: with a facade in the model data it looks like that
+ * block; otherwise it is composed from the part models by the lines and arms
+ * the block entity reports. The centre part follows the line set, each arm
+ * the lines connected on that side, and an arm's ring faces (the tinted ones)
+ * only show when the side is an endpoint.
+ */
 public final class UtilityDuctModel implements IDynamicBakedModel {
 
     private final BakedModel base;
+    private final Map<String, BakedModel> parts;
 
-    public UtilityDuctModel(BakedModel base) {
+    /**
+     * @param parts part models by {@link DuctParts} name; a missing name falls back to the base model
+     */
+    public UtilityDuctModel(BakedModel base, Map<String, BakedModel> parts) {
         this.base = base;
+        this.parts = parts;
     }
 
     private static BakedModel modelOf(BlockState facade) {
         return Minecraft.getInstance().getBlockRenderer().getBlockModel(facade);
+    }
+
+    private BakedModel part(String name) {
+        return parts.getOrDefault(name, base);
     }
 
     @Override
@@ -37,7 +56,39 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
         if (facade != null) {
             return modelOf(facade).getQuads(facade, side, rand, ModelData.EMPTY, renderType);
         }
-        return base.getQuads(state, side, rand, extraData, renderType);
+        Integer lines = extraData.get(DuctModelData.LINES);
+        if (lines == null) {
+            return base.getQuads(state, side, rand, extraData, renderType);
+        }
+        if (side != null) {
+            return List.of();
+        }
+        int[] arms = extraData.get(DuctModelData.ARMS);
+        Integer endpoints = extraData.get(DuctModelData.ENDPOINTS);
+        int linesMask = lines & DuctParts.BOTH;
+        if (linesMask == 0) {
+            linesMask = DuctParts.ITEM;
+        }
+        List<BakedQuad> quads = new ArrayList<>(part(DuctParts.centerName(linesMask))
+                .getQuads(state, null, rand, ModelData.EMPTY, renderType));
+        for (Direction direction : Direction.values()) {
+            int armLines = 0;
+            for (Line line : Line.VALUES) {
+                if (arms != null && line.ordinal() < arms.length && (arms[line.ordinal()] & DuctModelData.bit(direction)) != 0) {
+                    armLines |= 1 << line.ordinal();
+                }
+            }
+            if (armLines == 0) {
+                continue;
+            }
+            boolean endpoint = endpoints != null && (endpoints & DuctModelData.bit(direction)) != 0;
+            for (BakedQuad quad : part(DuctParts.armName(direction, armLines)).getQuads(state, null, rand, ModelData.EMPTY, renderType)) {
+                if (endpoint || !quad.isTinted()) {
+                    quads.add(quad);
+                }
+            }
+        }
+        return quads;
     }
 
     @Override
@@ -52,7 +103,14 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
     @Override
     public TextureAtlasSprite getParticleIcon(ModelData data) {
         BlockState facade = data.get(DuctModelData.FACADE);
-        return facade != null ? modelOf(facade).getParticleIcon(ModelData.EMPTY) : base.getParticleIcon(data);
+        if (facade != null) {
+            return modelOf(facade).getParticleIcon(ModelData.EMPTY);
+        }
+        Integer lines = data.get(DuctModelData.LINES);
+        if (lines != null && (lines & DuctParts.BOTH) == DuctParts.ENERGY) {
+            return part(DuctParts.centerName(DuctParts.ENERGY)).getParticleIcon(ModelData.EMPTY);
+        }
+        return base.getParticleIcon(data);
     }
 
     @Override

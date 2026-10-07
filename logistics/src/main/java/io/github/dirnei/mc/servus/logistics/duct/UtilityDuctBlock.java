@@ -5,6 +5,8 @@ import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -34,6 +36,8 @@ import net.minecraft.world.phys.BlockHitResult;
 public class UtilityDuctBlock extends ConnectableBlock {
 
     public static final MapCodec<UtilityDuctBlock> CODEC = simpleCodec(UtilityDuctBlock::new);
+
+    private static final Map<Integer, VoxelShape> SHAPES = new ConcurrentHashMap<>();
 
     public UtilityDuctBlock(Properties properties) {
         super(properties, 4);
@@ -99,12 +103,40 @@ public class UtilityDuctBlock extends ConnectableBlock {
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
+    /**
+     * The shape follows the lines: a centre as thick as the line count and,
+     * per side, an arm as thick as the lines connected there. A facade is a
+     * full block. Without a block entity the state flags decide, as in Lib.
+     */
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && duct.facade() != null) {
-            return Shapes.block();
+        if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
+            if (duct.facade() != null) {
+                return Shapes.block();
+            }
+            return shape(duct.linesMask(), duct.arms(Line.ITEM), duct.arms(Line.ENERGY));
         }
         return super.getShape(state, level, pos, context);
+    }
+
+    /** The shape for a line set and the per line arm masks, cached. */
+    public static VoxelShape shape(int linesMask, int itemArms, int energyArms) {
+        int key = (linesMask & 3) | (itemArms & 63) << 2 | (energyArms & 63) << 8;
+        return SHAPES.computeIfAbsent(key, k -> {
+            VoxelShape shape = box(DuctShapes.center(DuctShapes.radius(Integer.bitCount(linesMask & 3))));
+            for (Direction direction : Direction.values()) {
+                int bit = DuctModelData.bit(direction);
+                int armLines = ((itemArms & bit) != 0 ? 1 : 0) + ((energyArms & bit) != 0 ? 1 : 0);
+                if (armLines > 0) {
+                    shape = Shapes.or(shape, box(DuctShapes.arm(direction.ordinal(), DuctShapes.radius(armLines))));
+                }
+            }
+            return shape;
+        });
+    }
+
+    private static VoxelShape box(DuctShapes.Box box) {
+        return Block.box(box.x0(), box.y0(), box.z0(), box.x1(), box.y1(), box.z1());
     }
 
     @Override
