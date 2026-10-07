@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.BurnerMachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.EnergyNeighbors;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineEnergyStorage;
+import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
@@ -27,7 +28,7 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
 
     public static final int SLOT_FUEL = 0;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coal_generator");
-    private static final MachineStats DEFAULTS = MachineStats.generator(40, 16000, 4);
+    private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final MachineEnergyStorage energy;
     private EnergyNeighbors neighbors;

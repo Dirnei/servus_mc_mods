@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.machine.loader;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.config.ServusManufacturingConfig;
+import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.manufacturing.machine.PoweredMachineBlockEntity;
@@ -32,7 +33,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
     public static final int STATUS_FTB_CHUNKS = 3;
     public static final int STATUS_NO_OWNER = 4;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "chunk_loader");
-    private static final MachineStats DEFAULTS = MachineStats.powered(1, 10, 4000);
+    private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final String FTB_CHUNKS = "ftbchunks";
 
     private UUID owner;

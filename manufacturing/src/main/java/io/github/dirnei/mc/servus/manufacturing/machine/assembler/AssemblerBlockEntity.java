@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
 import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.lib.team.Teams;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.menu.AssemblerMenu;
@@ -59,7 +60,7 @@ public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
     public static final int OUTPUT_SLOTS = 4;
     public static final int DATA_ACTIVE_RECIPE = 6;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "assembler");
-    private static final MachineStats DEFAULTS = MachineStats.crafter(20, 20, 8000, 2);
+    private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     /** Ghost grid the player lays a recipe out in; never consumed. */
     private final ItemStackHandler pattern = new ItemStackHandler(ConfiguredRecipe.GRID) {

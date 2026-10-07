@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.lab;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.manufacturing.machine.PoweredMachineBlockEntity;
@@ -30,7 +31,7 @@ public class ResearchLabBlockEntity extends PoweredMachineBlockEntity implements
 
     public static final int SLOT_COUNT = 2;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "research_lab");
-    private static final MachineStats DEFAULTS = MachineStats.powered(1, 10, 4000);
+    private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private UUID owner;
 

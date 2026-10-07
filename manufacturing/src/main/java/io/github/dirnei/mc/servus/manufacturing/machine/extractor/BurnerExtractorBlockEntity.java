@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositDefinition;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;
 import io.github.dirnei.mc.servus.manufacturing.machine.BurnerMachineBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerExtractorMenu;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
@@ -22,7 +23,7 @@ public class BurnerExtractorBlockEntity extends BurnerMachineBlockEntity {
     public static final int SLOT_FUEL = 0;
     public static final int SLOT_OUTPUT = 1;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "burner_extractor");
-    private static final MachineStats DEFAULTS = MachineStats.burner(80);
+    private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     public BurnerExtractorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.BURNER_EXTRACTOR.get(), pos, state, 2);

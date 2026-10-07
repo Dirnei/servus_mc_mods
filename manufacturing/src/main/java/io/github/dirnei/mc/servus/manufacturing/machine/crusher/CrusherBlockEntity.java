@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.crusher;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.menu.CrusherMenu;
@@ -24,7 +25,7 @@ public class CrusherBlockEntity extends PoweredMachineBlockEntity {
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "crusher");
-    private static final MachineStats DEFAULTS = MachineStats.powered(60, 20, 8000);
+    private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     public CrusherBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.CRUSHER.get(), pos, state, 2);
