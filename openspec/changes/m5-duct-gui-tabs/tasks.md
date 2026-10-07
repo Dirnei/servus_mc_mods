@@ -6,5 +6,5 @@
 
 ## 2. Verification
 
-- [ ] 2.1 Run `openspec validate m5-duct-gui-tabs --strict`, `gradlew runClientAll` launches. Commit.
+- [x] 2.1 Run `openspec validate m5-duct-gui-tabs --strict`, `gradlew runClientAll` launches. Commit.
 - [ ] 2.2 Play check: a two line duct shows two tabs, each page fills the panel, filter slots only on the Item Pipe page.

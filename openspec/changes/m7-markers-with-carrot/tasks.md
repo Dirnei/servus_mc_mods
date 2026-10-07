@@ -6,4 +6,4 @@
 
 ## 2. Verification
 
-- [ ] 2.1 Run `openspec validate m7-markers-with-carrot --strict`, `gradlew build` green, `gradlew runClientAll` launches. Commit.
+- [x] 2.1 Run `openspec validate m7-markers-with-carrot --strict`, `gradlew build` green, `gradlew runClientAll` launches. Commit.

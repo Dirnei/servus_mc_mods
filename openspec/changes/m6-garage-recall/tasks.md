@@ -14,5 +14,5 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `openspec validate m6-garage-recall --strict`, full `gradlew clean build` green (with no client running), `gradlew runClientAll` launches. Commit.
+- [x] 4.1 Run `openspec validate m6-garage-recall --strict`, full `gradlew clean build` green (with no client running), `gradlew runClientAll` launches. Commit.
 - [ ] 4.2 Play check: Recall frees the stuck shuttles, Paused stops a garage from sending shuttles, breaking the rail behind a garage brings its shuttles home.

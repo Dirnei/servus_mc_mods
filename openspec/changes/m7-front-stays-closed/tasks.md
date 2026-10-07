@@ -6,5 +6,5 @@
 
 ## 2. Verification
 
-- [ ] 2.1 Run `openspec validate m7-front-stays-closed --strict`, `gradlew build` green, `gradlew runClientAll` launches. Commit.
+- [x] 2.1 Run `openspec validate m7-front-stays-closed --strict`, `gradlew build` green, `gradlew runClientAll` launches. Commit.
 - [ ] 2.2 Play check: the front cell is greyed on an Assembler and the carrot on the front only reports Off.
