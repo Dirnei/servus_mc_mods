@@ -899,4 +899,89 @@ public final class ServusManufacturingGameTests {
             });
         });
     }
+
+    private static void chimneyColumn(GameTestHelper helper, BlockPos topPart, int height) {
+        for (int i = 1; i <= height; i++) {
+            helper.setBlock(topPart.above(i), ServusManufacturingBlocks.CHIMNEY.get().defaultBlockState());
+        }
+    }
+
+    /** Three Chimney blocks on a corner give height 3, only the top one shows the cap, and the cap moves up. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkCountsItsChimney(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 3);
+        BlockPos column = new BlockPos(2, 1, 3);
+        helper.assertTrue(sink.chimneyHeight() == 3, "expected height 3, got " + sink.chimneyHeight());
+        helper.assertTrue(sink.chimneyColumn() == 7, "the column stands on the back right top part, got " + sink.chimneyColumn());
+        helper.assertTrue(!helper.getBlockState(column.above(1)).getValue(ChimneyBlock.TOP), "the lowest block has no cap");
+        helper.assertTrue(!helper.getBlockState(column.above(2)).getValue(ChimneyBlock.TOP), "the middle block has no cap");
+        helper.assertTrue(helper.getBlockState(column.above(3)).getValue(ChimneyBlock.TOP), "the top block has the cap");
+        helper.setBlock(column.above(4), ServusManufacturingBlocks.CHIMNEY.get().defaultBlockState());
+        helper.assertTrue(!helper.getBlockState(column.above(3)).getValue(ChimneyBlock.TOP), "the cap moves up");
+        helper.assertTrue(sink.chimneyHeight() == 4, "expected height 4, got " + sink.chimneyHeight());
+        helper.succeed();
+    }
+
+    /** Five Chimney blocks on the front left corner make the Sink unlimited. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkFiveOnACornerIsUnlimited(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        chimneyColumn(helper, new BlockPos(3, 1, 2), 5);
+        helper.assertTrue(sink.chimneyHeight() == 5, "expected height 5, got " + sink.chimneyHeight());
+        helper.assertTrue(sink.chimneyColumn() == 2, "the column stands on the front left top part, got " + sink.chimneyColumn());
+        ItemStack left = sinkItems(helper, SINK, Direction.EAST).insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
+        helper.assertTrue(left.isEmpty(), "an unlimited Sink takes the full stack, left " + left);
+        helper.succeed();
+    }
+
+    /** With two columns the tallest counts; shortening it falls back to the other one. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkTallestColumnCounts(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        chimneyColumn(helper, new BlockPos(3, 1, 3), 2);
+        chimneyColumn(helper, new BlockPos(2, 1, 2), 4);
+        helper.assertTrue(sink.chimneyHeight() == 4, "the taller column counts, got " + sink.chimneyHeight());
+        helper.assertTrue(sink.chimneyColumn() == 3, "the front right top part carries it, got " + sink.chimneyColumn());
+        helper.destroyBlock(new BlockPos(2, 1, 2).above(4));
+        helper.destroyBlock(new BlockPos(2, 1, 2).above(3));
+        helper.destroyBlock(new BlockPos(2, 1, 2).above(2));
+        helper.assertTrue(sink.chimneyHeight() == 2, "the other column is now the tallest, got " + sink.chimneyHeight());
+        helper.assertTrue(sink.chimneyColumn() == 6, "the back left top part carries it, got " + sink.chimneyColumn());
+        helper.succeed();
+    }
+
+    /** Breaking the second of four Chimney blocks leaves a height of 1; filling the gap joins the column again. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkChimneyMiddleRemoved(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 4);
+        BlockPos column = new BlockPos(2, 1, 3);
+        helper.assertTrue(sink.chimneyHeight() == 4, "expected height 4, got " + sink.chimneyHeight());
+        helper.destroyBlock(column.above(2));
+        helper.assertTrue(sink.chimneyHeight() == 1, "expected height 1, got " + sink.chimneyHeight());
+        helper.assertTrue(helper.getBlockState(column.above(1)).getValue(ChimneyBlock.TOP), "the remaining block shows the cap");
+        helper.setBlock(column.above(2), ServusManufacturingBlocks.CHIMNEY.get().defaultBlockState());
+        helper.assertTrue(sink.chimneyHeight() == 4, "filling the gap joins the column again, got " + sink.chimneyHeight());
+        helper.succeed();
+    }
+
+    /** Chimney blocks on stone or on unformed casings are decorative; forming the cube counts a column already there. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void chimneyWithoutSinkIsDecorative(GameTestHelper helper) {
+        BlockPos base = new BlockPos(8, 0, 8);
+        helper.setBlock(base, Blocks.STONE.defaultBlockState());
+        chimneyColumn(helper, base, 2);
+        helper.assertTrue(!helper.getBlockState(base.above(1)).getValue(ChimneyBlock.TOP), "lower block without cap");
+        helper.assertTrue(helper.getBlockState(base.above(2)).getValue(ChimneyBlock.TOP), "top block with cap");
+        helper.destroyBlock(base.above(2));
+        helper.assertTrue(helper.getBlockState(base.above(1)).getValue(ChimneyBlock.TOP), "the cap moves down");
+
+        sinkBox(helper, new BlockPos(2, 0, 2), null);
+        chimneyColumn(helper, new BlockPos(2, 1, 3), 3);
+        SinkBlockEntity casing = helper.getBlockEntity(SINK);
+        helper.assertTrue(casing.chimneyHeight() == 0, "a casing counts no chimney, got " + casing.chimneyHeight());
+        carrot(helper, SINK, Direction.NORTH, false);
+        SinkBlockEntity sink = helper.getBlockEntity(SINK);
+        helper.assertTrue(sink.chimneyHeight() == 3, "forming counts the column already standing, got " + sink.chimneyHeight());
+        helper.succeed();
+    }
 }
