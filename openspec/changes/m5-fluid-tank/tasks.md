@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 Add `logistics/tank/TankShape.java` and `TankLayers.java` (pure). JUnit `TankShapeTest` (box, L, box plus touching block, single) and `TankLayersTest` (tower half full, 2 by 2 by 2 with six blocks' worth, empty, clamp to capacity, remainder sums exactly). Verify `gradlew :logistics:test`.
+- [x] 1.1 Add `logistics/tank/TankShape.java` and `TankLayers.java` (pure). JUnit `TankShapeTest` (box, L, box plus touching block, single) and `TankLayersTest` (tower half full, 2 by 2 by 2 with six blocks' worth, empty, clamp to capacity, remainder sums exactly). Verify `gradlew :logistics:test`.
 
 ## 2. Tank block
 
