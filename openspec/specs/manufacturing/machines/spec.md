@@ -18,7 +18,7 @@ A machine SHALL be placed facing the player and SHALL open its GUI on right clic
 - **THEN** the machine's GUI opens showing its slots and progress
 
 ### Requirement: Inventory sides
-A machine SHALL expose its inventory through the item handler capability on every side. Input and fuel slots accept insertion only, output slots allow extraction only, and automation SHALL never extract inputs or insert into outputs.
+A machine SHALL expose its inventory through the item handler capability on every side but the front, which is fixed to Off and exposes nothing. Input and fuel slots accept insertion only, output slots allow extraction only, and automation SHALL never extract inputs or insert into outputs.
 
 #### Scenario: Hopper feeds fuel
 - **WHEN** a hopper above a burner machine holds coal
@@ -27,6 +27,10 @@ A machine SHALL expose its inventory through the item handler capability on ever
 #### Scenario: Hopper pulls output
 - **WHEN** a hopper below a machine with an output item runs
 - **THEN** it extracts only the output, never fuel or inputs
+
+#### Scenario: Front is closed
+- **WHEN** a duct or hopper offers coal to the front of a burner machine
+- **THEN** nothing goes in, nothing comes out, and the front cannot be set to another mode
 
 ### Requirement: Output push
 A machine with items in an output slot SHALL push them into any adjacent inventory that accepts them, checking regularly, so a chest next to a machine fills without pipes.

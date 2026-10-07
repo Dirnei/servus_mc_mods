@@ -80,11 +80,11 @@ The Configuration Carrot used on a face of a block with a side configuration SHA
 - **THEN** the top side is still Pull
 
 ### Requirement: Side modes shown on the block
-Every block with a side configuration SHALL draw a thin frame along the edges of each face whose mode is not the block's default, in the same colour the side panel uses for that mode. While the viewing player holds the Configuration Carrot or wears the goggles, every face SHALL show its frame, default sides included, and a centred glyph: an arrow pointing in for Input and Pull, an arrow pointing out for Output and Push, a double arrow for Both, a cross for Off, with Pull and Push filled and Input and Output outlined. Markers SHALL render at full brightness and SHALL cost nothing while every side is default and no carrot or goggles are in use.
+While the viewing player holds the Configuration Carrot or wears the goggles, every block with a side configuration SHALL draw on each face a thin frame along its edges in the colour the side panel uses for that side's mode, and a centred glyph: a square for Input and Pull, a diamond for Output and Push, a square with a dot for Both, a cross for Off, with Pull and Push filled and Input and Output outlined. Without the carrot or the goggles no marker SHALL be drawn. Markers SHALL render at full brightness and SHALL cost nothing while nobody configures.
 
 #### Scenario: Configured side from afar
 - **WHEN** the top of an Inbound Station is set to Pull and the player looks at it with empty hands
-- **THEN** the top face shows a frame in the Pull colour and the other faces show nothing
+- **THEN** no marker is drawn on any face
 
 #### Scenario: Carrot in hand
 - **WHEN** the player holds the carrot and looks at a machine in Auto
@@ -93,3 +93,14 @@ Every block with a side configuration SHALL draw a thin frame along the edges of
 #### Scenario: Plain block
 - **WHEN** a machine has every side in Auto and the player holds nothing special
 - **THEN** no marker is drawn
+
+### Requirement: Fixed sides
+A block MAY fix single relative sides to one mode. A fixed side SHALL keep that mode through cycling, setting, the carrot and loading, SHALL count as default, SHALL be drawn greyed in the side panel and SHALL NOT react to clicks there.
+
+#### Scenario: Cycling a fixed side
+- **WHEN** a machine's front is fixed to Off and the player clicks its cell or uses the carrot on the front
+- **THEN** the front stays Off and the cell stays greyed
+
+#### Scenario: Loading
+- **WHEN** a saved configuration holds Input for a side the block fixes to Off
+- **THEN** the side is Off after loading
