@@ -194,7 +194,7 @@ function nodeView(data: GameData, node: ChainNode, before: ChainNode | undefined
 	return {
 		id: node.item,
 		width: 200,
-		height: 104,
+		height: 122,
 		tone,
 		selected,
 		onSelect,
