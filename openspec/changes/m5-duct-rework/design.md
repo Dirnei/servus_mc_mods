@@ -60,8 +60,8 @@ A test helper `duct(helper, pos, Line...)` places `ServusLogisticsBlocks.UTILITY
 ## Pure versus Minecraft
 
 - Pure Java, JUnit: `RoundRobinPlan` (per channel priority groups and cursors), `DuctChannels` (color table and bounds), `ArmHit` (which arm box a local click point falls in, given radius and arm masks).
-- Minecraft, GameTest in Logistics: item routing on channels, energy per channel, pull in with filter, line add and drop, model data masks after neighbour changes (server side `arms` and `endpoints`).
-- Minecraft, GameTest in Manufacturing: the reference block on Utility Ducts.
+- Minecraft, GameTest in Logistics: item routing on channels, pull in with filter, line add and drop, model data masks after neighbour changes (server side `arms` and `endpoints`).
+- Minecraft, GameTest in Manufacturing: the reference block on Utility Ducts, and energy per channel, because only Manufacturing has blocks with an energy storage (Logistics depends on Lib alone).
 - Manual: thickness and colors, channel rings, GUI layout, facade on a two line duct, carrot on centre does nothing.
 
 ## PLAN.md open decisions

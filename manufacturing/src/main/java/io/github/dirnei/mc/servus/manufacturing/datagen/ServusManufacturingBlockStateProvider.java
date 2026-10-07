@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.lib.datagen.ConnectableModels;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.core.Direction;
@@ -34,11 +33,6 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         machine(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(), "electric_extractor");
         machine(ServusManufacturingBlocks.CRUSHER.get(), "crusher");
         machine(ServusManufacturingBlocks.CHUNK_LOADER.get(), "chunk_loader");
-
-        connectable(ServusManufacturingBlocks.POWER_CABLE.get(), "power_cable", 3);
-        connectable(ServusManufacturingBlocks.ITEM_DUCT.get(), "item_duct", 4);
-        connectable(ServusManufacturingBlocks.SPLITTER_DUCT.get(), "splitter_duct", 4);
-        connectable(ServusManufacturingBlocks.FILTER_DUCT.get(), "filter_duct", 4);
     }
 
     private void cubeAllWithItem(Block block) {
@@ -60,10 +54,5 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
                     .build();
         });
         simpleBlockItem(block, unlit);
-    }
-
-    /** Multipart cable or duct: a centre cube plus one arm per connected side. */
-    private void connectable(Block block, String name, int radius) {
-        ConnectableModels.connectable(this, block, name, radius, true);
     }
 }

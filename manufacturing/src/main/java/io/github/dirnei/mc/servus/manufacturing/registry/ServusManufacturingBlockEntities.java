@@ -1,10 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.cable.PowerCableBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.duct.FilterDuctBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.duct.ItemDuctBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.duct.SplitterDuctBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.crusher.CrusherBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEntity;
@@ -61,26 +57,6 @@ public final class ServusManufacturingBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ResearchLabBlockEntity>> RESEARCH_LAB =
             BLOCK_ENTITIES.register("research_lab", () -> BlockEntityType.Builder
                     .of(ResearchLabBlockEntity::new, ServusManufacturingBlocks.RESEARCH_LAB.get())
-                    .build(null));
-
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PowerCableBlockEntity>> POWER_CABLE =
-            BLOCK_ENTITIES.register("power_cable", () -> BlockEntityType.Builder
-                    .of(PowerCableBlockEntity::new, ServusManufacturingBlocks.POWER_CABLE.get())
-                    .build(null));
-
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ItemDuctBlockEntity>> ITEM_DUCT =
-            BLOCK_ENTITIES.register("item_duct", () -> BlockEntityType.Builder
-                    .of(ItemDuctBlockEntity::new, ServusManufacturingBlocks.ITEM_DUCT.get())
-                    .build(null));
-
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SplitterDuctBlockEntity>> SPLITTER_DUCT =
-            BLOCK_ENTITIES.register("splitter_duct", () -> BlockEntityType.Builder
-                    .of(SplitterDuctBlockEntity::new, ServusManufacturingBlocks.SPLITTER_DUCT.get())
-                    .build(null));
-
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FilterDuctBlockEntity>> FILTER_DUCT =
-            BLOCK_ENTITIES.register("filter_duct", () -> BlockEntityType.Builder
-                    .of(FilterDuctBlockEntity::new, ServusManufacturingBlocks.FILTER_DUCT.get())
                     .build(null));
 
     private ServusManufacturingBlockEntities() {

@@ -11,8 +11,9 @@ import io.github.dirnei.mc.servus.lib.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.lib.network.core.ServusNetwork;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.logistics.ServusLogisticsIds;
-import io.github.dirnei.mc.servus.logistics.duct.Channel;
+import io.github.dirnei.mc.servus.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.logistics.duct.DuctStatsManager;
+import io.github.dirnei.mc.servus.logistics.duct.Line;
 import io.github.dirnei.mc.servus.logistics.duct.UtilityDuctBlockEntity;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,9 +28,10 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
 /**
- * The energy channel of a set of connected utility ducts. Every tick it moves
- * energy from storages on input sides to storages on output sides, water
- * filling, within the configured rate. Carries no buffer.
+ * The Power Cable network of a set of connected utility ducts. Every tick it
+ * moves energy, per channel, from storages on input sides to storages on
+ * output sides of the same channel, water filling, within the configured
+ * rate. Carries no buffer.
  */
 public final class EnergyChannelNetwork extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent> {
 
@@ -38,7 +40,7 @@ public final class EnergyChannelNetwork extends ServusNetwork<UtilityDuctBlockEn
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, EnergyChannelNetwork> TYPE =
             new NetworkType<>(ID, ConnectionRule.always(), EnergyChannelNetwork::new);
 
-    private record Endpoint(SideMode mode, BlockCapabilityCache<IEnergyStorage, Direction> cache) {
+    private record Endpoint(SideMode mode, int channel, BlockCapabilityCache<IEnergyStorage, Direction> cache) {
     }
 
     private final Map<NodePos, List<Endpoint>> endpoints = new HashMap<>();
@@ -69,11 +71,11 @@ public final class EnergyChannelNetwork extends ServusNetwork<UtilityDuctBlockEn
         BlockPos blockPos = Conversions.toBlockPos(pos);
         List<Endpoint> list = new ArrayList<>(6);
         for (Direction direction : Direction.values()) {
-            SideMode mode = duct.mode(Channel.ENERGY, direction);
+            SideMode mode = duct.mode(Line.ENERGY, direction);
             if (mode == SideMode.DISABLED) {
                 continue;
             }
-            list.add(new Endpoint(mode, BlockCapabilityCache.create(
+            list.add(new Endpoint(mode, duct.channel(Line.ENERGY, direction), BlockCapabilityCache.create(
                     Capabilities.EnergyStorage.BLOCK, level, blockPos.relative(direction), direction.getOpposite())));
         }
         endpoints.put(pos, list);
@@ -100,30 +102,40 @@ public final class EnergyChannelNetwork extends ServusNetwork<UtilityDuctBlockEn
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void onTick() {
         if (level == null || endpoints.isEmpty()) {
             return;
         }
-        List<EnergySource> sources = new ArrayList<>();
-        List<EnergySink> sinks = new ArrayList<>();
+        List<EnergySource>[] sources = new List[DuctChannels.COUNT];
+        List<EnergySink>[] sinks = new List[DuctChannels.COUNT];
         for (List<Endpoint> list : endpoints.values()) {
             for (Endpoint endpoint : list) {
                 IEnergyStorage storage = endpoint.cache().getCapability();
                 if (storage == null) {
                     continue;
                 }
+                int channel = DuctChannels.clamp(endpoint.channel());
                 boolean mayPull = endpoint.mode().allowsInsert();
                 boolean mayPush = endpoint.mode().allowsExtract();
                 if (mayPull && storage.canExtract()) {
-                    sources.add(storage::extractEnergy);
+                    if (sources[channel] == null) {
+                        sources[channel] = new ArrayList<>();
+                    }
+                    sources[channel].add(storage::extractEnergy);
                 } else if (mayPush && storage.canReceive()) {
-                    sinks.add(storage::receiveEnergy);
+                    if (sinks[channel] == null) {
+                        sinks[channel] = new ArrayList<>();
+                    }
+                    sinks[channel].add(storage::receiveEnergy);
                 }
             }
         }
-        if (sources.isEmpty() || sinks.isEmpty()) {
-            return;
+        int rate = DuctStatsManager.INSTANCE.energyPerTick();
+        for (int channel = 0; channel < DuctChannels.COUNT; channel++) {
+            if (sources[channel] != null && sinks[channel] != null) {
+                EnergyDistributor.distribute(sources[channel], sinks[channel], rate);
+            }
         }
-        EnergyDistributor.distribute(sources, sinks, DuctStatsManager.INSTANCE.energyPerTick());
     }
 }

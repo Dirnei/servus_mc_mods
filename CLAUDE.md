@@ -8,7 +8,7 @@ Project: Servus mod family for Minecraft 1.21.1 on NeoForge. The vision, archite
 - Mod IDs: `servus_lib`, `servus_manufacturing`, `servus_logistics`, `servus_storage`
 
 ## Rules
-- Content mods depend only on `servus_lib`, never on each other.
+- Storage and Logistics depend only on `servus_lib`. Manufacturing depends on `servus_lib` and `servus_logistics` (its ducts are the Utility Duct). No other dependency between content mods.
 - World, block entity and capability access only on the server thread.
 - Networks use the mailbox pattern: events queued, drained once per server tick. No Akka, no Pekko.
 - Never scan blocks every tick. React to placement and removal events.

@@ -2,10 +2,6 @@ package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
-import io.github.dirnei.mc.servus.manufacturing.cable.PowerCableBlock;
-import io.github.dirnei.mc.servus.manufacturing.duct.FilterDuctBlock;
-import io.github.dirnei.mc.servus.manufacturing.duct.ItemDuctBlock;
-import io.github.dirnei.mc.servus.manufacturing.duct.SplitterDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.crusher.CrusherBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlock;
@@ -46,24 +42,6 @@ public final class ServusManufacturingBlocks {
             BLOCKS.registerBlock("chunk_loader", ChunkLoaderBlock::new, machine());
     public static final DeferredBlock<ResearchLabBlock> RESEARCH_LAB =
             BLOCKS.registerBlock("research_lab", ResearchLabBlock::new, machine());
-
-    public static final DeferredBlock<PowerCableBlock> POWER_CABLE =
-            BLOCKS.registerBlock("power_cable", PowerCableBlock::new, connectable(MapColor.COLOR_ORANGE));
-    public static final DeferredBlock<ItemDuctBlock> ITEM_DUCT =
-            BLOCKS.registerBlock("item_duct", ItemDuctBlock::new, connectable(MapColor.METAL));
-    public static final DeferredBlock<SplitterDuctBlock> SPLITTER_DUCT =
-            BLOCKS.registerBlock("splitter_duct", SplitterDuctBlock::new, connectable(MapColor.GOLD));
-    public static final DeferredBlock<FilterDuctBlock> FILTER_DUCT =
-            BLOCKS.registerBlock("filter_duct", FilterDuctBlock::new, connectable(MapColor.COLOR_LIGHT_BLUE));
-
-    /** Shared properties of cables and ducts: thin, quick to break, no occlusion. */
-    private static BlockBehaviour.Properties connectable(MapColor color) {
-        return BlockBehaviour.Properties.of()
-                .mapColor(color)
-                .strength(1.0F)
-                .sound(SoundType.METAL)
-                .noOcclusion();
-    }
 
     private ServusManufacturingBlocks() {
     }

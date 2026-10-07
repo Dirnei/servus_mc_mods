@@ -15,19 +15,23 @@ final class ServusLogisticsLanguageProvider extends LanguageProvider {
     @Override
     protected void addTranslations() {
         add(ServusLogisticsBlocks.UTILITY_DUCT.get(), "Utility Duct");
-        add(ServusLogisticsItems.ITEM_CHANNEL.get(), "Item Channel");
-        add(ServusLogisticsItems.ENERGY_CHANNEL.get(), "Energy Channel");
+        add(ServusLogisticsItems.ITEM_PIPE.get(), "Item Pipe");
+        add(ServusLogisticsItems.POWER_CABLE.get(), "Power Cable");
         add(ServusLogisticsItems.FACADE.get(), "Facade");
         add("item.servus_logistics.facade.named", "Facade (%s)");
         add("item.servus_logistics.facade.hint", "Use on a utility duct to hide it");
         add("gui.servus_logistics.utility_duct", "Utility Duct");
-        add("gui.servus_logistics.remove.item", "Remove item channel");
-        add("gui.servus_logistics.remove.energy", "Remove energy channel");
+        add("gui.servus_logistics.utility_duct.title", "Utility Duct, %s: %s");
+        add("gui.servus_logistics.remove.item", "Remove Item Pipe");
+        add("gui.servus_logistics.remove.energy", "Remove Power Cable");
         add("gui.servus_logistics.filter", "Filter (empty = everything)");
         add("gui.servus_logistics.priority", "Priority %s");
-        add("gui.servus_logistics.no_channels", "No channels");
-        add("gui.servus_logistics.channel.item", "Items");
-        add("gui.servus_logistics.channel.energy", "Energy");
+        add("gui.servus_logistics.no_lines", "No lines");
+        for (int channel = 1; channel <= 8; channel++) {
+            add("gui.servus_logistics.channel." + channel, "Channel " + channel);
+        }
+        add("gui.servus_logistics.line.item", "Items");
+        add("gui.servus_logistics.line.energy", "Energy");
         add("gui.servus_logistics.mode.both", "In and out");
         add("gui.servus_logistics.mode.auto", "In and out");
         add("gui.servus_logistics.mode.input", "Pull in");

@@ -8,8 +8,9 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 /**
  * The item handler a utility duct shows to one neighbour. One virtual slot that
- * never holds anything: inserted items are routed to another inventory on the
- * item channel network right away, never back to the inserting neighbour.
+ * never holds anything: inserted items are routed right away to another
+ * inventory on the inserting side's channel of the Item Pipe network, never
+ * back to the inserting neighbour.
  */
 public final class DuctItemHandler implements IItemHandler {
 
@@ -33,12 +34,13 @@ public final class DuctItemHandler implements IItemHandler {
 
     @Override
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-        if (stack.isEmpty() || !duct.mode(Channel.ITEM, side).allowsInsert()) {
+        if (stack.isEmpty() || !duct.mode(Line.ITEM, side).allowsInsert()) {
             return stack;
         }
         BlockPos origin = duct.getBlockPos().relative(side);
-        return duct.<ItemChannelNetwork>network(Channel.ITEM)
-                .map(network -> network.route(stack, origin, simulate))
+        int channel = duct.channel(Line.ITEM, side);
+        return duct.<ItemChannelNetwork>network(Line.ITEM)
+                .map(network -> network.route(stack, origin, channel, simulate))
                 .orElse(stack);
     }
 

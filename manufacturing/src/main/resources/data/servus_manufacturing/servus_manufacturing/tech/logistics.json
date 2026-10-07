@@ -3,8 +3,7 @@
     "id": "minecraft:minecart"
   },
   "parents": [
-    "servus_manufacturing:crusher",
-    "servus_manufacturing:splitter_filter_ducts"
+    "servus_manufacturing:crusher"
   ],
   "cost": [
     {

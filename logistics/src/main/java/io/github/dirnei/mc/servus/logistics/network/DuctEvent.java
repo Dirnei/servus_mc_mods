@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.logistics.network;
 
 import io.github.dirnei.mc.servus.lib.graph.NodePos;
 
-/** Events posted to channel networks. */
+/** Events posted to line networks. */
 public sealed interface DuctEvent {
 
     /** The duct at {@code pos} changed modes, filters or priorities; rebuild its endpoints. */

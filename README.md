@@ -9,7 +9,7 @@ A family of NeoForge mods for Minecraft 1.21.1. See `PLAN.md` for the design and
 | Servus: Logistics | `servus_logistics` | `logistics/` |
 | Servus: Storage | `servus_storage` | `storage/` |
 
-Each content mod depends only on Servus Lib. No content mod depends on another.
+Storage and Logistics depend only on Servus Lib. Manufacturing also depends on Servus: Logistics for its ducts.
 
 ## Prerequisites
 
@@ -52,11 +52,11 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 
 1. Find or place deposits (iron, copper, coal, stone patches on the surface).
 2. Burner Extractor on a deposit, Burner Smelter next to it, coal in both. Machines push output into adjacent inventories.
-3. Coal Generator plus Power Cables carry FE to an Assembler Mk1 and a Research Lab.
+3. Coal Generator plus Utility Ducts with a Power Cable (from Servus: Logistics) carry FE to an Assembler Mk1 and a Research Lab.
 4. In the Assembler, lay out a recipe in the pattern grid and press plus, or press the plus button on any recipe in JEI. An Assembler Mk1 holds two recipes and alternates between them. Every machine GUI has a side panel on the left to set which sides take input and give output.
-5. Item Ducts route pushed items to the next inventory on the duct network.
+5. Utility Ducts with an Item Pipe route pushed items to the next inventory on the same channel.
 6. Red packs go into the Research Lab; open the Tech Tree from its GUI and pick a tech.
-7. Researched machines are assembled, not hand crafted: Electric Extractor (twice as fast, powered), Crusher (ore to two grit, grit smelts to ingots), Splitter Duct (pulls from chests into the duct network) and Filter Duct (whitelist in its GUI). Stone Processing adds stone, stone bricks and glass recipes to the assembler.
+7. Researched machines are assembled, not hand crafted: Electric Extractor (twice as fast, powered), Crusher (ore to two grit, grit smelts to ingots). Stone Processing adds stone, stone bricks and glass recipes to the assembler.
 8. The Chunk Loader keeps its chunk running while powered. The per team limit and the FTB Chunks rule are in `config/servus_manufacturing-common.toml`.
 
 ## Storage playtest guide
@@ -69,8 +69,8 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 
 ## Logistics playtest guide
 
-1. Item Channel (iron, glass, chest) and Energy Channel (copper, redstone, glass) place a Utility Duct carrying that channel. Use a channel item on an existing duct to add the other channel.
-2. Right click a duct to open its side configuration. Pick a side at the top, then set each channel's mode (in and out, pull in, push out, disabled), drop up to nine items into the filter row (empty means everything) and adjust the priority. Pull in actively empties the neighbouring inventory; push out delivers, highest priority first. Remove buttons take a channel back out.
+1. Item Pipe (iron, glass, chest) and Power Cable (copper, redstone, glass) place a Utility Duct carrying that line. Use a line item on an existing duct to add the other line. A duct with one line is thin, with both lines thicker, and each line shows its own color.
+2. Use the Configuration Carrot on an arm that touches a chest or machine to open that side's configuration: per line a mode (in and out, pull in, push out, disabled), one of eight colored channels (items and energy only flow between sides on the same channel; the ring at the arm's end shows the color), and for the Item Pipe up to nine filter items (empty means everything) and a priority. The carrot on the centre, on an arm toward another duct or a bare hand opens nothing.
 3. Facades: craft any full block with an iron ingot for six facades, use one on a duct and it looks like that block. Sneak wrench takes the facade off first, a second sneak wrench removes the duct and drops its channels.
 4. Engineer Goggles (leather, iron, glass) go on your head. While wearing them, or holding the wrench, hidden ducts show through walls as an orange overlay.
 
