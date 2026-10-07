@@ -81,6 +81,9 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedB
 
     private int chimneyHeight;
     private long lastVoided = Long.MIN_VALUE / 2;
+    /** Client only: the fan's current angle in degrees and the frame time it was advanced to. */
+    public float fanAngle;
+    public double fanTime = -1;
 
     public SinkBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.SINK.get(), pos, state);

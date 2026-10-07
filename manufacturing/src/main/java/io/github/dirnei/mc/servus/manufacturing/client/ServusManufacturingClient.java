@@ -8,6 +8,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 /** Client only mod bus hooks. */
@@ -45,5 +46,12 @@ public final class ServusManufacturingClient {
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.RESEARCH_LAB.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.BURNER_PUMP.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.ELECTRIC_PUMP.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.SINK.get(), SinkRenderer::new);
+    }
+
+    /** The Sink fan is a standalone model drawn by its block entity renderer. */
+    @SubscribeEvent
+    public static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
+        event.register(SinkRenderer.FAN_MODEL);
     }
 }

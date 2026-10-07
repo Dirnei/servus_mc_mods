@@ -24,7 +24,7 @@
 ## 5. Look
 
 - [x] 5.1 Textures in `src/main/resources/assets/servus_manufacturing/textures/block/`: `sink_front` (grate over a dark recess), `sink_fan`, `chimney_top` (cap with open flue); models `block/sink_fan.json` (blades as thin elements); datagen in `ServusManufacturingBlockStateProvider` for the Sink (facing variants) and the Chimney (`TOP` true and false, vanilla `minecraft:block/bricks` sides), loot tables (Sink copies block entity data), recipes (Sink from bricks, iron bars, iron ingot; 2 Chimney from 6 brick items), lang entries for blocks, GUI lines and Unlimited; verify `gradlew :manufacturing:runData` then `gradlew :manufacturing:build`
-- [ ] 5.2 Add `SinkRenderer` (fan model via `ModelEvent.RegisterAdditional` and `ModelResourceLocation.standalone`, rotation about the facing axis while `ACTIVE`, speed from the synced height, then side markers) and register it in `ServusManufacturingClient`; add `SinkBlock.animateTick` smoke at the column top; verify in the client: fan spins only while voiding and faster with a taller chimney, smoke rises from the top Chimney block, cap shows only on the top block
+- [x] 5.2 Add `SinkRenderer` (fan model via `ModelEvent.RegisterAdditional` and `ModelResourceLocation.standalone`, rotation about the facing axis while `ACTIVE`, speed from the synced height, then side markers) and register it in `ServusManufacturingClient`; add `SinkBlock.animateTick` smoke at the column top; verify in the client: fan spins only while voiding and faster with a taller chimney, smoke rises from the top Chimney block, cap shows only on the top block
 
 ## 6. Plan and integration
 
