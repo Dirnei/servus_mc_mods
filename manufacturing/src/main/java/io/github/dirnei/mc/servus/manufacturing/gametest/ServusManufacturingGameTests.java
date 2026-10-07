@@ -17,7 +17,9 @@ import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.menu.SinkMenu;
 import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -589,235 +591,159 @@ public final class ServusManufacturingGameTests {
         });
     }
 
-    // Sink. Facing north, east is its left side and west its right side.
+    // Sink: a 2x2x2 cube of Sink blocks formed with the carrot. The standard cube spans
+    // x 2..3, y 0..1, z 2..3 and faces north: its controller is the front lower east block
+    // (east is the left of a player looking at the front), west is right and south is back.
 
-    private static final BlockPos SINK = new BlockPos(2, 0, 2);
+    private static final BlockPos SINK = new BlockPos(3, 0, 2);
 
+    /** Places eight unformed Sink blocks in the box from {@code min} to {@code min + (1, 1, 1)}, except {@code skip}. */
+    private static void sinkBox(GameTestHelper helper, BlockPos min, BlockPos skip) {
+        for (BlockPos pos : BlockPos.betweenClosed(min, min.offset(1, 1, 1))) {
+            if (!pos.equals(skip)) {
+                helper.setBlock(pos, ServusManufacturingBlocks.SINK.get().defaultBlockState());
+            }
+        }
+    }
+
+    /** Uses an item on the {@code face} side of the block at relative {@code pos}. */
+    private static void useOn(GameTestHelper helper, Player player, ItemStack stack, BlockPos pos, Direction face) {
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        BlockPos absolute = helper.absolutePos(pos);
+        Vec3 hit = Vec3.atCenterOf(absolute).add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
+        stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(hit, face, absolute, false)));
+    }
+
+    private static void carrot(GameTestHelper helper, BlockPos pos, Direction face, boolean sneaking) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setShiftKeyDown(sneaking);
+        useOn(helper, player, new ItemStack(ServusLibItems.CONFIGURATION_CARROT.get()), pos, face);
+    }
+
+    /** Builds the standard cube, forms it from the controller's front and stacks a column on the back right top block. */
     private static SinkBlockEntity sink(GameTestHelper helper, int chimneys) {
-        helper.setBlock(SINK, ServusManufacturingBlocks.SINK.get().defaultBlockState().setValue(SinkBlock.FACING, Direction.NORTH));
+        sinkBox(helper, new BlockPos(2, 0, 2), null);
+        carrot(helper, SINK, Direction.NORTH, false);
+        BlockPos column = new BlockPos(2, 1, 3);
         for (int i = 1; i <= chimneys; i++) {
-            helper.setBlock(SINK.above(i), ServusManufacturingBlocks.CHIMNEY.get().defaultBlockState());
+            helper.setBlock(column.above(i), ServusManufacturingBlocks.CHIMNEY.get().defaultBlockState());
         }
         return helper.getBlockEntity(SINK);
     }
 
-    private static IItemHandler sinkItems(GameTestHelper helper, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(SINK), side);
+    private static boolean formed(GameTestHelper helper, BlockPos pos) {
+        return SinkBlock.isFormed(helper.getBlockState(pos));
     }
 
-    private static IFluidHandler sinkFluid(GameTestHelper helper, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(SINK), side);
+    /** Asserts that the box at {@code min} is one Sink facing {@code facing} with its controller at {@code controller}. */
+    private static void assertFormedCube(GameTestHelper helper, BlockPos min, Direction facing, BlockPos controller) {
+        Set<Integer> parts = new HashSet<>();
+        for (BlockPos pos : BlockPos.betweenClosed(min, min.offset(1, 1, 1))) {
+            BlockState state = helper.getBlockState(pos);
+            helper.assertTrue(SinkBlock.isFormed(state), "every block should be formed, not " + pos.immutable());
+            helper.assertTrue(state.getValue(SinkBlock.FACING) == facing, "every block should face " + facing);
+            parts.add(state.getValue(SinkBlock.PART));
+        }
+        helper.assertTrue(parts.size() == 8, "eight different parts, got " + parts);
+        helper.assertTrue(helper.getBlockState(controller).getValue(SinkBlock.PART) == 0,
+                "the front lower left block should be the controller for " + facing);
     }
 
-    private static IEnergyStorage sinkEnergy(GameTestHelper helper, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, helper.absolutePos(SINK), side);
-    }
-
-    /** A hopper pointing into a Sink with five Chimney blocks empties and the items appear nowhere. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void hopperEmptiesIntoSink(GameTestHelper helper) {
-        sink(helper, 5);
-        BlockPos hopperPos = SINK.east();
-        helper.setBlock(hopperPos, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.WEST));
-        HopperBlockEntity hopper = helper.getBlockEntity(hopperPos);
-        hopper.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
-        helper.succeedWhen(() -> {
-            helper.assertTrue(hopper.isEmpty(), "the hopper should empty into the Sink");
-            helper.assertItemEntityNotPresent(Items.COBBLESTONE);
-        });
-    }
-
-    /** Without a chimney the item rate of 4 per second takes 4 of a 64 stack; the rest stays with the sender. */
+    /** The carrot forms a cube from each of the four front blocks, for all four facings. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void sinkBaseRateTakesFourItems(GameTestHelper helper) {
+    public static void sinkFormsFromEachFrontPart(GameTestHelper helper) {
+        // North, clicked on the controller itself (front lower east).
+        sinkBox(helper, new BlockPos(1, 0, 1), null);
+        carrot(helper, new BlockPos(2, 0, 1), Direction.NORTH, false);
+        assertFormedCube(helper, new BlockPos(1, 0, 1), Direction.NORTH, new BlockPos(2, 0, 1));
+        // East, clicked on the front lower right block (north end); the controller is the south end.
+        sinkBox(helper, new BlockPos(5, 0, 1), null);
+        carrot(helper, new BlockPos(6, 0, 1), Direction.EAST, false);
+        assertFormedCube(helper, new BlockPos(5, 0, 1), Direction.EAST, new BlockPos(6, 0, 2));
+        // South, clicked on the front upper left block (west end).
+        sinkBox(helper, new BlockPos(1, 0, 5), null);
+        carrot(helper, new BlockPos(1, 1, 6), Direction.SOUTH, false);
+        assertFormedCube(helper, new BlockPos(1, 0, 5), Direction.SOUTH, new BlockPos(1, 0, 6));
+        // West, clicked on the front upper right block (south end); the controller is the north end.
+        sinkBox(helper, new BlockPos(5, 0, 5), null);
+        carrot(helper, new BlockPos(5, 1, 6), Direction.WEST, false);
+        assertFormedCube(helper, new BlockPos(5, 0, 5), Direction.WEST, new BlockPos(5, 0, 5));
+        helper.succeed();
+    }
+
+    /** Seven blocks in a 2x2x2 shape do not form; the top face does not form either. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkSevenBlocksDoNotForm(GameTestHelper helper) {
+        BlockPos min = new BlockPos(2, 0, 2);
+        sinkBox(helper, min, new BlockPos(2, 1, 3));
+        carrot(helper, SINK, Direction.NORTH, false);
+        for (BlockPos pos : BlockPos.betweenClosed(min, min.offset(1, 1, 1))) {
+            helper.assertTrue(!formed(helper, pos), "nothing should form from seven blocks");
+        }
+        helper.setBlock(new BlockPos(2, 1, 3), ServusManufacturingBlocks.SINK.get().defaultBlockState());
+        carrot(helper, new BlockPos(3, 1, 2), Direction.UP, false);
+        helper.assertTrue(!formed(helper, SINK), "the top face is no front");
+        carrot(helper, new BlockPos(3, 1, 2), Direction.NORTH, false);
+        assertFormedCube(helper, min, Direction.NORTH, SINK);
+        helper.succeed();
+    }
+
+    /** Casings next to a formed Sink never take its blocks; they form once their own cube is complete. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkFormingIgnoresFormedNeighbour(GameTestHelper helper) {
         sink(helper, 0);
-        IItemHandler top = sinkItems(helper, Direction.UP);
-        helper.assertTrue(top != null, "the top is Input");
-        ItemStack simulated = top.insertItem(0, new ItemStack(Items.COBBLESTONE, 64), true);
-        helper.assertTrue(simulated.getCount() == 60, "a simulated insert should leave 60, left " + simulated);
-        ItemStack left = top.insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
-        helper.assertTrue(left.getCount() == 60, "the Sink should take 4 of 64, left " + left);
-        ItemStack again = sinkItems(helper, Direction.WEST).insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
-        helper.assertTrue(again.getCount() == 64, "all sides share one budget, the same tick takes nothing more, left " + again);
-        helper.assertTrue(top.getStackInSlot(0).isEmpty(), "the Sink holds nothing");
+        // Four casings east of the formed cube: only the cube with the formed blocks would be complete.
+        BlockPos column = new BlockPos(4, 0, 2);
+        for (BlockPos pos : BlockPos.betweenClosed(column, column.offset(0, 1, 1))) {
+            helper.setBlock(pos, ServusManufacturingBlocks.SINK.get().defaultBlockState());
+        }
+        carrot(helper, column, Direction.NORTH, false);
+        helper.assertTrue(!formed(helper, column), "the casings must not form with blocks of a formed Sink");
+        assertFormedCube(helper, new BlockPos(2, 0, 2), Direction.NORTH, SINK);
+        for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(5, 0, 2), new BlockPos(5, 1, 3))) {
+            helper.setBlock(pos, ServusManufacturingBlocks.SINK.get().defaultBlockState());
+        }
+        carrot(helper, column, Direction.NORTH, false);
+        assertFormedCube(helper, new BlockPos(4, 0, 2), Direction.NORTH, new BlockPos(5, 0, 2));
+        assertFormedCube(helper, new BlockPos(2, 0, 2), Direction.NORTH, SINK);
         helper.succeed();
     }
 
-    /** Five Chimney blocks void everything at once: 10,000 FE, a huge fill and a full stack. */
+    /** Breaking one block unforms the other seven and drops one plain Sink block; repairing and the carrot form it again. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void sinkWithFiveChimneysIsUnlimited(GameTestHelper helper) {
-        SinkBlockEntity sink = sink(helper, 5);
-        helper.assertTrue(sink.chimneyHeight() == 5, "five Chimney blocks, height " + sink.chimneyHeight());
-        IEnergyStorage energy = sinkEnergy(helper, Direction.UP);
-        helper.assertTrue(energy.receiveEnergy(10_000, false) == 10_000, "all energy should be accepted");
-        helper.assertTrue(energy.receiveEnergy(10_000, false) == 10_000, "again in the same tick");
-        helper.assertTrue(energy.getEnergyStored() == 0, "the Sink reports no stored energy");
-        IFluidHandler fluid = sinkFluid(helper, Direction.SOUTH);
-        helper.assertTrue(fluid.fill(new FluidStack(Fluids.WATER, 1_000_000), IFluidHandler.FluidAction.EXECUTE) == 1_000_000,
-                "all water should be accepted");
-        helper.assertTrue(fluid.getFluidInTank(0).isEmpty(), "the Sink reports no fluid");
-        ItemStack left = sinkItems(helper, Direction.EAST).insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
-        helper.assertTrue(left.isEmpty(), "the full stack should be accepted, left " + left);
-        helper.succeed();
-    }
-
-    /** Below the unlimited height energy and fluid follow the rate of the height. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void sinkRateGrowsWithChimney(GameTestHelper helper) {
-        sink(helper, 2);
-        // Height 2: 400 FE and 200 mB per tick, one second of carry over in an idle Sink.
-        helper.assertTrue(sinkEnergy(helper, Direction.UP).receiveEnergy(100_000, false) == 8_000, "one second of 400 FE per tick");
-        helper.assertTrue(sinkFluid(helper, Direction.UP).fill(new FluidStack(Fluids.WATER, 100_000), IFluidHandler.FluidAction.EXECUTE) == 4_000,
-                "one second of 200 mB per tick");
-        helper.succeed();
-    }
-
-    /** The front and an Off side offer no capability; Input sides offer nothing to extract. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void sinkFrontAndOffSidesRefuse(GameTestHelper helper) {
-        SinkBlockEntity sink = sink(helper, 0);
-        helper.assertTrue(sinkItems(helper, Direction.NORTH) == null, "no items through the front");
-        helper.assertTrue(sinkFluid(helper, Direction.NORTH) == null, "no fluid through the front");
-        helper.assertTrue(sinkEnergy(helper, Direction.NORTH) == null, "no energy through the front");
-        helper.assertTrue(sink.cycleFace(Direction.NORTH) == SideMode.DISABLED, "the front cannot be cycled");
-        helper.assertTrue(sink.cycleSide(RelativeSide.LEFT) == SideMode.DISABLED, "Input cycles to Off");
-        helper.assertTrue(sinkEnergy(helper, Direction.EAST) == null, "an Off side takes no energy");
-        helper.assertTrue(sinkItems(helper, Direction.EAST) == null, "an Off side takes no items");
-        helper.assertTrue(sinkFluid(helper, Direction.EAST) == null, "an Off side takes no fluid");
-        helper.assertTrue(sink.cycleSide(RelativeSide.LEFT) == SideMode.INPUT, "Off cycles back to Input");
-        IItemHandler items = sinkItems(helper, Direction.DOWN);
-        items.insertItem(0, new ItemStack(Items.COBBLESTONE, 2), false);
-        helper.assertTrue(items.extractItem(0, 64, false).isEmpty(), "nothing can be extracted");
-        helper.assertTrue(sinkFluid(helper, Direction.DOWN).drain(1000, IFluidHandler.FluidAction.EXECUTE).isEmpty(), "nothing can be drained");
-        helper.assertTrue(sinkEnergy(helper, Direction.DOWN).extractEnergy(1000, false) == 0, "no energy can be extracted");
-        helper.succeed();
-    }
-
-    /** Three Chimney blocks give height 3 and only the top one shows the cap. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void sinkCountsItsChimney(GameTestHelper helper) {
-        SinkBlockEntity sink = sink(helper, 3);
-        helper.assertTrue(sink.chimneyHeight() == 3, "expected height 3, got " + sink.chimneyHeight());
-        helper.assertTrue(!helper.getBlockState(SINK.above(1)).getValue(ChimneyBlock.TOP), "the lowest block has no cap");
-        helper.assertTrue(!helper.getBlockState(SINK.above(2)).getValue(ChimneyBlock.TOP), "the middle block has no cap");
-        helper.assertTrue(helper.getBlockState(SINK.above(3)).getValue(ChimneyBlock.TOP), "the top block has the cap");
-        helper.setBlock(SINK.above(4), ServusManufacturingBlocks.CHIMNEY.get().defaultBlockState());
-        helper.assertTrue(!helper.getBlockState(SINK.above(3)).getValue(ChimneyBlock.TOP), "the cap moves up");
-        helper.assertTrue(sink.chimneyHeight() == 4, "expected height 4, got " + sink.chimneyHeight());
-        helper.succeed();
-    }
-
-    /** Breaking the second of four Chimney blocks leaves a height of 1. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void sinkChimneyMiddleRemoved(GameTestHelper helper) {
-        SinkBlockEntity sink = sink(helper, 4);
-        helper.assertTrue(sink.chimneyHeight() == 4, "expected height 4, got " + sink.chimneyHeight());
-        helper.destroyBlock(SINK.above(2));
-        helper.assertTrue(sink.chimneyHeight() == 1, "expected height 1, got " + sink.chimneyHeight());
-        helper.assertTrue(helper.getBlockState(SINK.above(1)).getValue(ChimneyBlock.TOP), "the remaining block shows the cap");
-        helper.setBlock(SINK.above(2), ServusManufacturingBlocks.CHIMNEY.get().defaultBlockState());
-        helper.assertTrue(sink.chimneyHeight() == 4, "filling the gap joins the column again, got " + sink.chimneyHeight());
-        helper.succeed();
-    }
-
-    /** Chimney blocks on stone are decorative: they stack and cap like on a Sink. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void chimneyOnStoneIsDecorative(GameTestHelper helper) {
-        BlockPos base = new BlockPos(6, 0, 6);
-        helper.setBlock(base, Blocks.STONE.defaultBlockState());
-        helper.setBlock(base.above(1), ServusManufacturingBlocks.CHIMNEY.get().defaultBlockState());
-        helper.setBlock(base.above(2), ServusManufacturingBlocks.CHIMNEY.get().defaultBlockState());
-        helper.assertTrue(!helper.getBlockState(base.above(1)).getValue(ChimneyBlock.TOP), "lower block without cap");
-        helper.assertTrue(helper.getBlockState(base.above(2)).getValue(ChimneyBlock.TOP), "top block with cap");
-        helper.destroyBlock(base.above(2));
-        helper.assertTrue(helper.getBlockState(base.above(1)).getValue(ChimneyBlock.TOP), "the cap moves down");
-        helper.succeed();
-    }
-
-    /** Voiding turns the Sink active; after the active time without voiding it turns idle again. */
-    @GameTest(template = EMPTY, timeoutTicks = 120)
-    public static void sinkActiveWhileVoiding(GameTestHelper helper) {
+    public static void sinkBreakingUnformsAndReforms(GameTestHelper helper) {
         sink(helper, 0);
-        helper.assertTrue(!helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "a new Sink is idle");
-        sinkEnergy(helper, Direction.UP).receiveEnergy(50, true);
-        helper.assertTrue(!helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "a simulated insert does not count");
-        sinkEnergy(helper, Direction.UP).receiveEnergy(50, false);
-        helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "voiding turns it active");
-        helper.runAfterDelay(20, () -> {
-            helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "still active within the active time");
-            helper.runAfterDelay(25, () -> {
-                helper.assertTrue(!helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "idle after the active time");
-                helper.succeed();
-            });
-        });
-    }
-
-    /** A sneak carrot dismantles the Sink into an item that restores its Off side when placed again. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void sinkDismantleKeepsSides(GameTestHelper helper) {
-        SinkBlockEntity sink = sink(helper, 0);
-        sink.cycleSide(RelativeSide.LEFT);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.setYRot(0.0F);
-        player.setShiftKeyDown(true);
-        BlockPos absolute = helper.absolutePos(SINK);
-        ItemStack carrot = new ItemStack(ServusLibItems.CONFIGURATION_CARROT.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
-        carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
-                new BlockHitResult(Vec3.atCenterOf(absolute).add(0, 0.5, 0), Direction.UP, absolute, false)));
-        helper.assertBlockNotPresent(ServusManufacturingBlocks.SINK.get(), SINK);
-        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(absolute).inflate(2));
-        ItemStack dropped = drops.stream().map(ItemEntity::getItem)
-                .filter(stack -> stack.is(ServusManufacturingItems.SINK.get())).findFirst().orElse(ItemStack.EMPTY);
-        helper.assertTrue(!dropped.isEmpty(), "the Sink should drop as an item");
+        BlockPos broken = new BlockPos(2, 1, 3);
+        // With drops, like a player breaking it.
+        helper.getLevel().destroyBlock(helper.absolutePos(broken), true);
+        for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(2, 0, 2), new BlockPos(3, 1, 3))) {
+            if (!pos.equals(broken)) {
+                BlockState state = helper.getBlockState(pos);
+                helper.assertTrue(state.is(ServusManufacturingBlocks.SINK.get()) && !state.getValue(SinkBlock.FORMED),
+                        "the rest should be unformed casings, not " + state);
+            }
+        }
+        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(broken)).inflate(2));
+        int dropped = drops.stream().filter(entity -> entity.getItem().is(ServusManufacturingItems.SINK.get()))
+                .mapToInt(entity -> entity.getItem().getCount()).sum();
+        helper.assertTrue(dropped == 1, "one Sink block should drop, dropped " + dropped);
         drops.forEach(ItemEntity::discard);
-
-        BlockPos target = new BlockPos(6, 0, 6);
-        BlockPos targetAbsolute = helper.absolutePos(target);
-        helper.setBlock(target, Blocks.STONE.defaultBlockState());
-        player.setShiftKeyDown(false);
-        ItemStack placed = dropped.copy();
-        player.setItemInHand(InteractionHand.MAIN_HAND, placed);
-        placed.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
-                new BlockHitResult(Vec3.atCenterOf(targetAbsolute).add(0, 0.5, 0), Direction.UP, targetAbsolute, false)));
-        SinkBlockEntity again = helper.getBlockEntity(target.above());
-        helper.assertTrue(again.sideConfig().mode(RelativeSide.LEFT) == SideMode.DISABLED, "the left side stays Off");
-        helper.assertTrue(again.sideConfig().mode(RelativeSide.RIGHT) == SideMode.INPUT, "the right side stays Input");
+        helper.setBlock(broken, ServusManufacturingBlocks.SINK.get().defaultBlockState());
+        carrot(helper, new BlockPos(2, 0, 2), Direction.NORTH, false);
+        assertFormedCube(helper, new BlockPos(2, 0, 2), Direction.NORTH, SINK);
         helper.succeed();
     }
 
-    /** A lava bucket used on the Sink is emptied whatever the rate, and the player keeps an empty bucket. */
+    /** The sneak carrot dismantles one block of a formed Sink into a plain Sink item and unforms the rest. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void sinkEmptiesLavaBucket(GameTestHelper helper) {
+    public static void sinkSneakCarrotDismantlesOneBlock(GameTestHelper helper) {
         sink(helper, 0);
-        // Use up the fluid budget first: the bucket must not depend on it.
-        sinkFluid(helper, Direction.UP).fill(new FluidStack(Fluids.WATER, 100_000), IFluidHandler.FluidAction.EXECUTE);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack bucket = new ItemStack(Items.LAVA_BUCKET);
-        player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
-        BlockPos absolute = helper.absolutePos(SINK);
-        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).add(0, 0.5, 0), Direction.UP, absolute, false);
-        helper.getBlockState(SINK).useItemOn(bucket, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
-        ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
-        helper.assertTrue(held.is(Items.BUCKET) && held.getCount() == 1, "the player should hold an empty bucket, holds " + held);
-        helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "voiding the lava turns the Sink active");
-        helper.succeed();
-    }
-
-    /** Shift clicking a stack into the trash slot voids all of it at once, even without a chimney. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void sinkTrashSlotVoidsStack(GameTestHelper helper) {
-        SinkBlockEntity sink = sink(helper, 0);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.getInventory().setItem(9, new ItemStack(Items.COBBLESTONE, 64));
-        SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
-        // Slot 0 is the trash slot, slot 1 the first inventory slot (player inventory index 9).
-        menu.quickMoveStack(player, 1);
-        helper.assertTrue(player.getInventory().getItem(9).isEmpty(), "the stack should be gone");
-        helper.assertTrue(menu.getSlot(0).getItem().isEmpty(), "the trash slot stays empty");
-        helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "no cobblestone anywhere in the inventory");
-        helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "the trash slot turns the Sink active");
-        helper.assertTrue(menu.chimneyHeight() == 0 && menu.itemRate() == 4, "height 0 shows 4 items per second");
+        carrot(helper, SINK, Direction.NORTH, true);
+        helper.assertBlockNotPresent(ServusManufacturingBlocks.SINK.get(), SINK);
+        helper.assertTrue(!formed(helper, new BlockPos(2, 0, 2)), "the rest should be unformed");
+        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(SINK)).inflate(2));
+        helper.assertTrue(drops.stream().anyMatch(entity -> entity.getItem().is(ServusManufacturingItems.SINK.get())),
+                "the block should drop as a Sink item");
         helper.succeed();
     }
 }

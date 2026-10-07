@@ -1,12 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.sink;
 
-import io.github.dirnei.mc.servus.lib.block.SidedBlockEntity;
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideConfig;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.menu.SinkMenu;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -29,23 +24,23 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 
 /**
- * The Sink: voids items, fluid and energy at a rate set by the Chimney column
- * on top. Has no ticker; budgets refill lazily from the game time and the
- * active state is cleared by a scheduled block tick.
+ * A Sink block entity. Every block of the cube has one, but only the
+ * controller's (part 0) is used: it voids items, fluid and energy at a rate set
+ * by the tallest Chimney column on top. The other parts route their
+ * capabilities to it. Has no ticker; budgets refill lazily from the game time
+ * and the active state is cleared by a scheduled block tick.
  */
-public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedBlockEntity {
+public class SinkBlockEntity extends BlockEntity implements MenuProvider {
 
     public static final int DATA_HEIGHT = 0;
     public static final int DATA_ITEMS = 1;
     public static final int DATA_FLUID = 2;
     public static final int DATA_ENERGY = 3;
-    public static final int DATA_SIDE_FIRST = 4;
-    public static final int DATA_COUNT = DATA_SIDE_FIRST + 6;
+    public static final int DATA_COUNT = 4;
 
     /** How far up the column is walked, and down from a Chimney to its Sink. */
     public static final int MAX_COLUMN = 32;
 
-    private final SideConfig sideConfig = new SideConfig(List.of(SideMode.INPUT, SideMode.DISABLED), SideMode.INPUT);
     private final VoidBudget itemBudget = new VoidBudget();
     private final VoidBudget fluidBudget = new VoidBudget();
     private final VoidBudget energyBudget = new VoidBudget();
@@ -56,9 +51,6 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedB
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
-            if (index >= DATA_SIDE_FIRST && index < DATA_COUNT) {
-                return sideConfig.mode(RelativeSide.byOrdinal(index - DATA_SIDE_FIRST)).ordinal();
-            }
             SinkRates rates = rates();
             return switch (index) {
                 case DATA_HEIGHT -> chimneyHeight;
@@ -80,6 +72,8 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedB
     };
 
     private int chimneyHeight;
+    /** The top part carrying the tallest column, or -1 without a chimney; synced for the smoke. */
+    private int chimneyColumn = -1;
     private long lastVoided = Long.MIN_VALUE / 2;
     /** Client only: the fan's current angle in degrees and the frame time it was advanced to. */
     public float fanAngle;
@@ -87,8 +81,6 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedB
 
     public SinkBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.SINK.get(), pos, state);
-        // The fan sits in the front: nothing goes in there.
-        sideConfig.lock(RelativeSide.FRONT, SideMode.DISABLED);
     }
 
     // Rates and budgets
@@ -103,6 +95,11 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedB
 
     public int chimneyHeight() {
         return chimneyHeight;
+    }
+
+    /** The top part whose column is the tallest, or -1 without a chimney. */
+    public int chimneyColumn() {
+        return chimneyColumn;
     }
 
     private long gameTime() {
@@ -154,15 +151,26 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedB
 
     // Chimney
 
-    /** Counts the Chimney blocks straight above and syncs the height when it changed. */
+    /** Counts the columns on the four top parts, keeps the tallest and syncs it when it changed. */
     public void recountChimney() {
         if (level == null || level.isClientSide()) {
             return;
         }
-        int height = countColumn(level, worldPosition);
-        if (height != chimneyHeight) {
+        BlockState state = getBlockState();
+        int height = 0;
+        int column = -1;
+        if (SinkBlock.isFormed(state) && state.getValue(SinkBlock.PART) == SinkLayout.CONTROLLER) {
+            for (int part : SinkLayout.topParts()) {
+                int count = countColumn(level, SinkBlock.partPos(worldPosition, state.getValue(SinkBlock.FACING), part));
+                if (count > height) {
+                    height = count;
+                    column = part;
+                }
+            }
+        }
+        if (height != chimneyHeight || column != chimneyColumn) {
             chimneyHeight = height;
-            BlockState state = getBlockState();
+            chimneyColumn = column;
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
     }
@@ -185,8 +193,10 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedB
     public void onLoad() {
         super.onLoad();
         if (level != null && !level.isClientSide()) {
-            recountChimney();
             BlockState state = getBlockState();
+            if (state.getValue(SinkBlock.PART) == SinkLayout.CONTROLLER) {
+                recountChimney();
+            }
             // lastVoided is not saved: an active Sink found on load turns idle with one scheduled tick.
             if (state.hasProperty(SinkBlock.ACTIVE) && state.getValue(SinkBlock.ACTIVE)
                     && !level.getBlockTicks().hasScheduledTick(worldPosition, state.getBlock())) {
@@ -197,17 +207,20 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedB
 
     // Capabilities
 
-    /** The item handler automation sees from {@code side}, or null on an Off side. */
+    /** The item handler automation sees on this part from {@code side}, or null on a casing or a front face. */
     public IItemHandler itemHandler(Direction side) {
-        return accepts(side) ? itemHandler : null;
+        SinkBlockEntity controller = acceptingController(side);
+        return controller == null ? null : controller.itemHandler;
     }
 
     public IFluidHandler fluidHandler(Direction side) {
-        return accepts(side) ? fluidHandler : null;
+        SinkBlockEntity controller = acceptingController(side);
+        return controller == null ? null : controller.fluidHandler;
     }
 
     public IEnergyStorage energyStorage(Direction side) {
-        return accepts(side) ? energyHandler : null;
+        SinkBlockEntity controller = acceptingController(side);
+        return controller == null ? null : controller.energyHandler;
     }
 
     /** A fluid handler without a rate limit, for buckets used by hand. */
@@ -215,64 +228,39 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedB
         return manualFluidHandler;
     }
 
-    private boolean accepts(Direction side) {
-        return side == null || sideMode(side).allowsInsert();
-    }
-
-    // Sides
-
-    @Override
-    public SideConfig sideConfig() {
-        return sideConfig;
-    }
-
-    @Override
-    public Direction facing() {
-        BlockState state = getBlockState();
-        return state.hasProperty(SinkBlock.FACING) ? state.getValue(SinkBlock.FACING) : Direction.NORTH;
-    }
-
-    @Override
-    public SideMode cycleSide(RelativeSide side) {
-        SideMode mode = sideConfig.cycle(side);
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            level.invalidateCapabilities(worldPosition);
-            BlockState state = getBlockState();
-            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+    /** The controller this part hands {@code side} to: none on a casing, an orphaned part or the fan's front faces. */
+    private SinkBlockEntity acceptingController(Direction side) {
+        if (level == null) {
+            return null;
         }
-        return mode;
+        BlockState state = getBlockState();
+        if (!SinkBlock.isFormed(state)
+                || side != null && side == state.getValue(SinkBlock.FACING) && SinkLayout.isFront(state.getValue(SinkBlock.PART))) {
+            return null;
+        }
+        return SinkBlock.controller(level, worldPosition, state);
     }
 
     public ContainerData containerData() {
         return data;
     }
 
-    // Persistence: the side configuration only; the height is recounted on load.
-
-    @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        if (!sideConfig.isDefault()) {
-            tag.putByteArray("Sides", sideConfig.toBytes());
-        }
-    }
+    // Persistence: nothing is saved; the height is recounted on load and only the client update tag carries it.
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        sideConfig.fromBytes(tag.contains("Sides") ? tag.getByteArray("Sides") : new byte[0]);
         if (tag.contains("Height")) {
-            // Only the client update tag carries the height.
             chimneyHeight = tag.getInt("Height");
+            chimneyColumn = tag.getInt("Column");
         }
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        tag.putByteArray("Sides", sideConfig.toBytes());
         tag.putInt("Height", chimneyHeight);
+        tag.putInt("Column", chimneyColumn);
         return tag;
     }
 

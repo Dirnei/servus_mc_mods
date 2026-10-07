@@ -43,6 +43,10 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("gui.servus_manufacturing.sink.unlimited", "Unlimited");
         add("gui.servus_manufacturing.sink.hint", "Taller chimney, faster Sink");
         add("gui.servus_manufacturing.sink.trash", "Anything put here is destroyed");
+        add("message.servus_manufacturing.sink.casing",
+                "Build a 2x2x2 cube of Sink blocks and click its front with the Configuration Carrot");
+        add("message.servus_manufacturing.sink.incomplete", "A Sink needs a full 2x2x2 cube of Sink blocks behind this face");
+        add("message.servus_manufacturing.sink.side_face", "Click a side of the cube: that side becomes the front");
         add("gui.servus_manufacturing.pump.source_ok", "Infinite water source below");
         add("gui.servus_manufacturing.pump.source_missing", "Needs an infinite water source below");
         add("gui.servus_manufacturing.chunk_loader.no_power", "Inactive: no power");

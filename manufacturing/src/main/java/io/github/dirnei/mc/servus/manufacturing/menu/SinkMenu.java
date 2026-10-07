@@ -1,8 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.menu;
 
-import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingMenus;
 import net.minecraft.core.BlockPos;
@@ -19,7 +17,8 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * The Sink GUI: one trash slot that voids whatever is put in, at once and
- * without a rate limit, plus the chimney height, rates and side modes.
+ * without a rate limit, plus the chimney height and rates. Always belongs to
+ * the controller of a formed Sink.
  */
 public class SinkMenu extends AbstractContainerMenu {
 
@@ -83,23 +82,10 @@ public class SinkMenu extends AbstractContainerMenu {
         return data.get(SinkBlockEntity.DATA_ENERGY);
     }
 
-    public SideMode sideMode(RelativeSide side) {
-        return SideMode.byOrdinal(data.get(SinkBlockEntity.DATA_SIDE_FIRST + side.ordinal()));
-    }
-
-    @Override
-    public boolean clickMenuButton(Player player, int id) {
-        RelativeSide side = SideConfigMenus.sideOf(id);
-        if (side != null) {
-            sink.cycleSide(side);
-            return true;
-        }
-        return false;
-    }
-
+    /** Valid while the player is near and the Sink is still formed. */
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, sink.getBlockState().getBlock());
+        return SinkBlock.isFormed(sink.getBlockState()) && stillValid(access, player, sink.getBlockState().getBlock());
     }
 
     /** Shift click from the inventory throws the whole stack away; the trash slot never holds anything. */

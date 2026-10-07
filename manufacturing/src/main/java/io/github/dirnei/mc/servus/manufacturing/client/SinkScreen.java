@@ -1,7 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
-import io.github.dirnei.mc.servus.lib.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.menu.SinkMenu;
 import net.minecraft.client.gui.GuiGraphics;
@@ -10,7 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-/** Sink GUI: the trash slot, the chimney height, the three rates and the side panel. */
+/** Sink GUI: the trash slot, the chimney height and the three rates. */
 public class SinkScreen extends AbstractContainerScreen<SinkMenu> {
 
     private static final ResourceLocation TEXTURE =
@@ -20,12 +18,6 @@ public class SinkScreen extends AbstractContainerScreen<SinkMenu> {
     private static final int LINE_X = 8;
     private static final int LINE_Y = 18;
     private static final int LINE_HEIGHT = 11;
-
-    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> menu.sink().sideConfig().isLocked(side), side -> {
-        if (minecraft != null && minecraft.gameMode != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(side));
-        }
-    });
 
     public SinkScreen(SinkMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -37,7 +29,6 @@ public class SinkScreen extends AbstractContainerScreen<SinkMenu> {
     protected void init() {
         super.init();
         this.inventoryLabelY = this.imageHeight - 94;
-        panel.placeBeside(leftPos, topPos);
     }
 
     @Override
@@ -47,7 +38,6 @@ public class SinkScreen extends AbstractContainerScreen<SinkMenu> {
         if (menu.getCarried().isEmpty() && isHovering(SinkMenu.TRASH_X, SinkMenu.TRASH_Y, 16, 16, mouseX, mouseY)) {
             guiGraphics.renderTooltip(font, Component.translatable("gui.servus_manufacturing.sink.trash"), mouseX, mouseY);
         }
-        panel.renderTooltip(guiGraphics, font, mouseX, mouseY);
     }
 
     @Override
@@ -74,16 +64,7 @@ public class SinkScreen extends AbstractContainerScreen<SinkMenu> {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (panel.mouseClicked(mouseX, mouseY)) {
-            return true;
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
-        panel.render(guiGraphics, font, mouseX, mouseY);
     }
 }

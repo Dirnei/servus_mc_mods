@@ -12,9 +12,9 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 /**
- * A brick Chimney block. Stacked straight on a Sink it raises the Sink's void
- * rate; the top block of a column shows the cap. Placing or removing one tells
- * the Sink at the bottom of its column to count again.
+ * A brick Chimney block. Stacked straight on a top block of a formed Sink it
+ * raises the Sink's void rate; the top block of a column shows the cap. Placing
+ * or removing one tells the Sink at the bottom of its column to count again.
  */
 public class ChimneyBlock extends Block {
 
@@ -68,7 +68,7 @@ public class ChimneyBlock extends Block {
         }
     }
 
-    /** Walks down through the column below {@code pos}; a Sink at its bottom counts its chimney again. */
+    /** Walks down through the column below {@code pos}; a formed Sink at its bottom counts its chimneys again. */
     private static void notifySink(Level level, BlockPos pos) {
         if (level.isClientSide()) {
             return;
@@ -80,7 +80,8 @@ public class ChimneyBlock extends Block {
             if (below.getBlock() instanceof ChimneyBlock) {
                 continue;
             }
-            if (level.getBlockEntity(cursor) instanceof SinkBlockEntity sink) {
+            SinkBlockEntity sink = SinkBlock.controller(level, cursor, below);
+            if (sink != null) {
                 sink.recountChimney();
             }
             return;
