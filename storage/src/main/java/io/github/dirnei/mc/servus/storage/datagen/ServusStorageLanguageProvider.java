@@ -62,6 +62,15 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.state.picking", "picking");
         add("gui.servus_storage.terminal.state.waiting_room", "waiting for room");
         add("gui.servus_storage.terminal.state.producing", "producing");
+        add("gui.servus_storage.terminal.rule", "Rule");
+        add("gui.servus_storage.terminal.rule_min", "Min");
+        add("gui.servus_storage.terminal.rule_max", "Max");
+        add("gui.servus_storage.terminal.rule_save", "Save");
+        add("gui.servus_storage.terminal.rule_remove", "Remove rule");
+        add("gui.servus_storage.terminal.rule_line", "Rule: keep %s to %s, %s");
+        add("gui.servus_storage.terminal.rule_state.ok", "ok");
+        add("gui.servus_storage.terminal.rule_state.ordering", "ordering");
+        add("gui.servus_storage.terminal.rule_state.no_producer", "no producer");
         add("gui.servus_storage.terminal.state.missing", "%s missing");
         add("gui.servus_storage.terminal.message.offline", "The warehouse is offline");
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");

@@ -6,6 +6,8 @@ import io.github.dirnei.mc.servus.storage.terminal.CancelRequestPayload;
 import io.github.dirnei.mc.servus.storage.terminal.PushCarriedPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestItemPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
+import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
+import io.github.dirnei.mc.servus.storage.terminal.SetStockRulePayload;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +52,13 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
 
     // Amount prompt
     private ItemStack prompting = ItemStack.EMPTY;
+    private boolean ruleMode;
     private EditBox amount;
-    private final List<Button> promptButtons = new ArrayList<>();
+    private EditBox maximum;
+    private final List<Button> requestButtons = new ArrayList<>();
+    private final List<Button> ruleButtons = new ArrayList<>();
+    private Button modeToggle;
+    private Button cancelButton;
 
     public CounterTerminalScreen(CounterTerminalMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -79,17 +86,28 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
         amount.setMaxLength(6);
         amount.setFilter(text -> text.isEmpty() || text.chars().allMatch(Character::isDigit));
         addRenderableWidget(amount);
-        promptButtons.clear();
-        promptButtons.add(addRenderableWidget(Button.builder(Component.literal("+1"), b -> bump(1))
+        maximum = new EditBox(font, leftPos + 120, topPos + GRID_Y + 22, 48, 12, Component.translatable("gui.servus_storage.terminal.rule_max"));
+        maximum.setMaxLength(6);
+        maximum.setFilter(text -> text.isEmpty() || text.chars().allMatch(Character::isDigit));
+        addRenderableWidget(maximum);
+        requestButtons.clear();
+        ruleButtons.clear();
+        requestButtons.add(addRenderableWidget(Button.builder(Component.literal("+1"), b -> bump(1))
                 .bounds(leftPos + 18, topPos + GRID_Y + 38, 44, 14).build()));
-        promptButtons.add(addRenderableWidget(Button.builder(Component.literal("+10"), b -> bump(10))
+        requestButtons.add(addRenderableWidget(Button.builder(Component.literal("+10"), b -> bump(10))
                 .bounds(leftPos + 66, topPos + GRID_Y + 38, 44, 14).build()));
-        promptButtons.add(addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.plus_stack"), b -> bump(prompting.getMaxStackSize()))
+        requestButtons.add(addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.plus_stack"), b -> bump(prompting.getMaxStackSize()))
                 .bounds(leftPos + 114, topPos + GRID_Y + 38, 44, 14).build()));
-        promptButtons.add(addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.request"), b -> confirmPrompt())
-                .bounds(leftPos + 18, topPos + GRID_Y + 54, 68, 14).build()));
-        promptButtons.add(addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.cancel"), b -> closePrompt())
-                .bounds(leftPos + 90, topPos + GRID_Y + 54, 68, 14).build()));
+        requestButtons.add(addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.request"), b -> confirmPrompt())
+                .bounds(leftPos + 18, topPos + GRID_Y + 54, 46, 14).build()));
+        ruleButtons.add(addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.rule_save"), b -> saveRule())
+                .bounds(leftPos + 18, topPos + GRID_Y + 54, 46, 14).build()));
+        ruleButtons.add(addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.rule_remove"), b -> removeRule())
+                .bounds(leftPos + 18, topPos + GRID_Y + 38, 92, 14).build()));
+        modeToggle = addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.rule"), b -> toggleMode())
+                .bounds(leftPos + 66, topPos + GRID_Y + 54, 46, 14).build());
+        cancelButton = addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.cancel"), b -> closePrompt())
+                .bounds(leftPos + 114, topPos + GRID_Y + 54, 46, 14).build());
         closePrompt();
     }
 
@@ -101,19 +119,65 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
 
     private void openPrompt(ItemStack stack) {
         prompting = stack.copyWithCount(1);
+        ruleMode = false;
         amount.setValue(Integer.toString(stack.getMaxStackSize()));
-        amount.visible = true;
-        promptButtons.forEach(button -> button.visible = true);
+        applyMode();
         setFocused(amount);
         amount.setFocused(true);
         search.setFocused(false);
     }
 
+    private void toggleMode() {
+        ruleMode = !ruleMode;
+        RuleRow rule = ClientStock.ruleFor(prompting);
+        if (ruleMode) {
+            amount.setValue(rule == null ? "0" : Integer.toString(rule.min()));
+            maximum.setValue(rule == null ? Integer.toString(prompting.getMaxStackSize()) : Integer.toString(rule.max()));
+        } else {
+            amount.setValue(Integer.toString(prompting.getMaxStackSize()));
+        }
+        applyMode();
+    }
+
+    private void applyMode() {
+        boolean open = prompting();
+        amount.visible = open;
+        maximum.visible = open && ruleMode;
+        requestButtons.forEach(button -> button.visible = open && !ruleMode);
+        ruleButtons.forEach(button -> button.visible = open && ruleMode);
+        modeToggle.visible = open;
+        modeToggle.setMessage(Component.translatable(ruleMode ? "gui.servus_storage.terminal.request" : "gui.servus_storage.terminal.rule"));
+        cancelButton.visible = open;
+    }
+
     private void closePrompt() {
         prompting = ItemStack.EMPTY;
-        amount.visible = false;
+        ruleMode = false;
         amount.setFocused(false);
-        promptButtons.forEach(button -> button.visible = false);
+        maximum.setFocused(false);
+        applyMode();
+    }
+
+    private void saveRule() {
+        if (!prompting()) {
+            return;
+        }
+        int min = promptAmount();
+        int max;
+        try {
+            max = Math.max(min, Integer.parseInt(maximum.getValue().trim()));
+        } catch (NumberFormatException e) {
+            max = min;
+        }
+        PacketDistributor.sendToServer(new SetStockRulePayload(prompting, min, max));
+        closePrompt();
+    }
+
+    private void removeRule() {
+        if (prompting()) {
+            PacketDistributor.sendToServer(new SetStockRulePayload(prompting, -1, -1));
+        }
+        closePrompt();
     }
 
     private int promptAmount() {
@@ -206,6 +270,9 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
             int y = topPos + GRID_Y + (i / COLUMNS) * CELL + 1;
             graphics.renderItem(entry.stack(), x, y);
             graphics.renderItemDecorations(font, entry.stack(), x, y, abbreviate(entry.count()));
+            if (ClientStock.ruleFor(entry.stack()) != null) {
+                graphics.fill(x, y, x + 3, y + 3, 0xFF40A0FF);
+            }
         }
         int cell = cellAt(mouseX, mouseY);
         if (cell >= first && cell < first + COLUMNS * ROWS) {
@@ -219,6 +286,11 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
         if (hovered.isPresent()) {
             List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(Minecraft.getInstance(), hovered.get().stack()));
             lines.add(Component.translatable("gui.servus_storage.stored", hovered.get().count()));
+            RuleRow rule = ClientStock.ruleFor(hovered.get().stack());
+            if (rule != null) {
+                lines.add(Component.translatable("gui.servus_storage.terminal.rule_line", rule.min(), rule.max(),
+                        Component.translatable("gui.servus_storage.terminal.rule_state." + rule.state())));
+            }
             lines.add(Component.translatable("gui.servus_storage.terminal.click_hint"));
             graphics.renderTooltip(font, lines, Optional.empty(), mouseX, mouseY);
         } else if (requestRow >= 0) {
@@ -234,7 +306,12 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
         graphics.fill(x, y, x + COLUMNS * CELL, y + ROWS * CELL, 0xF0C6C6C6);
         graphics.renderItem(prompting, x + 4, y + 4);
         graphics.drawString(font, prompting.getHoverName(), x + 24, y + 8, COLOUR_TEXT, false);
-        graphics.drawString(font, Component.translatable("gui.servus_storage.terminal.amount"), x + 4, y + 24, COLOUR_TEXT, false);
+        if (ruleMode) {
+            graphics.drawString(font, Component.translatable("gui.servus_storage.terminal.rule_min"), x + 4, y + 24, COLOUR_TEXT, false);
+            graphics.drawString(font, Component.translatable("gui.servus_storage.terminal.rule_max"), x + 112, y + 24, COLOUR_TEXT, false);
+        } else {
+            graphics.drawString(font, Component.translatable("gui.servus_storage.terminal.amount"), x + 4, y + 24, COLOUR_TEXT, false);
+        }
     }
 
     private void renderRequests(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -356,7 +433,14 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
         }
         if (prompting()) {
             if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
-                confirmPrompt();
+                if (ruleMode) {
+                    saveRule();
+                } else {
+                    confirmPrompt();
+                }
+                return true;
+            }
+            if (maximum.isFocused() && (maximum.keyPressed(keyCode, scanCode, modifiers) || maximum.canConsumeInput())) {
                 return true;
             }
             if (amount.keyPressed(keyCode, scanCode, modifiers) || amount.canConsumeInput()) {

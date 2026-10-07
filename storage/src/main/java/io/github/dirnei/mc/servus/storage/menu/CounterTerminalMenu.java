@@ -103,6 +103,18 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         forceSync();
     }
 
+    /** Sets the stock rule of an item; a negative minimum removes it. */
+    public void setRule(ItemKey key, int min, int max) {
+        online().ifPresent(network -> {
+            if (min < 0) {
+                network.removeStockRule(key);
+            } else {
+                network.setStockRule(key, min, max);
+            }
+        });
+        forceSync();
+    }
+
     public void cancel(int requestId) {
         terminal.network().ifPresent(network -> network.cancelRequest(terminal, requestId));
         forceSync();
@@ -186,13 +198,13 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
     public StockSyncPayload stock() {
         Optional<WarehouseNetwork> network = terminal.network();
         if (network.isEmpty()) {
-            return new StockSyncPayload(false, "not_connected", List.of(), List.of(), message);
+            return new StockSyncPayload(false, "not_connected", List.of(), List.of(), message, List.of());
         }
         WarehouseNetwork warehouse = network.get();
         return switch (warehouse.status()) {
-            case NO_CONTROLLER -> new StockSyncPayload(false, "no_controller", List.of(), List.of(), message);
-            case MULTIPLE_CONTROLLERS -> new StockSyncPayload(false, "multiple_controllers", List.of(), List.of(), message);
-            case ONLINE -> new StockSyncPayload(true, "", entries(warehouse.index()), warehouse.requestRows(terminal), message);
+            case NO_CONTROLLER -> new StockSyncPayload(false, "no_controller", List.of(), List.of(), message, List.of());
+            case MULTIPLE_CONTROLLERS -> new StockSyncPayload(false, "multiple_controllers", List.of(), List.of(), message, List.of());
+            case ONLINE -> new StockSyncPayload(true, "", entries(warehouse.index()), warehouse.requestRows(terminal), message, warehouse.ruleRows());
         };
     }
 
@@ -214,6 +226,12 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         for (StockEntry entry : payload.entries()) {
             hash = hash * 31 + entry.stack().getItem().hashCode();
             hash = hash * 31 + entry.count();
+        }
+        for (io.github.dirnei.mc.servus.storage.terminal.RuleRow rule : payload.rules()) {
+            hash = hash * 31 + rule.stack().getItem().hashCode();
+            hash = hash * 31 + rule.min();
+            hash = hash * 31 + rule.max();
+            hash = hash * 31 + rule.state().hashCode();
         }
         for (RequestRow row : payload.requests()) {
             hash = hash * 31 + row.id();

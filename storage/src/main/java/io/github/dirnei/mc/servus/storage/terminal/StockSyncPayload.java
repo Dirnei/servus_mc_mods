@@ -17,9 +17,10 @@ import net.minecraft.resources.ResourceLocation;
  * @param entries  the stock, largest first
  * @param requests the terminal's open requests
  * @param message  refusal key of the last request, empty when it went through
+ * @param rules    the warehouse's stock rules with their state
  */
 public record StockSyncPayload(boolean online, String reason, List<StockEntry> entries, List<RequestRow> requests,
-                               String message) implements CustomPacketPayload {
+                               String message, List<RuleRow> rules) implements CustomPacketPayload {
 
     public static final Type<StockSyncPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "stock_sync"));
@@ -30,6 +31,7 @@ public record StockSyncPayload(boolean online, String reason, List<StockEntry> e
             StockEntry.STREAM_CODEC.apply(ByteBufCodecs.list()), StockSyncPayload::entries,
             RequestRow.STREAM_CODEC.apply(ByteBufCodecs.list()), StockSyncPayload::requests,
             ByteBufCodecs.STRING_UTF8, StockSyncPayload::message,
+            RuleRow.STREAM_CODEC.apply(ByteBufCodecs.list()), StockSyncPayload::rules,
             StockSyncPayload::new);
 
     @Override

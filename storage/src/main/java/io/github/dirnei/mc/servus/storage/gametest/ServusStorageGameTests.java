@@ -26,6 +26,8 @@ import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
+import io.github.dirnei.mc.servus.storage.order.StockRule;
+import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
 import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
@@ -1633,5 +1635,96 @@ public final class ServusStorageGameTests {
             helper.assertTrue(first.order().state() == WorkOrder.State.CANCELLED, "the first order is cancelled");
             helper.succeed();
         });
+    }
+
+    private static RuleRow ruleRow(WarehouseNetwork network, Item item) {
+        for (RuleRow row : network.ruleRows()) {
+            if (row.stack().is(item)) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    /** A rule below its minimum orders up to the maximum and reads ok once the sticks are in stock. */
+    @GameTest(template = EMPTY, timeoutTicks = 800)
+    public static void stockRuleOrdersWhenLow(GameTestHelper helper) {
+        orderSetup(helper);
+        CrateBlockEntity planks = helper.getBlockEntity(WO_CRATE_A);
+        planks.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
+        CrateBlockEntity sticks = helper.getBlockEntity(WO_CRATE_B);
+        sticks.insert(new ItemStack(Items.STICK, 2), false);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            network.setStockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16);
+            helper.runAfterDelay(30, () -> {
+                List<WorkOrder> orders = network.orders().orders();
+                helper.assertTrue(orders.size() == 1 && orders.get(0).amount() == 14 && orders.get(0).requestId() == io.github.dirnei.mc.servus.storage.order.OrderBook.RULE_ORIGIN,
+                        "the rule should order 14 sticks, got " + orders);
+                RuleRow row = ruleRow(network, Items.STICK);
+                helper.assertTrue(row != null && row.state().equals("ordering"), "the rule should read ordering: " + row);
+                helper.runAfterDelay(600, () -> {
+                    helper.assertTrue(network.index().count(ItemKey.of(new ItemStack(Items.STICK))) >= 16,
+                            "at least 16 sticks should be in stock, have " + network.index().count(ItemKey.of(new ItemStack(Items.STICK))));
+                    RuleRow after = ruleRow(network, Items.STICK);
+                    helper.assertTrue(after != null && after.state().equals("ok"), "the rule should read ok: " + after);
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** A rule above its minimum orders nothing. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void stockRuleIgnoresWhenEnough(GameTestHelper helper) {
+        orderSetup(helper);
+        CrateBlockEntity sticks = helper.getBlockEntity(WO_CRATE_B);
+        sticks.insert(new ItemStack(Items.STICK, 10), false);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            network.setStockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16);
+            helper.runAfterDelay(150, () -> {
+                helper.assertTrue(network.orders().orders().isEmpty(), "no order should be created");
+                RuleRow row = ruleRow(network, Items.STICK);
+                helper.assertTrue(row != null && row.state().equals("ok"), "the rule should read ok: " + row);
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A rule for an item nothing makes reads no producer and orders nothing. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void stockRuleWithoutProducerShowsReason(GameTestHelper helper) {
+        orderSetup(helper);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            network.setStockRule(ItemKey.of(new ItemStack(Items.BREAD)), 8, 16);
+            helper.runAfterDelay(150, () -> {
+                helper.assertTrue(network.orders().orders().isEmpty(), "no order should be created");
+                RuleRow row = ruleRow(network, Items.BREAD);
+                helper.assertTrue(row != null && row.state().equals("no_producer"), "the rule should read no producer: " + row);
+                helper.assertTrue(network.removeStockRule(ItemKey.of(new ItemStack(Items.BREAD))), "the rule can be removed");
+                helper.assertTrue(network.ruleRows().isEmpty(), "no rules left");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Rules survive a save and load of the controller. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void stockRulesPersist(GameTestHelper helper) {
+        helper.setBlock(WO_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
+        controller.rules().set(new StockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16));
+        net.minecraft.nbt.CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());
+        WarehouseControllerBlockEntity copy = new WarehouseControllerBlockEntity(helper.absolutePos(WO_CONTROLLER), controller.getBlockState());
+        copy.loadWithComponents(tag, helper.getLevel().registryAccess());
+        StockRule rule = copy.rules().get(ItemKey.of(new ItemStack(Items.STICK)));
+        helper.assertTrue(rule != null && rule.min() == 8 && rule.max() == 16, "the rule should survive save and load: " + rule);
+        helper.succeed();
     }
 }

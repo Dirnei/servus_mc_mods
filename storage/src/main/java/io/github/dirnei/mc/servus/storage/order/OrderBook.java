@@ -55,6 +55,8 @@ public final class OrderBook {
     public record StepKey(BlockPos dock, ResourceLocation recipe) {
     }
 
+    /** The request id of orders a stock rule created. */
+    public static final int RULE_ORIGIN = -1;
     private static final int TICK_INTERVAL = 20;
     private static final long KEEP_DONE_TICKS = 200;
     private static final int MAX_DEPTH = 8;
@@ -90,6 +92,17 @@ public final class OrderBook {
         return false;
     }
 
+    /** Amount of the key on open orders. */
+    public int openAmountFor(ItemKey key) {
+        int sum = 0;
+        for (WorkOrder order : orders) {
+            if (order.open() && order.key().equals(key)) {
+                sum += order.amount();
+            }
+        }
+        return sum;
+    }
+
     /** Stock reserved by every open order, per key. */
     public Map<ItemKey, Integer> reservedTotal() {
         Map<ItemKey, Integer> total = new HashMap<>();
@@ -114,6 +127,8 @@ public final class OrderBook {
         List<OrderPlanner.Recipe<ItemKey>> recipes = recipes(byKey);
         Map<ItemKey, Long> available = new HashMap<>(host.stock());
         reservedTotal().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
+        // The amount is what to produce; stock of the item itself is already accounted for by the caller.
+        available.remove(key);
         OrderPlanner.Plan<ItemKey> plan = OrderPlanner.plan(key, amount, available, recipes, MAX_DEPTH);
         if (plan.steps().isEmpty()) {
             return new Created(null, plan.missing().containsKey(key) ? "no_producer" : "in_stock");

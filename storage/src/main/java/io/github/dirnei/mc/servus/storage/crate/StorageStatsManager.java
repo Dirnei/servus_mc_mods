@@ -23,6 +23,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_TERMINAL_OUTPUT_SLOTS = 9;
     public static final int DEFAULT_DOCK_FEED_INTERVAL = 8;
     public static final int DEFAULT_CRAFTING_STATION_TICKS = 40;
+    public static final int DEFAULT_STOCK_RULE_INTERVAL = 100;
     public static final int DEFAULT_CRAFTING_STATION_RECIPES = 4;
     public static final double DEFAULT_SHUTTLE_SPEED = 0.25;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
@@ -45,6 +46,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int terminalOutputSlots = DEFAULT_TERMINAL_OUTPUT_SLOTS;
     private volatile int dockFeedInterval = DEFAULT_DOCK_FEED_INTERVAL;
     private volatile int craftingStationTicks = DEFAULT_CRAFTING_STATION_TICKS;
+    private volatile int stockRuleInterval = DEFAULT_STOCK_RULE_INTERVAL;
     private volatile int craftingStationRecipes = DEFAULT_CRAFTING_STATION_RECIPES;
     private volatile double shuttleSpeed = DEFAULT_SHUTTLE_SPEED;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
@@ -65,6 +67,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         terminalOutputSlots = intField(files.get(WAREHOUSE), "terminal_output_slots", DEFAULT_TERMINAL_OUTPUT_SLOTS);
         dockFeedInterval = intField(files.get(WAREHOUSE), "dock_feed_interval", DEFAULT_DOCK_FEED_INTERVAL);
         craftingStationTicks = intField(files.get(CRAFTING_STATION), "work_ticks", DEFAULT_CRAFTING_STATION_TICKS);
+        stockRuleInterval = intField(files.get(WAREHOUSE), "stock_rule_interval", DEFAULT_STOCK_RULE_INTERVAL);
         craftingStationRecipes = intField(files.get(CRAFTING_STATION), "recipes", DEFAULT_CRAFTING_STATION_RECIPES);
         shuttleSpeed = doubleField(files.get(WAREHOUSE), "shuttle_speed", DEFAULT_SHUTTLE_SPEED);
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
@@ -110,6 +113,10 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
 
     public int craftingStationTicks() {
         return craftingStationTicks;
+    }
+
+    public int stockRuleInterval() {
+        return stockRuleInterval;
     }
 
     public int craftingStationRecipes() {

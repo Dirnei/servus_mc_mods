@@ -27,6 +27,9 @@ import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
+import io.github.dirnei.mc.servus.storage.order.StockRule;
+import io.github.dirnei.mc.servus.storage.order.StockRules;
+import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
 import java.util.ArrayDeque;
@@ -129,6 +132,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private int cursor;
     private ServerLevel level;
     private int controllers;
+    /** The controller's position while exactly one is in the network. */
+    private BlockPos controllerPos;
+    /** Rules whose last order attempt found no producer. */
+    private final Set<ItemKey> rulesWithoutProducer = new HashSet<>();
+    private int ruleTimer;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
     private final OrderBook orders = new OrderBook(new OrderBook.Host() {
         @Override
@@ -194,6 +202,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers++;
+            controllerPos = blockPos;
         }
         lampsDirty = true;
         fleet.refreshHomes();
@@ -215,6 +224,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         held.remove(blockPos);
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers--;
+            if (blockPos.equals(controllerPos)) {
+                controllerPos = null;
+            }
         }
         lampsDirty = true;
         rebuildCandidates();
@@ -230,6 +242,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             level = that.level;
         }
         controllers += that.controllers;
+        if (controllerPos == null) {
+            controllerPos = that.controllerPos;
+        }
         connectors.addAll(that.connectors);
         stations.addAll(that.stations);
         pendingStations.addAll(that.stations);
@@ -526,6 +541,73 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** The work orders of this warehouse. */
     public OrderBook orders() {
         return orders;
+    }
+
+    // Stock rules
+
+    /** The controller's stock rules, present while a controller is in the network and loaded. */
+    public Optional<StockRules> stockRules() {
+        if (controllerPos == null || level == null || !level.isLoaded(controllerPos)) {
+            return Optional.empty();
+        }
+        return level.getBlockEntity(controllerPos) instanceof WarehouseControllerBlockEntity controller
+                ? Optional.of(controller.rules()) : Optional.empty();
+    }
+
+    public void setStockRule(ItemKey key, int min, int max) {
+        stockRules().ifPresent(rules -> {
+            rules.set(new StockRule(key, min, max));
+            rulesWithoutProducer.remove(key);
+        });
+        ruleTimer = StorageStatsManager.INSTANCE.stockRuleInterval();
+    }
+
+    public boolean removeStockRule(ItemKey key) {
+        rulesWithoutProducer.remove(key);
+        return stockRules().map(rules -> rules.remove(key)).orElse(false);
+    }
+
+    /** Orders for every rule whose stock plus open orders fell below its minimum. */
+    private void tickStockRules() {
+        if (status() != Status.ONLINE) {
+            return;
+        }
+        Optional<StockRules> rules = stockRules();
+        if (rules.isEmpty()) {
+            return;
+        }
+        for (StockRule rule : rules.get().all()) {
+            long have = index.count(rule.key()) + orders.openAmountFor(rule.key());
+            if (have >= rule.min()) {
+                rulesWithoutProducer.remove(rule.key());
+                continue;
+            }
+            int wanted = (int) Math.min(Integer.MAX_VALUE, rule.max() - have);
+            OrderBook.Created created = orders.create(rule.key(), wanted, OrderBook.RULE_ORIGIN);
+            if (created.made()) {
+                rulesWithoutProducer.remove(rule.key());
+            } else if (created.refusal().equals("no_producer")) {
+                rulesWithoutProducer.add(rule.key());
+            }
+        }
+    }
+
+    /** The state of a rule: ordering, no producer, or ok. */
+    public String ruleState(StockRule rule) {
+        if (orders.openAmountFor(rule.key()) > 0) {
+            return "ordering";
+        }
+        return rulesWithoutProducer.contains(rule.key()) ? "no_producer" : "ok";
+    }
+
+    public List<RuleRow> ruleRows() {
+        List<RuleRow> rows = new ArrayList<>();
+        stockRules().ifPresent(rules -> {
+            for (StockRule rule : rules.all()) {
+                rows.add(new RuleRow(rule.key().stack(1), rule.min(), rule.max(), ruleState(rule)));
+            }
+        });
+        return rows;
     }
 
     /** Creates a work order by hand; returns the refusal key or an empty string. */
@@ -870,6 +952,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             fleet.tick();
             tickStations();
             orders.tick();
+            if (++ruleTimer >= StorageStatsManager.INSTANCE.stockRuleInterval()) {
+                ruleTimer = 0;
+                tickStockRules();
+            }
             if (!terminals.isEmpty() && ++missingRetry >= MISSING_RETRY_TICKS) {
                 missingRetry = 0;
                 retryMissing();

@@ -58,6 +58,19 @@ public final class ServusStorageCommands {
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
                                         .then(Commands.argument("count", IntegerArgumentType.integer(1, 4096))
                                                 .executes(ServusStorageCommands::order)))))
+                .then(Commands.literal("rules")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .executes(ServusStorageCommands::rules)))
+                .then(Commands.literal("rule")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
+                                        .then(Commands.argument("min", IntegerArgumentType.integer(0))
+                                                .then(Commands.argument("max", IntegerArgumentType.integer(0))
+                                                        .executes(ServusStorageCommands::rule))))))
+                .then(Commands.literal("unrule")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
+                                        .executes(ServusStorageCommands::unrule))))
                 .then(Commands.literal("take")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
@@ -94,6 +107,57 @@ public final class ServusStorageCommands {
             source.sendFailure(Component.literal("Storage block at " + pos.toShortString() + " is not in a network"));
         }
         return network;
+    }
+
+    private static int rules(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        List<io.github.dirnei.mc.servus.storage.terminal.RuleRow> rules = network.get().ruleRows();
+        if (rules.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("No stock rules"), false);
+            return 0;
+        }
+        for (io.github.dirnei.mc.servus.storage.terminal.RuleRow rule : rules) {
+            String line = "  - " + rule.stack().getHoverName().getString() + ": keep " + rule.min() + " to " + rule.max() + ", " + rule.state().replace('_', ' ');
+            source.sendSuccess(() -> Component.literal(line), false);
+        }
+        return rules.size();
+    }
+
+    private static int rule(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        ItemStack item = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        int min = IntegerArgumentType.getInteger(context, "min");
+        int max = IntegerArgumentType.getInteger(context, "max");
+        network.get().setStockRule(ItemKey.of(item), min, max);
+        source.sendSuccess(() -> Component.literal("Keeping " + min + " to " + Math.max(min, max) + " " + item.getHoverName().getString()), false);
+        return 1;
+    }
+
+    private static int unrule(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        ItemStack item = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        boolean removed = network.get().removeStockRule(ItemKey.of(item));
+        if (!removed) {
+            source.sendFailure(Component.literal("No rule for " + item.getHoverName().getString()));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal("Rule for " + item.getHoverName().getString() + " removed"), false);
+        return 1;
     }
 
     private static int orders(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
