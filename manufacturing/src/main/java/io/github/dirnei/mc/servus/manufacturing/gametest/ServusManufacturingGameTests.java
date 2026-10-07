@@ -746,4 +746,157 @@ public final class ServusManufacturingGameTests {
                 "the block should drop as a Sink item");
         helper.succeed();
     }
+
+    private static IItemHandler sinkItems(GameTestHelper helper, BlockPos pos, Direction side) {
+        return helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), side);
+    }
+
+    private static IFluidHandler sinkFluid(GameTestHelper helper, BlockPos pos, Direction side) {
+        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), side);
+    }
+
+    private static IEnergyStorage sinkEnergy(GameTestHelper helper, BlockPos pos, Direction side) {
+        return helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, helper.absolutePos(pos), side);
+    }
+
+    /** Hoppers pointing into the side of the controller and into the back of another part empty; the items appear nowhere. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void hopperEmptiesIntoSink(GameTestHelper helper) {
+        sink(helper, 5);
+        BlockPos east = new BlockPos(4, 0, 2);
+        helper.setBlock(east, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.WEST));
+        HopperBlockEntity intoController = helper.getBlockEntity(east);
+        intoController.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
+        BlockPos back = new BlockPos(2, 0, 4);
+        helper.setBlock(back, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.NORTH));
+        HopperBlockEntity intoBack = helper.getBlockEntity(back);
+        intoBack.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(intoController.isEmpty(), "the hopper at the side should empty into the Sink");
+            helper.assertTrue(intoBack.isEmpty(), "the hopper at the back should empty into the Sink");
+            helper.assertItemEntityNotPresent(Items.COBBLESTONE);
+        });
+    }
+
+    /** A hopper pointing into a front face keeps its items: the front offers no capability. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void sinkFrontRefuses(GameTestHelper helper) {
+        sink(helper, 5);
+        for (BlockPos front : List.of(new BlockPos(2, 0, 2), SINK, new BlockPos(2, 1, 2), new BlockPos(3, 1, 2))) {
+            helper.assertTrue(sinkItems(helper, front, Direction.NORTH) == null, "no items through the front");
+            helper.assertTrue(sinkFluid(helper, front, Direction.NORTH) == null, "no fluid through the front");
+            helper.assertTrue(sinkEnergy(helper, front, Direction.NORTH) == null, "no energy through the front");
+        }
+        BlockPos hopperPos = new BlockPos(2, 0, 1);
+        helper.setBlock(hopperPos, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.SOUTH));
+        HopperBlockEntity hopper = helper.getBlockEntity(hopperPos);
+        hopper.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(hopper.getItem(0).getCount() == 5, "the hopper at the front should keep its items");
+            helper.succeed();
+        });
+    }
+
+    /** Without a chimney the item rate of 4 per second takes 4 of a 64 stack; all faces share the budget. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkBaseRateTakesFourItems(GameTestHelper helper) {
+        sink(helper, 0);
+        IItemHandler top = sinkItems(helper, new BlockPos(3, 1, 2), Direction.UP);
+        helper.assertTrue(top != null, "the top takes items");
+        ItemStack simulated = top.insertItem(0, new ItemStack(Items.COBBLESTONE, 64), true);
+        helper.assertTrue(simulated.getCount() == 60, "a simulated insert should leave 60, left " + simulated);
+        ItemStack left = top.insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
+        helper.assertTrue(left.getCount() == 60, "the Sink should take 4 of 64, left " + left);
+        ItemStack again = sinkItems(helper, new BlockPos(2, 0, 3), Direction.WEST).insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
+        helper.assertTrue(again.getCount() == 64, "all blocks share one budget, the same tick takes nothing more, left " + again);
+        helper.assertTrue(top.getStackInSlot(0).isEmpty(), "the Sink holds nothing");
+        helper.succeed();
+    }
+
+    /** Five Chimney blocks void everything at once: energy on the back of one block, fluid on top of another. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkWithFiveChimneysIsUnlimited(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 5);
+        helper.assertTrue(sink.chimneyHeight() == 5, "five Chimney blocks, height " + sink.chimneyHeight());
+        IEnergyStorage energy = sinkEnergy(helper, new BlockPos(3, 0, 3), Direction.SOUTH);
+        helper.assertTrue(energy.receiveEnergy(10_000, false) == 10_000, "all energy should be accepted");
+        helper.assertTrue(energy.receiveEnergy(10_000, false) == 10_000, "again in the same tick");
+        helper.assertTrue(energy.getEnergyStored() == 0, "the Sink reports no stored energy");
+        IFluidHandler fluid = sinkFluid(helper, new BlockPos(3, 1, 2), Direction.UP);
+        helper.assertTrue(fluid.fill(new FluidStack(Fluids.WATER, 1_000_000), IFluidHandler.FluidAction.EXECUTE) == 1_000_000,
+                "all water should be accepted");
+        helper.assertTrue(fluid.getFluidInTank(0).isEmpty(), "the Sink reports no fluid");
+        ItemStack left = sinkItems(helper, SINK, Direction.EAST).insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
+        helper.assertTrue(left.isEmpty(), "the full stack should be accepted, left " + left);
+        helper.succeed();
+    }
+
+    /** Below the unlimited height energy and fluid follow the rate of the height, shared by all blocks. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkRateGrowsWithChimney(GameTestHelper helper) {
+        sink(helper, 2);
+        // Height 2: 400 FE and 200 mB per tick, one second of carry over in an idle Sink.
+        helper.assertTrue(sinkEnergy(helper, new BlockPos(2, 0, 3), Direction.SOUTH).receiveEnergy(100_000, false) == 8_000,
+                "one second of 400 FE per tick");
+        helper.assertTrue(sinkEnergy(helper, SINK, Direction.EAST).receiveEnergy(100_000, false) == 0,
+                "another block of the same Sink gets nothing more this tick");
+        helper.assertTrue(sinkFluid(helper, new BlockPos(2, 1, 3), Direction.UP)
+                        .fill(new FluidStack(Fluids.WATER, 100_000), IFluidHandler.FluidAction.EXECUTE) == 4_000,
+                "one second of 200 mB per tick");
+        helper.succeed();
+    }
+
+    /** Nothing can be taken out of a Sink. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkGivesNothing(GameTestHelper helper) {
+        sink(helper, 0);
+        IItemHandler items = sinkItems(helper, SINK, Direction.DOWN);
+        items.insertItem(0, new ItemStack(Items.COBBLESTONE, 2), false);
+        helper.assertTrue(items.extractItem(0, 64, false).isEmpty(), "nothing can be extracted");
+        helper.assertTrue(sinkFluid(helper, SINK, Direction.DOWN).drain(1000, IFluidHandler.FluidAction.EXECUTE).isEmpty(),
+                "nothing can be drained");
+        helper.assertTrue(sinkEnergy(helper, SINK, Direction.DOWN).extractEnergy(1000, false) == 0, "no energy can be extracted");
+        helper.succeed();
+    }
+
+    /** Unformed casings offer no capability on any face, and a hopper keeps its items. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void sinkCasingsExposeNothing(GameTestHelper helper) {
+        sinkBox(helper, new BlockPos(2, 0, 2), null);
+        for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(2, 0, 2), new BlockPos(3, 1, 3))) {
+            for (Direction side : Direction.values()) {
+                helper.assertTrue(sinkItems(helper, pos, side) == null, "a casing takes no items");
+                helper.assertTrue(sinkFluid(helper, pos, side) == null, "a casing takes no fluid");
+                helper.assertTrue(sinkEnergy(helper, pos, side) == null, "a casing takes no energy");
+            }
+        }
+        BlockPos hopperPos = new BlockPos(4, 0, 2);
+        helper.setBlock(hopperPos, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.WEST));
+        HopperBlockEntity hopper = helper.getBlockEntity(hopperPos);
+        hopper.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(hopper.getItem(0).getCount() == 5, "the hopper should keep its items");
+            helper.succeed();
+        });
+    }
+
+    /** Voiding through any block turns the controller active; after the active time without voiding it turns idle. */
+    @GameTest(template = EMPTY, timeoutTicks = 120)
+    public static void sinkActiveWhileVoiding(GameTestHelper helper) {
+        sink(helper, 0);
+        BlockPos back = new BlockPos(2, 1, 3);
+        helper.assertTrue(!helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "a new Sink is idle");
+        sinkEnergy(helper, back, Direction.UP).receiveEnergy(50, true);
+        helper.assertTrue(!helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "a simulated insert does not count");
+        sinkEnergy(helper, back, Direction.UP).receiveEnergy(50, false);
+        helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "voiding turns the controller active");
+        helper.assertTrue(!helper.getBlockState(back).getValue(SinkBlock.ACTIVE), "only the controller carries the active state");
+        helper.runAfterDelay(20, () -> {
+            helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "still active within the active time");
+            helper.runAfterDelay(25, () -> {
+                helper.assertTrue(!helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "idle after the active time");
+                helper.succeed();
+            });
+        });
+    }
 }

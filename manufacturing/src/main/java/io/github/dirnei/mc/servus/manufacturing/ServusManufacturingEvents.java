@@ -107,6 +107,7 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> side == null || PumpBlock.givesWater(machine.getBlockState(), side) ? machine.energyStorage() : null);
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.ELECTRIC_PUMP.get(),
                     (machine, side) -> machine.fluidHandler(side));
+            // Every formed Sink block hands out its controller's handlers, except on the front faces; casings offer none.
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.SINK.get(),
                     (sink, side) -> sink.itemHandler(side));
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.SINK.get(),
