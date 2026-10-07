@@ -110,7 +110,7 @@ The client keeps `ClientLifts` (`Map<BlockPos, Lift>` with the receive tick). Th
   - For each segment with any horizontal arm it draws a deck. Two flaps are 8 px each, hinged on axle bars between the posts. The axis is west and east when the east or west arm is set, otherwise north and south. Each flap is rotated by `Flaps.angle(carY, floorY)`, and the rail is drawn on the flaps per connected arm.
   - It draws the car platform with four sleeves (3x3 px around the 2x2 px posts) and the rail pattern of the floor it is nearest to.
   - `getRenderBoundingBox` covers the column, and `shouldRenderOffScreen` returns true, as for the garage.
-  - Parts are drawn as textured quads from the `elevator` and `rail` sprites via `RenderType.cutout()` (the `HeavyRackRenderer` and `CrateRenderer` approach). This avoids extra baked models.
+  - Parts are drawn as textured boxes from the `elevator` and `rail` block atlas sprites via `RenderType.entityCutoutNoCull(InventoryMenu.BLOCK_ATLAS)`. That vertex format carries the overlay a block entity renderer passes, and without culling a flap shows from both sides whichever way it is folded. This avoids extra baked models.
 - **`Flaps.angle(carY, floorY)` (pure).** It returns 90 degrees (up) when `|carY - floorY| <= 0.5`, 0 degrees when `|carY - floorY| >= 1`, and linear between the two. A car parked one floor away therefore leaves that deck down, as the "Parked car" scenario requires, and a parked car does not block crossings on its neighbour floors. A shuttle on a car rising from below reaches deck height at about half a block, where the flaps are already up. `LiftCar.canCross` uses the same function (crossing needs 0 degrees), so the server and the drawing agree.
 - **Heading fix.** `headingAfter` skips vertical segments and uses the last horizontal one, or keeps the previous yaw.
 
@@ -139,10 +139,10 @@ The client keeps `ClientLifts` (`Map<BlockPos, Lift>` with the receive tick). Th
 
 ## Risks / Trade-offs
 
-- **[Risk] A rider whose leg ends in the car holds it**, for example a shuttle waiting with output full at a station beside a segment, and blocks every other caller. → Mitigation: this is accepted for now and visible in game. Stations are normally on rails. The fix can be "leave the car while waiting" later.
-- **[Risk] Gate and car disagree**, so the deck folds under a shuttle. → Mitigation: both use `Flaps.angle`, and the car refuses to sweep a floor with a crosser. `LiftCarTest` covers this.
-- **[Risk] Deadlock between a crosser and the car**: a crosser waits for the deck while the car waits for crossers. → Mitigation: crossers only `beginCross` when `canCross` is true and leave within a few ticks. The car only checks crossers before and during its sweep. There is no hold and wait cycle.
-- **[Risk] The client column walk every frame.** → Mitigation: it runs only for the bottom segment and stops at the first non elevator block. Shafts are short.
+- **[Risk] A rider whose leg ends in the car holds it**, for example a shuttle waiting with output full at a station beside a segment, and blocks every other caller. â†’ Mitigation: this is accepted for now and visible in game. Stations are normally on rails. The fix can be "leave the car while waiting" later.
+- **[Risk] Gate and car disagree**, so the deck folds under a shuttle. â†’ Mitigation: both use `Flaps.angle`, and the car refuses to sweep a floor with a crosser. `LiftCarTest` covers this.
+- **[Risk] Deadlock between a crosser and the car**: a crosser waits for the deck while the car waits for crossers. â†’ Mitigation: crossers only `beginCross` when `canCross` is true and leave within a few ticks. The car only checks crossers before and during its sweep. There is no hold and wait cycle.
+- **[Risk] The client column walk every frame.** â†’ Mitigation: it runs only for the bottom segment and stops at the first non elevator block. Shafts are short.
 - **[Trade-off] Routing ignores lift waits**, so a busy shaft may be chosen over a slightly longer rail route. This is accepted and listed as a non-goal.
 - **[Trade-off] The car is not saved.** After a restart it sits at the bottom. This is harmless because shuttles restart at home.
 

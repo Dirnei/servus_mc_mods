@@ -3,9 +3,12 @@ package io.github.dirnei.mc.servus.storage.shuttle;
 import io.github.dirnei.mc.servus.lib.graph.NodePos;
 import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.storage.shuttle.Shafts.Shaft;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +96,8 @@ public final class ShuttleFleet {
     private final ArrayDeque<ShuttleJob> jobs = new ArrayDeque<>();
     /** One lift car per shaft, keyed by the shaft's lowest segment. */
     private final Map<BlockPos, LiftCar> lifts = new LinkedHashMap<>();
+    /** Bottoms of the cars that moved on the last tick, to notice starts and stops. */
+    private final Set<BlockPos> movingLifts = new HashSet<>();
     private static int nextShuttleId;
     private boolean syncPending;
     private boolean wasMoving;
@@ -344,10 +349,21 @@ public final class ShuttleFleet {
             serveInstantly();
         }
         double liftSpeed = host.liftSpeed();
-        for (LiftCar car : lifts.values()) {
-            car.tick(liftSpeed);
-        }
         boolean moving = false;
+        for (Map.Entry<BlockPos, LiftCar> entry : lifts.entrySet()) {
+            LiftCar car = entry.getValue();
+            car.tick(liftSpeed);
+            if (car.moving() != movingLifts.contains(entry.getKey())) {
+                if (car.moving()) {
+                    movingLifts.add(entry.getKey());
+                } else {
+                    movingLifts.remove(entry.getKey());
+                    parkOnBlock(entry.getKey(), car);
+                }
+                sendLift(entry.getKey(), car);
+            }
+            moving |= car.moving();
+        }
         for (Garage garage : garages.values()) {
             for (Shuttle shuttle : garage.shuttles) {
                 if (shuttle.leg == Leg.WAITING_ROOM && shuttle.job instanceof PickJob pick) {
@@ -624,6 +640,10 @@ public final class ShuttleFleet {
                 lifts.put(entry.getKey(), new LiftCar(entry.getValue().bottomY(), entry.getValue().topY()));
             }
         }
+        movingLifts.retainAll(lifts.keySet());
+        for (Map.Entry<BlockPos, LiftCar> entry : lifts.entrySet()) {
+            parkOnBlock(entry.getKey(), entry.getValue());
+        }
         syncPending = true;
     }
 
@@ -809,6 +829,23 @@ public final class ShuttleFleet {
             PacketDistributor.sendToPlayersTrackingChunk(host.level(), new ChunkPos(garage.pos),
                     new ShuttleSyncPayload(garage.pos, views(garage.pos)));
         }
+        for (Map.Entry<BlockPos, LiftCar> entry : lifts.entrySet()) {
+            sendLift(entry.getKey(), entry.getValue());
+        }
+    }
+
+    private void sendLift(BlockPos bottom, LiftCar car) {
+        Integer target = car.target();
+        float speed = car.moving() ? (float) host.liftSpeed() : 0;
+        PacketDistributor.sendToPlayersTrackingChunk(host.level(), new ChunkPos(bottom), new LiftSyncPayload(bottom, car.topY(),
+                (float) car.y(), target == null ? (int) Math.round(car.y()) : target, speed, car.carrying()));
+    }
+
+    /** Leaves the parked car's height on the lowest segment, for players who load the chunk later. */
+    private void parkOnBlock(BlockPos bottom, LiftCar car) {
+        if (host.level().getBlockEntity(bottom) instanceof ElevatorBlockEntity segment) {
+            segment.parkLift((float) car.y());
+        }
     }
 
     /** The shuttles of one garage as clients draw them: only those out on the rails, idle ones sit inside the garage. */
@@ -829,7 +866,8 @@ public final class ShuttleFleet {
                 path.add(Conversions.toBlockPos(node));
             }
             float shown = shuttle.riding || motion.held() ? 0 : speed;
-            list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.cargo.copy()));
+            Optional<BlockPos> lift = shuttle.riding && shuttle.lift != null ? Optional.of(shuttle.lift) : Optional.empty();
+            list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.cargo.copy(), lift));
         }
         return list;
     }

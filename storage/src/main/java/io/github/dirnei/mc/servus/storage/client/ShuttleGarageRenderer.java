@@ -18,7 +18,8 @@ import net.minecraft.world.phys.AABB;
 
 /**
  * Draws every shuttle of this garage: a cart on the rail at the position
- * extrapolated from the last sync, with its cargo on top.
+ * extrapolated from the last sync, with its cargo on top. A shuttle riding a
+ * lift car is drawn at the car's height.
  */
 public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageBlockEntity> {
 
@@ -60,6 +61,13 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
 
         for (ShuttleView view : fleet.views()) {
             double[] pos = positionAfter(view, elapsed);
+            if (view.lift().isPresent()) {
+                // Riding: the car carries the shuttle, so its height comes from the car.
+                ClientLifts.Lift lift = ClientLifts.lift(view.lift().get());
+                if (lift != null) {
+                    pos[1] = lift.yAt(now + partialTick);
+                }
+            }
             double yaw = headingAfter(view, elapsed);
             double offset = 0;
             if (!view.moving()) {
@@ -109,7 +117,11 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
                 from.getZ() + (to.getZ() - from.getZ()) * progress};
     }
 
-    /** Yaw in degrees of the segment the shuttle is on, so the cargo faces along the rail. */
+    /**
+     * Yaw in degrees of the segment the shuttle is on, so the cargo faces along
+     * the rail. On a vertical segment it keeps the heading of the last
+     * horizontal one, or takes the next one when the path starts in a shaft.
+     */
     private static double headingAfter(ShuttleView view, double elapsed) {
         List<BlockPos> path = view.path();
         if (path.size() < 2) {
@@ -121,8 +133,29 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
             progress -= 1.0;
             segment++;
         }
-        BlockPos from = path.get(Math.min(segment, path.size() - 2));
-        BlockPos to = path.get(Math.min(segment + 1, path.size() - 1));
+        int current = Math.min(segment, path.size() - 2);
+        for (int i = current; i >= 0; i--) {
+            if (horizontal(path, i)) {
+                return yaw(path, i);
+            }
+        }
+        for (int i = current + 1; i < path.size() - 1; i++) {
+            if (horizontal(path, i)) {
+                return yaw(path, i);
+            }
+        }
+        return 0;
+    }
+
+    private static boolean horizontal(List<BlockPos> path, int segment) {
+        BlockPos from = path.get(segment);
+        BlockPos to = path.get(segment + 1);
+        return from.getX() != to.getX() || from.getZ() != to.getZ();
+    }
+
+    private static double yaw(List<BlockPos> path, int segment) {
+        BlockPos from = path.get(segment);
+        BlockPos to = path.get(segment + 1);
         return Math.toDegrees(Math.atan2(-(to.getX() - from.getX()), to.getZ() - from.getZ()));
     }
 }

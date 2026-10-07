@@ -23,6 +23,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import io.github.dirnei.mc.servus.storage.client.ClientShuttles;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleSyncPayload;
+import io.github.dirnei.mc.servus.storage.shuttle.LiftSyncPayload;
+import io.github.dirnei.mc.servus.storage.client.ClientLifts;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -56,6 +58,8 @@ public final class ServusStoragePayloads {
                 });
         registrar.playToClient(ShuttleSyncPayload.TYPE, ShuttleSyncPayload.STREAM_CODEC,
                 (payload, context) -> ClientShuttles.update(payload));
+        registrar.playToClient(LiftSyncPayload.TYPE, LiftSyncPayload.STREAM_CODEC,
+                (payload, context) -> ClientLifts.update(payload));
         registrar.playToClient(StationStatePayload.TYPE, StationStatePayload.STREAM_CODEC,
                 (payload, context) -> ClientStationState.update(payload));
         registrar.playToServer(KeepSlotPayload.TYPE, KeepSlotPayload.STREAM_CODEC,
