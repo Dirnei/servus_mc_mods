@@ -7,7 +7,7 @@
 
 ## 2. Data
 
-- [ ] 2.1 Add `SinkStats` (codec with code defaults) and `SinkStatsManager` in `machine/sink/`, register the reload listener next to `MachineStatsManager` in `ServusManufacturingEvents`, add `src/main/resources/data/servus_manufacturing/sink/sink.json` with the example tables and `active_ticks` 40; verify `gradlew :manufacturing:build` and the server log line "Loaded sink stats"
+- [x] 2.1 Add `SinkStats` (codec with code defaults) and `SinkStatsManager` in `machine/sink/`, register the reload listener next to `MachineStatsManager` in `ServusManufacturingEvents`, add `src/main/resources/data/servus_manufacturing/sink/sink.json` with the example tables and `active_ticks` 40; verify `gradlew :manufacturing:build` and the server log line "Loaded sink stats"
 
 ## 3. Blocks and block entity
 

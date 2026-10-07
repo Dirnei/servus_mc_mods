@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;
 import io.github.dirnei.mc.servus.manufacturing.gametest.ServusManufacturingGameTests;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStatsManager;
+import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkStatsManager;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import io.github.dirnei.mc.servus.manufacturing.research.ResearchManager;
@@ -33,6 +34,7 @@ public final class ServusManufacturingEvents {
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(DepositManager.INSTANCE);
         event.addListener(MachineStatsManager.INSTANCE);
+        event.addListener(SinkStatsManager.INSTANCE);
     }
 
     @SubscribeEvent
