@@ -6,5 +6,5 @@
 
 ## 2. Verification
 
-- [ ] 2.1 Run `openspec validate m5-duct-center-bands --strict`, `gradlew runClientAll` launches. Commit.
+- [x] 2.1 Run `openspec validate m5-duct-center-bands --strict`, `gradlew runClientAll` launches. Commit.
 - [ ] 2.2 Play check: an east west two line run shows unbroken bands.
