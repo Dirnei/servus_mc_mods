@@ -1,33 +1,81 @@
 package io.github.dirnei.mc.servus.lib.side;
 
 import java.util.Arrays;
+import java.util.List;
 
-/** The mode of each relative side of one block. Pure Java. */
+/**
+ * The mode of each relative side of one block, limited to the modes the block
+ * supports and cycling through them in the declared order. Pure Java.
+ */
 public final class SideConfig {
 
-    private final SideMode[] modes = new SideMode[RelativeSide.values().length];
+    /** Every mode, for machines: Auto, Input, Output, Both, Off, Pull, Push. */
+    public static final List<SideMode> MACHINE_MODES = List.of(SideMode.AUTO, SideMode.INPUT, SideMode.OUTPUT, SideMode.BOTH,
+            SideMode.DISABLED, SideMode.PULL, SideMode.PUSH);
+    /** Input, Pull, Off: a block that only takes items in. */
+    public static final List<SideMode> INBOUND_MODES = List.of(SideMode.INPUT, SideMode.PULL, SideMode.DISABLED);
+    /** Push, Output, Off: a block that only hands items out. */
+    public static final List<SideMode> OUTBOUND_MODES = List.of(SideMode.PUSH, SideMode.OUTPUT, SideMode.DISABLED);
 
+    private final SideMode[] modes = new SideMode[RelativeSide.values().length];
+    private final List<SideMode> supported;
+    private final SideMode fallback;
+
+    /** A machine configuration: every mode, Auto by default. */
     public SideConfig() {
-        Arrays.fill(modes, SideMode.AUTO);
+        this(MACHINE_MODES, SideMode.AUTO);
+    }
+
+    public SideConfig(List<SideMode> supported, SideMode fallback) {
+        if (supported.isEmpty() || !supported.contains(fallback)) {
+            throw new IllegalArgumentException("fallback must be one of the supported modes");
+        }
+        this.supported = List.copyOf(supported);
+        this.fallback = fallback;
+        Arrays.fill(modes, fallback);
+    }
+
+    public static SideConfig machine() {
+        return new SideConfig();
+    }
+
+    public static SideConfig inbound() {
+        return new SideConfig(INBOUND_MODES, SideMode.INPUT);
+    }
+
+    public static SideConfig outbound() {
+        return new SideConfig(OUTBOUND_MODES, SideMode.DISABLED);
+    }
+
+    public List<SideMode> supported() {
+        return supported;
+    }
+
+    public SideMode fallback() {
+        return fallback;
     }
 
     public SideMode mode(RelativeSide side) {
         return modes[side.ordinal()];
     }
 
+    /** Sets a side; an unsupported mode falls back to the default. */
     public void set(RelativeSide side, SideMode mode) {
-        modes[side.ordinal()] = mode;
+        modes[side.ordinal()] = supported.contains(mode) ? mode : fallback;
     }
 
+    /** Advances the side to the next supported mode and returns it. */
     public SideMode cycle(RelativeSide side) {
-        SideMode next = mode(side).next();
-        set(side, next);
+        int index = supported.indexOf(mode(side));
+        SideMode next = supported.get((index + 1) % supported.size());
+        modes[side.ordinal()] = next;
         return next;
     }
 
+    /** Whether every side is at the default. */
     public boolean isDefault() {
         for (SideMode mode : modes) {
-            if (mode != SideMode.AUTO) {
+            if (mode != fallback) {
                 return false;
             }
         }
@@ -44,7 +92,7 @@ public final class SideConfig {
 
     public void fromBytes(byte[] bytes) {
         for (int i = 0; i < modes.length; i++) {
-            modes[i] = i < bytes.length ? SideMode.byOrdinal(bytes[i]) : SideMode.AUTO;
+            set(RelativeSide.byOrdinal(i), i < bytes.length ? SideMode.byOrdinal(bytes[i]) : fallback);
         }
     }
 }

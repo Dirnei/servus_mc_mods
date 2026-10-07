@@ -2,7 +2,7 @@
 
 ## 1. Lib model and widget
 
-- [ ] 1.1 In `lib/src/main/java/io/github/dirnei/mc/servus/lib/side/`: extend `SideMode.java` (Off, Pull, Push, flags), rework `SideConfig.java` (supported list, fallback, factories machine, inbound, outbound), add `SideConfigData.java` and `SideConfigMenus.java`; update `SideConfigTest.java` and add tests for cycling within a set and fallback on unsupported modes. Add `lib/src/main/java/io/github/dirnei/mc/servus/lib/client/SideConfigPanel.java` and `lib/.../side/SideConfigWrench.java`, lang keys in `ServusLibLanguageProvider.java`. Add the two cases to `UtilityDuctBlockEntity.cycle` and rename Disabled references in Logistics. Run `gradlew :lib:runData` and verify `gradlew :lib:test` and `gradlew build` are green.
+- [x] 1.1 In `lib/src/main/java/io/github/dirnei/mc/servus/lib/side/`: extend `SideMode.java` (Off, Pull, Push, flags), rework `SideConfig.java` (supported list, fallback, factories machine, inbound, outbound), add `SideConfigData.java` and `SideConfigMenus.java`; update `SideConfigTest.java` and add tests for cycling within a set and fallback on unsupported modes. Add `lib/src/main/java/io/github/dirnei/mc/servus/lib/client/SideConfigPanel.java` and `lib/.../side/SideConfigWrench.java`, lang keys in `ServusLibLanguageProvider.java`. Add the two cases to `UtilityDuctBlockEntity.cycle` and rename Disabled references in Logistics. Run `gradlew :lib:runData` and verify `gradlew :lib:test` and `gradlew build` are green.
 
 ## 2. Manufacturing machines
 

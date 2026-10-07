@@ -137,7 +137,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
             case BOTH, AUTO -> SideMode.INPUT;
             case INPUT -> SideMode.OUTPUT;
             case OUTPUT -> SideMode.DISABLED;
-            case DISABLED -> SideMode.BOTH;
+            case DISABLED, PULL, PUSH -> SideMode.BOTH;
         };
     }
 
