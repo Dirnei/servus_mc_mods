@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
@@ -30,7 +31,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         ElevatorModels.elevator(this, ServusStorageBlocks.ELEVATOR.get(), "elevator", "rail");
         HeavyRackModels.rack(this, ServusStorageBlocks.HEAVY_RACK.get(), "heavy_rack");
         station(ServusStorageBlocks.INBOUND_STATION.get(), "inbound_station");
-        oriented(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "shuttle_garage", "shuttle_garage");
+        garage(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "shuttle_garage");
         station(ServusStorageBlocks.OUTBOUND_STATION.get(), "outbound_station");
         machine(ServusStorageBlocks.CRAFTING_STATION.get(), "crafting_station");
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
@@ -78,6 +79,28 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
                     .build();
         });
         simpleBlockItem(block, dark);
+    }
+
+    /**
+     * The garage: the lamp on the front, the doorway with the rail on the back,
+     * the side texture left and right, the top texture above and below, and a
+     * lit lamp while online. Rotated by the facing like {@link #oriented}.
+     */
+    private void garage(Block block, String name) {
+        ModelFile dark = garageModel(name, name + "_front");
+        ModelFile lit = garageModel(name + "_online", name + "_front_online");
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(StorageNodeBlocks.ONLINE) ? lit : dark)
+                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                .build());
+        simpleBlockItem(block, dark);
+    }
+
+    private ModelFile garageModel(String model, String front) {
+        ResourceLocation side = modLoc("block/shuttle_garage_side");
+        ResourceLocation top = modLoc("block/shuttle_garage_top");
+        return models().cube(model, top, top, modLoc("block/" + front), modLoc("block/shuttle_garage_back"), side, side)
+                .texture("particle", top);
     }
 
     /**
