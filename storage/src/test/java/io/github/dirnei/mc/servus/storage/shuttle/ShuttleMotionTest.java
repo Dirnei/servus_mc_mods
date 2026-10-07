@@ -45,6 +45,33 @@ class ShuttleMotionTest {
     }
 
     @Test
+    void gateHoldsOnTheNode() {
+        ShuttleMotion motion = new ShuttleMotion(List.of(n(0, 0), n(1, 0), n(2, 0), n(3, 0)));
+        boolean[] open = {false};
+        motion.advance(2.5, segment -> segment != 2 || open[0]);
+        assertTrue(motion.held());
+        assertEquals(2, motion.segment());
+        assertEquals(0, motion.progress(), 1e-9);
+        motion.advance(0.25, segment -> segment != 2 || open[0]);
+        assertTrue(motion.held());
+        assertEquals(0, motion.progress(), 1e-9);
+        open[0] = true;
+        assertTrue(motion.advance(1.0, segment -> segment != 2 || open[0]));
+        assertFalse(motion.held());
+        assertEquals(n(3, 0), motion.currentNode());
+    }
+
+    @Test
+    void skipToLandsOnTheNode() {
+        ShuttleMotion motion = new ShuttleMotion(List.of(n(0, 0), n(1, 0), n(2, 0), n(3, 0)));
+        motion.advance(0.5);
+        motion.skipTo(2);
+        assertEquals(2, motion.segment());
+        assertEquals(0, motion.progress(), 1e-9);
+        assertEquals(n(2, 0), motion.currentNode());
+    }
+
+    @Test
     void reverseGoesHome() {
         ShuttleMotion motion = new ShuttleMotion(List.of(n(0, 0), n(1, 0), n(2, 0)));
         motion.advance(5.0);

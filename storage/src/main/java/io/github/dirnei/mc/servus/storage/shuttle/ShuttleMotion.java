@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.lib.graph.NodePos;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 /**
  * A shuttle travelling along a node path: which segment it is on and how far
@@ -14,6 +15,7 @@ public final class ShuttleMotion {
     private final List<NodePos> path;
     private int segment;
     private double progress;
+    private boolean held;
 
     /** @param path at least one node; a one node path has arrived already */
     public ShuttleMotion(List<NodePos> path) {
@@ -62,8 +64,25 @@ public final class ShuttleMotion {
      * @return true when the end of the path has been reached by this call or earlier
      */
     public boolean advance(double blocks) {
+        return advance(blocks, segment -> true);
+    }
+
+    /**
+     * Moves the shuttle along the path, asking the gate before it starts each
+     * segment. When the gate refuses, the shuttle stays on that segment's
+     * first node and {@link #held()} is true until the next call.
+     *
+     * @param mayStart gets the index of the segment about to begin
+     * @return true when the end of the path has been reached by this call or earlier
+     */
+    public boolean advance(double blocks, IntPredicate mayStart) {
+        held = false;
         double left = blocks;
         while (left > 0 && !arrived()) {
+            if (progress == 0 && !mayStart.test(segment)) {
+                held = true;
+                break;
+            }
             double room = 1.0 - progress;
             if (left >= room) {
                 left -= room;
@@ -75,6 +94,20 @@ public final class ShuttleMotion {
             }
         }
         return arrived();
+    }
+
+    /** Whether the last advance stopped at a node because the gate refused the next segment. */
+    public boolean held() {
+        return held;
+    }
+
+    /** Jumps to the node with that index, at its start; used when the lift car carried the shuttle there. */
+    public void skipTo(int index) {
+        if (index < 0 || index >= path.size()) {
+            throw new IndexOutOfBoundsException(index);
+        }
+        segment = index;
+        progress = 0;
     }
 
     /** Interpolated position as x, y, z block coordinates of the node corner. */

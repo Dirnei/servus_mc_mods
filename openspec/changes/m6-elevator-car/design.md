@@ -111,7 +111,7 @@ The client keeps `ClientLifts` (`Map<BlockPos, Lift>` with the receive tick). Th
   - It draws the car platform with four sleeves (3x3 px around the 2x2 px posts) and the rail pattern of the floor it is nearest to.
   - `getRenderBoundingBox` covers the column, and `shouldRenderOffScreen` returns true, as for the garage.
   - Parts are drawn as textured quads from the `elevator` and `rail` sprites via `RenderType.cutout()` (the `HeavyRackRenderer` and `CrateRenderer` approach). This avoids extra baked models.
-- **`Flaps.angle(carY, floorY)` (pure).** It returns 90 degrees (up) when `|carY - floorY| <= 1`, 0 degrees when `|carY - floorY| >= 1.5`, and linear between the two. `LiftCar.canCross` uses the same function (crossing needs 0 degrees), so the server and the drawing agree.
+- **`Flaps.angle(carY, floorY)` (pure).** It returns 90 degrees (up) when `|carY - floorY| <= 0.5`, 0 degrees when `|carY - floorY| >= 1`, and linear between the two. A car parked one floor away therefore leaves that deck down, as the "Parked car" scenario requires, and a parked car does not block crossings on its neighbour floors. A shuttle on a car rising from below reaches deck height at about half a block, where the flaps are already up. `LiftCar.canCross` uses the same function (crossing needs 0 degrees), so the server and the drawing agree.
 - **Heading fix.** `headingAfter` skips vertical segments and uses the last horizontal one, or keeps the previous yaw.
 
 ### Collision and climbing
@@ -128,7 +128,7 @@ The client keeps `ClientLifts` (`Map<BlockPos, Lift>` with the receive tick). Th
   - `LiftCarTest`: FIFO, boarding, ride time, parking, crossing blocks departure, `canCross` near a moving car, resize, remove.
   - `ShaftStepsTest`: enter ride, enter cross, ride, exit, goal in shaft.
   - `ShuttleMotionTest`: gate holds, skipTo.
-  - `FlapsTest`: angles at 0, 1, 1.25 and 1.5.
+  - `FlapsTest`: angles at 0, 0.5, 0.75, 1 and 3.
 - **Minecraft, GameTest:**
   - A shuttle picks from an upper floor rack via the car.
   - Two shuttles queue.
