@@ -16,5 +16,5 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `openspec validate m7-crafting-station-editor --strict`. Full `gradlew build` and `gradlew test` green, all GameTests green, `gradlew runClientAll` launches with all four mods. Commit.
+- [x] 4.1 Run `openspec validate m7-crafting-station-editor --strict`. Full `gradlew build` and `gradlew test` green, all GameTests green, `gradlew runClientAll` launches with all four mods. Commit.
 - [ ] 4.2 Play check: station GUI layout, plus opens the editor with a live preview, edit and delete through the editor, JEI transfer opens the editor, the Assembler editor still looks and works as before.
