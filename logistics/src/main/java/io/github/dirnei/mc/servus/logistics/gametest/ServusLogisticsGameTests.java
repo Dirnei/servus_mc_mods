@@ -24,8 +24,15 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -193,6 +200,162 @@ public final class ServusLogisticsGameTests {
         helper.assertTrue(removed.is(ServusLogisticsItems.FACADE.get()) && FacadeItem.blockOf(removed) == Blocks.STONE,
                 "removing should give the stone facade back");
         helper.assertTrue(duct.facade() == null, "duct should have no facade after removal");
+        helper.succeed();
+    }
+
+    // Fluid Pipe: vanilla cauldrons are the fixtures, 1,000 mB each through NeoForge's cauldron wrapper.
+
+    private static void waterCauldron(GameTestHelper helper, BlockPos pos) {
+        helper.setBlock(pos, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
+    }
+
+    private static void emptyCauldron(GameTestHelper helper, BlockPos pos) {
+        helper.setBlock(pos, Blocks.CAULDRON.defaultBlockState());
+    }
+
+    private static FluidStack fluid(GameTestHelper helper, BlockPos pos) {
+        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), null);
+        return handler == null ? FluidStack.EMPTY : handler.getFluidInTank(0);
+    }
+
+    private static boolean holds(GameTestHelper helper, BlockPos pos, Fluid fluid, int amount) {
+        FluidStack stack = fluid(helper, pos);
+        return amount == 0 ? stack.isEmpty() : stack.is(fluid) && stack.getAmount() == amount;
+    }
+
+    private static String describe(GameTestHelper helper, BlockPos pos) {
+        FluidStack stack = fluid(helper, pos);
+        return stack.isEmpty() ? "nothing" : stack.getAmount() + " mB of " + stack.getFluidHolder().getRegisteredName();
+    }
+
+    /** A water cauldron on a pull in side empties into an empty cauldron on a default side, the whole 1,000 mB at once. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void fluidFlowsFromPullInToDefaultSide(GameTestHelper helper) {
+        waterCauldron(helper, CHEST_A);
+        emptyCauldron(helper, CHEST_C);
+        UtilityDuctBlockEntity a = duct(helper, DUCT_A, Line.FLUID);
+        duct(helper, DUCT_B, Line.FLUID);
+        duct(helper, DUCT_C, Line.FLUID);
+        a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+        helper.assertTrue(a.hasArm(Line.FLUID, Direction.NORTH), "the fluid line should reach the cauldron");
+
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(holds(helper, CHEST_C, Fluids.WATER, 1000), "the sink cauldron should hold 1000 mB of water, got " + describe(helper, CHEST_C));
+            helper.assertTrue(holds(helper, CHEST_A, Fluids.WATER, 0), "the source cauldron should be empty, got " + describe(helper, CHEST_A));
+            helper.succeed();
+        });
+    }
+
+    /** A full and an empty cauldron on default sides: the water moves once and never back. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void fluidDoesNotRunBackOnDefaultSides(GameTestHelper helper) {
+        waterCauldron(helper, CHEST_A);
+        emptyCauldron(helper, CHEST_C);
+        duct(helper, DUCT_A, Line.FLUID);
+        duct(helper, DUCT_B, Line.FLUID);
+        duct(helper, DUCT_C, Line.FLUID);
+
+        Runnable settled = () -> {
+            helper.assertTrue(holds(helper, CHEST_C, Fluids.WATER, 1000), "the empty cauldron should have filled, got " + describe(helper, CHEST_C));
+            helper.assertTrue(holds(helper, CHEST_A, Fluids.WATER, 0), "the full cauldron should have emptied, got " + describe(helper, CHEST_A));
+        };
+        helper.runAfterDelay(10, settled);
+        helper.runAfterDelay(11, settled);
+        helper.runAfterDelay(20, () -> {
+            settled.run();
+            helper.succeed();
+        });
+    }
+
+    /** Only the cauldron on the pull in side's channel receives the water. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void fluidStaysOnItsChannel(GameTestHelper helper) {
+        waterCauldron(helper, CHEST_A);
+        emptyCauldron(helper, CHEST_B);
+        emptyCauldron(helper, CHEST_C);
+        UtilityDuctBlockEntity a = duct(helper, DUCT_A, Line.FLUID);
+        UtilityDuctBlockEntity b = duct(helper, DUCT_B, Line.FLUID);
+        duct(helper, DUCT_C, Line.FLUID);
+        a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+        a.setChannel(Line.FLUID, Direction.NORTH, 1);
+        b.setChannel(Line.FLUID, Direction.NORTH, 1);
+
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(holds(helper, CHEST_B, Fluids.WATER, 1000), "the cauldron on channel 2 should hold the water, got " + describe(helper, CHEST_B));
+            helper.assertTrue(holds(helper, CHEST_C, Fluids.WATER, 0), "the cauldron on channel 1 must stay empty, got " + describe(helper, CHEST_C));
+            helper.succeed();
+        });
+    }
+
+    /** Water and lava on one channel: each empty cauldron ends up with one whole fluid, never a mix, and both sources empty. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void mixedFluidsReachMatchingSinks(GameTestHelper helper) {
+        BlockPos ductD = DUCT_C.east();
+        waterCauldron(helper, CHEST_A);
+        helper.setBlock(CHEST_B, Blocks.LAVA_CAULDRON.defaultBlockState());
+        emptyCauldron(helper, CHEST_C);
+        emptyCauldron(helper, ductD.north());
+        UtilityDuctBlockEntity a = duct(helper, DUCT_A, Line.FLUID);
+        UtilityDuctBlockEntity b = duct(helper, DUCT_B, Line.FLUID);
+        duct(helper, DUCT_C, Line.FLUID);
+        duct(helper, ductD, Line.FLUID);
+        a.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+        b.setMode(Line.FLUID, Direction.NORTH, SideMode.INPUT);
+
+        helper.runAfterDelay(10, () -> {
+            boolean waterThenLava = holds(helper, CHEST_C, Fluids.WATER, 1000) && holds(helper, ductD.north(), Fluids.LAVA, 1000);
+            boolean lavaThenWater = holds(helper, CHEST_C, Fluids.LAVA, 1000) && holds(helper, ductD.north(), Fluids.WATER, 1000);
+            helper.assertTrue(waterThenLava || lavaThenWater, "each sink should hold one whole fluid, got "
+                    + describe(helper, CHEST_C) + " and " + describe(helper, ductD.north()));
+            helper.assertTrue(fluid(helper, CHEST_A).isEmpty() && fluid(helper, CHEST_B).isEmpty(), "both sources should be empty");
+            helper.succeed();
+        });
+    }
+
+    /** Fluid filled into a duct side goes straight to the cauldron on its channel; a full cauldron refuses more. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void fluidPushedIntoADuctPassesOn(GameTestHelper helper) {
+        emptyCauldron(helper, CHEST_C);
+        duct(helper, DUCT_A, Line.FLUID);
+        duct(helper, DUCT_B, Line.FLUID);
+        duct(helper, DUCT_C, Line.FLUID);
+
+        helper.runAfterDelay(2, () -> {
+            IFluidHandler duct = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH);
+            helper.assertTrue(duct != null, "the duct should expose a fluid handler on an in and out side");
+            FluidStack water = new FluidStack(Fluids.WATER, 1000);
+            helper.assertTrue(duct.fill(water, IFluidHandler.FluidAction.SIMULATE) == 1000, "a simulated fill should report room for 1000 mB");
+            helper.assertTrue(holds(helper, CHEST_C, Fluids.WATER, 0), "a simulated fill must not move fluid");
+            int filled = duct.fill(water, IFluidHandler.FluidAction.EXECUTE);
+            helper.assertTrue(filled == 1000, "the duct should accept 1000 mB, got " + filled);
+            helper.assertTrue(holds(helper, CHEST_C, Fluids.WATER, 1000), "the cauldron should hold the water, got " + describe(helper, CHEST_C));
+            helper.assertTrue(duct.fill(water, IFluidHandler.FluidAction.EXECUTE) == 0, "with every sink full the duct accepts nothing");
+            helper.assertTrue(duct.getTankCapacity(0) == 0 && duct.drain(1000, IFluidHandler.FluidAction.EXECUTE).isEmpty(),
+                    "the duct keeps and gives nothing");
+
+            UtilityDuctBlockEntity a = helper.getBlockEntity(DUCT_A);
+            a.setMode(Line.FLUID, Direction.NORTH, SideMode.OUTPUT);
+            helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH) == null,
+                    "a push out side exposes no fluid handler");
+            helper.succeed();
+        });
+    }
+
+    /** A duct with all three lines is the thickest size and drops one item per line. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void threeLineDuctDropsThreeItems(GameTestHelper helper) {
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM, Line.ENERGY);
+        AABB two = helper.getBlockState(DUCT).getShape(helper.getLevel(), helper.absolutePos(DUCT)).bounds();
+        helper.assertTrue(duct.addLine(Line.FLUID), "the fluid line should be added to the two line duct");
+        helper.assertTrue(duct.lines().size() == 3, "the duct should carry three lines");
+        AABB three = helper.getBlockState(DUCT).getShape(helper.getLevel(), helper.absolutePos(DUCT)).bounds();
+        helper.assertTrue(Math.abs(two.minX - 5 / 16.0) < 1e-6 && Math.abs(three.minX - 4 / 16.0) < 1e-6,
+                "the centre should grow from 6 to 8 pixels, got " + two + " and " + three);
+
+        helper.destroyBlock(DUCT);
+        helper.assertItemEntityPresent(ServusLogisticsItems.ITEM_PIPE.get(), DUCT, 2);
+        helper.assertItemEntityPresent(ServusLogisticsItems.POWER_CABLE.get(), DUCT, 2);
+        helper.assertItemEntityPresent(ServusLogisticsItems.FLUID_PIPE.get(), DUCT, 2);
         helper.succeed();
     }
 }
