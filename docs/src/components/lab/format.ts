@@ -4,7 +4,16 @@ export function name(data: GameData, id: string): string {
 	if (id.startsWith('#')) {
 		return id;
 	}
-	return data.items[id]?.name ?? id.slice(id.indexOf(':') + 1);
+	const known = data.items[id]?.name;
+	if (known) {
+		return known;
+	}
+	const path = id.slice(id.indexOf(':') + 1);
+	return path
+		.split(/[_/]/)
+		.filter(Boolean)
+		.map((word) => word[0].toUpperCase() + word.slice(1))
+		.join(' ');
 }
 
 /** A number with up to `digits` decimals and no trailing zeros. */

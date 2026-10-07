@@ -29,8 +29,8 @@
 - [x] 4.3 Add `EditPanel.tsx`: edit any machine, recipe, deposit and tech number, highlight edited fields, show deltas on nodes ("3 to 2 assemblers"), reset per field and all. Wire autosave to `localStorage` (design D7, try/catch). Verify in `npm run dev`: change Red Pack time to 80, see deltas, reload, edit still present.
 - [x] 4.4 Add `DraftPanel.tsx`: new item, new recipe of an existing type, concept machine with a new recipe type, notes per entry. Verify in `npm run dev` with the "Copper Coil" and "Wire Drawer" scenarios from the spec.
 - [x] 4.5 Add proposal actions: export (download and copy), import (file picker, conflicts listed with baseline, current and proposed), share link (copy, size warning), proposal title and notes. Verify in `npm run dev`: export, clear, import restores; a hand edited baseline shows a conflict; a share link opened in a private window restores the draft.
-- [ ] 4.6 Add `ResearchView.tsx` and `lab/research.mdx`: tech graph with cost, `ticks_per_pack`, unlocks, inputs for lab count and pack rate, time to research. Add `lab/index.mdx` explaining the lab and the proposal workflow. Verify in `npm run dev` with the 50 s example and `npm run build`.
-- [ ] 4.7 Check the lab at phone width (375 px) and desktop in `npm run preview`: panels stack, diagram scrolls inside its frame, no horizontal page scroll. Fix layout issues found.
+- [x] 4.6 Add `ResearchView.tsx` and `lab/research.mdx`: tech graph with cost, `ticks_per_pack`, unlocks, inputs for lab count and pack rate, time to research. Add `lab/index.mdx` explaining the lab and the proposal workflow. Verify in `npm run dev` with the 50 s example and `npm run build`.
+- [x] 4.7 Check the lab at phone width (375 px) and desktop in `npm run preview`: panels stack, diagram scrolls inside its frame, no horizontal page scroll. Fix layout issues found.
 
 ## 5. Deploy and plan
 

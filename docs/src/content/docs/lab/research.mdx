@@ -1,5 +1,14 @@
 ---
 title: Research
+description: The tech tree with pack costs, lab times and unlocks, and how long research takes for a number of labs and a pack supply rate.
+tableOfContents: false
 ---
 
-Placeholder.
+import LabHeader from '../../../components/lab/LabHeader.astro';
+import ResearchView from '../../../components/lab/ResearchView';
+
+<LabHeader />
+
+Each tech shows its pack cost and lab time. Set how many labs you run and how fast packs arrive to see the research time. Edits from the Production chains page apply here and dashed techs differ from the committed data.
+
+<ResearchView client:only="preact" />
