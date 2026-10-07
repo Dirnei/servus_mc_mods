@@ -22,3 +22,4 @@
 ## 4. Play test changes
 
 - [x] 4.1 Compact pump body (D7): shared shape in `machine/pump/PumpBlocks.java`, `getShape` in both pump blocks, `noOcclusion` in `registry/ServusManufacturingBlocks.java`, element models in `datagen/ServusManufacturingBlockStateProvider.java`. Run `gradlew :manufacturing:runData`, `gradlew build` and `gradlew :manufacturing:runGameTestServer`.
+- [x] 4.2 No sides and pipe stubs (D8): lock all sides in both pump block entities, `showsSidePanel()` in `client/MachineScreen.java` off for pumps, shared `machine/pump/PumpBlock.java` with connection properties, shape and neighbour updates, multipart blockstate with stub models in datagen, GameTests for stubs and closed front. Run `gradlew :manufacturing:runData`, `gradlew build` and `gradlew :manufacturing:runGameTestServer`.

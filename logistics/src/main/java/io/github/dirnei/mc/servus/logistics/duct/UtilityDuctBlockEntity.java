@@ -387,6 +387,8 @@ public class UtilityDuctBlockEntity extends BlockEntity {
                 duct.refreshConnections(level, worldPosition);
             }
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+            // Neighbours that draw something toward the duct (a pump's pipe stub) learn about the new handlers.
+            level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
             for (Direction side : DIRECTIONS) {
                 if (level.getBlockEntity(worldPosition.relative(side)) instanceof UtilityDuctBlockEntity neighbour) {
                     neighbour.neighbourChanged();

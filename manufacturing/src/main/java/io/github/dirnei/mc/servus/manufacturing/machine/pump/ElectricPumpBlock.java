@@ -1,20 +1,12 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.pump;
 
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 
-public class ElectricPumpBlock extends MachineBlock {
+public class ElectricPumpBlock extends PumpBlock {
 
     public static final MapCodec<ElectricPumpBlock> CODEC = simpleCodec(ElectricPumpBlock::new);
 
@@ -30,18 +22,5 @@ public class ElectricPumpBlock extends MachineBlock {
     @Override
     protected BlockEntityType<? extends MachineBlockEntity> blockEntityType() {
         return ServusManufacturingBlockEntities.ELECTRIC_PUMP.get();
-    }
-
-    /** The water below may have changed: check the source again instead of polling it. */
-    @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos,
-                                   boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
-        PumpBlocks.requestCheck(level, pos);
-    }
-
-    @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return PumpBlocks.SHAPE;
     }
 }

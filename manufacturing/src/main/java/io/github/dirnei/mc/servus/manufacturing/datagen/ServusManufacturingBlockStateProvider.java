@@ -2,15 +2,19 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
+import java.util.Map;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
@@ -42,19 +46,44 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         simpleBlockWithItem(block, cubeAll(block));
     }
 
-    /** The compact pump: base plate, body with the front, outlet; lit and unlit, rotated by facing. */
+    /**
+     * The compact pump as a multipart: the body per facing and lit state, plus a
+     * pipe stub per connected absolute direction (unrotated, the stubs are symmetric).
+     */
     private void pump(Block block, String name) {
         ModelFile unlit = pumpModel(name, modLoc("block/" + name + "_front"));
         ModelFile lit = pumpModel(name + "_lit", modLoc("block/" + name + "_front_lit"));
-        getVariantBuilder(block).forAllStates(state -> {
-            Direction facing = state.getValue(MachineBlock.FACING);
-            boolean isLit = state.getValue(MachineBlock.LIT);
-            return ConfiguredModel.builder()
-                    .modelFile(isLit ? lit : unlit)
-                    .rotationY(((int) facing.toYRot() + 180) % 360)
-                    .build();
-        });
+        MultiPartBlockStateBuilder builder = getMultipartBuilder(block);
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            for (boolean isLit : new boolean[] {false, true}) {
+                builder.part().modelFile(isLit ? lit : unlit).rotationY(((int) facing.toYRot() + 180) % 360).addModel()
+                        .condition(MachineBlock.FACING, facing).condition(MachineBlock.LIT, isLit).end();
+            }
+        }
+        for (Map.Entry<Direction, BooleanProperty> stub : PumpBlock.STUBS.entrySet()) {
+            builder.part().modelFile(pumpStub(stub.getKey())).addModel().condition(stub.getValue(), true).end();
+        }
         simpleBlockItem(block, unlit);
+    }
+
+    /** A short pipe from the pump body to the block edge, shared by both pumps. */
+    private ModelFile pumpStub(Direction direction) {
+        BlockModelBuilder model = models().withExistingParent("pump_stub_" + direction.getSerializedName(), mcLoc("block/block"))
+                .texture("particle", modLoc("block/machine_side"))
+                .texture("side", modLoc("block/machine_side"))
+                .texture("top", modLoc("block/machine_top"));
+        BlockModelBuilder.ElementBuilder element = model.element();
+        switch (direction) {
+            case NORTH -> element.from(5, 5, 0).to(11, 11, 3);
+            case SOUTH -> element.from(5, 5, 13).to(11, 11, 16);
+            case WEST -> element.from(0, 5, 5).to(3, 11, 11);
+            case EAST -> element.from(13, 5, 5).to(16, 11, 11);
+            default -> element.from(6, 15, 6).to(10, 16, 10);
+        }
+        element.allFaces((face, builder) -> builder.texture(face == direction || face == direction.getOpposite() ? "#top" : "#side")
+                .uvs(5, 5, 11, 11));
+        element.face(direction).cullface(direction).end();
+        return model;
     }
 
     private ModelFile pumpModel(String name, ResourceLocation front) {

@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.pump;
 
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
@@ -30,8 +29,7 @@ public class ElectricPumpBlockEntity extends PoweredMachineBlockEntity implement
 
     public ElectricPumpBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.ELECTRIC_PUMP.get(), pos, state, 0);
-        // The pump stands on the water: nothing goes in or out through the bottom.
-        sideConfig().lock(RelativeSide.BOTTOM, SideMode.DISABLED);
+        PumpLogic.lockSides(sideConfig());
     }
 
     @Override

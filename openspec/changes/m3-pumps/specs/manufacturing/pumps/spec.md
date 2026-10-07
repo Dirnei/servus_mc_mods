@@ -57,26 +57,49 @@ The Electric Pump SHALL spend `energy_per_tick` FE from its buffer while working
 - **THEN** progress pauses and resumes when energy arrives
 
 ### Requirement: Water leaves through the sides
-A pump SHALL never accept fluid. Its sides use the usual machine side modes, set with the Configuration Carrot and shown by side markers: water SHALL be offered as a drain on sides whose mode lets neighbours extract (Auto, Output, Both, Push), and the pump SHALL fill touching fluid handlers itself on sides whose mode pushes (Auto, Push). The front and the bottom SHALL be fixed Off.
+A pump SHALL have no configurable sides: no side panel in its GUI, no side markers, and the carrot SHALL not change its sides. It SHALL never accept fluid. On every face except its front and its bottom it SHALL offer its water to neighbours that drain it and SHALL fill touching fluid handlers itself. The Burner Pump SHALL accept fuel from automation on the same faces.
 
 #### Scenario: Pump beside a tank
-- **WHEN** a pump stands next to a Fluid Tank with that side left on Auto
+- **WHEN** a pump stands next to a Fluid Tank
 - **THEN** the tank fills with water without a pipe
 
-#### Scenario: Output side
-- **WHEN** that side is set to Output
-- **THEN** the pump no longer fills the tank itself, and a duct on that side can still drain it
+#### Scenario: No side settings
+- **WHEN** the player opens a pump's GUI or uses the carrot on one of its faces
+- **THEN** no side panel shows and no face changes
 
-#### Scenario: Input side
-- **WHEN** that side is set to Input
-- **THEN** no water leaves through it, and fuel can still be inserted there (Burner Pump)
+#### Scenario: Front and bottom closed
+- **WHEN** a tank touches the pump's front
+- **THEN** no water reaches it
+
+#### Scenario: Fuel by automation
+- **WHEN** a duct pushes coal into the side of a Burner Pump
+- **THEN** the coal goes into the fuel slot
 
 #### Scenario: Refuses fluid
 - **WHEN** a pipe tries to fill water into a pump
 - **THEN** the pump accepts nothing
 
+### Requirement: Pump connects to pipes
+A pump SHALL show a short pipe stub from its body to the block edge on every face where it gives water and the neighbour takes or gives fluid, so a Fluid Pipe or tank meets it without a gap. The stubs SHALL follow neighbours being placed, removed or changed, and the outline SHALL include them.
+
+#### Scenario: Pipe beside the pump
+- **WHEN** a duct carrying the Fluid Pipe is placed east of a pump
+- **THEN** the pump shows a stub on its east face that meets the duct's arm
+
+#### Scenario: Pipe on top
+- **WHEN** a Fluid Pipe duct is placed above a pump
+- **THEN** the outlet on top reaches up to the duct
+
+#### Scenario: Item duct
+- **WHEN** a duct carrying only an Item Pipe touches the pump
+- **THEN** no stub shows on that face
+
+#### Scenario: Pipe removed
+- **WHEN** the duct is broken
+- **THEN** the stub on that face disappears
+
 ### Requirement: Pump GUI
-A pump's GUI SHALL show its buffer as a fluid gauge with the amount and capacity on hover, its progress, and the fuel slot and burn indicator (Burner Pump) or the energy bar (Electric Pump), plus a line telling whether the water source below is valid.
+A pump's GUI SHALL show, without a side panel, its buffer as a fluid gauge with the amount and capacity on hover, its progress, and the fuel slot and burn indicator (Burner Pump) or the energy bar (Electric Pump), plus a line telling whether the water source below is valid.
 
 #### Scenario: No source shown
 - **WHEN** a player opens the GUI of a pump that stands on dirt

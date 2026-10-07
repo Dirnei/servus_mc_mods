@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.pump;
 
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideConfig;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
 import java.util.function.Function;
@@ -23,6 +25,17 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
  * touching fluid handlers. Only used on the server thread.
  */
 public final class PumpLogic {
+
+    /**
+     * A pump has no side settings: front and bottom are fixed Off, every other
+     * side is fixed Auto, which offers and pushes water and takes fuel.
+     */
+    public static void lockSides(SideConfig config) {
+        config.lock(RelativeSide.BOTTOM, SideMode.DISABLED);
+        for (RelativeSide side : new RelativeSide[] {RelativeSide.BACK, RelativeSide.LEFT, RelativeSide.RIGHT, RelativeSide.TOP}) {
+            config.lock(side, SideMode.AUTO);
+        }
+    }
 
     private static final int PUSH_INTERVAL = 10;
     private static final Direction[] HORIZONTAL = {Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};

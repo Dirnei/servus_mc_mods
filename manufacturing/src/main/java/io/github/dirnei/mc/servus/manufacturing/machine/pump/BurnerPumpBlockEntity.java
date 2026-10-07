@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.pump;
 
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.BurnerMachineBlockEntity;
@@ -31,8 +30,7 @@ public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements P
 
     public BurnerPumpBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.BURNER_PUMP.get(), pos, state, 1);
-        // The pump stands on the water: nothing goes in or out through the bottom.
-        sideConfig().lock(RelativeSide.BOTTOM, SideMode.DISABLED);
+        PumpLogic.lockSides(sideConfig());
     }
 
     @Override

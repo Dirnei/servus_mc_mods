@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.manufacturing.gametest;
 import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
 import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.logistics.duct.Line;
 import io.github.dirnei.mc.servus.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlocks;
@@ -10,23 +12,13 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.PoweredMachineBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.machine.pump.BurnerPumpBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpMachine;
-import net.minecraft.world.level.block.LayeredCauldronBlock;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.BurnerPumpBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpMachine;
+import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.core.BlockPos;
@@ -34,12 +26,23 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /** GameTests of Servus: Manufacturing. */
 @GameTestHolder(ServusManufacturingIds.MOD_ID)
@@ -429,25 +432,43 @@ public final class ServusManufacturingGameTests {
         });
     }
 
-    /** An Output side offers water to neighbours but does not push it; an Input side gives nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void pumpOutputSideDoesNotPush(GameTestHelper helper) {
-        pool(helper, 4);
-        burnerPump(helper, 4);
-        BlockPos cauldron = PUMP.west();
-        helper.setBlock(cauldron, Blocks.CAULDRON.defaultBlockState());
+    /** A pump has no side settings: every side is fixed, the carrot changes nothing, fuel goes in by automation. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void pumpSidesAreFixed(GameTestHelper helper) {
+        burnerPump(helper, 0);
         MachineBlockEntity pump = helper.getBlockEntity(PUMP);
-        pump.sideConfig().set(RelativeSide.RIGHT, SideMode.OUTPUT);
-        pump.sideConfig().set(RelativeSide.LEFT, SideMode.INPUT);
-        helper.getLevel().invalidateCapabilities(helper.absolutePos(PUMP));
-        helper.runAfterDelay(120, () -> {
-            helper.assertTrue(helper.getBlockState(cauldron).is(Blocks.CAULDRON), "an Output side must not fill the cauldron");
-            IFluidHandler right = pumpFluid(helper, Direction.WEST);
-            helper.assertTrue(right != null && right.drain(250, IFluidHandler.FluidAction.SIMULATE).getAmount() == 250,
-                    "an Output side can be drained");
-            helper.assertTrue(pumpFluid(helper, Direction.EAST) == null, "an Input side gives no water");
-            helper.succeed();
-        });
+        for (RelativeSide side : RelativeSide.values()) {
+            helper.assertTrue(pump.sideConfig().isLocked(side), "side " + side + " should be fixed");
+        }
+        helper.assertTrue(pump.cycleFace(Direction.WEST) == SideMode.AUTO, "a side stays Auto when cycled");
+        IItemHandler west = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(PUMP), Direction.WEST);
+        helper.assertTrue(west != null, "a side takes fuel by automation");
+        ItemStack left = ItemHandlerHelper.insertItem(west, new ItemStack(Items.COAL, 3), false);
+        helper.assertTrue(left.isEmpty() && pump.inventory().getStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL).getCount() == 3,
+                "the coal should go into the fuel slot");
+        helper.succeed();
+    }
+
+    /** Pipe stubs show toward fluid handling neighbours on every face but the front and the bottom, and follow changes. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void pumpStubsFollowNeighbours(GameTestHelper helper) {
+        burnerPump(helper, 0);
+        helper.setBlock(PUMP.east(), Blocks.CAULDRON.defaultBlockState());
+        helper.setBlock(PUMP.north(), Blocks.CAULDRON.defaultBlockState());
+        helper.setBlock(PUMP.west(), Blocks.STONE.defaultBlockState());
+        duct(helper, PUMP.south(), Line.ITEM);
+        helper.assertTrue(helper.getBlockState(PUMP).getValue(PumpBlock.EAST), "a cauldron to the east gets a stub");
+        helper.assertTrue(!helper.getBlockState(PUMP).getValue(PumpBlock.NORTH), "the front never gets a stub");
+        helper.assertTrue(!helper.getBlockState(PUMP).getValue(PumpBlock.WEST), "stone gets no stub");
+        helper.assertTrue(!helper.getBlockState(PUMP).getValue(PumpBlock.SOUTH), "an item only duct gets no stub");
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(PUMP.south());
+        duct.addLine(Line.FLUID);
+        helper.assertTrue(helper.getBlockState(PUMP).getValue(PumpBlock.SOUTH), "adding the Fluid Pipe adds the stub");
+        helper.setBlock(PUMP.east(), Blocks.AIR.defaultBlockState());
+        helper.assertTrue(!helper.getBlockState(PUMP).getValue(PumpBlock.EAST), "removing the cauldron removes the stub");
+        duct(helper, PUMP.above(), Line.FLUID);
+        helper.assertTrue(helper.getBlockState(PUMP).getValue(PumpBlock.UP), "a Fluid Pipe on top reaches the outlet");
+        helper.succeed();
     }
 
     /** A pump never accepts fluid, and its front and bottom are fixed Off. */

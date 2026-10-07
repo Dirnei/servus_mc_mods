@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.client;
 import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.lib.client.FluidGauge;
 import io.github.dirnei.mc.servus.lib.client.SideConfigPanel;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpMachine;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.menu.MachineMenu;
 import net.minecraft.client.gui.GuiGraphics;
@@ -67,6 +68,11 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     protected final Layout layout;
 
+    /** Pumps have no side settings, so they show no side panel. */
+    protected boolean showsSidePanel() {
+        return !(menu.machine() instanceof PumpMachine);
+    }
+
     public MachineScreen(MachineMenu menu, Inventory playerInventory, Component title, Layout layout) {
         super(menu, playerInventory, title);
         this.layout = layout;
@@ -102,7 +108,9 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     protected void init() {
         super.init();
         this.inventoryLabelY = this.imageHeight - 94;
-        panel.placeBeside(leftPos, topPos);
+        if (showsSidePanel()) {
+            panel.placeBeside(leftPos, topPos);
+        }
         fluidGauge.place(leftPos + FLUID_X, topPos + FLUID_Y);
     }
 
@@ -117,7 +125,9 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if (layout.fluid()) {
             fluidGauge.renderTooltip(guiGraphics, font, menu.fluid(), menu.fluidCapacity(), mouseX, mouseY);
         }
-        panel.renderTooltip(guiGraphics, font, mouseX, mouseY);
+        if (showsSidePanel()) {
+            panel.renderTooltip(guiGraphics, font, mouseX, mouseY);
+        }
     }
 
     /** Pumps show their source status where other machines show the inventory label. */
@@ -142,7 +152,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (panel.mouseClicked(mouseX, mouseY)) {
+        if (showsSidePanel() && panel.mouseClicked(mouseX, mouseY)) {
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
@@ -151,7 +161,9 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.blit(layout.texture(), leftPos, topPos, 0, 0, imageWidth, imageHeight);
-        panel.render(guiGraphics, font, mouseX, mouseY);
+        if (showsSidePanel()) {
+            panel.render(guiGraphics, font, mouseX, mouseY);
+        }
         if (layout.flame() && menu.isBurning()) {
             int flame = menu.burnScaled(13) + 1;
             guiGraphics.blitSprite(LIT_PROGRESS_SPRITE, 14, 14, 0, 14 - flame, leftPos + 56, topPos + 36 + 14 - flame, 14, flame);

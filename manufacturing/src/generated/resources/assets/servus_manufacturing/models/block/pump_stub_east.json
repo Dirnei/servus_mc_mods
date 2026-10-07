@@ -1,0 +1,124 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#side",
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ]
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#top"
+        },
+        "north": {
+          "texture": "#side",
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ]
+        },
+        "up": {
+          "texture": "#side",
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#top"
+        }
+      },
+      "from": [
+        13,
+        5,
+        5
+      ],
+      "to": [
+        16,
+        11,
+        11
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#side",
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ]
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#top"
+        },
+        "north": {
+          "texture": "#side",
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ]
+        },
+        "up": {
+          "texture": "#side",
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            11.0
+          ]
+        },
+        "west": {
+          "texture": "#top"
+        }
+      },
+      "from": [
+        13,
+        5,
+        5
+      ],
+      "to": [
+        16,
+        11,
+        11
+      ]
+    }
+  ],
+  "textures": {
+    "particle": "servus_manufacturing:block/machine_side",
+    "side": "servus_manufacturing:block/machine_side",
+    "top": "servus_manufacturing:block/machine_top"
+  }
+}
