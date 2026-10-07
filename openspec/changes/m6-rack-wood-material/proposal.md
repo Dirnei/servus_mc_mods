@@ -12,7 +12,8 @@ Milestone: M6 (Storage automation), a follow up to the Heavy Duty Rack. Only the
 - Recipe: unchanged pattern and cost (iron ingots and three planks). The wood is the planks that appear most often; with three different planks the middle one decides.
 - The frame (posts, beams, edges) gets a blackened wrought iron texture instead of the orange steel, for every rack.
 - The wood stays with the rack: on the placed block, in the dropped or dismantled item, in the item's look in hand and inventory, in its tooltip, and in the breaking particles.
-- A rack without a stored wood (for example from `/give` or placed before this change) shows oak boards. The creative tab and JEI show one rack, the oak one; neighbouring bays of different woods still join.
+- A rack without a stored wood (for example from `/give` or placed before this change) shows oak boards. The creative tab and JEI show one rack, the oak one.
+- Bays of different woods do not join, neither side by side nor stacked. A rack placed on top still takes the facing of the rack below.
 
 ## Capabilities
 
@@ -20,7 +21,7 @@ Milestone: M6 (Storage automation), a follow up to the Heavy Duty Rack. Only the
 None.
 
 ### Modified Capabilities
-- `storage/heavy-duty-rack`: crafting records the wood; new requirements for the wood look and the frame.
+- `storage/heavy-duty-rack`: crafting records the wood; bays join only with the same wood; new requirements for the wood look and the frame.
 
 ## Non-goals
 

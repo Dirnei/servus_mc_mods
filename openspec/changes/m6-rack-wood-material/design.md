@@ -32,9 +32,12 @@ The rack's item model is wrapped too; its `ItemOverrides` subclass resolves a st
 ### D5. Frame texture and defaults
 A new generated texture `heavy_rack_iron.png` (blackened wrought iron, dark grey with a little highlight and rivets) replaces `heavy_rack_steel.png` in `HeavyRackModels`; the old file is removed. `heavy_rack_board.png` stays as the marker sprite the model swaps, repainted to look like oak so any path that misses the swap still looks right. The creative tab keeps one rack without a component (shows oak).
 
+### D6. Joins need the same wood
+Decided during the play check: different woods do not join. `HeavyRackBlock.getStateForPlacement` reads the placed wood from the item in hand and each neighbour's wood from its block entity; the section walk, the side joins and `UP`/`DOWN` count a neighbour only when facing and wood match. The facing copy from the rack below ignores the wood. The neighbours' own flags are fixed in `setPlacedBy`, which runs after the item's components reach the block entity: during `onPlace` and `updateShape` the new rack still reads as oak, so `updateShape` keeps only clearing side joins and `setPlacedBy` sets the neighbours' side, `UP` and `DOWN` flags to match the placed rack.
+
 ### Pure Java vs Minecraft
 - Pure, JUnit: `RackWood.pick`.
-- GameTest: assembling the recipe from a 3 by 3 grid records spruce, oak (majority) and spruce (middle of three); a placed item carries its wood into the block entity; `Block.getDrops` of a spruce rack carries spruce; a rack without the component reports oak.
+- GameTest: assembling the recipe from a 3 by 3 grid records spruce, oak (majority) and spruce (middle of three); a placed item carries its wood into the block entity; `Block.getDrops` of a spruce rack carries spruce; a rack without the component reports oak; a spruce rack beside and on top of an oak rack joins neither.
 - Manual: board and item look, particles, frame texture, modded wood in a pack.
 
 ## Risks / Trade-offs

@@ -12,7 +12,11 @@
 - [x] 2.1 Client: `client/HeavyRackModel.java` (D3) and the item override (D4), installed in `client/ServusStorageClient.java` through `ModelEvent.ModifyBakingResult`. Verify `gradlew build`.
 - [x] 2.2 Generate `heavy_rack_iron.png`, repaint `heavy_rack_board.png` oak-like, point `datagen/HeavyRackModels.java` at the iron texture and remove `heavy_rack_steel.png`, lang for the tooltip. Run `gradlew :storage:runData` and `gradlew build`.
 
-## 3. Verification
+## 3. Joins by wood
 
-- [x] 3.1 Run `openspec validate m6-rack-wood-material --strict`, full `gradlew build` and `gradlew test` green, all GameTests green. Commit. Launch the client from main only when the user asks.
-- [ ] 3.2 Play check: racks crafted from different woods show their boards in world and in hand, the tooltip names the wood, breaking particles show it, the frame is dark iron, a mixed row joins.
+- [x] 3.1 `rack/HeavyRackBlock.java`: joins and `UP`/`DOWN` need the same wood at placement, neighbours fixed in `setPlacedBy` (D6). GameTest in `gametest/ServusStorageGameTests.java`: spruce beside oak and spruce on oak do not join, spruce beside spruce does. Verify `gradlew build` and `gradlew :storage:runGameTestServer`.
+
+## 4. Verification
+
+- [ ] 4.1 Run `openspec validate m6-rack-wood-material --strict`, full `gradlew build` and `gradlew test` green, all GameTests green. Commit. Launch the client from main only when the user asks.
+- [ ] 4.2 Play check: racks crafted from different woods show their boards in world and in hand, the tooltip names the wood, breaking particles show it, the frame is dark iron, different woods do not join.

@@ -480,6 +480,44 @@ public final class ServusStorageGameTests {
         helper.succeed();
     }
 
+    private static final int WOOD_Z = 4;
+
+    /** Places a rack of that wood by hand with the mock player looking south, so it faces north unless a rack is below. */
+    private static void placeWoodRack(GameTestHelper helper, Player player, BlockPos pos, Block planks) {
+        BlockPos absolute = helper.absolutePos(pos);
+        ItemStack rackItem = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
+        rackItem.set(ServusStorageComponents.RACK_WOOD.get(), idOf(planks));
+        player.setItemInHand(InteractionHand.MAIN_HAND, rackItem);
+        rackItem.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
+    }
+
+    /** Spruce beside oak and spruce on oak stay apart; spruce beside spruce joins. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackJoinsOnlySameWood(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0.0F);
+        BlockPos oak = new BlockPos(1, 1, WOOD_Z);
+        BlockPos spruce = new BlockPos(2, 1, WOOD_Z);
+        BlockPos spruce2 = new BlockPos(3, 1, WOOD_Z);
+        BlockPos top = new BlockPos(1, 2, WOOD_Z);
+        placeWoodRack(helper, player, oak, Blocks.OAK_PLANKS);
+        placeWoodRack(helper, player, spruce, Blocks.SPRUCE_PLANKS);
+        placeWoodRack(helper, player, spruce2, Blocks.SPRUCE_PLANKS);
+        placeWoodRack(helper, player, top, Blocks.SPRUCE_PLANKS);
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(helper.getBlockState(spruce).getValue(HeavyRackBlock.FACING) == Direction.NORTH, "racks face north");
+            helper.assertTrue(!helper.getBlockState(spruce).getValue(HeavyRackBlock.LEFT), "spruce does not join the oak beside it");
+            helper.assertTrue(!helper.getBlockState(oak).getValue(HeavyRackBlock.RIGHT), "oak does not join the spruce beside it");
+            helper.assertTrue(helper.getBlockState(spruce).getValue(HeavyRackBlock.RIGHT)
+                    && helper.getBlockState(spruce2).getValue(HeavyRackBlock.LEFT), "two spruce racks join");
+            helper.assertTrue(helper.getBlockState(top).getValue(HeavyRackBlock.FACING) == Direction.NORTH, "the stacked rack copies the facing");
+            helper.assertTrue(!helper.getBlockState(top).getValue(HeavyRackBlock.DOWN), "spruce on oak keeps its bottom frame");
+            helper.assertTrue(!helper.getBlockState(oak).getValue(HeavyRackBlock.UP), "oak under spruce keeps its top frame");
+            helper.succeed();
+        });
+    }
+
     private static final int SEC_Z = 11;
 
     /** Places a rack through its item with the mock player looking south, so the rack faces north. */
