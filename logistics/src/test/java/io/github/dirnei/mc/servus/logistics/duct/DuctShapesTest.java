@@ -17,6 +17,17 @@ class DuctShapesTest {
     }
 
     @Test
+    void junctionGrowsByOnePixel() {
+        int straight = 1 << DuctShapes.NORTH | 1 << DuctShapes.SOUTH;
+        int bend = 1 << DuctShapes.NORTH | 1 << DuctShapes.EAST;
+        assertFalse(DuctShapes.isJunction(straight));
+        assertTrue(DuctShapes.isJunction(bend));
+        assertEquals(DuctShapes.THICK_RADIUS, DuctShapes.centerRadius(2, straight));
+        assertEquals(DuctShapes.THICK_RADIUS + 1, DuctShapes.centerRadius(2, bend));
+        assertEquals(DuctShapes.THIN_RADIUS, DuctShapes.centerRadius(1, bend));
+    }
+
+    @Test
     void centreIsCentred() {
         DuctShapes.Box thin = DuctShapes.center(2);
         assertEquals(new DuctShapes.Box(6, 6, 6, 10, 10, 10), thin);

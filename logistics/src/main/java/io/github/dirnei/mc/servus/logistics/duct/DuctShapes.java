@@ -31,9 +31,33 @@ public final class DuctShapes {
     private DuctShapes() {
     }
 
+    /** How much a two line junction cube grows beyond the run centre, so it reads as a fitting. */
+    public static final int JUNCTION_EXTRA = 1;
+
     /** Radius by line count: one line is thin, two or more lines thick. */
     public static int radius(int lineCount) {
         return lineCount >= 2 ? THICK_RADIUS : THIN_RADIUS;
+    }
+
+    /** Whether arms in the six bit side mask lie on more than one axis, so the centre is a junction. */
+    public static boolean isJunction(int armsMask) {
+        int axes = 0;
+        if ((armsMask & (1 << DOWN | 1 << UP)) != 0) {
+            axes++;
+        }
+        if ((armsMask & (1 << NORTH | 1 << SOUTH)) != 0) {
+            axes++;
+        }
+        if ((armsMask & (1 << WEST | 1 << EAST)) != 0) {
+            axes++;
+        }
+        return axes > 1;
+    }
+
+    /** The centre radius: the line radius, one pixel more for a two line junction. */
+    public static int centerRadius(int lineCount, int armsMask) {
+        int r = radius(lineCount);
+        return lineCount >= 2 && isJunction(armsMask) ? r + JUNCTION_EXTRA : r;
     }
 
     public static Box center(int radius) {

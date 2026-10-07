@@ -124,7 +124,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
     public static VoxelShape shape(int linesMask, int itemArms, int energyArms) {
         int key = (linesMask & 3) | (itemArms & 63) << 2 | (energyArms & 63) << 8;
         return SHAPES.computeIfAbsent(key, k -> {
-            VoxelShape shape = box(DuctShapes.center(DuctShapes.radius(Integer.bitCount(linesMask & 3))));
+            VoxelShape shape = box(DuctShapes.center(DuctShapes.centerRadius(Integer.bitCount(linesMask & 3), itemArms | energyArms)));
             for (Direction direction : Direction.values()) {
                 int bit = DuctModelData.bit(direction);
                 int armLines = ((itemArms & bit) != 0 ? 1 : 0) + ((energyArms & bit) != 0 ? 1 : 0);

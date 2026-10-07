@@ -66,7 +66,7 @@ final class DuctPartModels {
 
     private static void junction(BlockStateProvider provider, int lines) {
         BlockModelBuilder model = builder(provider, DuctParts.centerName(lines, null), lines);
-        int r = radius(lines);
+        int r = radius(lines) + DuctShapes.JUNCTION_EXTRA;
         float lo = 8 - r;
         float hi = 8 + r;
         model.element().from(lo, lo, lo).to(hi, hi, hi).allFaces((direction, face) -> face.texture("#junction")).end();
