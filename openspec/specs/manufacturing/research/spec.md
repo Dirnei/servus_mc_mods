@@ -11,7 +11,7 @@ A tech SHALL be a JSON file under `data/<namespace>/servus_manufacturing/tech/` 
 
 #### Scenario: Built in techs
 - **WHEN** the server starts
-- **THEN** the techs electric_extractor, crusher, stone_processing, splitter_filter_ducts and logistics exist with their costs in red packs (example values, retunable in data)
+- **THEN** the techs electric_extractor, crusher, stone_processing and logistics exist with their costs in red packs (example values, retunable in data), and logistics has crusher as its only parent
 
 #### Scenario: Datapack tech
 - **WHEN** a datapack adds a tech file

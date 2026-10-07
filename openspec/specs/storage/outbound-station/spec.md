@@ -41,7 +41,7 @@ Every `outbound_check_interval` ticks (example 40) an online warehouse SHALL com
 - **THEN** the buffer stays as it is and the station's GUI says sticks are out of stock
 
 ### Requirement: Side modes
-Every side of the station SHALL be in one of three modes: push, extract or off. On a push side the station SHALL push its buffer into the neighbour's item handler every `push_interval` ticks (example 8), stacks the neighbour refuses waiting in the buffer. On an extract side the neighbour MAY extract from the buffer through the item handler capability. Inserting through any side SHALL be refused. The front SHALL default to push and the other sides to off. The Configuration Carrot used on a face SHALL cycle that face's mode push, extract, off, and the GUI SHALL show six side buttons that cycle the same way.
+Every relative side of the station SHALL be in one of three modes of the Lib side configuration: Push, Output or Off. On a Push side the station SHALL push its buffer into the neighbour's item handler every `push_interval` ticks (example 8), stacks the neighbour refuses waiting in the buffer. On an Output side the neighbour MAY extract from the buffer through the item handler capability. Inserting through any side SHALL be refused. The front SHALL default to Push and the other sides to Off. The Configuration Carrot used on a face SHALL cycle that face's mode Push, Output, Off, and the GUI SHALL show the Lib side panel.
 
 #### Scenario: Pushed into an Assembler
 - **WHEN** the front faces an Assembler with the iron gear recipe and 4 iron ingots sit in the buffer
@@ -52,11 +52,11 @@ Every side of the station SHALL be in one of three modes: push, extract or off. 
 - **THEN** the cobblestone stays in the buffer
 
 #### Scenario: Hopper on an extract side
-- **WHEN** the bottom side is set to extract and a hopper hangs under the station
+- **WHEN** the bottom side is set to Output and a hopper hangs under the station
 - **THEN** the hopper drains the buffer
 
 #### Scenario: Hopper on an off side
-- **WHEN** the bottom side is off
+- **WHEN** the bottom side is Off
 - **THEN** the hopper takes nothing
 
 #### Scenario: Nothing goes in
@@ -65,7 +65,7 @@ Every side of the station SHALL be in one of three modes: push, extract or off. 
 
 #### Scenario: Carrot cycles a side
 - **WHEN** the player uses the carrot on the top face twice
-- **THEN** the top is extract after the first use and off after the second
+- **THEN** the top is Output after the first use and Off after the second
 
 ### Requirement: Station is a warehouse node without stock
 The station SHALL be a member of the warehouse network like an Inbound Station: it SHALL link to touching storage blocks, stations and garages, rails SHALL dock onto it on every side, and it SHALL NOT link to elevator segments. Its buffer SHALL NOT be indexed and the blocks it pushes into SHALL NOT become warehouse sources through it. It SHALL show the connection lamp and an activity lamp: green while every keep slot is satisfied, orange while deliveries are on their way, red while a keep slot cannot be filled, dark while offline.

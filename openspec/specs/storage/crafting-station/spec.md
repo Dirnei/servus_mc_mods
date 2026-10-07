@@ -33,7 +33,7 @@ The station SHALL have nine input slots and four output slots. It SHALL craft an
 - **THEN** the craft waits and the inputs are untouched
 
 ### Requirement: Machine like sides
-The station SHALL expose its inventory through the item handler capability on every side: inputs accept insertion only, and only of items used by a configured recipe; outputs allow extraction only. Items in the outputs SHALL be pushed into adjacent inventories that accept them, checking regularly, so an Inbound Station beside the station collects them.
+The station SHALL have a Lib side configuration like a machine: Auto, Input, Output, Both, Pull, Push and Off, all sides Auto by default, shown in the Lib side panel and cycled by the carrot. Through sides that allow insertion the inputs accept only items used by a configured recipe; through sides that allow extraction the outputs can be taken. Items in the outputs SHALL be pushed into adjacent inventories through Auto and Push sides, checking regularly, so an Inbound Station beside the station collects them, and items the recipes use SHALL be pulled from neighbours through Pull sides.
 
 #### Scenario: Dock feeds and collects
 - **WHEN** an Outbound Station faces the station with planks in its buffer, an Inbound Station touches the station and the sticks recipe is configured
@@ -42,6 +42,10 @@ The station SHALL expose its inventory through the item handler capability on ev
 #### Scenario: Unused item refused
 - **WHEN** a hopper offers cobblestone and no configured recipe uses it
 - **THEN** the cobblestone is refused
+
+#### Scenario: Side off
+- **WHEN** the top side is Off and a hopper above offers planks
+- **THEN** the planks stay in the hopper
 
 ### Requirement: Station reports its production
 The station SHALL expose the Lib production capability: one recipe per configured recipe with the template items as inputs, the result as output and the work time as ticks, and the recipe it is working on as active.
