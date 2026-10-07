@@ -90,6 +90,8 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 
 **Pumps** are the first fluid source: a Burner Pump (furnace fuel, hand crafted) and an Electric Pump (FE, faster, made in the assembler after the Electric Extractor research) stand on an infinite water source, a water source block with at least two water source neighbours, and fill an internal water buffer without ever using the water up. They push water out through their sides by the usual side modes, into the Fluid Pipe or a Fluid Tank. Rates and buffer size are datapack numbers (examples: 250 mB and 500 mB per second, 4,000 mB buffer).
 
+**Sink and Chimney** get rid of surplus: the Sink is a brick block with a fan behind a grate that voids items, fluids and FE through the standard capabilities and from a one slot trash GUI or a bucket by hand. Brick Chimney blocks stacked on top raise its void rate per height, and from a configured height on (example 5 blocks) it voids without limit. While it voids, the fan spins and smoke rises from the chimney top. Rate tables per height and the active time are datapack numbers (examples: 4 to 64 items per second, 50 to 800 mB and 100 to 1,600 FE per tick).
+
 **Pack tiers (later):** Mechanical (red), Logistic (green), Chemical (blue), Advanced (purple), Exotic (yellow), plus repeatable infinite research at the end.
 
 ### 2.2 Servus: Logistics
@@ -194,6 +196,7 @@ Each milestone ends in something playable or testable.
 ### M3: Manufacturing Tier 1 completion
 - Electric Extractor, Crusher, Stone Processing
 - Burner Pump and Electric Pump
+- Sink and Chimney
 - JEI or EMI integration for machine recipes
 - Chunk loader upgrade with FE upkeep and config caps
 - Balance pass
