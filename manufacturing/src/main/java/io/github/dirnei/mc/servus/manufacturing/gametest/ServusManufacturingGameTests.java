@@ -15,6 +15,7 @@ import io.github.dirnei.mc.servus.manufacturing.machine.PoweredMachineBlockEntit
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.ChimneyBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.menu.SinkMenu;
 import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
 import java.util.List;
 import net.minecraft.world.InteractionHand;
@@ -751,6 +752,41 @@ public final class ServusManufacturingGameTests {
         SinkBlockEntity again = helper.getBlockEntity(target.above());
         helper.assertTrue(again.sideConfig().mode(RelativeSide.LEFT) == SideMode.DISABLED, "the left side stays Off");
         helper.assertTrue(again.sideConfig().mode(RelativeSide.RIGHT) == SideMode.INPUT, "the right side stays Input");
+        helper.succeed();
+    }
+
+    /** A lava bucket used on the Sink is emptied whatever the rate, and the player keeps an empty bucket. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkEmptiesLavaBucket(GameTestHelper helper) {
+        sink(helper, 0);
+        // Use up the fluid budget first: the bucket must not depend on it.
+        sinkFluid(helper, Direction.UP).fill(new FluidStack(Fluids.WATER, 100_000), IFluidHandler.FluidAction.EXECUTE);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack bucket = new ItemStack(Items.LAVA_BUCKET);
+        player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
+        BlockPos absolute = helper.absolutePos(SINK);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).add(0, 0.5, 0), Direction.UP, absolute, false);
+        helper.getBlockState(SINK).useItemOn(bucket, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
+        helper.assertTrue(held.is(Items.BUCKET) && held.getCount() == 1, "the player should hold an empty bucket, holds " + held);
+        helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "voiding the lava turns the Sink active");
+        helper.succeed();
+    }
+
+    /** Shift clicking a stack into the trash slot voids all of it at once, even without a chimney. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkTrashSlotVoidsStack(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.getInventory().setItem(9, new ItemStack(Items.COBBLESTONE, 64));
+        SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
+        // Slot 0 is the trash slot, slot 1 the first inventory slot (player inventory index 9).
+        menu.quickMoveStack(player, 1);
+        helper.assertTrue(player.getInventory().getItem(9).isEmpty(), "the stack should be gone");
+        helper.assertTrue(menu.getSlot(0).getItem().isEmpty(), "the trash slot stays empty");
+        helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "no cobblestone anywhere in the inventory");
+        helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "the trash slot turns the Sink active");
+        helper.assertTrue(menu.chimneyHeight() == 0 && menu.itemRate() == 4, "height 0 shows 4 items per second");
         helper.succeed();
     }
 }

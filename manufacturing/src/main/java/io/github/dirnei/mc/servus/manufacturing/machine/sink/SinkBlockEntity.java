@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.lib.block.SidedBlockEntity;
 import io.github.dirnei.mc.servus.lib.side.RelativeSide;
 import io.github.dirnei.mc.servus.lib.side.SideConfig;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.manufacturing.menu.SinkMenu;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -286,6 +287,6 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider, SidedB
 
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return null;
+        return new SinkMenu(containerId, playerInventory, this);
     }
 }

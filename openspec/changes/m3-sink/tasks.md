@@ -18,7 +18,7 @@
 
 ## 4. GUI and buckets
 
-- [ ] 4.1 Add `SinkMenu` with a `TrashSlot` and `ContainerData` (height, three rates, side modes), register it in `ServusManufacturingMenus`; add bucket handling in `SinkBlock.useItemOn` via `FluidUtil.interactWithFluidHandler` bypassing the budget; GameTest: a lava bucket used by a mock player leaves an empty bucket; verify `gradlew :manufacturing:runGameTestServer` is green
+- [x] 4.1 Add `SinkMenu` with a `TrashSlot` and `ContainerData` (height, three rates, side modes), register it in `ServusManufacturingMenus`; add bucket handling in `SinkBlock.useItemOn` via `FluidUtil.interactWithFluidHandler` bypassing the budget; GameTest: a lava bucket used by a mock player leaves an empty bucket; verify `gradlew :manufacturing:runGameTestServer` is green
 - [ ] 4.2 Add `SinkScreen` in `client/` with the trash slot, height and rate lines (Unlimited for `-1`) and `SideConfigPanel`, register it in `ServusManufacturingClient`; verify `gradlew :manufacturing:build`, then in the client: shift click a stack into the slot, it is gone, the lines match the chimney height
 
 ## 5. Look
