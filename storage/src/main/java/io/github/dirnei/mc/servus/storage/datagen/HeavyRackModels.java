@@ -21,30 +21,30 @@ final class HeavyRackModels {
     }
 
     static void rack(BlockStateProvider provider, Block block, String name) {
-        ResourceLocation steel = provider.modLoc("block/" + name + "_steel");
+        ResourceLocation iron = provider.modLoc("block/" + name + "_iron");
         ResourceLocation board = provider.modLoc("block/" + name + "_board");
 
-        BlockModelBuilder core = model(provider, name + "_core", steel, board);
+        BlockModelBuilder core = model(provider, name + "_core", iron, board);
         core(core);
-        BlockModelBuilder postLeft = model(provider, name + "_post_left", steel, board);
+        BlockModelBuilder postLeft = model(provider, name + "_post_left", iron, board);
         post(postLeft, 0);
-        BlockModelBuilder postRight = model(provider, name + "_post_right", steel, board);
+        BlockModelBuilder postRight = model(provider, name + "_post_right", iron, board);
         post(postRight, 14);
-        BlockModelBuilder extLeft = model(provider, name + "_ext_left", steel, board);
+        BlockModelBuilder extLeft = model(provider, name + "_ext_left", iron, board);
         extension(extLeft, 0);
-        BlockModelBuilder extRight = model(provider, name + "_ext_right", steel, board);
+        BlockModelBuilder extRight = model(provider, name + "_ext_right", iron, board);
         extension(extRight, 14);
-        BlockModelBuilder top = model(provider, name + "_top", steel, board);
+        BlockModelBuilder top = model(provider, name + "_top", iron, board);
         beams(top, 15, 2, 14);
-        BlockModelBuilder bottom = model(provider, name + "_bottom", steel, board);
+        BlockModelBuilder bottom = model(provider, name + "_bottom", iron, board);
         beams(bottom, 0, 2, 14);
-        BlockModelBuilder topLeft = model(provider, name + "_top_left", steel, board);
+        BlockModelBuilder topLeft = model(provider, name + "_top_left", iron, board);
         beams(topLeft, 15, 0, 2);
-        BlockModelBuilder topRight = model(provider, name + "_top_right", steel, board);
+        BlockModelBuilder topRight = model(provider, name + "_top_right", iron, board);
         beams(topRight, 15, 14, 16);
-        BlockModelBuilder bottomLeft = model(provider, name + "_bottom_left", steel, board);
+        BlockModelBuilder bottomLeft = model(provider, name + "_bottom_left", iron, board);
         beams(bottomLeft, 0, 0, 2);
-        BlockModelBuilder bottomRight = model(provider, name + "_bottom_right", steel, board);
+        BlockModelBuilder bottomRight = model(provider, name + "_bottom_right", iron, board);
         beams(bottomRight, 0, 14, 16);
 
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
@@ -73,7 +73,7 @@ final class HeavyRackModels {
                     .condition(HeavyRackBlock.FACING, facing).condition(HeavyRackBlock.DOWN, false).condition(HeavyRackBlock.RIGHT, true);
         }
 
-        BlockModelBuilder inventory = model(provider, name + "_inventory", steel, board);
+        BlockModelBuilder inventory = model(provider, name + "_inventory", iron, board);
         core(inventory);
         post(inventory, 0);
         post(inventory, 14);
@@ -87,32 +87,32 @@ final class HeavyRackModels {
         box(builder, "#board", 0, 0, 15, 16, 16, 16);
         box(builder, "#board", 2, 0, 2, 14, 1, 13);
         box(builder, "#board", 2, 8, 2, 14, 9, 13);
-        box(builder, "#steel", 2, 8, 0, 14, 9, 2);
+        box(builder, "#iron", 2, 8, 0, 14, 9, 2);
     }
 
     /** Two posts and the side beam at the given x edge, 0 for left, 14 for right. */
     private static void post(BlockModelBuilder builder, int x) {
-        box(builder, "#steel", x, 0, 0, x + 2, 16, 2);
-        box(builder, "#steel", x, 0, 13, x + 2, 16, 15);
-        box(builder, "#steel", x, 8, 2, x + 2, 9, 13);
+        box(builder, "#iron", x, 0, 0, x + 2, 16, 2);
+        box(builder, "#iron", x, 0, 13, x + 2, 16, 15);
+        box(builder, "#iron", x, 8, 2, x + 2, 9, 13);
     }
 
     /** Floor, shelf and front mid beam running through to the bay edge where no post stands. */
     private static void extension(BlockModelBuilder builder, int x) {
         box(builder, "#board", x, 0, 2, x + 2, 1, 13);
         box(builder, "#board", x, 8, 2, x + 2, 9, 13);
-        box(builder, "#steel", x, 8, 0, x + 2, 9, 2);
+        box(builder, "#iron", x, 8, 0, x + 2, 9, 2);
     }
 
     /** Front and back beams at the given height across x1 to x2. */
     private static void beams(BlockModelBuilder builder, int y, int x1, int x2) {
-        box(builder, "#steel", x1, y, 0, x2, y + 1, 2);
-        box(builder, "#steel", x1, y, 13, x2, y + 1, 15);
+        box(builder, "#iron", x1, y, 0, x2, y + 1, 2);
+        box(builder, "#iron", x1, y, 13, x2, y + 1, 15);
     }
 
-    private static BlockModelBuilder model(BlockStateProvider provider, String name, ResourceLocation steel, ResourceLocation board) {
+    private static BlockModelBuilder model(BlockStateProvider provider, String name, ResourceLocation iron, ResourceLocation board) {
         return provider.models().getBuilder(name)
-                .texture("particle", steel).texture("steel", steel).texture("board", board);
+                .texture("particle", iron).texture("iron", iron).texture("board", board);
     }
 
     private static void box(BlockModelBuilder builder, String texture,
