@@ -29,4 +29,4 @@
 ## 6. Plan and integration
 
 - [x] 6.1 Update `PLAN.md`: section 2.1 gets a line on the Sink and Chimney, M3 gets the item "Sink and Chimney"; verify the text has no em dashes
-- [ ] 6.2 Full `gradlew build` and `gradlew test` green, all GameTests green, the game launches with all four mods, and in game a Sink fed by a Utility Duct item line, power line and a bucket voids all three
+- [x] 6.2 Full `gradlew build` and `gradlew test` green, all GameTests green, the game launches with all four mods, and in game a Sink fed by a Utility Duct item line, power line and a bucket voids all three
