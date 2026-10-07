@@ -1,8 +1,12 @@
 {
-  "parent": "minecraft:block/orientable",
+  "parent": "minecraft:block/cube",
   "textures": {
-    "front": "servus_storage:block/shuttle_garage_front_online",
-    "side": "servus_storage:block/shuttle_garage_side",
-    "top": "servus_storage:block/shuttle_garage_top"
+    "down": "servus_storage:block/shuttle_garage_top",
+    "east": "servus_storage:block/shuttle_garage_side",
+    "north": "servus_storage:block/shuttle_garage_front_online",
+    "particle": "servus_storage:block/shuttle_garage_top",
+    "south": "servus_storage:block/shuttle_garage_back",
+    "up": "servus_storage:block/shuttle_garage_top",
+    "west": "servus_storage:block/shuttle_garage_side"
   }
 }

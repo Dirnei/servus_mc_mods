@@ -125,6 +125,14 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     }
 
     /**
+     * Whether a rail that docks onto this node draws the dock piece towards it.
+     * Nodes that take the rail as a plain arm, such as the garage, say no.
+     */
+    public boolean showsDock() {
+        return docksRail();
+    }
+
+    /**
      * Whether this node is indexed as a source and pulls neighbouring
      * inventories into the warehouse. Connector nodes such as rails do not.
      */

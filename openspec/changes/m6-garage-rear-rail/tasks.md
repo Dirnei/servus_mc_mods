@@ -2,11 +2,11 @@
 
 ## 1. Rail at the back as a plain arm
 
-- [ ] 1.1 Change `ShuttleGarageBlockEntity.acceptsRail` to the back and add `showsDock()` returning false; add `showsDock()` to `StorageNodeBlockEntity.java` and use it for the `DOCK_*` flags in `RailBlock.java`. Add the `garage` model helper and the `shuttle_garage_back` texture, regenerate the front texture without the doorway. Run `gradlew :storage:runData` and verify `gradlew :storage:build` is green.
+- [x] 1.1 Change `ShuttleGarageBlockEntity.acceptsRail` to the back and add `showsDock()` returning false; add `showsDock()` to `StorageNodeBlockEntity.java` and use it for the `DOCK_*` flags in `RailBlock.java`. Add the `garage` model helper and the `shuttle_garage_back` texture, regenerate the front texture without the doorway. Run `gradlew :storage:runData` and verify `gradlew :storage:build` is green.
 
 ## 2. Tests
 
-- [ ] 2.1 Flip the garage facings in `ServusStorageGameTests.java` so every rail lies behind its garage and add `garageRailIsAnArm`. Verify `gradlew :storage:runGameTestServer` passes all storage tests.
+- [x] 2.1 Flip the garage facings in `ServusStorageGameTests.java` so every rail lies behind its garage and add `garageRailIsAnArm`. Verify `gradlew :storage:runGameTestServer` passes all storage tests.
 
 ## 3. Verification
 

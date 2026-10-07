@@ -24,7 +24,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * Keeps shuttles as items, one per slot, and sends them out through its
- * front onto the rail. The live shuttles are data on the network's fleet;
+ * back onto the rail. The live shuttles are data on the network's fleet;
  * this only holds the items and tells the network how many there are.
  */
 public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
@@ -56,10 +56,16 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         return NodeKind.GARAGE;
     }
 
-    /** Shuttles drive in and out through the front: the rail links there only. */
+    /** Shuttles drive in and out through the back: the rail links there only. */
     @Override
     public boolean acceptsRail(Side side) {
-        return side == Conversions.toSide(getBlockState().getValue(ShuttleGarageBlock.FACING));
+        return side == Conversions.toSide(getBlockState().getValue(ShuttleGarageBlock.FACING).getOpposite());
+    }
+
+    /** The rail runs into the doorway as a plain arm, not a dock piece. */
+    @Override
+    public boolean showsDock() {
+        return false;
     }
 
     /** The shuttle items, one slot per place. */

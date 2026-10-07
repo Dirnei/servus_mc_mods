@@ -72,10 +72,16 @@ public class RailBlock extends ConnectableBlock {
         return docksTo(level, neighborPos, direction);
     }
 
-    /** Whether the neighbour is a storage block or station that takes a rail on the side facing this rail. */
+    /** Whether the neighbour is a storage block, station or garage that takes a rail on the side facing this rail. */
     private static boolean docksTo(LevelAccessor level, BlockPos neighborPos, Direction direction) {
         return level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node && node.docksRail()
                 && node.acceptsRail(Conversions.toSide(direction.getOpposite()));
+    }
+
+    /** Whether the rail draws a dock piece towards the neighbour: linked nodes that show one, not garages. */
+    private static boolean showsDockTo(LevelAccessor level, BlockPos neighborPos, Direction direction) {
+        return docksTo(level, neighborPos, direction)
+                && level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node && node.showsDock();
     }
 
     @Override
@@ -84,7 +90,7 @@ public class RailBlock extends ConnectableBlock {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            state = state.setValue(dock(direction), docksTo(level, pos.relative(direction), direction));
+            state = state.setValue(dock(direction), showsDockTo(level, pos.relative(direction), direction));
         }
         return state;
     }
@@ -94,7 +100,7 @@ public class RailBlock extends ConnectableBlock {
                                      LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         state = super.updateShape(state, direction, neighborState, level, pos, neighborPos);
         if (direction.getAxis().isHorizontal()) {
-            state = state.setValue(dock(direction), docksTo(level, neighborPos, direction));
+            state = state.setValue(dock(direction), showsDockTo(level, neighborPos, direction));
         }
         return state;
     }

@@ -43,6 +43,7 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
+import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
@@ -297,7 +298,7 @@ public final class ServusStorageGameTests {
         far.insert(new ItemStack(Items.COBBLESTONE, 40), false);
         CrateBlockEntity direct = helper.getBlockEntity(SH_DIRECT_CRATE);
         direct.insert(new ItemStack(Items.DIRT, 9), false);
-        helper.setBlock(SH_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
+        helper.setBlock(SH_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(SH_GARAGE);
         helper.assertTrue(garage.addShuttle(), "one shuttle fits");
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -941,7 +942,7 @@ public final class ServusStorageGameTests {
         InboundStationBlockEntity station = helper.getBlockEntity(PA_STATION);
         CrateBlockEntity crate = helper.getBlockEntity(PA_CRATE);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(PA_CONTROLLER);
-        helper.setBlock(PA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.setBlock(PA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(PA_GARAGE);
         helper.assertTrue(garage.addShuttle(), "one shuttle fits");
 
@@ -993,7 +994,7 @@ public final class ServusStorageGameTests {
     /** A garage takes shuttle items up to its capacity, refuses to be dismantled while it holds them, and breaks when empty. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void garageHoldsShuttles(GameTestHelper helper) {
-        helper.setBlock(GA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.setBlock(GA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(GA_GARAGE);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         int capacity = garage.capacity();
@@ -1025,6 +1026,27 @@ public final class ServusStorageGameTests {
         });
     }
 
+    private static final BlockPos AR_GARAGE = new BlockPos(5, 1, 6);
+
+    /** The rail behind a garage links to it as a plain arm; a rail in front neither links nor docks. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void garageRailIsAnArm(GameTestHelper helper) {
+        helper.setBlock(AR_GARAGE.north().below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(AR_GARAGE.south().below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(AR_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        placeRail(helper, AR_GARAGE.north());
+        placeRail(helper, AR_GARAGE.south());
+        helper.runAfterDelay(2, () -> {
+            BlockState behind = helper.getBlockState(AR_GARAGE.south());
+            helper.assertTrue(behind.getValue(ConnectableBlock.NORTH), "the rail behind should connect to the garage");
+            helper.assertTrue(!behind.getValue(RailBlock.DOCK_NORTH), "the rail behind should show an arm, not a dock");
+            BlockState front = helper.getBlockState(AR_GARAGE.north());
+            helper.assertTrue(!front.getValue(ConnectableBlock.SOUTH), "the rail in front must not connect to the garage");
+            helper.assertTrue(!front.getValue(RailBlock.DOCK_SOUTH), "the rail in front must not dock onto the garage");
+            helper.succeed();
+        });
+    }
+
     private static final BlockPos TG_CONTROLLER = new BlockPos(1, 1, 3);
     private static final BlockPos TG_TERMINAL = new BlockPos(1, 1, 4);
     private static final BlockPos TG_GARAGE_A = new BlockPos(2, 1, 5);
@@ -1042,8 +1064,8 @@ public final class ServusStorageGameTests {
             helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 4), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
-        helper.setBlock(TG_GARAGE_A, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
-        helper.setBlock(TG_GARAGE_B, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.setBlock(TG_GARAGE_A, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
+        helper.setBlock(TG_GARAGE_B, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         helper.setBlock(TG_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         ShuttleGarageBlockEntity garageA = helper.getBlockEntity(TG_GARAGE_A);
         ShuttleGarageBlockEntity garageB = helper.getBlockEntity(TG_GARAGE_B);
@@ -1133,7 +1155,7 @@ public final class ServusStorageGameTests {
                 helper.assertTrue(!station.isEmpty(), "the bread should wait: only a rack has room");
                 helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.NO_SHUTTLE, "reason should be no shuttle, was " + station.blockedReason());
                 helper.assertTrue(blocked(helper, SW_STATION), "the lamp should be red");
-                helper.setBlock(SW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
+                helper.setBlock(SW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
                 ShuttleGarageBlockEntity garage = helper.getBlockEntity(SW_GARAGE);
                 helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
                 helper.runAfterDelay(120, () -> {
@@ -1177,7 +1199,7 @@ public final class ServusStorageGameTests {
             helper.assertTrue(menu.stock().message().equals("needs_shuttle"), "a rack request without a garage is refused, got " + menu.stock().message());
             helper.assertTrue(menu.stock().requests().isEmpty(), "no request is created");
 
-            helper.setBlock(RP_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
+            helper.setBlock(RP_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
             ShuttleGarageBlockEntity garage = helper.getBlockEntity(RP_GARAGE);
             helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
             helper.runAfterDelay(5, () -> {
@@ -1207,7 +1229,7 @@ public final class ServusStorageGameTests {
             helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
         helper.setBlock(RQ_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState().setValue(CounterTerminalBlock.FACING, Direction.NORTH));
-        helper.setBlock(RQ_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.setBlock(RQ_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         helper.setBlock(RQ_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(RQ_GARAGE);
         garage.addShuttle();
@@ -1390,7 +1412,7 @@ public final class ServusStorageGameTests {
             helper.setBlock(new BlockPos(x, 1, 7), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
         helper.setBlock(FD_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        helper.setBlock(FD_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.setBlock(FD_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         helper.setBlock(FD_DOCK, ServusStorageBlocks.MACHINE_DOCK.get().defaultBlockState().setValue(MachineDockBlock.FACING, Direction.SOUTH));
         HeavyRackBlockEntity rack = helper.getBlockEntity(FD_RACK);
         rack.items().insertItem(0, new ItemStack(Items.IRON_INGOT, 10), false);
