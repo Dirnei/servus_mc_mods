@@ -2,7 +2,7 @@
 
 ## 1. Shared editor in Lib
 
-- [ ] 1.1 Add `lib/client/RecipeEditorPopup.java` and `lib/client/RecipeEditorButtons.java` (D1). Switch `manufacturing/client/AssemblerScreen.java` and `menu/AssemblerMenu.java` to them with unchanged positions and ids. Verify `gradlew build` and `gradlew :manufacturing:runGameTestServer`.
+- [x] 1.1 Add `lib/client/RecipeEditorPopup.java` and `lib/client/RecipeEditorButtons.java` (D1). Switch `manufacturing/client/AssemblerScreen.java` and `menu/AssemblerMenu.java` to them with unchanged positions and ids. Verify `gradlew build` and `gradlew :manufacturing:runGameTestServer`.
 
 ## 2. Station editor
 

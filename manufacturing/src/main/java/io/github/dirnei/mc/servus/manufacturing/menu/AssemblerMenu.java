@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.menu;
 
+import io.github.dirnei.mc.servus.lib.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.ConfiguredRecipe;
@@ -22,14 +23,14 @@ import net.minecraft.world.item.ItemStack;
  */
 public class AssemblerMenu extends MachineMenu {
 
-    public static final int EDIT_CLOSED = -1;
-    public static final int EDIT_NEW = -2;
+    public static final int EDIT_CLOSED = RecipeEditorButtons.EDIT_CLOSED;
+    public static final int EDIT_NEW = RecipeEditorButtons.EDIT_NEW;
 
-    public static final int BUTTON_OPEN_NEW = 102;
-    public static final int BUTTON_SAVE = 103;
-    public static final int BUTTON_DELETE = 104;
-    public static final int BUTTON_CANCEL = 105;
-    public static final int BUTTON_OPEN_EDIT_FIRST = 200;
+    public static final int BUTTON_OPEN_NEW = RecipeEditorButtons.OPEN_NEW;
+    public static final int BUTTON_SAVE = RecipeEditorButtons.SAVE;
+    public static final int BUTTON_DELETE = RecipeEditorButtons.DELETE;
+    public static final int BUTTON_CANCEL = RecipeEditorButtons.CANCEL;
+    public static final int BUTTON_OPEN_EDIT_FIRST = RecipeEditorButtons.OPEN_EDIT_FIRST;
 
     /** Popup geometry shared with the screen. */
     public static final int POPUP_X = 48;

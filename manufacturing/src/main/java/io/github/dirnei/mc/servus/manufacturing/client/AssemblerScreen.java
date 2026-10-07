@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
+import io.github.dirnei.mc.servus.lib.client.RecipeEditorPopup;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.ConfiguredRecipe;
 import io.github.dirnei.mc.servus.manufacturing.menu.AssemblerMenu;
@@ -27,18 +28,11 @@ public class AssemblerScreen extends MachineScreen {
     private static final int PROGRESS_X = 182;
     private static final int PROGRESS_Y = 38;
 
-    private static final int PREVIEW_X = 116;
-    private static final int PREVIEW_Y = 38;
-    private static final int BUTTON_X = 140;
-    private static final int BUTTON_W = 62;
-    private static final int BUTTON_H = 14;
-    private static final int SAVE_Y = 20;
-    private static final int DELETE_Y = 38;
-    private static final int CANCEL_Y = 56;
-
     /** Height of the machine part of the GUI above the player inventory; dimmed while the popup is open. */
     private static final int MACHINE_AREA_HEIGHT = 82;
-    private static final int DIM = 0x90000000;
+
+    private final RecipeEditorPopup popup =
+            new RecipeEditorPopup(AssemblerMenu.POPUP_X, AssemblerMenu.POPUP_Y, 256, MACHINE_AREA_HEIGHT);
 
     public AssemblerScreen(MachineMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, Layout.ASSEMBLER);
@@ -98,7 +92,7 @@ public class AssemblerScreen extends MachineScreen {
             return;
         }
         if (editing()) {
-            if (in(mouseX, mouseY, PREVIEW_X, PREVIEW_Y, CELL, CELL)) {
+            if (popup.previewHovered(leftPos, topPos, mouseX, mouseY)) {
                 Optional<ConfiguredRecipe> preview = previewRecipe();
                 if (preview.isPresent()) {
                     guiGraphics.renderTooltip(font, preview.get().displayResult(minecraft.level), mouseX, mouseY);
@@ -173,55 +167,21 @@ public class AssemblerScreen extends MachineScreen {
     }
 
     private void renderPopup(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + MACHINE_AREA_HEIGHT, DIM);
-        int x = leftPos + AssemblerMenu.POPUP_X;
-        int y = topPos + AssemblerMenu.POPUP_Y;
-        guiGraphics.fill(x + 2, y + 2, x + AssemblerMenu.POPUP_WIDTH + 2, y + AssemblerMenu.POPUP_HEIGHT + 2, DIM);
-        guiGraphics.fill(x, y, x + AssemblerMenu.POPUP_WIDTH, y + AssemblerMenu.POPUP_HEIGHT, 0xFF1E1E1E);
-        guiGraphics.fill(x + 1, y + 1, x + AssemblerMenu.POPUP_WIDTH - 1, y + AssemblerMenu.POPUP_HEIGHT - 1, 0xFFFFFFFF);
-        guiGraphics.fill(x + 2, y + 2, x + AssemblerMenu.POPUP_WIDTH - 2, y + AssemblerMenu.POPUP_HEIGHT - 2, 0xFFC6C6C6);
         boolean existing = assemblerMenu().editing() >= 0;
         Component title = existing
                 ? Component.translatable("gui.servus_manufacturing.assembler.edit_recipe", assemblerMenu().editing() + 1)
                 : Component.translatable("gui.servus_manufacturing.assembler.new_recipe");
-        guiGraphics.drawString(font, title, x + 6, y + 4, 0xFF404040, false);
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                int sx = leftPos + AssemblerMenu.GRID_X + col * CELL - 1;
-                int sy = topPos + AssemblerMenu.GRID_Y + row * CELL - 1;
-                guiGraphics.fill(sx, sy, sx + CELL, sy + CELL, 0xFF373737);
-                guiGraphics.fill(sx + 1, sy + 1, sx + CELL - 1, sy + CELL - 1, 0xFF8B8B8B);
-            }
-        }
-        int vx = leftPos + PREVIEW_X;
-        int vy = topPos + PREVIEW_Y;
-        guiGraphics.fill(vx - 1, vy - 1, vx + CELL - 1, vy + CELL - 1, 0xFF373737);
-        guiGraphics.fill(vx, vy, vx + CELL - 2, vy + CELL - 2, 0xFF8B8B8B);
-        guiGraphics.drawString(font, "=", vx - 8, vy + 4, 0xFF404040, false);
-        if (minecraft != null && minecraft.level != null) {
-            Optional<ConfiguredRecipe> preview = previewRecipe();
-            if (preview.isPresent()) {
-                ItemStack result = preview.get().displayResult(minecraft.level);
-                guiGraphics.renderItem(result, vx, vy);
-                guiGraphics.renderItemDecorations(font, result, vx, vy);
-            }
-        }
-        drawButton(guiGraphics, BUTTON_X, SAVE_Y, BUTTON_W, BUTTON_H,
-                Component.translatable("gui.servus_manufacturing.assembler.save").getString(), in(mouseX, mouseY, BUTTON_X, SAVE_Y, BUTTON_W, BUTTON_H));
-        if (existing) {
-            drawButton(guiGraphics, BUTTON_X, DELETE_Y, BUTTON_W, BUTTON_H,
-                    Component.translatable("gui.servus_manufacturing.assembler.delete").getString(), in(mouseX, mouseY, BUTTON_X, DELETE_Y, BUTTON_W, BUTTON_H));
-        }
-        drawButton(guiGraphics, BUTTON_X, CANCEL_Y, BUTTON_W, BUTTON_H,
-                Component.translatable("gui.servus_manufacturing.assembler.cancel").getString(), in(mouseX, mouseY, BUTTON_X, CANCEL_Y, BUTTON_W, BUTTON_H));
+        ItemStack preview = minecraft != null && minecraft.level != null
+                ? previewRecipe().map(recipe -> recipe.displayResult(minecraft.level)).orElse(ItemStack.EMPTY)
+                : ItemStack.EMPTY;
+        popup.render(guiGraphics, font, leftPos, topPos, mouseX, mouseY, title, existing, preview,
+                Component.translatable("gui.servus_manufacturing.assembler.save"),
+                Component.translatable("gui.servus_manufacturing.assembler.delete"),
+                Component.translatable("gui.servus_manufacturing.assembler.cancel"));
     }
 
     private void drawButton(GuiGraphics guiGraphics, int x, int y, int w, int h, String label, boolean hovered) {
-        int bx = leftPos + x;
-        int by = topPos + y;
-        guiGraphics.fill(bx, by, bx + w, by + h, 0xFF373737);
-        guiGraphics.fill(bx + 1, by + 1, bx + w - 1, by + h - 1, hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
-        guiGraphics.drawString(font, label, bx + (w - font.width(label)) / 2, by + (h - 8) / 2, 0xFF202020, false);
+        RecipeEditorPopup.drawButton(guiGraphics, font, leftPos + x, topPos + y, w, h, label, hovered);
     }
 
     private void press(int id) {
@@ -233,17 +193,21 @@ public class AssemblerScreen extends MachineScreen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (editing()) {
-            if (in(mouseX, mouseY, BUTTON_X, SAVE_Y, BUTTON_W, BUTTON_H)) {
-                press(AssemblerMenu.BUTTON_SAVE);
-                return true;
-            }
-            if (assemblerMenu().editing() >= 0 && in(mouseX, mouseY, BUTTON_X, DELETE_Y, BUTTON_W, BUTTON_H)) {
-                press(AssemblerMenu.BUTTON_DELETE);
-                return true;
-            }
-            if (in(mouseX, mouseY, BUTTON_X, CANCEL_Y, BUTTON_W, BUTTON_H)) {
-                press(AssemblerMenu.BUTTON_CANCEL);
-                return true;
+            switch (popup.buttonAt(leftPos, topPos, mouseX, mouseY, assemblerMenu().editing() >= 0)) {
+                case SAVE -> {
+                    press(AssemblerMenu.BUTTON_SAVE);
+                    return true;
+                }
+                case DELETE -> {
+                    press(AssemblerMenu.BUTTON_DELETE);
+                    return true;
+                }
+                case CANCEL -> {
+                    press(AssemblerMenu.BUTTON_CANCEL);
+                    return true;
+                }
+                case NONE -> {
+                }
             }
             return super.mouseClicked(mouseX, mouseY, button);
         }
