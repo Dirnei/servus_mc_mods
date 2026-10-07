@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.dirnei.mc.servus.lib.production.OrderPlanner.Plan;
 import io.github.dirnei.mc.servus.lib.production.OrderPlanner.Recipe;
 import io.github.dirnei.mc.servus.lib.production.OrderPlanner.Step;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -15,8 +16,16 @@ class OrderPlannerTest {
 
     private static final Recipe<String> GEAR = new Recipe<>("gear", Map.of("ingot", 2), Map.of("gear", 1), 20);
     private static final Recipe<String> WIRE = new Recipe<>("wire", Map.of("copper", 1), Map.of("wire", 2), 10);
-    private static final Recipe<String> PACK = new Recipe<>("pack", Map.of("gear", 1, "wire", 2), Map.of("pack", 1), 100);
+    private static final Recipe<String> PACK = new Recipe<>("pack", ordered("gear", 1, "wire", 2), Map.of("pack", 1), 100);
     private static final List<Recipe<String>> ALL = List.of(PACK, GEAR, WIRE);
+
+    /** Map.of shuffles its order per JVM run; recipes in the game come as ordered lists, so the tests use ordered maps too. */
+    private static Map<String, Integer> ordered(String keyA, int countA, String keyB, int countB) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        map.put(keyA, countA);
+        map.put(keyB, countB);
+        return map;
+    }
 
     @Test
     void inStockNeedsNoSteps() {
@@ -73,7 +82,7 @@ class OrderPlannerTest {
 
     @Test
     void repeatedNeedsMergeIntoOneStep() {
-        Recipe<String> both = new Recipe<>("both", Map.of("ingot", 1), Map.of("gear", 1, "wire", 1), 5);
+        Recipe<String> both = new Recipe<>("both", Map.of("ingot", 1), ordered("gear", 1, "wire", 1), 5);
         Plan<String> plan = OrderPlanner.plan("pack", 1, Map.of("ingot", 10L), List.of(PACK, both), 8);
         // One gear and two wire from a recipe making one of each: two batches, one surplus gear.
         assertEquals(List.of(new Step<>(both, 2), new Step<>(PACK, 1)), plan.steps());
