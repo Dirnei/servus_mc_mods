@@ -76,3 +76,14 @@ The decision whether a yield goes to the fuel slot or to the output slot SHALL b
 #### Scenario: Unit tests
 - **WHEN** the routing rule is called with target 4 and counts 0, 3, 4 and 64 of the same item, with a different item, with a non fuel yield and with target 0
 - **THEN** it answers fuel slot for 0 and 3, output for 4 and 64, output for a different item, output for a non fuel and output for target 0
+
+### Requirement: Bottom side is closed
+The Burner Extractor's bottom side, which always touches its deposit, SHALL be fixed to Off like its front: no automation through it, greyed in the side panel, unchanged by the carrot and loaded as Off.
+
+#### Scenario: Carrot on the bottom
+- **WHEN** the player uses the carrot on the bottom face of a Burner Extractor
+- **THEN** the bottom stays Off
+
+#### Scenario: Side panel
+- **WHEN** the player opens the extractor's GUI
+- **THEN** the bottom cell of the side panel is greyed and ignores clicks

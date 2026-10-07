@@ -7,4 +7,4 @@
 ## 2. Verification
 
 - [x] 2.1 Run `openspec validate m3-extractor-bottom-closed --strict`, full `gradlew build` and `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
-- [ ] 2.2 Play check: the extractor's bottom cell is greyed, the carrot does not change it, no marker on the bottom.
+- [x] 2.2 Play check: the extractor's bottom cell is greyed, the carrot does not change it, no marker on the bottom.
