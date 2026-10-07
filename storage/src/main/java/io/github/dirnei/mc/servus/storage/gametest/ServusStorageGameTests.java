@@ -59,6 +59,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
@@ -71,6 +72,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -406,6 +410,74 @@ public final class ServusStorageGameTests {
             helper.assertTrue(helper.getBlockState(STACK_BASE).getValue(HeavyRackBlock.UP), "the lower rack should join the rack above");
             helper.succeed();
         });
+    }
+
+    private static final BlockPos WOOD_RACK = new BlockPos(2, 1, 2);
+
+    /** Assembles the rack recipe from a grid whose middle row holds the given planks. */
+    private static ItemStack craftRack(GameTestHelper helper, Item left, Item middle, Item right) {
+        ItemStack iron = new ItemStack(Items.IRON_INGOT);
+        CraftingInput input = CraftingInput.of(3, 3, List.of(
+                iron, ItemStack.EMPTY, iron,
+                new ItemStack(left), new ItemStack(middle), new ItemStack(right),
+                iron, ItemStack.EMPTY, iron));
+        RecipeHolder<?> holder = helper.getLevel().getRecipeManager()
+                .byKey(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "heavy_rack")).orElseThrow();
+        @SuppressWarnings("unchecked")
+        CraftingRecipe recipe = ((RecipeHolder<CraftingRecipe>) holder).value();
+        helper.assertTrue(recipe.matches(input, helper.getLevel()), "the rack recipe should match the grid");
+        return recipe.assemble(input, helper.getLevel().registryAccess());
+    }
+
+    private static ResourceLocation idOf(Block block) {
+        return BuiltInRegistries.BLOCK.getKey(block);
+    }
+
+    /** The recipe remembers spruce, the majority, and the middle of three different woods. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void rackRecipePicksWood(GameTestHelper helper) {
+        ItemStack spruce = craftRack(helper, Items.SPRUCE_PLANKS, Items.SPRUCE_PLANKS, Items.SPRUCE_PLANKS);
+        helper.assertTrue(spruce.is(ServusStorageItems.HEAVY_RACK.get()), "the result is a rack");
+        helper.assertTrue(idOf(Blocks.SPRUCE_PLANKS).equals(spruce.get(ServusStorageComponents.RACK_WOOD.get())), "three spruce planks give spruce");
+        ItemStack majority = craftRack(helper, Items.OAK_PLANKS, Items.SPRUCE_PLANKS, Items.OAK_PLANKS);
+        helper.assertTrue(idOf(Blocks.OAK_PLANKS).equals(majority.get(ServusStorageComponents.RACK_WOOD.get())), "oak, spruce, oak gives oak");
+        ItemStack middle = craftRack(helper, Items.BIRCH_PLANKS, Items.SPRUCE_PLANKS, Items.OAK_PLANKS);
+        helper.assertTrue(idOf(Blocks.SPRUCE_PLANKS).equals(middle.get(ServusStorageComponents.RACK_WOOD.get())), "birch, spruce, oak gives spruce");
+        helper.succeed();
+    }
+
+    /** A placed spruce rack keeps spruce, and its drops and dismantled item carry it. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackKeepsWood(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos absolute = helper.absolutePos(WOOD_RACK);
+        ItemStack rackItem = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
+        rackItem.set(ServusStorageComponents.RACK_WOOD.get(), idOf(Blocks.SPRUCE_PLANKS));
+        player.setItemInHand(InteractionHand.MAIN_HAND, rackItem);
+        rackItem.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
+        helper.runAfterDelay(2, () -> {
+            HeavyRackBlockEntity rack = helper.getBlockEntity(WOOD_RACK);
+            helper.assertTrue(idOf(Blocks.SPRUCE_PLANKS).equals(rack.wood()), "the placed rack remembers spruce, had " + rack.wood());
+            List<ItemStack> drops = Block.getDrops(helper.getBlockState(WOOD_RACK), helper.getLevel(), absolute, rack);
+            helper.assertTrue(drops.size() == 1 && HeavyRackBlockEntity.woodOf(drops.get(0)).equals(idOf(Blocks.SPRUCE_PLANKS)),
+                    "the dropped rack carries spruce, drops " + drops);
+            ItemStack dismantled = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
+            rack.saveToItem(dismantled, helper.getLevel().registryAccess());
+            helper.assertTrue(HeavyRackBlockEntity.woodOf(dismantled).equals(idOf(Blocks.SPRUCE_PLANKS)), "the dismantled rack carries spruce");
+            helper.succeed();
+        });
+    }
+
+    /** A rack without a stored wood shows oak. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void rackWithoutWoodIsOak(GameTestHelper helper) {
+        helper.setBlock(WOOD_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        HeavyRackBlockEntity rack = helper.getBlockEntity(WOOD_RACK);
+        helper.assertTrue(idOf(Blocks.OAK_PLANKS).equals(rack.wood()), "a rack without wood is oak");
+        helper.assertTrue(idOf(Blocks.OAK_PLANKS).equals(HeavyRackBlockEntity.woodOf(new ItemStack(ServusStorageBlocks.HEAVY_RACK.get()))),
+                "a rack item without wood is oak");
+        helper.succeed();
     }
 
     private static final int SEC_Z = 11;
