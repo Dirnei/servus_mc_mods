@@ -36,5 +36,5 @@
 
 - [x] 5.1 Add `.github/workflows/docs.yml` per design D8 (push to `main` on `docs/**`, manual dispatch, test, build, upload, deploy). Verify the workflow file with `npm test && npm run build` locally in `docs/` and by checking the YAML against the actions' documented inputs.
 - [x] 5.2 Update `PLAN.md`: `docs/` in the repository layout, "Documentation site and Balance lab" under M3 next to "Balance pass", planner noted for after the first release. Update `README.md` with a link to the site and how to run it locally (`cd docs && npm ci && npm run dev`). Verify the links and the command.
-- [ ] 5.3 Owner step, listed so it is not forgotten: push to GitHub, set Pages source to "GitHub Actions", run `docs.yml` once by dispatch and open `https://dirnei.github.io/servus_mc_mods/`. Verify the landing page, the chain view and a share link on the live site.
+Deferred (5.3): publishing to GitHub Pages waits until a GitHub repository exists. Then push, set Pages source to "GitHub Actions", run `docs.yml` by dispatch and open `https://dirnei.github.io/servus_mc_mods/`.
 - [x] 5.4 Full check: `gradlew build`, `gradlew test`, `gradlew :manufacturing:runData` with no diff on `gamedata.json`, `npm test` and `npm run build` in `docs/`, and the game launches with all four mods (no in game change expected).
