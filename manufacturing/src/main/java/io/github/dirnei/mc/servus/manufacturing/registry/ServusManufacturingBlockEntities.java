@@ -8,6 +8,8 @@ import io.github.dirnei.mc.servus.manufacturing.machine.loader.ChunkLoaderBlockE
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.BurnerPumpBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.ElectricPumpBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -57,6 +59,16 @@ public final class ServusManufacturingBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ResearchLabBlockEntity>> RESEARCH_LAB =
             BLOCK_ENTITIES.register("research_lab", () -> BlockEntityType.Builder
                     .of(ResearchLabBlockEntity::new, ServusManufacturingBlocks.RESEARCH_LAB.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BurnerPumpBlockEntity>> BURNER_PUMP =
+            BLOCK_ENTITIES.register("burner_pump", () -> BlockEntityType.Builder
+                    .of(BurnerPumpBlockEntity::new, ServusManufacturingBlocks.BURNER_PUMP.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricPumpBlockEntity>> ELECTRIC_PUMP =
+            BLOCK_ENTITIES.register("electric_pump", () -> BlockEntityType.Builder
+                    .of(ElectricPumpBlockEntity::new, ServusManufacturingBlocks.ELECTRIC_PUMP.get())
                     .build(null));
 
     private ServusManufacturingBlockEntities() {

@@ -29,6 +29,10 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(), "Electric Extractor");
         add(ServusManufacturingBlocks.CRUSHER.get(), "Crusher");
         add(ServusManufacturingBlocks.CHUNK_LOADER.get(), "Chunk Loader");
+        add(ServusManufacturingBlocks.BURNER_PUMP.get(), "Burner Pump");
+        add(ServusManufacturingBlocks.ELECTRIC_PUMP.get(), "Electric Pump");
+        add("gui.servus_manufacturing.pump.source_ok", "Infinite water source below");
+        add("gui.servus_manufacturing.pump.source_missing", "Needs an infinite water source below");
         add("gui.servus_manufacturing.chunk_loader.no_power", "Inactive: no power");
         add("gui.servus_manufacturing.chunk_loader.active", "Active: chunk kept loaded");
         add("gui.servus_manufacturing.chunk_loader.team_limit", "Inactive: team limit reached");

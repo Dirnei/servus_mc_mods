@@ -11,6 +11,15 @@ import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.BurnerPumpBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpMachine;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import io.github.dirnei.mc.servus.lib.side.RelativeSide;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
 import net.minecraft.world.level.block.Blocks;
@@ -310,6 +319,184 @@ public final class ServusManufacturingGameTests {
             helper.assertTrue(output.is(Items.RAW_IRON) && output.getCount() >= 1,
                     "expected raw iron in the output slot, got " + output);
             helper.succeed();
+        });
+    }
+    // Pumps. The Fluid Tank is built in a parallel change, so an empty vanilla cauldron (NeoForge's
+    // CauldronWrapper) is the fluid sink, and the pump buffer is read through its capability.
+
+    private static final BlockPos PUMP = new BlockPos(3, 2, 3);
+
+    /** Stone at y 1 around and under the pump with up to four water sources in a 2 by 2 pool below it. */
+    private static void pool(GameTestHelper helper, int sources) {
+        for (int x = 2; x <= 5; x++) {
+            for (int z = 2; z <= 5; z++) {
+                helper.setBlock(new BlockPos(x, 1, z), Blocks.STONE.defaultBlockState());
+            }
+        }
+        for (int i = 0; i < sources; i++) {
+            helper.setBlock(poolBlocks()[i], Blocks.WATER.defaultBlockState());
+        }
+    }
+
+    private static BlockPos[] poolBlocks() {
+        BlockPos below = PUMP.below();
+        return new BlockPos[] {below, below.east(), below.south(), below.south().east()};
+    }
+
+    private static boolean poolIntact(GameTestHelper helper) {
+        for (BlockPos pos : poolBlocks()) {
+            FluidState fluid = helper.getLevel().getFluidState(helper.absolutePos(pos));
+            if (!fluid.isSource() || !fluid.is(FluidTags.WATER)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static IFluidHandler pumpFluid(GameTestHelper helper, Direction side) {
+        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(PUMP), side);
+    }
+
+    private static int buffered(GameTestHelper helper) {
+        PumpMachine pump = helper.getBlockEntity(PUMP);
+        return pump.pump().tank().getFluidAmount();
+    }
+
+    private static void burnerPump(GameTestHelper helper, int coal) {
+        helper.setBlock(PUMP, facing(ServusManufacturingBlocks.BURNER_PUMP.get(), Direction.NORTH));
+        MachineBlockEntity pump = helper.getBlockEntity(PUMP);
+        pump.inventory().setStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, coal));
+    }
+
+    private static boolean cauldronFull(GameTestHelper helper, BlockPos pos) {
+        BlockState state = helper.getBlockState(pos);
+        return state.is(Blocks.WATER_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 3;
+    }
+
+    /** A Burner Pump on a pond fills the cauldron beside it through an Auto side, and the pond stays. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void burnerPumpFillsAdjacentCauldron(GameTestHelper helper) {
+        pool(helper, 4);
+        burnerPump(helper, 4);
+        // Facing north, west is the pump's right side, Auto by default.
+        BlockPos cauldron = PUMP.west();
+        helper.setBlock(cauldron, Blocks.CAULDRON.defaultBlockState());
+        helper.succeedWhen(() -> {
+            helper.assertTrue(cauldronFull(helper, cauldron), "the cauldron should fill with water");
+            IFluidHandler top = pumpFluid(helper, Direction.UP);
+            helper.assertTrue(top != null && top.getFluidInTank(0).is(Fluids.WATER) && top.getFluidInTank(0).getAmount() > 0,
+                    "the pump buffer should hold water again after filling the cauldron");
+            helper.assertTrue(poolIntact(helper), "the pond must stay unchanged");
+        });
+    }
+
+    /** A pump on a lone source block does nothing and keeps its fuel. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void pumpOnLoneSourceBurnsNoFuel(GameTestHelper helper) {
+        pool(helper, 1);
+        burnerPump(helper, 1);
+        helper.runAfterDelay(60, () -> {
+            BurnerPumpBlockEntity pump = helper.getBlockEntity(PUMP);
+            helper.assertTrue(pump.inventory().getStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL).getCount() == 1, "the coal must stay");
+            helper.assertTrue(!pump.isBurning(), "nothing burns");
+            helper.assertTrue(buffered(helper) == 0, "no water from a lone source, got " + buffered(helper));
+            helper.assertTrue(!pump.pump().sourceValid(), "a lone source is not infinite");
+            helper.succeed();
+        });
+    }
+
+    /** Removing the neighbouring sources stops the pump at the start of its next cycle. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void pumpStopsWhenSourceIsDrained(GameTestHelper helper) {
+        pool(helper, 4);
+        burnerPump(helper, 4);
+        helper.runAfterDelay(50, () -> {
+            helper.assertTrue(buffered(helper) > 0, "the pump should have pumped on the pond");
+            BlockPos[] pool = poolBlocks();
+            for (int i = 1; i < pool.length; i++) {
+                helper.setBlock(pool[i], Blocks.STONE.defaultBlockState());
+            }
+            int atRemoval = buffered(helper);
+            helper.runAfterDelay(40, () -> {
+                int afterNextCycle = buffered(helper);
+                helper.assertTrue(afterNextCycle <= atRemoval + 250,
+                        "at most the running cycle finishes, " + atRemoval + " then " + afterNextCycle);
+                helper.runAfterDelay(40, () -> {
+                    helper.assertTrue(buffered(helper) == afterNextCycle, "the pump must have stopped, got " + buffered(helper));
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** An Output side offers water to neighbours but does not push it; an Input side gives nothing. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void pumpOutputSideDoesNotPush(GameTestHelper helper) {
+        pool(helper, 4);
+        burnerPump(helper, 4);
+        BlockPos cauldron = PUMP.west();
+        helper.setBlock(cauldron, Blocks.CAULDRON.defaultBlockState());
+        MachineBlockEntity pump = helper.getBlockEntity(PUMP);
+        pump.sideConfig().set(RelativeSide.RIGHT, SideMode.OUTPUT);
+        pump.sideConfig().set(RelativeSide.LEFT, SideMode.INPUT);
+        helper.getLevel().invalidateCapabilities(helper.absolutePos(PUMP));
+        helper.runAfterDelay(120, () -> {
+            helper.assertTrue(helper.getBlockState(cauldron).is(Blocks.CAULDRON), "an Output side must not fill the cauldron");
+            IFluidHandler right = pumpFluid(helper, Direction.WEST);
+            helper.assertTrue(right != null && right.drain(250, IFluidHandler.FluidAction.SIMULATE).getAmount() == 250,
+                    "an Output side can be drained");
+            helper.assertTrue(pumpFluid(helper, Direction.EAST) == null, "an Input side gives no water");
+            helper.succeed();
+        });
+    }
+
+    /** A pump never accepts fluid, and its front and bottom are fixed Off. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void pumpRefusesFluidAndClosesFrontAndBottom(GameTestHelper helper) {
+        burnerPump(helper, 0);
+        IFluidHandler top = pumpFluid(helper, Direction.UP);
+        helper.assertTrue(top != null, "the top is Auto and offers the buffer");
+        helper.assertTrue(top.fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE) == 0, "a pump accepts nothing");
+        helper.assertTrue(buffered(helper) == 0, "the buffer stays empty");
+        MachineBlockEntity pump = helper.getBlockEntity(PUMP);
+        helper.assertTrue(pump.sideMode(Direction.DOWN) == SideMode.DISABLED, "the bottom starts Off");
+        helper.assertTrue(pump.cycleFace(Direction.DOWN) == SideMode.DISABLED, "the bottom cannot be cycled");
+        helper.assertTrue(pumpFluid(helper, Direction.DOWN) == null, "no water through the bottom");
+        helper.assertTrue(pumpFluid(helper, Direction.NORTH) == null, "no water through the front");
+        helper.succeed();
+    }
+
+    /** An Electric Pump idles without energy and runs once energy arrives. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void electricPumpIdlesWithoutEnergy(GameTestHelper helper) {
+        pool(helper, 4);
+        helper.setBlock(PUMP, facing(ServusManufacturingBlocks.ELECTRIC_PUMP.get(), Direction.NORTH));
+        helper.runAfterDelay(60, () -> {
+            PoweredMachineBlockEntity pump = helper.getBlockEntity(PUMP);
+            helper.assertTrue(buffered(helper) == 0, "no water without energy");
+            pump.energyStorage().receiveEnergy(8000, false);
+            helper.runAfterDelay(30, () -> {
+                helper.assertTrue(buffered(helper) >= 500, "energy should start the pump, got " + buffered(helper));
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A powered pump fills its buffer, then pauses without spending energy, and the pond stays. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void electricPumpFillsBufferThenPauses(GameTestHelper helper) {
+        pool(helper, 4);
+        helper.setBlock(PUMP, facing(ServusManufacturingBlocks.ELECTRIC_PUMP.get(), Direction.NORTH));
+        PoweredMachineBlockEntity pump = helper.getBlockEntity(PUMP);
+        pump.energyStorage().receiveEnergy(8000, false);
+        helper.runAfterDelay(200, () -> {
+            helper.assertTrue(buffered(helper) == 4000, "the buffer should be full, got " + buffered(helper));
+            int energy = pump.energyStorage().getEnergyStored();
+            helper.runAfterDelay(20, () -> {
+                helper.assertTrue(pump.energyStorage().getEnergyStored() == energy, "a full pump spends no energy");
+                helper.assertTrue(poolIntact(helper), "the pond must stay unchanged");
+                helper.succeed();
+            });
         });
     }
 }

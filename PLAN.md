@@ -88,6 +88,8 @@ Reference balanced block (1 Red Pack per 5 s): 2 extractors and 2 smelters on ir
 
 First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), Stone Processing, Logistics (unlocks green pack and Tier 2).
 
+**Pumps** are the first fluid source: a Burner Pump (furnace fuel, hand crafted) and an Electric Pump (FE, faster, made in the assembler after the Electric Extractor research) stand on an infinite water source, a water source block with at least two water source neighbours, and fill an internal water buffer without ever using the water up. They push water out through their sides by the usual side modes, into the Fluid Pipe or a Fluid Tank. Rates and buffer size are datapack numbers (examples: 250 mB and 500 mB per second, 4,000 mB buffer).
+
 **Pack tiers (later):** Mechanical (red), Logistic (green), Chemical (blue), Advanced (purple), Exotic (yellow), plus repeatable infinite research at the end.
 
 ### 2.2 Servus: Logistics
@@ -191,6 +193,7 @@ Each milestone ends in something playable or testable.
 
 ### M3: Manufacturing Tier 1 completion
 - Electric Extractor, Crusher, Stone Processing
+- Burner Pump and Electric Pump
 - JEI or EMI integration for machine recipes
 - Chunk loader upgrade with FE upkeep and config caps
 - Balance pass

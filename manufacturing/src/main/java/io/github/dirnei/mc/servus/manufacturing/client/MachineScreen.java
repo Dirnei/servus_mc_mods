@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
 import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.lib.client.FluidGauge;
 import io.github.dirnei.mc.servus.lib.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.menu.MachineMenu;
@@ -14,7 +15,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     /** Which indicators a machine screen shows and its background texture. */
-    public record Layout(boolean flame, boolean arrow, boolean energy, ResourceLocation texture) {
+    public record Layout(boolean flame, boolean arrow, boolean energy, boolean fluid, ResourceLocation texture) {
         public static final Layout BURNER = new Layout(true, true, false, gui("burner_machine"));
         public static final Layout GENERATOR = new Layout(true, false, true, gui("coal_generator"));
         public static final Layout ASSEMBLER = new Layout(false, false, true, gui("assembler"));
@@ -22,6 +23,13 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         public static final Layout ELECTRIC = new Layout(false, true, true, gui("electric_extractor"));
         public static final Layout CRUSHER = new Layout(false, true, true, gui("crusher"));
         public static final Layout LOADER = new Layout(false, false, true, gui("chunk_loader"));
+        /** Pumps: a fluid gauge and the water source status line. */
+        public static final Layout BURNER_PUMP = new Layout(true, true, false, true, gui("burner_pump"));
+        public static final Layout ELECTRIC_PUMP = new Layout(false, true, true, true, gui("electric_pump"));
+
+        public Layout(boolean flame, boolean arrow, boolean energy, ResourceLocation texture) {
+            this(flame, arrow, energy, false, texture);
+        }
 
         private static ResourceLocation gui(String name) {
             return ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "textures/gui/" + name + ".png");
@@ -40,8 +48,18 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     protected static final int ENERGY_WIDTH = 12;
     protected static final int ENERGY_HEIGHT = 52;
 
-    /** The shared side panel left of the GUI. */
-    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == io.github.dirnei.mc.servus.lib.side.RelativeSide.FRONT, side -> {
+    /** Where the fluid gauge sits, over the place of an output slot. */
+    protected static final int FLUID_X = 116;
+    protected static final int FLUID_Y = 17;
+    protected static final int FLUID_WIDTH = 16;
+    protected static final int FLUID_HEIGHT = 52;
+    private static final int STATUS_OK = 0xFF3F7F3F;
+    private static final int STATUS_MISSING = 0xFFA03030;
+
+    private final FluidGauge fluidGauge = new FluidGauge(FLUID_WIDTH, FLUID_HEIGHT);
+
+    /** The shared side panel left of the GUI; sides the machine fixes are drawn greyed. */
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> menu.machine().sideConfig().isLocked(side), side -> {
         if (minecraft != null && minecraft.gameMode != null) {
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(side));
         }
@@ -68,6 +86,14 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         return new MachineScreen(menu, playerInventory, title, Layout.CRUSHER);
     }
 
+    public static MachineScreen burnerPump(MachineMenu menu, Inventory playerInventory, Component title) {
+        return new MachineScreen(menu, playerInventory, title, Layout.BURNER_PUMP);
+    }
+
+    public static MachineScreen electricPump(MachineMenu menu, Inventory playerInventory, Component title) {
+        return new MachineScreen(menu, playerInventory, title, Layout.ELECTRIC_PUMP);
+    }
+
     public static MachineScreen generator(MachineMenu menu, Inventory playerInventory, Component title) {
         return new MachineScreen(menu, playerInventory, title, Layout.GENERATOR);
     }
@@ -77,6 +103,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         super.init();
         this.inventoryLabelY = this.imageHeight - 94;
         panel.placeBeside(leftPos, topPos);
+        fluidGauge.place(leftPos + FLUID_X, topPos + FLUID_Y);
     }
 
     @Override
@@ -87,7 +114,30 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             guiGraphics.renderTooltip(font,
                     Component.literal(menu.energyStored() + " / " + menu.energyCapacity() + " FE"), mouseX, mouseY);
         }
+        if (layout.fluid()) {
+            fluidGauge.renderTooltip(guiGraphics, font, menu.fluid(), menu.fluidCapacity(), mouseX, mouseY);
+        }
         panel.renderTooltip(guiGraphics, font, mouseX, mouseY);
+    }
+
+    /** Pumps show their source status where other machines show the inventory label. */
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        if (!layout.fluid()) {
+            super.renderLabels(guiGraphics, mouseX, mouseY);
+            return;
+        }
+        guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 0xFF404040, false);
+        Component status = Component.translatable(menu.sourceValid()
+                ? "gui.servus_manufacturing.pump.source_ok" : "gui.servus_manufacturing.pump.source_missing");
+        int available = imageWidth - 2 * inventoryLabelX;
+        int width = font.width(status);
+        float scale = width > available ? (float) available / width : 1F;
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(inventoryLabelX, inventoryLabelY + (1F - scale) * font.lineHeight / 2F, 0F);
+        guiGraphics.pose().scale(scale, scale, 1F);
+        guiGraphics.drawString(font, status, 0, 0, menu.sourceValid() ? STATUS_OK : STATUS_MISSING, false);
+        guiGraphics.pose().popPose();
     }
 
     @Override
@@ -111,6 +161,9 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             if (arrow > 0) {
                 guiGraphics.blitSprite(BURN_PROGRESS_SPRITE, 24, 16, 0, 0, leftPos + 79, topPos + 34, arrow, 16);
             }
+        }
+        if (layout.fluid()) {
+            fluidGauge.render(guiGraphics, menu.fluid(), menu.fluidCapacity());
         }
         if (layout.energy()) {
             int x = leftPos + energyX();

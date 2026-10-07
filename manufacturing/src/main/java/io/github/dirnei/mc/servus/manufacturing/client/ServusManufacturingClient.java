@@ -27,6 +27,8 @@ public final class ServusManufacturingClient {
         event.register(ServusManufacturingMenus.ELECTRIC_EXTRACTOR.get(), MachineScreen::electric);
         event.register(ServusManufacturingMenus.CRUSHER.get(), MachineScreen::crusher);
         event.register(ServusManufacturingMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
+        event.register(ServusManufacturingMenus.BURNER_PUMP.get(), MachineScreen::burnerPump);
+        event.register(ServusManufacturingMenus.ELECTRIC_PUMP.get(), MachineScreen::electricPump);
     }
 
     /** Every machine draws its side modes on the block. */
@@ -40,5 +42,7 @@ public final class ServusManufacturingClient {
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CRUSHER.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CHUNK_LOADER.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.RESEARCH_LAB.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.BURNER_PUMP.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.ELECTRIC_PUMP.get(), SideMarkerRenderer::new);
     }
 }

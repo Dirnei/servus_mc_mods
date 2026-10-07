@@ -15,11 +15,11 @@ class MachineDefaultsTest {
     @Test
     void everyMachineHasAnEntry() {
         for (String path : new String[] {"burner_extractor", "burner_smelter", "electric_extractor", "crusher",
-                "assembler", "coal_generator", "research_lab", "chunk_loader"}) {
+                "assembler", "coal_generator", "research_lab", "chunk_loader", "burner_pump", "electric_pump"}) {
             MachineDefaults.MachineInfo info = MachineDefaults.info("servus_manufacturing:" + path);
             assertTrue(KINDS.contains(info.kind()), path);
         }
-        assertEquals(8, MachineDefaults.all().size());
+        assertEquals(10, MachineDefaults.all().size());
     }
 
     @Test
@@ -54,5 +54,20 @@ class MachineDefaultsTest {
         assertEquals(40, stats.energyPerTick());
         assertEquals(4, stats.fuelDivisor());
         assertEquals("generator", MachineDefaults.info("servus_manufacturing:coal_generator").kind());
+    }
+
+    @Test
+    void pumpsHaveFluidStatsAndOthersNone() {
+        MachineStats burner = MachineDefaults.stats("servus_manufacturing:burner_pump");
+        MachineStats electric = MachineDefaults.stats("servus_manufacturing:electric_pump");
+
+        assertEquals(250, burner.fluidPerCycle());
+        assertEquals(4000, burner.fluidCapacity());
+        assertEquals(2, burner.minSourceNeighbours());
+        assertEquals(0, burner.energyPerTick());
+        assertTrue(electric.fluidPerCycle() * burner.workTicks() > burner.fluidPerCycle() * electric.workTicks(),
+                "the Electric Pump pumps faster");
+        assertEquals(20, electric.energyPerTick());
+        assertEquals(0, MachineDefaults.stats("servus_manufacturing:crusher").fluidCapacity());
     }
 }

@@ -18,7 +18,9 @@ final class ServusManufacturingBlockLoot extends BlockLootSubProvider {
             ServusManufacturingBlocks.RESEARCH_LAB.get(),
             ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(),
             ServusManufacturingBlocks.CRUSHER.get(),
-            ServusManufacturingBlocks.CHUNK_LOADER.get());
+            ServusManufacturingBlocks.CHUNK_LOADER.get(),
+            ServusManufacturingBlocks.BURNER_PUMP.get(),
+            ServusManufacturingBlocks.ELECTRIC_PUMP.get());
 
     ServusManufacturingBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

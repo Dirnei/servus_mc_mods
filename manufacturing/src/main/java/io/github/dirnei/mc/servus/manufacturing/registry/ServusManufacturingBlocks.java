@@ -9,6 +9,8 @@ import io.github.dirnei.mc.servus.manufacturing.machine.loader.ChunkLoaderBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtractorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.BurnerPumpBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.ElectricPumpBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -42,6 +44,10 @@ public final class ServusManufacturingBlocks {
             BLOCKS.registerBlock("chunk_loader", ChunkLoaderBlock::new, machine());
     public static final DeferredBlock<ResearchLabBlock> RESEARCH_LAB =
             BLOCKS.registerBlock("research_lab", ResearchLabBlock::new, machine());
+    public static final DeferredBlock<BurnerPumpBlock> BURNER_PUMP =
+            BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new, machine());
+    public static final DeferredBlock<ElectricPumpBlock> ELECTRIC_PUMP =
+            BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new, machine());
 
     private ServusManufacturingBlocks() {
     }

@@ -33,6 +33,8 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         machine(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(), "electric_extractor");
         machine(ServusManufacturingBlocks.CRUSHER.get(), "crusher");
         machine(ServusManufacturingBlocks.CHUNK_LOADER.get(), "chunk_loader");
+        machine(ServusManufacturingBlocks.BURNER_PUMP.get(), "burner_pump");
+        machine(ServusManufacturingBlocks.ELECTRIC_PUMP.get(), "electric_pump");
     }
 
     private void cubeAllWithItem(Block block) {

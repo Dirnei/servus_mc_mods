@@ -44,6 +44,13 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     /** Index 6 is free for machine specific data, see the assembler. */
     public static final int DATA_SIDE_FIRST = 7;
     public static final int DATA_COUNT = DATA_SIDE_FIRST + 6;
+    /** Extra data of machines with a fluid buffer, after the common entries. */
+    public static final int DATA_FLUID_AMOUNT = DATA_COUNT;
+    public static final int DATA_FLUID_CAPACITY = DATA_COUNT + 1;
+    public static final int DATA_FLUID_ID = DATA_COUNT + 2;
+    /** 1 while the machine's source (the water below a pump) is valid. */
+    public static final int DATA_SOURCE_VALID = DATA_COUNT + 3;
+    public static final int DATA_COUNT_FLUID = DATA_COUNT + 4;
 
     private static final int PUSH_INTERVAL = 8;
 
@@ -64,7 +71,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
         @Override
         public int getCount() {
-            return DATA_COUNT;
+            return dataCount();
         }
     };
 
@@ -106,6 +113,11 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
     /** One server tick of machine logic. Return true while the machine is working, for the lit state. */
     protected abstract boolean tick();
+
+    /** How many container data entries the menu syncs; machines with extra data override. */
+    protected int dataCount() {
+        return DATA_COUNT;
+    }
 
     // Shared behavior
 

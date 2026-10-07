@@ -11,6 +11,7 @@
   ],
   "ticks_per_pack": 100,
   "unlocks": [
-    "servus_manufacturing:assembling/electric_extractor"
+    "servus_manufacturing:assembling/electric_extractor",
+    "servus_manufacturing:assembling/electric_pump"
   ]
 }

@@ -40,6 +40,17 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_furnace", has(Items.FURNACE))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.BURNER_PUMP.get())
+                .pattern("IBI")
+                .pattern("IFI")
+                .pattern("CCC")
+                .define('I', Items.IRON_INGOT)
+                .define('B', Items.BUCKET)
+                .define('F', Items.FURNACE)
+                .define('C', Items.COBBLESTONE)
+                .unlockedBy("has_bucket", has(Items.BUCKET))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.BURNER_SMELTER.get())
                 .pattern("III")
                 .pattern("BFB")
@@ -101,6 +112,14 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .time(200)
                 .tech("electric_extractor")
                 .save(output, "electric_extractor");
+
+        assembling(ServusManufacturingItems.ELECTRIC_PUMP.get(), 1)
+                .requires(ServusManufacturingItems.BURNER_PUMP.get(), 1)
+                .requires(ServusManufacturingItems.IRON_GEAR.get(), 4)
+                .requires(ServusManufacturingItems.COPPER_WIRE.get(), 4)
+                .time(200)
+                .tech("electric_extractor")
+                .save(output, "electric_pump");
 
         assembling(ServusManufacturingItems.CRUSHER.get(), 1)
                 .requires(ServusManufacturingItems.ELECTRIC_EXTRACTOR.get(), 1)

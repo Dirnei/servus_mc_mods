@@ -1,0 +1,23 @@
+{
+  "type": "servus_manufacturing:assembling",
+  "ingredients": [
+    {
+      "count": 1,
+      "item": "servus_manufacturing:burner_pump"
+    },
+    {
+      "count": 4,
+      "item": "servus_manufacturing:iron_gear"
+    },
+    {
+      "count": 4,
+      "item": "servus_manufacturing:copper_wire"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_manufacturing:electric_pump"
+  },
+  "tech": "servus_manufacturing:electric_extractor",
+  "time": 200
+}

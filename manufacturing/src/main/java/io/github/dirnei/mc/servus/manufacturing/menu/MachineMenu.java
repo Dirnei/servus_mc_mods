@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.lib.side.RelativeSide;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -15,6 +16,9 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * Base menu for machines: machine slots first, then the player inventory,
@@ -54,7 +58,11 @@ public abstract class MachineMenu extends AbstractContainerMenu {
     }
 
     protected static ContainerData clientData() {
-        return new SimpleContainerData(MachineBlockEntity.DATA_COUNT);
+        return clientData(MachineBlockEntity.DATA_COUNT);
+    }
+
+    protected static ContainerData clientData(int count) {
+        return new SimpleContainerData(count);
     }
 
     protected abstract void addMachineSlots();
@@ -116,6 +124,30 @@ public abstract class MachineMenu extends AbstractContainerMenu {
     public int energyScaled(int pixels) {
         int capacity = energyCapacity();
         return capacity <= 0 ? 0 : (int) ((long) energyStored() * pixels / capacity);
+    }
+
+    // Fluid buffer, only synced by machines that have one
+
+    private int dataOrZero(int index) {
+        return index < data.getCount() ? data.get(index) : 0;
+    }
+
+    public boolean hasFluid() {
+        return data.getCount() > MachineBlockEntity.DATA_SOURCE_VALID;
+    }
+
+    public FluidStack fluid() {
+        int amount = dataOrZero(MachineBlockEntity.DATA_FLUID_AMOUNT);
+        Fluid fluid = BuiltInRegistries.FLUID.byId(dataOrZero(MachineBlockEntity.DATA_FLUID_ID));
+        return amount <= 0 || fluid == Fluids.EMPTY ? FluidStack.EMPTY : new FluidStack(fluid, amount);
+    }
+
+    public int fluidCapacity() {
+        return dataOrZero(MachineBlockEntity.DATA_FLUID_CAPACITY);
+    }
+
+    public boolean sourceValid() {
+        return dataOrZero(MachineBlockEntity.DATA_SOURCE_VALID) != 0;
     }
 
     // Side configuration

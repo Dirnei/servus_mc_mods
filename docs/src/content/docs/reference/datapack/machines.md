@@ -28,6 +28,9 @@ Every field is optional. A field the file leaves out, or a missing file, falls b
 | `items_per_tick` | int | 0 | Reserved for item throughput. No Manufacturing machine uses it yet. |
 | `recipe_slots` | int | 1 | How many recipes a crafter can have configured. Values below 1 count as 1. |
 | `fuel_reserve` | int | 0 | How many of its own yield a burner extractor keeps in its fuel slot when the yield is a furnace fuel. Surplus goes to the output slot. 0 disables the reserve. Values below 0 count as 0. |
+| `fluid_per_cycle` | int | 0 | mB of water a pump adds to its buffer per work cycle. |
+| `fluid_capacity` | int | 0 | Size of a pump's water buffer in mB. |
+| `min_source_neighbours` | int | 0 | How many of the four horizontal neighbours of the water source below a pump must be water sources too. |
 
 ## Example
 
@@ -64,8 +67,10 @@ These are the defaults built into the code, used for any field a file leaves out
 | `coal_generator` | generator | burns fuel | 1 | 40 | 16000 | 4 | 1 |
 | `research_lab` | powered | research packs | 1 | 10 | 4000 | 1 | 1 |
 | `chunk_loader` | powered | nothing, upkeep only | 1 | 10 | 4000 | 1 | 1 |
+| `burner_pump` | burner | water | 20 | 0 | 0 | 1 | 1 |
+| `electric_pump` | powered | water | 20 | 20 | 8000 | 1 | 1 |
 
-`items_per_tick` is 0 for every machine. `fuel_reserve` is 4 for the `burner_extractor` and 0 for every other machine: on a coal deposit the extractor keeps four coal in its fuel slot and pushes only the surplus.
+`items_per_tick` is 0 for every machine. `fuel_reserve` is 4 for the `burner_extractor` and 0 for every other machine: on a coal deposit the extractor keeps four coal in its fuel slot and pushes only the surplus. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump), `fluid_capacity` 4000 and `min_source_neighbours` 2; these are 0 for every other machine.
 
 The shipped stats files repeat these defaults, with one difference: `assembler.json` sets `work_ticks` to 1, so plain crafting recipes take one tick in the Assembler.
 
@@ -81,6 +86,7 @@ Which number decides how long a cycle takes depends on the machine:
 | Assembler | The assembling recipe's `time`. For a plain crafting recipe, `work_ticks`. |
 | Research Lab | The current tech's `ticks_per_pack` per consumed pack. `work_ticks` is not used. |
 | Coal Generator | Produces `energy_per_tick` for as long as one fuel item burns. |
+| Burner Pump, Electric Pump | `work_ticks` per `fluid_per_cycle` mB of water. |
 
 Fuel and energy:
 

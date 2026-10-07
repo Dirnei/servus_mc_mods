@@ -1,0 +1,8 @@
+{
+  "work_ticks": 20,
+  "energy_per_tick": 20,
+  "energy_capacity": 8000,
+  "fluid_per_cycle": 500,
+  "fluid_capacity": 4000,
+  "min_source_neighbours": 2
+}
