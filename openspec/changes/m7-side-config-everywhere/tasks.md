@@ -18,5 +18,5 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Reword the side configuration bullet in `PLAN.md` 2.1. Run `openspec validate m7-side-config-everywhere --strict`, full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
+- [x] 5.1 Reword the side configuration bullet in `PLAN.md` 2.1. Run `openspec validate m7-side-config-everywhere --strict`, full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
 - [ ] 5.2 Play check: side markers show on configured faces and with the carrot on every face; the panel looks the same on an Assembler, an Inbound Station and an Outbound Station; carrot on a face cycles with the action bar message; Inbound Station pulls from a chest on a Pull side; Assembler pulls ingredients on a Pull side and pushes only on Push sides.

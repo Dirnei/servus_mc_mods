@@ -19,7 +19,7 @@ See proposal.md for motivation. Lib has `lib/side`: `RelativeSide` (front, back,
 Section 2.1's side configuration bullet is reworded.
 
 ### Modes
-`SideMode`: `AUTO(insert, extract, push)`, `INPUT(insert)`, `OUTPUT(extract)`, `BOTH(insert, extract)`, `PULL(insert, pull)`, `PUSH(extract, push)`, `OFF()`. Flags `allowsInsert`, `allowsExtract`, `pushes`, `pulls`. `DISABLED` is renamed `OFF`; the byte ordinal order stays Auto, Input, Output, Both, Off, Pull, Push so saved machines load unchanged. `next()` goes away; cycling lives in the config.
+`SideMode`: `AUTO(insert, extract, push)`, `INPUT(insert)`, `OUTPUT(extract)`, `BOTH(insert, extract)`, `PULL(insert, pull)`, `PUSH(extract, push)`, `OFF()`. Flags `allowsInsert`, `allowsExtract`, `pushes`, `pulls`. `DISABLED` keeps its constant name so the Logistics code the duct rework touches keeps compiling; it is shown as Off through `SideMode.key()`. The byte ordinal order stays Auto, Input, Output, Both, Off, Pull, Push so saved machines load unchanged. `next()` goes away; cycling lives in the config.
 
 ### Config with a supported set
 `SideConfig(List<SideMode> supported, SideMode fallback)`: every side starts at the fallback; `set` of an unsupported mode falls back; `cycle` advances within the list. `SideConfig.machine()` is the full list with Auto; `SideConfig.inbound()` is Input, Pull, Off; `SideConfig.outbound()` is Push, Output, Off. NBT stays a byte array `Sides`; `isDefault` compares with the fallback. `SideConfigData implements ContainerData` with six entries reading and writing the config, for menus to `addDataSlots`.

@@ -66,6 +66,7 @@ Decisions already made:
 - Techs, packs, recipes and deposit definitions are **datapack driven** so modpack authors can retune them.
 - Production must work **overnight while chunk loaded**. A chunk loader upgrade with FE upkeep and a config cap per player/team is planned. Respect FTB Chunks if present.
 - Ducts and cables come from Servus: Logistics (the Utility Duct), which Manufacturing requires. Machines also push output into adjacent inventories.
+- Every machine and station configures its six sides the same way: Auto, Input, Output, Both, Pull, Push and Off from one shared side panel beside the GUI. The Configuration Carrot cycles the clicked face, and the modes are drawn on the block as coloured frames, with glyphs while the carrot is in hand.
 
 **Tier 1 content (first playable slice)**
 
