@@ -12,7 +12,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Places a utility duct carrying this line (Item Pipe, Power Cable or Fluid Pipe), or
- * adds the line to an existing duct that lacks it.
+ * adds the line to an existing duct that lacks it. Clicking a duct that already carries
+ * the line, or sneaking, places a new duct against the clicked face.
  */
 public class LineItem extends BlockItem {
 
@@ -31,12 +32,14 @@ public class LineItem extends BlockItem {
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        if (level.getBlockState(pos).getBlock() instanceof UtilityDuctBlock) {
-            if (!level.isClientSide() && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
+        Player player = context.getPlayer();
+        boolean sneaking = player != null && player.isSecondaryUseActive();
+        // A duct that already carries this line, or a sneak click, places a new duct against the clicked face.
+        if (!sneaking && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && !duct.has(line)) {
+            if (!level.isClientSide()) {
                 if (!duct.addLine(line)) {
                     return InteractionResult.FAIL;
                 }
-                Player player = context.getPlayer();
                 if (player == null || !player.getAbilities().instabuild) {
                     context.getItemInHand().shrink(1);
                 }

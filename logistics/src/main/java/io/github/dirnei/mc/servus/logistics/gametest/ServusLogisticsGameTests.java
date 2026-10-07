@@ -15,13 +15,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
@@ -30,6 +34,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -356,6 +362,42 @@ public final class ServusLogisticsGameTests {
         helper.assertItemEntityPresent(ServusLogisticsItems.ITEM_PIPE.get(), DUCT, 2);
         helper.assertItemEntityPresent(ServusLogisticsItems.POWER_CABLE.get(), DUCT, 2);
         helper.assertItemEntityPresent(ServusLogisticsItems.FLUID_PIPE.get(), DUCT, 2);
+        helper.succeed();
+    }
+
+    /** Uses a line item on a face of the block at {@code pos}, like a player's right click. */
+    private static void useLine(GameTestHelper helper, Player player, Item item, BlockPos pos, Direction face) {
+        BlockPos absolute = helper.absolutePos(pos);
+        Vec3 point = Vec3.atCenterOf(absolute).relative(face, 0.5);
+        ItemStack stack = new ItemStack(item);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
+                new BlockHitResult(point, face, absolute, false)));
+    }
+
+    /**
+     * A line item on a duct that already carries the line places a new duct against the face;
+     * a different line is added; sneaking always places.
+     */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void lineItemPlacesBesideAFullDuct(GameTestHelper helper) {
+        duct(helper, DUCT, Line.ITEM);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        useLine(helper, player, ServusLogisticsItems.ITEM_PIPE.get(), DUCT, Direction.EAST);
+        UtilityDuctBlockEntity east = helper.getBlockEntity(DUCT.east());
+        helper.assertTrue(east.has(Line.ITEM), "an Item Pipe on an item duct places a new duct to the east");
+
+        useLine(helper, player, ServusLogisticsItems.POWER_CABLE.get(), DUCT, Direction.EAST);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(DUCT);
+        helper.assertTrue(duct.has(Line.ENERGY), "a Power Cable is added to a duct that lacks it");
+        helper.assertBlockNotPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), DUCT.east().east());
+
+        player.setShiftKeyDown(true);
+        useLine(helper, player, ServusLogisticsItems.FLUID_PIPE.get(), DUCT, Direction.UP);
+        UtilityDuctBlockEntity above = helper.getBlockEntity(DUCT.above());
+        helper.assertTrue(above.has(Line.FLUID), "a sneak click places a new Fluid Pipe duct above");
+        helper.assertFalse(duct.has(Line.FLUID), "a sneak click does not add the line to the clicked duct");
         helper.succeed();
     }
 }

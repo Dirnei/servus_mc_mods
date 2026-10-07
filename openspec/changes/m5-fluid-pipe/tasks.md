@@ -17,6 +17,8 @@
 - [x] 3.3 Fluid Pipe page in `menu/UtilityDuctMenu.java` and `client/UtilityDuctScreen.java`; recipe, item model and lang in datagen. Run `gradlew :logistics:runData` and `gradlew build`.
 - [x] 3.4 GameTests in `gametest/ServusLogisticsGameTests.java` per the design list. Verify `gradlew :logistics:runGameTestServer`.
 
+- [x] 3.5 Play test fix: `duct/LineItem.java` places a new duct against the clicked face when the duct already carries the line or the player sneaks, instead of failing the click. GameTest `lineItemPlacesBesideAFullDuct`. Verify `gradlew build` and `gradlew :logistics:runGameTestServer`.
+
 ## 4. Docs and verification
 
 - [x] 4.1 Update `PLAN.md` 2.2 and M5. Run `openspec validate m5-fluid-pipe --strict`.

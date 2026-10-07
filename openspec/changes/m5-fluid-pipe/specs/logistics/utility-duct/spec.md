@@ -52,7 +52,7 @@ A duct carrying the Fluid Pipe SHALL accept fluid filled into it on a side whose
 ## MODIFIED Requirements
 
 ### Requirement: Channels are placed as items
-An Item Pipe, Power Cable or Fluid Pipe item SHALL place a Utility Duct carrying that line, or add the line to a duct that lacks it. A duct SHALL drop its line items when broken or dismantled, and removing the last line SHALL remove the duct.
+An Item Pipe, Power Cable or Fluid Pipe item SHALL place a Utility Duct carrying that line, or add the line to a clicked duct that lacks it. Clicking a duct that already carries the line, or sneaking, SHALL place a new duct against the clicked face like any block. A duct SHALL drop its line items when broken or dismantled, and removing the last line SHALL remove the duct.
 
 #### Scenario: Add a second channel
 - **WHEN** a player uses a Power Cable on a duct that carries only an Item Pipe
@@ -61,6 +61,14 @@ An Item Pipe, Power Cable or Fluid Pipe item SHALL place a Utility Duct carrying
 #### Scenario: Add the fluid line
 - **WHEN** a player uses a Fluid Pipe on a duct that carries an Item Pipe and a Power Cable
 - **THEN** the duct carries all three lines and one Fluid Pipe is consumed
+
+#### Scenario: Extend a run
+- **WHEN** a player uses an Item Pipe on the east face of a duct that already carries an Item Pipe
+- **THEN** a new Item Pipe duct is placed east of it
+
+#### Scenario: Sneak places
+- **WHEN** a sneaking player uses a Fluid Pipe on the top of a duct that lacks the Fluid Pipe
+- **THEN** a new Fluid Pipe duct is placed above it and the clicked duct stays unchanged
 
 #### Scenario: Broken duct
 - **WHEN** a duct with all three lines is broken
