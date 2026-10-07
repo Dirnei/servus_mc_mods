@@ -11,8 +11,8 @@
 ## 2. Site scaffold and public docs
 
 - [x] 2.1 Create `docs/` with Astro, Starlight, `@astrojs/preact`, Vitest, zod, lz-string and `@dagrejs/dagre` (`docs/package.json`, `astro.config.mjs` with `site` and `base` from design D8, `tsconfig.json`, `.gitignore` for `node_modules` and `dist`). Verify `npm ci`, `npm run build` and `npm test` (one placeholder test) pass in `docs/`.
-- [ ] 2.2 Write the public pages in `docs/src/content/docs/`: `index.mdx`, `getting-started.md` (skeleton with section headings), `mods/lib.md`, `mods/manufacturing.md`, `mods/logistics.md`, `mods/storage.md` (short overview from PLAN.md section 2 and the main specs), sidebar in `astro.config.mjs`. Verify `npm run build` and that the pages render without JavaScript (`npm run preview`, JavaScript disabled in the browser).
-- [ ] 2.3 Write the datapack reference `reference/datapack/machines.md`, `deposits.md`, `techs.md`, `recipes.md`: every field, its meaning, default and an example file taken from the repo. Verify each documented field against the codecs (`MachineStats.Partial`, `DepositDefinition`, `TechDefinition`, `AssemblingRecipeSerializer`, `CrushingRecipeSerializer`) and `npm run build`.
+- [x] 2.2 Write the public pages in `docs/src/content/docs/`: `index.mdx`, `getting-started.md` (skeleton with section headings), `mods/lib.md`, `mods/manufacturing.md`, `mods/logistics.md`, `mods/storage.md` (short overview from PLAN.md section 2 and the main specs), sidebar in `astro.config.mjs`. Verify `npm run build` and that the pages render without JavaScript (`npm run preview`, JavaScript disabled in the browser).
+- [x] 2.3 Write the datapack reference `reference/datapack/machines.md`, `deposits.md`, `techs.md`, `recipes.md`: every field, its meaning, default and an example file taken from the repo. Verify each documented field against the codecs (`MachineStats.Partial`, `DepositDefinition`, `TechDefinition`, `AssemblingRecipeSerializer`, `CrushingRecipeSerializer`) and `npm run build`.
 
 ## 3. Data model and ratio math (pure TypeScript)
 

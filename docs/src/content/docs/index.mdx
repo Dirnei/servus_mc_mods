@@ -1,6 +1,39 @@
 ---
 title: Servus Mods
-description: Documentation for the Servus mod family.
+description: Factory, logistics and warehouse mods for Minecraft 1.21.1 on NeoForge.
+template: splash
+hero:
+  title: Servus Mods
+  tagline: Infinite deposits, planned factories, bundled ducts and a warehouse you build in the world. A mod family for Minecraft 1.21.1 on NeoForge.
+  actions:
+    - text: Getting started
+      link: /servus_mc_mods/getting-started/
+      icon: right-arrow
+    - text: Balance lab
+      link: /servus_mc_mods/lab/
+      icon: setting
+      variant: minimal
 ---
 
-Placeholder.
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## The mods
+
+<CardGrid>
+	<Card title="Servus Lib" icon="puzzle">
+		The shared base every Servus mod needs: network graphs, side configuration, the Configuration Carrot, Engineer Goggles, teams and the production and stock API. [Read more](/servus_mc_mods/mods/lib/)
+	</Card>
+	<Card title="Servus: Manufacturing" icon="setting">
+		Factorio style production: infinite deposits, extractors, smelters, generators, assemblers and a research tree driven by packs. [Read more](/servus_mc_mods/mods/manufacturing/)
+	</Card>
+	<Card title="Servus: Logistics" icon="random">
+		The Utility Duct: one block carrying an Item Pipe and a Power Cable, eight colored channels per side, filters, priorities and facades. [Read more](/servus_mc_mods/mods/logistics/)
+	</Card>
+	<Card title="Servus: Storage" icon="list-format">
+		A real warehouse: crates, heavy duty racks, rails, shuttles, a counter terminal, zones and work orders that feed your machines. [Read more](/servus_mc_mods/mods/storage/)
+	</Card>
+</CardGrid>
+
+## Built for modpacks
+
+Recipes, techs, deposits and machine balance numbers live in datapack JSON. The [datapack reference](/servus_mc_mods/reference/datapack/machines/) lists every field, and the [Balance lab](/servus_mc_mods/lab/) lets you try new numbers before you ship them.
