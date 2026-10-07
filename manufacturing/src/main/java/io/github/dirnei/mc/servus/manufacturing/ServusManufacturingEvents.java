@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing;
 
 import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
+import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
 import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;
 import io.github.dirnei.mc.servus.manufacturing.gametest.ServusManufacturingGameTests;
@@ -99,8 +100,9 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.BURNER_PUMP.get(),
                     (machine, side) -> machine.fluidHandler(side));
+            // A pump takes energy only where it also gives water: not through its front or bottom.
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.ELECTRIC_PUMP.get(),
-                    (machine, side) -> machine.energyStorage());
+                    (machine, side) -> side == null || PumpBlock.givesWater(machine.getBlockState(), side) ? machine.energyStorage() : null);
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.ELECTRIC_PUMP.get(),
                     (machine, side) -> machine.fluidHandler(side));
         }

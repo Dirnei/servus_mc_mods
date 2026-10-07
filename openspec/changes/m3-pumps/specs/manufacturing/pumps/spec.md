@@ -46,7 +46,7 @@ The Burner Pump SHALL burn any item vanilla furnaces accept as fuel, consuming o
 - **THEN** progress stops and resumes when fuel is added
 
 ### Requirement: Electric Pump runs on energy
-The Electric Pump SHALL spend `energy_per_tick` FE from its buffer while working, SHALL accept FE on every side like the other powered machines, and SHALL pump more water per second than the Burner Pump with the default data.
+The Electric Pump SHALL spend `energy_per_tick` FE from its buffer while working, SHALL accept FE on every face except its front and bottom, and SHALL pump more water per second than the Burner Pump with the default data.
 
 #### Scenario: Powered
 - **WHEN** an Electric Pump on a pond has energy
@@ -80,7 +80,7 @@ A pump SHALL have no configurable sides: no side panel in its GUI, no side marke
 - **THEN** the pump accepts nothing
 
 ### Requirement: Pump connects to pipes
-A pump SHALL show a short pipe stub from its body to the block edge on every face where it gives water and the neighbour takes or gives fluid, so a Fluid Pipe or tank meets it without a gap. The stubs SHALL follow neighbours being placed, removed or changed, and the outline SHALL include them.
+A pump SHALL show a short pipe stub from its body to the block edge on every face except its front and bottom where the neighbour is a duct reaching the pump with any line, or a block that takes or gives fluid, so ducts and tanks meet it without a gap. A stub toward a duct SHALL be as thick as that duct's arm toward the pump, which grows with the number of lines on it; a stub toward any other block SHALL have the two line size. The stubs SHALL follow neighbours being placed, removed or changed, and the outline SHALL include them.
 
 #### Scenario: Pipe beside the pump
 - **WHEN** a duct carrying the Fluid Pipe is placed east of a pump
@@ -90,8 +90,24 @@ A pump SHALL show a short pipe stub from its body to the block edge on every fac
 - **WHEN** a Fluid Pipe duct is placed above a pump
 - **THEN** the outlet on top reaches up to the duct
 
+#### Scenario: Power Cable
+- **WHEN** a duct carrying only a Power Cable touches the side of an Electric Pump
+- **THEN** the pump shows a stub on that face that meets the cable's arm
+
 #### Scenario: Item duct
-- **WHEN** a duct carrying only an Item Pipe touches the pump
+- **WHEN** a duct carrying only an Item Pipe touches the side of a Burner Pump
+- **THEN** the pump shows a stub on that face, since the duct can bring fuel
+
+#### Scenario: Stub follows the duct size
+- **WHEN** an Item Pipe duct beside a Burner Pump gets a Fluid Pipe added, then a Power Cable
+- **THEN** the stub grows from thin to the two line size and stays there, since a Burner Pump takes no power and at most two lines meet a pump
+
+#### Scenario: Tank beside the pump
+- **WHEN** a Fluid Tank touches the pump's side
+- **THEN** the pump shows a medium stub on that face
+
+#### Scenario: Plain block
+- **WHEN** stone touches the pump's side
 - **THEN** no stub shows on that face
 
 #### Scenario: Pipe removed

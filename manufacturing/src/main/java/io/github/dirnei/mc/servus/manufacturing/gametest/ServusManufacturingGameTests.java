@@ -34,6 +34,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -449,7 +450,11 @@ public final class ServusManufacturingGameTests {
         helper.succeed();
     }
 
-    /** Pipe stubs show toward fluid handling neighbours on every face but the front and the bottom, and follow changes. */
+    private static int stub(GameTestHelper helper, IntegerProperty face) {
+        return helper.getBlockState(PUMP).getValue(face);
+    }
+
+    /** Stubs show toward ducts and fluid blocks on every face but the front and the bottom, sized like the arm they meet. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
     public static void pumpStubsFollowNeighbours(GameTestHelper helper) {
         burnerPump(helper, 0);
@@ -457,17 +462,32 @@ public final class ServusManufacturingGameTests {
         helper.setBlock(PUMP.north(), Blocks.CAULDRON.defaultBlockState());
         helper.setBlock(PUMP.west(), Blocks.STONE.defaultBlockState());
         duct(helper, PUMP.south(), Line.ITEM);
-        helper.assertTrue(helper.getBlockState(PUMP).getValue(PumpBlock.EAST), "a cauldron to the east gets a stub");
-        helper.assertTrue(!helper.getBlockState(PUMP).getValue(PumpBlock.NORTH), "the front never gets a stub");
-        helper.assertTrue(!helper.getBlockState(PUMP).getValue(PumpBlock.WEST), "stone gets no stub");
-        helper.assertTrue(!helper.getBlockState(PUMP).getValue(PumpBlock.SOUTH), "an item only duct gets no stub");
+        helper.assertTrue(stub(helper, PumpBlock.EAST) == PumpBlock.PLAIN_STUB, "a cauldron to the east gets a medium stub");
+        helper.assertTrue(stub(helper, PumpBlock.NORTH) == 0, "the front never gets a stub");
+        helper.assertTrue(stub(helper, PumpBlock.WEST) == 0, "stone gets no stub");
+        helper.assertTrue(stub(helper, PumpBlock.SOUTH) == 1, "an Item Pipe that brings fuel gets a thin stub");
         UtilityDuctBlockEntity duct = helper.getBlockEntity(PUMP.south());
         duct.addLine(Line.FLUID);
-        helper.assertTrue(helper.getBlockState(PUMP).getValue(PumpBlock.SOUTH), "adding the Fluid Pipe adds the stub");
+        helper.assertTrue(stub(helper, PumpBlock.SOUTH) == 2, "a second line grows the stub");
+        duct.addLine(Line.ENERGY);
+        helper.assertTrue(stub(helper, PumpBlock.SOUTH) == 2, "a Burner Pump takes no power, so the stub stays at two lines");
         helper.setBlock(PUMP.east(), Blocks.AIR.defaultBlockState());
-        helper.assertTrue(!helper.getBlockState(PUMP).getValue(PumpBlock.EAST), "removing the cauldron removes the stub");
+        helper.assertTrue(stub(helper, PumpBlock.EAST) == 0, "removing the cauldron removes the stub");
         duct(helper, PUMP.above(), Line.FLUID);
-        helper.assertTrue(helper.getBlockState(PUMP).getValue(PumpBlock.UP), "a Fluid Pipe on top reaches the outlet");
+        helper.assertTrue(stub(helper, PumpBlock.UP) == 1, "a Fluid Pipe on top reaches the outlet");
+        helper.succeed();
+    }
+
+    /** A Power Cable meets an Electric Pump with a stub on its sides, but no cable reaches its front. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void electricPumpStubForPowerCable(GameTestHelper helper) {
+        helper.setBlock(PUMP, facing(ServusManufacturingBlocks.ELECTRIC_PUMP.get(), Direction.NORTH));
+        duct(helper, PUMP.east(), Line.ENERGY);
+        duct(helper, PUMP.north(), Line.ENERGY);
+        helper.assertTrue(stub(helper, PumpBlock.EAST) == 1, "a Power Cable on the side gets a thin stub");
+        helper.assertTrue(stub(helper, PumpBlock.NORTH) == 0, "the front takes no power and gets no stub");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, helper.absolutePos(PUMP), Direction.NORTH) == null,
+                "no energy through the front");
         helper.succeed();
     }
 

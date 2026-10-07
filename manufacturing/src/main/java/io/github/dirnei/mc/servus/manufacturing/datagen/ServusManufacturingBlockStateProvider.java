@@ -9,7 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
@@ -60,29 +60,27 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
                         .condition(MachineBlock.FACING, facing).condition(MachineBlock.LIT, isLit).end();
             }
         }
-        for (Map.Entry<Direction, BooleanProperty> stub : PumpBlock.STUBS.entrySet()) {
-            builder.part().modelFile(pumpStub(stub.getKey())).addModel().condition(stub.getValue(), true).end();
+        for (Map.Entry<Direction, IntegerProperty> stub : PumpBlock.STUBS.entrySet()) {
+            for (int size = 1; size <= PumpBlock.MAX_STUB; size++) {
+                builder.part().modelFile(pumpStub(stub.getKey(), size)).addModel().condition(stub.getValue(), size).end();
+            }
         }
         simpleBlockItem(block, unlit);
     }
 
-    /** A short pipe from the pump body to the block edge, shared by both pumps. */
-    private ModelFile pumpStub(Direction direction) {
-        BlockModelBuilder model = models().withExistingParent("pump_stub_" + direction.getSerializedName(), mcLoc("block/block"))
+    /** A short pipe from the pump body to the block edge, as thick as a duct arm with {@code size} lines; shared by both pumps. */
+    private ModelFile pumpStub(Direction direction, int size) {
+        BlockModelBuilder model = models().withExistingParent("pump_stub_" + direction.getSerializedName() + "_" + size, mcLoc("block/block"))
                 .texture("particle", modLoc("block/machine_side"))
                 .texture("side", modLoc("block/machine_side"))
                 .texture("top", modLoc("block/machine_top"));
-        BlockModelBuilder.ElementBuilder element = model.element();
-        switch (direction) {
-            case NORTH -> element.from(5, 5, 0).to(11, 11, 3);
-            case SOUTH -> element.from(5, 5, 13).to(11, 11, 16);
-            case WEST -> element.from(0, 5, 5).to(3, 11, 11);
-            case EAST -> element.from(13, 5, 5).to(16, 11, 11);
-            default -> element.from(6, 15, 6).to(10, 16, 10);
-        }
-        element.allFaces((face, builder) -> builder.texture(face == direction || face == direction.getOpposite() ? "#top" : "#side")
-                .uvs(5, 5, 11, 11));
-        element.face(direction).cullface(direction).end();
+        int[] box = PumpBlock.stubBox(direction, size);
+        int lo = 8 - PumpBlock.stubRadius(size);
+        int hi = 8 + PumpBlock.stubRadius(size);
+        model.element().from(box[0], box[1], box[2]).to(box[3], box[4], box[5])
+                .allFaces((face, builder) -> builder.texture(face == direction || face == direction.getOpposite() ? "#top" : "#side")
+                        .uvs(lo, lo, hi, hi))
+                .face(direction).cullface(direction).end();
         return model;
     }
 

@@ -80,42 +80,82 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_up"
+        "model": "servus_manufacturing:block/pump_stub_up_1"
       },
       "when": {
-        "up": "true"
+        "up": "1"
       }
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_north"
+        "model": "servus_manufacturing:block/pump_stub_up_2"
       },
       "when": {
-        "north": "true"
+        "up": "2"
       }
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_south"
+        "model": "servus_manufacturing:block/pump_stub_north_1"
       },
       "when": {
-        "south": "true"
+        "north": "1"
       }
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_west"
+        "model": "servus_manufacturing:block/pump_stub_north_2"
       },
       "when": {
-        "west": "true"
+        "north": "2"
       }
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_east"
+        "model": "servus_manufacturing:block/pump_stub_south_1"
       },
       "when": {
-        "east": "true"
+        "south": "1"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_manufacturing:block/pump_stub_south_2"
+      },
+      "when": {
+        "south": "2"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_manufacturing:block/pump_stub_west_1"
+      },
+      "when": {
+        "west": "1"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_manufacturing:block/pump_stub_west_2"
+      },
+      "when": {
+        "west": "2"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_manufacturing:block/pump_stub_east_1"
+      },
+      "when": {
+        "east": "1"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_manufacturing:block/pump_stub_east_2"
+      },
+      "when": {
+        "east": "2"
       }
     }
   ]
