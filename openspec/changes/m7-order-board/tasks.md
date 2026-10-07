@@ -14,4 +14,4 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `openspec validate m7-order-board --strict`, full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
+- [x] 4.1 Run `openspec validate m7-order-board --strict`, full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
