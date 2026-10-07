@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtrac
 import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.ElectricPumpBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -69,6 +70,11 @@ public final class ServusManufacturingBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricPumpBlockEntity>> ELECTRIC_PUMP =
             BLOCK_ENTITIES.register("electric_pump", () -> BlockEntityType.Builder
                     .of(ElectricPumpBlockEntity::new, ServusManufacturingBlocks.ELECTRIC_PUMP.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SinkBlockEntity>> SINK =
+            BLOCK_ENTITIES.register("sink", () -> BlockEntityType.Builder
+                    .of(SinkBlockEntity::new, ServusManufacturingBlocks.SINK.get())
                     .build(null));
 
     private ServusManufacturingBlockEntities() {

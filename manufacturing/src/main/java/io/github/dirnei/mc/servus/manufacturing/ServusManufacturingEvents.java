@@ -107,6 +107,12 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> side == null || PumpBlock.givesWater(machine.getBlockState(), side) ? machine.energyStorage() : null);
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.ELECTRIC_PUMP.get(),
                     (machine, side) -> machine.fluidHandler(side));
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.SINK.get(),
+                    (sink, side) -> sink.itemHandler(side));
+            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.SINK.get(),
+                    (sink, side) -> sink.fluidHandler(side));
+            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.SINK.get(),
+                    (sink, side) -> sink.energyStorage(side));
         }
     }
 }

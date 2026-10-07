@@ -11,6 +11,8 @@ import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtrac
 import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.BurnerPumpBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.ElectricPumpBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.sink.ChimneyBlock;
+import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -48,6 +50,10 @@ public final class ServusManufacturingBlocks {
             BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new, machine().noOcclusion());
     public static final DeferredBlock<ElectricPumpBlock> ELECTRIC_PUMP =
             BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new, machine().noOcclusion());
+    public static final DeferredBlock<SinkBlock> SINK =
+            BLOCKS.registerBlock("sink", SinkBlock::new, brick());
+    public static final DeferredBlock<ChimneyBlock> CHIMNEY =
+            BLOCKS.registerBlock("chimney", ChimneyBlock::new, brick());
 
     private ServusManufacturingBlocks() {
     }
@@ -58,6 +64,15 @@ public final class ServusManufacturingBlocks {
                 .mapColor(color)
                 .strength(-1.0F, 3600000.0F)
                 .sound(SoundType.STONE));
+    }
+
+    /** Brick blocks of the Sink family: like vanilla bricks. */
+    private static BlockBehaviour.Properties brick() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_RED)
+                .strength(2.0F, 6.0F)
+                .requiresCorrectToolForDrops()
+                .sound(SoundType.STONE);
     }
 
     /** Shared properties of machine blocks: metal, pickaxe, glow when lit. */
