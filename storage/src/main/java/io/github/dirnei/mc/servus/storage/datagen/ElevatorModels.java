@@ -5,16 +5,19 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 
-/** Datagen for the elevator segment: four corner posts, the rail centre, and the rail arm per connected horizontal side. */
+/**
+ * Datagen for the elevator segment: four corner posts always, and a head with
+ * a motor beam on the top segment of a shaft. Decks and the lift car fold and
+ * move, so the elevator renderer draws them.
+ */
 final class ElevatorModels {
 
     private ElevatorModels() {
     }
 
-    static void elevator(BlockStateProvider provider, Block block, String name, String railName) {
+    static void elevator(BlockStateProvider provider, Block block, String name) {
         ResourceLocation texture = provider.modLoc("block/" + name);
         BlockModelBuilder frame = provider.models().getBuilder(name + "_frame")
                 .texture("particle", texture).texture("skin", texture);
@@ -23,16 +26,22 @@ final class ElevatorModels {
             frame.element().from(post[0], 0, post[1]).to(post[0] + 2, 16, post[1] + 2)
                     .allFaces((direction, face) -> face.texture("#skin")).end();
         }
-        ModelFile center = provider.models().getExistingFile(provider.modLoc("block/" + railName + "_center"));
-        ModelFile arm = provider.models().getExistingFile(provider.modLoc("block/" + railName + "_arm"));
+
+        ResourceLocation headTexture = provider.modLoc("block/" + name + "_head");
+        BlockModelBuilder head = provider.models().getBuilder(name + "_head")
+                .texture("particle", texture).texture("skin", texture).texture("head", headTexture);
+        // A closed ring of beams over the posts.
+        head.element().from(0, 14, 0).to(16, 16, 2).allFaces((direction, face) -> face.texture("#skin")).end();
+        head.element().from(0, 14, 14).to(16, 16, 16).allFaces((direction, face) -> face.texture("#skin")).end();
+        head.element().from(0, 14, 2).to(2, 16, 14).allFaces((direction, face) -> face.texture("#skin")).end();
+        head.element().from(14, 14, 2).to(16, 16, 14).allFaces((direction, face) -> face.texture("#skin")).end();
+        // The motor beam across the middle with the motor box hanging below it.
+        head.element().from(2, 13, 6).to(14, 16, 10).allFaces((direction, face) -> face.texture("#head")).end();
+        head.element().from(5, 10, 5).to(11, 13, 11).allFaces((direction, face) -> face.texture("#head")).end();
 
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
         builder.part().modelFile(frame).addModel();
-        builder.part().modelFile(center).addModel();
-        builder.part().modelFile(arm).addModel().condition(ConnectableBlock.NORTH, true);
-        builder.part().modelFile(arm).rotationY(90).addModel().condition(ConnectableBlock.EAST, true);
-        builder.part().modelFile(arm).rotationY(180).addModel().condition(ConnectableBlock.SOUTH, true);
-        builder.part().modelFile(arm).rotationY(270).addModel().condition(ConnectableBlock.WEST, true);
+        builder.part().modelFile(head).addModel().condition(ConnectableBlock.UP, false);
 
         provider.simpleBlockItem(block, frame);
     }

@@ -2,8 +2,6 @@ package io.github.dirnei.mc.servus.storage.rail;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
-import java.util.HashMap;
-import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -20,25 +18,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * One segment of a rail elevator shaft: four corner posts around an open
- * middle with the rail running through it. Segments stack vertically and
- * take rails on their four sides; the network joins anything touching them.
+ * middle. Segments stack vertically into a shaft with one lift car and take
+ * rails on their four sides; the network joins anything touching them.
+ * Entities pass through and climb the shaft like a ladder.
  */
 public class ElevatorBlock extends ConnectableBlock {
 
     public static final MapCodec<ElevatorBlock> CODEC = simpleCodec(ElevatorBlock::new);
-    private static final VoxelShape FRAME = Shapes.or(
-            Block.box(0, 0, 0, 2, 16, 2),
-            Block.box(14, 0, 0, 16, 16, 2),
-            Block.box(0, 0, 14, 2, 16, 16),
-            Block.box(14, 0, 14, 16, 16, 16),
-            Block.box(5, 0, 5, 11, 1, 11));
-    private static final Map<Direction, VoxelShape> ARMS = Map.of(
-            Direction.NORTH, Block.box(5, 0, 0, 11, 1, 5),
-            Direction.SOUTH, Block.box(5, 0, 11, 11, 1, 16),
-            Direction.WEST, Block.box(0, 0, 5, 5, 1, 11),
-            Direction.EAST, Block.box(11, 0, 5, 16, 1, 11));
-
-    private final Map<BlockState, VoxelShape> shapes = new HashMap<>();
 
     public ElevatorBlock(Properties properties) {
         super(properties, 4);
@@ -57,17 +43,16 @@ public class ElevatorBlock extends ConnectableBlock {
         return neighborState.getBlock() instanceof RailBlock;
     }
 
+    /** The whole block is the outline, so a segment is easy to target, like scaffolding. */
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return shapes.computeIfAbsent(state, s -> {
-            VoxelShape shape = FRAME;
-            for (Map.Entry<Direction, VoxelShape> arm : ARMS.entrySet()) {
-                if (s.getValue(property(arm.getKey()))) {
-                    shape = Shapes.or(shape, arm.getValue());
-                }
-            }
-            return shape;
-        });
+        return Shapes.block();
+    }
+
+    /** Players and entities walk through the shaft; the climbable tag lets them climb it. */
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return Shapes.empty();
     }
 
     /** A segment stands on a solid block or on another segment. */

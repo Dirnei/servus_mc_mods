@@ -7,42 +7,10 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/rail_arm"
+        "model": "servus_storage:block/elevator_head"
       },
       "when": {
-        "north": "true"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/rail_arm",
-        "y": 90
-      },
-      "when": {
-        "east": "true"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/rail_arm",
-        "y": 180
-      },
-      "when": {
-        "south": "true"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/rail_arm",
-        "y": 270
-      },
-      "when": {
-        "west": "true"
+        "up": "false"
       }
     }
   ]

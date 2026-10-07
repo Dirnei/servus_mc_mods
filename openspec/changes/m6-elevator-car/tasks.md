@@ -12,9 +12,9 @@ Paths below are relative to `storage/src/main/java/io/github/dirnei/mc/servus/st
 
 ## 2. Segment block: no collision, climbable, new models
 
-- [ ] 2.1 In `rail/ElevatorBlock.java` return `Shapes.empty()` from `getCollisionShape` and `Shapes.block()` from `getShape`. Drop the old shape maps. Add the elevator to `BlockTags.CLIMBABLE` in `datagen/ServusStorageBlockTagsProvider.java`. Verify `gradlew :storage:build` is green.
-- [ ] 2.2 Rework `datagen/ElevatorModels.java`: the multipart has `elevator_frame` (posts) always and a new `elevator_head` (cap beam and motor box over the posts) when `up=false`; remove `rail_center` and `rail_arm` from the elevator blockstate. Add the head texture with the png helper under `storage/src/main/resources/assets/servus_storage/textures/block/`. Run `gradlew :storage:runData` and verify `gradlew :storage:build` is green.
-- [ ] 2.3 Add a GameTest `elevatorHasNoCollision` to `gametest/ServusStorageGameTests.java`: a segment's collision shape at its position is empty and the block is in `BlockTags.CLIMBABLE`. Verify `gradlew :storage:runGameTestServer` passes all storage tests and commit.
+- [x] 2.1 In `rail/ElevatorBlock.java` return `Shapes.empty()` from `getCollisionShape` and `Shapes.block()` from `getShape`. Drop the old shape maps. Add the elevator to `BlockTags.CLIMBABLE` in `datagen/ServusStorageBlockTagsProvider.java`. Verify `gradlew :storage:build` is green.
+- [x] 2.2 Rework `datagen/ElevatorModels.java`: the multipart has `elevator_frame` (posts) always and a new `elevator_head` (cap beam and motor box over the posts) when `up=false`; remove `rail_center` and `rail_arm` from the elevator blockstate. Add the head texture with the png helper under `storage/src/main/resources/assets/servus_storage/textures/block/`. Run `gradlew :storage:runData` and verify `gradlew :storage:build` is green.
+- [x] 2.3 Add a GameTest `elevatorHasNoCollision` to `gametest/ServusStorageGameTests.java`: a segment's collision shape at its position is empty and the block is in `BlockTags.CLIMBABLE`. Verify `gradlew :storage:runGameTestServer` passes all storage tests and commit.
 
 ## 3. Cars in the fleet
 

@@ -65,6 +65,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -208,6 +209,21 @@ public final class ServusStorageGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    private static final BlockPos NC_SEGMENT = new BlockPos(6, 1, 6);
+
+    /** A segment blocks nobody, keeps a full outline to target it, and is climbable. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void elevatorHasNoCollision(GameTestHelper helper) {
+        helper.setBlock(NC_SEGMENT.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(NC_SEGMENT, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        BlockState state = helper.getBlockState(NC_SEGMENT);
+        BlockPos absolute = helper.absolutePos(NC_SEGMENT);
+        helper.assertTrue(state.getCollisionShape(helper.getLevel(), absolute).isEmpty(), "a segment must have no collision");
+        helper.assertTrue(!state.getShape(helper.getLevel(), absolute).isEmpty(), "a segment keeps an outline");
+        helper.assertTrue(state.is(BlockTags.CLIMBABLE), "a segment is climbable");
+        helper.succeed();
     }
 
     private static final BlockPos QUAD = new BlockPos(8, 1, 8);
