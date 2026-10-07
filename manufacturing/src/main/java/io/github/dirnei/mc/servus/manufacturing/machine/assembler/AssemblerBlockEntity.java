@@ -2,6 +2,8 @@ package io.github.dirnei.mc.servus.manufacturing.machine.assembler;
 
 import io.github.dirnei.mc.servus.lib.craft.IngredientGatherer;
 import io.github.dirnei.mc.servus.lib.craft.RoundRobin;
+import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
+import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.lib.team.Teams;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
@@ -86,6 +88,48 @@ public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
 
     public int recipeSlots() {
         return stats().recipeSlots();
+    }
+
+    /** The Lib production view: configured recipes with their template inputs, results and times. */
+    public ProductionProvider production() {
+        return new ProductionProvider() {
+            @Override
+            public List<ProductionRecipe> recipes() {
+                List<ProductionRecipe> list = new ArrayList<>();
+                if (level == null) {
+                    return list;
+                }
+                for (ConfiguredRecipe recipe : recipes) {
+                    List<ItemStack> inputs = new ArrayList<>();
+                    for (ItemStack cell : recipe.template()) {
+                        if (cell.isEmpty()) {
+                            continue;
+                        }
+                        boolean merged = false;
+                        for (ItemStack input : inputs) {
+                            if (ItemStack.isSameItemSameComponents(input, cell)) {
+                                input.grow(cell.getCount());
+                                merged = true;
+                                break;
+                            }
+                        }
+                        if (!merged) {
+                            inputs.add(cell.copy());
+                        }
+                    }
+                    ItemStack result = recipe.displayResult(level);
+                    int ticks = recipe.assembling(level).map(AssemblingRecipe::time).orElse(stats().workTicks());
+                    list.add(new ProductionRecipe(recipe.id(), inputs, result.isEmpty() ? List.of() : List.of(result), Math.max(1, ticks)));
+                }
+                return list;
+            }
+
+            @Override
+            public Optional<ResourceLocation> active() {
+                int index = activeIndex();
+                return index >= 0 && index < recipes.size() ? Optional.of(recipes.get(index).id()) : Optional.empty();
+            }
+        };
     }
 
     public int activeIndex() {

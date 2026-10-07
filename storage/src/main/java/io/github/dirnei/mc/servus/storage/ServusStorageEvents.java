@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage;
 
+import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
 import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
@@ -92,6 +93,10 @@ public final class ServusStorageEvents {
                     (rack, side) -> rack.items());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.intake());
+            event.registerBlockEntity(ServusLibCapabilities.STOCK_PROVIDER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
+                    (controller, side) -> controller.stock());
+            event.registerBlockEntity(ServusLibCapabilities.STOCK_SINK, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
+                    (controller, side) -> controller.sink());
         }
     }
 }

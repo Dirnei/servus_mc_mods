@@ -1,6 +1,9 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
+import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
@@ -114,5 +117,33 @@ public final class ServusManufacturingGameTests {
     private static void generator(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, facing(ServusManufacturingBlocks.COAL_GENERATOR.get(), Direction.NORTH));
         fuel(helper, pos);
+    }
+
+    private static final BlockPos PR_ASSEMBLER = new BlockPos(9, 2, 10);
+
+    /** The assembler reports its configured recipes through the Lib production capability. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void assemblerReportsItsRecipes(GameTestHelper helper) {
+        helper.setBlock(PR_ASSEMBLER, facing(ServusManufacturingBlocks.ASSEMBLER.get(), Direction.WEST));
+        AssemblerBlockEntity assembler = helper.getBlockEntity(PR_ASSEMBLER);
+        BlockPos absolute = helper.absolutePos(PR_ASSEMBLER);
+        ProductionProvider empty = helper.getLevel().getCapability(ServusLibCapabilities.PRODUCTION, absolute, null);
+        helper.assertTrue(empty != null, "the assembler should expose the production capability");
+        helper.assertTrue(empty.recipes().isEmpty() && empty.active().isEmpty(), "nothing configured means no recipes");
+
+        assembler.addRecipe(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "assembling/iron_gear"), null);
+        ProductionProvider provider = helper.getLevel().getCapability(ServusLibCapabilities.PRODUCTION, absolute, Direction.UP);
+        helper.assertTrue(provider != null && provider.recipes().size() == 1, "one recipe should be reported");
+        ProductionRecipe gear = provider.recipes().get(0);
+        helper.assertTrue(gear.inputs().size() == 1 && gear.inputs().get(0).is(Items.IRON_INGOT) && gear.inputs().get(0).getCount() == 2,
+                "the gear recipe takes two iron ingots, got " + gear.inputs());
+        helper.assertTrue(gear.outputs().size() == 1 && gear.outputs().get(0).is(ServusManufacturingItems.IRON_GEAR.get()) && gear.outputs().get(0).getCount() == 1,
+                "the gear recipe makes one iron gear, got " + gear.outputs());
+        helper.assertTrue(gear.ticks() == 20, "the gear recipe takes 20 ticks, got " + gear.ticks());
+        helper.assertTrue(provider.active().isEmpty(), "idle: no active recipe");
+
+        assembler.removeRecipe(0);
+        helper.assertTrue(provider.recipes().isEmpty(), "no recipes after removal");
+        helper.succeed();
     }
 }

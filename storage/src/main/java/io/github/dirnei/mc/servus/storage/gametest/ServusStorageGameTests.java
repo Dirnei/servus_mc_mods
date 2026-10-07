@@ -18,6 +18,9 @@ import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
+import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
+import io.github.dirnei.mc.servus.lib.production.StockProvider;
+import io.github.dirnei.mc.servus.lib.production.StockSink;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
@@ -1245,6 +1248,34 @@ public final class ServusStorageGameTests {
                     helper.succeed();
                 });
             });
+        });
+    }
+
+    private static final BlockPos CS_CONTROLLER = new BlockPos(6, 1, 6);
+    private static final BlockPos CS_FULL = new BlockPos(5, 1, 6);
+    private static final BlockPos CS_EMPTY = new BlockPos(7, 1, 6);
+
+    /** The controller exposes the warehouse through the Lib stock capabilities. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void controllerExposesStock(GameTestHelper helper) {
+        helper.setBlock(CS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(CS_FULL, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(CS_EMPTY, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity full = helper.getBlockEntity(CS_FULL);
+        CrateBlockEntity empty = helper.getBlockEntity(CS_EMPTY);
+        full.insert(new ItemStack(Items.COBBLESTONE, 80), false);
+        helper.runAfterDelay(10, () -> {
+            BlockPos absolute = helper.absolutePos(CS_CONTROLLER);
+            StockProvider provider = helper.getLevel().getCapability(ServusLibCapabilities.STOCK_PROVIDER, absolute, Direction.UP);
+            StockSink sink = helper.getLevel().getCapability(ServusLibCapabilities.STOCK_SINK, absolute, null);
+            helper.assertTrue(provider != null && sink != null, "the controller should expose both stock capabilities");
+            helper.assertTrue(provider.count(new ItemStack(Items.COBBLESTONE)) == 80, "count should be 80, was " + provider.count(new ItemStack(Items.COBBLESTONE)));
+            ItemStack taken = provider.extract(new ItemStack(Items.COBBLESTONE), 20);
+            helper.assertTrue(taken.getCount() == 20 && full.count() == 60, "extract should take 20 and leave 60");
+            ItemStack left = sink.insert(new ItemStack(Items.BREAD, 20));
+            helper.assertTrue(left.isEmpty() && empty.count() == 20 && empty.type(0).is(Items.BREAD), "the sink should put the bread into the empty crate");
+            helper.succeed();
         });
     }
 }
