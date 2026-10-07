@@ -1437,6 +1437,118 @@ public final class ServusStorageGameTests {
         });
     }
 
+    private static final int SR_Z = 5;
+    private static final BlockPos SR_CONTROLLER = new BlockPos(8, 1, 7);
+    private static final BlockPos SR_TERMINAL = new BlockPos(9, 1, 8);
+    private static final BlockPos SR_GARAGE = new BlockPos(6, 1, 7);
+
+    /**
+     * A section of three racks facing south at x 2 to 4 (left bay at x 4), a
+     * rail only in front of the left bay leading to a terminal, and a garage
+     * with one shuttle on that rail.
+     */
+    private static Player sectionRailSetup(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(180.0F);
+        for (int x = 2; x <= 4; x++) {
+            placeRackByHand(helper, player, new BlockPos(x, 1, SR_Z));
+        }
+        List<BlockPos> rails = List.of(new BlockPos(4, 1, 6), new BlockPos(4, 1, 7), new BlockPos(4, 1, 8),
+                new BlockPos(5, 1, 8), new BlockPos(6, 1, 8), new BlockPos(7, 1, 8), new BlockPos(8, 1, 8));
+        for (BlockPos rail : rails) {
+            helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
+            helper.setBlock(rail, ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(SR_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(SR_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        helper.setBlock(SR_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SR_GARAGE);
+        helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
+        return player;
+    }
+
+    /** Bread in the right bay of a section is fetched through the rail in front of the left bay. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void rackSectionServedFromOneRail(GameTestHelper helper) {
+        Player player = sectionRailSetup(helper);
+        helper.assertTrue(HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(new BlockPos(2, 1, SR_Z))).size() == 3,
+                "the three racks form one section");
+        HeavyRackBlockEntity right = helper.getBlockEntity(new BlockPos(2, 1, SR_Z));
+        right.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(SR_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            helper.assertTrue(menu.stock().online(), "online");
+            helper.assertTrue(stockOf(menu, Items.BREAD) == 30, "the terminal lists the right bay's bread");
+            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
+            helper.assertTrue(menu.stock().message().isEmpty(), "the request should go through, got " + menu.stock().message());
+            helper.runAfterDelay(160, () -> {
+                helper.assertTrue(terminal.outputCount(Items.BREAD) == 30, "the shuttle should have brought 30 bread, output has " + terminal.outputCount(Items.BREAD));
+                helper.assertTrue(right.isEmpty(), "the right bay should be empty");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A lone rack beside a section with a front rail, but without one of its own, needs a shuttle. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackBesideSectionNotServed(GameTestHelper helper) {
+        Player player = sectionRailSetup(helper);
+        BlockPos lonePos = new BlockPos(1, 1, SR_Z);
+        placeRackByHand(helper, player, lonePos);
+        helper.assertTrue(HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(lonePos)).size() == 1,
+                "the fourth rack stands alone");
+        HeavyRackBlockEntity lone = helper.getBlockEntity(lonePos);
+        lone.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(SR_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            helper.assertTrue(stockOf(menu, Items.BREAD) == 30, "the terminal lists the lone rack's bread");
+            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
+            helper.assertTrue(menu.stock().message().equals("needs_shuttle"), "the lone rack is out of reach, got " + menu.stock().message());
+            helper.assertTrue(menu.stock().requests().isEmpty(), "no request is created");
+            helper.succeed();
+        });
+    }
+
+    private static final BlockPos SS_CONTROLLER = new BlockPos(5, 1, 3);
+    private static final BlockPos SS_RACK = new BlockPos(6, 1, 3);
+    private static final BlockPos SS_TERMINAL = new BlockPos(9, 1, 4);
+    private static final BlockPos SS_GARAGE = new BlockPos(3, 1, 3);
+
+    /** A rack touching the controller with a member rail only along its side is refused as needing a shuttle. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackSideRailDoesNotReach(GameTestHelper helper) {
+        for (int x = 2; x <= 8; x++) {
+            helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
+            helper.setBlock(new BlockPos(x, 1, 4), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(SS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(SS_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
+                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        helper.setBlock(SS_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SS_GARAGE);
+        helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
+        // Faces west onto the controller; the rail at z 4 runs along its south side.
+        helper.setBlock(SS_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
+        HeavyRackBlockEntity rack = helper.getBlockEntity(SS_RACK);
+        rack.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(SS_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            helper.assertTrue(menu.stock().online(), "online");
+            helper.assertTrue(stockOf(menu, Items.BREAD) == 30, "the terminal lists the rack's bread");
+            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
+            helper.assertTrue(menu.stock().message().equals("needs_shuttle"), "a side rail must not reach the rack, got " + menu.stock().message());
+            helper.assertTrue(menu.stock().requests().isEmpty(), "no request is created");
+            helper.succeed();
+        });
+    }
+
     private static final BlockPos RQ_CONTROLLER = new BlockPos(1, 1, 1);
     private static final BlockPos RQ_TERMINAL = new BlockPos(2, 1, 2);
     private static final BlockPos RQ_GARAGE = new BlockPos(3, 1, 2);
