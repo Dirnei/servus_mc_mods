@@ -1,0 +1,14 @@
+---
+import { buildCommit } from '../../lib/buildinfo';
+import { gameData } from '../../lib/committed';
+
+const commit = buildCommit();
+---
+
+<p class="lab-header">
+	Game data schema {gameData.schema}, mod version {gameData.mod_version}, built from commit <code>{commit}</code>.
+	Numbers come from <code>docs/src/data/gamedata.json</code>, exported by the Manufacturing data run.
+</p>
+<script is:inline define:vars={{ commit }}>
+	window.SERVUS_COMMIT = commit;
+</script>

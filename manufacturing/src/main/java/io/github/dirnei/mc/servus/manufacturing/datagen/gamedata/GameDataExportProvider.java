@@ -112,6 +112,7 @@ public final class GameDataExportProvider implements DataProvider {
 
         Map<String, Integer> fuels = fuels(referenced);
         referenced.addAll(fuels.keySet());
+        machines.forEach(machine -> referenced.add(machine.id()));
         return new GameData(modVersion(), machines, recipes, deposits, techs, fuels, names(referenced));
     }
 

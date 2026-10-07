@@ -434,11 +434,20 @@
     "minecraft:stone_bricks": {
       "name": "Stone Bricks"
     },
+    "servus_manufacturing:assembler": {
+      "name": "Assembler Mk1"
+    },
     "servus_manufacturing:burner_extractor": {
       "name": "Burner Extractor"
     },
+    "servus_manufacturing:burner_smelter": {
+      "name": "Burner Smelter"
+    },
     "servus_manufacturing:chunk_loader": {
       "name": "Chunk Loader"
+    },
+    "servus_manufacturing:coal_generator": {
+      "name": "Coal Generator"
     },
     "servus_manufacturing:copper_grit": {
       "name": "Copper Grit"
@@ -460,6 +469,9 @@
     },
     "servus_manufacturing:red_pack": {
       "name": "Red Pack"
+    },
+    "servus_manufacturing:research_lab": {
+      "name": "Research Lab"
     }
   }
 }

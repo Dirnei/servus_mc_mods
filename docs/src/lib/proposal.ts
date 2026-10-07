@@ -1,4 +1,4 @@
-import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
+import LZString from 'lz-string';
 import { z } from 'zod';
 import {
 	applyDraft,
@@ -199,12 +199,12 @@ export function acceptConflict(draft: Draft, conflict: Conflict): Draft {
 
 /** The URL fragment value for a share link, or null when the draft is too large for a link. */
 export function encodeShare(draft: Draft): string | null {
-	const encoded = compressToEncodedURIComponent(JSON.stringify(draft));
+	const encoded = LZString.compressToEncodedURIComponent(JSON.stringify(draft));
 	return encoded.length > MAX_SHARE_LENGTH ? null : encoded;
 }
 
 export function decodeShare(encoded: string): Draft {
-	const json = decompressFromEncodedURIComponent(encoded);
+	const json = LZString.decompressFromEncodedURIComponent(encoded);
 	if (!json) {
 		throw new ProposalError('This share link is damaged or incomplete.');
 	}

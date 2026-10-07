@@ -1,5 +1,14 @@
 ---
 title: Production chains
+description: See a production chain from deposits to the product, change any number or draft new content, and export the result as a proposal.
+tableOfContents: false
 ---
 
-Placeholder.
+import LabHeader from '../../../components/lab/LabHeader.astro';
+import ChainLab from '../../../components/lab/ChainLab';
+
+<LabHeader />
+
+Pick a product and a target rate. Click a node to see its numbers and to switch its route. Edits and drafts are saved in this browser and listed in the totals as before and after.
+
+<ChainLab client:only="preact" />
