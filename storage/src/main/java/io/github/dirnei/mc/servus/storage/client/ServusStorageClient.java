@@ -7,7 +7,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.lib.client.SideMarkerRenderer;
+import java.util.Map;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 /** Client only mod bus hooks. */
@@ -37,5 +41,18 @@ public final class ServusStorageClient {
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.CRAFTING_STATION.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.HEAVY_RACK.get(), HeavyRackRenderer::new);
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.SHUTTLE_GARAGE.get(), ShuttleGarageRenderer::new);
+    }
+
+    /** Wraps every rack block state model and the rack item model so the boards show the rack's wood. */
+    @SubscribeEvent
+    public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
+        for (Map.Entry<ModelResourceLocation, BakedModel> entry : event.getModels().entrySet()) {
+            ModelResourceLocation key = entry.getKey();
+            if (key.id().getNamespace().equals(ServusStorageIds.MOD_ID)
+                    && key.id().getPath().equals("heavy_rack")
+                    && !(entry.getValue() instanceof HeavyRackModel)) {
+                entry.setValue(new HeavyRackModel(entry.getValue()));
+            }
+        }
     }
 }

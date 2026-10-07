@@ -9,7 +9,7 @@
 
 ## 2. Look
 
-- [ ] 2.1 Client: `client/HeavyRackModel.java` (D3) and the item override (D4), installed in `client/ServusStorageClient.java` through `ModelEvent.ModifyBakingResult`. Verify `gradlew build`.
+- [x] 2.1 Client: `client/HeavyRackModel.java` (D3) and the item override (D4), installed in `client/ServusStorageClient.java` through `ModelEvent.ModifyBakingResult`. Verify `gradlew build`.
 - [ ] 2.2 Generate `heavy_rack_iron.png`, repaint `heavy_rack_board.png` oak-like, point `datagen/HeavyRackModels.java` at the iron texture and remove `heavy_rack_steel.png`, lang for the tooltip. Run `gradlew :storage:runData` and `gradlew build`.
 
 ## 3. Verification
