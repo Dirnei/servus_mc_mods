@@ -107,5 +107,6 @@
   "message.servus_storage.garage.occupied": "Take the shuttles out of the garage first",
   "message.servus_storage.zone_label.cleared": "Zone cleared",
   "message.servus_storage.zone_label.stamped": "Zone: %s",
-  "message.servus_storage.zone_label.unnamed": "Give the label a name first: right click the air with it"
+  "message.servus_storage.zone_label.unnamed": "Give the label a name first: right click the air with it",
+  "tooltip.servus_storage.heavy_rack.wood": "Wood: %s"
 }

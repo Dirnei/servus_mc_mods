@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageRecipes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -27,6 +28,7 @@ public final class ServusStorage {
         ServusStorageBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ServusStorageMenus.MENUS.register(modEventBus);
         ServusStorageComponents.COMPONENTS.register(modEventBus);
+        ServusStorageRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         NetworkTypes.register(WarehouseNetwork.TYPE);
         LOGGER.info("Servus: Storage loaded");
     }

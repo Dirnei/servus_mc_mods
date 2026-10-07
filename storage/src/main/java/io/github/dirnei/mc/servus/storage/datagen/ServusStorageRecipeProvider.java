@@ -1,7 +1,10 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackRecipe;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.concurrent.CompletableFuture;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
@@ -9,9 +12,13 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.conditions.ICondition;
 
 final class ServusStorageRecipeProvider extends RecipeProvider {
 
@@ -100,7 +107,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('I', Items.IRON_INGOT)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
-                .save(output);
+                .save(heavyRack(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.CRAFTING_STATION.get())
                 .pattern("ITI")
@@ -157,5 +164,20 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('B', ServusStorageItems.RAIL.get())
                 .unlockedBy("has_rail", has(ServusStorageItems.RAIL.get()))
                 .save(output);
+    }
+
+    /** Saves a shaped recipe as the rack recipe, which remembers the planks' wood. */
+    private static RecipeOutput heavyRack(RecipeOutput output) {
+        return new RecipeOutput() {
+            @Override
+            public void accept(ResourceLocation id, Recipe<?> recipe, AdvancementHolder advancement, ICondition... conditions) {
+                output.accept(id, new HeavyRackRecipe((ShapedRecipe) recipe), advancement, conditions);
+            }
+
+            @Override
+            public Advancement.Builder advancement() {
+                return output.advancement();
+            }
+        };
     }
 }

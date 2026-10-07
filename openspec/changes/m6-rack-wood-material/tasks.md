@@ -4,7 +4,7 @@
 
 - [x] 1.1 Add pure `rack/RackWood.java` with JUnit `RackWoodTest` (three equal, two to one in both orders, three different picks the middle, single entry, empty list). Verify `gradlew :storage:test`.
 - [x] 1.2 Add the `rack_wood` component in `registry/ServusStorageComponents.java`, store, sync and expose it in `rack/HeavyRackBlockEntity.java` (D1), add `rack/HeavyRackItem.java` with the tooltip and register it in `registry/ServusStorageItems.java`. Verify `gradlew build`.
-- [ ] 1.3 Add `rack/HeavyRackRecipe.java` and its serializer (D2), register it, switch the rack recipe in `datagen/ServusStorageRecipeProvider.java`. Run `gradlew :storage:runData` and `gradlew build`.
+- [x] 1.3 Add `rack/HeavyRackRecipe.java` and its serializer (D2), register it, switch the rack recipe in `datagen/ServusStorageRecipeProvider.java`. Run `gradlew :storage:runData` and `gradlew build`.
 - [ ] 1.4 GameTests in `gametest/ServusStorageGameTests.java`: recipe picks spruce, majority and middle; placed item carries the wood; drops keep it; no component means oak. Verify `gradlew :storage:runGameTestServer`.
 
 ## 2. Look
