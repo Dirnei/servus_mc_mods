@@ -140,28 +140,29 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
         return blockedZone;
     }
 
-    /** Records the first stack that has no room and lights the red lamp. */
+    /** Records the first stack that has no room and turns the activity lamp red. */
     public void setBlocked(PutAwayPlan.Reason reason, ItemKey key, String zoneDisplay) {
         blockedReason = reason;
         blockedStack = key.stack(1);
         blockedZone = zoneDisplay == null ? "" : zoneDisplay;
-        setLamp(true);
+        setActivity(StorageNodeBlocks.Activity.BLOCKED);
     }
 
+    /** Nothing is stuck: the lamp shows orange while stacks are being put away, green when the buffer is empty. */
     public void clearBlocked() {
         blockedReason = null;
         blockedStack = ItemStack.EMPTY;
         blockedZone = "";
-        setLamp(false);
+        setActivity(isEmpty() ? StorageNodeBlocks.Activity.IDLE : StorageNodeBlocks.Activity.WORKING);
     }
 
-    private void setLamp(boolean backedUp) {
+    private void setActivity(StorageNodeBlocks.Activity activity) {
         if (level == null || level.isClientSide()) {
             return;
         }
         BlockState state = getBlockState();
-        if (state.hasProperty(StorageNodeBlocks.BACKED_UP) && state.getValue(StorageNodeBlocks.BACKED_UP) != backedUp) {
-            level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.BACKED_UP, backedUp), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+        if (state.hasProperty(StorageNodeBlocks.ACTIVITY) && state.getValue(StorageNodeBlocks.ACTIVITY) != activity) {
+            level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.ACTIVITY, activity), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
         }
     }
 

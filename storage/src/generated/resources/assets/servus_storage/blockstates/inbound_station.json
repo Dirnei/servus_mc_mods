@@ -1,63 +1,93 @@
 {
   "variants": {
-    "backed_up=false,facing=east,online=false": {
+    "activity=blocked,facing=east,online=false": {
       "model": "servus_storage:block/inbound_station",
       "y": 90
     },
-    "backed_up=false,facing=east,online=true": {
-      "model": "servus_storage:block/inbound_station_online",
+    "activity=blocked,facing=east,online=true": {
+      "model": "servus_storage:block/inbound_station_blocked",
       "y": 90
     },
-    "backed_up=false,facing=north,online=false": {
+    "activity=blocked,facing=north,online=false": {
       "model": "servus_storage:block/inbound_station"
     },
-    "backed_up=false,facing=north,online=true": {
-      "model": "servus_storage:block/inbound_station_online"
+    "activity=blocked,facing=north,online=true": {
+      "model": "servus_storage:block/inbound_station_blocked"
     },
-    "backed_up=false,facing=south,online=false": {
+    "activity=blocked,facing=south,online=false": {
       "model": "servus_storage:block/inbound_station",
       "y": 180
     },
-    "backed_up=false,facing=south,online=true": {
-      "model": "servus_storage:block/inbound_station_online",
+    "activity=blocked,facing=south,online=true": {
+      "model": "servus_storage:block/inbound_station_blocked",
       "y": 180
     },
-    "backed_up=false,facing=west,online=false": {
+    "activity=blocked,facing=west,online=false": {
       "model": "servus_storage:block/inbound_station",
       "y": 270
     },
-    "backed_up=false,facing=west,online=true": {
-      "model": "servus_storage:block/inbound_station_online",
+    "activity=blocked,facing=west,online=true": {
+      "model": "servus_storage:block/inbound_station_blocked",
       "y": 270
     },
-    "backed_up=true,facing=east,online=false": {
-      "model": "servus_storage:block/inbound_station_backed_up",
+    "activity=idle,facing=east,online=false": {
+      "model": "servus_storage:block/inbound_station",
       "y": 90
     },
-    "backed_up=true,facing=east,online=true": {
-      "model": "servus_storage:block/inbound_station_backed_up",
+    "activity=idle,facing=east,online=true": {
+      "model": "servus_storage:block/inbound_station_idle",
       "y": 90
     },
-    "backed_up=true,facing=north,online=false": {
-      "model": "servus_storage:block/inbound_station_backed_up"
+    "activity=idle,facing=north,online=false": {
+      "model": "servus_storage:block/inbound_station"
     },
-    "backed_up=true,facing=north,online=true": {
-      "model": "servus_storage:block/inbound_station_backed_up"
+    "activity=idle,facing=north,online=true": {
+      "model": "servus_storage:block/inbound_station_idle"
     },
-    "backed_up=true,facing=south,online=false": {
-      "model": "servus_storage:block/inbound_station_backed_up",
+    "activity=idle,facing=south,online=false": {
+      "model": "servus_storage:block/inbound_station",
       "y": 180
     },
-    "backed_up=true,facing=south,online=true": {
-      "model": "servus_storage:block/inbound_station_backed_up",
+    "activity=idle,facing=south,online=true": {
+      "model": "servus_storage:block/inbound_station_idle",
       "y": 180
     },
-    "backed_up=true,facing=west,online=false": {
-      "model": "servus_storage:block/inbound_station_backed_up",
+    "activity=idle,facing=west,online=false": {
+      "model": "servus_storage:block/inbound_station",
       "y": 270
     },
-    "backed_up=true,facing=west,online=true": {
-      "model": "servus_storage:block/inbound_station_backed_up",
+    "activity=idle,facing=west,online=true": {
+      "model": "servus_storage:block/inbound_station_idle",
+      "y": 270
+    },
+    "activity=working,facing=east,online=false": {
+      "model": "servus_storage:block/inbound_station",
+      "y": 90
+    },
+    "activity=working,facing=east,online=true": {
+      "model": "servus_storage:block/inbound_station_working",
+      "y": 90
+    },
+    "activity=working,facing=north,online=false": {
+      "model": "servus_storage:block/inbound_station"
+    },
+    "activity=working,facing=north,online=true": {
+      "model": "servus_storage:block/inbound_station_working"
+    },
+    "activity=working,facing=south,online=false": {
+      "model": "servus_storage:block/inbound_station",
+      "y": 180
+    },
+    "activity=working,facing=south,online=true": {
+      "model": "servus_storage:block/inbound_station_working",
+      "y": 180
+    },
+    "activity=working,facing=west,online=false": {
+      "model": "servus_storage:block/inbound_station",
+      "y": 270
+    },
+    "activity=working,facing=west,online=true": {
+      "model": "servus_storage:block/inbound_station_working",
       "y": 270
     }
   }

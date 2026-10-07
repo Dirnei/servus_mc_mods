@@ -53,8 +53,6 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");
         add("gui.servus_storage.terminal.message.no_rail", "This terminal has no rail for shuttle deliveries");
         add("gui.servus_storage.terminal.message.out_of_stock", "Nothing of that in stock");
-        add("gui.servus_storage.station.idle", "Idle");
-        add("gui.servus_storage.station.busy", "Putting away");
         add("gui.servus_storage.station.blocked.no_room", "%s: no room in %s or in general storage");
         add("gui.servus_storage.station.blocked.no_room_general", "%s: no room in general storage");
         add("gui.servus_storage.station.blocked.no_storage", "%s: no storage to go to");

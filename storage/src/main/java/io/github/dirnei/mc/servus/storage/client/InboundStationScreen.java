@@ -16,7 +16,6 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/inbound_station.png");
     private static final int STATUS_Y = 40;
-    private static final int COLOUR_TEXT = 0x404040;
     private static final int COLOUR_ALERT = 0xB03030;
 
     public InboundStationScreen(InboundStationMenu menu, Inventory playerInventory, Component title) {
@@ -52,13 +51,13 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
             graphics.drawString(font, reason, 8, STATUS_Y, COLOUR_ALERT, false);
             return;
         }
-        graphics.drawString(font, status(state), 8, STATUS_Y, state.blockedReason().isEmpty() ? COLOUR_TEXT : COLOUR_ALERT, false);
+        // The lamps on the block tell idle from working; the GUI only explains a red lamp.
+        if (!state.blockedReason().isEmpty()) {
+            graphics.drawString(font, status(state), 8, STATUS_Y, COLOUR_ALERT, false);
+        }
     }
 
     private Component status(StationStatePayload state) {
-        if (state.blockedReason().isEmpty()) {
-            return Component.translatable(state.idle() ? "gui.servus_storage.station.idle" : "gui.servus_storage.station.busy");
-        }
         String item = state.blockedStack().getHoverName().getString();
         String reason = state.blockedReason().toLowerCase(Locale.ROOT);
         if (reason.equals("no_room") && state.blockedZone().isEmpty()) {

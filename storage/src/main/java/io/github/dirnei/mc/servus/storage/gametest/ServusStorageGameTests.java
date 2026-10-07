@@ -781,6 +781,10 @@ public final class ServusStorageGameTests {
     private static final BlockPos ST_CRATE_2 = new BlockPos(8, 1, 3);
     private static final BlockPos ST_CHEST = new BlockPos(11, 1, 3);
 
+    private static boolean blocked(GameTestHelper helper, BlockPos pos) {
+        return helper.getBlockState(pos).getValue(StorageNodeBlocks.ACTIVITY) == StorageNodeBlocks.Activity.BLOCKED;
+    }
+
     private static InboundStationBlockEntity stationSetup(GameTestHelper helper) {
         helper.setBlock(ST_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -802,7 +806,7 @@ public final class ServusStorageGameTests {
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(crate.count() == 64, "cobblestone should be in the crate, had " + crate.count());
                 helper.assertTrue(station.isEmpty(), "the buffer should be empty");
-                helper.assertTrue(!helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.BACKED_UP), "lamp must not be red");
+                helper.assertTrue(!blocked(helper, ST_STATION), "lamp must not be red");
                 helper.assertTrue(helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.ONLINE), "station shows the online lamp");
                 helper.succeed();
             });
@@ -821,7 +825,7 @@ public final class ServusStorageGameTests {
             ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.IRON_ORE, 7), false);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty(), "the ore should wait in the buffer");
-                helper.assertTrue(helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be red");
+                helper.assertTrue(blocked(helper, ST_STATION), "the lamp should be red");
                 helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.NO_ROOM,
                         "reason should be no room, was " + station.blockedReason());
                 helper.assertTrue("Ores".equals(station.blockedZone()), "blocked zone should read Ores, was " + station.blockedZone());
@@ -830,7 +834,7 @@ public final class ServusStorageGameTests {
                 helper.runAfterDelay(10, () -> {
                     helper.assertTrue(fresh.count() == 7, "the waiting ore should spill into the new unzoned crate, had " + fresh.count());
                     helper.assertTrue(station.isEmpty(), "the buffer should be empty again");
-                    helper.assertTrue(!helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be back to normal");
+                    helper.assertTrue(!blocked(helper, ST_STATION), "the lamp should be back to normal");
                     helper.succeed();
                 });
             });
@@ -1091,7 +1095,7 @@ public final class ServusStorageGameTests {
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty(), "the bread should wait: only a rack has room");
                 helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.NO_SHUTTLE, "reason should be no shuttle, was " + station.blockedReason());
-                helper.assertTrue(helper.getBlockState(SW_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be red");
+                helper.assertTrue(blocked(helper, SW_STATION), "the lamp should be red");
                 helper.setBlock(SW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
                 ShuttleGarageBlockEntity garage = helper.getBlockEntity(SW_GARAGE);
                 helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
@@ -1102,7 +1106,7 @@ public final class ServusStorageGameTests {
                     }
                     helper.assertTrue(inRack == 10, "the shuttle should have carried the bread into the rack, rack has " + inRack);
                     helper.assertTrue(station.isEmpty(), "the buffer should be empty");
-                    helper.assertTrue(!helper.getBlockState(SW_STATION).getValue(StorageNodeBlocks.BACKED_UP), "the lamp should be normal again");
+                    helper.assertTrue(!blocked(helper, SW_STATION), "the lamp should be normal again");
                     helper.succeed();
                 });
             });

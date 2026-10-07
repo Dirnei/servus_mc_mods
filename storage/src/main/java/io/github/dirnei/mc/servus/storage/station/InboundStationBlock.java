@@ -34,7 +34,7 @@ public class InboundStationBlock extends BaseEntityBlock implements Wrenchable {
     public InboundStationBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH)
-                .setValue(StorageNodeBlocks.ONLINE, false).setValue(StorageNodeBlocks.BACKED_UP, false));
+                .setValue(StorageNodeBlocks.ONLINE, false).setValue(StorageNodeBlocks.ACTIVITY, StorageNodeBlocks.Activity.IDLE));
     }
 
     @Override
@@ -44,7 +44,7 @@ public class InboundStationBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, StorageNodeBlocks.ONLINE, StorageNodeBlocks.BACKED_UP);
+        builder.add(FACING, StorageNodeBlocks.ONLINE, StorageNodeBlocks.ACTIVITY);
     }
 
     @Override

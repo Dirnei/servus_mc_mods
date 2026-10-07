@@ -37,18 +37,30 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
                 .allFaces((direction, face) -> face.texture("#skin")).end();
     }
 
-    /** Like {@link #oriented} with a third, red front while the station is backed up. */
+    /** Like {@link #oriented} with an activity lamp: idle, working and blocked fronts while online. */
     private void station(Block block, String name) {
         ModelFile dark = models().orientable(name, modLoc("block/" + name + "_side"),
                 modLoc("block/" + name + "_front"), modLoc("block/" + name + "_top"));
-        ModelFile lit = models().orientable(name + "_online", modLoc("block/" + name + "_side"),
-                modLoc("block/" + name + "_front_online"), modLoc("block/" + name + "_top"));
-        ModelFile red = models().orientable(name + "_backed_up", modLoc("block/" + name + "_side"),
-                modLoc("block/" + name + "_front_backed_up"), modLoc("block/" + name + "_top"));
-        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(state.getValue(StorageNodeBlocks.BACKED_UP) ? red : state.getValue(StorageNodeBlocks.ONLINE) ? lit : dark)
-                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
-                .build());
+        ModelFile idle = models().orientable(name + "_idle", modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front_idle"), modLoc("block/" + name + "_top"));
+        ModelFile working = models().orientable(name + "_working", modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front_working"), modLoc("block/" + name + "_top"));
+        ModelFile blocked = models().orientable(name + "_blocked", modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front_blocked"), modLoc("block/" + name + "_top"));
+        getVariantBuilder(block).forAllStates(state -> {
+            ModelFile model = dark;
+            if (state.getValue(StorageNodeBlocks.ONLINE)) {
+                model = switch (state.getValue(StorageNodeBlocks.ACTIVITY)) {
+                    case IDLE -> idle;
+                    case WORKING -> working;
+                    case BLOCKED -> blocked;
+                };
+            }
+            return ConfiguredModel.builder()
+                    .modelFile(model)
+                    .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                    .build();
+        });
         simpleBlockItem(block, dark);
     }
 

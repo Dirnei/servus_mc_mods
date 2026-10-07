@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/orientable",
   "textures": {
-    "front": "servus_storage:block/inbound_station_front_online",
+    "front": "servus_storage:block/inbound_station_front_blocked",
     "side": "servus_storage:block/inbound_station_side",
     "top": "servus_storage:block/inbound_station_top"
   }
