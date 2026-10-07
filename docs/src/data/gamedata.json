@@ -11,7 +11,10 @@
       "fuel_divisor": 1,
       "items_per_tick": 0,
       "recipe_slots": 2,
-      "fuel_reserve": 0
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0
     },
     "servus_manufacturing:burner_extractor": {
       "kind": "burner",
@@ -22,7 +25,24 @@
       "fuel_divisor": 1,
       "items_per_tick": 0,
       "recipe_slots": 1,
-      "fuel_reserve": 4
+      "fuel_reserve": 4,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0
+    },
+    "servus_manufacturing:burner_pump": {
+      "kind": "burner",
+      "recipe_types": [],
+      "work_ticks": 20,
+      "energy_per_tick": 0,
+      "energy_capacity": 0,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 250,
+      "fluid_capacity": 4000,
+      "min_source_neighbours": 2
     },
     "servus_manufacturing:burner_smelter": {
       "kind": "burner",
@@ -33,7 +53,10 @@
       "fuel_divisor": 1,
       "items_per_tick": 0,
       "recipe_slots": 1,
-      "fuel_reserve": 0
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0
     },
     "servus_manufacturing:chunk_loader": {
       "kind": "powered",
@@ -44,7 +67,10 @@
       "fuel_divisor": 1,
       "items_per_tick": 0,
       "recipe_slots": 1,
-      "fuel_reserve": 0
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0
     },
     "servus_manufacturing:coal_generator": {
       "kind": "generator",
@@ -55,7 +81,10 @@
       "fuel_divisor": 4,
       "items_per_tick": 0,
       "recipe_slots": 1,
-      "fuel_reserve": 0
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0
     },
     "servus_manufacturing:crusher": {
       "kind": "powered",
@@ -66,7 +95,10 @@
       "fuel_divisor": 1,
       "items_per_tick": 0,
       "recipe_slots": 1,
-      "fuel_reserve": 0
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0
     },
     "servus_manufacturing:electric_extractor": {
       "kind": "powered",
@@ -77,7 +109,24 @@
       "fuel_divisor": 1,
       "items_per_tick": 0,
       "recipe_slots": 1,
-      "fuel_reserve": 0
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0
+    },
+    "servus_manufacturing:electric_pump": {
+      "kind": "powered",
+      "recipe_types": [],
+      "work_ticks": 20,
+      "energy_per_tick": 20,
+      "energy_capacity": 8000,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 500,
+      "fluid_capacity": 4000,
+      "min_source_neighbours": 2
     },
     "servus_manufacturing:research_lab": {
       "kind": "powered",
@@ -88,7 +137,10 @@
       "fuel_divisor": 1,
       "items_per_tick": 0,
       "recipe_slots": 1,
-      "fuel_reserve": 0
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0
     }
   },
   "recipes": {
@@ -205,6 +257,18 @@
       ],
       "outputs": [
         {"item": "servus_manufacturing:electric_extractor", "count": 1}
+      ],
+      "time": 200
+    },
+    "servus_manufacturing:assembling/electric_pump": {
+      "type": "servus_manufacturing:assembling",
+      "inputs": [
+        {"item": "servus_manufacturing:burner_pump", "count": 1},
+        {"item": "servus_manufacturing:iron_gear", "count": 4},
+        {"item": "servus_manufacturing:copper_wire", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:electric_pump", "count": 1}
       ],
       "time": 200
     },
@@ -373,7 +437,7 @@
         {"item": "servus_manufacturing:red_pack", "count": 10}
       ],
       "ticks_per_pack": 100,
-      "unlocks": ["servus_manufacturing:assembling/electric_extractor"]
+      "unlocks": ["servus_manufacturing:assembling/electric_extractor", "servus_manufacturing:assembling/electric_pump"]
     },
     "servus_manufacturing:logistics": {
       "parents": ["servus_manufacturing:crusher"],
@@ -448,6 +512,9 @@
     "servus_manufacturing:burner_extractor": {
       "name": "Burner Extractor"
     },
+    "servus_manufacturing:burner_pump": {
+      "name": "Burner Pump"
+    },
     "servus_manufacturing:burner_smelter": {
       "name": "Burner Smelter"
     },
@@ -468,6 +535,9 @@
     },
     "servus_manufacturing:electric_extractor": {
       "name": "Electric Extractor"
+    },
+    "servus_manufacturing:electric_pump": {
+      "name": "Electric Pump"
     },
     "servus_manufacturing:iron_gear": {
       "name": "Iron Gear"
