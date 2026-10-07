@@ -5,14 +5,12 @@ import io.github.dirnei.mc.servus.logistics.duct.DuctParts;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsMenus;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.core.Direction;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -43,19 +41,9 @@ public final class ServusLogisticsClient {
         event.register(new DuctBlockColor(), ServusLogisticsBlocks.UTILITY_DUCT.get());
     }
 
-    /** The duct part model names: three centres and an arm per direction and line set. */
+    /** The duct part model names: per line set the centres and an arm per direction. */
     private static List<String> partNames() {
-        List<String> names = new ArrayList<>();
-        for (int lines : new int[] {DuctParts.ITEM, DuctParts.ENERGY, DuctParts.BOTH}) {
-            names.add(DuctParts.centerName(lines));
-            for (Direction direction : Direction.values()) {
-                names.add(DuctParts.armName(direction, lines));
-            }
-        }
-        names.add(DuctParts.centerName(DuctParts.BOTH, Direction.Axis.X));
-        names.add(DuctParts.centerName(DuctParts.BOTH, Direction.Axis.Y));
-        names.add(DuctParts.centerName(DuctParts.BOTH, null));
-        return names;
+        return DuctParts.allNames();
     }
 
     /** Loads the part models the dynamic duct model is composed from. */

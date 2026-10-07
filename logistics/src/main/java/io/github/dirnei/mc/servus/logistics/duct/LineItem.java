@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Places a utility duct carrying this line (Item Pipe or Power Cable), or
+ * Places a utility duct carrying this line (Item Pipe, Power Cable or Fluid Pipe), or
  * adds the line to an existing duct that lacks it.
  */
 public class LineItem extends BlockItem {

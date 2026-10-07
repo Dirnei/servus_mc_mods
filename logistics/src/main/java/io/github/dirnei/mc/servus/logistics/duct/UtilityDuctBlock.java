@@ -115,25 +115,42 @@ public class UtilityDuctBlock extends ConnectableBlock {
             if (duct.facade() != null) {
                 return Shapes.block();
             }
-            return shape(duct.linesMask(), duct.arms(Line.ITEM), duct.arms(Line.ENERGY));
+            return shape(duct.linesMask(), duct.armMasks());
         }
         return super.getShape(state, level, pos, context);
     }
 
-    /** The shape for a line set and the per line arm masks, cached. */
-    public static VoxelShape shape(int linesMask, int itemArms, int energyArms) {
-        int key = (linesMask & 3) | (itemArms & 63) << 2 | (energyArms & 63) << 8;
+    /** The shape for a line set and the per line arm masks (indexed by line ordinal), cached. */
+    public static VoxelShape shape(int linesMask, int[] arms) {
+        int key = linesMask & DuctParts.ALL;
+        int all = 0;
+        for (int i = 0; i < arms.length && i < Line.VALUES.length; i++) {
+            key |= (arms[i] & 63) << (Line.VALUES.length + 6 * i);
+            all |= arms[i] & 63;
+        }
+        int armsUnion = all;
         return SHAPES.computeIfAbsent(key, k -> {
-            VoxelShape shape = box(DuctShapes.center(DuctShapes.centerRadius(Integer.bitCount(linesMask & 3), itemArms | energyArms)));
+            VoxelShape shape = box(DuctShapes.center(DuctShapes.centerRadius(Integer.bitCount(linesMask & DuctParts.ALL), armsUnion)));
             for (Direction direction : Direction.values()) {
-                int bit = DuctModelData.bit(direction);
-                int armLines = ((itemArms & bit) != 0 ? 1 : 0) + ((energyArms & bit) != 0 ? 1 : 0);
+                int armLines = armLines(arms, direction);
                 if (armLines > 0) {
                     shape = Shapes.or(shape, box(DuctShapes.arm(direction.ordinal(), DuctShapes.radius(armLines))));
                 }
             }
             return shape;
         });
+    }
+
+    /** How many lines have an arm on that side. */
+    private static int armLines(int[] arms, Direction direction) {
+        int bit = DuctModelData.bit(direction);
+        int count = 0;
+        for (int i = 0; i < arms.length && i < Line.VALUES.length; i++) {
+            if ((arms[i] & bit) != 0) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private static VoxelShape box(DuctShapes.Box box) {
@@ -206,7 +223,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
     private static Direction hitArm(UtilityDuctBlockEntity duct, Vec3 location, BlockPos pos) {
         int[] armRadius = new int[6];
         for (Direction direction : Direction.values()) {
-            int lines = (duct.hasArm(Line.ITEM, direction) ? 1 : 0) + (duct.hasArm(Line.ENERGY, direction) ? 1 : 0);
+            int lines = armLines(duct.armMasks(), direction);
             armRadius[direction.ordinal()] = lines == 0 ? 0 : DuctShapes.radius(lines);
         }
         int centerRadius = DuctShapes.radius(duct.lines().size());

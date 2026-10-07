@@ -7,8 +7,8 @@
 
 ## 2. Line and look
 
-- [ ] 2.1 Add `Line.FLUID`; generalize `duct/DuctParts.java` (seven masks, joined suffixes), `duct/DuctShapes.java` (three radii), line counting in `duct/UtilityDuctBlock.java`, `UtilityDuctBlockEntity.networkType`, `ServusLogisticsItems.item(Line)` and the `FLUID_PIPE` item. Update `DuctShapesTest`, add `DuctPartsTest`. Verify `gradlew :logistics:test`.
-- [ ] 2.2 Generate parts for every line set in `datagen/DuctPartModels.java` (strips, axis and junction centres, rings per line), fluid color in `client/DuctBlockColor.java`, mask lookup in `client/UtilityDuctModel.java`. Run `gradlew :logistics:runData` and `gradlew build`.
+- [x] 2.1 Add `Line.FLUID`; generalize `duct/DuctParts.java` (seven masks, joined suffixes), `duct/DuctShapes.java` (three radii), line counting in `duct/UtilityDuctBlock.java`, `UtilityDuctBlockEntity.networkType`, `ServusLogisticsItems.item(Line)` and the `FLUID_PIPE` item. Update `DuctShapesTest`, add `DuctPartsTest`. Verify `gradlew :logistics:test`.
+- [x] 2.2 Generate parts for every line set in `datagen/DuctPartModels.java` (band textures, axis and junction centres, rings per line), fluid skin and band textures, mask lookup in `client/UtilityDuctModel.java`. Run `gradlew :logistics:runData` and `gradlew build`.
 
 ## 3. Behaviour and GUI
 

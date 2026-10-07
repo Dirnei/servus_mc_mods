@@ -65,10 +65,7 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
         }
         int[] arms = extraData.get(DuctModelData.ARMS);
         Integer endpoints = extraData.get(DuctModelData.ENDPOINTS);
-        int linesMask = lines & DuctParts.BOTH;
-        if (linesMask == 0) {
-            linesMask = DuctParts.ITEM;
-        }
+        int linesMask = DuctParts.normalize(lines);
         List<BakedQuad> quads = new ArrayList<>(part(DuctParts.centerName(linesMask, runAxis(arms)))
                 .getQuads(state, null, rand, ModelData.EMPTY, renderType));
         for (Direction direction : Direction.values()) {
@@ -129,8 +126,8 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
             return modelOf(facade).getParticleIcon(ModelData.EMPTY);
         }
         Integer lines = data.get(DuctModelData.LINES);
-        if (lines != null && (lines & DuctParts.BOTH) == DuctParts.ENERGY) {
-            return part(DuctParts.centerName(DuctParts.ENERGY)).getParticleIcon(ModelData.EMPTY);
+        if (lines != null && DuctParts.normalize(lines) != DuctParts.ITEM) {
+            return part(DuctParts.centerName(lines)).getParticleIcon(ModelData.EMPTY);
         }
         return base.getParticleIcon(data);
     }

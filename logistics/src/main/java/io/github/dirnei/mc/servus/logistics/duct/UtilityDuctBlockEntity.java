@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.logistics.network.DuctEvent;
 import io.github.dirnei.mc.servus.logistics.network.EnergyChannelNetwork;
+import io.github.dirnei.mc.servus.logistics.network.FluidChannelNetwork;
 import io.github.dirnei.mc.servus.logistics.network.ItemChannelNetwork;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlockEntities;
 import java.util.Arrays;
@@ -48,9 +49,9 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
- * A utility duct: a set of lines (Item Pipe, Power Cable), each with a mode
+ * A utility duct: a set of lines (Item Pipe, Power Cable, Fluid Pipe), each with a mode
  * and a channel per side, plus item filters and priorities per side. Each
- * present line joins its own network type, so items and energy form separate
+ * present line joins its own network type, so items, energy and fluids form separate
  * graphs through the same blocks. The duct also keeps which sides carry an
  * arm per line and which arms end at an inventory or machine, synced to the
  * client for the model.
@@ -174,6 +175,11 @@ public class UtilityDuctBlockEntity extends BlockEntity {
         return arms[line.ordinal()];
     }
 
+    /** A copy of the arm masks of every line, indexed by {@link Line#ordinal()}. */
+    public int[] armMasks() {
+        return arms.clone();
+    }
+
     public boolean hasArm(Line line, Direction side) {
         return (arms[line.ordinal()] & DuctModelData.bit(side)) != 0;
     }
@@ -213,6 +219,7 @@ public class UtilityDuctBlockEntity extends BlockEntity {
         return switch (line) {
             case ITEM -> realLevel.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, side.getOpposite()) != null;
             case ENERGY -> realLevel.getCapability(Capabilities.EnergyStorage.BLOCK, neighborPos, side.getOpposite()) != null;
+            case FLUID -> realLevel.getCapability(Capabilities.FluidHandler.BLOCK, neighborPos, side.getOpposite()) != null;
         };
     }
 
@@ -406,7 +413,11 @@ public class UtilityDuctBlockEntity extends BlockEntity {
     }
 
     private static NetworkType<UtilityDuctBlockEntity, DuctEvent, ?> typeOf(Line line) {
-        return line == Line.ITEM ? ItemChannelNetwork.TYPE : EnergyChannelNetwork.TYPE;
+        return switch (line) {
+            case ITEM -> ItemChannelNetwork.TYPE;
+            case ENERGY -> EnergyChannelNetwork.TYPE;
+            case FLUID -> FluidChannelNetwork.TYPE;
+        };
     }
 
     private void join(Line line) {
@@ -451,7 +462,7 @@ public class UtilityDuctBlockEntity extends BlockEntity {
         }
     }
 
-    /** Adapter so one block entity can sit in two network types. */
+    /** Adapter so one block entity can sit in several network types. */
     private final class LineNode implements NetworkNode<UtilityDuctBlockEntity> {
 
         private final Line line;

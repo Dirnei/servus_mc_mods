@@ -3,19 +3,21 @@ package io.github.dirnei.mc.servus.logistics.datagen;
 import io.github.dirnei.mc.servus.logistics.duct.DuctParts;
 import io.github.dirnei.mc.servus.logistics.duct.DuctShapes;
 import io.github.dirnei.mc.servus.logistics.duct.Line;
+import java.util.List;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 
 /**
  * Writes the duct part models: a centre cube per line set and, per direction,
- * an arm per line set. Thin parts (one line) use radius 2, both line parts
- * radius 3. A both line part shows the two line colours as bands running
- * along it, the Item Pipe on the negative side of the across axis. Every arm
- * ends in a ring frame whose faces carry the tint index of that line and
- * side; the dynamic model drops those faces when the side is not an endpoint.
+ * an arm per line set, for all seven sets of the three lines. Parts with one
+ * line use radius 2, two lines radius 3, three lines radius 4. A part with
+ * several lines shows their colours as equal bands running along it, in line
+ * order from the negative side of the across axis. Every arm ends in a ring
+ * frame whose faces carry the tint index of that line and side, split between
+ * the lines like the bands; the dynamic model drops those faces when the side
+ * is not an endpoint.
  */
 final class DuctPartModels {
 
@@ -28,12 +30,12 @@ final class DuctPartModels {
     /** @return the thin item centre, used as the block state's base model */
     static ModelFile generate(BlockStateProvider provider) {
         ModelFile base = null;
-        for (int lines : new int[] {DuctParts.ITEM, DuctParts.ENERGY, DuctParts.BOTH}) {
+        for (int lines : DuctParts.lineSets()) {
             ModelFile center = center(provider, lines, Direction.Axis.Z);
             if (lines == DuctParts.ITEM) {
                 base = center;
             }
-            if (lines == DuctParts.BOTH) {
+            if (Integer.bitCount(lines) >= 2) {
                 // Bands per run axis, and a plain cube where arms meet from several axes.
                 center(provider, lines, Direction.Axis.X);
                 center(provider, lines, Direction.Axis.Y);
@@ -51,17 +53,18 @@ final class DuctPartModels {
     }
 
     private static BlockModelBuilder builder(BlockStateProvider provider, String name, int lines) {
-        ResourceLocation item = provider.modLoc("block/duct_item");
-        ResourceLocation energy = provider.modLoc("block/duct_energy");
+        List<Line> present = DuctParts.lines(lines);
         BlockModelBuilder model = provider.models().getBuilder("block/duct/" + name)
-                .texture("particle", lines == DuctParts.ENERGY ? energy : item)
-                .texture("item", item)
-                .texture("energy", energy)
-                .texture("both", provider.modLoc("block/duct_both"))
-                .texture("both_v", provider.modLoc("block/duct_both_v"))
-                .texture("ring", provider.modLoc("block/duct_ring"))
+                .texture("particle", provider.modLoc("block/duct_" + present.get(0).id()));
+        for (Line line : Line.VALUES) {
+            model.texture(line.id(), provider.modLoc("block/duct_" + line.id()));
+        }
+        if (present.size() >= 2) {
+            model.texture("bands", provider.modLoc("block/duct_" + DuctParts.suffix(lines)))
+                    .texture("bands_v", provider.modLoc("block/duct_" + DuctParts.suffix(lines) + "_v"));
+        }
+        return model.texture("ring", provider.modLoc("block/duct_ring"))
                 .texture("junction", provider.modLoc("block/duct_junction"));
-        return model;
     }
 
     private static void junction(BlockStateProvider provider, int lines) {
@@ -103,12 +106,13 @@ final class DuctPartModels {
         return along == Direction.Axis.X ? Direction.Axis.Z : Direction.Axis.X;
     }
 
-    /** A box with the line skin; a both line box shows both bands running along {@code along}. */
+    /** A box with the line skin; a several line box shows the bands running along {@code along}. */
     private static void skinBox(BlockModelBuilder model, int lines, Direction.Axis along,
                                 float x0, float y0, float z0, float x1, float y1, float z1) {
         BlockModelBuilder.ElementBuilder element = model.element().from(x0, y0, z0).to(x1, y1, z1);
-        if (lines != DuctParts.BOTH) {
-            element.allFaces((direction, face) -> face.texture(lines == DuctParts.ENERGY ? "#energy" : "#item"));
+        List<Line> present = DuctParts.lines(lines);
+        if (present.size() == 1) {
+            element.allFaces((direction, face) -> face.texture("#" + present.get(0).id()));
             element.end();
             return;
         }
@@ -116,16 +120,18 @@ final class DuctPartModels {
         for (Direction face : Direction.values()) {
             BlockModelBuilder.ElementBuilder.FaceBuilder builder = element.face(face);
             if (face.getAxis() == across) {
-                builder.texture(face.getAxisDirection() == Direction.AxisDirection.NEGATIVE ? "#item" : "#energy");
+                Line outer = face.getAxisDirection() == Direction.AxisDirection.NEGATIVE
+                        ? present.get(0) : present.get(present.size() - 1);
+                builder.texture("#" + outer.id());
             } else if (uAxis(face) == across) {
-                builder.texture("#both");
+                builder.texture("#bands");
                 if (uIncreases(face)) {
                     builder.uvs(0, 0, 16, 16);
                 } else {
                     builder.uvs(16, 0, 0, 16);
                 }
             } else {
-                builder.texture("#both_v");
+                builder.texture("#bands_v");
                 if (vIncreases(face)) {
                     builder.uvs(0, 0, 16, 16);
                 } else {
@@ -158,8 +164,10 @@ final class DuctPartModels {
     /**
      * The ring frame at the outer end of an arm: four slabs around the arm's
      * cross section, 1 px deep and half a pixel proud, without the faces
-     * that touch the arm. A both line arm splits the frame between the lines
-     * at the middle of the across axis.
+     * that touch the arm. With several lines the frame is split between them
+     * like the bands: the slab on the negative across side belongs to the
+     * first line, the one on the positive side to the last, and the slabs on
+     * the third axis are cut into one equal piece per line.
      */
     private static void ring(BlockModelBuilder model, Direction direction, int lines, int r) {
         Direction.Axis along = direction.getAxis();
@@ -172,24 +180,20 @@ final class DuctPartModels {
         float in1 = 8 + r;
         float out0 = in0 - RING_LIP;
         float out1 = in1 + RING_LIP;
-        if (lines != DuctParts.BOTH) {
-            Line line = lines == DuctParts.ENERGY ? Line.ENERGY : Line.ITEM;
-            int tint = DuctParts.ringTint(line, direction);
-            // Slabs on the across axis span the full width; slabs on the third axis sit between them.
-            slab(model, along, a0, a1, across, out0, in0, third, out0, out1, Direction.get(Direction.AxisDirection.POSITIVE, across), tint);
-            slab(model, along, a0, a1, across, in1, out1, third, out0, out1, Direction.get(Direction.AxisDirection.NEGATIVE, across), tint);
-            slab(model, along, a0, a1, third, out0, in0, across, in0, in1, Direction.get(Direction.AxisDirection.POSITIVE, third), tint);
-            slab(model, along, a0, a1, third, in1, out1, across, in0, in1, Direction.get(Direction.AxisDirection.NEGATIVE, third), tint);
-            return;
+        List<Line> present = DuctParts.lines(lines);
+        int first = DuctParts.ringTint(present.get(0), direction);
+        int last = DuctParts.ringTint(present.get(present.size() - 1), direction);
+        // Slabs on the across axis span the full width; slabs on the third axis sit between them.
+        slab(model, along, a0, a1, across, out0, in0, third, out0, out1, Direction.get(Direction.AxisDirection.POSITIVE, across), first);
+        slab(model, along, a0, a1, across, in1, out1, third, out0, out1, Direction.get(Direction.AxisDirection.NEGATIVE, across), last);
+        int n = present.size();
+        for (int i = 0; i < n; i++) {
+            int tint = DuctParts.ringTint(present.get(i), direction);
+            float c0 = in0 + (in1 - in0) * i / n;
+            float c1 = in0 + (in1 - in0) * (i + 1) / n;
+            slab(model, along, a0, a1, third, out0, in0, across, c0, c1, Direction.get(Direction.AxisDirection.POSITIVE, third), tint);
+            slab(model, along, a0, a1, third, in1, out1, across, c0, c1, Direction.get(Direction.AxisDirection.NEGATIVE, third), tint);
         }
-        int itemTint = DuctParts.ringTint(Line.ITEM, direction);
-        int energyTint = DuctParts.ringTint(Line.ENERGY, direction);
-        slab(model, along, a0, a1, across, out0, in0, third, out0, out1, Direction.get(Direction.AxisDirection.POSITIVE, across), itemTint);
-        slab(model, along, a0, a1, across, in1, out1, third, out0, out1, Direction.get(Direction.AxisDirection.NEGATIVE, across), energyTint);
-        slab(model, along, a0, a1, third, out0, in0, across, in0, 8, Direction.get(Direction.AxisDirection.POSITIVE, third), itemTint);
-        slab(model, along, a0, a1, third, out0, in0, across, 8, in1, Direction.get(Direction.AxisDirection.POSITIVE, third), energyTint);
-        slab(model, along, a0, a1, third, in1, out1, across, in0, 8, Direction.get(Direction.AxisDirection.NEGATIVE, third), itemTint);
-        slab(model, along, a0, a1, third, in1, out1, across, 8, in1, Direction.get(Direction.AxisDirection.NEGATIVE, third), energyTint);
     }
 
     private static Direction.Axis third(Direction.Axis a, Direction.Axis b) {

@@ -18,6 +18,8 @@ public final class ServusLogisticsItems {
             properties -> new LineItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), Line.ITEM, properties));
     public static final DeferredItem<LineItem> POWER_CABLE = ITEMS.registerItem("power_cable",
             properties -> new LineItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), Line.ENERGY, properties));
+    public static final DeferredItem<LineItem> FLUID_PIPE = ITEMS.registerItem("fluid_pipe",
+            properties -> new LineItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), Line.FLUID, properties));
 
     public static final DeferredItem<FluidTankItem> FLUID_TANK = ITEMS.registerItem("fluid_tank",
             properties -> new FluidTankItem(ServusLogisticsBlocks.FLUID_TANK.get(), properties));
@@ -25,12 +27,16 @@ public final class ServusLogisticsItems {
     public static final DeferredItem<FacadeItem> FACADE = ITEMS.registerItem("facade", FacadeItem::new, new Item.Properties());
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(ITEM_PIPE, POWER_CABLE, FLUID_TANK);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(ITEM_PIPE, POWER_CABLE, FLUID_PIPE, FLUID_TANK);
 
     private ServusLogisticsItems() {
     }
 
     public static Item lineItem(Line line) {
-        return line == Line.ITEM ? ITEM_PIPE.get() : POWER_CABLE.get();
+        return switch (line) {
+            case ITEM -> ITEM_PIPE.get();
+            case ENERGY -> POWER_CABLE.get();
+            case FLUID -> FLUID_PIPE.get();
+        };
     }
 }

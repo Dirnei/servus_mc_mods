@@ -1,9 +1,10 @@
 package io.github.dirnei.mc.servus.logistics.duct;
 
-/** What a utility duct can carry: the Item Pipe or the Power Cable. Each line is placed as its own item. */
+/** What a utility duct can carry: the Item Pipe, the Power Cable or the Fluid Pipe. Each line is placed as its own item. */
 public enum Line {
     ITEM("item"),
-    ENERGY("energy");
+    ENERGY("energy"),
+    FLUID("fluid");
 
     public static final Line[] VALUES = values();
 

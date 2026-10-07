@@ -18,7 +18,7 @@
 ## Decisions
 
 ### D1. `Line.FLUID` and line set masks
-`Line` gains `FLUID("fluid")` as ordinal 2. `DuctParts` uses masks `1 << ordinal` for all seven line sets; the part suffix joins the line ids in ordinal order with `_` (`item`, `energy`, `fluid`, `item_energy`, `item_fluid`, `energy_fluid`, `item_energy_fluid`). The current `both` becomes `item_energy`; nothing is released, so no migration. The axis centres (`_x`, `_y`, default along Z) and the uniform `_junction` centre that `m5-duct-center-bands` added for the two line set exist for every set with two or more lines, so `center_both_junction` becomes `center_item_energy_junction` and so on. `DuctShapes.radius` is 2, 3, 4 pixels for one, two, three lines; arm counting iterates `Line.VALUES`. Ring tints `RING_TINT_BASE + line * 6 + side` already cover a third line. Datagen splits each face of a multi line part into equal strips in line order.
+`Line` gains `FLUID("fluid")` as ordinal 2. `DuctParts` uses masks `1 << ordinal` for all seven line sets; the part suffix joins the line ids in ordinal order with `_` (`item`, `energy`, `fluid`, `item_energy`, `item_fluid`, `energy_fluid`, `item_energy_fluid`). The current `both` becomes `item_energy`; nothing is released, so no migration. The axis centres (`_x`, `_y`, default along Z) and the uniform `_junction` centre that `m5-duct-center-bands` added for the two line set exist for every set with two or more lines, so `center_both_junction` becomes `center_item_energy_junction` and so on. `DuctShapes.radius` is 2, 3, 4 pixels for one, two, three lines; arm counting iterates `Line.VALUES`. Ring tints `RING_TINT_BASE + line * 6 + side` already cover a third line. Datagen shows the lines of a multi line part as equal bands in line order: the band textures `duct_<suffix>.png` and `duct_<suffix>_v.png` (7, 2, 7 pixels for two lines as before, 4, 2, 4, 2, 4 for three, with a dark divider) replace `duct_both`, the across faces carry the first and last line skin, and the ring frame is split per line the same way.
 Alternative: draw the fluid line as a sleeve around the two line duct. Rejected, it breaks "size tells the line count".
 
 ### D2. Pure `FluidRouting` in Lib
@@ -30,7 +30,7 @@ Alternative: one fluid per channel per tick. Rejected, the "Mixed fluids" scenar
 `DuctFluidHandler` (like `DuctItemHandler`) is `Capabilities.FluidHandler.BLOCK` on duct sides whose fluid mode allows input; `fill` routes straight to that channel's sinks (excluding the block on its own side), `drain` returns empty, it reports one tank of capacity 0.
 
 ### D4. GUI and items
-`UtilityDuctMenu` and `UtilityDuctScreen` get a Fluid Pipe page like the Power Cable page (mode, channels, remove). Fluid Pipe item `servus_logistics:fluid_pipe`, recipe iron ingots, glass and a bucket for eight, line color blue (`0x3F76E4`, the vanilla water tint) in `DuctBlockColor`.
+`UtilityDuctMenu` and `UtilityDuctScreen` get a Fluid Pipe page like the Power Cable page (mode, channels, remove). Fluid Pipe item `servus_logistics:fluid_pipe`, recipe iron ingots, glass and a bucket for eight, line color blue (`0x3F76E4`, the vanilla water tint), baked into the `duct_fluid` skin and band textures like the item and energy colors, so `DuctBlockColor` keeps tinting only the rings.
 
 ### Settled PLAN.md items
 - 2.2 "a fluid line later" becomes the Fluid Pipe; M5 gains "Fluid Pipe line".

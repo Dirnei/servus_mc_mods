@@ -12,6 +12,8 @@ public final class DuctShapes {
     public static final int THIN_RADIUS = 2;
     /** Half width in pixels of a part carrying two lines. */
     public static final int THICK_RADIUS = 3;
+    /** Half width in pixels of a part carrying three lines. */
+    public static final int THICKEST_RADIUS = 4;
 
     public static final int DOWN = 0;
     public static final int UP = 1;
@@ -31,12 +33,15 @@ public final class DuctShapes {
     private DuctShapes() {
     }
 
-    /** How much a two line junction cube grows beyond the run centre, so it reads as a fitting. */
+    /** How much a junction cube of two or more lines grows beyond the run centre, so it reads as a fitting. */
     public static final int JUNCTION_EXTRA = 1;
 
-    /** Radius by line count: one line is thin, two or more lines thick. */
+    /** Radius by line count: one line is thin, two lines thick, three or more lines thickest. */
     public static int radius(int lineCount) {
-        return lineCount >= 2 ? THICK_RADIUS : THIN_RADIUS;
+        if (lineCount >= 3) {
+            return THICKEST_RADIUS;
+        }
+        return lineCount == 2 ? THICK_RADIUS : THIN_RADIUS;
     }
 
     /** Whether arms in the six bit side mask lie on more than one axis, so the centre is a junction. */
@@ -54,7 +59,7 @@ public final class DuctShapes {
         return axes > 1;
     }
 
-    /** The centre radius: the line radius, one pixel more for a two line junction. */
+    /** The centre radius: the line radius, one pixel more for a junction of two or more lines. */
     public static int centerRadius(int lineCount, int armsMask) {
         int r = radius(lineCount);
         return lineCount >= 2 && isJunction(armsMask) ? r + JUNCTION_EXTRA : r;

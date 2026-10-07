@@ -34,9 +34,8 @@
     }
   ],
   "textures": {
-    "both": "servus_logistics:block/duct_both",
-    "both_v": "servus_logistics:block/duct_both_v",
     "energy": "servus_logistics:block/duct_energy",
+    "fluid": "servus_logistics:block/duct_fluid",
     "item": "servus_logistics:block/duct_item",
     "junction": "servus_logistics:block/duct_junction",
     "particle": "servus_logistics:block/duct_energy",

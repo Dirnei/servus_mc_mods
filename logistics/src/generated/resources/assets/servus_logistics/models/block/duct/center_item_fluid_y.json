@@ -3,16 +3,19 @@
     {
       "faces": {
         "down": {
-          "texture": "#both_v",
+          "texture": "#bands",
           "uv": [
             0.0,
+            0.0,
             16.0,
-            16.0,
-            0.0
+            16.0
           ]
         },
         "east": {
-          "texture": "#both",
+          "texture": "#fluid"
+        },
+        "north": {
+          "texture": "#bands",
           "uv": [
             16.0,
             0.0,
@@ -20,14 +23,17 @@
             16.0
           ]
         },
-        "north": {
-          "texture": "#item"
-        },
         "south": {
-          "texture": "#energy"
+          "texture": "#bands",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ]
         },
         "up": {
-          "texture": "#both_v",
+          "texture": "#bands",
           "uv": [
             0.0,
             0.0,
@@ -36,13 +42,7 @@
           ]
         },
         "west": {
-          "texture": "#both",
-          "uv": [
-            0.0,
-            0.0,
-            16.0,
-            16.0
-          ]
+          "texture": "#item"
         }
       },
       "from": [
@@ -58,9 +58,10 @@
     }
   ],
   "textures": {
-    "both": "servus_logistics:block/duct_both",
-    "both_v": "servus_logistics:block/duct_both_v",
+    "bands": "servus_logistics:block/duct_item_fluid",
+    "bands_v": "servus_logistics:block/duct_item_fluid_v",
     "energy": "servus_logistics:block/duct_energy",
+    "fluid": "servus_logistics:block/duct_fluid",
     "item": "servus_logistics:block/duct_item",
     "junction": "servus_logistics:block/duct_junction",
     "particle": "servus_logistics:block/duct_item",
