@@ -40,6 +40,9 @@ Section 2.1's side configuration bullet is reworded.
 ### Carrot
 A Lib helper `SideConfigWrench.cycle(level, pos, face, player, blockEntityWithSides)` used by `MachineBlock`, `InboundStationBlock`, `OutboundStationBlock` and `CraftingStationBlock`: sneak dismantles with `saveToItem`, otherwise cycles the clicked face and sends the action bar message. Rotation code is removed from these blocks.
 
+### Side markers in the world
+`lib/.../side/SidedBlockEntity` is an interface with `SideConfig sideConfig()` and `Side facing()` that machines, both stations and the Crafting Station implement. `lib/.../client/SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity>` is a `BlockEntityRenderer` each mod registers for its sided block entity types in its client setup; it is the only renderer those types need. Per face it maps the world direction to the relative side, skips default sides unless the local player holds a `ConfigurationCarrotItem` or wears the goggles, and draws a quad frame 1/16 wide and 1/256 outside the face in the mode colour with `RenderType.translucent` style buffers at full brightness, plus the glyph as four small quads when the carrot or goggles are active. Colours come from `SideConfigPanel`'s table so both match. The renderer returns early from `render` when `config.isDefault()` and no carrot or goggles are active, so idle blocks cost one check.
+
 ### Logistics
 `UtilityDuctBlockEntity.cycle` gets `case PULL, PUSH -> SideMode.BOTH` so Logistics compiles; its behaviour is unchanged. The rename Disabled to Off touches its references.
 

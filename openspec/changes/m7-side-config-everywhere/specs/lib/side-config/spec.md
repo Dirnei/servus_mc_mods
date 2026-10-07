@@ -35,6 +35,21 @@ The Configuration Carrot used on a face of a block with a side configuration SHA
 - **WHEN** the player sneaks and uses the carrot on a station with the top side set to Pull and places it again
 - **THEN** the top side is still Pull
 
+### Requirement: Side modes shown on the block
+Every block with a side configuration SHALL draw a thin frame along the edges of each face whose mode is not the block's default, in the same colour the side panel uses for that mode. While the viewing player holds the Configuration Carrot or wears the goggles, every face SHALL show its frame, default sides included, and a centred glyph: an arrow pointing in for Input and Pull, an arrow pointing out for Output and Push, a double arrow for Both, a cross for Off, with Pull and Push filled and Input and Output outlined. Markers SHALL render at full brightness and SHALL cost nothing while every side is default and no carrot or goggles are in use.
+
+#### Scenario: Configured side from afar
+- **WHEN** the top of an Inbound Station is set to Pull and the player looks at it with empty hands
+- **THEN** the top face shows a frame in the Pull colour and the other faces show nothing
+
+#### Scenario: Carrot in hand
+- **WHEN** the player holds the carrot and looks at a machine in Auto
+- **THEN** every face shows the Auto frame and the Auto glyph, and after setting the left side to Push its frame and glyph change at once
+
+#### Scenario: Plain block
+- **WHEN** a machine has every side in Auto and the player holds nothing special
+- **THEN** no marker is drawn
+
 ## MODIFIED Requirements
 
 ### Requirement: Side modes

@@ -12,11 +12,12 @@ Side configuration exists three times: Manufacturing machines use the Lib side c
 - **Machines pull and push explicitly.** Output no longer pushes; Push does. Pull takes items the machine's inputs accept from the neighbour. Auto keeps today's behaviour (passive both ways and outputs pushed).
 - **Stations on the shared model.** Inbound Station: Input, Pull, Off, default Input. Outbound Station: Push, Output, Off, default Off with the front on Push. Both use relative sides, the Lib panel and menu data slots instead of the six button row and the payload string.
 - **Crafting Station configurable.** The same modes and defaults as a machine.
+- **Modes shown on the block.** A thin frame in the mode colour on every face whose mode is not the block's default, always visible. While the player holds the Configuration Carrot or wears the goggles every face shows its frame and a glyph for the direction, so a side can be read and set without opening the GUI.
 
 ## Capabilities
 
 ### Modified Capabilities
-- `lib/side-config`: the seven modes, supported sets and defaults, the side panel widget, the carrot gesture.
+- `lib/side-config`: the seven modes, supported sets and defaults, the side panel widget, the carrot gesture, the in world side markers.
 - `manufacturing/machines`: side panel from Lib, pull and push semantics, carrot cycles sides instead of rotating.
 - `storage/inbound-station`: Input, Pull, Off through the shared model and panel.
 - `storage/outbound-station`: Push, Output, Off through the shared model and panel.
@@ -30,7 +31,7 @@ Side configuration exists three times: Manufacturing machines use the Lib side c
 
 ## Impact
 
-- `lib`: `SideMode` (two modes, flags), `SideConfig` (supported set, default, cycle within the set), `SideConfigData` (menu data slots), `client/SideConfigPanel`, lang keys for sides and modes, unit tests. The Logistics switch over the enum gets the two new cases so it keeps compiling; its behaviour is unchanged.
+- `lib`: `SideMode` (two modes, flags), `SideConfig` (supported set, default, cycle within the set), `SideConfigData` (menu data slots), `client/SideConfigPanel`, `client/SideMarkerRenderer` with a `SidedBlockEntity` interface, lang keys for sides and modes, unit tests. The Logistics switch over the enum gets the two new cases so it keeps compiling; its behaviour is unchanged.
 - `manufacturing`: `MachineScreen` draws the Lib panel, `MachineBlockEntity` pulls on Pull sides and pushes only on pushing modes, `MachineBlock.onWrench` cycles the clicked side; lang keys move to Lib; a GameTest for pulling.
 - `storage`: `SideModes`, `CycleSidePayload` and `SideButtons` go; stations and the Crafting Station hold a Lib `SideConfig`; menus expose it through data slots; screens draw the Lib panel and get their compact layouts back; the inbound station pulls on Pull sides; GameTests for inbound pull and crafting station sides.
 - `PLAN.md`: section 2.1 bullet on side configuration mentions the shared panel and the carrot gesture.
