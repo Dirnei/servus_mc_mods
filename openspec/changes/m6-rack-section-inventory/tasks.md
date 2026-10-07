@@ -9,7 +9,7 @@
 
 - [x] 2.1 `menu/HeavyRackMenu.java` takes the section's bays, lays out their slots in order, quick move across all bay slots, `stillValid` checks the section; `rack/HeavyRackBlock.java` opens it with the bay positions and slot counts in the buffer; `fromNetwork` rebuilds the layout with stand in handlers for missing bays (D3). Verify `gradlew build`.
 - [x] 2.2 `client/HeavyRackScreen.java` draws the header, one row strip per row and the bottom part (D3). Verify `gradlew build`.
-- [ ] 2.3 GameTests in `gametest/ServusStorageGameTests.java`: a section of three gives 81 slots in left to right order, shift click spills into the next bay, breaking a bay spills only its items, the menu turns invalid after a bay is removed. Verify `gradlew :storage:runGameTestServer`.
+- [x] 2.3 GameTests in `gametest/ServusStorageGameTests.java`: a section of three gives 81 slots in left to right order, shift click spills into the next bay, breaking a bay spills only its items, the menu turns invalid after a bay is removed. Verify `gradlew :storage:runGameTestServer`.
 
 ## 3. Shuttle reach
 

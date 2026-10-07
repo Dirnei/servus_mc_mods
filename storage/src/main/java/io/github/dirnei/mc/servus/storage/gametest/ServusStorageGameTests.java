@@ -26,6 +26,7 @@ import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
+import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.OrderBoardMenu;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
@@ -590,6 +591,83 @@ public final class ServusStorageGameTests {
         helper.assertTrue(!joined(helper, 3, HeavyRackBlock.RIGHT) && !joined(helper, 4, HeavyRackBlock.LEFT), "the fourth bay stands apart from the first three");
         helper.assertTrue(joined(helper, 4, HeavyRackBlock.RIGHT) && joined(helper, 5, HeavyRackBlock.LEFT), "filler joins the fourth");
         helper.assertTrue(joined(helper, 5, HeavyRackBlock.RIGHT) && joined(helper, 6, HeavyRackBlock.LEFT), "filler joins the sixth");
+        helper.succeed();
+    }
+
+    private static final int SM_Z = 6;
+
+    /** Places a row of racks by hand from x {@code first} to {@code last}; they face north and join. */
+    private static Player rackRow(GameTestHelper helper, int first, int last) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0.0F);
+        for (int x = first; x <= last; x++) {
+            placeRackByHand(helper, player, new BlockPos(x, 1, SM_Z));
+        }
+        // Stand in front of the row so the menu's reach check holds.
+        player.setPos(Vec3.atBottomCenterOf(helper.absolutePos(new BlockPos(first + 1, 1, SM_Z - 1))));
+        return player;
+    }
+
+    private static HeavyRackBlockEntity rackAt(GameTestHelper helper, int x) {
+        return helper.getBlockEntity(new BlockPos(x, 1, SM_Z));
+    }
+
+    /** The middle bay of a section of three opens all three bays, left to right, and shift click spills into the next bay. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackSectionSharesMenu(GameTestHelper helper) {
+        Player player = rackRow(helper, 2, 4);
+        HeavyRackBlockEntity left = rackAt(helper, 2);
+        HeavyRackBlockEntity middle = rackAt(helper, 3);
+        HeavyRackBlockEntity right = rackAt(helper, 4);
+        int bay = left.items().getSlots();
+        for (int slot = 0; slot < bay; slot++) {
+            left.items().setStackInSlot(slot, new ItemStack(Items.STONE, 64));
+        }
+        middle.items().setStackInSlot(0, new ItemStack(Items.DIRT, 5));
+        right.items().setStackInSlot(0, new ItemStack(Items.SAND, 7));
+
+        HeavyRackMenu menu = HeavyRackMenu.forSection(1, player.getInventory(), middle);
+        helper.assertTrue(menu.rackSlots() == 3 * bay, "a section of three shows " + 3 * bay + " slots, had " + menu.rackSlots());
+        helper.assertTrue(menu.rows() == (3 * bay + 8) / 9, "the GUI has a row per nine slots, had " + menu.rows());
+        helper.assertTrue(menu.getSlot(0).getItem().is(Items.STONE), "the left bay comes first");
+        helper.assertTrue(menu.getSlot(bay).getItem().is(Items.DIRT), "the middle bay follows the left one");
+        helper.assertTrue(menu.getSlot(2 * bay).getItem().is(Items.SAND), "the right bay comes last");
+        HeavyRackMenu fromLeft = HeavyRackMenu.forSection(2, player.getInventory(), left);
+        helper.assertTrue(fromLeft.bays().equals(menu.bays()), "every bay of the section opens the same bays");
+        helper.assertTrue(menu.stillValid(player), "the menu is valid while the section stands");
+
+        player.getInventory().setItem(0, new ItemStack(Items.APPLE, 30));
+        menu.quickMoveStack(player, menu.rackSlots() + 27);
+        helper.assertTrue(player.getInventory().getItem(0).isEmpty(), "the apples left the hotbar");
+        helper.assertTrue(middle.items().getStackInSlot(1).is(Items.APPLE) && middle.items().getStackInSlot(1).getCount() == 30,
+                "with the left bay full, the apples land in the middle bay, had " + middle.items().getStackInSlot(1));
+        helper.succeed();
+    }
+
+    /** Breaking the right bay of a section spills only its items; the left bay keeps its own. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackBayBreaksAlone(GameTestHelper helper) {
+        rackRow(helper, 2, 3);
+        rackAt(helper, 2).items().setStackInSlot(0, new ItemStack(Items.DIRT, 5));
+        rackAt(helper, 3).items().setStackInSlot(0, new ItemStack(Items.SAND, 7));
+        helper.destroyBlock(new BlockPos(3, 1, SM_Z));
+        helper.runAfterDelay(2, () -> {
+            helper.assertItemEntityPresent(Items.SAND, new BlockPos(3, 1, SM_Z), 2.0);
+            helper.assertItemEntityNotPresent(Items.DIRT, new BlockPos(3, 1, SM_Z), 4.0);
+            ItemStack kept = rackAt(helper, 2).items().getStackInSlot(0);
+            helper.assertTrue(kept.is(Items.DIRT) && kept.getCount() == 5, "the left bay keeps its dirt, had " + kept);
+            helper.succeed();
+        });
+    }
+
+    /** The section menu turns invalid once a bay of the section is removed. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackMenuClosesWhenSectionChanges(GameTestHelper helper) {
+        Player player = rackRow(helper, 2, 4);
+        HeavyRackMenu menu = HeavyRackMenu.forSection(1, player.getInventory(), rackAt(helper, 2));
+        helper.assertTrue(menu.stillValid(player), "the menu is valid while the section stands");
+        helper.setBlock(new BlockPos(4, 1, SM_Z), Blocks.AIR.defaultBlockState());
+        helper.assertTrue(!menu.stillValid(player), "the menu turns invalid once a bay is gone");
         helper.succeed();
     }
 
