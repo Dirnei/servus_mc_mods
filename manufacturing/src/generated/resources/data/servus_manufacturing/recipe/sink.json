@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:bricks"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:iron_bars"
+    }
+  },
+  "pattern": [
+    "BBB",
+    "RIR",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_manufacturing:sink"
+  }
+}

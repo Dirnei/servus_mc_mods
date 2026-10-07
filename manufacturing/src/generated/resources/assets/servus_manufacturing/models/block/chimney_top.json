@@ -1,0 +1,113 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#bricks"
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#bricks"
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#bricks"
+        },
+        "south": {
+          "cullface": "south",
+          "texture": "#bricks"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        13,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#bricks",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            3.0
+          ]
+        },
+        "north": {
+          "texture": "#bricks",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#bricks",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            3.0
+          ]
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#top",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#bricks",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            3.0
+          ]
+        }
+      },
+      "from": [
+        -1,
+        13,
+        -1
+      ],
+      "to": [
+        17,
+        16,
+        17
+      ]
+    }
+  ],
+  "textures": {
+    "bricks": "minecraft:block/bricks",
+    "particle": "minecraft:block/bricks",
+    "top": "servus_manufacturing:block/chimney_top"
+  }
+}

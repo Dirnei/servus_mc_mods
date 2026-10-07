@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "top=false": {
+      "model": "servus_manufacturing:block/chimney"
+    },
+    "top=true": {
+      "model": "servus_manufacturing:block/chimney_top"
+    }
+  }
+}

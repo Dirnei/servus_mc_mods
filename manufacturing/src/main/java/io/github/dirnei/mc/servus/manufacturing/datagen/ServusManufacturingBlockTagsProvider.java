@@ -28,6 +28,8 @@ final class ServusManufacturingBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusManufacturingBlocks.CRUSHER.get())
                 .add(ServusManufacturingBlocks.CHUNK_LOADER.get())
                 .add(ServusManufacturingBlocks.BURNER_PUMP.get())
-                .add(ServusManufacturingBlocks.ELECTRIC_PUMP.get());
+                .add(ServusManufacturingBlocks.ELECTRIC_PUMP.get())
+                .add(ServusManufacturingBlocks.SINK.get())
+                .add(ServusManufacturingBlocks.CHIMNEY.get());
     }
 }

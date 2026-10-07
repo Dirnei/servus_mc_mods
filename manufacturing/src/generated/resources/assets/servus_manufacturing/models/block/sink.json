@@ -1,0 +1,197 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#bricks"
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#recess"
+        },
+        "south": {
+          "cullface": "south",
+          "texture": "#bricks"
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#bricks"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        0,
+        0,
+        3
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#bricks"
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#bricks"
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#bricks"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        0,
+        13,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#bricks"
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#bricks"
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        3,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#bricks"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        0,
+        3,
+        0
+      ],
+      "to": [
+        3,
+        13,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "cullface": "east",
+          "texture": "#bricks"
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        13,
+        3,
+        0
+      ],
+      "to": [
+        16,
+        13,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "north": {
+          "texture": "#grate",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#grate",
+          "uv": [
+            16.0,
+            0.0,
+            0.0,
+            16.0
+          ]
+        }
+      },
+      "from": [
+        3,
+        3,
+        0.5
+      ],
+      "to": [
+        13,
+        13,
+        0.5
+      ]
+    }
+  ],
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "bricks": "minecraft:block/bricks",
+    "grate": "servus_manufacturing:block/sink_front",
+    "particle": "minecraft:block/bricks",
+    "recess": "servus_manufacturing:block/sink_recess"
+  }
+}

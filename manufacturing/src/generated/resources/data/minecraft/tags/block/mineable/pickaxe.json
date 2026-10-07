@@ -9,6 +9,8 @@
     "servus_manufacturing:crusher",
     "servus_manufacturing:chunk_loader",
     "servus_manufacturing:burner_pump",
-    "servus_manufacturing:electric_pump"
+    "servus_manufacturing:electric_pump",
+    "servus_manufacturing:sink",
+    "servus_manufacturing:chimney"
   ]
 }

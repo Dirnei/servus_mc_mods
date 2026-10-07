@@ -31,6 +31,18 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.CHUNK_LOADER.get(), "Chunk Loader");
         add(ServusManufacturingBlocks.BURNER_PUMP.get(), "Burner Pump");
         add(ServusManufacturingBlocks.ELECTRIC_PUMP.get(), "Electric Pump");
+        add(ServusManufacturingBlocks.SINK.get(), "Sink");
+        add(ServusManufacturingBlocks.CHIMNEY.get(), "Chimney");
+        add("gui.servus_manufacturing.sink.height", "Chimney height: %s");
+        add("gui.servus_manufacturing.sink.items", "Items: %s");
+        add("gui.servus_manufacturing.sink.fluid", "Fluid: %s");
+        add("gui.servus_manufacturing.sink.energy", "Energy: %s");
+        add("gui.servus_manufacturing.sink.unit.items", "%s per second");
+        add("gui.servus_manufacturing.sink.unit.fluid", "%s mB per tick");
+        add("gui.servus_manufacturing.sink.unit.energy", "%s FE per tick");
+        add("gui.servus_manufacturing.sink.unlimited", "Unlimited");
+        add("gui.servus_manufacturing.sink.hint", "Taller chimney, faster Sink");
+        add("gui.servus_manufacturing.sink.trash", "Anything put here is destroyed");
         add("gui.servus_manufacturing.pump.source_ok", "Infinite water source below");
         add("gui.servus_manufacturing.pump.source_missing", "Needs an infinite water source below");
         add("gui.servus_manufacturing.chunk_loader.no_power", "Inactive: no power");

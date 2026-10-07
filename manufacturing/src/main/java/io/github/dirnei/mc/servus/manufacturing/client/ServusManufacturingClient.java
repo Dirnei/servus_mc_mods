@@ -29,6 +29,7 @@ public final class ServusManufacturingClient {
         event.register(ServusManufacturingMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
         event.register(ServusManufacturingMenus.BURNER_PUMP.get(), MachineScreen::burnerPump);
         event.register(ServusManufacturingMenus.ELECTRIC_PUMP.get(), MachineScreen::electricPump);
+        event.register(ServusManufacturingMenus.SINK.get(), SinkScreen::new);
     }
 
     /** Every machine draws its side modes on the block. */
