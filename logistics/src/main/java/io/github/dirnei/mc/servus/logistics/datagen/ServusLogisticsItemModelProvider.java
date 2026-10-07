@@ -14,8 +14,8 @@ final class ServusLogisticsItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        basicItem(ServusLogisticsItems.ITEM_CHANNEL.get());
-        basicItem(ServusLogisticsItems.ENERGY_CHANNEL.get());
+        basicItem(ServusLogisticsItems.ITEM_PIPE.get());
+        basicItem(ServusLogisticsItems.POWER_CABLE.get());
         basicItem(ServusLogisticsItems.FACADE.get());
     }
 }

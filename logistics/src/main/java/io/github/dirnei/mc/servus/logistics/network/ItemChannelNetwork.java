@@ -8,12 +8,12 @@ import io.github.dirnei.mc.servus.lib.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.lib.network.core.ServusNetwork;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.logistics.ServusLogisticsIds;
-import io.github.dirnei.mc.servus.logistics.duct.Channel;
 import io.github.dirnei.mc.servus.logistics.duct.DuctItemHandler;
 import io.github.dirnei.mc.servus.logistics.duct.DuctStatsManager;
+import io.github.dirnei.mc.servus.logistics.duct.Line;
 import io.github.dirnei.mc.servus.logistics.duct.UtilityDuctBlockEntity;
+import io.github.dirnei.mc.servus.logistics.routing.RoundRobinPlan;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +27,11 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 
 /**
- * The item channel of a set of connected utility ducts. Holds no items.
- * Routes inserted stacks to inventories on output sides, highest priority
- * first and round robin within a priority, honouring side filters, and pulls
- * from inventories on input sides every few ticks.
+ * The Item Pipe network of a set of connected utility ducts. Holds no items.
+ * Routes inserted stacks to inventories on output sides of the same channel,
+ * highest priority first and round robin within a priority, honouring side
+ * filters, and pulls from inventories on pull in sides every few ticks onto
+ * the pulling side's channel.
  */
 public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent> {
 
@@ -40,7 +41,7 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
             new NetworkType<>(ID, ConnectionRule.always(), ItemChannelNetwork::new);
 
     private record Endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int priority,
-                            BlockCapabilityCache<IItemHandler, Direction> cache) {
+                            int channel, BlockCapabilityCache<IItemHandler, Direction> cache) {
 
         boolean allows(ItemStack stack) {
             return duct.filterAllows(side, stack);
@@ -48,10 +49,8 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
     }
 
     private final Map<NodePos, List<Endpoint>> endpoints = new LinkedHashMap<>();
-    /** Output endpoints grouped by priority, highest first. */
-    private final List<List<Endpoint>> groups = new ArrayList<>();
-    private final Map<Integer, Integer> cursors = new HashMap<>();
-    private boolean groupsDirty = true;
+    private final RoundRobinPlan<Endpoint> plan = new RoundRobinPlan<>();
+    private boolean planDirty = true;
     private ServerLevel level;
     private int budget;
     private int pullTimer;
@@ -81,22 +80,22 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
         BlockPos blockPos = Conversions.toBlockPos(pos);
         List<Endpoint> list = new ArrayList<>(6);
         for (Direction direction : Direction.values()) {
-            SideMode mode = duct.mode(Channel.ITEM, direction);
+            SideMode mode = duct.mode(Line.ITEM, direction);
             if (mode == SideMode.DISABLED) {
                 continue;
             }
             BlockPos target = blockPos.relative(direction);
-            list.add(new Endpoint(duct, direction, target, mode, duct.priority(direction), BlockCapabilityCache.create(
-                    Capabilities.ItemHandler.BLOCK, level, target, direction.getOpposite())));
+            list.add(new Endpoint(duct, direction, target, mode, duct.priority(direction), duct.channel(Line.ITEM, direction),
+                    BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, level, target, direction.getOpposite())));
         }
         endpoints.put(pos, list);
-        groupsDirty = true;
+        planDirty = true;
     }
 
     @Override
     protected void onNodeRemoved(NodePos pos, UtilityDuctBlockEntity duct) {
         endpoints.remove(pos);
-        groupsDirty = true;
+        planDirty = true;
     }
 
     @Override
@@ -106,32 +105,31 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
             if (level == null) {
                 level = that.level;
             }
-            groupsDirty = true;
+            planDirty = true;
         }
     }
 
     @Override
     protected void onDisposed() {
         endpoints.clear();
-        groups.clear();
-        cursors.clear();
+        plan.clear();
     }
 
-    private List<List<Endpoint>> groups() {
-        if (groupsDirty) {
-            Map<Integer, List<Endpoint>> byPriority = new HashMap<>();
+    /** The routing plan over all output endpoints, grouped by channel and priority. */
+    private RoundRobinPlan<Endpoint> plan() {
+        if (planDirty) {
+            List<RoundRobinPlan.Target<Endpoint>> targets = new ArrayList<>();
             for (List<Endpoint> list : endpoints.values()) {
                 for (Endpoint endpoint : list) {
                     if (endpoint.mode().allowsExtract()) {
-                        byPriority.computeIfAbsent(endpoint.priority(), p -> new ArrayList<>()).add(endpoint);
+                        targets.add(new RoundRobinPlan.Target<>(endpoint.channel(), endpoint.priority(), endpoint));
                     }
                 }
             }
-            groups.clear();
-            byPriority.keySet().stream().sorted((a, b) -> Integer.compare(b, a)).forEach(p -> groups.add(byPriority.get(p)));
-            groupsDirty = false;
+            plan.rebuild(targets);
+            planDirty = false;
         }
-        return groups;
+        return plan;
     }
 
     @Override
@@ -155,7 +153,7 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
         }
     }
 
-    /** One pull from an input side: the first slot whose items pass the filter and the network accepts. */
+    /** One pull from a pull in side: the first slot whose items pass the filter and the channel accepts. */
     private void pull(Endpoint source, int perPull) {
         IItemHandler handler = source.cache().getCapability();
         if (handler == null || handler instanceof DuctItemHandler) {
@@ -166,13 +164,13 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
             if (available.isEmpty() || !source.allows(available)) {
                 continue;
             }
-            ItemStack left = route(available, source.target(), true);
+            ItemStack left = route(available, source.target(), source.channel(), true);
             int accepted = available.getCount() - left.getCount();
             if (accepted <= 0) {
                 continue;
             }
             ItemStack pulled = handler.extractItem(slot, accepted, false);
-            ItemStack rejected = route(pulled, source.target(), false);
+            ItemStack rejected = route(pulled, source.target(), source.channel(), false);
             if (!rejected.isEmpty()) {
                 handler.insertItem(slot, rejected, false);
             }
@@ -181,46 +179,40 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
     }
 
     /**
-     * Routes a stack to accepting inventories on output sides, highest priority
-     * group first, skipping the inventory at {@code origin}, other ducts and
-     * sides whose filter rejects the stack.
+     * Routes a stack to accepting inventories on output sides of the channel,
+     * highest priority group first, skipping the inventory at {@code origin},
+     * other ducts and sides whose filter rejects the stack.
      *
      * @return what could not be routed
      */
-    public ItemStack route(ItemStack stack, BlockPos origin, boolean simulate) {
-        List<List<Endpoint>> all = groups();
-        if (all.isEmpty() || budget <= 0) {
+    public ItemStack route(ItemStack stack, BlockPos origin, int channel, boolean simulate) {
+        RoundRobinPlan<Endpoint> routing = plan();
+        if (stack.isEmpty() || budget <= 0 || !routing.hasTargets(channel)) {
             return stack;
         }
         ItemStack remaining = stack.copyWithCount(Math.min(stack.getCount(), budget));
         ItemStack notOffered = stack.copyWithCount(stack.getCount() - remaining.getCount());
-        for (List<Endpoint> group : all) {
+        ItemStack probe = remaining.copy();
+        List<RoundRobinPlan.Offer<Endpoint>> offers = routing.plan(channel, remaining.getCount(),
+                endpoint -> capacity(endpoint, origin, probe));
+        for (RoundRobinPlan.Offer<Endpoint> offer : offers) {
             if (remaining.isEmpty()) {
                 break;
             }
-            int priority = group.get(0).priority();
-            int cursor = cursors.getOrDefault(priority, 0);
-            int size = group.size();
-            for (int i = 0; i < size && !remaining.isEmpty(); i++) {
-                Endpoint endpoint = group.get((cursor + i) % size);
-                if (endpoint.target().equals(origin) || !endpoint.allows(remaining)) {
-                    continue;
-                }
-                IItemHandler handler = endpoint.cache().getCapability();
-                if (handler == null || handler instanceof DuctItemHandler) {
-                    continue;
-                }
-                ItemStack left = insertAnySlot(handler, remaining, true);
-                int accepted = remaining.getCount() - left.getCount();
-                if (accepted <= 0) {
-                    continue;
-                }
-                if (!simulate) {
-                    ItemStack rejected = insertAnySlot(handler, remaining.copyWithCount(accepted), false);
-                    accepted -= rejected.getCount();
-                    budget -= accepted;
-                    cursors.put(priority, (cursor + i + 1) % size);
-                }
+            int amount = Math.min(offer.amount(), remaining.getCount());
+            if (simulate) {
+                remaining.shrink(amount);
+                continue;
+            }
+            IItemHandler handler = offer.target().cache().getCapability();
+            if (handler == null) {
+                continue;
+            }
+            ItemStack rejected = insertAnySlot(handler, remaining.copyWithCount(amount), false);
+            int accepted = amount - rejected.getCount();
+            if (accepted > 0) {
+                budget -= accepted;
+                routing.delivered(channel, offer.target());
                 remaining.shrink(accepted);
             }
         }
@@ -229,6 +221,19 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
         }
         notOffered.grow(remaining.getCount());
         return notOffered;
+    }
+
+    /** How much of the stack the endpoint's inventory would take right now, zero for the origin, ducts and filtered items. */
+    private static int capacity(Endpoint endpoint, BlockPos origin, ItemStack stack) {
+        if (endpoint.target().equals(origin) || !endpoint.allows(stack)) {
+            return 0;
+        }
+        IItemHandler handler = endpoint.cache().getCapability();
+        if (handler == null || handler instanceof DuctItemHandler) {
+            return 0;
+        }
+        ItemStack left = insertAnySlot(handler, stack, true);
+        return stack.getCount() - left.getCount();
     }
 
     private static ItemStack insertAnySlot(IItemHandler handler, ItemStack stack, boolean simulate) {

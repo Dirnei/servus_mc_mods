@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.logistics.menu;
 
-import io.github.dirnei.mc.servus.logistics.duct.Channel;
+import io.github.dirnei.mc.servus.logistics.duct.Line;
 import io.github.dirnei.mc.servus.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
@@ -31,7 +31,7 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
 
     public static final int BUTTON_SELECT_SIDE = 0;
     public static final int BUTTON_CYCLE_MODE = 10;
-    public static final int BUTTON_REMOVE_CHANNEL = 20;
+    public static final int BUTTON_REMOVE_LINE = 20;
     public static final int BUTTON_PRIORITY_DOWN = 30;
     public static final int BUTTON_PRIORITY_UP = 31;
 
@@ -106,21 +106,21 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
             pushData();
             return true;
         }
-        if (id >= BUTTON_CYCLE_MODE && id < BUTTON_CYCLE_MODE + Channel.VALUES.length) {
-            Channel channel = Channel.byOrdinal(id - BUTTON_CYCLE_MODE);
-            if (duct.has(channel)) {
-                duct.setMode(channel, side, UtilityDuctBlockEntity.cycle(duct.mode(channel, side)));
+        if (id >= BUTTON_CYCLE_MODE && id < BUTTON_CYCLE_MODE + Line.VALUES.length) {
+            Line line = Line.byOrdinal(id - BUTTON_CYCLE_MODE);
+            if (duct.has(line)) {
+                duct.setMode(line, side, UtilityDuctBlockEntity.cycle(duct.mode(line, side)));
             }
             return true;
         }
-        if (id >= BUTTON_REMOVE_CHANNEL && id < BUTTON_REMOVE_CHANNEL + Channel.VALUES.length) {
-            Channel channel = Channel.byOrdinal(id - BUTTON_REMOVE_CHANNEL);
-            if (!player.level().isClientSide() && duct.removeChannel(channel)) {
-                ItemStack drop = new ItemStack(ServusLogisticsItems.channelItem(channel));
+        if (id >= BUTTON_REMOVE_LINE && id < BUTTON_REMOVE_LINE + Line.VALUES.length) {
+            Line line = Line.byOrdinal(id - BUTTON_REMOVE_LINE);
+            if (!player.level().isClientSide() && duct.removeLine(line)) {
+                ItemStack drop = new ItemStack(ServusLogisticsItems.lineItem(line));
                 if (!player.getInventory().add(drop)) {
                     player.drop(drop, false);
                 }
-                if (duct.channels().isEmpty()) {
+                if (duct.lines().isEmpty()) {
                     player.level().removeBlock(duct.getBlockPos(), false);
                 }
             }

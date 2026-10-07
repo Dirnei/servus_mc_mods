@@ -3,12 +3,13 @@ package io.github.dirnei.mc.servus.manufacturing.gametest;
 import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
 import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
-import io.github.dirnei.mc.servus.logistics.duct.Channel;
+import io.github.dirnei.mc.servus.logistics.duct.Line;
 import io.github.dirnei.mc.servus.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
@@ -52,9 +53,9 @@ public final class ServusManufacturingGameTests {
         burnerPair(helper, 5, ServusManufacturingBlocks.COPPER_DEPOSIT.get(), true);
         burnerPair(helper, 7, ServusManufacturingBlocks.COAL_DEPOSIT.get(), false);
 
-        // Duct column at x 3 from z 1 to z 7: Utility Ducts with an Item Pipe on channel 1.
+        // Duct column at x 3 from z 1 to z 7: Utility Ducts with an Item Pipe on line 1.
         for (int z = 1; z <= 7; z++) {
-            duct(helper, new BlockPos(3, 2, z), Channel.ITEM);
+            duct(helper, new BlockPos(3, 2, z), Line.ITEM);
         }
 
         // Assemblers at x 4 with their recipes, generators at x 5.
@@ -105,20 +106,20 @@ public final class ServusManufacturingGameTests {
             fuel(helper, smelter);
         } else {
             // The coal extractor feeds the duct column directly.
-            duct(helper, new BlockPos(2, 2, z), Channel.ITEM);
+            duct(helper, new BlockPos(2, 2, z), Line.ITEM);
         }
     }
 
     /**
      * Places a Utility Duct carrying the given lines with default modes and
-     * channel 1. {@code setBlock} skips placement logic, so the connection
+     * line 1. {@code setBlock} skips placement logic, so the connection
      * flags are refreshed from the neighbours afterwards.
      */
-    private static void duct(GameTestHelper helper, BlockPos pos, Channel... lines) {
+    private static void duct(GameTestHelper helper, BlockPos pos, Line... lines) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
         UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
-        for (Channel line : lines) {
-            duct.addChannel(line);
+        for (Line line : lines) {
+            duct.addLine(line);
         }
         BlockPos absolute = helper.absolutePos(pos);
         BlockState state = helper.getLevel().getBlockState(absolute);
@@ -136,6 +137,38 @@ public final class ServusManufacturingGameTests {
     private static void generator(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, facing(ServusManufacturingBlocks.COAL_GENERATOR.get(), Direction.NORTH));
         fuel(helper, pos);
+    }
+
+    /**
+     * Two generators and two machines along one Power Cable run: generator A
+     * and machine A on channel 1, generator B (no fuel) and machine B on
+     * channel 2. Only machine A gets energy, so channels keep energy apart.
+     */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void energyStaysOnItsChannel(GameTestHelper helper) {
+        for (int z = 1; z <= 4; z++) {
+            duct(helper, new BlockPos(7, 2, z), Line.ENERGY);
+        }
+        BlockPos generatorA = new BlockPos(6, 2, 1);
+        BlockPos machineA = new BlockPos(8, 2, 1);
+        BlockPos generatorB = new BlockPos(6, 2, 3);
+        BlockPos machineB = new BlockPos(8, 2, 3);
+        generator(helper, generatorA);
+        helper.setBlock(generatorB, facing(ServusManufacturingBlocks.COAL_GENERATOR.get(), Direction.NORTH));
+        helper.setBlock(machineA, facing(ServusManufacturingBlocks.ASSEMBLER.get(), Direction.NORTH));
+        helper.setBlock(machineB, facing(ServusManufacturingBlocks.ASSEMBLER.get(), Direction.NORTH));
+        UtilityDuctBlockEntity ductB = helper.getBlockEntity(new BlockPos(7, 2, 3));
+        ductB.setChannel(Line.ENERGY, Direction.WEST, 1);
+        ductB.setChannel(Line.ENERGY, Direction.EAST, 1);
+
+        helper.runAfterDelay(60, () -> {
+            PoweredMachineBlockEntity a = helper.getBlockEntity(machineA);
+            PoweredMachineBlockEntity b = helper.getBlockEntity(machineB);
+            helper.assertTrue(a.energyStorage().getEnergyStored() > 0, "machine A on channel 1 should receive energy");
+            helper.assertTrue(b.energyStorage().getEnergyStored() == 0,
+                    "machine B on channel 2 must stay empty, got " + b.energyStorage().getEnergyStored());
+            helper.succeed();
+        });
     }
 
     private static final BlockPos PR_ASSEMBLER = new BlockPos(9, 2, 10);

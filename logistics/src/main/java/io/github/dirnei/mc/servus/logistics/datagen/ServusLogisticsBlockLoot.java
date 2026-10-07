@@ -8,7 +8,7 @@ import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
 
-/** The duct drops its channel items from code, so the block itself drops nothing. */
+/** The duct drops its line items from code, so the block itself drops nothing. */
 final class ServusLogisticsBlockLoot extends BlockLootSubProvider {
 
     private static final List<Block> KNOWN = List.of(ServusLogisticsBlocks.UTILITY_DUCT.get());

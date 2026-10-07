@@ -6,7 +6,6 @@ import io.github.dirnei.mc.servus.lib.network.NetworkNode;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
 import io.github.dirnei.mc.servus.lib.network.core.ServusNetwork;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
-import io.github.dirnei.mc.servus.logistics.client.UtilityDuctModel;
 import io.github.dirnei.mc.servus.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.logistics.network.DuctEvent;
@@ -24,9 +23,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -39,17 +38,22 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
- * A utility duct: a set of channels, each with a mode per side, plus item
- * filters and priorities per side. Each present channel joins its own network
- * type, so items and energy form separate graphs through the same blocks.
+ * A utility duct: a set of lines (Item Pipe, Power Cable), each with a mode
+ * and a channel per side, plus item filters and priorities per side. Each
+ * present line joins its own network type, so items and energy form separate
+ * graphs through the same blocks. The duct also keeps which sides carry an
+ * arm per line and which arms end at an inventory or machine, synced to the
+ * client for the model.
  */
 public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider {
 
@@ -57,12 +61,18 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
     public static final int MIN_PRIORITY = -9;
     public static final int MAX_PRIORITY = 9;
 
-    private final EnumSet<Channel> channels = EnumSet.noneOf(Channel.class);
-    private final SideMode[][] modes = new SideMode[Channel.VALUES.length][Direction.values().length];
-    private final ItemStackHandler[] filters = new ItemStackHandler[Direction.values().length];
-    private final int[] priorities = new int[Direction.values().length];
-    private final EnumSet<Channel> joined = EnumSet.noneOf(Channel.class);
-    private final Map<Channel, ChannelNode> nodes = new EnumMap<>(Channel.class);
+    private static final int SIDES = Direction.values().length;
+    private static final Direction[] DIRECTIONS = Direction.values();
+
+    private final EnumSet<Line> lines = EnumSet.noneOf(Line.class);
+    private final SideMode[][] modes = new SideMode[Line.VALUES.length][SIDES];
+    private final byte[][] channels = new byte[Line.VALUES.length][SIDES];
+    private final ItemStackHandler[] filters = new ItemStackHandler[SIDES];
+    private final int[] priorities = new int[SIDES];
+    private final int[] arms = new int[Line.VALUES.length];
+    private int endpoints;
+    private final EnumSet<Line> joined = EnumSet.noneOf(Line.class);
+    private final Map<Line, LineNode> nodes = new EnumMap<>(Line.class);
     private final Map<Direction, DuctItemHandler> itemHandlers = new EnumMap<>(Direction.class);
     private BlockState facade;
 
@@ -71,7 +81,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
         for (SideMode[] row : modes) {
             Arrays.fill(row, SideMode.BOTH);
         }
-        for (Direction direction : Direction.values()) {
+        for (Direction direction : DIRECTIONS) {
             filters[direction.ordinal()] = new ItemStackHandler(FILTER_SLOTS) {
                 @Override
                 protected void onContentsChanged(int slot) {
@@ -79,55 +89,55 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
                 }
             };
         }
-        for (Channel channel : Channel.VALUES) {
-            nodes.put(channel, new ChannelNode(channel));
+        for (Line line : Line.VALUES) {
+            nodes.put(line, new LineNode(line));
         }
     }
 
-    // Channels
+    // Lines
 
-    public Set<Channel> channels() {
-        return channels;
+    public Set<Line> lines() {
+        return lines;
     }
 
-    public boolean has(Channel channel) {
-        return channels.contains(channel);
+    public boolean has(Line line) {
+        return lines.contains(line);
     }
 
-    /** @return true when the channel was added */
-    public boolean addChannel(Channel channel) {
-        if (!channels.add(channel)) {
+    /** @return true when the line was added */
+    public boolean addLine(Line line) {
+        if (!lines.add(line)) {
             return false;
         }
-        join(channel);
+        join(line);
         changed();
         return true;
     }
 
-    /** @return true when the channel was present */
-    public boolean removeChannel(Channel channel) {
-        if (!channels.remove(channel)) {
+    /** @return true when the line was present */
+    public boolean removeLine(Line line) {
+        if (!lines.remove(line)) {
             return false;
         }
-        leave(channel);
+        leave(line);
         changed();
         return true;
     }
 
     // Modes
 
-    public SideMode mode(Channel channel, Direction side) {
-        return modes[channel.ordinal()][side.ordinal()];
+    public SideMode mode(Line line, Direction side) {
+        return modes[line.ordinal()][side.ordinal()];
     }
 
-    public void setMode(Channel channel, Direction side, SideMode mode) {
+    public void setMode(Line line, Direction side, SideMode mode) {
         if (mode == SideMode.AUTO) {
             mode = SideMode.BOTH;
         }
-        if (modes[channel.ordinal()][side.ordinal()] == mode) {
+        if (modes[line.ordinal()][side.ordinal()] == mode) {
             return;
         }
-        modes[channel.ordinal()][side.ordinal()] = mode;
+        modes[line.ordinal()][side.ordinal()] = mode;
         configChanged();
     }
 
@@ -139,6 +149,124 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
             case OUTPUT -> SideMode.DISABLED;
             case DISABLED -> SideMode.BOTH;
         };
+    }
+
+    // Channels
+
+    /** The channel of a line's side, 0 to {@link DuctChannels#COUNT} minus one. */
+    public int channel(Line line, Direction side) {
+        return channels[line.ordinal()][side.ordinal()];
+    }
+
+    public void setChannel(Line line, Direction side, int channel) {
+        byte clamped = (byte) DuctChannels.clamp(channel);
+        if (channels[line.ordinal()][side.ordinal()] == clamped) {
+            return;
+        }
+        channels[line.ordinal()][side.ordinal()] = clamped;
+        configChanged();
+    }
+
+    // Arms and endpoints
+
+    /** Six bit mask of the sides that carry an arm of the line, {@code 1 << side.ordinal()}. */
+    public int arms(Line line) {
+        return arms[line.ordinal()];
+    }
+
+    public boolean hasArm(Line line, Direction side) {
+        return (arms[line.ordinal()] & DuctModelData.bit(side)) != 0;
+    }
+
+    /** Six bit mask of the sides whose arm ends at an inventory or machine, not at another duct. */
+    public int endpoints() {
+        return endpoints;
+    }
+
+    public boolean isEndpoint(Direction side) {
+        return (endpoints & DuctModelData.bit(side)) != 0;
+    }
+
+    /** Union of the arms of all lines: the block state connection flags. */
+    public int connections() {
+        int mask = 0;
+        for (int value : arms) {
+            mask |= value;
+        }
+        return mask;
+    }
+
+    /**
+     * Whether the line reaches through that side right now: the line is
+     * present, the side is not disabled, and the neighbour is a duct carrying
+     * the line or a block offering the matching capability on that face.
+     * Server only; the client reads the synced masks.
+     */
+    public boolean computeArm(Line line, Direction side) {
+        if (!has(line) || mode(line, side) == SideMode.DISABLED || !(level instanceof Level realLevel)) {
+            return false;
+        }
+        BlockPos neighborPos = worldPosition.relative(side);
+        if (realLevel.getBlockEntity(neighborPos) instanceof UtilityDuctBlockEntity neighbour) {
+            return neighbour.has(line);
+        }
+        return switch (line) {
+            case ITEM -> realLevel.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, side.getOpposite()) != null;
+            case ENERGY -> realLevel.getCapability(Capabilities.EnergyStorage.BLOCK, neighborPos, side.getOpposite()) != null;
+        };
+    }
+
+    /**
+     * Recomputes the arm and endpoint masks from the neighbours. Server only.
+     *
+     * @return true when a mask changed
+     */
+    public boolean recomputeArms() {
+        if (level == null || level.isClientSide()) {
+            return false;
+        }
+        boolean changedMask = false;
+        int newEndpoints = 0;
+        for (Line line : Line.VALUES) {
+            int mask = 0;
+            for (Direction side : DIRECTIONS) {
+                if (computeArm(line, side)) {
+                    mask |= DuctModelData.bit(side);
+                }
+            }
+            if (arms[line.ordinal()] != mask) {
+                arms[line.ordinal()] = mask;
+                changedMask = true;
+            }
+        }
+        for (Direction side : DIRECTIONS) {
+            if ((connections() & DuctModelData.bit(side)) != 0
+                    && !(level.getBlockEntity(worldPosition.relative(side)) instanceof UtilityDuctBlockEntity)) {
+                newEndpoints |= DuctModelData.bit(side);
+            }
+        }
+        if (endpoints != newEndpoints) {
+            endpoints = newEndpoints;
+            changedMask = true;
+        }
+        return changedMask;
+    }
+
+    /**
+     * A neighbour was placed, removed or changed: refresh the masks and the
+     * block state flags and, when anything differs, tell the client.
+     */
+    public void neighbourChanged() {
+        if (level == null || level.isClientSide() || isRemoved()) {
+            return;
+        }
+        if (recomputeArms()) {
+            setChanged();
+            if (getBlockState().getBlock() instanceof UtilityDuctBlock duct) {
+                duct.refreshConnections(level, worldPosition);
+            }
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
     }
 
     // Facade
@@ -166,10 +294,33 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
 
     @Override
     public ModelData getModelData() {
-        return facade == null ? ModelData.EMPTY : ModelData.builder().with(DuctModelData.FACADE, facade).build();
+        int[] channelData = new int[Line.VALUES.length * SIDES];
+        for (Line line : Line.VALUES) {
+            for (Direction side : DIRECTIONS) {
+                channelData[DuctModelData.channelIndex(line, side)] = channels[line.ordinal()][side.ordinal()];
+            }
+        }
+        ModelData.Builder builder = ModelData.builder()
+                .with(DuctModelData.LINES, linesMask())
+                .with(DuctModelData.ARMS, arms.clone())
+                .with(DuctModelData.ENDPOINTS, endpoints)
+                .with(DuctModelData.CHANNELS, channelData);
+        if (facade != null) {
+            builder.with(DuctModelData.FACADE, facade);
+        }
+        return builder.build();
     }
 
-    // Filters and priorities (item channel)
+    /** Bitmask of the present lines, {@code 1 << line.ordinal()}. */
+    public int linesMask() {
+        int mask = 0;
+        for (Line line : lines) {
+            mask |= 1 << line.ordinal();
+        }
+        return mask;
+    }
+
+    // Filters and priorities (item line)
 
     public ItemStackHandler filter(Direction side) {
         return filters[side.ordinal()];
@@ -207,26 +358,37 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
 
     private void configChanged() {
         changed();
-        for (Channel channel : channels) {
-            network(channel).ifPresent(network -> network.post(new DuctEvent.ConfigChanged(Conversions.toNodePos(worldPosition))));
+        for (Line line : lines) {
+            network(line).ifPresent(network -> network.post(new DuctEvent.ConfigChanged(Conversions.toNodePos(worldPosition))));
         }
     }
 
+    /**
+     * Lines, modes, channels, filters, priorities or the facade changed: save,
+     * refresh and sync. Neighbouring ducts refresh too, because their arms
+     * toward this duct depend on its lines.
+     */
     private void changed() {
         setChanged();
         if (level != null && !level.isClientSide()) {
+            recomputeArms();
             if (getBlockState().getBlock() instanceof UtilityDuctBlock duct) {
                 duct.refreshConnections(level, worldPosition);
             }
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+            for (Direction side : DIRECTIONS) {
+                if (level.getBlockEntity(worldPosition.relative(side)) instanceof UtilityDuctBlockEntity neighbour) {
+                    neighbour.neighbourChanged();
+                }
+            }
         }
     }
 
     // Capabilities
 
-    /** Item handler shown to the neighbour on {@code side}, null without an item channel. */
+    /** Item handler shown to the neighbour on {@code side}, null without an Item Pipe. */
     public IItemHandler itemHandler(Direction side) {
-        if (!has(Channel.ITEM) || side == null) {
+        if (!has(Line.ITEM) || side == null) {
             return null;
         }
         return itemHandlers.computeIfAbsent(side, s -> new DuctItemHandler(this, s));
@@ -235,27 +397,27 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
     // Networks
 
     @SuppressWarnings("unchecked")
-    public <T extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent>> Optional<T> network(Channel channel) {
+    public <T extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent>> Optional<T> network(Line line) {
         if (!(level instanceof ServerLevel server)) {
             return Optional.empty();
         }
-        NetworkType<UtilityDuctBlockEntity, DuctEvent, T> type = (NetworkType<UtilityDuctBlockEntity, DuctEvent, T>) typeOf(channel);
+        NetworkType<UtilityDuctBlockEntity, DuctEvent, T> type = (NetworkType<UtilityDuctBlockEntity, DuctEvent, T>) typeOf(line);
         return NetworkManager.of(server).set(type).networkAt(Conversions.toNodePos(worldPosition));
     }
 
-    private static NetworkType<UtilityDuctBlockEntity, DuctEvent, ?> typeOf(Channel channel) {
-        return channel == Channel.ITEM ? ItemChannelNetwork.TYPE : EnergyChannelNetwork.TYPE;
+    private static NetworkType<UtilityDuctBlockEntity, DuctEvent, ?> typeOf(Line line) {
+        return line == Line.ITEM ? ItemChannelNetwork.TYPE : EnergyChannelNetwork.TYPE;
     }
 
-    private void join(Channel channel) {
-        if (level instanceof ServerLevel server && !isRemoved() && joined.add(channel)) {
-            NetworkManager.of(server).join(worldPosition, nodes.get(channel));
+    private void join(Line line) {
+        if (level instanceof ServerLevel server && !isRemoved() && joined.add(line)) {
+            NetworkManager.of(server).join(worldPosition, nodes.get(line));
         }
     }
 
-    private void leave(Channel channel) {
-        if (level instanceof ServerLevel server && joined.remove(channel)) {
-            NetworkManager.of(server).leave(worldPosition, nodes.get(channel));
+    private void leave(Line line) {
+        if (level instanceof ServerLevel server && joined.remove(line)) {
+            NetworkManager.of(server).leave(worldPosition, nodes.get(line));
         }
     }
 
@@ -266,16 +428,16 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
             DuctTracker.add(this);
             return;
         }
-        for (Channel channel : channels) {
-            join(channel);
+        for (Line line : lines) {
+            join(line);
         }
     }
 
     @Override
     public void setRemoved() {
         DuctTracker.remove(this);
-        for (Channel channel : Channel.VALUES) {
-            leave(channel);
+        for (Line line : Line.VALUES) {
+            leave(line);
         }
         super.setRemoved();
     }
@@ -284,23 +446,23 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         DuctTracker.remove(this);
-        for (Channel channel : Channel.VALUES) {
-            leave(channel);
+        for (Line line : Line.VALUES) {
+            leave(line);
         }
     }
 
     /** Adapter so one block entity can sit in two network types. */
-    private final class ChannelNode implements NetworkNode<UtilityDuctBlockEntity> {
+    private final class LineNode implements NetworkNode<UtilityDuctBlockEntity> {
 
-        private final Channel channel;
+        private final Line line;
 
-        private ChannelNode(Channel channel) {
-            this.channel = channel;
+        private LineNode(Line line) {
+            this.line = line;
         }
 
         @Override
         public NetworkType<UtilityDuctBlockEntity, ?, ?> networkType() {
-            return typeOf(channel);
+            return typeOf(line);
         }
 
         @Override
@@ -327,25 +489,35 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         ListTag list = new ListTag();
-        channels.forEach(channel -> list.add(StringTag.valueOf(channel.id())));
-        tag.put("Channels", list);
-        CompoundTag all = new CompoundTag();
-        for (Channel channel : Channel.VALUES) {
-            CompoundTag perSide = new CompoundTag();
-            for (Direction direction : Direction.values()) {
-                SideMode mode = mode(channel, direction);
+        lines.forEach(line -> list.add(StringTag.valueOf(line.id())));
+        tag.put("Lines", list);
+        CompoundTag modeTag = new CompoundTag();
+        CompoundTag channelTag = new CompoundTag();
+        for (Line line : Line.VALUES) {
+            CompoundTag perSideModes = new CompoundTag();
+            CompoundTag perSideChannels = new CompoundTag();
+            for (Direction direction : DIRECTIONS) {
+                SideMode mode = mode(line, direction);
                 if (mode != SideMode.BOTH) {
-                    perSide.putString(direction.getSerializedName(), mode.name().toLowerCase(Locale.ROOT));
+                    perSideModes.putString(direction.getSerializedName(), mode.name().toLowerCase(Locale.ROOT));
+                }
+                int channel = channel(line, direction);
+                if (channel != 0) {
+                    perSideChannels.putInt(direction.getSerializedName(), channel);
                 }
             }
-            if (!perSide.isEmpty()) {
-                all.put(channel.id(), perSide);
+            if (!perSideModes.isEmpty()) {
+                modeTag.put(line.id(), perSideModes);
+            }
+            if (!perSideChannels.isEmpty()) {
+                channelTag.put(line.id(), perSideChannels);
             }
         }
-        tag.put("Modes", all);
+        tag.put("Modes", modeTag);
+        tag.put("Channels", channelTag);
         CompoundTag filterTag = new CompoundTag();
         CompoundTag priorityTag = new CompoundTag();
-        for (Direction direction : Direction.values()) {
+        for (Direction direction : DIRECTIONS) {
             ItemStackHandler filter = filters[direction.ordinal()];
             boolean empty = true;
             for (int i = 0; i < FILTER_SLOTS && empty; i++) {
@@ -360,6 +532,8 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
         }
         tag.put("Filters", filterTag);
         tag.put("Priorities", priorityTag);
+        tag.putIntArray("Arms", arms.clone());
+        tag.putInt("Endpoints", endpoints);
         if (facade != null) {
             tag.put("Facade", NbtUtils.writeBlockState(facade));
         }
@@ -368,33 +542,40 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        channels.clear();
-        for (Tag entry : tag.getList("Channels", Tag.TAG_STRING)) {
-            Channel channel = Channel.byId(entry.getAsString());
-            if (channel != null) {
-                channels.add(channel);
+        lines.clear();
+        for (Tag entry : tag.getList("Lines", Tag.TAG_STRING)) {
+            Line line = Line.byId(entry.getAsString());
+            if (line != null) {
+                lines.add(line);
             }
         }
         for (SideMode[] row : modes) {
             Arrays.fill(row, SideMode.BOTH);
         }
-        CompoundTag all = tag.getCompound("Modes");
-        for (Channel channel : Channel.VALUES) {
-            CompoundTag perSide = all.getCompound(channel.id());
-            for (Direction direction : Direction.values()) {
-                String name = perSide.getString(direction.getSerializedName());
+        for (byte[] row : channels) {
+            Arrays.fill(row, (byte) 0);
+        }
+        CompoundTag modeTag = tag.getCompound("Modes");
+        CompoundTag channelTag = tag.getCompound("Channels");
+        for (Line line : Line.VALUES) {
+            CompoundTag perSideModes = modeTag.getCompound(line.id());
+            CompoundTag perSideChannels = channelTag.getCompound(line.id());
+            for (Direction direction : DIRECTIONS) {
+                String name = perSideModes.getString(direction.getSerializedName());
                 if (!name.isEmpty()) {
                     try {
-                        modes[channel.ordinal()][direction.ordinal()] = SideMode.valueOf(name.toUpperCase(Locale.ROOT));
+                        modes[line.ordinal()][direction.ordinal()] = SideMode.valueOf(name.toUpperCase(Locale.ROOT));
                     } catch (IllegalArgumentException ignored) {
                         // Unknown mode names fall back to BOTH.
                     }
                 }
+                channels[line.ordinal()][direction.ordinal()] =
+                        (byte) DuctChannels.clamp(perSideChannels.getInt(direction.getSerializedName()));
             }
         }
         CompoundTag filterTag = tag.getCompound("Filters");
         CompoundTag priorityTag = tag.getCompound("Priorities");
-        for (Direction direction : Direction.values()) {
+        for (Direction direction : DIRECTIONS) {
             ItemStackHandler filter = filters[direction.ordinal()];
             ItemStackHandler saved = new ItemStackHandler();
             if (filterTag.contains(direction.getSerializedName())) {
@@ -406,6 +587,12 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
             priorities[direction.ordinal()] = Math.max(MIN_PRIORITY, Math.min(MAX_PRIORITY,
                     priorityTag.getInt(direction.getSerializedName())));
         }
+        int[] savedArms = tag.getIntArray("Arms");
+        Arrays.fill(arms, 0);
+        for (int i = 0; i < arms.length && i < savedArms.length; i++) {
+            arms[i] = savedArms[i];
+        }
+        endpoints = tag.getInt("Endpoints");
         facade = tag.contains("Facade") ? NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound("Facade")) : null;
         if (facade != null && facade.isAir()) {
             facade = null;
@@ -416,13 +603,13 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
         }
         if (level instanceof ServerLevel) {
             // A data merge or reload changed the configuration while loaded: reconcile memberships.
-            for (Channel channel : Channel.VALUES) {
-                if (channels.contains(channel)) {
-                    join(channel);
-                    network(channel).ifPresent(network ->
+            for (Line line : Line.VALUES) {
+                if (lines.contains(line)) {
+                    join(line);
+                    network(line).ifPresent(network ->
                             network.post(new DuctEvent.ConfigChanged(Conversions.toNodePos(worldPosition))));
                 } else {
-                    leave(channel);
+                    leave(line);
                 }
             }
         }

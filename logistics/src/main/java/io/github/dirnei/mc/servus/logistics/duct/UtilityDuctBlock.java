@@ -3,7 +3,6 @@ package io.github.dirnei.mc.servus.logistics.duct;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
 import net.minecraft.core.BlockPos;
@@ -27,11 +26,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.capabilities.Capabilities;
 
 /**
- * Utility duct block. Connections depend on the channels the block entity
- * holds and on the side modes. Right click opens the side configuration.
+ * Utility duct block. The six connection flags are the union of the per line
+ * arms the block entity computes from its lines, side modes and neighbours.
  */
 public class UtilityDuctBlock extends ConnectableBlock {
 
@@ -51,24 +49,31 @@ public class UtilityDuctBlock extends ConnectableBlock {
         return new UtilityDuctBlockEntity(pos, state);
     }
 
+    /** A side connects when any line has an arm there; see {@link UtilityDuctBlockEntity#computeArm}. */
     @Override
     protected boolean connectsTo(LevelAccessor level, BlockPos neighborPos, BlockState neighborState, Direction direction) {
-        if (neighborState.getBlock() instanceof UtilityDuctBlock) {
-            return true;
-        }
         BlockPos pos = neighborPos.relative(direction.getOpposite());
-        if (!(level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) || !(level instanceof Level realLevel)) {
+        if (!(level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct)) {
             return false;
         }
-        if (duct.has(Channel.ITEM) && duct.mode(Channel.ITEM, direction) != SideMode.DISABLED
-                && realLevel.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, direction.getOpposite()) != null) {
-            return true;
+        for (Line line : Line.VALUES) {
+            if (duct.computeArm(line, direction)) {
+                return true;
+            }
         }
-        return duct.has(Channel.ENERGY) && duct.mode(Channel.ENERGY, direction) != SideMode.DISABLED
-                && realLevel.getCapability(Capabilities.EnergyStorage.BLOCK, neighborPos, direction.getOpposite()) != null;
+        return false;
     }
 
-    /** Recomputes the six connection flags, after channels or modes changed. */
+    /** A neighbour was placed, removed or changed: the block entity refreshes its arms. */
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
+            duct.neighbourChanged();
+        }
+    }
+
+    /** Recomputes the six connection flags, after lines, modes or neighbours changed. */
     public void refreshConnections(Level level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         if (!(state.getBlock() instanceof UtilityDuctBlock)) {
@@ -84,11 +89,11 @@ public class UtilityDuctBlock extends ConnectableBlock {
         }
     }
 
-    /** Wrench, channel and facade items handle the click themselves instead of opening the menu. */
+    /** Wrench, line and facade items handle the click themselves instead of opening the menu. */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof ChannelItem || stack.getItem() instanceof FacadeItem) {
+        if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof LineItem || stack.getItem() instanceof FacadeItem) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
@@ -121,8 +126,8 @@ public class UtilityDuctBlock extends ConnectableBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
-            for (Channel channel : duct.channels()) {
-                Block.popResource(level, pos, new ItemStack(ServusLogisticsItems.channelItem(channel)));
+            for (Line line : duct.lines()) {
+                Block.popResource(level, pos, new ItemStack(ServusLogisticsItems.lineItem(line)));
             }
             ItemStack facade = duct.removeFacade();
             if (!facade.isEmpty()) {
@@ -132,7 +137,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    /** Sneak wrench takes the facade off first, then removes the duct; channels drop through {@link #onRemove}. */
+    /** Sneak wrench takes the facade off first, then removes the duct; lines drop through {@link #onRemove}. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Player player = context.getPlayer();
@@ -153,9 +158,9 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     @Override
     public ItemStack getCloneItemStack(BlockState state, net.minecraft.world.phys.HitResult target, LevelReader level, BlockPos pos, Player player) {
-        if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && !duct.channels().isEmpty()) {
-            return new ItemStack(ServusLogisticsItems.channelItem(duct.channels().iterator().next()));
+        if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && !duct.lines().isEmpty()) {
+            return new ItemStack(ServusLogisticsItems.lineItem(duct.lines().iterator().next()));
         }
-        return new ItemStack(ServusLogisticsItems.ITEM_CHANNEL.get());
+        return new ItemStack(ServusLogisticsItems.ITEM_PIPE.get());
     }
 }

@@ -11,20 +11,20 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Places a utility duct carrying this channel, or adds the channel to an
- * existing duct that lacks it.
+ * Places a utility duct carrying this line (Item Pipe or Power Cable), or
+ * adds the line to an existing duct that lacks it.
  */
-public class ChannelItem extends BlockItem {
+public class LineItem extends BlockItem {
 
-    private final Channel channel;
+    private final Line line;
 
-    public ChannelItem(Block block, Channel channel, Properties properties) {
+    public LineItem(Block block, Line line, Properties properties) {
         super(block, properties);
-        this.channel = channel;
+        this.line = line;
     }
 
-    public Channel channel() {
-        return channel;
+    public Line line() {
+        return line;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class ChannelItem extends BlockItem {
         BlockPos pos = context.getClickedPos();
         if (level.getBlockState(pos).getBlock() instanceof UtilityDuctBlock) {
             if (!level.isClientSide() && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
-                if (!duct.addChannel(channel)) {
+                if (!duct.addLine(line)) {
                     return InteractionResult.FAIL;
                 }
                 Player player = context.getPlayer();
@@ -53,12 +53,12 @@ public class ChannelItem extends BlockItem {
         }
         Level level = context.getLevel();
         if (!level.isClientSide() && level.getBlockEntity(context.getClickedPos()) instanceof UtilityDuctBlockEntity duct) {
-            duct.addChannel(channel);
+            duct.addLine(line);
         }
         return true;
     }
 
-    /** Each channel item has its own name instead of the shared block name. */
+    /** Each line item has its own name instead of the shared block name. */
     @Override
     public String getDescriptionId() {
         return getOrCreateDescriptionId();

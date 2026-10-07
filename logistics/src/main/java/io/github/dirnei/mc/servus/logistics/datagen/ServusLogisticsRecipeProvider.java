@@ -20,7 +20,7 @@ final class ServusLogisticsRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes(RecipeOutput output) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.ITEM_CHANNEL.get(), 8)
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.ITEM_PIPE.get(), 8)
                 .pattern("III")
                 .pattern("GCG")
                 .pattern("III")
@@ -30,7 +30,7 @@ final class ServusLogisticsRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_iron", has(Items.IRON_INGOT))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.ENERGY_CHANNEL.get(), 8)
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.POWER_CABLE.get(), 8)
                 .pattern("CCC")
                 .pattern("RGR")
                 .pattern("CCC")
