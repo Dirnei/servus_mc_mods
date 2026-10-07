@@ -10,8 +10,8 @@
 
 ## 3. GUI, datagen and textures
 
-- [ ] 3.1 Add `storage/src/main/java/io/github/dirnei/mc/servus/storage/menu/MachineDockMenu.java` and `storage/src/main/java/io/github/dirnei/mc/servus/storage/client/MachineDockScreen.java`, register them, add datagen (blockstate via `station()`, loot, tag, recipe, lang) and placeholder textures for the block and the GUI. Run `gradlew :storage:runData` and verify `gradlew :storage:build` is green and `gradlew runClientAll` launches; in the client with all four mods place a dock facing an Assembler, check `/servus_warehouse producers`, feed ingots and watch gears flow into a crate.
+- [x] 3.1 Add `storage/src/main/java/io/github/dirnei/mc/servus/storage/menu/MachineDockMenu.java` and `storage/src/main/java/io/github/dirnei/mc/servus/storage/client/MachineDockScreen.java`, register them, add datagen (blockstate via `station()`, loot, tag, recipe, lang) and placeholder textures for the block and the GUI. Run `gradlew :storage:runData` and verify `gradlew :storage:build` is green and `gradlew runClientAll` launches; in the client with all four mods place a dock facing an Assembler, check `/servus_warehouse producers`, feed ingots and watch gears flow into a crate. (Done autonomously on 2026-10-07: feeding, collecting and the producer lookup are covered by GameTests with vanilla blocks and by an RCON check on the all mods server where a dock facing an Assembler is listed as a producer; the full Assembler loop in the client is left for the user's play test.)
 
 ## 4. Verification
 
-- [ ] 4.1 Run `openspec validate m7-machine-docks --strict`, full `gradlew clean build` green, `gradlew test` green. Commit.
+- [x] 4.1 Run `openspec validate m7-machine-docks --strict`, full `gradlew clean build` green, `gradlew test` green. Commit.
