@@ -38,8 +38,17 @@ public final class DuctParts {
         };
     }
 
+    /** The centre whose bands run along the Z axis, which also serves vertical runs and single line ducts. */
     public static String centerName(int linesMask) {
         return "center_" + suffix(linesMask);
+    }
+
+    /** The centre for a run along the axis: the two line set has an extra centre for the X axis. */
+    public static String centerName(int linesMask, Direction.Axis along) {
+        if ((linesMask & BOTH) == BOTH && along == Direction.Axis.X) {
+            return "center_both_x";
+        }
+        return centerName(linesMask);
     }
 
     public static String armName(Direction direction, int linesMask) {

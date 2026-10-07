@@ -29,9 +29,13 @@ final class DuctPartModels {
     static ModelFile generate(BlockStateProvider provider) {
         ModelFile base = null;
         for (int lines : new int[] {DuctParts.ITEM, DuctParts.ENERGY, DuctParts.BOTH}) {
-            ModelFile center = center(provider, lines);
+            ModelFile center = center(provider, lines, Direction.Axis.Z);
             if (lines == DuctParts.ITEM) {
                 base = center;
+            }
+            if (lines == DuctParts.BOTH) {
+                // An east west run needs its bands split the other way round.
+                center(provider, lines, Direction.Axis.X);
             }
             for (Direction direction : Direction.values()) {
                 arm(provider, direction, lines);
@@ -57,12 +61,12 @@ final class DuctPartModels {
         return model;
     }
 
-    private static ModelFile center(BlockStateProvider provider, int lines) {
-        BlockModelBuilder model = builder(provider, DuctParts.centerName(lines), lines);
+    private static ModelFile center(BlockStateProvider provider, int lines, Direction.Axis along) {
+        BlockModelBuilder model = builder(provider, DuctParts.centerName(lines, along), lines);
         int r = radius(lines);
         float lo = 8 - r;
         float hi = 8 + r;
-        skinBox(model, lines, Direction.Axis.Z, lo, lo, lo, hi, hi, hi);
+        skinBox(model, lines, along, lo, lo, lo, hi, hi, hi);
         return model;
     }
 

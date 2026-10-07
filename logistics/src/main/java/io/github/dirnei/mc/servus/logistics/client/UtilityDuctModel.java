@@ -69,7 +69,7 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
         if (linesMask == 0) {
             linesMask = DuctParts.ITEM;
         }
-        List<BakedQuad> quads = new ArrayList<>(part(DuctParts.centerName(linesMask))
+        List<BakedQuad> quads = new ArrayList<>(part(DuctParts.centerName(linesMask, runAxis(arms)))
                 .getQuads(state, null, rand, ModelData.EMPTY, renderType));
         for (Direction direction : Direction.values()) {
             int armLines = 0;
@@ -89,6 +89,19 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
             }
         }
         return quads;
+    }
+
+    /** The axis the centre's bands run along: X when every horizontal arm lies east or west, else Z. */
+    private static Direction.Axis runAxis(int[] arms) {
+        int all = 0;
+        if (arms != null) {
+            for (int mask : arms) {
+                all |= mask;
+            }
+        }
+        boolean x = (all & (DuctModelData.bit(Direction.EAST) | DuctModelData.bit(Direction.WEST))) != 0;
+        boolean z = (all & (DuctModelData.bit(Direction.NORTH) | DuctModelData.bit(Direction.SOUTH))) != 0;
+        return x && !z ? Direction.Axis.X : Direction.Axis.Z;
     }
 
     @Override
