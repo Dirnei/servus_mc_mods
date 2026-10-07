@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.terminal;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
@@ -30,7 +31,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * land in, and remembers the open requests made here. Requests are not
  * persisted; a reload clears them.
  */
-public class CounterTerminalBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
+public class CounterTerminalBlockEntity extends StorageNodeBlockEntity implements MenuProvider, DeliveryTarget {
 
     /** How a request is doing, as the GUI shows it. */
     public enum RequestState { WAITING_SHUTTLE, PICKING, WAITING_ROOM, MISSING }
@@ -74,6 +75,11 @@ public class CounterTerminalBlockEntity extends StorageNodeBlockEntity implement
 
     /** The slots deliveries land in. Never a capability: not stock, not hopper reachable. */
     public ItemStackHandler output() {
+        return output;
+    }
+
+    @Override
+    public ItemStackHandler deliveries() {
         return output;
     }
 

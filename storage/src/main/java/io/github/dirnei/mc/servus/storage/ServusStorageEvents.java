@@ -93,6 +93,8 @@ public final class ServusStorageEvents {
                     (rack, side) -> rack.items());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.intake());
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.MACHINE_DOCK.get(),
+                    (dock, side) -> dock.intake());
             event.registerBlockEntity(ServusLibCapabilities.STOCK_PROVIDER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
                     (controller, side) -> controller.stock());
             event.registerBlockEntity(ServusLibCapabilities.STOCK_SINK, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),

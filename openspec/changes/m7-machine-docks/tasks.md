@@ -2,11 +2,11 @@
 
 ## 1. Dock block entity and block
 
-- [ ] 1.1 Add a protected typed constructor to `storage/src/main/java/io/github/dirnei/mc/servus/storage/station/InboundStationBlockEntity.java`, add `storage/src/main/java/io/github/dirnei/mc/servus/storage/network/DeliveryTarget.java` and implement it on `CounterTerminalBlockEntity`, add `storage/src/main/java/io/github/dirnei/mc/servus/storage/dock/MachineDockBlockEntity.java` (feed buffer, `serverTick` feeding, `acceptsRail`, `producer()`, `deliveries()`, drop both buffers) and `MachineDockBlock.java` (facing, lamps, ticker, menu, carrot, drops), register block, block entity, item and capability, read `dock_feed_interval` in `StorageStatsManager.java` and add it to `warehouse.json`. Verify `gradlew :storage:build` is green.
+- [x] 1.1 Add a protected typed constructor to `storage/src/main/java/io/github/dirnei/mc/servus/storage/station/InboundStationBlockEntity.java`, add `storage/src/main/java/io/github/dirnei/mc/servus/storage/network/DeliveryTarget.java` and implement it on `CounterTerminalBlockEntity`, add `storage/src/main/java/io/github/dirnei/mc/servus/storage/dock/MachineDockBlockEntity.java` (feed buffer, `serverTick` feeding, `acceptsRail`, `producer()`, `deliveries()`, drop both buffers) and `MachineDockBlock.java` (facing, lamps, ticker, menu, carrot, drops), register block, block entity, item and capability, read `dock_feed_interval` in `StorageStatsManager.java` and add it to `warehouse.json`. Verify `gradlew :storage:build` is green.
 
 ## 2. Network: deliveries to any buffer, feeding, producers
 
-- [ ] 2.1 In `WarehouseNetwork.java` replace `deliverToTerminal` by `deliverTo` over `DeliveryTarget`, factor `request` into `planAndStart`, add `feedDock(...)`, `producers()` and the `Producer` record; add `producers` and `feed` to `ServusStorageCommands.java`. Add GameTests `dockFeedsTheBlockItFaces`, `dockCollectsAndPutsAway`, `dockFacingAChestIsNoProducer`, `feedDockFromCrate`, `feedDockByShuttle` and `dockFrontTakesNoRail` to `ServusStorageGameTests.java`. Verify `gradlew :storage:runGameTestServer` passes all storage tests.
+- [x] 2.1 In `WarehouseNetwork.java` replace `deliverToTerminal` by `deliverTo` over `DeliveryTarget`, factor `request` into `planAndStart`, add `feedDock(...)`, `producers()` and the `Producer` record; add `producers` and `feed` to `ServusStorageCommands.java`. Add GameTests `dockFeedsTheBlockItFaces`, `dockCollectsAndPutsAway`, `dockFacingAChestIsNoProducer`, `feedDockFromCrate`, `feedDockByShuttle` and `dockFrontTakesNoRail` to `ServusStorageGameTests.java`. Verify `gradlew :storage:runGameTestServer` passes all storage tests.
 
 ## 3. GUI, datagen and textures
 

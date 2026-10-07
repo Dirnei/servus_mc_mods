@@ -4,5 +4,6 @@
   "inbound_buffer_slots": 9,
   "put_away_per_tick": 1,
   "garage_capacity": 4,
-  "terminal_output_slots": 9
+  "terminal_output_slots": 9,
+  "dock_feed_interval": 8
 }

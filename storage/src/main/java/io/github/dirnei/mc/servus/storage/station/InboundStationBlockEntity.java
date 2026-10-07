@@ -21,6 +21,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -81,7 +82,16 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     private String blockedZone = "";
 
     public InboundStationBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusStorageBlockEntities.INBOUND_STATION.get(), pos, state);
+        this(ServusStorageBlockEntities.INBOUND_STATION.get(), pos, state);
+    }
+
+    protected InboundStationBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
+    }
+
+    /** Re-evaluates which rails link to this node, for when its facing changed. */
+    public void refreshRails() {
+        refreshNetworkConnections();
     }
 
     @Override

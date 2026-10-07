@@ -21,6 +21,11 @@ import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.dock.MachineDockBlockEntity;
+import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
+import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import java.util.function.ToIntFunction;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
 import java.util.ArrayDeque;
@@ -465,11 +470,15 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      *         {@code offline}, {@code needs_shuttle}, {@code no_rail} or {@code out_of_stock}
      */
     public String request(CounterTerminalBlockEntity terminal, ItemKey key, int amount) {
-        if (status() != Status.ONLINE) {
-            return "offline";
-        }
-        BlockPos terminalPos = terminal.getBlockPos();
-        boolean terminalReachable = fleet.canReach(terminalPos);
+        return planAndStart(terminal.getBlockPos(), key, amount, plan -> terminal.newRequest(key, amount, plan.unservable()).id);
+    }
+
+    /** Delivers items into a dock's feed buffer, planned and refused like a request. */
+    public String feedDock(MachineDockBlockEntity dock, ItemKey key, int amount) {
+        return planAndStart(dock.getBlockPos(), key, amount, plan -> 0);
+    }
+
+    private List<RequestPlan.Stock<BlockPos>> stockOf(ItemKey key) {
         List<RequestPlan.Stock<BlockPos>> stock = new ArrayList<>();
         for (BlockPos pos : index.sourcesHolding(key)) {
             Integer count = index.snapshot(pos).get(key);
@@ -478,16 +487,29 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
             stock.add(new RequestPlan.Stock<>(pos, count, isRack(pos), fleet.canReach(pos)));
         }
-        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), terminalReachable, stock);
+        return stock;
+    }
+
+    private String planAndStart(BlockPos destination, ItemKey key, int amount, ToIntFunction<RequestPlan.Plan<BlockPos>> requestId) {
+        if (status() != Status.ONLINE) {
+            return "offline";
+        }
+        boolean reachable = fleet.canReach(destination);
+        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), reachable, stockOf(key));
         if (plan.jobs().isEmpty()) {
             if (plan.needsShuttle()) {
-                return fleet.hasShuttles() && !terminalReachable ? "no_rail" : "needs_shuttle";
+                return fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle";
             }
             return "out_of_stock";
         }
-        CounterTerminalBlockEntity.Request request = terminal.newRequest(key, amount, plan.unservable());
+        int id = requestId.applyAsInt(plan);
+        startJobs(plan, id, key, destination);
+        return "";
+    }
+
+    private void startJobs(RequestPlan.Plan<BlockPos> plan, int requestId, ItemKey key, BlockPos destination) {
         for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
-            PickJob pick = new PickJob(request.id, key, job.count(), job.source(), terminalPos);
+            PickJob pick = new PickJob(requestId, key, job.count(), job.source(), destination);
             if (job.byShuttle()) {
                 fleet.requestPick(pick);
             } else {
@@ -496,7 +518,29 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 deliverInstant(pick, taken);
             }
         }
-        return "";
+    }
+
+    /** A dock and what the block it faces can make. */
+    public record Producer(BlockPos dock, BlockPos machine, Component machineName, List<ProductionRecipe> recipes,
+                           Optional<ResourceLocation> active) {
+    }
+
+    /** Every dock of the warehouse with its producer's recipes; docks without a producer list none. */
+    public List<Producer> producers() {
+        List<Producer> list = new ArrayList<>();
+        if (level == null) {
+            return list;
+        }
+        for (BlockPos pos : stations) {
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof MachineDockBlockEntity dock) {
+                ProductionProvider provider = dock.producer();
+                BlockPos machine = dock.facingPos();
+                Component name = level.getBlockState(machine).getBlock().getName();
+                list.add(new Producer(pos, machine, name, provider == null ? List.of() : provider.recipes(),
+                        provider == null ? Optional.empty() : provider.active()));
+            }
+        }
+        return list;
     }
 
     /** Plans the missing part of every idle request again; stock may have arrived meanwhile. */
@@ -513,26 +557,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 if (request.missing <= 0 || fleet.queuedFor(request.id) > 0 || fleet.ridingFor(request.id) > 0 || heldFor(pos, request.id) > 0) {
                     continue;
                 }
-                boolean terminalReachable = fleet.canReach(pos);
-                List<RequestPlan.Stock<BlockPos>> stock = new ArrayList<>();
-                for (BlockPos source : index.sourcesHolding(request.key)) {
-                    Integer count = index.snapshot(source).get(request.key);
-                    if (count != null && count > 0 && sources.containsKey(source)) {
-                        stock.add(new RequestPlan.Stock<>(source, count, isRack(source), fleet.canReach(source)));
-                    }
-                }
-                RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(request.missing, request.key.stack(1).getMaxStackSize(), terminalReachable, stock);
-                for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
-                    request.missing -= job.count();
-                    PickJob pick = new PickJob(request.id, request.key, job.count(), job.source(), pos);
-                    if (job.byShuttle()) {
-                        fleet.requestPick(pick);
-                    } else {
-                        ItemStack taken = extractFrom(job.source(), request.key, job.count());
-                        pickLoaded(pick, taken.getCount());
-                        deliverInstant(pick, taken);
-                    }
-                }
+                RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(request.missing, request.key.stack(1).getMaxStackSize(),
+                        fleet.canReach(pos), stockOf(request.key));
+                request.missing -= plan.planned();
+                startJobs(plan, request.id, request.key, pos);
             }
         }
     }
@@ -601,28 +629,30 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     @Override
-    public ItemStack deliverToTerminal(PickJob job, ItemStack stack) {
+    public ItemStack deliverTo(PickJob job, ItemStack stack) {
         if (stack.isEmpty()) {
             return stack;
         }
-        CounterTerminalBlockEntity terminal = terminalAt(job.terminal());
-        if (terminal == null) {
+        BlockEntity destination = level == null ? null : level.getBlockEntity(job.terminal());
+        if (!(destination instanceof DeliveryTarget target)) {
             Block.popResource(level, job.terminal(), stack);
             return ItemStack.EMPTY;
         }
         int before = stack.getCount();
-        ItemStack left = ItemHandlerHelper.insertItem(terminal.output(), stack, false);
-        CounterTerminalBlockEntity.Request request = terminal.request(job.requestId());
-        if (request != null) {
-            request.delivered += before - left.getCount();
-            request.waitingRoom = !left.isEmpty();
+        ItemStack left = ItemHandlerHelper.insertItem(target.deliveries(), stack, false);
+        if (destination instanceof CounterTerminalBlockEntity terminal) {
+            CounterTerminalBlockEntity.Request request = terminal.request(job.requestId());
+            if (request != null) {
+                request.delivered += before - left.getCount();
+                request.waitingRoom = !left.isEmpty();
+            }
         }
         return left;
     }
 
     @Override
     public void deliverInstant(PickJob job, ItemStack stack) {
-        ItemStack left = deliverToTerminal(job, stack);
+        ItemStack left = deliverTo(job, stack);
         if (!left.isEmpty()) {
             held.computeIfAbsent(job.terminal(), pos -> new ArrayList<>()).add(new HeldLoad(job, left));
         }
@@ -636,7 +666,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         List<HeldLoad> remaining = new ArrayList<>();
         for (HeldLoad load : loads) {
-            ItemStack left = deliverToTerminal(load.job(), load.stack());
+            ItemStack left = deliverTo(load.job(), load.stack());
             if (!left.isEmpty()) {
                 remaining.add(new HeldLoad(load.job(), left));
             }

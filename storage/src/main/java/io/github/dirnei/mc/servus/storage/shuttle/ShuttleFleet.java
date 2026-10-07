@@ -63,7 +63,7 @@ public final class ShuttleFleet {
         void pickDropped(PickJob job, int count);
 
         /** Puts a load into the terminal's output slots; returns what did not fit. */
-        ItemStack deliverToTerminal(PickJob job, ItemStack stack);
+        ItemStack deliverTo(PickJob job, ItemStack stack);
 
         /** Puts an instant load into the output slots, holding what does not fit until there is room. */
         void deliverInstant(PickJob job, ItemStack stack);
@@ -289,7 +289,7 @@ public final class ShuttleFleet {
         for (Garage garage : garages.values()) {
             for (Shuttle shuttle : garage.shuttles) {
                 if (shuttle.leg == Leg.WAITING_ROOM && shuttle.job instanceof PickJob pick) {
-                    shuttle.cargo = host.deliverToTerminal(pick, shuttle.cargo);
+                    shuttle.cargo = host.deliverTo(pick, shuttle.cargo);
                     if (shuttle.cargo.isEmpty()) {
                         shuttle.job = null;
                         goHome(shuttle);
@@ -416,7 +416,7 @@ public final class ShuttleFleet {
                 }
             }
             case TO_TERMINAL -> {
-                shuttle.cargo = host.deliverToTerminal(job, shuttle.cargo);
+                shuttle.cargo = host.deliverTo(job, shuttle.cargo);
                 if (shuttle.cargo.isEmpty()) {
                     shuttle.job = null;
                     goHome(shuttle);

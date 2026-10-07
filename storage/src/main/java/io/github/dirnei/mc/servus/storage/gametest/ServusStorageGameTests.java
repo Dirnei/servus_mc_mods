@@ -21,6 +21,9 @@ import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
 import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
 import io.github.dirnei.mc.servus.lib.production.StockProvider;
 import io.github.dirnei.mc.servus.lib.production.StockSink;
+import io.github.dirnei.mc.servus.storage.dock.MachineDockBlock;
+import io.github.dirnei.mc.servus.storage.dock.MachineDockBlockEntity;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
@@ -1275,6 +1278,135 @@ public final class ServusStorageGameTests {
             helper.assertTrue(taken.getCount() == 20 && full.count() == 60, "extract should take 20 and leave 60");
             ItemStack left = sink.insert(new ItemStack(Items.BREAD, 20));
             helper.assertTrue(left.isEmpty() && empty.count() == 20 && empty.type(0).is(Items.BREAD), "the sink should put the bread into the empty crate");
+            helper.succeed();
+        });
+    }
+
+    private static final BlockPos MD_CONTROLLER = new BlockPos(2, 1, 2);
+    private static final BlockPos MD_DOCK = new BlockPos(3, 1, 2);
+    private static final BlockPos MD_CHEST = new BlockPos(4, 1, 2);
+    private static final BlockPos MD_CRATE = new BlockPos(1, 1, 2);
+
+    private static MachineDockBlockEntity dockSetup(GameTestHelper helper) {
+        helper.setBlock(MD_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(MD_DOCK, ServusStorageBlocks.MACHINE_DOCK.get().defaultBlockState().setValue(MachineDockBlock.FACING, Direction.EAST));
+        return helper.getBlockEntity(MD_DOCK);
+    }
+
+    /** The feed buffer is pushed into the block the dock faces. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void dockFeedsTheBlockItFaces(GameTestHelper helper) {
+        MachineDockBlockEntity dock = dockSetup(helper);
+        helper.setBlock(MD_CHEST, Blocks.CHEST.defaultBlockState());
+        dock.feed().setStackInSlot(0, new ItemStack(Items.IRON_INGOT, 8));
+        helper.runAfterDelay(20, () -> {
+            ChestBlockEntity chest = helper.getBlockEntity(MD_CHEST);
+            helper.assertTrue(chest.countItem(Items.IRON_INGOT) == 8, "the chest should hold the 8 ingots, had " + chest.countItem(Items.IRON_INGOT));
+            helper.assertTrue(dock.feedEmpty(), "the feed buffer should be empty");
+            helper.succeed();
+        });
+    }
+
+    /** Items handed to the dock land in its collect buffer and are put away into storage. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void dockCollectsAndPutsAway(GameTestHelper helper) {
+        MachineDockBlockEntity dock = dockSetup(helper);
+        helper.setBlock(MD_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity crate = helper.getBlockEntity(MD_CRATE);
+        helper.setBlock(MD_DOCK.above(), Blocks.HOPPER.defaultBlockState());
+        HopperBlockEntity hopper = helper.getBlockEntity(MD_DOCK.above());
+        hopper.setItem(0, new ItemStack(Items.BREAD, 10));
+        helper.runAfterDelay(160, () -> {
+            helper.assertTrue(crate.count() == 10 && crate.type(0).is(Items.BREAD), "the bread should have flowed through the dock into the crate, crate has " + crate.count());
+            helper.assertTrue(dock.isEmpty(), "the collect buffer should be empty");
+            helper.succeed();
+        });
+    }
+
+    /** A dock facing a chest is listed without recipes. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void dockFacingAChestIsNoProducer(GameTestHelper helper) {
+        dockSetup(helper);
+        helper.setBlock(MD_CHEST, Blocks.CHEST.defaultBlockState());
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(MD_CONTROLLER);
+        helper.runAfterDelay(5, () -> {
+            List<WarehouseNetwork.Producer> producers = controller.network().orElseThrow().producers();
+            helper.assertTrue(producers.size() == 1, "one dock expected, got " + producers.size());
+            helper.assertTrue(producers.get(0).recipes().isEmpty() && producers.get(0).machine().equals(helper.absolutePos(MD_CHEST)),
+                    "the chest is no producer: " + producers.get(0));
+            helper.succeed();
+        });
+    }
+
+    /** Feeding a dock from a crate touching the controller is instant. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void feedDockFromCrate(GameTestHelper helper) {
+        MachineDockBlockEntity dock = dockSetup(helper);
+        helper.setBlock(MD_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity crate = helper.getBlockEntity(MD_CRATE);
+        crate.insert(new ItemStack(Items.IRON_INGOT, 10), false);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(MD_CONTROLLER);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            String refused = network.feedDock(dock, ItemKey.of(new ItemStack(Items.IRON_INGOT)), 4);
+            helper.assertTrue(refused.isEmpty(), "the feed should go through, got " + refused);
+            helper.assertTrue(dock.feed().getStackInSlot(0).is(Items.IRON_INGOT) && dock.feed().getStackInSlot(0).getCount() == 4,
+                    "4 ingots should be in the feed buffer at once");
+            helper.assertTrue(crate.count() == 6, "the crate should have 6 left");
+            helper.assertTrue(network.feedDock(dock, ItemKey.of(new ItemStack(Items.BREAD)), 4).equals("out_of_stock"), "nothing in stock is refused");
+            helper.succeed();
+        });
+    }
+
+    private static final BlockPos FD_CONTROLLER = new BlockPos(1, 1, 7);
+    private static final BlockPos FD_RACK = new BlockPos(4, 1, 8);
+    private static final BlockPos FD_GARAGE = new BlockPos(2, 1, 8);
+    private static final BlockPos FD_DOCK = new BlockPos(7, 1, 8);
+
+    /** Feeding a dock from a rack rides a shuttle. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void feedDockByShuttle(GameTestHelper helper) {
+        helper.setBlock(FD_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        for (int x = 2; x <= 7; x++) {
+            helper.setBlock(new BlockPos(x, 0, 7), Blocks.STONE.defaultBlockState());
+            helper.setBlock(new BlockPos(x, 1, 7), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(FD_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        helper.setBlock(FD_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.setBlock(FD_DOCK, ServusStorageBlocks.MACHINE_DOCK.get().defaultBlockState().setValue(MachineDockBlock.FACING, Direction.SOUTH));
+        HeavyRackBlockEntity rack = helper.getBlockEntity(FD_RACK);
+        rack.items().insertItem(0, new ItemStack(Items.IRON_INGOT, 10), false);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(FD_GARAGE);
+        garage.addShuttle();
+        MachineDockBlockEntity dock = helper.getBlockEntity(FD_DOCK);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(FD_CONTROLLER);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            String refused = network.feedDock(dock, ItemKey.of(new ItemStack(Items.IRON_INGOT)), 4);
+            helper.assertTrue(refused.isEmpty(), "the feed should go through, got " + refused);
+            helper.assertTrue(dock.feedEmpty(), "nothing arrives at once from a rack");
+            helper.runAfterDelay(120, () -> {
+                helper.assertTrue(dock.feed().getStackInSlot(0).getCount() == 4, "the shuttle should have brought 4 ingots, feed has " + dock.feed().getStackInSlot(0).getCount());
+                helper.succeed();
+            });
+        });
+    }
+
+    private static final BlockPos NR_DOCK = new BlockPos(5, 1, 10);
+
+    /** A rail in front of a dock does not dock onto it; one behind does. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void dockFrontTakesNoRail(GameTestHelper helper) {
+        helper.setBlock(NR_DOCK.north().below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(NR_DOCK.south().below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(NR_DOCK, ServusStorageBlocks.MACHINE_DOCK.get().defaultBlockState().setValue(MachineDockBlock.FACING, Direction.NORTH));
+        placeRail(helper, NR_DOCK.north());
+        placeRail(helper, NR_DOCK.south());
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(!helper.getBlockState(NR_DOCK.north()).getValue(RailBlock.dock(Direction.SOUTH)), "the rail in front must not dock onto the dock");
+            helper.assertTrue(helper.getBlockState(NR_DOCK.south()).getValue(RailBlock.dock(Direction.NORTH)), "the rail behind should dock onto the dock");
             helper.succeed();
         });
     }

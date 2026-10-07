@@ -23,6 +23,7 @@ public final class ServusStorageClient {
         event.register(ServusStorageMenus.INBOUND_STATION.get(), InboundStationScreen::new);
         event.register(ServusStorageMenus.ZONE_LABEL.get(), ZoneLabelScreen::new);
         event.register(ServusStorageMenus.SHUTTLE_GARAGE.get(), ShuttleGarageScreen::new);
+        event.register(ServusStorageMenus.MACHINE_DOCK.get(), MachineDockScreen::new);
     }
 
     @SubscribeEvent

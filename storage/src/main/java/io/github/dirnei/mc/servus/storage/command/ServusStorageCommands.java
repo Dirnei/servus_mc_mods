@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,6 +42,14 @@ public final class ServusStorageCommands {
                 .then(Commands.literal("zones")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .executes(ServusStorageCommands::zones)))
+                .then(Commands.literal("producers")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .executes(ServusStorageCommands::producers)))
+                .then(Commands.literal("feed")
+                        .then(Commands.argument("dock", BlockPosArgument.blockPos())
+                                .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
+                                        .then(Commands.argument("count", IntegerArgumentType.integer(1, 4096))
+                                                .executes(ServusStorageCommands::feed)))))
                 .then(Commands.literal("take")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
@@ -77,6 +86,63 @@ public final class ServusStorageCommands {
             source.sendFailure(Component.literal("Storage block at " + pos.toShortString() + " is not in a network"));
         }
         return network;
+    }
+
+    private static int producers(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        List<WarehouseNetwork.Producer> producers = network.get().producers();
+        if (producers.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("No docks"), false);
+            return 0;
+        }
+        for (WarehouseNetwork.Producer producer : producers) {
+            String head = "  - dock " + producer.dock().toShortString() + " faces " + producer.machineName().getString();
+            if (producer.recipes().isEmpty()) {
+                source.sendSuccess(() -> Component.literal(head + ": no producer"), false);
+                continue;
+            }
+            source.sendSuccess(() -> Component.literal(head + (producer.active().map(id -> ", working on " + id.getPath()).orElse(""))), false);
+            for (io.github.dirnei.mc.servus.lib.production.ProductionRecipe recipe : producer.recipes()) {
+                List<String> inputs = new ArrayList<>();
+                for (ItemStack input : recipe.inputs()) {
+                    inputs.add(input.getCount() + " " + input.getHoverName().getString());
+                }
+                List<String> outputs = new ArrayList<>();
+                for (ItemStack output : recipe.outputs()) {
+                    outputs.add(output.getCount() + " " + output.getHoverName().getString());
+                }
+                String line = "      " + String.join(", ", outputs) + " from " + String.join(", ", inputs) + ", " + recipe.ticks() + " ticks";
+                source.sendSuccess(() -> Component.literal(line), false);
+            }
+        }
+        return producers.size();
+    }
+
+    private static int feed(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "dock");
+        CommandSourceStack source = context.getSource();
+        if (!(source.getLevel().getBlockEntity(pos) instanceof io.github.dirnei.mc.servus.storage.dock.MachineDockBlockEntity dock)) {
+            source.sendFailure(Component.literal("No machine dock at " + pos.toShortString()));
+            return 0;
+        }
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        int count = IntegerArgumentType.getInteger(context, "count");
+        String refused = network.get().feedDock(dock, ItemKey.of(wanted), count);
+        if (!refused.isEmpty()) {
+            source.sendFailure(Component.literal("Feed refused: " + refused.replace('_', ' ')));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal("Feeding " + count + " " + wanted.getHoverName().getString() + " to the dock"), false);
+        return count;
     }
 
     private static int zones(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

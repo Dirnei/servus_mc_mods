@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
+import io.github.dirnei.mc.servus.storage.dock.MachineDockBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -85,6 +86,14 @@ public final class ServusStorageBlocks {
 
     public static final DeferredBlock<ShuttleGarageBlock> SHUTTLE_GARAGE =
             BLOCKS.registerBlock("shuttle_garage", ShuttleGarageBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .strength(3.0F)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL));
+
+    public static final DeferredBlock<MachineDockBlock> MACHINE_DOCK =
+            BLOCKS.registerBlock("machine_dock", MachineDockBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(3.0F)

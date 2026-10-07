@@ -122,6 +122,11 @@ public class InboundStationMenu extends AbstractContainerMenu {
 
     /** The station's state as the client should see it. */
     public StationStatePayload state() {
+        return stateOf(station);
+    }
+
+    /** The state line of any station like block entity, docks included. */
+    public static StationStatePayload stateOf(InboundStationBlockEntity station) {
         Optional<WarehouseNetwork> network = station.network();
         String blockedReason = station.blockedReason() == null ? "" : station.blockedReason().name();
         ItemStack blockedStack = station.blockedStack().copy();
