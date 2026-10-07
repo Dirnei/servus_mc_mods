@@ -28,6 +28,10 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
     }
 
+    /** The furnace's own flame and arrow, so machines burn like vanilla does. */
+    private static final ResourceLocation LIT_PROGRESS_SPRITE = ResourceLocation.withDefaultNamespace("container/furnace/lit_progress");
+    private static final ResourceLocation BURN_PROGRESS_SPRITE = ResourceLocation.withDefaultNamespace("container/furnace/burn_progress");
+
     /** Left edge of the energy bar; wider screens override. */
     protected int energyX() {
         return 152;
@@ -170,12 +174,14 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         guiGraphics.blit(layout.texture(), leftPos, topPos, 0, 0, imageWidth, imageHeight);
         renderSidePanel(guiGraphics, mouseX, mouseY);
         if (layout.flame() && menu.isBurning()) {
-            int flame = menu.burnScaled(13);
-            guiGraphics.blit(layout.texture(), leftPos + 56, topPos + 36 + 12 - flame, 176, 12 - flame, 14, flame + 1);
+            int flame = menu.burnScaled(13) + 1;
+            guiGraphics.blitSprite(LIT_PROGRESS_SPRITE, 14, 14, 0, 14 - flame, leftPos + 56, topPos + 36 + 14 - flame, 14, flame);
         }
         if (layout.arrow()) {
             int arrow = menu.progressScaled(24);
-            guiGraphics.blit(layout.texture(), leftPos + 79, topPos + 34, 176, 14, arrow + 1, 16);
+            if (arrow > 0) {
+                guiGraphics.blitSprite(BURN_PROGRESS_SPRITE, 24, 16, 0, 0, leftPos + 79, topPos + 34, arrow, 16);
+            }
         }
         if (layout.energy()) {
             int x = leftPos + energyX();
