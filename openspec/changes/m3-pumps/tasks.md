@@ -18,3 +18,7 @@
 - [x] 3.3 Update `PLAN.md` 2.1 and M3. Run `openspec validate m3-pumps --strict`.
 - [ ] 3.4 Full `gradlew build` and `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
 - [ ] 3.5 Play check: both pumps on a pond, GUI gauge and status line, pump on dirt says it needs a source, Electric Pump recipe locked before research.
+
+## 4. Play test changes
+
+- [x] 4.1 Compact pump body (D7): shared shape in `machine/pump/PumpBlocks.java`, `getShape` in both pump blocks, `noOcclusion` in `registry/ServusManufacturingBlocks.java`, element models in `datagen/ServusManufacturingBlockStateProvider.java`. Run `gradlew :manufacturing:runData`, `gradlew build` and `gradlew :manufacturing:runGameTestServer`.

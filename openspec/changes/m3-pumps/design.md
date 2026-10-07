@@ -36,6 +36,9 @@ The buffer is offered through a drain only `IFluidHandler` (fill returns 0) on s
 ### D6. Recipes and research
 Burner Pump: shaped, iron ingots, cobblestone, a bucket and a furnace. Electric Pump: assembling recipe from a Burner Pump, 4 iron gears and 4 copper wire with `tech: electric_extractor`, and the recipe id added to that tech's `unlocks`.
 
+### D7. Compact body (play test, 2026-10-07)
+The user found a full block pump too big. Both pumps share one shape in `PumpBlocks`: a base plate from 1 to 15 pixels wide and 0 to 2 high, so it always rests on the source below; a body 3 to 13 wide and 2 to 12 high; an outlet 6 to 10 wide up to 15 high. The shape is symmetric around the vertical axis, so it needs no rotation with the facing. The blocks use `noOcclusion` so the water and blocks around them render. Datagen builds element models (`withExistingParent("block/block")`) instead of `orientable`: the body's north face shows the front texture (lit and unlit), the other faces `machine_side`, tops `machine_top`; the blockstate rotates them by facing as before.
+
 ### Settled PLAN.md items
 - 2.1 gains the pumps; M3 gains "Burner Pump and Electric Pump".
 

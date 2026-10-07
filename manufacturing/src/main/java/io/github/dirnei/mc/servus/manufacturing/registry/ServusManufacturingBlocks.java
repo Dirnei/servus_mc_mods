@@ -45,9 +45,9 @@ public final class ServusManufacturingBlocks {
     public static final DeferredBlock<ResearchLabBlock> RESEARCH_LAB =
             BLOCKS.registerBlock("research_lab", ResearchLabBlock::new, machine());
     public static final DeferredBlock<BurnerPumpBlock> BURNER_PUMP =
-            BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new, machine());
+            BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new, machine().noOcclusion());
     public static final DeferredBlock<ElectricPumpBlock> ELECTRIC_PUMP =
-            BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new, machine());
+            BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new, machine().noOcclusion());
 
     private ServusManufacturingBlocks() {
     }

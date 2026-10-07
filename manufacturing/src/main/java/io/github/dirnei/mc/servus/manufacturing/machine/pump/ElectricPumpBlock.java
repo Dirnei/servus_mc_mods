@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.pump;
 
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
@@ -35,5 +38,10 @@ public class ElectricPumpBlock extends MachineBlock {
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
         PumpBlocks.requestCheck(level, pos);
+    }
+
+    @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return PumpBlocks.SHAPE;
     }
 }

@@ -82,6 +82,17 @@ A pump's GUI SHALL show its buffer as a fluid gauge with the amount and capacity
 - **WHEN** a player opens the GUI of a pump that stands on dirt
 - **THEN** the GUI says the pump needs an infinite water source below
 
+### Requirement: Compact pump body
+A pump SHALL be smaller than a full block: a base plate that covers most of the bottom face and rests on the block below, a narrower body that carries the front face, and a short outlet on top. Its outline and collision SHALL follow that shape, and the blocks around it SHALL stay visible.
+
+#### Scenario: On a pond
+- **WHEN** a pump stands on the water of a pond
+- **THEN** its base plate sits on the water surface and the water and blocks around the narrower body stay visible
+
+#### Scenario: Outline
+- **WHEN** the player looks at a pump
+- **THEN** the selection outline follows the base, the body and the outlet instead of a full cube
+
 ### Requirement: Crafting and research
 The Burner Pump SHALL be craftable by hand from iron ingots, cobblestone, a bucket and a furnace. The Electric Pump SHALL be made in the assembler from a Burner Pump, iron gears and copper wire, and the recipe SHALL require the `electric_extractor` tech.
 
