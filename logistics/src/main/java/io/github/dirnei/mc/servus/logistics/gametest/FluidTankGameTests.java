@@ -133,7 +133,16 @@ public final class FluidTankGameTests {
                 .thenSucceed();
     }
 
-    /** An L of three blocks works as singles; the fourth block forms one 2 by 2 tank holding all their fluid. */
+    /** Clicks the top face of the block at {@code pos} with a tank item, like a player's right click. */
+    private static InteractionResult placeOnTop(GameTestHelper helper, Player player, BlockPos pos, ItemStack stack) {
+        BlockPos absolute = helper.absolutePos(pos);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).relative(Direction.UP, 0.5), Direction.UP, absolute, false);
+        BlockPlaceContext context = new BlockPlaceContext(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack, hit));
+        return ((FluidTankItem) stack.getItem()).place(context);
+    }
+
+    /** An L of three blocks is a pair and a single; the fourth block forms one 2 by 2 tank holding all their fluid. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void floorFormsWithTheFourthBlock(GameTestHelper helper) {
         BlockPos a = new BlockPos(2, 1, 2);
@@ -146,20 +155,22 @@ public final class FluidTankGameTests {
         helper.startSequence()
                 .thenIdle(2)
                 .thenExecute(() -> {
-                    for (BlockPos pos : List.of(a, b, c)) {
-                        assertCapacity(helper, pos, cap());
-                        handler(helper, pos).fill(water(1000), FluidAction.EXECUTE);
-                        assertAmount(helper, pos, 1000);
-                        helper.assertTrue(!anyJoined(helper, pos), "an L block shows its full frame");
-                    }
+                    assertCapacity(helper, a, 2 * cap());
+                    assertCapacity(helper, c, cap());
+                    handler(helper, a).fill(water(1000), FluidAction.EXECUTE);
+                    handler(helper, c).fill(water(1000), FluidAction.EXECUTE);
+                    assertAmount(helper, b, 1000);
+                    assertAmount(helper, c, 1000);
+                    helper.assertTrue(joined(helper, a, Direction.EAST) && !joined(helper, a, Direction.SOUTH), "the pair joins, the single does not");
+                    helper.assertTrue(!anyJoined(helper, c), "the single shows its full frame");
                     tank(helper, d);
                 })
                 .thenIdle(2)
                 .thenExecute(() -> {
                     for (BlockPos pos : List.of(a, b, c, d)) {
                         assertCapacity(helper, pos, 4 * cap());
-                        assertAmount(helper, pos, 3000);
-                        assertShare(helper, pos, 750);
+                        assertAmount(helper, pos, 2000);
+                        assertShare(helper, pos, 500);
                     }
                     helper.assertTrue(joined(helper, a, Direction.EAST) && joined(helper, a, Direction.SOUTH)
                             && !joined(helper, a, Direction.WEST) && !joined(helper, a, Direction.UP), "a corner joins toward the box only");
@@ -167,9 +178,40 @@ public final class FluidTankGameTests {
                 .thenSucceed();
     }
 
-    /** A 2 by 2 by 2 tank fills bottom up; breaking a corner leaves seven singles that keep their fluid. */
+    /** A block on top of a 2 by 2 tank leaves it formed; completing the top layer grows it to 2 by 2 by 2. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void brokenCornerUnformsAndKeepsShares(GameTestHelper helper) {
+    public static void blockOnTopKeepsTheTankAndALayerGrowsIt(GameTestHelper helper) {
+        BlockPos min = new BlockPos(2, 1, 2);
+        box(helper, min, new BlockPos(3, 1, 3));
+        helper.startSequence()
+                .thenIdle(2)
+                .thenExecute(() -> {
+                    handler(helper, min).fill(water(2 * cap()), FluidAction.EXECUTE);
+                    tank(helper, min.above());
+                })
+                .thenIdle(2)
+                .thenExecute(() -> {
+                    assertCapacity(helper, min, 4 * cap());
+                    assertAmount(helper, min, 2 * cap());
+                    assertCapacity(helper, min.above(), cap());
+                    helper.assertTrue(joined(helper, min, Direction.EAST) && !joined(helper, min, Direction.UP),
+                            "the floor stays joined and shows a frame toward the block on top");
+                    tank(helper, min.above().east());
+                    tank(helper, min.above().south());
+                    tank(helper, min.above().east().south());
+                })
+                .thenIdle(2)
+                .thenExecute(() -> {
+                    assertCapacity(helper, min, 8 * cap());
+                    assertAmount(helper, min.above(), 2 * cap());
+                    helper.assertTrue(joined(helper, min, Direction.UP), "the two layers join");
+                })
+                .thenSucceed();
+    }
+
+    /** A 2 by 2 by 2 tank fills bottom up; breaking a corner regroups the other seven and keeps their fluid. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void brokenCornerRegroupsAndKeepsShares(GameTestHelper helper) {
         BlockPos min = new BlockPos(2, 1, 2);
         BlockPos max = new BlockPos(3, 2, 3);
         box(helper, min, max);
@@ -191,21 +233,20 @@ public final class FluidTankGameTests {
                     int total = 0;
                     for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
                         BlockPos p = pos.immutable();
-                        if (p.equals(max)) {
-                            continue;
+                        if (!p.equals(max)) {
+                            total += entity(helper, p).share().getAmount();
                         }
-                        assertCapacity(helper, p, cap());
-                        helper.assertTrue(!anyJoined(helper, p), "an unformed block shows its full frame at " + p.toShortString());
-                        total += handler(helper, p).getFluidInTank(0).getAmount();
                     }
                     helper.assertTrue(total == 6 * cap() - cap() / 2, "only the broken block's share may be gone, left " + total);
+                    assertCapacity(helper, min, 4 * cap());
+                    assertAmount(helper, min, 4 * cap());
                 })
                 .thenSucceed();
     }
 
-    /** A stray block touching a 2 by 2 by 2 tank unforms it; removing it forms the tank again. */
+    /** A single block touching a 2 by 2 by 2 tank leaves the tank formed and works on its own. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void strayBlockUnformsTheBox(GameTestHelper helper) {
+    public static void neighbourBlockLeavesTheBoxFormed(GameTestHelper helper) {
         BlockPos min = new BlockPos(2, 1, 2);
         BlockPos max = new BlockPos(3, 2, 3);
         BlockPos stray = new BlockPos(4, 1, 2);
@@ -214,17 +255,64 @@ public final class FluidTankGameTests {
         helper.startSequence()
                 .thenIdle(2)
                 .thenExecute(() -> {
-                    for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
-                        assertCapacity(helper, pos.immutable(), cap());
-                    }
+                    assertCapacity(helper, min, 8 * cap());
                     assertCapacity(helper, stray, cap());
-                    helper.setBlock(stray, Blocks.AIR.defaultBlockState());
+                    helper.assertTrue(joined(helper, min, Direction.EAST) && !joined(helper, min.east(), Direction.EAST)
+                            && !anyJoined(helper, stray), "the box is joined and shows a frame toward the single block");
                 })
+                .thenSucceed();
+    }
+
+    /** A stack of tank items on top of a 2 by 2 tank places a whole layer and uses four items. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void stackOnTopPlacesAWholeLayer(GameTestHelper helper) {
+        BlockPos min = new BlockPos(2, 1, 2);
+        box(helper, min, new BlockPos(3, 1, 3));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.startSequence()
                 .thenIdle(2)
                 .thenExecute(() -> {
-                    assertCapacity(helper, min, 8 * cap());
-                    helper.assertTrue(joined(helper, min, Direction.EAST) && !joined(helper, min.east(), Direction.EAST),
-                            "the box is joined again and shows a frame toward the old stray block");
+                    ItemStack stack = new ItemStack(ServusLogisticsItems.FLUID_TANK.get(), 16);
+                    placeOnTop(helper, player, min.east(), stack);
+                    for (BlockPos pos : BlockPos.betweenClosed(min.above(), new BlockPos(3, 2, 3))) {
+                        helper.assertBlockPresent(ServusLogisticsBlocks.FLUID_TANK.get(), pos.immutable());
+                    }
+                    helper.assertTrue(stack.getCount() == 12, "four items should be used, left " + stack.getCount());
+                })
+                .thenIdle(2)
+                .thenExecute(() -> assertCapacity(helper, min, 8 * cap()))
+                .thenSucceed();
+    }
+
+    /** Too few items, sneaking or a blocked spot place one block instead of a layer. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void layerFallsBackToOneBlock(GameTestHelper helper) {
+        BlockPos few = new BlockPos(1, 1, 1);
+        BlockPos sneak = new BlockPos(5, 1, 1);
+        BlockPos blocked = new BlockPos(1, 1, 5);
+        for (BlockPos min : List.of(few, sneak, blocked)) {
+            box(helper, min, min.east().south());
+        }
+        helper.setBlock(blocked.above().east(), Blocks.STONE.defaultBlockState());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.startSequence()
+                .thenIdle(2)
+                .thenExecute(() -> {
+                    ItemStack three = new ItemStack(ServusLogisticsItems.FLUID_TANK.get(), 3);
+                    placeOnTop(helper, player, few, three);
+                    helper.assertTrue(three.getCount() == 2, "too few items place one block, left " + three.getCount());
+                    helper.assertBlockNotPresent(ServusLogisticsBlocks.FLUID_TANK.get(), few.above().east());
+
+                    player.setShiftKeyDown(true);
+                    ItemStack sneaking = new ItemStack(ServusLogisticsItems.FLUID_TANK.get(), 16);
+                    placeOnTop(helper, player, sneak, sneaking);
+                    helper.assertTrue(sneaking.getCount() == 15, "sneaking places one block, left " + sneaking.getCount());
+                    player.setShiftKeyDown(false);
+
+                    ItemStack stack = new ItemStack(ServusLogisticsItems.FLUID_TANK.get(), 16);
+                    placeOnTop(helper, player, blocked, stack);
+                    helper.assertTrue(stack.getCount() == 15, "a blocked spot places one block, left " + stack.getCount());
+                    helper.assertBlockPresent(ServusLogisticsBlocks.FLUID_TANK.get(), blocked.above());
                 })
                 .thenSucceed();
     }

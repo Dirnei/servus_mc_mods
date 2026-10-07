@@ -5,34 +5,65 @@ The Fluid Tank stores fluids in the world: glass blocks that join into one large
 ## ADDED Requirements
 
 ### Requirement: Rectangular tanks form
-Fluid Tank blocks that touch on a face and together fill a complete rectangular box SHALL form one tank with one shared content and a capacity of the block count times `capacity_per_block` from data. A connected group that does not fill its box SHALL work as separate single block tanks, each keeping its own content, until the box is complete.
+Fluid Tank blocks SHALL group into tanks that each fill a complete rectangular box, with one shared content and a capacity of the block count times `capacity_per_block` from data. Two touching tanks whose touching faces match exactly SHALL join into one larger tank. A block that completes no box SHALL work as its own tank and SHALL NOT change the tanks it touches. The grouping SHALL survive saving and reloading.
 
 #### Scenario: Two blocks
 - **WHEN** a player places a tank block on top of another and `capacity_per_block` is 16,000 mB (example value)
 - **THEN** both blocks report one tank of 32,000 mB
 
 #### Scenario: Building a 2 by 2 floor
-- **WHEN** a player has placed three blocks of a 2 by 2 floor in an L shape
-- **THEN** each of the three works as its own 16,000 mB tank, and placing the fourth block forms one 64,000 mB tank holding the fluid of all four
+- **WHEN** a player places three blocks of a 2 by 2 floor in an L shape
+- **THEN** two of them form a 32,000 mB tank and the third works on its own, and placing the fourth block forms one 64,000 mB tank holding the fluid of all four
+
+#### Scenario: Block on top of a tank
+- **WHEN** a player places one tank block on top of a formed 2 by 2 tank
+- **THEN** the 2 by 2 tank stays formed with its content, and the new block works as its own tank
+
+#### Scenario: Completing a layer
+- **WHEN** the player completes a 2 by 2 layer of single blocks on top of a formed 2 by 2 tank
+- **THEN** the eight blocks form one 2 by 2 by 2 tank holding the fluid of both layers
+
+#### Scenario: Neighbour does not break a tank
+- **WHEN** a single tank block touches the side of a formed 2 by 2 by 2 tank
+- **THEN** the 2 by 2 by 2 tank stays formed and the single block works on its own
 
 #### Scenario: Box broken open
 - **WHEN** one corner block of a formed 2 by 2 by 2 tank is broken
-- **THEN** the remaining seven blocks work as single block tanks and no fluid besides the broken block's share is lost
+- **THEN** that tank breaks up, its seven remaining blocks group again into boxes by the same rules, and no fluid besides the broken block's share is lost
 
-#### Scenario: Separate tanks need a gap
-- **WHEN** a 2 by 2 by 2 tank touches a single tank block on one face
-- **THEN** none of the nine blocks is formed, and removing the single block forms the 2 by 2 by 2 tank again
+#### Scenario: Reload
+- **WHEN** a world with a formed 2 by 2 tank and a single block on top of it is saved and loaded again
+- **THEN** the 2 by 2 tank is still formed and the block on top still works on its own
+
+### Requirement: Placing a whole layer
+Using a tank item on the top face of a tank's top layer SHALL place a complete new layer over that tank's footprint when the player is not sneaking, the held stack holds empty tank items for every block of the layer (always in creative), and every spot of the layer is free. It SHALL use one item per block. Otherwise a single block SHALL be placed as usual.
+
+#### Scenario: Grow a 2 by 2 tank
+- **WHEN** a player holding 16 empty tank items uses one on the top of a formed 2 by 2 tank
+- **THEN** four blocks are placed above it, the player holds 12, and the tank is now 2 by 2 by 2
+
+#### Scenario: Too few items
+- **WHEN** the player holds only 3 empty tank items
+- **THEN** one block is placed on the clicked block
+
+#### Scenario: Sneaking
+- **WHEN** a sneaking player uses a tank item on the top of a formed 2 by 2 tank
+- **THEN** one block is placed on the clicked block
+
+#### Scenario: Blocked spot
+- **WHEN** one spot of the new layer is taken by another block
+- **THEN** one block is placed on the clicked block
 
 ### Requirement: Connected look
-Blocks of a formed tank SHALL hide their frame edges toward each other so the tank looks like one glass box with a frame around its outside. Unformed blocks SHALL show their full frame.
+Blocks of a formed tank SHALL hide their frame edges toward each other so the tank looks like one glass box with a frame around its outside. A block SHALL show its frame toward blocks of another tank, and a block working on its own SHALL show its full frame.
 
 #### Scenario: Formed tank
 - **WHEN** four blocks form a 2 by 2 tank
 - **THEN** no frame shows between the blocks, only around the outside of the box
 
-#### Scenario: Unformed L
-- **WHEN** three blocks stand in an L shape
-- **THEN** each shows its full frame
+#### Scenario: Block on top
+- **WHEN** a single block stands on top of a formed 2 by 2 tank
+- **THEN** a frame shows between the single block and the tank below it
 
 ### Requirement: One fluid per tank
 A tank SHALL hold one fluid at a time and SHALL refuse a different fluid until it is empty. A tank block SHALL not be placed when the touching tank blocks and the placed item hold more than one fluid, and the player SHALL be told why.

@@ -1,7 +1,10 @@
 package io.github.dirnei.mc.servus.logistics.tank;
 
 import io.github.dirnei.mc.servus.lib.graph.NodePos;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * The bounding box of a connected group of tank blocks. The group forms one
@@ -67,5 +70,54 @@ public record TankShape(int count, int minX, int minY, int minZ, int maxX, int m
     /** Fixed index of a position within its layer: x first, then z. */
     public int indexInLayer(NodePos pos) {
         return (pos.x() - minX) + (pos.z() - minZ) * width();
+    }
+
+    // Full boxes
+
+    /** A completely filled box with the given corners, inclusive. */
+    public static TankShape box(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        long volume = (long) (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
+        return new TankShape((int) volume, minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    /** The one block box at a position. */
+    public static TankShape single(NodePos pos) {
+        return box(pos.x(), pos.y(), pos.z(), pos.x(), pos.y(), pos.z());
+    }
+
+    public boolean contains(NodePos pos) {
+        return pos.x() >= minX && pos.x() <= maxX && pos.y() >= minY && pos.y() <= maxY
+                && pos.z() >= minZ && pos.z() <= maxZ;
+    }
+
+    /** Every position of the box. */
+    public List<NodePos> positions() {
+        List<NodePos> list = new ArrayList<>((int) Math.min(volume(), 1 << 16));
+        for (int y = minY; y <= maxY; y++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                for (int x = minX; x <= maxX; x++) {
+                    list.add(new NodePos(x, y, z));
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * The box both boxes fill together, when they touch with matching faces:
+     * neighbours along one axis with the same extent on the other two. Else empty.
+     */
+    public Optional<TankShape> mergeWith(TankShape other) {
+        boolean sameX = minX == other.minX && maxX == other.maxX;
+        boolean sameY = minY == other.minY && maxY == other.maxY;
+        boolean sameZ = minZ == other.minZ && maxZ == other.maxZ;
+        boolean touchX = maxX + 1 == other.minX || other.maxX + 1 == minX;
+        boolean touchY = maxY + 1 == other.minY || other.maxY + 1 == minY;
+        boolean touchZ = maxZ + 1 == other.minZ || other.maxZ + 1 == minZ;
+        if ((sameY && sameZ && touchX) || (sameX && sameZ && touchY) || (sameX && sameY && touchZ)) {
+            return Optional.of(box(Math.min(minX, other.minX), Math.min(minY, other.minY), Math.min(minZ, other.minZ),
+                    Math.max(maxX, other.maxX), Math.max(maxY, other.maxY), Math.max(maxZ, other.maxZ)));
+        }
+        return Optional.empty();
     }
 }

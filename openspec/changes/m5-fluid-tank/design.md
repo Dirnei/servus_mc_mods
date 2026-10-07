@@ -37,12 +37,20 @@ Alternatives: a master block entity holding everything (rejected: master electio
 ### D5. Item, buckets, data
 The item carries the share as `SimpleFluidContent` in a `servus_logistics:fluid` data component, read in `applyImplicitComponents`, written in `collectImplicitComponents`, copied by the loot table with `copy_components`; the tooltip shows fluid and amount. `useItemOn` calls `FluidUtil.interactWithFluidHandler`; an empty hand prints fluid, amount and capacity. Capability: `Capabilities.FluidHandler.BLOCK` on every face, returning the formed tank's handler or the block's own. `TankStatsManager` reads `data/servus_logistics/tank/fluid_tank.json` (`capacity_per_block`, default 16000).
 
+### D6. Several boxes per connected group (play test, 2026-10-07)
+The user's play test showed that one stray block on top of a formed tank unformed it, because forming needed the whole connected group to be one box. Now the graph group is split into boxes by pure `TankBoxes`: every block belongs to exactly one box (a lone block is a 1 by 1 by 1 box). After every add, two adjacent boxes merge when their touching faces match exactly (same extent on the two other axes), repeated until no pair can merge. Removing a block dissolves its box into lone blocks and runs the merge loop over them. Each box carries its own total, layout and capacity; the handler of a block acts on its box. The joined flags point at blocks of the same box only.
+Greedy merging depends on the order blocks arrive, so a reload could regroup differently. Every member of a box with more than one block therefore stores its box bounds in NBT. On load a block with stored bounds waits as a lone block that takes part in no merge until every block of its stored box is present and stores the same bounds; then the box is restored and the merge loop runs. JUnit for `TankBoxes`: 2 by 2 floor built as an L then completed, block on top stays separate, completing the top layer merges into 2 by 2 by 2, a block beside a box stays separate, two boxes with matching faces merge, removing a corner regroups, restore waits for all members and keeps a box with a lone block on top.
+Alternatives: keep the largest box of the group (rejected: two separately built tanks touching would still unform one); match the box by the bounding box only (rejected: the stray block problem).
+
+### D7. Placing a whole layer
+`FluidTankItem.place` checks, server side only, whether the click hits the top face of a block in its box's top layer, the player does not sneak, the held stack carries no fluid and holds at least as many items as the footprint (or the player is in creative), and every spot above the footprint can be replaced and is unobstructed. Then it places a block at each spot through `BlockItem.place` with `BlockPlaceContext.at`, which also uses one item per block. Otherwise it places one block as usual. The client always predicts one block; the server's block updates and inventory sync correct it.
+
 ### Settled PLAN.md items
 - Section 1 "Fluids later: `IFluidHandler`" becomes current; 2.2 gains the Fluid Tank; M5 gains the item "Fluid Tank".
 
 ### Pure Java vs Minecraft
-- Pure, JUnit: `TankShape`, `TankLayers`.
-- GameTest: two blocks report summed capacity; L stays singles, fourth block forms and sums; breaking a corner unforms and keeps shares; touching single block unforms a box; bucket in and out; lava refused by a water tank; placement between water and lava refused; full block moved keeps its water.
+- Pure, JUnit: `TankShape`, `TankLayers`, `TankBoxes`.
+- GameTest: two blocks report summed capacity; L is a pair and a single, fourth block forms and sums; a block on top keeps the box formed and completing the layer grows it; breaking a corner regroups and keeps shares; a single block beside a box leaves it formed; layer placement places four and uses four items, falls back to one block with too few items, sneaking or a blocked spot; bucket in and out; lava refused by a water tank; placement between water and lava refused; full block moved keeps its water.
 - Manual: connected look and fluid rendering.
 
 ## Risks / Trade-offs

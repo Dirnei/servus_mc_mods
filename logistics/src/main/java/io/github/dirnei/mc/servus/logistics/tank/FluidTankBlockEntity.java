@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.logistics.tank;
 
+import io.github.dirnei.mc.servus.lib.graph.NodePos;
 import io.github.dirnei.mc.servus.lib.network.Conversions;
 import io.github.dirnei.mc.servus.lib.network.NetworkManager;
 import io.github.dirnei.mc.servus.lib.network.NetworkType;
@@ -23,15 +24,18 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 /**
  * One Fluid Tank block. Stores its share of the fluid and is a node of the
- * {@link TankNetwork}, which lays the shares of a formed tank out. Its fluid
- * handler acts on the formed tank when there is one, else on its own share.
+ * {@link TankNetwork}, which lays the shares of its tank out. Its fluid
+ * handler acts on the tank (box) it belongs to.
  */
 public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntity> {
 
     private static final String TAG_FLUID = "fluid";
     private static final String TAG_CAPACITY = "capacity";
+    private static final String TAG_BOX = "box";
 
     private FluidStack share = FluidStack.EMPTY;
+    /** The tank box this block belongs to when it is part of a bigger tank, kept so a reload restores it. */
+    private TankShape savedBox;
     private final TankHandler handler = new TankHandler();
     private long lastSync = Long.MIN_VALUE / 2;
     /** Capacity per block as the server told the client; the server reads the stats directly. */
@@ -59,9 +63,26 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         return NetworkManager.of(server).set(TankNetwork.TYPE).networkAt(Conversions.toNodePos(worldPosition));
     }
 
-    /** The formed tank this block belongs to, empty when it works on its own. */
+    private NodePos nodePos() {
+        return Conversions.toNodePos(worldPosition);
+    }
+
+    /** The network when this block is part of a tank of more than one block, else empty. */
     public Optional<TankNetwork> formedTank() {
-        return network().filter(TankNetwork::isFormed);
+        return network().filter(network -> network.isFormed(nodePos()));
+    }
+
+    /** The box saved with this block, or null. */
+    public TankShape savedBox() {
+        return savedBox;
+    }
+
+    /** Set by the network whenever the block's box changes. */
+    void setSavedBox(TankShape box) {
+        if (!java.util.Objects.equals(box, savedBox)) {
+            savedBox = box;
+            setChanged();
+        }
     }
 
     // Share
@@ -104,14 +125,14 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         return TankStatsManager.INSTANCE.capacityPerBlock();
     }
 
-    /** The content of the tank this block belongs to: the formed tank's, or its own. */
+    /** The content of the tank this block belongs to. */
     public FluidStack tankContent() {
-        return formedTank().map(TankNetwork::content).orElseGet(() -> share().copy());
+        return network().map(network -> network.content(nodePos())).orElseGet(() -> share().copy());
     }
 
     /** The capacity of the tank this block belongs to. */
     public int tankCapacity() {
-        return formedTank().map(TankNetwork::capacity).orElseGet(this::capacityPerBlock);
+        return network().map(network -> network.capacity(nodePos())).orElseGet(this::capacityPerBlock);
     }
 
     public IFluidHandler fluidHandler() {
@@ -145,12 +166,18 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         if (!current.isEmpty()) {
             tag.put(TAG_FLUID, current.save(registries));
         }
+        if (savedBox != null) {
+            tag.putIntArray(TAG_BOX, new int[] {savedBox.minX(), savedBox.minY(), savedBox.minZ(),
+                    savedBox.maxX(), savedBox.maxY(), savedBox.maxZ()});
+        }
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         share = tag.contains(TAG_FLUID) ? FluidStack.parseOptional(registries, tag.getCompound(TAG_FLUID)) : FluidStack.EMPTY;
+        int[] box = tag.getIntArray(TAG_BOX);
+        savedBox = box.length == 6 ? TankShape.box(box[0], box[1], box[2], box[3], box[4], box[5]) : null;
         if (tag.contains(TAG_CAPACITY)) {
             clientCapacity = tag.getInt(TAG_CAPACITY);
         }
@@ -181,6 +208,7 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
     public void removeComponentsFromTag(CompoundTag tag) {
         super.removeComponentsFromTag(tag);
         tag.remove(TAG_FLUID);
+        tag.remove(TAG_BOX);
     }
 
     @Override
@@ -228,16 +256,15 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
 
         @Override
         public int fill(FluidStack resource, FluidAction action) {
-            Optional<TankNetwork> formed = formedTank();
-            if (formed.isPresent()) {
-                return formed.get().fill(resource, action);
+            Optional<TankNetwork> network = network();
+            if (network.isPresent()) {
+                return network.get().fill(nodePos(), resource, action);
             }
             if (resource.isEmpty()) {
                 return 0;
             }
             FluidStack own = share();
-            FluidStack group = network().map(TankNetwork::groupFluid).orElse(own);
-            if (!group.isEmpty() && !FluidStack.isSameFluidSameComponents(group, resource)) {
+            if (!own.isEmpty() && !FluidStack.isSameFluidSameComponents(own, resource)) {
                 return 0;
             }
             int filled = Math.min(capacityPerBlock() - own.getAmount(), resource.getAmount());
@@ -252,9 +279,9 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
 
         @Override
         public FluidStack drain(FluidStack resource, FluidAction action) {
-            Optional<TankNetwork> formed = formedTank();
-            if (formed.isPresent()) {
-                return formed.get().drain(resource, action);
+            Optional<TankNetwork> network = network();
+            if (network.isPresent()) {
+                return network.get().drain(nodePos(), resource, action);
             }
             if (resource.isEmpty() || !FluidStack.isSameFluidSameComponents(share(), resource)) {
                 return FluidStack.EMPTY;
@@ -264,9 +291,9 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
 
         @Override
         public FluidStack drain(int maxDrain, FluidAction action) {
-            Optional<TankNetwork> formed = formedTank();
-            if (formed.isPresent()) {
-                return formed.get().drain(maxDrain, action);
+            Optional<TankNetwork> network = network();
+            if (network.isPresent()) {
+                return network.get().drain(nodePos(), maxDrain, action);
             }
             FluidStack own = share();
             int drained = Math.min(maxDrain, own.getAmount());

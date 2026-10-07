@@ -14,5 +14,14 @@
 
 - [x] 3.1 GameTests in `gametest/FluidTankGameTests.java` (own class, registered next to `ServusLogisticsGameTests` in `ServusLogisticsEvents.java`) per the design list. Verify `gradlew :logistics:runGameTestServer`.
 - [x] 3.2 Update `PLAN.md` section 1, 2.2 and M5. Run `openspec validate m5-fluid-tank --strict`.
-- [ ] 3.3 Full `gradlew build` and `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
-- [ ] 3.4 Play check: build a 2 by 2 by 3 tank block by block (singles until complete, then one frame around the box), fill with buckets, fill level rises bottom up, break a corner and see the frames return.
+
+## 4. Play test changes
+
+- [x] 4.1 Add pure `tank/TankBoxes.java` (D6) with JUnit `TankBoxesTest`. Verify `gradlew :logistics:test`.
+- [x] 4.2 Rework `tank/TankNetwork.java` to keep one total and layout per box, store box bounds in `FluidTankBlockEntity` NBT and restore them on load, joined flags per box. Update `gametest/FluidTankGameTests.java`. Verify `gradlew build` and `gradlew :logistics:runGameTestServer`.
+- [x] 4.3 Layer placement in `tank/FluidTankItem.java` (D7) with GameTests. Verify `gradlew build` and `gradlew :logistics:runGameTestServer`.
+
+## 5. Verification
+
+- [ ] 5.1 Full `gradlew build` and `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
+- [ ] 5.2 Play check: build a 2 by 2 by 3 tank block by block (pairs and singles until a box completes, then one frame around it), a block on top of a 2 by 2 tank leaves it formed, a stack of tank items on top adds a whole layer, fill with buckets, fill level rises bottom up, break a corner and see it regroup, reload keeps the tanks.
