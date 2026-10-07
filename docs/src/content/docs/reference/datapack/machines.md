@@ -1,0 +1,5 @@
+---
+title: Machine stats
+---
+
+Placeholder.
