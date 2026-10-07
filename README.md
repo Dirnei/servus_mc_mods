@@ -46,6 +46,19 @@ gradlew runGameTestServerAll
 
 Game directories are `runs/client`, `runs/server`, `runs/data` and `runs/gametest` inside each project (or the repo root for the combined runs). They are gitignored. Dedicated server runs need `eula=true` in `runs/server/eula.txt`.
 
+## Documentation site and Balance lab
+
+The docs live in `docs/` (Astro with Starlight) and are published at https://dirnei.github.io/servus_mc_mods/ by the `Docs` workflow. The Balance lab there shows production chains, power and coal for a target rate, and research times, and lets you try number changes and draft new content, then export them as a proposal.
+
+```
+cd docs
+npm ci
+npm run dev      # local site at http://localhost:4321/servus_mc_mods/
+npm test         # ratio math and proposal tests
+```
+
+The lab reads `docs/src/data/gamedata.json`. It is written by `gradlew :manufacturing:runData` and committed; the Build workflow fails when it is out of date, so run the data run after changing machine, deposit, tech or recipe data.
+
 ## Playtest (Tier 1)
 
 Launch with `gradlew runClientAll`, create a new world, and take the Servus creative tab or craft from vanilla materials:

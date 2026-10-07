@@ -33,6 +33,7 @@ servus_mc_mods/
   gradlew, gradle/wrapper/  Gradle wrapper
   .github/workflows/        CI: build and unit tests on every push
   openspec/                 specs and changes (OpenSpec)
+  docs/                     documentation site and Balance lab (Astro, Starlight), deployed to GitHub Pages
   lib/                      servus_lib
   manufacturing/            servus_manufacturing
   logistics/                servus_logistics
@@ -192,6 +193,7 @@ Each milestone ends in something playable or testable.
 - JEI or EMI integration for machine recipes
 - Chunk loader upgrade with FE upkeep and config caps
 - Balance pass
+- Documentation site and Balance lab: public docs plus an in browser lab that reads the game data exported by the Manufacturing data run, shows production chains and research times, lets us edit numbers and draft new items, recipes and machines, and exports the result as a proposal. A target rate planner that designs a whole build follows after the first release.
 
 ### M4: Storage first playable slice
 - Crates with front item display
