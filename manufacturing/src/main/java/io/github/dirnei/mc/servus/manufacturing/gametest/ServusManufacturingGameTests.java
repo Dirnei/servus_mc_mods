@@ -984,4 +984,63 @@ public final class ServusManufacturingGameTests {
         helper.assertTrue(sink.chimneyHeight() == 3, "forming counts the column already standing, got " + sink.chimneyHeight());
         helper.succeed();
     }
+
+    /** A lava bucket used on any formed block is emptied whatever the rate; on a casing it stays full. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkEmptiesLavaBucket(GameTestHelper helper) {
+        sink(helper, 0);
+        // Use up the fluid budget first: the bucket must not depend on it.
+        sinkFluid(helper, SINK, Direction.UP).fill(new FluidStack(Fluids.WATER, 100_000), IFluidHandler.FluidAction.EXECUTE);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack bucket = new ItemStack(Items.LAVA_BUCKET);
+        player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
+        BlockPos part = new BlockPos(2, 1, 3);
+        BlockPos absolute = helper.absolutePos(part);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).add(0, 0.5, 0), Direction.UP, absolute, false);
+        helper.getBlockState(part).useItemOn(bucket, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
+        helper.assertTrue(held.is(Items.BUCKET) && held.getCount() == 1, "the player should hold an empty bucket, holds " + held);
+
+        BlockPos casing = new BlockPos(8, 0, 8);
+        helper.setBlock(casing, ServusManufacturingBlocks.SINK.get().defaultBlockState());
+        ItemStack full = new ItemStack(Items.LAVA_BUCKET);
+        player.setItemInHand(InteractionHand.MAIN_HAND, full);
+        BlockPos casingAbsolute = helper.absolutePos(casing);
+        helper.getBlockState(casing).useItemOn(full, helper.getLevel(), player, InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(casingAbsolute).add(0, 0.5, 0), Direction.UP, casingAbsolute, false));
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.LAVA_BUCKET), "a casing takes no lava");
+        helper.succeed();
+    }
+
+    /** Shift clicking a stack into the trash slot voids all of it at once, even without a chimney; unforming closes the GUI. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkTrashSlotVoidsStack(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 0);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(SINK.north())));
+        player.getInventory().setItem(9, new ItemStack(Items.COBBLESTONE, 64));
+        SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
+        helper.assertTrue(menu.stillValid(player), "the GUI of a formed Sink is valid");
+        // Slot 0 is the trash slot, slot 1 the first inventory slot (player inventory index 9).
+        menu.quickMoveStack(player, 1);
+        helper.assertTrue(player.getInventory().getItem(9).isEmpty(), "the stack should be gone");
+        helper.assertTrue(menu.getSlot(0).getItem().isEmpty(), "the trash slot stays empty");
+        helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "no cobblestone anywhere in the inventory");
+        helper.assertTrue(helper.getBlockState(SINK).getValue(SinkBlock.ACTIVE), "the trash slot turns the Sink active");
+        helper.assertTrue(menu.chimneyHeight() == 0 && menu.itemRate() == 4, "height 0 shows 4 items per second");
+        helper.destroyBlock(new BlockPos(2, 1, 3));
+        helper.assertTrue(!menu.stillValid(player), "the GUI closes once the Sink is unformed");
+        helper.succeed();
+    }
+
+    /** The GUI data shows height 5 and Unlimited (-1) for all three rates with five Chimney blocks. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void sinkGuiShowsUnlimited(GameTestHelper helper) {
+        SinkBlockEntity sink = sink(helper, 5);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        SinkMenu menu = new SinkMenu(1, player.getInventory(), sink);
+        helper.assertTrue(menu.chimneyHeight() == 5, "height 5, got " + menu.chimneyHeight());
+        helper.assertTrue(menu.itemRate() == -1 && menu.fluidRate() == -1 && menu.energyRate() == -1, "all three Unlimited");
+        helper.succeed();
+    }
 }
