@@ -2,7 +2,7 @@
 
 ## 1. Closed bottom
 
-- [ ] 1.1 Lock the bottom in `machine/extractor/BurnerExtractorBlockEntity.java` and `ElectricExtractorBlockEntity.java`, add a GameTest in `gametest/ServusManufacturingGameTests.java`: cycling the bottom keeps it Off and a hopper below receives nothing. Verify `gradlew build` and `gradlew :manufacturing:runGameTestServer`.
+- [x] 1.1 Lock the bottom in `machine/extractor/BurnerExtractorBlockEntity.java` and `ElectricExtractorBlockEntity.java`, add a GameTest in `gametest/ServusManufacturingGameTests.java`: cycling the bottom keeps it Off and a hopper below receives nothing. Verify `gradlew build` and `gradlew :manufacturing:runGameTestServer`.
 
 ## 2. Verification
 

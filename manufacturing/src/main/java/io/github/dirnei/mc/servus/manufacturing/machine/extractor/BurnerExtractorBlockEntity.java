@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.extractor;
 
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositDefinition;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;
@@ -32,6 +34,8 @@ public class BurnerExtractorBlockEntity extends BurnerMachineBlockEntity {
 
     public BurnerExtractorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.BURNER_EXTRACTOR.get(), pos, state, 2);
+        // The bottom always touches the deposit, so it is fixed Off like the front.
+        sideConfig().lock(RelativeSide.BOTTOM, SideMode.DISABLED);
     }
 
     @Override

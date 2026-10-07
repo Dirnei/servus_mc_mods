@@ -31,6 +31,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
@@ -341,6 +342,36 @@ public final class ServusManufacturingGameTests {
                     "expected raw iron in the output slot, got " + output);
             helper.succeed();
         });
+    }
+
+    private static final BlockPos BC_BURNER = new BlockPos(4, 2, 4);
+    private static final BlockPos BC_ELECTRIC = new BlockPos(7, 2, 4);
+
+    /** Asserts that an extractor's bottom is fixed Off and that nothing goes in or comes out there. */
+    private static void assertBottomClosed(GameTestHelper helper, BlockPos pos, int outputSlot) {
+        MachineBlockEntity extractor = helper.getBlockEntity(pos);
+        helper.assertTrue(extractor.sideMode(Direction.DOWN) == SideMode.DISABLED, "the bottom starts Off");
+        helper.assertTrue(extractor.cycleFace(Direction.DOWN) == SideMode.DISABLED, "the bottom cannot be cycled");
+        extractor.sideConfig().set(RelativeSide.BOTTOM, SideMode.OUTPUT);
+        helper.assertTrue(extractor.sideMode(Direction.DOWN) == SideMode.DISABLED, "the bottom cannot be set");
+        extractor.inventory().setStackInSlot(outputSlot, new ItemStack(Items.RAW_IRON, 4));
+        IItemHandler bottom = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), Direction.DOWN);
+        helper.assertTrue(bottom == null || bottom.extractItem(outputSlot, 4, false).isEmpty(), "nothing comes out at the bottom");
+        helper.assertTrue(bottom == null || bottom.insertItem(0, new ItemStack(Items.COAL, 4), false).getCount() == 4, "nothing goes in at the bottom");
+    }
+
+    /** Both extractors stand on their deposit, so the bottom is fixed Off; the Electric Extractor still takes energy there. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void extractorBottomIsClosed(GameTestHelper helper) {
+        helper.setBlock(BC_BURNER.below(), ServusManufacturingBlocks.IRON_DEPOSIT.get().defaultBlockState());
+        helper.setBlock(BC_BURNER, facing(ServusManufacturingBlocks.BURNER_EXTRACTOR.get(), Direction.NORTH));
+        helper.setBlock(BC_ELECTRIC.below(), ServusManufacturingBlocks.IRON_DEPOSIT.get().defaultBlockState());
+        helper.setBlock(BC_ELECTRIC, facing(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(), Direction.NORTH));
+        assertBottomClosed(helper, BC_BURNER, BurnerExtractorBlockEntity.SLOT_OUTPUT);
+        assertBottomClosed(helper, BC_ELECTRIC, ElectricExtractorBlockEntity.SLOT_OUTPUT);
+        IEnergyStorage energy = helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, helper.absolutePos(BC_ELECTRIC), Direction.DOWN);
+        helper.assertTrue(energy != null && energy.receiveEnergy(100, true) > 0, "the Electric Extractor takes energy at the bottom");
+        helper.succeed();
     }
     // Pumps. The Fluid Tank is built in a parallel change, so an empty vanilla cauldron (NeoForge's
     // CauldronWrapper) is the fluid sink, and the pump buffer is read through its capability.

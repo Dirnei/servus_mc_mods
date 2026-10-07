@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.extractor;
 
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.lib.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
@@ -23,6 +25,8 @@ public class ElectricExtractorBlockEntity extends PoweredMachineBlockEntity {
 
     public ElectricExtractorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.ELECTRIC_EXTRACTOR.get(), pos, state, 1);
+        // The bottom always touches the deposit, so it is fixed Off for items. Energy still enters on every face.
+        sideConfig().lock(RelativeSide.BOTTOM, SideMode.DISABLED);
     }
 
     @Override
