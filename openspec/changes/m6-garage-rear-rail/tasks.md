@@ -10,5 +10,5 @@
 
 ## 3. Verification
 
-- [ ] 3.1 Run `openspec validate m6-garage-rear-rail --strict`, full `gradlew clean build` green, `gradlew runClientAll` launches. Commit.
+- [x] 3.1 Run `openspec validate m6-garage-rear-rail --strict`, full `gradlew clean build` green, `gradlew runClientAll` launches. Commit.
 - [ ] 3.2 Play check: garage placed from the aisle has the doorway on the rail and the lamp towards the player, the rail shows a plain arm, shuttles leave and return through the back.
