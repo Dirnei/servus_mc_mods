@@ -148,22 +148,38 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     /** Full brick block inside a column; the top block carries a wider cap with an open flue. */
     private void chimney() {
         ResourceLocation bricks = mcLoc("block/bricks");
-        ModelFile column = models().cubeAll("chimney", bricks);
+        // A slim shaft, ten pixels wide; the top block ends in a cap twelve pixels wide with an open flue.
+        BlockModelBuilder column = models().getBuilder("chimney")
+                .parent(models().getExistingFile(mcLoc("block/block")))
+                .texture("particle", bricks)
+                .texture("bricks", bricks);
+        column.element().from(3, 0, 3).to(13, 16, 13)
+                .face(Direction.NORTH).texture("#bricks").uvs(3, 0, 13, 16).end()
+                .face(Direction.SOUTH).texture("#bricks").uvs(3, 0, 13, 16).end()
+                .face(Direction.EAST).texture("#bricks").uvs(3, 0, 13, 16).end()
+                .face(Direction.WEST).texture("#bricks").uvs(3, 0, 13, 16).end()
+                .face(Direction.UP).texture("#bricks").uvs(3, 3, 13, 13).cullface(Direction.UP).end()
+                .face(Direction.DOWN).texture("#bricks").uvs(3, 3, 13, 13).cullface(Direction.DOWN).end()
+                .end();
         BlockModelBuilder top = models().getBuilder("chimney_top")
                 .parent(models().getExistingFile(mcLoc("block/block")))
                 .texture("particle", bricks)
                 .texture("bricks", bricks)
                 .texture("top", modLoc("block/chimney_top"));
-        top.element().from(0, 0, 0).to(16, 13, 16)
-                .allFacesExcept((direction, face) -> face.texture("#bricks").cullface(direction), java.util.Set.of(Direction.UP))
+        top.element().from(3, 0, 3).to(13, 13, 13)
+                .face(Direction.NORTH).texture("#bricks").uvs(3, 3, 13, 16).end()
+                .face(Direction.SOUTH).texture("#bricks").uvs(3, 3, 13, 16).end()
+                .face(Direction.EAST).texture("#bricks").uvs(3, 3, 13, 16).end()
+                .face(Direction.WEST).texture("#bricks").uvs(3, 3, 13, 16).end()
+                .face(Direction.DOWN).texture("#bricks").uvs(3, 3, 13, 13).cullface(Direction.DOWN).end()
                 .end();
-        top.element().from(-1, 13, -1).to(17, 16, 17)
+        top.element().from(2, 13, 2).to(14, 16, 14)
                 .face(Direction.UP).texture("#top").uvs(0, 0, 16, 16).cullface(Direction.UP).end()
-                .face(Direction.DOWN).texture("#bricks").uvs(0, 0, 16, 16).end()
-                .face(Direction.NORTH).texture("#bricks").uvs(0, 0, 16, 3).end()
-                .face(Direction.SOUTH).texture("#bricks").uvs(0, 0, 16, 3).end()
-                .face(Direction.EAST).texture("#bricks").uvs(0, 0, 16, 3).end()
-                .face(Direction.WEST).texture("#bricks").uvs(0, 0, 16, 3).end()
+                .face(Direction.DOWN).texture("#bricks").uvs(2, 2, 14, 14).end()
+                .face(Direction.NORTH).texture("#bricks").uvs(2, 0, 14, 3).end()
+                .face(Direction.SOUTH).texture("#bricks").uvs(2, 0, 14, 3).end()
+                .face(Direction.EAST).texture("#bricks").uvs(2, 0, 14, 3).end()
+                .face(Direction.WEST).texture("#bricks").uvs(2, 0, 14, 3).end()
                 .end();
         getVariantBuilder(ServusManufacturingBlocks.CHIMNEY.get()).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(ChimneyBlock.TOP) ? top : column)

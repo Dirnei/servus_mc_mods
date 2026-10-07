@@ -53,7 +53,7 @@ public final class ServusManufacturingBlocks {
     public static final DeferredBlock<SinkBlock> SINK =
             BLOCKS.registerBlock("sink", SinkBlock::new, brick().noOcclusion());
     public static final DeferredBlock<ChimneyBlock> CHIMNEY =
-            BLOCKS.registerBlock("chimney", ChimneyBlock::new, brick());
+            BLOCKS.registerBlock("chimney", ChimneyBlock::new, brick().noOcclusion());
 
     private ServusManufacturingBlocks() {
     }

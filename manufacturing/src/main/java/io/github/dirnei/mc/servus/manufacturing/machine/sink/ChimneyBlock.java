@@ -4,12 +4,16 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * A brick Chimney block. Stacked straight on a top block of a formed Sink it
@@ -21,6 +25,10 @@ public class ChimneyBlock extends Block {
     public static final MapCodec<ChimneyBlock> CODEC = simpleCodec(ChimneyBlock::new);
     /** True on the top block of a column, which shows the cap. */
     public static final BooleanProperty TOP = BooleanProperty.create("top");
+
+    /** The slim shaft, ten pixels wide; the top block adds a cap twelve pixels wide. */
+    private static final VoxelShape SHAFT = Block.box(3, 0, 3, 13, 16, 13);
+    private static final VoxelShape WITH_CAP = Shapes.or(Block.box(3, 0, 3, 13, 13, 13), Block.box(2, 13, 2, 14, 16, 14));
 
     public ChimneyBlock(Properties properties) {
         super(properties);
@@ -35,6 +43,11 @@ public class ChimneyBlock extends Block {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(TOP);
+    }
+
+    @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return state.getValue(TOP) ? WITH_CAP : SHAFT;
     }
 
     @Override

@@ -1,6 +1,43 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        16,
+        13
+      ]
+    }
+  ],
   "textures": {
-    "all": "minecraft:block/bricks"
+    "bricks": "minecraft:block/bricks",
+    "particle": "minecraft:block/bricks"
   }
 }
