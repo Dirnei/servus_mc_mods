@@ -2,59 +2,66 @@
 
 ## Context
 
-- Manufacturing machines extend `MachineBlock` and `MachineBlockEntity`, which own an `ItemStackHandler`, work cycles, output push and `MachineStats` from `data/servus_manufacturing/machine/*.json`. The Sink has no inventory and no work cycle, so it does not fit `MachineBlockEntity`; it reuses the Lib side pieces instead: `SidedBlockEntity`, `SideConfig(supported, fallback)` with `lock`, `SideConfigWrench.use` for carrot cycling and dismantling with the configuration kept, `SideConfigMenus` button ids, client `SideConfigPanel` and `SideMarkerRenderer`.
+- Manufacturing machines extend `MachineBlock` and `MachineBlockEntity`, which own an `ItemStackHandler`, work cycles, output push and `MachineStats` from `data/servus_manufacturing/machine/*.json`. The Sink has no inventory and no work cycle, so it does not fit `MachineBlockEntity`.
+- The first implementation (task groups 1 to 6) built a 1x1 Sink with Lib side configuration. After the play test the user asked for a 2x2x2 multiblock with one big fan, formed by the carrot on the front, with no side configuration. Task group 7 reworks the code; the pure rate logic, data file, Chimney block, trash menu and bucket handling stay.
 - Capabilities are registered in `ServusManufacturingEvents` on `RegisterCapabilitiesEvent`.
-- NeoForge 21.1.255 sources (checked in `build/moddev/artifacts/neoforge-21.1.255-sources.jar`): `Capabilities.ItemHandler.BLOCK`, `Capabilities.FluidHandler.BLOCK`, `Capabilities.EnergyStorage.BLOCK` (sided `BlockCapability`); `ModelEvent.RegisterAdditional.register(ModelResourceLocation)` and `ModelResourceLocation.standalone(ResourceLocation)` for an extra model, read back with `Minecraft.getInstance().getModelManager().getModel(...)`; `ModelBlockRenderer.renderModel(...)` to draw it from a `BlockEntityRenderer`; `Block.animateTick` for client particles; `ParticleTypes.CAMPFIRE_COSY_SMOKE`; `FluidUtil.interactWithFluidHandler(Player, InteractionHand, IFluidHandler)` for buckets, called with the Sink's unlimited manual handler (the overload taking a position would look up the rate limited capability).
-- The fluid changes `m5-fluid-tank`, `m5-fluid-pipe` and `m3-pumps` are open. The Sink depends on none of them.
+- NeoForge 21.1.255 sources (checked in `build/moddev/artifacts/neoforge-21.1.255-sources.jar`): `Capabilities.ItemHandler.BLOCK`, `Capabilities.FluidHandler.BLOCK`, `Capabilities.EnergyStorage.BLOCK` (sided `BlockCapability`); `ModelEvent.RegisterAdditional.register(ModelResourceLocation)` and `ModelResourceLocation.standalone(ResourceLocation)` for an extra model, read back with `Minecraft.getInstance().getModelManager().getModel(...)`; `ModelBlockRenderer.renderModel(...)` to draw it from a `BlockEntityRenderer`; `BlockEntityRenderer.getRenderBoundingBox` for a box larger than one block; `Block.animateTick` for client particles; `ParticleTypes.CAMPFIRE_COSY_SMOKE`; `FluidUtil.interactWithFluidHandler(Player, InteractionHand, IFluidHandler)` for buckets, called with the Sink's unlimited manual handler (the overload taking a position would look up the rate limited capability); `Block.getPistonPushReaction` via `BlockBehaviour.Properties.pushReaction`.
 
 ## Goals / Non-Goals
 
 **Goals:**
 - Zero work per tick for an idle Sink; no ticker at all.
-- Chimney height known without scanning: recounted only when the column changes.
-- Rate logic pure and unit tested.
+- Chimney height known without scanning: recounted only when a column changes.
+- Forming, part layout and controller lookup as pure logic with unit tests.
+- No saved multiblock bookkeeping that can go stale: the block states alone describe a formed Sink.
 
 **Non-Goals:**
 - A shared "heat" budget across resources: each resource has its own budget so voiding water never starves item voiding.
 - Rendering smoke as a model or entity; vanilla particles only.
+- Side configuration, side markers or a side panel.
 
 ## Decisions
 
-### D1. Separate block family, not a `MachineBlockEntity`
-`SinkBlock extends BaseEntityBlock implements Wrenchable` with `FACING` (horizontal, faces the player) and `ACTIVE` (boolean). `SinkBlockEntity extends BlockEntity implements MenuProvider, SidedBlockEntity`. Its `SideConfig` is `new SideConfig(List.of(SideMode.INPUT, SideMode.DISABLED), SideMode.INPUT)` with `lock(RelativeSide.FRONT, SideMode.DISABLED)`. Carrot: `SideConfigWrench.use(context, this, sink, () -> {})` since there is nothing to drop. NBT holds the side config only; chimney height is recounted on load.
-Alternative: extend `MachineBlockEntity` with zero slots (rejected: it brings a ticker, work progress and output push the Sink never uses).
+### D1. Multiblock in block states, controller found by layout
+`SinkBlock extends BaseEntityBlock implements Wrenchable` has `FORMED` (boolean), `FACING` (horizontal front of the formed cube), `PART` (integer 0 to 7) and `ACTIVE` (boolean). An unformed block has `FORMED` false and ignores the other properties (defaults `NORTH`, 0, false). `PART` encodes the block's place in the cube as three bits: right (1), up (2), back (4), seen from the front. Part 0, the front lower left block, is the controller. Every Sink block has a `SinkBlockEntity`, but only the controller's is used: it holds the three `VoidBudget`s, the chimney height and `lastVoided`, and its state carries `ACTIVE`. Any part finds the controller with `SinkLayout.controllerOf(pos, facing, part)`, so nothing about the multiblock is saved in NBT.
+`SinkBlockEntity` no longer implements `SidedBlockEntity`; the side config, its NBT and its menu data are removed.
+Alternatives: a master block entity storing member positions (rejected: stale lists after chunk unloads are the classic multiblock bug); keep side modes (rejected by the user: input only, no configuration).
 
-### D2. Pure rate logic
-- `SinkRates`: three `int` lists (items per second, mB per tick, FE per tick) indexed by chimney height. `unlimitedHeight()` is the shortest list's length; `items(height)`, `fluid(height)`, `energy(height)` return the per tick rate as a `double` (items divided by 20) or `UNLIMITED`. JUnit `SinkRatesTest`: height 0, last limited height, unlimited height, heights above it, lists of different length.
-- `VoidBudget`: a token bucket with `take(long requested, long gameTime, double ratePerTick)` returning the granted amount. Tokens refill lazily from the elapsed game time since the last call, capped at 20 ticks of rate (one second carry over). `UNLIMITED` grants everything. Fractional tokens stay in a `double`, so 4 items per second grant one item every 5 ticks on average. JUnit `VoidBudgetTest`: idle bucket grants one second of rate, a second take in the same tick gets the remainder only, steady 1 per tick requests settle at the rate, fractional item rate, unlimited, a rate drop caps stored tokens to the new capacity, game time going backwards (world reload edge) treated as zero elapsed.
-Lazy refill from `level.getGameTime()` is what lets the Sink run without a ticker.
+### D2. Pure logic
+- `SinkRates` and `VoidBudget` unchanged (see tasks 1.1 and 1.2).
+- `SinkLayout` (no Minecraft imports, plain int coordinates and a facing given as the front's unit vector): `offset(part, facing)` from the controller to a part; `controllerOf(x, y, z, facing, part)`; `candidates(x, y, z, facing)` returning the four controller positions of the 2x2x2 cubes whose front plane contains the clicked block (the clicked block as any of the four front parts, the cube extending away from the clicked face); `topParts()` (2, 3, 6, 7) and `frontParts()` (0, 1, 2, 3). Right is the player's right when looking at the front, as decided for side config. JUnit `SinkLayoutTest`: offsets for all four facings, controllerOf inverts offset for every part and facing, candidates for each front part position, the cube lies behind the clicked face, top and front part sets.
 
-### D3. Capability handlers
-Three handlers on the block entity share its three `VoidBudget`s, so all sides draw from one budget per resource. The capability provider returns them for every side whose mode is Input.
+### D3. Forming and unforming
+Carrot on an unformed Sink block (`onWrench`, not sneaking) with a horizontal clicked face: for each of the four `SinkLayout.candidates` it checks that all eight positions hold unformed Sink blocks; the first match is formed by setting `FORMED`, `FACING` and each block's `PART` (`Block.UPDATE_ALL`), then the controller recounts the chimney and capabilities are invalidated on all eight positions. No match: action bar message. Carrot on a formed block does nothing; sneak carrot dismantles that one block (drops a plain Sink block, which unforms the rest through `onRemove`).
+`SinkBlock.onRemove` of a formed block (when the new state is not a Sink block) walks the seven other positions from the layout and sets those that are still formed Sink blocks of the same controller back to unformed defaults, then invalidates their capabilities. Formed blocks use `PushReaction.BLOCK` (state dependent via `getPistonPushReaction` override), unformed ones push normally. The loot table drops a plain Sink block (`dropSelf` with no state copy).
+Alternative: form automatically when the cube completes (rejected by the user: forming is an explicit carrot action on the front).
+
+### D4. Capability handlers
+The controller's three handlers share its budgets. The capability provider, registered for the Sink block entity type, returns them for any formed part on every face except the front face of front parts; unformed blocks and front faces return `null`, so cables and pipes do not connect there.
 - Items: `IItemHandler` with one slot, `getStackInSlot` empty, `isItemValid` true, `getSlotLimit` 64, `insertItem` grants `min(count, budget)` (budget only consumed when not simulating), `extractItem` empty.
 - Fluid: `IFluidHandler` with one tank of `Integer.MAX_VALUE` capacity, `getFluidInTank` empty, `fill` grants from the fluid budget, both `drain` methods return empty.
 - Energy: `IEnergyStorage` with `receiveEnergy` granting from the energy budget, `extractEnergy` 0, `getEnergyStored` 0, `getMaxEnergyStored` `Integer.MAX_VALUE`, `canReceive` true, `canExtract` false.
-A side whose mode is Off (including the locked front) returns no capability (`null`), so cables and pipes do not connect there. Changing a side invalidates capabilities with `level.invalidateCapabilities(pos)`, as `SidedBlockEntity.cycleSide` already does.
-Every grant greater than zero calls `markVoided()`.
+Every grant greater than zero calls `markVoided()` on the controller.
 
-### D4. Active state without a ticker
-`markVoided()` stores `lastVoided = gameTime`. If the state is not `ACTIVE`, it sets `ACTIVE` true (`Block.UPDATE_CLIENTS`) and schedules a block tick after `active_ticks` with `level.scheduleTick`. `SinkBlock.tick` (server scheduled tick) checks `gameTime - lastVoided >= active_ticks`: then it sets `ACTIVE` false, otherwise it reschedules for the remaining ticks. So a busy Sink costs one scheduled tick per active period, an idle one nothing. `lastVoided` is not saved; after a reload an `ACTIVE` state found in `onLoad` schedules one tick to clear it.
+### D5. Active state without a ticker
+`markVoided()` stores `lastVoided = gameTime` on the controller. If the controller state is not `ACTIVE`, it sets `ACTIVE` true (`Block.UPDATE_CLIENTS`) and schedules a block tick after `active_ticks` with `level.scheduleTick`. `SinkBlock.tick` (server scheduled tick, controller only) checks `gameTime - lastVoided >= active_ticks`: then it sets `ACTIVE` false, otherwise it reschedules for the remaining ticks. `lastVoided` is not saved; after a reload an `ACTIVE` controller found in `onLoad` schedules one tick to clear it. Unforming clears `ACTIVE`.
 
-### D5. Chimney column counting
-`ChimneyBlock` (full cube, brick sound and strength) has `TOP` (boolean), set in `getStateForPlacement` and `updateShape` from whether the block above is a Chimney. `ChimneyBlock.onPlace` and `onRemove` walk down through Chimney blocks (bounded by a cap of 32) and, if they end on a Sink, call `SinkBlockEntity.recountChimney()`. `SinkBlock.updateShape` (or `neighborChanged`) on the `UP` side recounts as well, which covers the lowest block. `recountChimney()` walks up counting Chimney blocks, capped at the walk cap of 32 rather than at the unlimited height so a datapack reload that raises the unlimited height needs no recount (heights at or above the unlimited height are unlimited anyway), and syncs the height to the client in the update tag so the fan speed and the GUI know it. `onLoad` recounts once on the server.
-Alternative: count on every insertion (rejected: block lookups on the hot path of a pipe pushing every tick).
+### D6. Chimney columns
+`ChimneyBlock` (full cube, brick sound and strength) has `TOP` (boolean), set in `getStateForPlacement` and `updateShape` from whether the block above is a Chimney. `ChimneyBlock.onPlace` and `onRemove` walk down through Chimney blocks (cap 32) and, if they end on a formed Sink block, call `recountChimney()` on its controller. `SinkBlock.updateShape` on the `UP` side of a formed top part recounts as well, which covers the lowest Chimney block. `recountChimney()` walks up from each of the four top parts, counting Chimney blocks (cap 32 each), keeps the maximum as the height and the column position of that maximum for the smoke, and syncs both to the client in the controller's update tag.
 
-### D6. Fan rendering
-The Sink's block model has a brick body, a brick frame around a recess three pixels deep with a sooty back wall (`sink_recess`) and a flat grate plane (`sink_front`, cutout) half a pixel behind the front. The Sink block uses `noOcclusion()` so the recess and the fan get the light of the block position instead of rendering black. The fan blades are a separate standalone model `servus_manufacturing:block/sink_fan`, registered in `ModelEvent.RegisterAdditional` with `ModelResourceLocation.standalone`. `SinkRenderer` (BER) translates to the recess, rotates about the facing axis by `(gameTime + partialTick) * speed` while `ACTIVE` (speed grows with the synced chimney height, example `6 + 3 * height` degrees per tick, no faster above height 8), keeps the last angle when idle, and draws the model with `ModelBlockRenderer.renderModel` in the cutout render type. It then delegates to a `SideMarkerRenderer` instance so the carrot markers still show.
-Alternative: animated texture (rejected: cannot change speed with height and cannot stop on a frame cleanly).
+### D7. Look and fan rendering
+- Unformed: a brick casing model with an iron trim (`sink_casing`), the same on all sides, so players see the parts are not working yet.
+- Formed: datagen writes one model per `PART`, rotated by `FACING`. Outer faces show bricks; the four front parts together show one large grate over a dark recess (the front texture split in four quarters `sink_front_0` to `sink_front_3`, recess three pixels deep on the front parts as in the first version); faces between parts are culled.
+- The fan blades are the standalone model `servus_manufacturing:block/sink_fan`, now designed at 2x2 block size (hub plus four blades, 32 pixels across). `SinkRenderer` is registered for the Sink block entity type but draws only for the controller of a formed Sink: it translates to the centre of the 2x2 front, rotates about the facing axis by `(gameTime + partialTick) * speed` while `ACTIVE` (speed `6 + 3 * height` degrees per tick, no faster above height 8), keeps the last angle when idle, and draws the model with `ModelBlockRenderer.renderModel` in the cutout render type. `getRenderBoundingBox` covers the whole cube so the fan does not vanish when the controller block leaves the view. The `SideMarkerRenderer` delegation is removed.
+Alternative: one quarter fan model per front part (rejected: four pieces cannot spin as one fan around a shared centre without seams).
 
-### D7. Smoke
-`SinkBlock.animateTick` (client) returns when not `ACTIVE`; otherwise it walks up through Chimney blocks (cap 32) to the column top and spawns `CAMPFIRE_COSY_SMOKE` above it, one or two particles per call with small random offsets, like `CampfireBlock.makeParticles`. Without a chimney the smoke starts above the Sink. The walk is client side and only happens for Sinks near the player.
+### D8. Smoke
+`SinkBlock.animateTick` (client) acts only for a formed controller that is `ACTIVE`; it reads the synced column position and height and spawns `CAMPFIRE_COSY_SMOKE` above the top Chimney block of the tallest column, one or two particles per call with small random offsets. Without a chimney it spawns above a random top part of the cube.
 
-### D8. GUI and manual voiding
-`SinkMenu` has one `TrashSlot` backed by a one slot container whose `setItem` discards the stack (and calls `markVoided()` on the server), plus the player inventory; `quickMoveStack` from the inventory moves the whole stack into the trash slot. `SinkScreen` draws the slot, text lines for chimney height and the three rates (or Unlimited) from `ContainerData`, and the `SideConfigPanel`. Rates come from the menu data: height plus three values encoded per resource as an int (`-1` for Unlimited; items as per second). `SinkBlock.useItemOn` first tries `FluidUtil.interactWithFluidHandler` on a handler that ignores the budget; when that succeeds it returns success, otherwise the carrot skips and anything else falls through to `useWithoutItem`, which opens the menu.
+### D9. GUI and manual voiding
+`SinkMenu` has one `TrashSlot` backed by a one slot container whose `setItem` discards the stack (and calls `markVoided()` on the controller on the server), plus the player inventory; `quickMoveStack` from the inventory moves the whole stack into the trash slot. `SinkScreen` draws the slot and text lines for chimney height and the three rates (or Unlimited) from `ContainerData` (height plus three values, `-1` for Unlimited, items as per second); the side panel and side data are removed. `SinkBlock.useItemOn` on a formed block first tries `FluidUtil.interactWithFluidHandler` on the controller's unlimited manual handler; when that succeeds it returns success, the carrot skips to `onWrench`, and anything else falls through to `useWithoutItem`, which opens the controller's menu. On an unformed block `useWithoutItem` only shows the action bar hint.
 
-### D9. Data
+### D10. Data
 `SinkStatsManager` (`SimpleJsonResourceReloadListener`, registered like `MachineStatsManager`) reads `data/servus_manufacturing/sink/sink.json`:
 ```json
 {
@@ -66,24 +73,26 @@ Alternative: animated texture (rejected: cannot change speed with height and can
 ```
 Missing file or fields fall back to these code defaults. With five entries the unlimited height is 5.
 
-### D10. Recipes and look
-Shaped recipes by datagen: Sink from 6 `minecraft:bricks`, 2 `minecraft:iron_bars` and 1 `minecraft:iron_ingot` (bars around the ingot as the fan); Chimney ×2 from 6 `minecraft:brick` in two columns. Textures reuse vanilla `minecraft:block/bricks` for the bodies; new textures only for the Sink front grate, its recess, the fan blades and the Chimney cap top. The fan model `block/sink_fan` is generated by datagen like the other models. Loot tables drop the block with `dropSelf`, like machines; the side configuration travels with the item only when the Sink is dismantled with the sneak Configuration Carrot, which saves the block entity data to the item, as the spec requires.
+### D11. Recipes
+Shaped recipes by datagen: 8 Sink blocks from 8 `minecraft:bricks` around 1 `minecraft:iron_bars`; Chimney ×2 from 6 `minecraft:brick` in two columns (unchanged). Lang gains the action bar messages for an incomplete cube and the casing hint.
 
 ### Settled PLAN.md items
-- None of section 5. Section 2.1 gains a line on the Sink; M3 gains the item "Sink and Chimney".
+- None of section 5. Section 2.1 describes the Sink as a 2x2x2 multiblock formed with the carrot; M3 keeps the item "Sink and Chimney".
 
 ### Pure Java vs Minecraft
-- Pure, JUnit: `SinkRates`, `VoidBudget`.
-- GameTest: hopper into an unlimited Sink empties; base rate refuses the excess of a 64 item insert; chimney of five gives unlimited for items, fluid and energy; breaking the middle chimney block lowers the height; front and Off sides return no capability; `ACTIVE` turns on when voiding and off after the active time; a bucket use leaves an empty bucket.
-- Manual: fan spin and speed, smoke position, chimney cap, GUI, carrot markers.
+- Pure, JUnit: `SinkRates`, `VoidBudget`, `SinkLayout`.
+- GameTest: carrot forms a cube from each front part; seven blocks do not form; forming ignores blocks of a formed neighbour; unformed blocks expose no capability; hopper into the side of an unlimited Sink empties; front face refuses; base rate refuses the excess of a 64 item insert; FE on one part and fluid on another share the Sink; chimney of five on a corner gives unlimited; the tallest of two columns counts; breaking a middle chimney block lowers the height; breaking a Sink block unforms the rest and drops a plain block; re-forming after repair; `ACTIVE` turns on when voiding and off after the active time; a bucket use on a formed part leaves an empty bucket; shift click into the trash slot.
+- Manual: big fan look, spin and speed for all four facings, smoke position, casing and formed models, chimney cap, GUI.
 
 ## Risks / Trade-offs
 
-- [An unlimited Sink on a Power Cable network drains every generator] → Intended; the rate tables and side modes let the player limit it, and the energy network already splits supply among receivers.
+- [An unlimited Sink on a Power Cable network drains every generator] → Intended; the rate tables let the player limit it, and the energy network already splits supply among receivers.
 - [Shift click voids a stack by accident] → Accepted for a trashcan; the GUI says what it does. An undo slot can come later.
 - [Mods that probe `getSlotLimit` or tank capacity may assume a huge buffer] → The handlers report honest refusals through `insertItem` and `fill`, which is what callers act on.
+- [A formed Sink cut by a chunk border loads half] → All eight blocks lie in at most four chunks next to each other; a part whose controller is not loaded returns no capability until it is. Block states stay formed, so nothing is lost.
+- [A world edit or `/setblock` replaces a part without `onRemove`] → The remaining parts stay formed but the controller check for capabilities verifies the controller is a formed Sink with the same facing; a broken cube is fixed by breaking and re-forming.
 - [Recounting relies on Chimney `onPlace`/`onRemove`; pistons moving chimney blocks] → Pistons call `onRemove` and `onPlace` too, so the count stays right.
 
 ## Migration Plan
 
-None, nothing is released.
+None, nothing is released. Sinks placed during the first play test load as unformed casings because the new properties default to unformed.
