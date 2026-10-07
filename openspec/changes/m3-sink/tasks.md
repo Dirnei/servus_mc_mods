@@ -2,8 +2,8 @@
 
 ## 1. Pure rate logic
 
-- [ ] 1.1 Add `SinkRates` in `manufacturing/.../machine/sink/SinkRates.java` (no Minecraft imports) and `SinkRatesTest` in `manufacturing/src/test/java/.../machine/sink/`: height 0, last limited height, unlimited height, heights above it, lists of different length; verify `gradlew :manufacturing:test` is green
-- [ ] 1.2 Add `VoidBudget` in `machine/sink/VoidBudget.java` and `VoidBudgetTest`: idle bucket grants one second of rate, second take in the same tick gets only the remainder, steady requests settle at the rate, fractional item rate, unlimited grants everything, rate drop caps stored tokens, game time going backwards counts as zero elapsed; verify `gradlew :manufacturing:test` is green
+- [x] 1.1 Add `SinkRates` in `manufacturing/.../machine/sink/SinkRates.java` (no Minecraft imports) and `SinkRatesTest` in `manufacturing/src/test/java/.../machine/sink/`: height 0, last limited height, unlimited height, heights above it, lists of different length; verify `gradlew :manufacturing:test` is green
+- [x] 1.2 Add `VoidBudget` in `machine/sink/VoidBudget.java` and `VoidBudgetTest`: idle bucket grants one second of rate, second take in the same tick gets only the remainder, steady requests settle at the rate, fractional item rate, unlimited grants everything, rate drop caps stored tokens, game time going backwards counts as zero elapsed; verify `gradlew :manufacturing:test` is green
 
 ## 2. Data
 
