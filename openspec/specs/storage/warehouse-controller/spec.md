@@ -105,3 +105,14 @@ A Warehouse Controller SHALL expose the Lib stock provider and stock sink capabi
 #### Scenario: Op feeds a dock
 - **WHEN** an op runs the feed command for 4 iron ingots on a dock while a crate holds 10
 - **THEN** 4 ingots arrive in the dock's feed buffer
+
+### Requirement: Order commands
+`/servus_warehouse orders <pos>` SHALL list every work order of the network at the position with item, amount, state, reason and steps. `/servus_warehouse order <pos> <item> <count>` SHALL create a work order and SHALL answer with the reason when none can be made.
+
+#### Scenario: Op orders sticks
+- **WHEN** an op runs the order command for 8 sticks while a dock faces a Crafting Station with the sticks recipe
+- **THEN** chat confirms the order and the orders command lists it
+
+#### Scenario: Op orders the impossible
+- **WHEN** an op orders bread and nothing can make it
+- **THEN** chat says there is no producer for bread
