@@ -33,11 +33,11 @@ The station SHALL have nine input slots and four output slots. It SHALL craft an
 - **THEN** the craft waits and the inputs are untouched
 
 ### Requirement: Machine like sides
-The station SHALL expose its inventory through the item handler capability on every side: inputs accept insertion only, and only of items used by a configured recipe; outputs allow extraction only. Items in the outputs SHALL be pushed into adjacent inventories that accept them, checking regularly, so a Machine Dock facing the station collects them.
+The station SHALL expose its inventory through the item handler capability on every side: inputs accept insertion only, and only of items used by a configured recipe; outputs allow extraction only. Items in the outputs SHALL be pushed into adjacent inventories that accept them, checking regularly, so an Inbound Station beside the station collects them.
 
 #### Scenario: Dock feeds and collects
-- **WHEN** a Machine Dock faces the station, planks are fed to the dock and the sticks recipe is configured
-- **THEN** the planks move into the station and the sticks end up in the dock's collect buffer
+- **WHEN** an Outbound Station faces the station with planks in its buffer, an Inbound Station touches the station and the sticks recipe is configured
+- **THEN** the planks move into the station and the sticks end up in the Inbound Station's buffer
 
 #### Scenario: Unused item refused
 - **WHEN** a hopper offers cobblestone and no configured recipe uses it

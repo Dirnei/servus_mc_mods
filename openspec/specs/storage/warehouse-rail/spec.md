@@ -18,7 +18,7 @@ The Warehouse Rail SHALL be a flat block that sits on the floor of its block spa
 - **THEN** the rail is placed with its flat side on the floor
 
 ### Requirement: Rails auto connect
-A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal) and every Inbound Station on the same level and SHALL render the matching piece: straight, curve, T or cross. Towards a storage block or a station the piece SHALL be a dock, visibly different from the arm towards a rail or segment. A Heavy Duty Rack SHALL take a dock only on its front side. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment, storage block or station is placed, rotated or removed.
+A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal), every Inbound Station and the back of every Shuttle Garage on the same level and SHALL render the matching piece: straight, curve, T or cross. Towards a storage block or a station the piece SHALL be a dock, visibly different from the arm towards a rail or segment; towards a garage it SHALL be a plain arm. A Heavy Duty Rack SHALL take a dock only on its front side. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment, storage block, station or garage is placed, rotated or removed.
 
 #### Scenario: Straight run
 - **WHEN** three rails are placed in a line
@@ -47,6 +47,10 @@ A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, ev
 #### Scenario: Rail docks onto a station
 - **WHEN** a Inbound Station is placed beside a rail, on any of its sides
 - **THEN** the rail shows a dock piece towards the station
+
+#### Scenario: Rail runs into a garage
+- **WHEN** a garage is placed with its back to a rail
+- **THEN** the rail shows a plain arm towards the garage, and turning the garage with the carrot removes it
 
 ### Requirement: Storage blocks join through rails
 Every rail SHALL be a node of the warehouse network. Crates, shelving racks, warehouse controllers, counter terminals and inbound stations touching a rail on any side SHALL belong to the same network as that rail, and a chain of connected rails SHALL carry membership along its whole length. Rails SHALL link to each other sideways only; a rail directly above another rail does not link to it.
