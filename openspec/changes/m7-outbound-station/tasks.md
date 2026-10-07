@@ -18,5 +18,5 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Run `openspec validate m7-outbound-station --strict`, full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
+- [x] 5.1 Run `openspec validate m7-outbound-station --strict`, full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
 - [ ] 5.2 Play check: keep slots restock, hopper on an extract side, carrot cycles sides on both stations, Assembler with an Outbound Station in front and an Inbound Station beside it runs a work order end to end.
