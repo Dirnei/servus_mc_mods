@@ -54,6 +54,8 @@ public final class ServusLogisticsEvents {
                     (duct, side) -> duct.itemHandler(side));
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusLogisticsBlockEntities.FLUID_TANK.get(),
                     (tank, side) -> tank.fluidHandler());
+            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusLogisticsBlockEntities.UTILITY_DUCT.get(),
+                    (duct, side) -> duct.fluidHandler(side));
         }
     }
 }

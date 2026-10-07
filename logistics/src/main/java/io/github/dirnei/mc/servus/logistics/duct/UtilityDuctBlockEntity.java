@@ -45,6 +45,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
@@ -75,6 +76,7 @@ public class UtilityDuctBlockEntity extends BlockEntity {
     private final EnumSet<Line> joined = EnumSet.noneOf(Line.class);
     private final Map<Line, LineNode> nodes = new EnumMap<>(Line.class);
     private final Map<Direction, DuctItemHandler> itemHandlers = new EnumMap<>(Direction.class);
+    private final Map<Direction, DuctFluidHandler> fluidHandlers = new EnumMap<>(Direction.class);
     private BlockState facade;
 
     public UtilityDuctBlockEntity(BlockPos pos, BlockState state) {
@@ -378,6 +380,8 @@ public class UtilityDuctBlockEntity extends BlockEntity {
     private void changed() {
         setChanged();
         if (level != null && !level.isClientSide()) {
+            // Which sides expose item and fluid handlers depends on the lines and modes.
+            level.invalidateCapabilities(worldPosition);
             recomputeArms();
             if (getBlockState().getBlock() instanceof UtilityDuctBlock duct) {
                 duct.refreshConnections(level, worldPosition);
@@ -399,6 +403,14 @@ public class UtilityDuctBlockEntity extends BlockEntity {
             return null;
         }
         return itemHandlers.computeIfAbsent(side, s -> new DuctItemHandler(this, s));
+    }
+
+    /** Fluid handler shown to the neighbour on {@code side}, null without a Fluid Pipe or when the side takes no input. */
+    public IFluidHandler fluidHandler(Direction side) {
+        if (!has(Line.FLUID) || side == null || !mode(Line.FLUID, side).allowsInsert()) {
+            return null;
+        }
+        return fluidHandlers.computeIfAbsent(side, s -> new DuctFluidHandler(this, s));
     }
 
     // Networks

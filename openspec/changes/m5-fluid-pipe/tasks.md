@@ -13,7 +13,7 @@
 ## 3. Behaviour and GUI
 
 - [x] 3.1 Add `network/FluidChannelNetwork.java` (D3) and register it as the fluid line network. Verify `gradlew build`.
-- [ ] 3.2 Add `duct/DuctFluidHandler.java` and register `Capabilities.FluidHandler.BLOCK` in `ServusLogisticsEvents.java`. Verify `gradlew build`.
+- [x] 3.2 Add `duct/DuctFluidHandler.java` and register `Capabilities.FluidHandler.BLOCK` in `ServusLogisticsEvents.java`. Verify `gradlew build`.
 - [ ] 3.3 Fluid Pipe page in `menu/UtilityDuctMenu.java` and `client/UtilityDuctScreen.java`; recipe, item model and lang in datagen. Run `gradlew :logistics:runData` and `gradlew build`.
 - [ ] 3.4 GameTests in `gametest/ServusLogisticsGameTests.java` per the design list. Verify `gradlew :logistics:runGameTestServer`.
 
