@@ -14,5 +14,5 @@
 
 ## 3. Verification
 
-- [ ] 3.1 Run `openspec validate m6-rack-wood-material --strict`, full `gradlew build` and `gradlew test` green, all GameTests green. Commit. Launch the client from main only when the user asks.
+- [x] 3.1 Run `openspec validate m6-rack-wood-material --strict`, full `gradlew build` and `gradlew test` green, all GameTests green. Commit. Launch the client from main only when the user asks.
 - [ ] 3.2 Play check: racks crafted from different woods show their boards in world and in hand, the tooltip names the wood, breaking particles show it, the frame is dark iron, a mixed row joins.
