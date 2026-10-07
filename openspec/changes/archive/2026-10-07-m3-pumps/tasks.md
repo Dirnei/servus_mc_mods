@@ -14,10 +14,10 @@
 ## 3. Tests and docs
 
 - [x] 3.1 GameTests in `gametest/ServusManufacturingGameTests.java` per the design list. Verify `gradlew :manufacturing:runGameTestServer`.
-- [ ] 3.2 Cross mod check on `runServerAll` over RCON after all three fluid changes are merged: Burner Pump on a pond, Fluid Pipe run, Fluid Tank fills.
+- [x] 3.2 Cross mod check on `runServerAll` over RCON after all three fluid changes are merged: Burner Pump on a pond, Fluid Pipe run, Fluid Tank fills.
 - [x] 3.3 Update `PLAN.md` 2.1 and M3. Run `openspec validate m3-pumps --strict`.
-- [ ] 3.4 Full `gradlew build` and `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
-- [ ] 3.5 Play check: both pumps on a pond, GUI gauge and status line, pump on dirt says it needs a source, Electric Pump recipe locked before research.
+- [x] 3.4 Full `gradlew build` and `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
+- [x] 3.5 Play check: both pumps on a pond, GUI gauge and status line, pump on dirt says it needs a source, Electric Pump recipe locked before research.
 
 ## 4. Play test changes
 

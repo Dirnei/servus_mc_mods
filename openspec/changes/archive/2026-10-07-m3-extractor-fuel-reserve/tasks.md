@@ -15,4 +15,4 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `openspec validate m3-extractor-fuel-reserve --strict`, full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. Play check: an extractor on coal lit with one coal fills its fuel slot to four, then pushes coal into a duct. Commit.
+- [x] 4.1 Run `openspec validate m3-extractor-fuel-reserve --strict`, full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. Play check: an extractor on coal lit with one coal fills its fuel slot to four, then pushes coal into a duct. Commit.
