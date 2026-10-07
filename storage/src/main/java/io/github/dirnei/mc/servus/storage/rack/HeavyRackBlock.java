@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.lib.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.zone.ZoneLabelItem;
@@ -248,7 +249,7 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof HeavyRackBlockEntity rack) {
-            player.openMenu(rack, pos);
+            player.openMenu(rack, buf -> HeavyRackMenu.writeSection(buf, level, pos));
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }

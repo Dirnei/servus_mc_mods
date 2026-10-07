@@ -158,7 +158,7 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
 
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new HeavyRackMenu(containerId, playerInventory, this);
+        return HeavyRackMenu.forSection(containerId, playerInventory, this);
     }
 
     // Ticking: throttle client syncs
