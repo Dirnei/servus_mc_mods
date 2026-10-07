@@ -7,10 +7,6 @@
     "servus_manufacturing:research_lab",
     "servus_manufacturing:electric_extractor",
     "servus_manufacturing:crusher",
-    "servus_manufacturing:chunk_loader",
-    "servus_manufacturing:power_cable",
-    "servus_manufacturing:item_duct",
-    "servus_manufacturing:splitter_duct",
-    "servus_manufacturing:filter_duct"
+    "servus_manufacturing:chunk_loader"
   ]
 }

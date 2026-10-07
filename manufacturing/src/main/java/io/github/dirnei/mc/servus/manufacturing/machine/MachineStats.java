@@ -9,8 +9,7 @@ import java.util.Optional;
  * every field is optional in the file and falls back to the machine's code defaults.
  *
  * @param workTicks      ticks per work cycle
- * @param energyPerTick  FE consumed (machines) or produced (generators) per tick, or the
- *                       transfer rate per endpoint (cables)
+ * @param energyPerTick  FE consumed (machines) or produced (generators) per tick
  * @param energyCapacity FE buffer size (0 for burner machines)
  * @param fuelDivisor    furnace burn time is divided by this (generators burn faster)
  */
@@ -56,13 +55,5 @@ public record MachineStats(int workTicks, int energyPerTick, int energyCapacity,
 
     public static MachineStats generator(int energyPerTick, int energyCapacity, int fuelDivisor) {
         return new MachineStats(1, energyPerTick, energyCapacity, fuelDivisor, 0, 1);
-    }
-
-    public static MachineStats cable(int transferPerTick) {
-        return new MachineStats(1, transferPerTick, 0, 1, 0, 1);
-    }
-
-    public static MachineStats duct(int itemsPerTick) {
-        return new MachineStats(1, 0, 0, 1, itemsPerTick, 1);
     }
 }

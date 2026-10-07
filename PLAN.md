@@ -9,7 +9,7 @@ A family of NeoForge mods for Minecraft 1.21.1, built to fit packs like ATM10 bu
 | Servus: Logistics | `servus_logistics` | Bundled item and energy ducts (fluids later) with facades |
 | Servus: Storage | `servus_storage` | In-world warehouse storage that scales to shuttles, autocrafting and wireless access |
 
-Each content mod depends only on Servus Lib. No content mod depends on another. When several are installed, extra features light up through the Lib API.
+Storage and Logistics depend only on Servus Lib. Manufacturing depends on Servus Lib and Servus: Logistics, because its ducts are the Utility Duct. No other content mod depends on another. When several are installed, extra features light up through the Lib API.
 
 ---
 
@@ -65,7 +65,7 @@ Decisions already made:
 - **FE** is the energy standard. The mod ships its own generators so it works without other mods.
 - Techs, packs, recipes and deposit definitions are **datapack driven** so modpack authors can retune them.
 - Production must work **overnight while chunk loaded**. A chunk loader upgrade with FE upkeep and a config cap per player/team is planned. Respect FTB Chunks if present.
-- Includes a deliberately simple Item Duct and Power Cable so the mod is playable alone. Machines also push output into adjacent inventories.
+- Ducts and cables come from Servus: Logistics (the Utility Duct), which Manufacturing requires. Machines also push output into adjacent inventories.
 
 **Tier 1 content (first playable slice)**
 
@@ -76,7 +76,6 @@ Decisions already made:
 | Coal Generator | 40 FE/t | 1 coal per 20 s |
 | Assembler Mk1 | recipe speed x1 | 20 FE/t |
 | Research Lab | consumes packs | 10 FE/t |
-| Item Duct | moves items | none |
 
 Recipes:
 - Iron Gear: 2 iron ingots, 1 s
@@ -85,7 +84,7 @@ Recipes:
 
 Reference balanced block (1 Red Pack per 5 s): 2 extractors and 2 smelters on iron, 1 extractor and 1 smelter on copper, 1 extractor on coal, 3 assemblers, 1 lab.
 
-First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), Splitter and Filter Ducts, Stone Processing, Logistics (unlocks green pack and Tier 2).
+First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), Stone Processing, Logistics (unlocks green pack and Tier 2).
 
 **Pack tiers (later):** Mechanical (red), Logistic (green), Chemical (blue), Advanced (purple), Exotic (yellow), plus repeatable infinite research at the end.
 
@@ -179,7 +178,7 @@ Each milestone ends in something playable or testable.
 - Burner Extractor, Burner Smelter (fuel handling, fixed rates)
 - Coal Generator (FE)
 - Assembler Mk1 with recipe selection GUI
-- Item Duct and Power Cable (simple), adjacent output push
+- Adjacent output push; items and energy travel through the Logistics Utility Duct
 - Items: iron gear, copper wire, Red Pack
 - Research Lab, tech tree data format, team progress, first five techs
 - Minimal tech tree screen
@@ -188,7 +187,7 @@ Each milestone ends in something playable or testable.
 **Checkpoint: play it.** Is Tier 1 fun? Adjust numbers before building more.
 
 ### M3: Manufacturing Tier 1 completion
-- Electric Extractor, Crusher, Splitter and Filter Ducts, Stone Processing
+- Electric Extractor, Crusher, Stone Processing
 - JEI or EMI integration for machine recipes
 - Chunk loader upgrade with FE upkeep and config caps
 - Balance pass

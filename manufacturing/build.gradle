@@ -1,12 +1,16 @@
 // Servus: Manufacturing. Shared configuration lives in the root build.gradle.
 evaluationDependsOn(':lib')
+evaluationDependsOn(':logistics')
 
 dependencies {
-    // Compile against Lib, but do not put its jar on the run classpath: the run
-    // already loads Lib from its source set via loadedMods below. Using
-    // implementation here makes FML see servus_lib twice.
+    // Compile against Lib and Logistics, but do not put their jars on the run
+    // classpath: the run already loads both from their source sets via
+    // loadedMods below. Using implementation here makes FML see them twice.
     compileOnly project(':lib')
     testImplementation project(':lib')
+    // Manufacturing's ducts are the Logistics Utility Duct.
+    compileOnly project(':logistics')
+    testImplementation project(':logistics')
 
     // JEI: API at compile time, full mod only in dev runs (soft dependency).
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
@@ -27,13 +31,14 @@ dependencies {
 // Resolved outside the neoForge block: inside it, project(':lib') would be
 // read as a dependency notation instead of the Gradle project.
 def libMod = project(':lib').neoForge.mods.getByName('servus_lib')
+def logisticsMod = project(':logistics').neoForge.mods.getByName('servus_logistics')
 def ownMod = neoForge.mods.getByName(project.mod_id)
 
 neoForge {
     runs {
         configureEach {
-            // Content mods are always launched together with Servus Lib.
-            loadedMods = [ownMod, libMod]
+            // Manufacturing is always launched together with Servus Lib and Servus: Logistics.
+            loadedMods = [ownMod, libMod, logisticsMod]
         }
     }
 }

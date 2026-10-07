@@ -21,11 +21,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.BURNER_EXTRACTOR.get(), "Burner Extractor");
         add(ServusManufacturingBlocks.BURNER_SMELTER.get(), "Burner Smelter");
         add(ServusManufacturingBlocks.COAL_GENERATOR.get(), "Coal Generator");
-        add(ServusManufacturingBlocks.POWER_CABLE.get(), "Power Cable");
         add(ServusManufacturingBlocks.ASSEMBLER.get(), "Assembler Mk1");
-        add(ServusManufacturingBlocks.ITEM_DUCT.get(), "Item Duct");
-        add(ServusManufacturingBlocks.SPLITTER_DUCT.get(), "Splitter Duct");
-        add(ServusManufacturingBlocks.FILTER_DUCT.get(), "Filter Duct");
         add(ServusManufacturingItems.IRON_GEAR.get(), "Iron Gear");
         add(ServusManufacturingItems.COPPER_WIRE.get(), "Copper Wire");
         add(ServusManufacturingItems.RED_PACK.get(), "Red Pack");
@@ -85,7 +81,6 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("tech.servus_manufacturing.electric_extractor", "Electric Extractor");
         add("tech.servus_manufacturing.crusher", "Crusher");
         add("tech.servus_manufacturing.stone_processing", "Stone Processing");
-        add("tech.servus_manufacturing.splitter_filter_ducts", "Splitter and Filter Ducts");
         add("tech.servus_manufacturing.logistics", "Logistics");
     }
 }

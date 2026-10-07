@@ -23,7 +23,6 @@ public final class ServusManufacturingClient {
         event.register(ServusManufacturingMenus.RESEARCH_LAB.get(), ResearchLabScreen::new);
         event.register(ServusManufacturingMenus.ELECTRIC_EXTRACTOR.get(), MachineScreen::electric);
         event.register(ServusManufacturingMenus.CRUSHER.get(), MachineScreen::crusher);
-        event.register(ServusManufacturingMenus.FILTER_DUCT.get(), FilterDuctScreen::new);
         event.register(ServusManufacturingMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
     }
 }

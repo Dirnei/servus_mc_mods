@@ -33,3 +33,10 @@ ${mod_description}
     versionRange="${lib_version_range}"
     ordering="AFTER"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="servus_logistics"
+    type="required"
+    versionRange="${logistics_version_range}"
+    ordering="AFTER"
+    side="BOTH"

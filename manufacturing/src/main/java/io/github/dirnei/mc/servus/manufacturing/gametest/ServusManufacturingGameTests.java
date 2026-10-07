@@ -1,9 +1,12 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
-import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
 import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
+import io.github.dirnei.mc.servus.logistics.duct.Channel;
+import io.github.dirnei.mc.servus.logistics.duct.UtilityDuctBlockEntity;
+import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlocks;
+import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
@@ -49,9 +52,9 @@ public final class ServusManufacturingGameTests {
         burnerPair(helper, 5, ServusManufacturingBlocks.COPPER_DEPOSIT.get(), true);
         burnerPair(helper, 7, ServusManufacturingBlocks.COAL_DEPOSIT.get(), false);
 
-        // Duct column at x 3 from z 1 to z 7.
+        // Duct column at x 3 from z 1 to z 7: Utility Ducts with an Item Pipe on channel 1.
         for (int z = 1; z <= 7; z++) {
-            helper.setBlock(new BlockPos(3, 2, z), ServusManufacturingBlocks.ITEM_DUCT.get().defaultBlockState());
+            duct(helper, new BlockPos(3, 2, z), Channel.ITEM);
         }
 
         // Assemblers at x 4 with their recipes, generators at x 5.
@@ -102,8 +105,24 @@ public final class ServusManufacturingGameTests {
             fuel(helper, smelter);
         } else {
             // The coal extractor feeds the duct column directly.
-            helper.setBlock(new BlockPos(2, 2, z), ServusManufacturingBlocks.ITEM_DUCT.get().defaultBlockState());
+            duct(helper, new BlockPos(2, 2, z), Channel.ITEM);
         }
+    }
+
+    /**
+     * Places a Utility Duct carrying the given lines with default modes and
+     * channel 1. {@code setBlock} skips placement logic, so the connection
+     * flags are refreshed from the neighbours afterwards.
+     */
+    private static void duct(GameTestHelper helper, BlockPos pos, Channel... lines) {
+        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        for (Channel line : lines) {
+            duct.addChannel(line);
+        }
+        BlockPos absolute = helper.absolutePos(pos);
+        BlockState state = helper.getLevel().getBlockState(absolute);
+        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
     }
 
     private static void assembler(GameTestHelper helper, int z, String recipe) {

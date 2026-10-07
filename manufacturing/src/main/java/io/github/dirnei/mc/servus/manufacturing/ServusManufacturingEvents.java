@@ -3,7 +3,6 @@ package io.github.dirnei.mc.servus.manufacturing;
 import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
 import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;
-import io.github.dirnei.mc.servus.manufacturing.duct.ItemDuctBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.gametest.ServusManufacturingGameTests;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStatsManager;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
@@ -96,12 +95,6 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.RESEARCH_LAB.get(),
                     (machine, side) -> machine.energyStorage());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.ITEM_DUCT.get(),
-                    ItemDuctBlockEntity::handlerFor);
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.SPLITTER_DUCT.get(),
-                    ItemDuctBlockEntity::handlerFor);
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.FILTER_DUCT.get(),
-                    ItemDuctBlockEntity::handlerFor);
         }
     }
 }

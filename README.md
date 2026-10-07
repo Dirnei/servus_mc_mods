@@ -9,7 +9,7 @@ A family of NeoForge mods for Minecraft 1.21.1. See `PLAN.md` for the design and
 | Servus: Logistics | `servus_logistics` | `logistics/` |
 | Servus: Storage | `servus_storage` | `storage/` |
 
-Each content mod depends only on Servus Lib. No content mod depends on another.
+Storage and Logistics depend only on Servus Lib. Manufacturing also depends on Servus: Logistics for its ducts.
 
 ## Prerequisites
 
@@ -52,11 +52,11 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 
 1. Find or place deposits (iron, copper, coal, stone patches on the surface).
 2. Burner Extractor on a deposit, Burner Smelter next to it, coal in both. Machines push output into adjacent inventories.
-3. Coal Generator plus Power Cables carry FE to an Assembler Mk1 and a Research Lab.
+3. Coal Generator plus Utility Ducts with a Power Cable (from Servus: Logistics) carry FE to an Assembler Mk1 and a Research Lab.
 4. In the Assembler, lay out a recipe in the pattern grid and press plus, or press the plus button on any recipe in JEI. An Assembler Mk1 holds two recipes and alternates between them. Every machine GUI has a side panel on the left to set which sides take input and give output.
-5. Item Ducts route pushed items to the next inventory on the duct network.
+5. Utility Ducts with an Item Pipe route pushed items to the next inventory on the same channel.
 6. Red packs go into the Research Lab; open the Tech Tree from its GUI and pick a tech.
-7. Researched machines are assembled, not hand crafted: Electric Extractor (twice as fast, powered), Crusher (ore to two grit, grit smelts to ingots), Splitter Duct (pulls from chests into the duct network) and Filter Duct (whitelist in its GUI). Stone Processing adds stone, stone bricks and glass recipes to the assembler.
+7. Researched machines are assembled, not hand crafted: Electric Extractor (twice as fast, powered), Crusher (ore to two grit, grit smelts to ingots). Stone Processing adds stone, stone bricks and glass recipes to the assembler.
 8. The Chunk Loader keeps its chunk running while powered. The per team limit and the FTB Chunks rule are in `config/servus_manufacturing-common.toml`.
 
 ## Storage playtest guide

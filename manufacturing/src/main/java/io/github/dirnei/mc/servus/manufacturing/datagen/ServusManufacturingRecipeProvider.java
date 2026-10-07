@@ -60,24 +60,6 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_copper_ingot", has(Items.COPPER_INGOT))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.POWER_CABLE.get(), 8)
-                .pattern("ICI")
-                .pattern("ICI")
-                .pattern("ICI")
-                .define('I', Items.IRON_INGOT)
-                .define('C', Items.COPPER_INGOT)
-                .unlockedBy("has_copper_ingot", has(Items.COPPER_INGOT))
-                .save(output);
-
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.ITEM_DUCT.get(), 8)
-                .pattern("III")
-                .pattern("G G")
-                .pattern("III")
-                .define('I', Items.IRON_INGOT)
-                .define('G', Items.GLASS)
-                .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
-                .save(output);
-
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.RESEARCH_LAB.get())
                 .pattern("IGI")
                 .pattern("RBR")
@@ -145,20 +127,6 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .time(40)
                 .tech("stone_processing")
                 .save(output, "glass");
-
-        assembling(ServusManufacturingItems.SPLITTER_DUCT.get(), 4)
-                .requires(ServusManufacturingItems.ITEM_DUCT.get(), 4)
-                .requires(ServusManufacturingItems.IRON_GEAR.get(), 1)
-                .time(40)
-                .tech("splitter_filter_ducts")
-                .save(output, "splitter_duct");
-
-        assembling(ServusManufacturingItems.FILTER_DUCT.get(), 4)
-                .requires(ServusManufacturingItems.ITEM_DUCT.get(), 4)
-                .requires(ServusManufacturingItems.COPPER_WIRE.get(), 2)
-                .time(40)
-                .tech("splitter_filter_ducts")
-                .save(output, "filter_duct");
 
         assembling(ServusManufacturingItems.CHUNK_LOADER.get(), 1)
                 .requires(ServusManufacturingItems.IRON_GEAR.get(), 4)
