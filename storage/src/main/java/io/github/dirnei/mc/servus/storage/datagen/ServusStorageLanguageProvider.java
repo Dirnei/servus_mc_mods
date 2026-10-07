@@ -68,6 +68,10 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.outbound.short.offline", "%s: the warehouse is offline");
         add("message.servus_storage.garage.occupied", "Take the shuttles out of the garage first");
         add("gui.servus_storage.garage.status", "%s of %s shuttles, %s out");
+        add("gui.servus_storage.garage.status_paused", "%s of %s shuttles, %s out, paused");
+        add("gui.servus_storage.garage.recall", "Recall");
+        add("gui.servus_storage.garage.active", "Active");
+        add("gui.servus_storage.garage.paused", "Paused");
         add(ServusStorageItems.SHUTTLE.get(), "Shuttle");
         add(ServusStorageItems.ZONE_LABEL.get(), "Zone Label");
         add("message.servus_storage.zone_label.unnamed", "Give the label a name first: right click the air with it");

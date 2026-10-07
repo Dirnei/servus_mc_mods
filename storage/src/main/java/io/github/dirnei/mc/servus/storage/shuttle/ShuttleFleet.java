@@ -134,9 +134,10 @@ public final class ShuttleFleet {
         return false;
     }
 
-    /** Called when a garage joins or its count changes: match its shuttle list to the count. */
-    public void adoptGarage(BlockPos pos, int count) {
+    /** Called when a garage joins or its count or pause state changes: match its shuttle list to the count. */
+    public void adoptGarage(BlockPos pos, int count, boolean active) {
         Garage garage = garages.computeIfAbsent(pos, Garage::new);
+        garage.active = active;
         refreshHome(garage);
         while (garage.shuttles.size() < count) {
             Shuttle shuttle = new Shuttle(garage);
@@ -189,10 +190,32 @@ public final class ShuttleFleet {
         if (garage.home == previous) {
             return;
         }
+        if (garage.home == null) {
+            // No way home any more: everything out comes in now rather than freezing on the rails.
+            recallShuttles(garage);
+            return;
+        }
         for (Shuttle shuttle : garage.shuttles) {
             if (shuttle.job == null) {
-                shuttle.motion = garage.home == null ? null : ShuttleMotion.parked(garage.home);
+                shuttle.motion = ShuttleMotion.parked(garage.home);
             }
+        }
+        syncPending = true;
+    }
+
+    /** Brings every shuttle of a garage inside at once: cargo drops there, unloaded jobs go back to the queue. */
+    public void recall(BlockPos pos) {
+        Garage garage = garages.get(pos);
+        if (garage != null) {
+            recallShuttles(garage);
+        }
+    }
+
+    private void recallShuttles(Garage garage) {
+        for (Shuttle shuttle : garage.shuttles) {
+            dropCargo(shuttle);
+            shuttle.leg = Leg.HOME;
+            shuttle.motion = garage.home == null ? null : ShuttleMotion.parked(garage.home);
         }
         syncPending = true;
     }
@@ -304,11 +327,12 @@ public final class ShuttleFleet {
     // Ticking
 
     public void tick() {
-        if (!hasShuttles()) {
+        // Shuttles already out keep moving even when no garage has a home; only new jobs need one.
+        if (hasShuttles()) {
+            assignJobs();
+        } else {
             serveInstantly();
-            return;
         }
-        assignJobs();
         boolean moving = false;
         for (Garage garage : garages.values()) {
             for (Shuttle shuttle : garage.shuttles) {
@@ -373,7 +397,7 @@ public final class ShuttleFleet {
     private List<Shuttle> freeShuttles() {
         List<Shuttle> free = new ArrayList<>();
         for (Garage garage : garages.values()) {
-            if (garage.home == null) {
+            if (garage.home == null || !garage.active) {
                 continue;
             }
             for (Shuttle shuttle : garage.shuttles) {
@@ -618,13 +642,14 @@ public final class ShuttleFleet {
                 out++;
             }
         }
-        return garage.shuttles.size() + " shuttles, " + out + " out" + (garage.home == null ? ", no rail" : "");
+        return garage.shuttles.size() + " shuttles, " + out + " out" + (garage.home == null ? ", no rail" : "") + (garage.active ? "" : ", paused");
     }
 
     /** A garage: its position, home rail and shuttles. */
     private static final class Garage {
         final BlockPos pos;
         NodePos home;
+        boolean active = true;
         final List<Shuttle> shuttles = new ArrayList<>();
 
         Garage(BlockPos pos) {

@@ -32,6 +32,9 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
     private final int capacity;
     private final int inventoryStart;
     private final DataSlot out = DataSlot.standalone();
+    private final DataSlot active = DataSlot.standalone();
+    public static final int BUTTON_RECALL = 1;
+    public static final int BUTTON_TOGGLE = 2;
 
     public ShuttleGarageMenu(int containerId, Inventory playerInventory, ShuttleGarageBlockEntity garage) {
         super(ServusStorageMenus.SHUTTLE_GARAGE.get(), containerId);
@@ -58,6 +61,7 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
             addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
         }
         addDataSlot(out);
+        addDataSlot(active);
     }
 
     public static ShuttleGarageMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -90,6 +94,29 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
         return out.get();
     }
 
+    /** Whether the garage hands out shuttles, as last synced. */
+    public boolean isActive() {
+        return active.get() != 0;
+    }
+
+    /** Recall brings every shuttle inside; toggle pauses or resumes the garage. */
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (id != BUTTON_RECALL && id != BUTTON_TOGGLE) {
+            return false;
+        }
+        if (!player.level().isClientSide()) {
+            if (id == BUTTON_RECALL) {
+                garage.network().ifPresent(network -> network.recallGarage(garage.getBlockPos()));
+            } else {
+                garage.setActive(!garage.isActive());
+            }
+            out.set(garage.outCount());
+            active.set(garage.isActive() ? 1 : 0);
+        }
+        return true;
+    }
+
     /** The first {@code out} filled slots stand for the shuttles that are away. */
     public boolean locked(int slot) {
         if (garage.shuttles().getStackInSlot(slot).isEmpty()) {
@@ -108,6 +135,7 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
     public void broadcastChanges() {
         if (!player.level().isClientSide()) {
             out.set(garage.outCount());
+            active.set(garage.isActive() ? 1 : 0);
         }
         super.broadcastChanges();
     }

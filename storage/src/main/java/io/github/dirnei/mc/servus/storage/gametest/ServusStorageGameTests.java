@@ -1927,4 +1927,109 @@ public final class ServusStorageGameTests {
             helper.succeed();
         });
     }
+
+    private static final BlockPos RC_CONTROLLER = new BlockPos(1, 1, 3);
+    private static final BlockPos RC_TERMINAL = new BlockPos(1, 1, 4);
+    private static final BlockPos RC_GARAGE = new BlockPos(2, 1, 5);
+    private static final BlockPos RC_RACK = new BlockPos(9, 1, 5);
+    private static final BlockPos RC_CRATE = new BlockPos(1, 1, 5);
+
+    /** Controller, terminal, a rail along z 4, a garage behind the rail with one shuttle and a crate beside it, a rack with cobblestone at the far end. */
+    private static WarehouseControllerBlockEntity recallSetup(GameTestHelper helper) {
+        helper.setBlock(RC_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(RC_TERMINAL, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState().setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        for (int x = 2; x <= 9; x++) {
+            helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
+            helper.setBlock(new BlockPos(x, 1, 4), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        helper.setBlock(RC_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
+        // The crate keeps the garage in the warehouse when the rail behind it is broken.
+        helper.setBlock(RC_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(RC_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(RC_GARAGE);
+        helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RC_RACK);
+        rack.items().insertItem(0, new ItemStack(Items.COBBLESTONE, 30), false);
+        return helper.getBlockEntity(RC_CONTROLLER);
+    }
+
+    /** Recall brings a shuttle that is out on a pick back inside at once; the pick is queued again. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void garageRecallBringsShuttlesHome(GameTestHelper helper) {
+        WarehouseControllerBlockEntity controller = recallSetup(helper);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(RC_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 30);
+            helper.runAfterDelay(8, () -> {
+                BlockPos garagePos = helper.absolutePos(RC_GARAGE);
+                helper.assertTrue(network.garageOut(garagePos) == 1, "the shuttle should be out on the pick");
+                network.recallGarage(garagePos);
+                helper.assertTrue(network.garageOut(garagePos) == 0, "after the recall nothing is out");
+                helper.assertTrue(network.shuttleViews(garagePos).isEmpty(), "the recalled shuttle sits inside and is not drawn");
+                helper.runAfterDelay(160, () -> {
+                    helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 30, "the queued pick is taken up again and delivered, got " + terminal.outputCount(Items.COBBLESTONE));
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    private static final BlockPos PG_GARAGE_B = new BlockPos(8, 1, 5);
+
+    /** A paused garage hands out no shuttle; the active one serves instead. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void pausedGarageTakesNoJobs(GameTestHelper helper) {
+        WarehouseControllerBlockEntity controller = recallSetup(helper);
+        helper.setBlock(PG_GARAGE_B, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
+        ShuttleGarageBlockEntity garageB = helper.getBlockEntity(PG_GARAGE_B);
+        helper.assertTrue(garageB.addShuttle(), "garage B takes a shuttle");
+        garageB.setActive(false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            helper.assertTrue(network.garageSummary(helper.absolutePos(PG_GARAGE_B)).getString().contains("paused"), "the summary says paused");
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(RC_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 30);
+            helper.runAfterDelay(8, () -> {
+                helper.assertTrue(network.garageOut(helper.absolutePos(PG_GARAGE_B)) == 0, "the paused garage, though nearer, sends nothing");
+                helper.assertTrue(network.garageOut(helper.absolutePos(RC_GARAGE)) == 1, "the active garage sends its shuttle");
+                garageB.setActive(true);
+                helper.assertTrue(!network.garageSummary(helper.absolutePos(PG_GARAGE_B)).getString().contains("paused"), "resumed");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Breaking the rail behind a garage while its shuttle is out brings the shuttle inside instead of freezing it. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void losingTheRailRecalls(GameTestHelper helper) {
+        WarehouseControllerBlockEntity controller = recallSetup(helper);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            CounterTerminalBlockEntity terminal = helper.getBlockEntity(RC_TERMINAL);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 30);
+            helper.runAfterDelay(8, () -> {
+                BlockPos garagePos = helper.absolutePos(RC_GARAGE);
+                helper.assertTrue(network.garageOut(garagePos) == 1, "the shuttle should be out on the pick");
+                helper.setBlock(RC_GARAGE.north(), Blocks.AIR.defaultBlockState());
+                helper.runAfterDelay(5, () -> {
+                    // The rail line split off, so the controller's part is a rebuilt network object.
+                    WarehouseNetwork after = controller.network().orElseThrow();
+                    ShuttleGarageBlockEntity garage = helper.getBlockEntity(RC_GARAGE);
+                    helper.assertTrue(garage.shuttleCount() == 1, "the garage still holds its shuttle");
+                    helper.assertTrue(after.garageOut(garagePos) == 0, "without a home the shuttle is recalled, out is " + after.garageOut(garagePos));
+                    helper.assertTrue(after.shuttleViews(garagePos).isEmpty(), "nothing is drawn on the rails");
+                    helper.assertTrue(after.garageSummary(garagePos).getString().contains("no rail"), "the summary says no rail: " + after.garageSummary(garagePos).getString());
+                    helper.succeed();
+                });
+            });
+        });
+    }
 }

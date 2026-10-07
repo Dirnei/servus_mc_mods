@@ -47,6 +47,22 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         }
     };
 
+    private boolean active = true;
+
+    /** Whether the garage hands out shuttles for new jobs. */
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        if (this.active == active) {
+            return;
+        }
+        this.active = active;
+        setChanged();
+        network().ifPresent(network -> network.garageChanged(this));
+    }
+
     public ShuttleGarageBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.SHUTTLE_GARAGE.get(), pos, state);
     }
@@ -143,11 +159,13 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("ShuttleItems", shuttles.serializeNBT(registries));
+        tag.putBoolean("Active", active);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        active = !tag.contains("Active") || tag.getBoolean("Active");
         if (tag.contains("ShuttleItems")) {
             ItemStackHandler saved = new ItemStackHandler();
             saved.deserializeNBT(registries, tag.getCompound("ShuttleItems"));

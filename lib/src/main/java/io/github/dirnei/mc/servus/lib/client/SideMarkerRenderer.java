@@ -18,9 +18,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.joml.Matrix4f;
 
 /**
- * Draws the side modes on the block: a frame in the mode colour on every face
- * that is not at the default, and with the carrot in hand or the goggles on,
- * a frame and a glyph on every face.
+ * Draws the side modes on the block while the player holds the carrot or
+ * wears the goggles: a frame in the mode colour and a glyph on every face.
  */
 public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity> implements BlockEntityRenderer<T> {
 
@@ -45,24 +44,17 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity> implem
 
     @Override
     public void render(T blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int packedLight, int packedOverlay) {
-        boolean all = configuring();
-        if (!all && blockEntity.sideConfig().isDefault()) {
+        if (!configuring()) {
             return;
         }
-        SideMode fallback = blockEntity.sideConfig().fallback();
         VertexConsumer buffer = buffers.getBuffer(RenderType.debugQuads());
         Matrix4f pose = poseStack.last().pose();
         for (Direction direction : Direction.values()) {
             SideMode mode = blockEntity.sideMode(direction);
-            if (!all && mode == fallback) {
-                continue;
-            }
             int color = SideConfigPanel.color(mode);
             Face face = new Face(direction);
             face.frame(buffer, pose, color);
-            if (all) {
-                face.glyph(buffer, pose, mode, color);
-            }
+            face.glyph(buffer, pose, mode, color);
         }
     }
 

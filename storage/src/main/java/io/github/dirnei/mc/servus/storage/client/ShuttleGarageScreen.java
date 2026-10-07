@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.client;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -13,7 +14,10 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
 
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/shuttle_garage.png");
-    private static final int STATUS_Y = 56;
+    private static final int STATUS_Y = 52;
+    private static final int BUTTONS_Y = 64;
+
+    private Button toggle;
     private static final int COLOUR_TEXT = 0x404040;
     private static final int COLOUR_LOCKED = 0x80FF9A2E;
 
@@ -27,10 +31,21 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
     protected void init() {
         super.init();
         this.inventoryLabelY = ShuttleGarageMenu.INVENTORY_Y - 11;
+        addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.garage.recall"), button -> press(ShuttleGarageMenu.BUTTON_RECALL))
+                .bounds(leftPos + 8, topPos + BUTTONS_Y, 76, 14).build());
+        toggle = addRenderableWidget(Button.builder(Component.empty(), button -> press(ShuttleGarageMenu.BUTTON_TOGGLE))
+                .bounds(leftPos + 92, topPos + BUTTONS_Y, 76, 14).build());
+    }
+
+    private void press(int id) {
+        if (minecraft != null && minecraft.gameMode != null) {
+            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
+        }
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        toggle.setMessage(Component.translatable(menu.isActive() ? "gui.servus_storage.garage.active" : "gui.servus_storage.garage.paused"));
         super.render(graphics, mouseX, mouseY, partialTick);
         renderTooltip(graphics, mouseX, mouseY);
     }
@@ -53,7 +68,8 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderLabels(graphics, mouseX, mouseY);
         int count = menu.garage().shuttleCount();
-        Component line = Component.translatable("gui.servus_storage.garage.status", count, menu.capacity(), menu.out());
+        Component line = Component.translatable(menu.isActive() ? "gui.servus_storage.garage.status" : "gui.servus_storage.garage.status_paused",
+                count, menu.capacity(), menu.out());
         graphics.drawString(font, line, 8, STATUS_Y, COLOUR_TEXT, false);
         for (int slot = 0; slot < menu.capacity(); slot++) {
             if (menu.locked(slot)) {

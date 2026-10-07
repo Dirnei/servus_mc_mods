@@ -28,10 +28,10 @@ import net.neoforged.neoforge.items.IItemHandler;
  */
 public class UtilityDuctMenu extends AbstractContainerMenu {
 
-    public static final int SLOT_X = 20;
-    public static final int FILTER_Y = 50;
-    public static final int INVENTORY_Y = 120;
-    public static final int HOTBAR_Y = 178;
+    public static final int SLOT_X = 8;
+    public static final int FILTER_Y = 72;
+    public static final int INVENTORY_Y = 122;
+    public static final int HOTBAR_Y = 180;
 
     /** Mode button of a line: {@code BUTTON_CYCLE_MODE + line.ordinal()}. */
     public static final int BUTTON_CYCLE_MODE = 10;
@@ -48,6 +48,8 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
     private final Direction side;
     private final ContainerLevelAccess access;
     private final ContainerData data;
+    /** The line whose page the screen shows; client side view state. */
+    private Line page;
 
     public UtilityDuctMenu(int containerId, Inventory playerInventory, UtilityDuctBlockEntity duct, Direction side) {
         super(ServusLogisticsMenus.UTILITY_DUCT.get(), containerId);
@@ -57,7 +59,12 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         this.data = new SimpleContainerData(1);
         addDataSlots(data);
         for (int i = 0; i < UtilityDuctBlockEntity.FILTER_SLOTS; i++) {
-            addSlot(new GhostSlot(this::filter, i, SLOT_X + i * 18, FILTER_Y));
+            addSlot(new GhostSlot(this::filter, i, SLOT_X + i * 18, FILTER_Y) {
+                @Override
+                public boolean isActive() {
+                    return page == Line.ITEM;
+                }
+            });
         }
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
@@ -86,6 +93,24 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
     /** The side this menu configures. */
     public Direction side() {
         return side;
+    }
+
+    /** The line whose page is shown, the first present line until a tab is clicked. */
+    public Line page() {
+        if (page == null || !duct.has(page)) {
+            page = null;
+            for (Line line : Line.VALUES) {
+                if (duct.has(line)) {
+                    page = line;
+                    break;
+                }
+            }
+        }
+        return page;
+    }
+
+    public void setPage(Line line) {
+        this.page = line;
     }
 
     public int priority() {
@@ -143,7 +168,9 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
     @Override
     public void clicked(int slotId, int button, ClickType clickType, Player player) {
         if (slotId >= 0 && slotId < UtilityDuctBlockEntity.FILTER_SLOTS && slots.get(slotId) instanceof GhostSlot ghost) {
-            ghost.setGhost(getCarried());
+            if (ghost.isActive()) {
+                ghost.setGhost(getCarried());
+            }
             return;
         }
         super.clicked(slotId, button, clickType, player);

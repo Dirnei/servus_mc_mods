@@ -6,9 +6,9 @@ import io.github.dirnei.mc.servus.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.logistics.duct.Line;
 import io.github.dirnei.mc.servus.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
-import java.util.EnumMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -19,77 +19,93 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The endpoint GUI of one duct side: a row per present line with the line's
- * item as icon, the mode button, eight channel buttons and a remove button;
- * the Item Pipe row adds the filter slots and the priority.
+ * The endpoint GUI of one duct side: one tab per present line on the left
+ * edge, and the page of the selected line with its mode, channels and remove
+ * button; the Item Pipe page adds the filter slots and the priority.
  */
 public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> {
 
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ServusLogisticsIds.MOD_ID, "textures/gui/utility_duct.png");
-    private static final int ITEM_ROW_Y = 18;
-    private static final int PRIORITY_Y = 72;
-    private static final int ENERGY_ROW_Y = 94;
-    private static final int ICON_X = 8;
-    private static final int MODE_X = 28;
-    private static final int MODE_WIDTH = 58;
-    private static final int CHANNEL_X = 90;
-    private static final int CHANNEL_SIZE = 10;
-    private static final int CHANNEL_STRIDE = 11;
-    private static final int REMOVE_X = 180;
-    private static final int REMOVE_WIDTH = 12;
+    private static final int MARGIN = 8;
+    private static final int MODE_Y = 18;
+    private static final int MODE_HEIGHT = 20;
+    private static final int CHANNEL_Y = 44;
+    private static final int CHANNEL_SIZE = 16;
+    private static final int CHANNEL_STRIDE = 20;
+    private static final int FILTER_LABEL_Y = 62;
+    private static final int PRIORITY_Y = 94;
+    private static final int REMOVE_WIDTH = 16;
+    private static final int TAB_WIDTH = 28;
+    private static final int TAB_HEIGHT = 26;
+    private static final int TAB_TOP = 10;
+    private static final int TAB_STRIDE = 28;
     private static final int TEXT = 0x404040;
+    private static final int PANEL = 0xFFC6C6C6;
+    private static final int PANEL_DARK = 0xFF373737;
+    private static final int PANEL_LIGHT = 0xFFFFFFFF;
 
-    private final Map<Line, Button> modeButtons = new EnumMap<>(Line.class);
+    private Button modeButton;
+    private Line shownPage;
     private int linesSeen = -1;
 
     public UtilityDuctScreen(UtilityDuctMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        this.imageWidth = 200;
+        this.imageWidth = 176;
         this.imageHeight = 204;
     }
 
     @Override
     protected void init() {
         super.init();
-        this.inventoryLabelX = UtilityDuctMenu.SLOT_X;
+        this.inventoryLabelX = MARGIN;
         this.inventoryLabelY = UtilityDuctMenu.INVENTORY_Y - 11;
         rebuildButtons();
     }
 
-    private static int rowY(Line line) {
-        return line == Line.ITEM ? ITEM_ROW_Y : ENERGY_ROW_Y;
+    /** The present lines in tab order. */
+    private List<Line> tabs() {
+        List<Line> lines = new ArrayList<>();
+        for (Line line : Line.VALUES) {
+            if (menu.duct().has(line)) {
+                lines.add(line);
+            }
+        }
+        return lines;
     }
 
     private void rebuildButtons() {
         clearWidgets();
-        modeButtons.clear();
+        modeButton = null;
         linesSeen = menu.duct().linesMask();
-        for (Line line : Line.VALUES) {
-            if (!menu.duct().has(line)) {
-                continue;
-            }
-            int y = topPos + rowY(line);
-            Button mode = Button.builder(Component.empty(), button -> press(UtilityDuctMenu.BUTTON_CYCLE_MODE + line.ordinal()))
-                    .bounds(leftPos + MODE_X, y, MODE_WIDTH, 18).build();
-            modeButtons.put(line, mode);
-            addRenderableWidget(mode);
-            for (int channel = 0; channel < DuctChannels.COUNT; channel++) {
-                int id = UtilityDuctMenu.BUTTON_CHANNEL + line.ordinal() * DuctChannels.COUNT + channel;
-                int current = channel;
-                addRenderableWidget(new ChannelButton(leftPos + CHANNEL_X + channel * CHANNEL_STRIDE, y + 4, CHANNEL_SIZE, channel,
-                        () -> menu.duct().channel(line, menu.side()) == current, () -> press(id)));
-            }
-            Button remove = Button.builder(Component.literal("x"), button -> press(UtilityDuctMenu.BUTTON_REMOVE_LINE + line.ordinal()))
-                    .bounds(leftPos + REMOVE_X, y, REMOVE_WIDTH, 18).build();
-            remove.setTooltip(Tooltip.create(Component.translatable("gui.servus_logistics.remove." + line.id())));
-            addRenderableWidget(remove);
+        List<Line> tabs = tabs();
+        if (!tabs.contains(menu.page())) {
+            menu.setPage(tabs.isEmpty() ? null : tabs.get(0));
         }
-        if (menu.duct().has(Line.ITEM)) {
+        shownPage = menu.page();
+        Line line = shownPage;
+        if (line == null) {
+            return;
+        }
+        modeButton = Button.builder(Component.empty(), button -> press(UtilityDuctMenu.BUTTON_CYCLE_MODE + line.ordinal()))
+                .bounds(leftPos + MARGIN, topPos + MODE_Y, imageWidth - 2 * MARGIN, MODE_HEIGHT).build();
+        addRenderableWidget(modeButton);
+        for (int channel = 0; channel < DuctChannels.COUNT; channel++) {
+            int id = UtilityDuctMenu.BUTTON_CHANNEL + line.ordinal() * DuctChannels.COUNT + channel;
+            int current = channel;
+            addRenderableWidget(new ChannelButton(leftPos + MARGIN + channel * CHANNEL_STRIDE, topPos + CHANNEL_Y, CHANNEL_SIZE, channel,
+                    () -> menu.duct().channel(line, menu.side()) == current, () -> press(id)));
+        }
+        int removeY = line == Line.ITEM ? PRIORITY_Y : CHANNEL_Y + CHANNEL_SIZE + 10;
+        Button remove = Button.builder(Component.literal("x"), button -> press(UtilityDuctMenu.BUTTON_REMOVE_LINE + line.ordinal()))
+                .bounds(leftPos + imageWidth - MARGIN - REMOVE_WIDTH, topPos + removeY, REMOVE_WIDTH, 16).build();
+        remove.setTooltip(Tooltip.create(Component.translatable("gui.servus_logistics.remove." + line.id())));
+        addRenderableWidget(remove);
+        if (line == Line.ITEM) {
             addRenderableWidget(Button.builder(Component.literal("-"), button -> press(UtilityDuctMenu.BUTTON_PRIORITY_DOWN))
-                    .bounds(leftPos + ICON_X, topPos + PRIORITY_Y, 16, 16).build());
+                    .bounds(leftPos + MARGIN, topPos + PRIORITY_Y, 16, 16).build());
             addRenderableWidget(Button.builder(Component.literal("+"), button -> press(UtilityDuctMenu.BUTTON_PRIORITY_UP))
-                    .bounds(leftPos + ICON_X + 72, topPos + PRIORITY_Y, 16, 16).build());
+                    .bounds(leftPos + MARGIN + 76, topPos + PRIORITY_Y, 16, 16).build());
         }
     }
 
@@ -100,25 +116,74 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         }
     }
 
+    // Tabs
+
+    private int tabX(int index) {
+        return leftPos - TAB_WIDTH;
+    }
+
+    private int tabY(int index) {
+        return topPos + TAB_TOP + index * TAB_STRIDE;
+    }
+
+    private Line tabAt(double mouseX, double mouseY) {
+        List<Line> tabs = tabs();
+        for (int i = 0; i < tabs.size(); i++) {
+            int x = tabX(i);
+            int y = tabY(i);
+            if (mouseX >= x && mouseX < x + TAB_WIDTH && mouseY >= y && mouseY < y + TAB_HEIGHT) {
+                return tabs.get(i);
+            }
+        }
+        return null;
+    }
+
+    private void renderTabs(GuiGraphics graphics) {
+        List<Line> tabs = tabs();
+        for (int i = 0; i < tabs.size(); i++) {
+            Line line = tabs.get(i);
+            boolean selected = line == shownPage;
+            int x = tabX(i);
+            int y = tabY(i);
+            int width = selected ? TAB_WIDTH + 2 : TAB_WIDTH;
+            graphics.fill(x, y, x + width, y + TAB_HEIGHT, PANEL_DARK);
+            graphics.fill(x + 1, y + 1, x + width, y + TAB_HEIGHT - 1, selected ? PANEL : 0xFF9A9A9A);
+            graphics.fill(x + 1, y + 1, x + width, y + 2, PANEL_LIGHT);
+            graphics.renderFakeItem(new ItemStack(ServusLogisticsItems.lineItem(line)), x + 6, y + 5);
+        }
+    }
+
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        if (linesSeen != menu.duct().linesMask()) {
+        if (linesSeen != menu.duct().linesMask() || shownPage != menu.page()) {
             rebuildButtons();
         }
-        for (Map.Entry<Line, Button> entry : modeButtons.entrySet()) {
-            SideMode mode = menu.duct().mode(entry.getKey(), menu.side());
-            entry.getValue().setMessage(Component.translatable("gui.servus_logistics.mode." + mode.name().toLowerCase(Locale.ROOT)));
+        if (modeButton != null && shownPage != null) {
+            SideMode mode = menu.duct().mode(shownPage, menu.side());
+            modeButton.setMessage(Component.translatable("gui.servus_logistics.mode." + mode.name().toLowerCase(Locale.ROOT)));
         }
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        Line hovered = tabAt(mouseX, mouseY);
+        if (hovered != null) {
+            guiGraphics.renderTooltip(font, Component.translatable("gui.servus_logistics.line." + hovered.id()), mouseX, mouseY);
+            return;
+        }
         renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+        renderTabs(guiGraphics);
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
-        for (Line line : Line.VALUES) {
-            if (menu.duct().has(line)) {
-                guiGraphics.renderFakeItem(new ItemStack(ServusLogisticsItems.lineItem(line)), leftPos + ICON_X, topPos + rowY(line) + 1);
+        if (shownPage == Line.ITEM) {
+            for (int i = 0; i < 9; i++) {
+                int x = leftPos + UtilityDuctMenu.SLOT_X + i * 18 - 1;
+                int y = topPos + UtilityDuctMenu.FILTER_Y - 1;
+                guiGraphics.fill(x, y, x + 18, y + 18, 0xFF8B8B8B);
+                guiGraphics.fill(x, y, x + 18, y + 1, PANEL_DARK);
+                guiGraphics.fill(x, y, x + 1, y + 18, PANEL_DARK);
+                guiGraphics.fill(x, y + 17, x + 18, y + 18, PANEL_LIGHT);
+                guiGraphics.fill(x + 17, y, x + 18, y + 18, PANEL_LIGHT);
             }
         }
     }
@@ -126,12 +191,23 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
-        if (menu.duct().has(Line.ITEM)) {
-            guiGraphics.drawString(font, Component.translatable("gui.servus_logistics.filter"), UtilityDuctMenu.SLOT_X, UtilityDuctMenu.FILTER_Y - 10, TEXT, false);
-            guiGraphics.drawString(font, Component.translatable("gui.servus_logistics.priority", menu.priority()), ICON_X + 20, PRIORITY_Y + 4, TEXT, false);
+        if (shownPage == Line.ITEM) {
+            guiGraphics.drawString(font, Component.translatable("gui.servus_logistics.filter"), MARGIN, FILTER_LABEL_Y, TEXT, false);
+            guiGraphics.drawString(font, Component.translatable("gui.servus_logistics.priority", menu.priority()), MARGIN + 20, PRIORITY_Y + 4, TEXT, false);
         }
-        if (menu.duct().lines().isEmpty()) {
-            guiGraphics.drawString(font, Component.translatable("gui.servus_logistics.no_lines"), ICON_X, ITEM_ROW_Y + 5, TEXT, false);
+        if (shownPage == null) {
+            guiGraphics.drawString(font, Component.translatable("gui.servus_logistics.no_lines"), MARGIN, MODE_Y + 5, TEXT, false);
         }
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        Line tab = tabAt(mouseX, mouseY);
+        if (tab != null) {
+            menu.setPage(tab);
+            rebuildButtons();
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 }

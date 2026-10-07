@@ -200,7 +200,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else if (node instanceof ShuttleGarageBlockEntity garage) {
             dropSource(blockPos);
             garages.add(blockPos);
-            fleet.adoptGarage(blockPos, garage.shuttleCount());
+            fleet.adoptGarage(blockPos, garage.shuttleCount(), garage.isActive());
         } else {
             dropSource(blockPos);
             connectors.add(blockPos);
@@ -268,9 +268,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         fleet.absorb(that.fleet);
     }
 
-    /** A garage's shuttle count changed. */
+    /** A garage's shuttle count or pause state changed. */
     public void garageChanged(ShuttleGarageBlockEntity garage) {
-        fleet.adoptGarage(garage.getBlockPos(), garage.shuttleCount());
+        fleet.adoptGarage(garage.getBlockPos(), garage.shuttleCount(), garage.isActive());
+    }
+
+    /** Brings every shuttle of the garage inside; cargo drops at the garage and unloaded jobs are queued again. */
+    public void recallGarage(BlockPos pos) {
+        fleet.recall(pos);
     }
 
     /** Shuttles of one garage that are out on a job. */
