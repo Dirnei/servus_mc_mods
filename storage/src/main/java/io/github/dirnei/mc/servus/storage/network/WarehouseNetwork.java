@@ -30,6 +30,10 @@ import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.order.StockRule;
 import io.github.dirnei.mc.servus.storage.order.StockRules;
 import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
+import io.github.dirnei.mc.servus.storage.board.MachineRow;
+import io.github.dirnei.mc.servus.storage.board.OrderRow;
+import io.github.dirnei.mc.servus.storage.board.StepRow;
+import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
 import java.util.ArrayDeque;
@@ -541,6 +545,56 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** The work orders of this warehouse. */
     public OrderBook orders() {
         return orders;
+    }
+
+    // Order board
+
+    public boolean cancelOrder(int orderId) {
+        return orders.cancel(orderId);
+    }
+
+    /** Every dock with its machine and what it works on. */
+    public List<MachineRow> machineRows() {
+        List<MachineRow> rows = new ArrayList<>();
+        for (Producer producer : producers()) {
+            ItemStack working = ItemStack.EMPTY;
+            String state;
+            if (!producer.producer()) {
+                state = "no_producer";
+            } else if (producer.recipes().isEmpty()) {
+                state = "no_recipes";
+            } else if (producer.active().isPresent()) {
+                state = "working";
+                for (ProductionRecipe recipe : producer.recipes()) {
+                    if (recipe.id().equals(producer.active().get()) && !recipe.outputs().isEmpty()) {
+                        working = recipe.outputs().get(0).copyWithCount(1);
+                    }
+                }
+            } else {
+                state = "idle";
+            }
+            rows.add(new MachineRow(producer.dock(), producer.machineName().getString(), working, state));
+        }
+        return rows;
+    }
+
+    /** Every work order with its steps, machine names from the docks. */
+    public List<OrderRow> orderRows() {
+        Map<BlockPos, String> names = new HashMap<>();
+        for (Producer producer : producers()) {
+            names.put(producer.dock(), producer.machineName().getString());
+        }
+        List<OrderRow> rows = new ArrayList<>();
+        for (WorkOrder order : orders.orders()) {
+            List<StepRow> steps = new ArrayList<>();
+            for (OrderStep step : order.steps()) {
+                steps.add(new StepRow(step.dock(), names.getOrDefault(step.dock(), "?"), step.output().copyWithCount(1), step.batches(),
+                        step.state().name().toLowerCase(java.util.Locale.ROOT), step.reason()));
+            }
+            rows.add(new OrderRow(order.id(), order.key().stack(1), order.amount(), order.state().name().toLowerCase(java.util.Locale.ROOT),
+                    order.reason(), order.requestId(), steps));
+        }
+        return rows;
     }
 
     // Stock rules

@@ -4,6 +4,7 @@
     "servus_storage:double_crate",
     "servus_storage:quad_crate",
     "servus_storage:counter_terminal",
-    "servus_storage:crafting_station"
+    "servus_storage:crafting_station",
+    "servus_storage:order_board"
   ]
 }

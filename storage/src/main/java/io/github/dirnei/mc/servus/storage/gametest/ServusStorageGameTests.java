@@ -27,6 +27,11 @@ import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.order.StockRule;
+import io.github.dirnei.mc.servus.storage.board.OrderBoardBlock;
+import io.github.dirnei.mc.servus.storage.board.OrderBoardBlockEntity;
+import io.github.dirnei.mc.servus.storage.board.OrderBoardPayload;
+import io.github.dirnei.mc.servus.storage.board.OrderRow;
+import io.github.dirnei.mc.servus.storage.menu.OrderBoardMenu;
 import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
@@ -1726,5 +1731,66 @@ public final class ServusStorageGameTests {
         StockRule rule = copy.rules().get(ItemKey.of(new ItemStack(Items.STICK)));
         helper.assertTrue(rule != null && rule.min() == 8 && rule.max() == 16, "the rule should survive save and load: " + rule);
         helper.succeed();
+    }
+
+    private static final BlockPos WO_BOARD = new BlockPos(2, 1, 1);
+
+    /** The board beside the controller lists the dock's station and an order with its step. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void orderBoardListsMachinesAndOrders(GameTestHelper helper) {
+        orderSetup(helper);
+        helper.setBlock(WO_BOARD, ServusStorageBlocks.ORDER_BOARD.get().defaultBlockState().setValue(OrderBoardBlock.FACING, Direction.NORTH));
+        CrateBlockEntity planks = helper.getBlockEntity(WO_CRATE_A);
+        planks.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            OrderBoardBlockEntity board = helper.getBlockEntity(WO_BOARD);
+            OrderBoardMenu menu = new OrderBoardMenu(1, player.getInventory(), board);
+            OrderBoardPayload before = menu.view();
+            helper.assertTrue(before.online(), "the board should be online, reason " + before.reason());
+            helper.assertTrue(before.machines().size() == 1 && before.machines().get(0).machine().equals("Crafting Station")
+                    && before.machines().get(0).state().equals("idle"), "one idle Crafting Station expected, got " + before.machines());
+            helper.assertTrue(before.orders().isEmpty(), "no orders yet");
+            WarehouseNetwork network = controller.network().orElseThrow();
+            helper.assertTrue(network.order(ItemKey.of(new ItemStack(Items.STICK)), 8).isEmpty(), "the manual order should be accepted");
+            helper.runAfterDelay(60, () -> {
+                OrderBoardPayload view = menu.view();
+                helper.assertTrue(view.orders().size() == 1, "one order expected, got " + view.orders());
+                OrderRow order = view.orders().get(0);
+                helper.assertTrue(order.item().is(Items.STICK) && order.amount() == 8 && order.requestId() == 0, "manual sticks order: " + order);
+                helper.assertTrue(order.steps().size() == 1 && order.steps().get(0).machine().equals("Crafting Station")
+                        && order.steps().get(0).output().is(Items.STICK) && order.steps().get(0).batches() == 2, "one sticks step on the station: " + order.steps());
+                String stepState = order.steps().get(0).state();
+                helper.assertTrue(stepState.equals("feeding") || stepState.equals("producing") || stepState.equals("done"), "the step should have started: " + stepState);
+                boolean working = view.machines().get(0).state().equals("working") || stepState.equals("done");
+                helper.assertTrue(working || stepState.equals("feeding"), "the station should be working or still being fed: " + view.machines());
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Cancelling through the board menu cancels the order and releases its reservation. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void orderBoardCancelsOrder(GameTestHelper helper) {
+        orderSetup(helper);
+        helper.setBlock(WO_BOARD, ServusStorageBlocks.ORDER_BOARD.get().defaultBlockState().setValue(OrderBoardBlock.FACING, Direction.NORTH));
+        CrateBlockEntity planks = helper.getBlockEntity(WO_CRATE_A);
+        planks.insert(new ItemStack(Items.OAK_PLANKS, 4), false);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = controller.network().orElseThrow();
+            OrderBook.Created created = network.orders().create(ItemKey.of(new ItemStack(Items.STICK)), 8, 0);
+            helper.assertTrue(created.made(), "the order should be created");
+            OrderBoardBlockEntity board = helper.getBlockEntity(WO_BOARD);
+            OrderBoardMenu menu = new OrderBoardMenu(1, player.getInventory(), board);
+            helper.assertTrue(menu.view().orders().size() == 1 && menu.view().orders().get(0).open(), "the order is listed open");
+            helper.assertTrue(menu.cancel(created.order().id()), "cancel should succeed");
+            helper.assertTrue(menu.view().orders().get(0).state().equals("cancelled"), "the order shows cancelled: " + menu.view().orders());
+            helper.assertTrue(network.orders().reservedTotal().isEmpty(), "reservations released");
+            helper.assertTrue(!menu.cancel(created.order().id()), "cancelling twice does nothing");
+            helper.succeed();
+        });
     }
 }

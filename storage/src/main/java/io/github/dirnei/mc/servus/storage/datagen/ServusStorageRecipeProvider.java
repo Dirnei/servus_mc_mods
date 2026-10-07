@@ -64,6 +64,17 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_glass", has(Items.GLASS))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.ORDER_BOARD.get())
+                .pattern("GGG")
+                .pattern("IRI")
+                .pattern("PPP")
+                .define('G', Items.GLASS)
+                .define('I', Items.IRON_INGOT)
+                .define('R', Items.REDSTONE)
+                .define('P', ItemTags.PLANKS)
+                .unlockedBy("has_redstone", has(Items.REDSTONE))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.RAIL.get(), 8)
                 .pattern("III")
                 .pattern(" S ")

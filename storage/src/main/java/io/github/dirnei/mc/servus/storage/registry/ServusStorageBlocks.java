@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.dock.MachineDockBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
+import io.github.dirnei.mc.servus.storage.board.OrderBoardBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -107,6 +108,13 @@ public final class ServusStorageBlocks {
                             .mapColor(MapColor.WOOD)
                             .strength(2.5F)
                             .sound(SoundType.WOOD));
+
+    public static final DeferredBlock<OrderBoardBlock> ORDER_BOARD =
+            BLOCKS.registerBlock("order_board", OrderBoardBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_GRAY)
+                            .strength(2.0F)
+                            .sound(SoundType.METAL));
 
     private ServusStorageBlocks() {
     }
