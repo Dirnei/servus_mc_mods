@@ -1,0 +1,465 @@
+{
+  "schema": 1,
+  "mod_version": "0.1.0",
+  "machines": {
+    "servus_manufacturing:assembler": {
+      "kind": "crafter",
+      "recipe_types": ["servus_manufacturing:assembling", "minecraft:crafting"],
+      "work_ticks": 1,
+      "energy_per_tick": 20,
+      "energy_capacity": 8000,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 2
+    },
+    "servus_manufacturing:burner_extractor": {
+      "kind": "burner",
+      "recipe_types": ["servus:extraction"],
+      "work_ticks": 80,
+      "energy_per_tick": 0,
+      "energy_capacity": 0,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1
+    },
+    "servus_manufacturing:burner_smelter": {
+      "kind": "burner",
+      "recipe_types": ["minecraft:smelting"],
+      "work_ticks": 80,
+      "energy_per_tick": 0,
+      "energy_capacity": 0,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1
+    },
+    "servus_manufacturing:chunk_loader": {
+      "kind": "powered",
+      "recipe_types": [],
+      "work_ticks": 1,
+      "energy_per_tick": 10,
+      "energy_capacity": 4000,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1
+    },
+    "servus_manufacturing:coal_generator": {
+      "kind": "generator",
+      "recipe_types": [],
+      "work_ticks": 1,
+      "energy_per_tick": 40,
+      "energy_capacity": 16000,
+      "fuel_divisor": 4,
+      "items_per_tick": 0,
+      "recipe_slots": 1
+    },
+    "servus_manufacturing:crusher": {
+      "kind": "powered",
+      "recipe_types": ["servus_manufacturing:crushing"],
+      "work_ticks": 60,
+      "energy_per_tick": 20,
+      "energy_capacity": 8000,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1
+    },
+    "servus_manufacturing:electric_extractor": {
+      "kind": "powered",
+      "recipe_types": ["servus:extraction"],
+      "work_ticks": 40,
+      "energy_per_tick": 20,
+      "energy_capacity": 8000,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1
+    },
+    "servus_manufacturing:research_lab": {
+      "kind": "powered",
+      "recipe_types": ["servus:research"],
+      "work_ticks": 1,
+      "energy_per_tick": 10,
+      "energy_capacity": 4000,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1
+    }
+  },
+  "recipes": {
+    "minecraft:copper_ingot_from_blasting_raw_copper": {
+      "type": "minecraft:blasting",
+      "inputs": [
+        {"item": "minecraft:raw_copper", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:copper_ingot", "count": 1}
+      ],
+      "time": 100
+    },
+    "minecraft:copper_ingot_from_smelting_raw_copper": {
+      "type": "minecraft:smelting",
+      "inputs": [
+        {"item": "minecraft:raw_copper", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:copper_ingot", "count": 1}
+      ],
+      "time": 200
+    },
+    "minecraft:cracked_stone_bricks": {
+      "type": "minecraft:smelting",
+      "inputs": [
+        {"item": "minecraft:stone_bricks", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:cracked_stone_bricks", "count": 1}
+      ],
+      "time": 200
+    },
+    "minecraft:iron_ingot_from_blasting_raw_iron": {
+      "type": "minecraft:blasting",
+      "inputs": [
+        {"item": "minecraft:raw_iron", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:iron_ingot", "count": 1}
+      ],
+      "time": 100
+    },
+    "minecraft:iron_ingot_from_smelting_raw_iron": {
+      "type": "minecraft:smelting",
+      "inputs": [
+        {"item": "minecraft:raw_iron", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:iron_ingot", "count": 1}
+      ],
+      "time": 200
+    },
+    "minecraft:smooth_stone": {
+      "type": "minecraft:smelting",
+      "inputs": [
+        {"item": "minecraft:stone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:smooth_stone", "count": 1}
+      ],
+      "time": 200
+    },
+    "minecraft:stone": {
+      "type": "minecraft:smelting",
+      "inputs": [
+        {"item": "minecraft:cobblestone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:stone", "count": 1}
+      ],
+      "time": 200
+    },
+    "servus_manufacturing:assembling/chunk_loader": {
+      "type": "servus_manufacturing:assembling",
+      "inputs": [
+        {"item": "servus_manufacturing:iron_gear", "count": 4},
+        {"item": "servus_manufacturing:copper_wire", "count": 8},
+        {"item": "minecraft:ender_pearl", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:chunk_loader", "count": 1}
+      ],
+      "time": 200
+    },
+    "servus_manufacturing:assembling/copper_wire": {
+      "type": "servus_manufacturing:assembling",
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:copper_wire", "count": 2}
+      ],
+      "time": 10
+    },
+    "servus_manufacturing:assembling/crusher": {
+      "type": "servus_manufacturing:assembling",
+      "inputs": [
+        {"item": "servus_manufacturing:electric_extractor", "count": 1},
+        {"item": "servus_manufacturing:iron_gear", "count": 4},
+        {"item": "servus_manufacturing:copper_wire", "count": 6}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:crusher", "count": 1}
+      ],
+      "time": 200
+    },
+    "servus_manufacturing:assembling/electric_extractor": {
+      "type": "servus_manufacturing:assembling",
+      "inputs": [
+        {"item": "servus_manufacturing:burner_extractor", "count": 1},
+        {"item": "servus_manufacturing:iron_gear", "count": 4},
+        {"item": "servus_manufacturing:copper_wire", "count": 6}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:electric_extractor", "count": 1}
+      ],
+      "time": 200
+    },
+    "servus_manufacturing:assembling/glass": {
+      "type": "servus_manufacturing:assembling",
+      "inputs": [
+        {"item": "minecraft:sand", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:glass", "count": 1}
+      ],
+      "time": 40
+    },
+    "servus_manufacturing:assembling/iron_gear": {
+      "type": "servus_manufacturing:assembling",
+      "inputs": [
+        {"item": "minecraft:iron_ingot", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:iron_gear", "count": 1}
+      ],
+      "time": 20
+    },
+    "servus_manufacturing:assembling/red_pack": {
+      "type": "servus_manufacturing:assembling",
+      "inputs": [
+        {"item": "servus_manufacturing:iron_gear", "count": 1},
+        {"item": "servus_manufacturing:copper_wire", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:red_pack", "count": 1}
+      ],
+      "time": 100
+    },
+    "servus_manufacturing:assembling/stone": {
+      "type": "servus_manufacturing:assembling",
+      "inputs": [
+        {"item": "minecraft:cobblestone", "count": 2}
+      ],
+      "outputs": [
+        {"item": "minecraft:stone", "count": 2}
+      ],
+      "time": 20
+    },
+    "servus_manufacturing:assembling/stone_bricks": {
+      "type": "servus_manufacturing:assembling",
+      "inputs": [
+        {"item": "minecraft:stone", "count": 2}
+      ],
+      "outputs": [
+        {"item": "minecraft:stone_bricks", "count": 2}
+      ],
+      "time": 20
+    },
+    "servus_manufacturing:copper_ingot_from_grit_blasting": {
+      "type": "minecraft:blasting",
+      "inputs": [
+        {"item": "servus_manufacturing:copper_grit", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:copper_ingot", "count": 1}
+      ],
+      "time": 100
+    },
+    "servus_manufacturing:copper_ingot_from_grit_smelting": {
+      "type": "minecraft:smelting",
+      "inputs": [
+        {"item": "servus_manufacturing:copper_grit", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:copper_ingot", "count": 1}
+      ],
+      "time": 200
+    },
+    "servus_manufacturing:crushing/cobblestone": {
+      "type": "servus_manufacturing:crushing",
+      "inputs": [
+        {"item": "minecraft:cobblestone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:gravel", "count": 1}
+      ],
+      "time": 40
+    },
+    "servus_manufacturing:crushing/gravel": {
+      "type": "servus_manufacturing:crushing",
+      "inputs": [
+        {"item": "minecraft:gravel", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:sand", "count": 1}
+      ],
+      "time": 40
+    },
+    "servus_manufacturing:crushing/raw_copper": {
+      "type": "servus_manufacturing:crushing",
+      "inputs": [
+        {"item": "minecraft:raw_copper", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:copper_grit", "count": 2}
+      ],
+      "time": 60
+    },
+    "servus_manufacturing:crushing/raw_iron": {
+      "type": "servus_manufacturing:crushing",
+      "inputs": [
+        {"item": "minecraft:raw_iron", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:iron_grit", "count": 2}
+      ],
+      "time": 60
+    },
+    "servus_manufacturing:iron_ingot_from_grit_blasting": {
+      "type": "minecraft:blasting",
+      "inputs": [
+        {"item": "servus_manufacturing:iron_grit", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:iron_ingot", "count": 1}
+      ],
+      "time": 100
+    },
+    "servus_manufacturing:iron_ingot_from_grit_smelting": {
+      "type": "minecraft:smelting",
+      "inputs": [
+        {"item": "servus_manufacturing:iron_grit", "count": 1}
+      ],
+      "outputs": [
+        {"item": "minecraft:iron_ingot", "count": 1}
+      ],
+      "time": 200
+    }
+  },
+  "deposits": {
+    "servus_manufacturing:coal": {
+      "block": "servus_manufacturing:coal_deposit",
+      "yield": {"item": "minecraft:coal", "count": 1}
+    },
+    "servus_manufacturing:copper": {
+      "block": "servus_manufacturing:copper_deposit",
+      "yield": {"item": "minecraft:raw_copper", "count": 1}
+    },
+    "servus_manufacturing:iron": {
+      "block": "servus_manufacturing:iron_deposit",
+      "yield": {"item": "minecraft:raw_iron", "count": 1}
+    },
+    "servus_manufacturing:stone": {
+      "block": "servus_manufacturing:stone_deposit",
+      "yield": {"item": "minecraft:cobblestone", "count": 1}
+    }
+  },
+  "techs": {
+    "servus_manufacturing:crusher": {
+      "parents": ["servus_manufacturing:electric_extractor"],
+      "cost": [
+        {"item": "servus_manufacturing:red_pack", "count": 15}
+      ],
+      "ticks_per_pack": 100,
+      "unlocks": ["servus_manufacturing:assembling/crusher"]
+    },
+    "servus_manufacturing:electric_extractor": {
+      "parents": [],
+      "cost": [
+        {"item": "servus_manufacturing:red_pack", "count": 10}
+      ],
+      "ticks_per_pack": 100,
+      "unlocks": ["servus_manufacturing:assembling/electric_extractor"]
+    },
+    "servus_manufacturing:logistics": {
+      "parents": ["servus_manufacturing:crusher"],
+      "cost": [
+        {"item": "servus_manufacturing:red_pack", "count": 25}
+      ],
+      "ticks_per_pack": 100,
+      "unlocks": ["servus_manufacturing:assembling/green_pack"]
+    },
+    "servus_manufacturing:stone_processing": {
+      "parents": [],
+      "cost": [
+        {"item": "servus_manufacturing:red_pack", "count": 10}
+      ],
+      "ticks_per_pack": 100,
+      "unlocks": ["servus_manufacturing:assembling/stone", "servus_manufacturing:assembling/stone_bricks", "servus_manufacturing:assembling/glass"]
+    }
+  },
+  "fuels": {
+    "minecraft:charcoal": 1600,
+    "minecraft:coal": 1600
+  },
+  "items": {
+    "minecraft:charcoal": {
+      "name": "Charcoal"
+    },
+    "minecraft:coal": {
+      "name": "Coal"
+    },
+    "minecraft:cobblestone": {
+      "name": "Cobblestone"
+    },
+    "minecraft:copper_ingot": {
+      "name": "Copper Ingot"
+    },
+    "minecraft:cracked_stone_bricks": {
+      "name": "Cracked Stone Bricks"
+    },
+    "minecraft:ender_pearl": {
+      "name": "Ender Pearl"
+    },
+    "minecraft:glass": {
+      "name": "Glass"
+    },
+    "minecraft:gravel": {
+      "name": "Gravel"
+    },
+    "minecraft:iron_ingot": {
+      "name": "Iron Ingot"
+    },
+    "minecraft:raw_copper": {
+      "name": "Raw Copper"
+    },
+    "minecraft:raw_iron": {
+      "name": "Raw Iron"
+    },
+    "minecraft:sand": {
+      "name": "Sand"
+    },
+    "minecraft:smooth_stone": {
+      "name": "Smooth Stone"
+    },
+    "minecraft:stone": {
+      "name": "Stone"
+    },
+    "minecraft:stone_bricks": {
+      "name": "Stone Bricks"
+    },
+    "servus_manufacturing:burner_extractor": {
+      "name": "Burner Extractor"
+    },
+    "servus_manufacturing:chunk_loader": {
+      "name": "Chunk Loader"
+    },
+    "servus_manufacturing:copper_grit": {
+      "name": "Copper Grit"
+    },
+    "servus_manufacturing:copper_wire": {
+      "name": "Copper Wire"
+    },
+    "servus_manufacturing:crusher": {
+      "name": "Crusher"
+    },
+    "servus_manufacturing:electric_extractor": {
+      "name": "Electric Extractor"
+    },
+    "servus_manufacturing:iron_gear": {
+      "name": "Iron Gear"
+    },
+    "servus_manufacturing:iron_grit": {
+      "name": "Iron Grit"
+    },
+    "servus_manufacturing:red_pack": {
+      "name": "Red Pack"
+    }
+  }
+}

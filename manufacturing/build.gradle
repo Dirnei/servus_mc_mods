@@ -40,5 +40,10 @@ neoForge {
             // Manufacturing is always launched together with Servus Lib and Servus: Logistics.
             loadedMods = [ownMod, libMod, logisticsMod]
         }
+        data {
+            // Game data export for the documentation site (docs/).
+            systemProperty 'servus.gamedata.output', rootProject.file('docs/src/data/gamedata.json').absolutePath
+            systemProperty 'servus.gamedata.resources', file('src/main/resources').absolutePath
+        }
     }
 }

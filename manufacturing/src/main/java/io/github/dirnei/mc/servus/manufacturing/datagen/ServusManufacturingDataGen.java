@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataExportProvider;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -36,5 +37,7 @@ public final class ServusManufacturingDataGen {
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(ServusManufacturingBlockLoot::new, LootContextParamSets.BLOCK)),
                 lookup));
+        // Last: reads the recipes and lang file written above.
+        generator.addProvider(event.includeServer(), new GameDataExportProvider(output));
     }
 }

@@ -25,7 +25,7 @@ Each machine entry SHALL hold the stats the machine uses at runtime: the values 
 - **THEN** the crusher entry carries the crusher's code default for `work_ticks`
 
 ### Requirement: Recipes are exported with effective times
-The export SHALL list every Servus assembling and crushing recipe, Servus smelting and blasting recipes, and the vanilla smelting recipes whose input or result appears in a Servus recipe, deposit yield or tech cost. Each recipe SHALL have its id, type, inputs with counts, outputs with counts, and its time with the codec default applied when the file omits it. Tag inputs SHALL be exported as tags.
+The export SHALL list every Servus assembling and crushing recipe, Servus smelting and blasting recipes, and the vanilla smelting and blasting recipes whose input appears in a Servus recipe, deposit yield or tech cost, repeated over the results of recipes already picked. Each recipe SHALL have its id, type, inputs with counts, outputs with counts, and its time with the codec default applied when the file omits it. Tag inputs SHALL be exported as tags.
 
 #### Scenario: Recipe without a time
 - **WHEN** the `crushing/raw_iron` recipe file has no `time` field
