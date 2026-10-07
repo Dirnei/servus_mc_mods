@@ -72,8 +72,8 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         return share;
     }
 
-    /** The stored share without asking the network. For the network and the client. */
-    FluidStack rawShare() {
+    /** The stored share without asking the network. For the network and the client renderer. */
+    public FluidStack rawShare() {
         return share;
     }
 

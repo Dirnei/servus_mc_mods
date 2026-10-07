@@ -22,5 +22,6 @@ final class ServusLogisticsBlockStateProvider extends BlockStateProvider {
     protected void registerStatesAndModels() {
         ModelFile base = DuctPartModels.generate(this);
         simpleBlock(ServusLogisticsBlocks.UTILITY_DUCT.get(), base);
+        FluidTankModels.generate(this);
     }
 }

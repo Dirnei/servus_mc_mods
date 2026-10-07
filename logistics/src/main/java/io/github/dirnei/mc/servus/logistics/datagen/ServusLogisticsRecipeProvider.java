@@ -40,6 +40,15 @@ final class ServusLogisticsRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_copper", has(Items.COPPER_INGOT))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusLogisticsItems.FLUID_TANK.get())
+                .pattern("IGI")
+                .pattern("G G")
+                .pattern("IGI")
+                .define('I', Items.IRON_INGOT)
+                .define('G', Items.GLASS)
+                .unlockedBy("has_glass", has(Items.GLASS))
+                .save(output);
+
         SpecialRecipeBuilder.special(FacadeRecipe::new).save(output, "servus_logistics:facade");
     }
 }

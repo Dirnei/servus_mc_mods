@@ -20,6 +20,12 @@ final class ServusLogisticsLanguageProvider extends LanguageProvider {
         add(ServusLogisticsItems.FACADE.get(), "Facade");
         add("item.servus_logistics.facade.named", "Facade (%s)");
         add("item.servus_logistics.facade.hint", "Use on a utility duct to hide it");
+        add(ServusLogisticsBlocks.FLUID_TANK.get(), "Fluid Tank");
+        add("tooltip.servus_logistics.fluid_tank.empty", "Empty");
+        add("tooltip.servus_logistics.fluid_tank.fluid", "%s: %s mB");
+        add("message.servus_logistics.fluid_tank.empty", "Empty, capacity %s mB");
+        add("message.servus_logistics.fluid_tank.content", "%s: %s / %s mB");
+        add("message.servus_logistics.fluid_tank.mixed", "The tanks hold different fluids");
         add("gui.servus_logistics.utility_duct", "Utility Duct");
         add("gui.servus_logistics.utility_duct.title", "Utility Duct, %s: %s");
         add("gui.servus_logistics.remove.item", "Remove Item Pipe");

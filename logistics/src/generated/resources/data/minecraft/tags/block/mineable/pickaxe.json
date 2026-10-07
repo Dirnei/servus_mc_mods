@@ -1,5 +1,6 @@
 {
   "values": [
-    "servus_logistics:utility_duct"
+    "servus_logistics:utility_duct",
+    "servus_logistics:fluid_tank"
   ]
 }

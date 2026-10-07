@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.logistics.client;
 
 import io.github.dirnei.mc.servus.logistics.ServusLogisticsIds;
 import io.github.dirnei.mc.servus.logistics.duct.DuctParts;
+import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsMenus;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import net.minecraft.core.Direction;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -29,6 +31,11 @@ public final class ServusLogisticsClient {
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ServusLogisticsMenus.UTILITY_DUCT.get(), UtilityDuctScreen::new);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(ServusLogisticsBlockEntities.FLUID_TANK.get(), FluidTankRenderer::new);
     }
 
     @SubscribeEvent

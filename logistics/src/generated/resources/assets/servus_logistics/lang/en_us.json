@@ -1,4 +1,5 @@
 {
+  "block.servus_logistics.fluid_tank": "Fluid Tank",
   "block.servus_logistics.utility_duct": "Utility Duct",
   "gui.servus_logistics.channel.1": "Channel 1",
   "gui.servus_logistics.channel.2": "Channel 2",
@@ -32,5 +33,10 @@
   "item.servus_logistics.facade.hint": "Use on a utility duct to hide it",
   "item.servus_logistics.facade.named": "Facade (%s)",
   "item.servus_logistics.item_pipe": "Item Pipe",
-  "item.servus_logistics.power_cable": "Power Cable"
+  "item.servus_logistics.power_cable": "Power Cable",
+  "message.servus_logistics.fluid_tank.content": "%s: %s / %s mB",
+  "message.servus_logistics.fluid_tank.empty": "Empty, capacity %s mB",
+  "message.servus_logistics.fluid_tank.mixed": "The tanks hold different fluids",
+  "tooltip.servus_logistics.fluid_tank.empty": "Empty",
+  "tooltip.servus_logistics.fluid_tank.fluid": "%s: %s mB"
 }

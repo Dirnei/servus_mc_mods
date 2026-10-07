@@ -8,7 +8,7 @@
 
 - [x] 2.1 Add `tank/FluidTankBlock.java` (six joined properties), `FluidTankBlockEntity.java` (share in NBT, handler), `TankNetwork.java` (D1, sets joined properties on form and unform), `tank/TankStatsManager.java` with `data/servus_logistics/tank/fluid_tank.json`, registrations in `registry/ServusLogistics*`, `Capabilities.FluidHandler.BLOCK` in `ServusLogisticsEvents.java`. Verify `gradlew build`.
 - [x] 2.2 Add `tank/FluidTankItem.java` (one fluid placement check with message, tooltip), the `fluid` data component in `registry/ServusLogisticsComponents.java`, bucket and empty hand use in `FluidTankBlock`. Verify `gradlew build`.
-- [ ] 2.3 Client and data: `client/FluidTankRenderer.java`, multipart blockstate with faces and edge bars, item model, loot table with `copy_components`, recipe and lang in `datagen/`. Run `gradlew :logistics:runData` and `gradlew build`.
+- [x] 2.3 Client and data: `client/FluidTankRenderer.java`, multipart blockstate with faces and edge bars, item model, loot table with `copy_components`, recipe and lang in `datagen/`. Run `gradlew :logistics:runData` and `gradlew build`.
 
 ## 3. Tests and docs
 
