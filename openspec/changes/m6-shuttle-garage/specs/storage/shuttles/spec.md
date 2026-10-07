@@ -79,7 +79,7 @@ A shuttle SHALL deliver its cargo into the output slots of the terminal the requ
 - **THEN** the request is refused with the reason that the terminal has no rail
 
 ### Requirement: Shuttles are drawn moving
-Every player who can see a garage SHALL see its shuttles as small carts on the rails, moving smoothly along their paths with their cargo shown on top, and parked on their garage's home rail when idle. A shuttle SHALL show its cargo only on the legs where it carries something.
+Every player who can see a garage SHALL see its shuttles that are out on a job as small carts on the rails, moving smoothly along their paths with their cargo shown on top. Idle shuttles SHALL sit inside their garage and SHALL NOT be drawn on the rail; a cart appears on the garage's home rail when it leaves and disappears into the garage when it is back. A shuttle SHALL show its cargo only on the legs where it carries something.
 
 #### Scenario: Watching a pick
 - **WHEN** a player stands in the aisle while a pick runs
@@ -87,7 +87,7 @@ Every player who can see a garage SHALL see its shuttles as small carts on the r
 
 #### Scenario: Idle fleet
 - **WHEN** a garage holds three idle shuttles
-- **THEN** three carts sit on that garage's home rail
+- **THEN** no cart is drawn on its rail and the garage's right click says three shuttles, none out
 
 #### Scenario: Watching a put-away
 - **WHEN** a shuttle carries cobblestone from the station to a crate

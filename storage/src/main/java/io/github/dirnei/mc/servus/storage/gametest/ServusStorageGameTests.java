@@ -1024,14 +1024,13 @@ public final class ServusStorageGameTests {
             helper.runAfterDelay(6, () -> {
                 List<ShuttleView> a = network.shuttleViews(helper.absolutePos(TG_GARAGE_A));
                 List<ShuttleView> b = network.shuttleViews(helper.absolutePos(TG_GARAGE_B));
-                helper.assertTrue(a.size() == 1 && !a.get(0).moving(), "garage A's shuttle should stay parked");
+                helper.assertTrue(a.isEmpty(), "garage A's shuttle should stay inside its garage and not be drawn");
                 helper.assertTrue(b.size() == 1 && b.get(0).moving(), "garage B's shuttle, the nearer one, should be on its way");
             });
             helper.runAfterDelay(120, () -> {
                 helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 30, "the cobblestone should have been delivered into the output slots");
-                List<ShuttleView> b = network.shuttleViews(helper.absolutePos(TG_GARAGE_B));
-                helper.assertTrue(b.size() == 1 && !b.get(0).moving() && b.get(0).path().get(0).equals(helper.absolutePos(new BlockPos(10, 1, 4))),
-                        "garage B's shuttle should be parked on its own rail again");
+                helper.assertTrue(network.shuttleViews(helper.absolutePos(TG_GARAGE_B)).isEmpty(), "garage B's shuttle should be back inside its garage");
+                helper.assertTrue(network.summary().getString().contains("2 shuttles, 0 busy"), "both shuttles idle: " + network.summary().getString());
                 helper.succeed();
             });
         });

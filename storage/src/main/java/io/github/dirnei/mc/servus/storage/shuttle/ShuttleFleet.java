@@ -521,7 +521,7 @@ public final class ShuttleFleet {
         }
     }
 
-    /** The shuttles of one garage as clients draw them; shuttles parked inside a rail-less garage are left out. */
+    /** The shuttles of one garage as clients draw them: only those out on the rails, idle ones sit inside the garage. */
     public List<ShuttleView> views(BlockPos garagePos) {
         List<ShuttleView> list = new ArrayList<>();
         Garage garage = garages.get(garagePos);
@@ -531,7 +531,7 @@ public final class ShuttleFleet {
         float speed = (float) host.shuttleSpeed();
         for (Shuttle shuttle : garage.shuttles) {
             ShuttleMotion motion = shuttle.motion;
-            if (motion == null) {
+            if (motion == null || (shuttle.job == null && motion.arrived())) {
                 continue;
             }
             List<BlockPos> path = new ArrayList<>();
