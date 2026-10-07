@@ -1,7 +1,9 @@
 package io.github.dirnei.mc.servus.lib.side;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The mode of each relative side of one block, limited to the modes the block
@@ -20,6 +22,7 @@ public final class SideConfig {
     private final SideMode[] modes = new SideMode[RelativeSide.values().length];
     private final List<SideMode> supported;
     private final SideMode fallback;
+    private final Set<RelativeSide> locked = EnumSet.noneOf(RelativeSide.class);
 
     /** A machine configuration: every mode, Auto by default. */
     public SideConfig() {
@@ -59,23 +62,40 @@ public final class SideConfig {
         return modes[side.ordinal()];
     }
 
-    /** Sets a side; an unsupported mode falls back to the default. */
+    /** Fixes a side to one mode: nothing changes it afterwards. */
+    public void lock(RelativeSide side, SideMode mode) {
+        locked.remove(side);
+        set(side, mode);
+        locked.add(side);
+    }
+
+    public boolean isLocked(RelativeSide side) {
+        return locked.contains(side);
+    }
+
+    /** Sets a side; an unsupported mode falls back to the default, a locked side stays. */
     public void set(RelativeSide side, SideMode mode) {
+        if (locked.contains(side)) {
+            return;
+        }
         modes[side.ordinal()] = supported.contains(mode) ? mode : fallback;
     }
 
-    /** Advances the side to the next supported mode and returns it. */
+    /** Advances the side to the next supported mode and returns it; a locked side stays. */
     public SideMode cycle(RelativeSide side) {
+        if (locked.contains(side)) {
+            return mode(side);
+        }
         int index = supported.indexOf(mode(side));
         SideMode next = supported.get((index + 1) % supported.size());
         modes[side.ordinal()] = next;
         return next;
     }
 
-    /** Whether every side is at the default. */
+    /** Whether every side that is not locked is at the default. */
     public boolean isDefault() {
-        for (SideMode mode : modes) {
-            if (mode != fallback) {
+        for (RelativeSide side : RelativeSide.values()) {
+            if (!locked.contains(side) && modes[side.ordinal()] != fallback) {
                 return false;
             }
         }

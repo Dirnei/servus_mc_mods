@@ -82,6 +82,8 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
                 setChanged();
             }
         };
+        // The front is where the player stands: never an item side.
+        sideConfig.lock(RelativeSide.FRONT, SideMode.DISABLED);
     }
 
     // Subclass contract

@@ -5,6 +5,7 @@
   "gui.servus_lib.side.left": "Left",
   "gui.servus_lib.side.right": "Right",
   "gui.servus_lib.side.top": "Top",
+  "gui.servus_lib.side_fixed": "(fixed)",
   "gui.servus_lib.side_line": "%s: %s",
   "gui.servus_lib.side_mode.auto": "Auto",
   "gui.servus_lib.side_mode.both": "Input and Output",

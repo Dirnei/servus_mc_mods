@@ -5,6 +5,8 @@ import io.github.dirnei.mc.servus.lib.side.RelativeSide;
 import io.github.dirnei.mc.servus.lib.side.SideMode;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -31,6 +33,7 @@ public final class SideConfigPanel {
     };
 
     private final Function<RelativeSide, SideMode> modes;
+    private final Predicate<RelativeSide> locked;
     private final Consumer<RelativeSide> click;
     private int x;
     private int y;
@@ -40,7 +43,13 @@ public final class SideConfigPanel {
      * @param click what to do when a side is clicked, usually send its menu button
      */
     public SideConfigPanel(Function<RelativeSide, SideMode> modes, Consumer<RelativeSide> click) {
+        this(modes, side -> false, click);
+    }
+
+    /** @param locked which sides are fixed by the block and drawn greyed */
+    public SideConfigPanel(Function<RelativeSide, SideMode> modes, Predicate<RelativeSide> locked, Consumer<RelativeSide> click) {
         this.modes = modes;
+        this.locked = locked;
         this.click = click;
     }
 
@@ -89,9 +98,10 @@ public final class SideConfigPanel {
         for (RelativeSide side : RelativeSide.values()) {
             int cx = cellX(side);
             int cy = cellY(side);
-            graphics.fill(cx, cy, cx + CELL, cy + CELL, side == hovered ? 0xFFFFFFFF : 0xFF555555);
-            graphics.fill(cx + 1, cy + 1, cx + CELL - 1, cy + CELL - 1, color(modes.apply(side)));
-            graphics.drawString(font, side.name().substring(0, 1), cx + 4, cy + 3, 0xFF202020, false);
+            boolean fixed = locked.test(side);
+            graphics.fill(cx, cy, cx + CELL, cy + CELL, side == hovered && !fixed ? 0xFFFFFFFF : 0xFF555555);
+            graphics.fill(cx + 1, cy + 1, cx + CELL - 1, cy + CELL - 1, fixed ? 0xFF6E6E6E : color(modes.apply(side)));
+            graphics.drawString(font, side.name().substring(0, 1), cx + 4, cy + 3, fixed ? 0xFF9A9A9A : 0xFF202020, false);
         }
     }
 
@@ -101,7 +111,11 @@ public final class SideConfigPanel {
         if (side == null) {
             return false;
         }
-        graphics.renderTooltip(font, SideConfigWrench.message(side, modes.apply(side)), mouseX, mouseY);
+        Component text = SideConfigWrench.message(side, modes.apply(side));
+        if (locked.test(side)) {
+            text = text.copy().append(" ").append(Component.translatable("gui.servus_lib.side_fixed"));
+        }
+        graphics.renderTooltip(font, text, mouseX, mouseY);
         return true;
     }
 
@@ -111,7 +125,9 @@ public final class SideConfigPanel {
         if (side == null) {
             return false;
         }
-        click.accept(side);
+        if (!locked.test(side)) {
+            click.accept(side);
+        }
         return true;
     }
 }

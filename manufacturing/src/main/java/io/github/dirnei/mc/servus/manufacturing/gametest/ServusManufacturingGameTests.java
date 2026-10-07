@@ -70,7 +70,7 @@ public final class ServusManufacturingGameTests {
 
         // Lab at x 4 z 7 collecting packs, generator beside it.
         BlockPos labPos = new BlockPos(4, 2, 7);
-        helper.setBlock(labPos, facing(ServusManufacturingBlocks.RESEARCH_LAB.get(), Direction.WEST));
+        helper.setBlock(labPos, facing(ServusManufacturingBlocks.RESEARCH_LAB.get(), Direction.EAST));
         generator(helper, new BlockPos(5, 2, 7));
 
         helper.runAtTickTime(RUN_TICKS, () -> {
@@ -133,7 +133,8 @@ public final class ServusManufacturingGameTests {
 
     private static void assembler(GameTestHelper helper, int z, String recipe) {
         BlockPos pos = new BlockPos(4, 2, z);
-        helper.setBlock(pos, facing(ServusManufacturingBlocks.ASSEMBLER.get(), Direction.WEST));
+        // The front is closed to items, so the assemblers face the generators and take the duct at their back.
+        helper.setBlock(pos, facing(ServusManufacturingBlocks.ASSEMBLER.get(), Direction.EAST));
         AssemblerBlockEntity assembler = helper.getBlockEntity(pos);
         assembler.addRecipe(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "assembling/" + recipe), null);
         generator(helper, new BlockPos(5, 2, z));
@@ -245,5 +246,24 @@ public final class ServusManufacturingGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    private static final BlockPos FC_SMELTER = new BlockPos(6, 2, 9);
+
+    /** The front of a machine takes nothing, gives nothing and cannot be set to anything else. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void machineFrontIsClosed(GameTestHelper helper) {
+        helper.setBlock(FC_SMELTER, facing(ServusManufacturingBlocks.BURNER_SMELTER.get(), Direction.NORTH));
+        MachineBlockEntity smelter = helper.getBlockEntity(FC_SMELTER);
+        helper.assertTrue(smelter.sideMode(Direction.NORTH) == SideMode.DISABLED, "the front starts closed");
+        helper.assertTrue(smelter.cycleFace(Direction.NORTH) == SideMode.DISABLED, "the front cannot be cycled");
+        smelter.sideConfig().set(RelativeSide.FRONT, SideMode.INPUT);
+        helper.assertTrue(smelter.sideMode(Direction.NORTH) == SideMode.DISABLED, "the front cannot be set");
+        net.neoforged.neoforge.items.IItemHandler front = helper.getLevel().getCapability(
+                net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK, helper.absolutePos(FC_SMELTER), Direction.NORTH);
+        helper.assertTrue(front == null || front.insertItem(0, new ItemStack(Items.COAL, 4), false).getCount() == 4, "nothing goes in at the front");
+        smelter.inventory().setStackInSlot(BurnerSmelterBlockEntity.SLOT_OUTPUT, new ItemStack(Items.IRON_INGOT, 2));
+        helper.assertTrue(front == null || front.extractItem(BurnerSmelterBlockEntity.SLOT_OUTPUT, 2, false).isEmpty(), "nothing comes out at the front");
+        helper.succeed();
     }
 }

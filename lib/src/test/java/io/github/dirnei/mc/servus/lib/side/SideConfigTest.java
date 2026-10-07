@@ -59,6 +59,21 @@ class SideConfigTest {
     }
 
     @Test
+    void lockedSideStays() {
+        SideConfig config = SideConfig.machine();
+        config.lock(RelativeSide.FRONT, SideMode.DISABLED);
+        assertTrue(config.isLocked(RelativeSide.FRONT) && !config.isLocked(RelativeSide.BACK));
+        assertEquals(SideMode.DISABLED, config.cycle(RelativeSide.FRONT));
+        config.set(RelativeSide.FRONT, SideMode.INPUT);
+        assertEquals(SideMode.DISABLED, config.mode(RelativeSide.FRONT));
+        config.fromBytes(new byte[] {1, 1, 0, 0, 0, 0});
+        assertEquals(SideMode.DISABLED, config.mode(RelativeSide.FRONT));
+        assertEquals(SideMode.INPUT, config.mode(RelativeSide.BACK));
+        config.set(RelativeSide.BACK, SideMode.AUTO);
+        assertTrue(config.isDefault(), "a locked side does not count against the default");
+    }
+
+    @Test
     void defaultIsAuto() {
         SideConfig config = new SideConfig();
         assertTrue(config.isDefault());

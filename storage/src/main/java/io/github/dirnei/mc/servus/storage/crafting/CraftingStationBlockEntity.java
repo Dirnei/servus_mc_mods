@@ -214,6 +214,8 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
 
     public CraftingStationBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.CRAFTING_STATION.get(), pos, state);
+        // The front is where the player stands: never an item side.
+        sides.lock(RelativeSide.FRONT, SideMode.DISABLED);
     }
 
     public ItemStackHandler inputs() {

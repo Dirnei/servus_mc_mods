@@ -41,7 +41,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     protected static final int ENERGY_HEIGHT = 52;
 
     /** The shared side panel left of the GUI. */
-    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> {
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == io.github.dirnei.mc.servus.lib.side.RelativeSide.FRONT, side -> {
         if (minecraft != null && minecraft.gameMode != null) {
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(side));
         }

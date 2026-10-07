@@ -10,7 +10,7 @@
 
 ## 3. Tests
 
-- [x] 3.1 Add GameTests `garageRecallBringsShuttlesHome`, `pausedGarageTakesNoJobs`, `losingTheRailRecalls` and `shuttlesFinishWithoutAnyHome` to `ServusStorageGameTests.java`. Verify `gradlew :storage:runGameTestServer` passes all storage tests.
+- [x] 3.1 Add GameTests `garageRecallBringsShuttlesHome`, `pausedGarageTakesNoJobs` and `losingTheRailRecalls` (a shuttle out without any home no longer exists, the recall on home loss covers it) to `ServusStorageGameTests.java`. Verify `gradlew :storage:runGameTestServer` passes all storage tests.
 
 ## 4. Verification
 

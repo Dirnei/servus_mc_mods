@@ -26,7 +26,7 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
     private static final int COLOUR_TEXT = 0x404040;
     private static final int COLOUR_ALERT = 0xB03030;
 
-    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> press(SideConfigMenus.buttonOf(side)));
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == io.github.dirnei.mc.servus.lib.side.RelativeSide.FRONT, side -> press(SideConfigMenus.buttonOf(side)));
 
     public CraftingStationScreen(CraftingStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);

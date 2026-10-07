@@ -32,5 +32,6 @@ final class ServusLibLanguageProvider extends LanguageProvider {
         add("gui.servus_lib.side_mode.push", "Push");
         add("gui.servus_lib.side_mode.off", "Off");
         add("gui.servus_lib.side_line", "%s: %s");
+        add("gui.servus_lib.side_fixed", "(fixed)");
     }
 }

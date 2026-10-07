@@ -30,7 +30,7 @@
 `ShuttleGarageMenu`: button ids `BUTTON_RECALL = 1`, `BUTTON_TOGGLE = 2` in `clickMenuButton`, an `active` data slot. `ShuttleGarageScreen`: two buttons under the status line, Recall and Active / Paused, the label following the data slot; status line adds "paused". Lang keys `gui.servus_storage.garage.recall`, `.active`, `.paused`.
 
 ### Minecraft side verification
-GameTests: `garageRecallBringsShuttlesHome` (one shuttle out on a pick from a rack, recall, out is 0, slot unlocked, the pick is queued again or served), `pausedGarageTakesNoJobs` (two garages, A paused: B's shuttle moves, A's never leaves), `losingTheRailRecalls` (break the rail behind the garage while its shuttle is out: out is 0 within a tick), and `shuttlesFinishWithoutAnyHome` (garage whose rail is broken mid job: the shuttle still arrives and parks, nothing freezes).
+GameTests: `garageRecallBringsShuttlesHome` (one shuttle out on a pick from a rack, recall, out is 0, slot unlocked, the pick is queued again or served), `pausedGarageTakesNoJobs` (two garages, A paused: B's shuttle moves, A's never leaves), `losingTheRailRecalls` (break the rail behind the garage while its shuttle is out: out is 0 within a tick). A fourth test for shuttles out without any home is not needed: the recall on home loss makes that state unreachable; the tick change stays as belt and braces.
 
 ## Risks / Trade-offs
 
