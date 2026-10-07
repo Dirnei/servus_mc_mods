@@ -6,5 +6,5 @@
 
 ## 2. Verification
 
-- [ ] 2.1 Run `openspec validate m7-station-fronts-closed --strict`, `gradlew runClientAll` launches. Commit.
+- [x] 2.1 Run `openspec validate m7-station-fronts-closed --strict`, `gradlew runClientAll` launches. Commit.
 - [ ] 2.2 Play check: the front cells of both stations are greyed, no marker on the fronts with the carrot, an Outbound Station with its back to a machine feeds it.
