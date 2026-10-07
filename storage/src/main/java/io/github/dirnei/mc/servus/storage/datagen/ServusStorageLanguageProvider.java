@@ -49,10 +49,14 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.board.origin.rule", "stock rule");
         add("gui.servus_storage.board.origin.manual", "manual");
         add("gui.servus_storage.crafting_station.save", "Save");
-        add("gui.servus_storage.crafting_station.recipes", "Recipes");
-        add("gui.servus_storage.crafting_station.remove_hint", "Click to remove");
-        add("gui.servus_storage.crafting_station.progress", "Crafting %s%%");
-        add("gui.servus_storage.crafting_station.message.saved", "Recipe saved");
+        add("gui.servus_storage.crafting_station.delete", "Delete");
+        add("gui.servus_storage.crafting_station.cancel", "Cancel");
+        add("gui.servus_storage.crafting_station.add", "Add a recipe");
+        add("gui.servus_storage.crafting_station.edit", "Click to edit");
+        add("gui.servus_storage.crafting_station.empty_slot", "Empty recipe slot, click to add");
+        add("gui.servus_storage.crafting_station.new_recipe", "New recipe");
+        add("gui.servus_storage.crafting_station.edit_recipe", "Edit recipe %s");
+        add("gui.servus_storage.crafting_station.no_match", "No matching recipe");
         add("gui.servus_storage.crafting_station.message.empty", "Lay out a recipe in the grid first");
         add("gui.servus_storage.crafting_station.message.no_match", "The grid matches no recipe");
         add("gui.servus_storage.crafting_station.message.duplicate", "That recipe is already configured");

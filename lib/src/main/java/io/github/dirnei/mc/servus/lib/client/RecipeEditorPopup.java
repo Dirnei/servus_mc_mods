@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.lib.client;
 
+import io.github.dirnei.mc.servus.lib.block.RecipeEditorButtons;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -22,8 +23,6 @@ public final class RecipeEditorPopup {
     public static final int CELL = 18;
     public static final int WIDTH = 160;
     public static final int HEIGHT = 72;
-    private static final int GRID_OFFSET_X = 6;
-    private static final int GRID_OFFSET_Y = 16;
     private static final int PREVIEW_OFFSET_X = 68;
     private static final int PREVIEW_OFFSET_Y = 34;
     private static final int BUTTON_OFFSET_X = 92;
@@ -54,12 +53,12 @@ public final class RecipeEditorPopup {
 
     /** Left edge of the ghost grid, where the menu puts its first pattern slot. */
     public int gridX() {
-        return x + GRID_OFFSET_X;
+        return RecipeEditorButtons.gridX(x);
     }
 
     /** Top edge of the ghost grid. */
     public int gridY() {
-        return y + GRID_OFFSET_Y;
+        return RecipeEditorButtons.gridY(y);
     }
 
     public boolean previewHovered(int left, int top, double mouseX, double mouseY) {

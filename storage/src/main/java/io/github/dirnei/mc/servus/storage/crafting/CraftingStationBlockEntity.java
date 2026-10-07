@@ -300,6 +300,16 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
      * @return an empty string on success, else {@code empty}, {@code no_match}, {@code duplicate} or {@code full}
      */
     public String saveFromPattern() {
+        return saveFromPattern(-1);
+    }
+
+    /**
+     * Adds the recipe the pattern grid matches, or replaces recipe {@code replace}
+     * with it when {@code replace} is a configured index.
+     *
+     * @return an empty string on success, else {@code empty}, {@code no_match}, {@code duplicate} or {@code full}
+     */
+    public String saveFromPattern(int replace) {
         if (level == null) {
             return "no_match";
         }
@@ -313,22 +323,74 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         if (!any) {
             return "empty";
         }
-        Optional<RecipeHolder<CraftingRecipe>> match = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, cells), level);
+        Optional<RecipeHolder<CraftingRecipe>> match = match(level, cells);
         if (match.isEmpty()) {
             return "no_match";
         }
         ResourceLocation id = match.get().id();
-        for (StationRecipe recipe : recipes) {
-            if (recipe.id().equals(id)) {
+        boolean replacing = replace >= 0 && replace < recipes.size();
+        for (int i = 0; i < recipes.size(); i++) {
+            if (recipes.get(i).id().equals(id) && !(replacing && i == replace)) {
                 return "duplicate";
             }
         }
-        if (recipes.size() >= recipeSlots()) {
-            return "full";
+        if (replacing) {
+            recipes.set(replace, new StationRecipe(id, cells));
+            active = -1;
+            progress = 0;
+        } else {
+            if (recipes.size() >= recipeSlots()) {
+                return "full";
+            }
+            recipes.add(new StationRecipe(id, cells));
         }
-        recipes.add(new StationRecipe(id, cells));
         recipesChanged();
         return "";
+    }
+
+    /** The vanilla crafting recipe a 3 by 3 grid matches, for saving and for the editor's preview. */
+    public static Optional<RecipeHolder<CraftingRecipe>> match(Level level, List<ItemStack> cells) {
+        if (cells.stream().allMatch(ItemStack::isEmpty)) {
+            return Optional.empty();
+        }
+        return level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, cells), level);
+    }
+
+    /** Fills the pattern grid with a template, for editing a recipe. */
+    public void loadPattern(List<ItemStack> template) {
+        for (int i = 0; i < GRID; i++) {
+            pattern.setStackInSlot(i, i < template.size() ? template.get(i).copy() : ItemStack.EMPTY);
+        }
+    }
+
+    public void clearPattern() {
+        for (int i = 0; i < GRID; i++) {
+            pattern.setStackInSlot(i, ItemStack.EMPTY);
+        }
+    }
+
+    /** The template laid out by a vanilla crafting recipe, one ingredient item per cell, for the recipe viewer. */
+    public static Optional<List<ItemStack>> templateOf(Level level, ResourceLocation id) {
+        Optional<RecipeHolder<?>> holder = level.getRecipeManager().byKey(id);
+        if (holder.isEmpty() || !(holder.get().value() instanceof CraftingRecipe recipe)) {
+            return Optional.empty();
+        }
+        List<ItemStack> cells = new ArrayList<>(GRID);
+        for (int i = 0; i < GRID; i++) {
+            cells.add(ItemStack.EMPTY);
+        }
+        int width = recipe instanceof net.minecraft.world.item.crafting.ShapedRecipe shaped ? shaped.getWidth() : 3;
+        List<net.minecraft.world.item.crafting.Ingredient> ingredients = recipe.getIngredients();
+        for (int i = 0; i < ingredients.size() && i < GRID; i++) {
+            ItemStack[] items = ingredients.get(i).getItems();
+            if (items.length > 0) {
+                int cell = width == 3 ? i : (i / width) * 3 + i % width;
+                if (cell < GRID) {
+                    cells.set(cell, items[0].copyWithCount(1));
+                }
+            }
+        }
+        return Optional.of(cells);
     }
 
     public void removeRecipe(int index) {

@@ -1,74 +1,145 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.lib.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.lib.client.RecipeEditorPopup;
 import io.github.dirnei.mc.servus.lib.client.SideConfigPanel;
+import io.github.dirnei.mc.servus.lib.side.RelativeSide;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import org.lwjgl.glfw.GLFW;
 
-/** Pattern grid with Save, recipe cells, inputs, outputs, progress line, player inventory. */
+/**
+ * Crafting Station GUI laid out like the Assembler: inputs on the left, the
+ * recipe cells with a plus button, a progress bar and the outputs on the right,
+ * and the shared recipe editor popup opened by plus or by clicking a cell.
+ */
 public class CraftingStationScreen extends AbstractContainerScreen<CraftingStationMenu> {
 
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/crafting_station.png");
-    private static final int CELLS_X = 80;
-    private static final int CELLS_Y = 16;
-    private static final int SAVE_Y = 74;
-    private static final int MESSAGE_Y = 92;
-    private static final int COLOUR_TEXT = 0x404040;
-    private static final int COLOUR_ALERT = 0xB03030;
+    private static final int CELL = 18;
+    private static final int CELL_COLUMNS = 2;
 
-    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == io.github.dirnei.mc.servus.lib.side.RelativeSide.FRONT, side -> press(SideConfigMenus.buttonOf(side)));
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == RelativeSide.FRONT,
+            side -> press(SideConfigMenus.buttonOf(side)));
+    private final RecipeEditorPopup popup = new RecipeEditorPopup(CraftingStationMenu.POPUP_X, CraftingStationMenu.POPUP_Y,
+            CraftingStationMenu.WIDTH, CraftingStationMenu.MACHINE_AREA_HEIGHT);
 
     public CraftingStationScreen(CraftingStationMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 186;
+        this.imageWidth = CraftingStationMenu.WIDTH;
+        this.imageHeight = CraftingStationMenu.HEIGHT;
     }
 
     @Override
     protected void init() {
         super.init();
+        this.inventoryLabelX = CraftingStationMenu.INVENTORY_X;
         this.inventoryLabelY = CraftingStationMenu.INVENTORY_Y - 11;
         panel.placeBeside(leftPos, topPos);
-        addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.crafting_station.save"), button -> press(CraftingStationMenu.BUTTON_SAVE))
-                .bounds(leftPos + CraftingStationMenu.GRID_X, topPos + SAVE_Y, 54, 14).build());
     }
 
     private void press(int id) {
         if (minecraft != null && minecraft.gameMode != null && minecraft.player != null) {
-            menu.clickMenuButton(minecraft.player, id);
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
         }
     }
 
+    private boolean editing() {
+        return menu.isEditing();
+    }
+
+    private Level level() {
+        return minecraft == null ? null : minecraft.level;
+    }
+
+    private boolean in(double mouseX, double mouseY, int x, int y, int w, int h) {
+        return mouseX >= leftPos + x && mouseX < leftPos + x + w && mouseY >= topPos + y && mouseY < topPos + y + h;
+    }
+
+    private int cellX(int index) {
+        return CraftingStationMenu.CELLS_X + (index % CELL_COLUMNS) * CELL;
+    }
+
+    private int cellY(int index) {
+        return CraftingStationMenu.CELLS_Y + (index / CELL_COLUMNS) * CELL;
+    }
+
     private int cellAt(double mouseX, double mouseY) {
-        int x = (int) mouseX - leftPos - CELLS_X;
-        int y = (int) mouseY - topPos - CELLS_Y;
-        if (y < 0 || y >= 18 || x < 0) {
-            return -1;
+        for (int i = 0; i < menu.recipeSlots(); i++) {
+            if (in(mouseX, mouseY, cellX(i), cellY(i), CELL, CELL)) {
+                return i;
+            }
         }
-        int cell = x / 18;
-        return cell < menu.station().recipeSlots() ? cell : -1;
+        return -1;
+    }
+
+    private ItemStack preview() {
+        Level level = level();
+        if (level == null) {
+            return ItemStack.EMPTY;
+        }
+        List<ItemStack> cells = new ArrayList<>(CraftingStationBlockEntity.GRID);
+        for (int i = 0; i < CraftingStationBlockEntity.GRID; i++) {
+            ItemStack cell = menu.station().pattern().getStackInSlot(i);
+            cells.add(cell.isEmpty() ? ItemStack.EMPTY : cell.copyWithCount(1));
+        }
+        return CraftingStationBlockEntity.match(level, cells)
+                .map(holder -> holder.value().getResultItem(level.registryAccess()).copy())
+                .orElse(ItemStack.EMPTY);
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
-        int cell = cellAt(mouseX, mouseY);
+        Level level = level();
+        if (level == null) {
+            return;
+        }
+        if (editing()) {
+            if (popup.previewHovered(leftPos, topPos, mouseX, mouseY)) {
+                ItemStack preview = preview();
+                if (preview.isEmpty()) {
+                    graphics.renderTooltip(font, Component.translatable("gui.servus_storage.crafting_station.no_match"), mouseX, mouseY);
+                } else {
+                    graphics.renderTooltip(font, preview, mouseX, mouseY);
+                }
+            } else {
+                renderTooltip(graphics, mouseX, mouseY);
+            }
+            return;
+        }
+        int hovered = cellAt(mouseX, mouseY);
         List<CraftingStationBlockEntity.StationRecipe> recipes = menu.station().recipes();
-        if (cell >= 0 && cell < recipes.size() && menu.station().getLevel() != null) {
-            ItemStack result = recipes.get(cell).result(menu.station().getLevel());
-            graphics.renderTooltip(font, List.of(result.getHoverName(), Component.translatable("gui.servus_storage.crafting_station.remove_hint")),
-                    java.util.Optional.empty(), mouseX, mouseY);
+        if (hovered >= 0) {
+            List<Component> lines = new ArrayList<>();
+            if (hovered < recipes.size()) {
+                CraftingStationBlockEntity.StationRecipe recipe = recipes.get(hovered);
+                ItemStack result = recipe.result(level);
+                lines.add(Component.literal(result.getCount() + "x ").append(result.getHoverName()));
+                for (ItemStack cell : recipe.template()) {
+                    if (!cell.isEmpty()) {
+                        lines.add(Component.literal("  " + cell.getCount() + "x ").append(cell.getHoverName()));
+                    }
+                }
+                lines.add(Component.translatable("gui.servus_storage.crafting_station.edit"));
+            } else {
+                lines.add(Component.translatable("gui.servus_storage.crafting_station.empty_slot"));
+            }
+            graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
+        } else if (in(mouseX, mouseY, CraftingStationMenu.PLUS_X, CraftingStationMenu.PLUS_Y, CELL, CELL)) {
+            graphics.renderTooltip(font, Component.translatable("gui.servus_storage.crafting_station.add"), mouseX, mouseY);
         } else if (!panel.renderTooltip(graphics, font, mouseX, mouseY)) {
             renderTooltip(graphics, mouseX, mouseY);
         }
@@ -78,56 +149,97 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         panel.render(graphics, font, mouseX, mouseY);
-        int slots = menu.station().recipeSlots();
-        for (int i = 0; i < slots; i++) {
-            int x = leftPos + CELLS_X + i * 18;
-            int y = topPos + CELLS_Y;
-            graphics.fill(x, y, x + 18, y + 18, 0xFF8B8B8B);
-            graphics.fill(x, y, x + 18, y + 1, 0xFF373737);
-            graphics.fill(x, y, x + 1, y + 18, 0xFF373737);
-            graphics.fill(x, y + 17, x + 18, y + 18, 0xFFFFFFFF);
-            graphics.fill(x + 17, y, x + 18, y + 18, 0xFFFFFFFF);
+
+        int px = leftPos + CraftingStationMenu.PROGRESS_X;
+        int py = topPos + CraftingStationMenu.PROGRESS_Y;
+        graphics.fill(px, py, px + 18, py + 2, 0xFF555555);
+        if (menu.workTicks() > 0 && menu.progress() > 0) {
+            int filled = Math.min(18, menu.progress() * 18 / menu.workTicks());
+            graphics.fill(px, py, px + filled, py + 2, 0xFF60C060);
         }
+
         List<CraftingStationBlockEntity.StationRecipe> recipes = menu.station().recipes();
-        if (menu.station().getLevel() != null) {
-            for (int i = 0; i < recipes.size() && i < slots; i++) {
-                ItemStack result = recipes.get(i).result(menu.station().getLevel());
-                graphics.renderItem(result, leftPos + CELLS_X + i * 18 + 1, topPos + CELLS_Y + 1);
-                graphics.renderItemDecorations(font, result, leftPos + CELLS_X + i * 18 + 1, topPos + CELLS_Y + 1);
+        int active = menu.activeIndex();
+        int hovered = editing() ? -1 : cellAt(mouseX, mouseY);
+        Level level = level();
+        for (int i = 0; i < menu.recipeSlots(); i++) {
+            int cx = leftPos + cellX(i);
+            int cy = topPos + cellY(i);
+            int color = i == hovered ? 0xFFFFFFFF : i == active ? 0xFF60C060 : 0xFF8B8B8B;
+            graphics.fill(cx, cy, cx + CELL, cy + CELL, 0xFF373737);
+            graphics.fill(cx + 1, cy + 1, cx + CELL - 1, cy + CELL - 1, color);
+            // Items render above flat fills, so the popup could not cover them: skip them while editing.
+            if (!editing() && i < recipes.size() && level != null) {
+                ItemStack result = recipes.get(i).result(level);
+                graphics.renderItem(result, cx + 1, cy + 1);
+                graphics.renderItemDecorations(font, result, cx + 1, cy + 1);
             }
         }
-        int cell = cellAt(mouseX, mouseY);
-        if (cell >= 0 && cell < recipes.size()) {
-            int x = leftPos + CELLS_X + cell * 18 + 1;
-            graphics.fill(x, topPos + CELLS_Y + 1, x + 16, topPos + CELLS_Y + 17, 0x80FFFFFF);
+        RecipeEditorPopup.drawButton(graphics, font, leftPos + CraftingStationMenu.PLUS_X, topPos + CraftingStationMenu.PLUS_Y,
+                CELL, CELL, "+", !editing() && in(mouseX, mouseY, CraftingStationMenu.PLUS_X, CraftingStationMenu.PLUS_Y, CELL, CELL));
+
+        if (editing()) {
+            boolean existing = menu.editing() >= 0;
+            Component title = existing
+                    ? Component.translatable("gui.servus_storage.crafting_station.edit_recipe", menu.editing() + 1)
+                    : Component.translatable("gui.servus_storage.crafting_station.new_recipe");
+            popup.render(graphics, font, leftPos, topPos, mouseX, mouseY, title, existing, preview(),
+                    Component.translatable("gui.servus_storage.crafting_station.save"),
+                    Component.translatable("gui.servus_storage.crafting_station.delete"),
+                    Component.translatable("gui.servus_storage.crafting_station.cancel"));
         }
     }
 
+    /** The vanilla title and inventory labels would paint over the popup, so they are skipped while editing. */
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        super.renderLabels(graphics, mouseX, mouseY);
-        graphics.drawString(font, Component.translatable("gui.servus_storage.crafting_station.recipes"), CELLS_X, CELLS_Y - 10, COLOUR_TEXT, false);
-        String message = menu.message();
-        if (!message.isEmpty()) {
-            boolean good = message.equals("saved");
-            graphics.drawString(font, Component.translatable("gui.servus_storage.crafting_station.message." + message), CraftingStationMenu.GRID_X, MESSAGE_Y,
-                    good ? COLOUR_TEXT : COLOUR_ALERT, false);
-        } else if (menu.workTicks() > 0 && menu.progress() > 0) {
-            int percent = menu.progress() * 100 / menu.workTicks();
-            graphics.drawString(font, Component.translatable("gui.servus_storage.crafting_station.progress", percent), CraftingStationMenu.GRID_X, MESSAGE_Y, COLOUR_TEXT, false);
+        if (!editing()) {
+            super.renderLabels(graphics, mouseX, mouseY);
         }
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (editing()) {
+            switch (popup.buttonAt(leftPos, topPos, mouseX, mouseY, menu.editing() >= 0)) {
+                case SAVE -> {
+                    press(RecipeEditorButtons.SAVE);
+                    return true;
+                }
+                case DELETE -> {
+                    press(RecipeEditorButtons.DELETE);
+                    return true;
+                }
+                case CANCEL -> {
+                    press(RecipeEditorButtons.CANCEL);
+                    return true;
+                }
+                case NONE -> {
+                }
+            }
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
         if (panel.mouseClicked(mouseX, mouseY)) {
             return true;
         }
         int cell = cellAt(mouseX, mouseY);
-        if (cell >= 0 && cell < menu.station().recipes().size()) {
-            press(CraftingStationMenu.BUTTON_REMOVE_FIRST + cell);
+        if (cell >= 0) {
+            press(cell < menu.station().recipes().size() ? RecipeEditorButtons.OPEN_EDIT_FIRST + cell : RecipeEditorButtons.OPEN_NEW);
+            return true;
+        }
+        if (in(mouseX, mouseY, CraftingStationMenu.PLUS_X, CraftingStationMenu.PLUS_Y, CELL, CELL)) {
+            press(RecipeEditorButtons.OPEN_NEW);
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (editing() && keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            press(RecipeEditorButtons.CANCEL);
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 }
