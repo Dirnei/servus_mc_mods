@@ -111,7 +111,7 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 **Core idea:** the player builds a real warehouse. In-world storage, no storage disks.
 
 Progression:
-1. **Crates** (early, no power). A crate has one, two or four compartments that split its capacity; each compartment holds one item type and shows it with its count on the front. The Heavy Duty Rack is the chest sized bay for mixed items: bays with the same facing join into one continuous rack and the front shows the item types the bay holds the most of.
+1. **Crates** (early, no power). A crate has one, two or four compartments that split its capacity; each compartment holds one item type and shows it with its count on the front. The Heavy Duty Rack is the chest sized bay for mixed items: bays with the same facing and the same wood join side by side into sections of a few bays, and a section shares one GUI that shows the slots of every bay (each bay still stores its own part). Stacked racks stay separate. A shuttle serves a whole section from a rail in front of any of its bays; rails along a rack's side or back never reach it. The front shows the item types the bay holds the most of.
 2. **Warehouse Controller + Counter Terminal.** Search and request items while standing at the counter; deliveries land in the counter's output slots. Vanilla and modded inventories in the network are indexed too.
 3. **Shuttles on rails.** Requests and put-away are done by shuttles that travel along rails to a inbound station. Throughput depends on shuttle count, rails and layout. Stats screen shows pick rates per item for slotting optimization. Put-away rules ("all ores to aisle 3"): a Zone Label carries a name and an item filter and is stamped onto racks; stamped racks take matching items first, unzoned racks take everything and act as the overflow.
 4. **Wireless.** Wireless Terminal with range tiers. Orders queue real picks. Delivery through an outbound dock: teleport for FE per item and distance, or courier drone to a landing pad.
@@ -205,7 +205,7 @@ Each milestone ends in something playable or testable.
 ### M4: Storage first playable slice
 - Crates with front item display
 - Crate family: Crate, Double Crate and Quad Crate with per compartment display (block entity renderer)
-- Heavy Duty Rack: chest sized bay with a GUI, visual joins, a sample display and climbable side posts
+- Heavy Duty Rack: chest sized bay with a GUI, sections of the same facing and wood that share one GUI and are served by shuttles from any front rail, a sample display and climbable side posts
 - Warehouse Controller with adjacency networking
 - Counter Terminal with search and pull
 - Indexing of foreign inventories with batched polling

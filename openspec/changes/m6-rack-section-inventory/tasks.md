@@ -18,7 +18,7 @@
 
 ## 4. Docs
 
-- [ ] 4.1 `PLAN.md` section 2.3 item 1 and the M6 rack line: sections of the same facing and wood share one GUI, stacked racks stay separate, shuttles serve a section from any front rail. Verify `openspec validate m6-rack-section-inventory --strict`.
+- [x] 4.1 `PLAN.md` section 2.3 item 1 and the M6 rack line: sections of the same facing and wood share one GUI, stacked racks stay separate, shuttles serve a section from any front rail. Verify `openspec validate m6-rack-section-inventory --strict`.
 
 ## 5. Verification
 
