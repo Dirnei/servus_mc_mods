@@ -22,15 +22,15 @@ A side SHALL have exactly one mode out of Auto, Input, Output, Both, Pull, Push 
 - **THEN** it allows extraction, refuses insertion and the block pushes through it; a Pull side allows insertion, refuses extraction and the block pulls through it
 
 ### Requirement: Relative sides follow the facing
-Sides SHALL be addressed as front, back, left, right, top and bottom relative to the block's facing, so rotating a block keeps its configuration.
+Sides SHALL be addressed as front, back, left, right, top and bottom relative to the block's facing, so rotating a block keeps its configuration. Left and right SHALL be the left and right of a player who looks at the block's front.
 
 #### Scenario: Facing north
 - **WHEN** a block faces north
-- **THEN** front is north, back is south, left is west, right is east, top is up, bottom is down
+- **THEN** front is north, back is south, left is east, right is west, top is up, bottom is down
 
 #### Scenario: Facing east
 - **WHEN** a block faces east
-- **THEN** front is east, back is west, left is north, right is south
+- **THEN** front is east, back is west, left is south, right is north
 
 ### Requirement: Default is Auto
 A new side configuration SHALL have every side in the block's declared default, which is Auto for blocks that support it, so blocks behave as before configuration.
