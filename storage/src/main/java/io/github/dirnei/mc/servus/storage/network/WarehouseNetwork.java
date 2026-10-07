@@ -521,7 +521,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /** A dock and what the block it faces can make. */
-    public record Producer(BlockPos dock, BlockPos machine, Component machineName, List<ProductionRecipe> recipes,
+    public record Producer(BlockPos dock, BlockPos machine, Component machineName, boolean producer, List<ProductionRecipe> recipes,
                            Optional<ResourceLocation> active) {
     }
 
@@ -536,7 +536,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 ProductionProvider provider = dock.producer();
                 BlockPos machine = dock.facingPos();
                 Component name = level.getBlockState(machine).getBlock().getName();
-                list.add(new Producer(pos, machine, name, provider == null ? List.of() : provider.recipes(),
+                list.add(new Producer(pos, machine, name, provider != null, provider == null ? List.of() : provider.recipes(),
                         provider == null ? Optional.empty() : provider.active()));
             }
         }

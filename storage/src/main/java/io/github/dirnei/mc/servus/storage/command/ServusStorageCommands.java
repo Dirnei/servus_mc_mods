@@ -102,8 +102,12 @@ public final class ServusStorageCommands {
         }
         for (WarehouseNetwork.Producer producer : producers) {
             String head = "  - dock " + producer.dock().toShortString() + " faces " + producer.machineName().getString();
-            if (producer.recipes().isEmpty()) {
+            if (!producer.producer()) {
                 source.sendSuccess(() -> Component.literal(head + ": no producer"), false);
+                continue;
+            }
+            if (producer.recipes().isEmpty()) {
+                source.sendSuccess(() -> Component.literal(head + ": no recipes configured"), false);
                 continue;
             }
             source.sendSuccess(() -> Component.literal(head + (producer.active().map(id -> ", working on " + id.getPath()).orElse(""))), false);
