@@ -90,13 +90,13 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 
 ### 2.2 Servus: Logistics
 
-- **Utility Duct**: one block with several channels (items and energy first, fluids later).
-- Per side and per channel modes set with the Configuration Carrot (the wrench role): input, output, both, disabled.
-- Item channels: filters and priorities per side. Energy channels: tiered transfer rate.
+- **Utility Duct**: one block with several lines (Item Pipe and Power Cable first, a fluid line later). Each line is placed as its own item and adds to a duct that lacks it.
+- Per side and per line modes (in and out, pull in, push out, disabled) and one of eight colored channels per line and side, set in an endpoint GUI that the Configuration Carrot (the wrench role) opens on the arm that touches an inventory or machine. Items and energy only flow between sides on the same channel. A bare hand opens nothing; sneak carrot removes the facade, then the duct.
+- Item Pipe: filters and priorities per side. Power Cable: tiered transfer rate (later).
 - **Facades**: crafted from any full block plus an iron plate. The duct then looks like that block. Solid or hollow variants.
 - Holding the Configuration Carrot or wearing engineer goggles shows hidden ducts as a translucent overlay.
-- Rendering: dynamic baked model driven by model data from the block entity. Facades reuse the target block's baked model.
-- Separate selection and collision shapes per part so a single channel can be removed.
+- Rendering: a dynamic baked model composed from part models (a centre and arms per line set) driven by model data from the block entity. A duct grows thicker with its lines, each line has its own color, both show on a two line duct, and an arm that ends at an inventory or machine carries a ring in its channel color. Facades reuse the target block's baked model.
+- The shape follows the lines: thin for one line, thicker for two, arms as thick as the lines that connect there. Lines are removed through the endpoint GUI, not by clicking a part.
 - Networks are cached graphs, rebuilt only on placement or removal, never by walking blocks every tick.
 
 ### 2.3 Servus: Storage

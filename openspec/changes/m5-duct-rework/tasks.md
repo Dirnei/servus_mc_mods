@@ -25,5 +25,5 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Rewrite `PLAN.md` section 2.2 bullets for modes, rendering and part selection. Run `openspec validate m5-duct-rework --strict`, full `gradlew clean build` green, `gradlew test` green, `gradlew runGameTestServer` green for all mods, `gradlew runClientAll` launches with all four mods. Commit.
+- [x] 5.1 Rewrite `PLAN.md` section 2.2 bullets for modes, rendering and part selection. Run `openspec validate m5-duct-rework --strict`, full `gradlew clean build` green, `gradlew test` green, `gradlew runGameTestServer` green for all mods, `gradlew runClientAll` launches with all four mods. Commit.
 - [ ] 5.2 Play check: build the reference block with Utility Ducts, route a coal extractor on channel 2 to a separate chest, power two machines on different channels from two generators along one duct run, apply and remove a facade on a two line duct.
