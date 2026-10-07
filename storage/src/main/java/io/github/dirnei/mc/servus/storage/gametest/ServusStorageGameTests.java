@@ -1041,6 +1041,37 @@ public final class ServusStorageGameTests {
         });
     }
 
+    /** A crate on the station's own rail node: the shuttle's next leg has one node and must still complete. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void shuttlePutAwayOnStationRail(GameTestHelper helper) {
+        helper.setBlock(PA_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        for (int x = 3; x <= 8; x++) {
+            helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
+            helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        BlockPos crateBeside = new BlockPos(4, 1, 0);
+        helper.setBlock(PA_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
+                .setValue(InboundStationBlock.FACING, Direction.NORTH));
+        helper.setBlock(crateBeside, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.SOUTH));
+        InboundStationBlockEntity station = helper.getBlockEntity(PA_STATION);
+        CrateBlockEntity crate = helper.getBlockEntity(crateBeside);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(PA_CONTROLLER);
+        helper.setBlock(PA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(PA_GARAGE);
+        helper.assertTrue(garage.addShuttle(), "one shuttle fits");
+
+        helper.runAfterDelay(10, () -> {
+            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
+            helper.runAfterDelay(70, () -> {
+                helper.assertTrue(crate.count() == 40, "the shuttle should have delivered 40 cobblestone, crate has " + crate.count());
+                helper.assertTrue(controller.network().orElseThrow().summary().getString().contains("0 busy"),
+                        "the shuttle should be home and idle: " + controller.network().orElseThrow().summary().getString());
+                helper.succeed();
+            });
+        });
+    }
+
     /** The station menu reports the warehouse state and shift click feeds the buffer. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void stationMenuFeedsBuffer(GameTestHelper helper) {

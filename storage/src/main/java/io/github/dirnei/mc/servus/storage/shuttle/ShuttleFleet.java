@@ -345,11 +345,17 @@ public final class ShuttleFleet {
                     }
                     continue;
                 }
-                if (shuttle.motion != null && !shuttle.motion.arrived()) {
+                if (shuttle.motion == null) {
+                    continue;
+                }
+                if (!shuttle.motion.arrived()) {
                     moving = true;
                     if (shuttle.motion.advance(host.shuttleSpeed())) {
                         arrive(shuttle);
                     }
+                } else if (shuttle.job != null) {
+                    // A one node leg (already standing beside the goal) arrives without moving.
+                    arrive(shuttle);
                 }
             }
         }
