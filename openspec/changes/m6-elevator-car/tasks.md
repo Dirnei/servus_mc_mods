@@ -30,7 +30,7 @@ Paths below are relative to `storage/src/main/java/io/github/dirnei/mc/servus/st
 
 ## 5. Plan, specs and verification
 
-- [ ] 5.1 Add a paragraph to `PLAN.md` section 2.3 on the lift car (one per shaft, FIFO calls, one shuttle per trip, decks that fold, crossing without the car, climbable shaft). Run `openspec validate m6-elevator-car --strict` and fix any finding. Verify that validate passes.
+- [x] 5.1 Add a paragraph to `PLAN.md` section 2.3 on the lift car (one per shaft, FIFO calls, one shuttle per trip, decks that fold, crossing without the car, climbable shaft). Run `openspec validate m6-elevator-car --strict` and fix any finding. Verify that validate passes.
 - [ ] 5.2 Full `gradlew clean build` green, `gradlew test` green, `gradlew runClientAll` launches with all four mods. In game, from the main checkout only and when the user says so:
   - Build a three floor shaft with rails on floors 1 and 3 and one floor without rails. See posts only on the bare floor and the head on top.
   - Walk through a segment and climb it with jump. Sneak to hold.

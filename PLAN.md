@@ -123,6 +123,8 @@ Progression:
 
 Shuttles are **simulated as data** on the warehouse network and only rendered moving on the client. No real entities. Decided: Shuttle items go into Shuttle Garages, a few per garage, and park on the rail touching their garage; more garages mean more shuttles. Heavy Duty Racks are served only by shuttles, so a rack warehouse needs a garage; crates and foreign inventories stay instant when no shuttle reaches them. Players request items at the Counter Terminal with an amount and collect the delivery from its output slots.
 
+Decided: every elevator shaft has one simulated **lift car**. A shuttle that changes level stops on the rail beside the shaft, calls the car and waits; the car serves calls in the order they were made and carries one shuttle per trip at `lift_speed` from `warehouse.json`, then stays parked where it stopped. A shuttle that only crosses a shaft on one floor does not call the car; it drives over the floor's deck, two flaps hinged between the corner posts that fold up while the car is at or passing that floor, and the car waits for it. A floor without a rail beside it shows only its posts, and the top segment carries a head with the motor beam. Segments block nobody and are climbed like a ladder. Breaking a segment under a riding shuttle drops its cargo at its garage.
+
 ### 2.4 Integration: Storage + Manufacturing (autocrafting)
 
 - **Work orders instead of patterns.** Requesting an item that is not in stock creates a work order.
