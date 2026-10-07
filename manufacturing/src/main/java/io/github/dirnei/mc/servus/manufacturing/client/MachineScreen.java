@@ -16,7 +16,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     /** Which indicators a machine screen shows and its background texture. */
     public record Layout(boolean flame, boolean arrow, boolean energy, ResourceLocation texture) {
         public static final Layout BURNER = new Layout(true, true, false, gui("burner_machine"));
-        public static final Layout GENERATOR = new Layout(true, false, true, gui("burner_machine"));
+        public static final Layout GENERATOR = new Layout(true, false, true, gui("coal_generator"));
         public static final Layout ASSEMBLER = new Layout(false, false, true, gui("assembler"));
         public static final Layout LAB = new Layout(false, true, true, gui("research_lab"));
         public static final Layout ELECTRIC = new Layout(false, true, true, gui("electric_extractor"));

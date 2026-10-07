@@ -23,6 +23,6 @@ public class CoalGeneratorMenu extends MachineMenu {
 
     @Override
     protected void addMachineSlots() {
-        addSlot(new MachineSlot(machine, CoalGeneratorBlockEntity.SLOT_FUEL, 80, 53));
+        addSlot(new MachineSlot(machine, CoalGeneratorBlockEntity.SLOT_FUEL, 56, 53));
     }
 }
