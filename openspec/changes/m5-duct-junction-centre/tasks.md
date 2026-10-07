@@ -6,5 +6,5 @@
 
 ## 2. Verification
 
-- [ ] 2.1 Run `openspec validate m5-duct-junction-centre --strict`, `gradlew runClientAll` launches. Commit.
+- [x] 2.1 Run `openspec validate m5-duct-junction-centre --strict`, `gradlew runClientAll` launches. Commit.
 - [ ] 2.2 Play check: bends and crossings show a plain centre, straight runs keep their bands in every direction.
