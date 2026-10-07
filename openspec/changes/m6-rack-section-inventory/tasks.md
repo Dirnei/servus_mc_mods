@@ -2,7 +2,7 @@
 
 ## 1. Section walk
 
-- [ ] 1.1 Add pure `rack/RackSection.java` (D1) with JUnit `RackSectionTest`: lone bay, start at the left end, in the middle, at the right end, one sided flag does not join, limit stops the walk. Verify `gradlew :storage:test`.
+- [x] 1.1 Add pure `rack/RackSection.java` (D1) with JUnit `RackSectionTest`: lone bay, start at the left end, in the middle, at the right end, one sided flag does not join, limit stops the walk. Verify `gradlew :storage:test`.
 - [ ] 1.2 Add `HeavyRackBlock.section(BlockGetter, BlockPos)` on top of `RackSection` in `rack/HeavyRackBlock.java`. Verify `gradlew build`.
 
 ## 2. Section GUI
