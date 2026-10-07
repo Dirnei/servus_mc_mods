@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsComponents;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsMenus;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsRecipes;
+import io.github.dirnei.mc.servus.logistics.tank.TankNetwork;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ public final class ServusLogistics {
         ServusLogisticsRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         NetworkTypes.register(ItemChannelNetwork.TYPE);
         NetworkTypes.register(EnergyChannelNetwork.TYPE);
+        NetworkTypes.register(TankNetwork.TYPE);
         LOGGER.info("Servus: Logistics loaded");
     }
 }

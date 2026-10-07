@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.logistics.duct.DuctStatsManager;
 import io.github.dirnei.mc.servus.logistics.gametest.ServusLogisticsGameTests;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
+import io.github.dirnei.mc.servus.logistics.tank.TankStatsManager;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -23,6 +24,7 @@ public final class ServusLogisticsEvents {
     @SubscribeEvent
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(DuctStatsManager.INSTANCE);
+        event.addListener(TankStatsManager.INSTANCE);
     }
 
     /** Mod bus hooks. */
@@ -48,6 +50,8 @@ public final class ServusLogisticsEvents {
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusLogisticsBlockEntities.UTILITY_DUCT.get(),
                     (duct, side) -> duct.itemHandler(side));
+            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusLogisticsBlockEntities.FLUID_TANK.get(),
+                    (tank, side) -> tank.fluidHandler());
         }
     }
 }
