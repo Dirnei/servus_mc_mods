@@ -22,7 +22,7 @@ Clicking a horizontal face of an unformed Sink block with the Configuration Carr
 - **THEN** forming the new cube never takes blocks of the formed Sink
 
 ### Requirement: Unformed blocks are casings
-An unformed Sink block SHALL accept nothing, void nothing and open no GUI. Right clicking it SHALL tell the player in the action bar to form the Sink with the Configuration Carrot.
+An unformed Sink block SHALL accept nothing, void nothing and open no GUI. Right clicking it with an empty hand SHALL tell the player in the action bar to form the Sink with the Configuration Carrot. Right clicking it with an item SHALL let the item act as on any block, so the cube can be built by placing blocks against it.
 
 #### Scenario: Hopper into a casing
 - **WHEN** a hopper points into an unformed Sink block
@@ -125,7 +125,11 @@ A formed Sink SHALL be active while it voided anything within the configured act
 - **THEN** the fan stops and the smoke ends
 
 ### Requirement: Trash slot GUI
-Right clicking any block of a formed Sink with an empty hand or a non fluid item SHALL open a GUI with one trash slot, the chimney height and the current rate for items, fluid and energy (or Unlimited). Any stack the player puts into the trash slot, including by shift click from the inventory, SHALL be voided at once regardless of the rate.
+Right clicking any block of a formed Sink with an empty hand or an item that is neither a fluid container nor a Chimney block SHALL open a GUI with one trash slot, the chimney height and the current rate for items, fluid and energy (or Unlimited). Any stack the player puts into the trash slot, including by shift click from the inventory, SHALL be voided at once regardless of the rate.
+
+#### Scenario: Chimney placed without sneaking
+- **WHEN** the player right clicks the top of a formed Sink with a Chimney block
+- **THEN** the Chimney block is placed and no GUI opens
 
 #### Scenario: Throw away a stack
 - **WHEN** the player shift clicks 64 cobblestone in the GUI of a Sink without a chimney
