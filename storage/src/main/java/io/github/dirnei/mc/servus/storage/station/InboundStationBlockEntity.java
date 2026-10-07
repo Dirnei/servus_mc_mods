@@ -99,6 +99,8 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
 
     protected InboundStationBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+        // The front is where the player stands: never an item side.
+        sides.lock(RelativeSide.FRONT, SideMode.DISABLED);
     }
 
     /** Re-evaluates which rails link to this node, for when its facing changed. */

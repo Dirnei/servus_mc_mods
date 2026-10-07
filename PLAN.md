@@ -122,7 +122,7 @@ Shuttles are **simulated as data** on the warehouse network and only rendered mo
 - **Work orders instead of patterns.** Requesting an item that is not in stock creates a work order.
 - **Bill of materials explosion**: the order is broken into sub-orders. Stock on hand is reserved, the rest is produced.
 - Recipes come from connected Manufacturing machines. Building an assembler for gears teaches the system to make gears.
-- Machines get an **Outbound Station** in front and an **Inbound Station** beside them, next to the rails. Shuttles deliver ingredients to the outbound station and pick up results from the inbound station.
+- Machines get an **Outbound Station** standing with its back to them and an **Inbound Station** beside them, next to the rails. Shuttles deliver ingredients to the outbound station and pick up results from the inbound station. Station fronts, like machine fronts, never move items.
 - **Min/max stock levels** per item create orders automatically ("keep 500 to 1,000 iron gears").
 - **Order board** shows open orders, which machine works on what, and what is blocked and why.
 - Standalone fallback: Storage alone gets a simple Crafting Station for vanilla recipes.

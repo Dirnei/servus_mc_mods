@@ -50,6 +50,9 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity> implem
         VertexConsumer buffer = buffers.getBuffer(RenderType.debugQuads());
         Matrix4f pose = poseStack.last().pose();
         for (Direction direction : Direction.values()) {
+            if (blockEntity.sideConfig().isLocked(blockEntity.relativeSide(direction))) {
+                continue;
+            }
             SideMode mode = blockEntity.sideMode(direction);
             int color = SideConfigPanel.color(mode);
             Face face = new Face(direction);

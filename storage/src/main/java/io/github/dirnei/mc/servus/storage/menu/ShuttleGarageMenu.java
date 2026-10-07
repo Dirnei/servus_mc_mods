@@ -22,8 +22,8 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 public class ShuttleGarageMenu extends AbstractContainerMenu {
 
     public static final int SLOTS_Y = 30;
-    public static final int INVENTORY_Y = 84;
-    public static final int HOTBAR_Y = 142;
+    public static final int INVENTORY_Y = 96;
+    public static final int HOTBAR_Y = 154;
     private static final int COLUMNS = 9;
 
     private final ShuttleGarageBlockEntity garage;

@@ -39,7 +39,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 /**
  * The outbound dock: the warehouse keeps the buffer stocked at the keep
  * amounts, Push sides hand the buffer to neighbours, Output sides let
- * neighbours take from it. Deliveries for work orders land here as well.
+ * neighbours take from it. The machine it serves stands behind it. Deliveries
+ * for work orders land here as well.
  */
 public class OutboundStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider, DeliveryTarget, SidedBlockEntity {
 
@@ -106,7 +107,9 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
 
     public OutboundStationBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.OUTBOUND_STATION.get(), pos, state);
-        sides.set(RelativeSide.FRONT, SideMode.PUSH);
+        // The front is where the player stands: never an item side. The machine sits behind the station.
+        sides.lock(RelativeSide.FRONT, SideMode.DISABLED);
+        sides.set(RelativeSide.BACK, SideMode.PUSH);
     }
 
     @Override
@@ -120,9 +123,9 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         return state.hasProperty(OutboundStationBlock.FACING) ? state.getValue(OutboundStationBlock.FACING) : Direction.NORTH;
     }
 
-    /** The block in front, the machine this station serves when it is one. */
-    public BlockPos facingPos() {
-        return worldPosition.relative(facing());
+    /** The block behind the station, the machine it serves when it is one. */
+    public BlockPos machinePos() {
+        return worldPosition.relative(facing().getOpposite());
     }
 
     public ItemStackHandler buffer() {
@@ -203,7 +206,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         if (level == null) {
             return null;
         }
-        return level.getCapability(ServusLibCapabilities.PRODUCTION, facingPos(), facing().getOpposite());
+        return level.getCapability(ServusLibCapabilities.PRODUCTION, machinePos(), facing());
     }
 
     // Restocking state, written by the warehouse

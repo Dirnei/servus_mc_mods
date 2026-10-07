@@ -1331,7 +1331,8 @@ public final class ServusStorageGameTests {
     private static OutboundStationBlockEntity outboundSetup(GameTestHelper helper) {
         helper.setBlock(OS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        helper.setBlock(OS_STATION, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.EAST));
+        // Facing west: the station's back, and so its machine, is the block east of it.
+        helper.setBlock(OS_STATION, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
         helper.setBlock(OS_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         return helper.getBlockEntity(OS_STATION);
     }
@@ -1389,12 +1390,14 @@ public final class ServusStorageGameTests {
         });
     }
 
-    /** Sides cycle push, extract, off; push sides expose nothing, off sides nothing, the front starts as push. */
+    /** Sides cycle push, output, off; off sides expose nothing, the back starts as push and the front is fixed off. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void outboundSideModes(GameTestHelper helper) {
         OutboundStationBlockEntity station = outboundSetup(helper);
-        helper.assertTrue(station.sideMode(Direction.EAST) == SideMode.PUSH, "the front starts as push");
+        helper.assertTrue(station.sideMode(Direction.EAST) == SideMode.PUSH, "the back starts as push");
+        helper.assertTrue(station.relativeSide(Direction.EAST) == RelativeSide.BACK, "east is the back of a station facing west");
         helper.assertTrue(station.handlerFor(Direction.EAST) != null, "a push side also lets neighbours extract");
+        helper.assertTrue(station.sideMode(Direction.WEST) == SideMode.DISABLED && station.cycleFace(Direction.WEST) == SideMode.DISABLED, "the front is fixed off");
         helper.assertTrue(station.sideMode(Direction.UP) == SideMode.DISABLED && station.handlerFor(Direction.UP) == null, "other sides start off");
         helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.PUSH, "off cycles to push");
         helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.OUTPUT, "push cycles to output");
@@ -1495,6 +1498,7 @@ public final class ServusStorageGameTests {
     public static void inboundSideOff(GameTestHelper helper) {
         helper.setBlock(IS_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
         InboundStationBlockEntity station = helper.getBlockEntity(IS_STATION);
+        helper.assertTrue(station.sideMode(Direction.NORTH) == SideMode.DISABLED && station.cycleFace(Direction.NORTH) == SideMode.DISABLED, "the front is fixed off");
         helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.PULL, "input cycles to pull");
         helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.DISABLED, "pull cycles to off");
         helper.setBlock(IS_STATION.above(), Blocks.HOPPER.defaultBlockState());
@@ -1628,7 +1632,7 @@ public final class ServusStorageGameTests {
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         helper.setBlock(DS_CRATE_A, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(DS_CRATE_B, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        helper.setBlock(DS_OUTBOUND, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.EAST));
+        helper.setBlock(DS_OUTBOUND, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
         helper.setBlock(DS_INBOUND, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.SOUTH));
         CraftingStationBlockEntity station = craftingStationWithSticks(helper, DS_STATION);
         OutboundStationBlockEntity outbound = helper.getBlockEntity(DS_OUTBOUND);
@@ -1662,7 +1666,7 @@ public final class ServusStorageGameTests {
         for (BlockPos pos : List.of(WO_CRATE_A, WO_CRATE_B, WO_CRATE_C)) {
             helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         }
-        helper.setBlock(WO_OUTBOUND, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.EAST));
+        helper.setBlock(WO_OUTBOUND, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
         helper.setBlock(WO_INBOUND, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.SOUTH));
         return craftingStationWithSticks(helper, WO_STATION);
     }

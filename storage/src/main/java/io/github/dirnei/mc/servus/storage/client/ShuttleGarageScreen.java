@@ -24,7 +24,7 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
     public ShuttleGarageScreen(ShuttleGarageMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 166;
+        this.imageHeight = 178;
     }
 
     @Override

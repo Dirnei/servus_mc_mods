@@ -790,7 +790,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         for (BlockPos pos : stations) {
             if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station) {
                 ProductionProvider provider = station.producer();
-                BlockPos machine = station.facingPos();
+                BlockPos machine = station.machinePos();
                 Component name = level.getBlockState(machine).getBlock().getName();
                 list.add(new Producer(pos, machine, name, provider != null, provider == null ? List.of() : provider.recipes(),
                         provider == null ? Optional.empty() : provider.active()));

@@ -19,7 +19,7 @@ public class InboundStationScreen extends AbstractContainerScreen<InboundStation
             ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/inbound_station.png");
     private static final int COLOUR_ALERT = 0xB03030;
 
-    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> {
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == io.github.dirnei.mc.servus.lib.side.RelativeSide.FRONT, side -> {
         if (minecraft != null && minecraft.gameMode != null) {
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(side));
         }
