@@ -91,7 +91,7 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
         return quads;
     }
 
-    /** The axis the centre's bands run along: X when every horizontal arm lies east or west, else Z. */
+    /** The axis the centre's bands run along: the one axis every arm lies on, Z without arms, null for a junction. */
     private static Direction.Axis runAxis(int[] arms) {
         int all = 0;
         if (arms != null) {
@@ -99,9 +99,18 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
                 all |= mask;
             }
         }
-        boolean x = (all & (DuctModelData.bit(Direction.EAST) | DuctModelData.bit(Direction.WEST))) != 0;
-        boolean z = (all & (DuctModelData.bit(Direction.NORTH) | DuctModelData.bit(Direction.SOUTH))) != 0;
-        return x && !z ? Direction.Axis.X : Direction.Axis.Z;
+        Direction.Axis found = null;
+        for (Direction direction : Direction.values()) {
+            if ((all & DuctModelData.bit(direction)) == 0) {
+                continue;
+            }
+            if (found == null) {
+                found = direction.getAxis();
+            } else if (found != direction.getAxis()) {
+                return null;
+            }
+        }
+        return found == null ? Direction.Axis.Z : found;
     }
 
     @Override

@@ -43,12 +43,22 @@ public final class DuctParts {
         return "center_" + suffix(linesMask);
     }
 
-    /** The centre for a run along the axis: the two line set has an extra centre for the X axis. */
+    /**
+     * The centre for a run along the axis; the two line set has one per axis
+     * and, for {@code along == null}, a uniform junction cube.
+     */
     public static String centerName(int linesMask, Direction.Axis along) {
-        if ((linesMask & BOTH) == BOTH && along == Direction.Axis.X) {
-            return "center_both_x";
+        if ((linesMask & BOTH) != BOTH) {
+            return centerName(linesMask);
         }
-        return centerName(linesMask);
+        if (along == null) {
+            return "center_both_junction";
+        }
+        return switch (along) {
+            case X -> "center_both_x";
+            case Y -> "center_both_y";
+            case Z -> centerName(linesMask);
+        };
     }
 
     public static String armName(Direction direction, int linesMask) {

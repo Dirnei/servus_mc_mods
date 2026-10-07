@@ -46,6 +46,8 @@ public final class ServusLogisticsClient {
             }
         }
         names.add(DuctParts.centerName(DuctParts.BOTH, Direction.Axis.X));
+        names.add(DuctParts.centerName(DuctParts.BOTH, Direction.Axis.Y));
+        names.add(DuctParts.centerName(DuctParts.BOTH, null));
         return names;
     }
 

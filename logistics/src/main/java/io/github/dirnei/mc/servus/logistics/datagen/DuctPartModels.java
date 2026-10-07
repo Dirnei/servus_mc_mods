@@ -34,8 +34,10 @@ final class DuctPartModels {
                 base = center;
             }
             if (lines == DuctParts.BOTH) {
-                // An east west run needs its bands split the other way round.
+                // Bands per run axis, and a plain cube where arms meet from several axes.
                 center(provider, lines, Direction.Axis.X);
+                center(provider, lines, Direction.Axis.Y);
+                junction(provider, lines);
             }
             for (Direction direction : Direction.values()) {
                 arm(provider, direction, lines);
@@ -57,8 +59,17 @@ final class DuctPartModels {
                 .texture("energy", energy)
                 .texture("both", provider.modLoc("block/duct_both"))
                 .texture("both_v", provider.modLoc("block/duct_both_v"))
-                .texture("ring", provider.modLoc("block/duct_ring"));
+                .texture("ring", provider.modLoc("block/duct_ring"))
+                .texture("junction", provider.modLoc("block/duct_junction"));
         return model;
+    }
+
+    private static void junction(BlockStateProvider provider, int lines) {
+        BlockModelBuilder model = builder(provider, DuctParts.centerName(lines, null), lines);
+        int r = radius(lines);
+        float lo = 8 - r;
+        float hi = 8 + r;
+        model.element().from(lo, lo, lo).to(hi, hi, hi).allFaces((direction, face) -> face.texture("#junction")).end();
     }
 
     private static ModelFile center(BlockStateProvider provider, int lines, Direction.Axis along) {
