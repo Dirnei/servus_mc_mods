@@ -41,10 +41,10 @@ Every `outbound_check_interval` ticks (example 40) an online warehouse SHALL com
 - **THEN** the buffer stays as it is and the station's GUI says sticks are out of stock
 
 ### Requirement: Side modes
-Every relative side of the station SHALL be in one of three modes of the Lib side configuration: Push, Output or Off. On a Push side the station SHALL push its buffer into the neighbour's item handler every `push_interval` ticks (example 8), stacks the neighbour refuses waiting in the buffer. On an Output side the neighbour MAY extract from the buffer through the item handler capability. Inserting through any side SHALL be refused. The front SHALL default to Push and the other sides to Off. The Configuration Carrot used on a face SHALL cycle that face's mode Push, Output, Off, and the GUI SHALL show the Lib side panel.
+Every relative side of the station but the front SHALL be in one of three modes of the Lib side configuration: Push, Output or Off; the front is fixed to Off. On a Push side the station SHALL push its buffer into the neighbour's item handler every `push_interval` ticks (example 8), stacks the neighbour refuses waiting in the buffer. On an Output side the neighbour MAY extract from the buffer through the item handler capability. Inserting through any side SHALL be refused. The back SHALL default to Push and the other sides to Off. The Configuration Carrot used on a face SHALL cycle that face's mode Push, Output, Off, and the GUI SHALL show the Lib side panel.
 
 #### Scenario: Pushed into an Assembler
-- **WHEN** the front faces an Assembler with the iron gear recipe and 4 iron ingots sit in the buffer
+- **WHEN** the back faces an Assembler with the iron gear recipe and 4 iron ingots sit in the buffer
 - **THEN** the ingots are in the Assembler's inputs within the push interval
 
 #### Scenario: Refused by the machine
@@ -67,6 +67,10 @@ Every relative side of the station SHALL be in one of three modes of the Lib sid
 - **WHEN** the player uses the carrot on the top face twice
 - **THEN** the top is Output after the first use and Off after the second
 
+#### Scenario: Front closed
+- **WHEN** the player uses the carrot on the front
+- **THEN** the front stays Off
+
 ### Requirement: Station is a warehouse node without stock
 The station SHALL be a member of the warehouse network like an Inbound Station: it SHALL link to touching storage blocks, stations and garages, rails SHALL dock onto it on every side, and it SHALL NOT link to elevator segments. Its buffer SHALL NOT be indexed and the blocks it pushes into SHALL NOT become warehouse sources through it. It SHALL show the connection lamp and an activity lamp: green while every keep slot is satisfied, orange while deliveries are on their way, red while a keep slot cannot be filled, dark while offline.
 
@@ -79,14 +83,14 @@ The station SHALL be a member of the warehouse network like an Inbound Station: 
 - **THEN** the activity lamp is red and turns green once the sticks arrived
 
 ### Requirement: Station reports its producer
-A station whose front faces a block with the Lib production capability SHALL report that block's recipes and active recipe to the warehouse. `/servus_warehouse producers <pos>` SHALL list every Outbound Station of the network with the block it faces and its recipes, or say that it faces no producer.
+A station whose back faces a block with the Lib production capability SHALL report that block's recipes and active recipe to the warehouse. `/servus_warehouse producers <pos>` SHALL list every Outbound Station of the network with the block behind it and its recipes, or say that it faces no producer.
 
 #### Scenario: Assembler in front
-- **WHEN** an op runs the producers command on a warehouse whose station faces an Assembler with the iron gear recipe
+- **WHEN** an op runs the producers command on a warehouse whose station stands with its back to an Assembler with the iron gear recipe
 - **THEN** chat lists the station, the Assembler and "iron gear from 2 iron ingot, 20 ticks"
 
 #### Scenario: Chest in front
-- **WHEN** a station faces a chest
+- **WHEN** a station stands with its back to a chest
 - **THEN** the producers list says the station faces no producer
 
 ### Requirement: Deliveries on request
