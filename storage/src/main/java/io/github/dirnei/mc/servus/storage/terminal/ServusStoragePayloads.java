@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.storage.terminal;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.client.ClientStock;
 import io.github.dirnei.mc.servus.storage.client.ClientOrders;
+import io.github.dirnei.mc.servus.storage.crafting.OpenStationEditorPayload;
+import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardPayload;
 import io.github.dirnei.mc.servus.storage.board.CancelOrderPayload;
 import io.github.dirnei.mc.servus.storage.menu.OrderBoardMenu;
@@ -38,6 +40,13 @@ public final class ServusStoragePayloads {
                 (payload, context) -> ClientStock.update(payload));
         registrar.playToClient(OrderBoardPayload.TYPE, OrderBoardPayload.STREAM_CODEC,
                 (payload, context) -> ClientOrders.update(payload));
+        registrar.playToServer(OpenStationEditorPayload.TYPE, OpenStationEditorPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof CraftingStationMenu menu) {
+                        menu.openEditorWith(payload.recipe());
+                    }
+                });
         registrar.playToServer(CancelOrderPayload.TYPE, CancelOrderPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player

@@ -12,7 +12,7 @@
 
 ## 3. JEI transfer
 
-- [ ] 3.1 JEI lines in `storage/build.gradle`, `storage/integration/jei/ServusStorageJeiPlugin.java`, `CraftingStationRecipeTransferHandler.java`, `network/OpenStationEditorPayload.java` registered in `ServusStoragePayloads`, `CraftingStationMenu.openEditorWith`. Grep that every payload type is registered. Verify `gradlew build`.
+- [x] 3.1 JEI lines in `storage/build.gradle`, `storage/integration/jei/ServusStorageJeiPlugin.java`, `CraftingStationRecipeTransferHandler.java`, `crafting/OpenStationEditorPayload.java` registered in `terminal/ServusStoragePayloads`, `CraftingStationMenu.openEditorWith`. Grep that every payload type is registered. Verify `gradlew build`.
 
 ## 4. Verification
 
