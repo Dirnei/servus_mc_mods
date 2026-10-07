@@ -20,8 +20,8 @@
 
 ## 4. Endpoint GUI
 
-- [ ] 4.1 Add `duct/ArmHit.java` (pure: which arm box a local click point falls in, arms first then centre) with `ArmHitTest.java` (point in the north arm, point in the centre, point on a side without an arm). In `UtilityDuctBlock`: `onWrench` without sneak opens the endpoint menu for the hit arm when it is an endpoint, `useWithoutItem` passes, sneak path unchanged. Verify `gradlew :logistics:test` is green.
-- [ ] 4.2 Rework `menu/UtilityDuctMenu.java` (fixed side from extra data, button ids for mode, channel, remove, priority) and `client/UtilityDuctScreen.java` (title with side and touched block, one row per line, eight colored channel buttons, filter and priority on the item row), lang keys for channels and the title, GUI texture. Verify `gradlew :logistics:build` is green and launch `gradlew runClientAll`: carrot on a chest arm opens the GUI, carrot on the centre or a duct arm does nothing, bare hand does nothing, channel buttons recolor the ring.
+- [x] 4.1 Add `duct/ArmHit.java` (pure: which arm box a local click point falls in, arms first then centre) with `ArmHitTest.java` (point in the north arm, point in the centre, point on a side without an arm). In `UtilityDuctBlock`: `onWrench` without sneak opens the endpoint menu for the hit arm when it is an endpoint, `useWithoutItem` passes, sneak path unchanged. Verify `gradlew :logistics:test` is green.
+- [x] 4.2 Rework `menu/UtilityDuctMenu.java` (fixed side from extra data, button ids for mode, channel, remove, priority) and `client/UtilityDuctScreen.java` (title with side and touched block, one row per line, eight colored channel buttons, filter and priority on the item row), lang keys for channels and the title, GUI texture. Verify `gradlew :logistics:build` is green and launch `gradlew runClientAll`: carrot on a chest arm opens the GUI, carrot on the centre or a duct arm does nothing, bare hand does nothing, channel buttons recolor the ring.
 
 ## 5. Verification
 

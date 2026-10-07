@@ -70,7 +70,7 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 ## Logistics playtest guide
 
 1. Item Pipe (iron, glass, chest) and Power Cable (copper, redstone, glass) place a Utility Duct carrying that line. Use a line item on an existing duct to add the other line. A duct with one line is thin, with both lines thicker, and each line shows its own color.
-2. Right click a duct to open its side configuration. Pick a side at the top, then set each channel's mode (in and out, pull in, push out, disabled), drop up to nine items into the filter row (empty means everything) and adjust the priority. Pull in actively empties the neighbouring inventory; push out delivers, highest priority first. Remove buttons take a channel back out.
+2. Use the Configuration Carrot on an arm that touches a chest or machine to open that side's configuration: per line a mode (in and out, pull in, push out, disabled), one of eight colored channels (items and energy only flow between sides on the same channel; the ring at the arm's end shows the color), and for the Item Pipe up to nine filter items (empty means everything) and a priority. The carrot on the centre, on an arm toward another duct or a bare hand opens nothing.
 3. Facades: craft any full block with an iron ingot for six facades, use one on a duct and it looks like that block. Sneak wrench takes the facade off first, a second sneak wrench removes the duct and drops its channels.
 4. Engineer Goggles (leather, iron, glass) go on your head. While wearing them, or holding the wrench, hidden ducts show through walls as an orange overlay.
 

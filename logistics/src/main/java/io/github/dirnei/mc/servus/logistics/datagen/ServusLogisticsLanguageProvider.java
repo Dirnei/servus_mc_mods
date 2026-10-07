@@ -21,11 +21,15 @@ final class ServusLogisticsLanguageProvider extends LanguageProvider {
         add("item.servus_logistics.facade.named", "Facade (%s)");
         add("item.servus_logistics.facade.hint", "Use on a utility duct to hide it");
         add("gui.servus_logistics.utility_duct", "Utility Duct");
+        add("gui.servus_logistics.utility_duct.title", "Utility Duct, %s: %s");
         add("gui.servus_logistics.remove.item", "Remove Item Pipe");
         add("gui.servus_logistics.remove.energy", "Remove Power Cable");
         add("gui.servus_logistics.filter", "Filter (empty = everything)");
         add("gui.servus_logistics.priority", "Priority %s");
         add("gui.servus_logistics.no_lines", "No lines");
+        for (int channel = 1; channel <= 8; channel++) {
+            add("gui.servus_logistics.channel." + channel, "Channel " + channel);
+        }
         add("gui.servus_logistics.line.item", "Items");
         add("gui.servus_logistics.line.energy", "Energy");
         add("gui.servus_logistics.mode.both", "In and out");

@@ -55,7 +55,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * arm per line and which arms end at an inventory or machine, synced to the
  * client for the model.
  */
-public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider {
+public class UtilityDuctBlockEntity extends BlockEntity {
 
     public static final int FILTER_SLOTS = 9;
     public static final int MIN_PRIORITY = -9;
@@ -473,14 +473,28 @@ public class UtilityDuctBlockEntity extends BlockEntity implements MenuProvider 
 
     // Menu
 
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+    /** The name of the block the side touches, for the endpoint GUI title. */
+    public Component touchedBlockName(Direction side) {
+        if (level == null) {
+            return Component.empty();
+        }
+        return level.getBlockState(worldPosition.relative(side)).getBlock().getName();
     }
 
-    @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new UtilityDuctMenu(containerId, playerInventory, this);
+    /** The endpoint GUI of one side: "Utility Duct, West: Chest". */
+    public MenuProvider menuProvider(Direction side) {
+        return new MenuProvider() {
+            @Override
+            public Component getDisplayName() {
+                return Component.translatable("gui.servus_logistics.utility_duct.title",
+                        Component.translatable("gui.servus_logistics.side." + side.getSerializedName()), touchedBlockName(side));
+            }
+
+            @Override
+            public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+                return new UtilityDuctMenu(containerId, playerInventory, UtilityDuctBlockEntity.this, side);
+            }
+        };
     }
 
     // Persistence and sync

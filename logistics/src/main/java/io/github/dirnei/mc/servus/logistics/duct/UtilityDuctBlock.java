@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Utility duct block. The six connection flags are the union of the per line
@@ -147,12 +148,10 @@ public class UtilityDuctBlock extends ConnectableBlock {
         return state;
     }
 
+    /** A bare hand opens nothing; the endpoint GUI is opened with the Configuration Carrot. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
-            player.openMenu(duct, pos);
-        }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -169,23 +168,51 @@ public class UtilityDuctBlock extends ConnectableBlock {
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    /** Sneak wrench takes the facade off first, then removes the duct; lines drop through {@link #onRemove}. */
+    /**
+     * Sneak wrench takes the facade off first, then removes the duct; lines
+     * drop through {@link #onRemove}. Without sneaking, a click on an arm that
+     * ends at an inventory or machine opens that side's endpoint GUI; the
+     * centre, an arm toward another duct and a facaded duct open nothing.
+     */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Player player = context.getPlayer();
-        if (player == null || !player.isShiftKeyDown()) {
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        if (player != null && player.isShiftKeyDown()) {
+            if (!level.isClientSide()) {
+                if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && duct.facade() != null) {
+                    Block.popResource(level, pos, duct.removeFacade());
+                } else {
+                    level.removeBlock(pos, false);
+                }
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide());
+        }
+        if (player == null || !(level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) || duct.facade() != null) {
             return InteractionResult.PASS;
         }
-        Level level = context.getLevel();
+        Direction side = hitArm(duct, context.getClickLocation(), pos);
+        if (side == null || !duct.isEndpoint(side)) {
+            return InteractionResult.PASS;
+        }
         if (!level.isClientSide()) {
-            BlockPos pos = context.getClickedPos();
-            if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && duct.facade() != null) {
-                Block.popResource(level, pos, duct.removeFacade());
-            } else {
-                level.removeBlock(pos, false);
-            }
+            player.openMenu(duct.menuProvider(side), buf -> buf.writeBlockPos(pos).writeEnum(side));
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    /** The side whose arm box contains the click location, or null for the centre or nothing. */
+    private static Direction hitArm(UtilityDuctBlockEntity duct, Vec3 location, BlockPos pos) {
+        int[] armRadius = new int[6];
+        for (Direction direction : Direction.values()) {
+            int lines = (duct.hasArm(Line.ITEM, direction) ? 1 : 0) + (duct.hasArm(Line.ENERGY, direction) ? 1 : 0);
+            armRadius[direction.ordinal()] = lines == 0 ? 0 : DuctShapes.radius(lines);
+        }
+        int centerRadius = DuctShapes.radius(duct.lines().size());
+        int side = ArmHit.hit((location.x - pos.getX()) * 16, (location.y - pos.getY()) * 16, (location.z - pos.getZ()) * 16,
+                centerRadius, armRadius);
+        return side >= 0 ? Direction.values()[side] : null;
     }
 
     @Override
