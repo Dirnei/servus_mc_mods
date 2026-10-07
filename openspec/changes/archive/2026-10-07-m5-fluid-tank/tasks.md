@@ -23,5 +23,5 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Full `gradlew build` and `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
-- [ ] 5.2 Play check: build a 2 by 2 by 3 tank block by block (pairs and singles until a box completes, then one frame around it), a block on top of a 2 by 2 tank leaves it formed, a stack of tank items on top adds a whole layer, fill with buckets, fill level rises bottom up, break a corner and see it regroup, reload keeps the tanks.
+- [x] 5.1 Full `gradlew build` and `gradlew test` green, `gradlew runClientAll` launches with all four mods. Commit.
+- [x] 5.2 Play check: build a 2 by 2 by 3 tank block by block (pairs and singles until a box completes, then one frame around it), a block on top of a 2 by 2 tank leaves it formed, a stack of tank items on top adds a whole layer, fill with buckets, fill level rises bottom up, break a corner and see it regroup, reload keeps the tanks.
