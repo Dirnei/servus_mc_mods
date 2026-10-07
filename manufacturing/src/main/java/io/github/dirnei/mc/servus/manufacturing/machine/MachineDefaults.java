@@ -29,7 +29,7 @@ public final class MachineDefaults {
     private static final Map<String, MachineInfo> MACHINES = new LinkedHashMap<>();
 
     static {
-        add("burner_extractor", "burner", List.of(EXTRACTION), MachineStats.burner(80));
+        add("burner_extractor", "burner", List.of(EXTRACTION), MachineStats.burner(80, 4));
         add("burner_smelter", "burner", List.of("minecraft:smelting"), MachineStats.burner(80));
         add("electric_extractor", "powered", List.of(EXTRACTION), MachineStats.powered(40, 20, 8000));
         add("crusher", "powered", List.of("servus_manufacturing:crushing"), MachineStats.powered(60, 20, 8000));

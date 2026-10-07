@@ -12,14 +12,16 @@ import java.util.Optional;
  * @param energyPerTick  FE consumed (machines) or produced (generators) per tick
  * @param energyCapacity FE buffer size (0 for burner machines)
  * @param fuelDivisor    furnace burn time is divided by this (generators burn faster)
+ * @param fuelReserve    how many of its own yield a machine keeps in its fuel slot when the yield is a fuel (0 disables)
  */
 public record MachineStats(int workTicks, int energyPerTick, int energyCapacity, int fuelDivisor,
-                           int itemsPerTick, int recipeSlots) {
+                           int itemsPerTick, int recipeSlots, int fuelReserve) {
 
     /** Partial stats as written in JSON. */
     public record Partial(Optional<Integer> workTicks, Optional<Integer> energyPerTick,
                           Optional<Integer> energyCapacity, Optional<Integer> fuelDivisor,
-                          Optional<Integer> itemsPerTick, Optional<Integer> recipeSlots) {
+                          Optional<Integer> itemsPerTick, Optional<Integer> recipeSlots,
+                          Optional<Integer> fuelReserve) {
 
         public static final Codec<Partial> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.INT.optionalFieldOf("work_ticks").forGetter(Partial::workTicks),
@@ -27,7 +29,8 @@ public record MachineStats(int workTicks, int energyPerTick, int energyCapacity,
                 Codec.INT.optionalFieldOf("energy_capacity").forGetter(Partial::energyCapacity),
                 Codec.INT.optionalFieldOf("fuel_divisor").forGetter(Partial::fuelDivisor),
                 Codec.INT.optionalFieldOf("items_per_tick").forGetter(Partial::itemsPerTick),
-                Codec.INT.optionalFieldOf("recipe_slots").forGetter(Partial::recipeSlots)
+                Codec.INT.optionalFieldOf("recipe_slots").forGetter(Partial::recipeSlots),
+                Codec.INT.optionalFieldOf("fuel_reserve").forGetter(Partial::fuelReserve)
         ).apply(instance, Partial::new));
 
         public MachineStats over(MachineStats defaults) {
@@ -37,23 +40,29 @@ public record MachineStats(int workTicks, int energyPerTick, int energyCapacity,
                     energyCapacity.orElse(defaults.energyCapacity()),
                     Math.max(1, fuelDivisor.orElse(defaults.fuelDivisor())),
                     itemsPerTick.orElse(defaults.itemsPerTick()),
-                    Math.max(1, recipeSlots.orElse(defaults.recipeSlots())));
+                    Math.max(1, recipeSlots.orElse(defaults.recipeSlots())),
+                    Math.max(0, fuelReserve.orElse(defaults.fuelReserve())));
         }
     }
 
     public static MachineStats burner(int workTicks) {
-        return new MachineStats(workTicks, 0, 0, 1, 0, 1);
+        return burner(workTicks, 0);
+    }
+
+    /** A burner that keeps {@code fuelReserve} of its own yield as fuel. */
+    public static MachineStats burner(int workTicks, int fuelReserve) {
+        return new MachineStats(workTicks, 0, 0, 1, 0, 1, fuelReserve);
     }
 
     public static MachineStats powered(int workTicks, int energyPerTick, int energyCapacity) {
-        return new MachineStats(workTicks, energyPerTick, energyCapacity, 1, 0, 1);
+        return new MachineStats(workTicks, energyPerTick, energyCapacity, 1, 0, 1, 0);
     }
 
     public static MachineStats crafter(int workTicks, int energyPerTick, int energyCapacity, int recipeSlots) {
-        return new MachineStats(workTicks, energyPerTick, energyCapacity, 1, 0, recipeSlots);
+        return new MachineStats(workTicks, energyPerTick, energyCapacity, 1, 0, recipeSlots, 0);
     }
 
     public static MachineStats generator(int energyPerTick, int energyCapacity, int fuelDivisor) {
-        return new MachineStats(1, energyPerTick, energyCapacity, fuelDivisor, 0, 1);
+        return new MachineStats(1, energyPerTick, energyCapacity, fuelDivisor, 0, 1, 0);
     }
 }

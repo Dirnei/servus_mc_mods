@@ -36,6 +36,15 @@ class MachineDefaultsTest {
         assertEquals(0, stats.energyCapacity());
         assertEquals(1, stats.fuelDivisor());
         assertEquals(1, stats.recipeSlots());
+        assertEquals(4, stats.fuelReserve());
+    }
+
+    @Test
+    void onlyTheBurnerExtractorKeepsAFuelReserve() {
+        for (MachineDefaults.MachineInfo info : MachineDefaults.all().values()) {
+            int expected = info.id().endsWith("burner_extractor") ? 4 : 0;
+            assertEquals(expected, info.stats().fuelReserve(), info.id());
+        }
     }
 
     @Test

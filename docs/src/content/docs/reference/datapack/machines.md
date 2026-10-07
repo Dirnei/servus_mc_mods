@@ -27,6 +27,7 @@ Every field is optional. A field the file leaves out, or a missing file, falls b
 | `fuel_divisor` | int | 1 | Furnace burn time of a fuel item is divided by this. Values below 1 count as 1. |
 | `items_per_tick` | int | 0 | Reserved for item throughput. No Manufacturing machine uses it yet. |
 | `recipe_slots` | int | 1 | How many recipes a crafter can have configured. Values below 1 count as 1. |
+| `fuel_reserve` | int | 0 | How many of its own yield a burner extractor keeps in its fuel slot when the yield is a furnace fuel. Surplus goes to the output slot. 0 disables the reserve. Values below 0 count as 0. |
 
 ## Example
 
@@ -64,7 +65,7 @@ These are the defaults built into the code, used for any field a file leaves out
 | `research_lab` | powered | research packs | 1 | 10 | 4000 | 1 | 1 |
 | `chunk_loader` | powered | nothing, upkeep only | 1 | 10 | 4000 | 1 | 1 |
 
-`items_per_tick` is 0 for every machine.
+`items_per_tick` is 0 for every machine. `fuel_reserve` is 4 for the `burner_extractor` and 0 for every other machine: on a coal deposit the extractor keeps four coal in its fuel slot and pushes only the surplus.
 
 The shipped stats files repeat these defaults, with one difference: `assembler.json` sets `work_ticks` to 1, so plain crafting recipes take one tick in the Assembler.
 
