@@ -6,4 +6,4 @@
 
 ## 2. Verification
 
-- [ ] 2.1 Run `openspec validate m7-sides-from-the-player --strict`, full `gradlew clean build` green, `gradlew runClientAll` launches. Commit.
+- [x] 2.1 Run `openspec validate m7-sides-from-the-player --strict`, full `gradlew clean build` green, `gradlew runClientAll` launches. Commit.
