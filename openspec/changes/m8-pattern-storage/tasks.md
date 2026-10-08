@@ -10,7 +10,7 @@
 
 ## 3. Pattern Storage
 
-- [ ] 3.1 Add `patterns_per_block` to `StorageStatsManager` with `data/servus_storage/storage/pattern_storage.json`; `PatternStorageBlock`, `PatternStorageBlockEntity` (encoded patterns only, drops contents), `PatternStorageMenu`, `PatternStorageScreen`, registries, `DataLink` capability in `ServusStorageEvents`, blockstate, model, loot, pickaxe tag, recipe, lang, textures. Run `:storage:runData`, verify with `gradlew build`.
+- [x] 3.1 Add `patterns_per_block` to `StorageStatsManager` with `data/servus_storage/storage/pattern_storage.json`; `PatternStorageBlock`, `PatternStorageBlockEntity` (encoded patterns only, drops contents), `PatternStorageMenu`, `PatternStorageScreen`, registries, `DataLink` capability in `ServusStorageEvents`, blockstate, model, loot, pickaxe tag, recipe, lang, textures. Run `:storage:runData`, verify with `gradlew build`.
 
 ## 4. Patterns on the line and the CPU
 

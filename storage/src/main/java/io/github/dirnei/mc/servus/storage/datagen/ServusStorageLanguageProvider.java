@@ -30,6 +30,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.CRAFTING_STATION.get(), "Crafting Station");
         add(ServusStorageBlocks.CRAFTING_CPU.get(), "Crafting CPU");
         add(ServusStorageBlocks.PRODUCTION_TERMINAL.get(), "Production Terminal");
+        add(ServusStorageBlocks.PATTERN_STORAGE.get(), "Pattern Storage");
         add("gui.servus_storage.production.tab.machines", "Machines");
         add("gui.servus_storage.production.tab.orders", "Orders");
         add("gui.servus_storage.production.no_line", "Not on a data line");

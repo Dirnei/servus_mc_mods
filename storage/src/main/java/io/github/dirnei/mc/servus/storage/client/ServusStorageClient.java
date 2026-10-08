@@ -31,6 +31,7 @@ public final class ServusStorageClient {
         event.register(ServusStorageMenus.OUTBOUND_STATION.get(), OutboundStationScreen::new);
         event.register(ServusStorageMenus.CRAFTING_STATION.get(), CraftingStationScreen::new);
         event.register(ServusStorageMenus.PRODUCTION_TERMINAL.get(), ProductionTerminalScreen::new);
+        event.register(ServusStorageMenus.PATTERN_STORAGE.get(), PatternStorageScreen::new);
     }
 
     @SubscribeEvent

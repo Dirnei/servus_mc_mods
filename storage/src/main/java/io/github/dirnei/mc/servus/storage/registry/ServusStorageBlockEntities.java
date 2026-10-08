@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
@@ -43,6 +44,11 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ProductionTerminalBlockEntity>> PRODUCTION_TERMINAL =
             BLOCK_ENTITIES.register("production_terminal", () -> BlockEntityType.Builder
                     .of(ProductionTerminalBlockEntity::new, ServusStorageBlocks.PRODUCTION_TERMINAL.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PatternStorageBlockEntity>> PATTERN_STORAGE =
+            BLOCK_ENTITIES.register("pattern_storage", () -> BlockEntityType.Builder
+                    .of(PatternStorageBlockEntity::new, ServusStorageBlocks.PATTERN_STORAGE.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<InboundStationBlockEntity>> INBOUND_STATION =

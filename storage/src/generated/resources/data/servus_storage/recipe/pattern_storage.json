@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "servus_storage:blank_pattern"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "IBI",
+    "RCR",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_storage:pattern_storage"
+  }
+}

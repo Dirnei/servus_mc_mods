@@ -19,7 +19,7 @@ final class ServusStorageBlockLoot extends BlockLootSubProvider {
             ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.ELEVATOR.get(),
             ServusStorageBlocks.INBOUND_STATION.get(), ServusStorageBlocks.ACCESS_POINT.get(), ServusStorageBlocks.SHUTTLE_GARAGE.get(), ServusStorageBlocks.OUTBOUND_STATION.get(),
             ServusStorageBlocks.CRAFTING_STATION.get(), ServusStorageBlocks.CRAFTING_CPU.get(),
-            ServusStorageBlocks.PRODUCTION_TERMINAL.get());
+            ServusStorageBlocks.PRODUCTION_TERMINAL.get(), ServusStorageBlocks.PATTERN_STORAGE.get());
 
     ServusStorageBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

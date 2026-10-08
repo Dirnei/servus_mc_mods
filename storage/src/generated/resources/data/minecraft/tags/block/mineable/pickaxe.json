@@ -9,6 +9,7 @@
     "servus_storage:shuttle_garage",
     "servus_storage:outbound_station",
     "servus_storage:crafting_cpu",
-    "servus_storage:production_terminal"
+    "servus_storage:production_terminal",
+    "servus_storage:pattern_storage"
   ]
 }

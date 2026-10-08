@@ -34,6 +34,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_INBOUND_BUFFER_SLOTS = 9;
     public static final int DEFAULT_PUT_AWAY_PER_TICK = 1;
     public static final int DEFAULT_CPU_ORDER_SLOTS = 2;
+    public static final int DEFAULT_PATTERNS_PER_BLOCK = 9;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
@@ -41,6 +42,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private static final ResourceLocation RACK = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack");
     private static final ResourceLocation CRAFTING_STATION = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crafting_station");
     private static final ResourceLocation CPU = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "cpu");
+    private static final ResourceLocation PATTERN_STORAGE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
 
     public static final StorageStatsManager INSTANCE = new StorageStatsManager();
 
@@ -62,6 +64,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int inboundBufferSlots = DEFAULT_INBOUND_BUFFER_SLOTS;
     private volatile int putAwayPerTick = DEFAULT_PUT_AWAY_PER_TICK;
     private volatile int cpuOrderSlots = DEFAULT_CPU_ORDER_SLOTS;
+    private volatile int patternsPerBlock = DEFAULT_PATTERNS_PER_BLOCK;
 
     private StorageStatsManager() {
         super(GSON, DIRECTORY);
@@ -87,6 +90,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         inboundBufferSlots = intField(files.get(WAREHOUSE), "inbound_buffer_slots", DEFAULT_INBOUND_BUFFER_SLOTS);
         putAwayPerTick = intField(files.get(WAREHOUSE), "put_away_per_tick", DEFAULT_PUT_AWAY_PER_TICK);
         cpuOrderSlots = intField(files.get(CPU), "order_slots", DEFAULT_CPU_ORDER_SLOTS);
+        patternsPerBlock = intField(files.get(PATTERN_STORAGE), "patterns_per_block", DEFAULT_PATTERNS_PER_BLOCK);
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
 
@@ -144,6 +148,11 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     /** Orders one formed Crafting CPU runs at a time. */
     public int cpuOrderSlots() {
         return cpuOrderSlots;
+    }
+
+    /** Encoded Patterns one Pattern Storage holds. */
+    public int patternsPerBlock() {
+        return patternsPerBlock;
     }
 
     public int craftingStationRecipes() {

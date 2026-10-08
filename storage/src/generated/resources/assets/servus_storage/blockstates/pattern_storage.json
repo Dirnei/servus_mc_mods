@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "servus_storage:block/pattern_storage",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "servus_storage:block/pattern_storage"
+    },
+    "facing=south": {
+      "model": "servus_storage:block/pattern_storage",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "servus_storage:block/pattern_storage",
+      "y": 270
+    }
+  }
+}
