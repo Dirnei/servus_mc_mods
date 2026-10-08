@@ -5,9 +5,7 @@ import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -64,14 +62,7 @@ public class MachineAdapterBlock extends BaseEntityBlock implements Wrenchable {
         return new MachineAdapterBlockEntity(pos, state);
     }
 
-    /** Only an empty hand opens the GUI; any item keeps its own use, so ducts can be placed against it. */
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-                                              Player player, InteractionHand hand, BlockHitResult hitResult) {
-        return stack.isEmpty() ? ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
-                : ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
-    }
-
+    /** Any held item opens the GUI like a chest; sneaking with an item uses the item, so blocks can be placed against it. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (player instanceof ServerPlayer server && level.getBlockEntity(pos) instanceof MachineAdapterBlockEntity adapter) {

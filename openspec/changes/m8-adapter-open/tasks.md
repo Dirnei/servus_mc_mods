@@ -2,7 +2,7 @@
 
 ## 1. Blocks
 
-- [ ] 1.1 Remove the empty hand only `useItemOn` override from `foundation/.../adapter/MachineAdapterBlock.java`; in `storage/.../cpu/CpuBlock.java` skip only for the Configuration Carrot. Verify with `gradlew build`.
+- [x] 1.1 Remove the empty hand only `useItemOn` override from `foundation/.../adapter/MachineAdapterBlock.java`; in `storage/.../cpu/CpuBlock.java` skip only for the Configuration Carrot. Verify with `gradlew build`.
 
 ## 2. Tests
 

@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.cpu;
 
 import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -181,8 +182,9 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                               InteractionHand hand, BlockHitResult hitResult) {
-        return stack.isEmpty() ? ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
-                : ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        // The carrot forms the cube; any other item shows the summary like a chest, sneaking uses the item.
+        return stack.getItem() instanceof ConfigurationCarrotItem ? ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION
+                : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     /** An empty hand shows the CPU's slots, or how to form it. */
