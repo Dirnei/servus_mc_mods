@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 Add `storage/.../pattern/TemplateCounts` (no Minecraft imports): counts per key of a 9 cell template, empty cells skipped, equality of two templates' counts. Add `storage/src/test/.../pattern/TemplateCountsTest` with `countsPerKey`, `emptyCellsIgnored`, `sameCountsInAnyLayout`, `differentItemsDiffer`. Verify with `gradlew :storage:test`.
+- [x] 1.1 Add `storage/.../pattern/TemplateCounts` (no Minecraft imports): counts per key of a 9 cell template, empty cells skipped, equality of two templates' counts. Add `storage/src/test/.../pattern/TemplateCountsTest` with `countsPerKey`, `emptyCellsIgnored`, `sameCountsInAnyLayout`, `differentItemsDiffer`. Verify with `gradlew :storage:test`.
 
 ## 2. Pattern items
 
