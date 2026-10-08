@@ -22,8 +22,8 @@
 
 ## 5. Utility Duct (logistics)
 
-- [ ] 5.1 Add `logistics/.../duct/DuctAssist.java` (start = any `UtilityDuctBlock`, run = duct whose block entity `has(line)`, direction = clicked face). Make `LineItem` implement `AssistedItem` and override `place` through `PlacementAssists.place`, keeping the non-sneak add-line branch in `useOn`. Verify with `gradlew :logistics:build`.
-- [ ] 5.2 Add logistics GameTests to `ServusLogisticsGameTests.java`: sneak extends a run of six from the second duct, sneak extends a column upwards, sneak on a duct lacking the line still places above it when free, a run blocked by a duct of another line places nothing, and a non-sneak click on a duct lacking the line still adds the line. Verify with the logistics GameTest server run and with all logistics GameTests green.
+- [x] 5.1 Add `logistics/.../duct/DuctAssist.java` (start = any `UtilityDuctBlock`, run = duct whose block entity `has(line)`, direction = clicked face). Make `LineItem` implement `AssistedItem` and override `place` through `PlacementAssists.place`, keeping the non-sneak add-line branch in `useOn`. Verify with `gradlew :logistics:build`.
+- [x] 5.2 Add logistics GameTests to `ServusLogisticsGameTests.java`: sneak extends a run of six from the second duct, sneak extends a column upwards, sneak on a duct lacking the line still places above it when free, a run blocked by a duct of another line places nothing, and a non-sneak click on a duct lacking the line still adds the line. Verify with the logistics GameTest server run and with all logistics GameTests green.
 
 ## 6. Plan and integration
 

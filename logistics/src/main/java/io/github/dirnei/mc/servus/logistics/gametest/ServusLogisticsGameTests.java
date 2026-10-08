@@ -400,4 +400,40 @@ public final class ServusLogisticsGameTests {
         helper.assertFalse(duct.has(Line.FLUID), "a sneak click does not add the line to the clicked duct");
         helper.succeed();
     }
+
+    /** Sneaking walks the run of ducts carrying the held line: east along a row, up a column, and not into another line. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void sneakLineExtendsRun(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        for (int x = 1; x <= 6; x++) {
+            duct(helper, new BlockPos(x, 1, 9), Line.ITEM);
+        }
+        for (int y = 1; y <= 4; y++) {
+            duct(helper, new BlockPos(9, y, 2), Line.ENERGY);
+        }
+        duct(helper, new BlockPos(1, 1, 11), Line.FLUID);
+        duct(helper, new BlockPos(2, 1, 11), Line.ITEM);
+        player.setShiftKeyDown(true);
+
+        useLine(helper, player, ServusLogisticsItems.ITEM_PIPE.get(), new BlockPos(2, 1, 9), Direction.EAST);
+        UtilityDuctBlockEntity end = helper.getBlockEntity(new BlockPos(7, 1, 9));
+        helper.assertTrue(end.has(Line.ITEM), "the new Item Pipe duct should land past the sixth duct");
+        helper.assertTrue(helper.<UtilityDuctBlockEntity>getBlockEntity(new BlockPos(2, 1, 9)).lines().size() == 1,
+                "the clicked duct should stay unchanged");
+
+        useLine(helper, player, ServusLogisticsItems.POWER_CABLE.get(), new BlockPos(9, 1, 2), Direction.UP);
+        UtilityDuctBlockEntity top = helper.getBlockEntity(new BlockPos(9, 5, 2));
+        helper.assertTrue(top.has(Line.ENERGY), "the new Power Cable duct should land on top of the column");
+
+        BlockPos fluid = helper.absolutePos(new BlockPos(1, 1, 11));
+        ItemStack held = new ItemStack(ServusLogisticsItems.FLUID_PIPE.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, held);
+        held.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, held,
+                new BlockHitResult(Vec3.atCenterOf(fluid).relative(Direction.EAST, 0.5), Direction.EAST, fluid, false)));
+        helper.assertTrue(held.getCount() == 1, "a run blocked by another line keeps the stack");
+        helper.assertFalse(helper.<UtilityDuctBlockEntity>getBlockEntity(new BlockPos(2, 1, 11)).has(Line.FLUID),
+                "the Item Pipe duct in the way gets no Fluid Pipe");
+        helper.assertBlockNotPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), new BlockPos(3, 1, 11));
+        helper.succeed();
+    }
 }
