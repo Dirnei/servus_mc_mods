@@ -10,7 +10,7 @@
 
 ## 3. Tests
 
-- [ ] 3.1 Add `gametest/TerminalWiring.java` and rewire every Storage GameTest that places a Counter Terminal (Access Point at the old spot, data duct above, terminal on top), adjusting waits for packet travel. Verify with `:storage:runGameTestServer` all green.
+- [x] 3.1 Add `gametest/TerminalWiring.java` and rewire every Storage GameTest that places a Counter Terminal (Access Point at the old spot, data duct above, terminal on top), adjusting waits for packet travel. Verify with `:storage:runGameTestServer` all green.
 - [ ] 3.2 Add `gametest/TerminalCableGameTests.java`: `terminalRequestArrivesAsPackets`, `terminalBesideControllerIsOffline`, `twoWarehousesMergeAndSplit`, `terminalCancelPutsPicksBack`, `hopperCannotTakeTerminalOutput`, `terminalRequestWithoutAccessPointIsRefused`. Verify with `:storage:runGameTestServer`, `:foundation:runGameTestServer` and `:manufacturing:runGameTestServer` all green and `gradlew test` green.
 
 ## 4. Docs

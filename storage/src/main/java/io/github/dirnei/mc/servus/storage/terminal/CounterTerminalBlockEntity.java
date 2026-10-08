@@ -53,8 +53,6 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
         public final int requested;
         public int delivered;
         public int missing;
-        /** A packet did not fit into the output slots and waits. */
-        public boolean waitingRoom;
         /** Open shipments for this request. */
         public final List<Tracked> shipments = new ArrayList<>();
         /** The controller of the warehouse holding this request's work order, if any. */
@@ -142,17 +140,7 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
             if (request.key.equals(key) && request.delivered < request.requested) {
                 int share = Math.min(count, request.requested - request.delivered);
                 request.delivered += share;
-                request.waitingRoom = false;
                 count -= share;
-            }
-        }
-    }
-
-    private void markWaiting(ItemKey key) {
-        for (Request request : requests) {
-            if (request.key.equals(key) && request.delivered < request.requested) {
-                request.waitingRoom = true;
-                return;
             }
         }
     }
@@ -232,15 +220,9 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
             ItemStack left = output.insertItem(slot, stack, simulate);
-            if (!simulate && !stack.isEmpty()) {
-                int landed = stack.getCount() - left.getCount();
-                ItemKey key = ItemKey.of(stack);
-                if (landed > 0) {
-                    credit(key, landed);
-                }
-                if (!left.isEmpty() && slot == output.getSlots() - 1) {
-                    markWaiting(key);
-                }
+            int landed = stack.getCount() - left.getCount();
+            if (!simulate && landed > 0) {
+                credit(ItemKey.of(stack), landed);
             }
             return left;
         }

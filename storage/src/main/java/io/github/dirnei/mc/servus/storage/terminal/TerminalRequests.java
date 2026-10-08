@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
  * Requests of a Counter Terminal on the data line: shipped by the reachable
@@ -105,7 +106,7 @@ public final class TerminalRequests {
                     it.remove();
                 }
             }
-            if (request.delivered >= request.requested && request.shipments.isEmpty() && !request.waitingRoom) {
+            if (request.delivered >= request.requested && request.shipments.isEmpty()) {
                 done.add(request.id);
             }
         }
@@ -152,18 +153,17 @@ public final class TerminalRequests {
         List<RequestRow> rows = new ArrayList<>();
         for (Request request : terminal.requests()) {
             rows.add(new RequestRow(request.id, request.key.stack(1), request.requested, request.delivered, request.missing,
-                    state(level, request, warehouses).name()));
+                    state(level, terminal, request, warehouses).name()));
         }
         return rows;
     }
 
-    static RequestState state(ServerLevel level, Request request, List<WarehouseNetwork> warehouses) {
-        if (request.waitingRoom) {
-            return RequestState.WAITING_ROOM;
-        }
+    static RequestState state(ServerLevel level, CounterTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
         for (Tracked tracked : request.shipments) {
             if (level.getBlockEntity(tracked.accessPoint()) instanceof AccessPointBlockEntity point && point.isSending(tracked.shipment())) {
-                return RequestState.SENDING;
+                // Packets that find no room wait at the terminal.
+                boolean fits = ItemHandlerHelper.insertItemStacked(terminal.output(), request.key.stack(1), true).isEmpty();
+                return fits ? RequestState.SENDING : RequestState.WAITING_ROOM;
             }
         }
         if (!request.shipments.isEmpty()) {
