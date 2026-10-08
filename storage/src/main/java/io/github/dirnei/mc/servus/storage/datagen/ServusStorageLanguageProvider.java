@@ -43,6 +43,9 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.production.machine_state.working", "working on %s");
         add("gui.servus_storage.production.machine_state.idle", "idle");
         add("gui.servus_storage.production.machine_state.no_recipes", "no recipes");
+        add("gui.servus_storage.production.machine_state.station_idle", "idle");
+        add("gui.servus_storage.production.machine_state.station_crafting", "crafting %s, %s left");
+        add("gui.servus_storage.production.any_pattern", "crafts any pattern");
         add("gui.servus_storage.production.order_state.waiting", "waiting");
         add("gui.servus_storage.production.order_state.running", "running");
         add("gui.servus_storage.production.order_state.blocked", "blocked");
@@ -63,16 +66,9 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.crafting_station.save", "Save");
         add("gui.servus_storage.crafting_station.delete", "Delete");
         add("gui.servus_storage.crafting_station.cancel", "Cancel");
-        add("gui.servus_storage.crafting_station.add", "Add a recipe");
-        add("gui.servus_storage.crafting_station.edit", "Click to edit");
-        add("gui.servus_storage.crafting_station.empty_slot", "Empty recipe slot, click to add");
-        add("gui.servus_storage.crafting_station.new_recipe", "New recipe");
-        add("gui.servus_storage.crafting_station.edit_recipe", "Edit recipe %s");
         add("gui.servus_storage.crafting_station.no_match", "No matching recipe");
-        add("gui.servus_storage.crafting_station.message.empty", "Lay out a recipe in the grid first");
-        add("gui.servus_storage.crafting_station.message.no_match", "The grid matches no recipe");
-        add("gui.servus_storage.crafting_station.message.duplicate", "That recipe is already configured");
-        add("gui.servus_storage.crafting_station.message.full", "All recipe slots are in use");
+        add("gui.servus_storage.crafting_station.idle", "Idle");
+        add("gui.servus_storage.crafting_station.left", "%s left");
         add("gui.servus_storage.outbound.keep", "Keep stocked");
         add("gui.servus_storage.outbound.buffer", "Buffer");
         add("gui.servus_storage.outbound.keep_hint", "Click with an item to keep it stocked here");

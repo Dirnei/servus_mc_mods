@@ -41,12 +41,13 @@ public final class ProductionRows {
      * @param state   working, idle or no_recipes
      * @param recipes the recipes it reports
      */
-    public record MachineRow(BlockPos pos, String name, ItemStack working, String state, List<RecipeRow> recipes) {
+    public record MachineRow(BlockPos pos, String name, ItemStack working, String state, int left, List<RecipeRow> recipes) {
         public static final StreamCodec<RegistryFriendlyByteBuf, MachineRow> STREAM_CODEC = StreamCodec.composite(
                 BlockPos.STREAM_CODEC, MachineRow::pos,
                 ByteBufCodecs.STRING_UTF8, MachineRow::name,
                 ItemStack.OPTIONAL_STREAM_CODEC, MachineRow::working,
                 ByteBufCodecs.STRING_UTF8, MachineRow::state,
+                ByteBufCodecs.VAR_INT, MachineRow::left,
                 RecipeRow.STREAM_CODEC.apply(ByteBufCodecs.list()), MachineRow::recipes,
                 MachineRow::new);
     }

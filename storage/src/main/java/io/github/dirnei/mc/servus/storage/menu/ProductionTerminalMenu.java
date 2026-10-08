@@ -344,6 +344,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
             hash = hash * 31 + machine.pos().hashCode();
             hash = hash * 31 + machine.state().hashCode();
             hash = hash * 31 + machine.working().getItem().hashCode();
+            hash = hash * 31 + machine.left();
             hash = hash * 31 + machine.recipes().size();
             for (var recipe : machine.recipes()) {
                 for (ItemStack output : recipe.outputs()) {

@@ -369,13 +369,21 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             return result;
         }
         for (MachineRow machine : machines) {
-            Component state = machine.state().equals("working")
-                    ? Component.translatable("gui.servus_storage.production.machine_state.working", machine.working().getHoverName())
-                    : Component.translatable("gui.servus_storage.production.machine_state." + machine.state());
-            int colour = machine.state().equals("working") ? COLOUR_GOOD : machine.state().equals("idle") ? COLOUR_TEXT : COLOUR_DIM;
+            Component state = switch (machine.state()) {
+                case "working" -> Component.translatable("gui.servus_storage.production.machine_state.working", machine.working().getHoverName());
+                case "station_crafting" -> Component.translatable("gui.servus_storage.production.machine_state.station_crafting",
+                        machine.working().getHoverName(), machine.left());
+                default -> Component.translatable("gui.servus_storage.production.machine_state." + machine.state());
+            };
+            boolean busy = machine.state().equals("working") || machine.state().equals("station_crafting");
+            boolean idle = machine.state().equals("idle") || machine.state().equals("station_idle");
+            int colour = busy ? COLOUR_GOOD : idle ? COLOUR_TEXT : COLOUR_DIM;
             Component head = Component.literal(machine.name() + ": ").append(state);
             result.add(new Line(12, (graphics, y, hovered) -> graphics.drawString(font, head, MARGIN, y + 2, colour, false),
                     () -> List.of(Component.literal(machine.name() + " @ " + machine.pos().toShortString())), null));
+            if (machine.state().startsWith("station_")) {
+                result.add(text(Component.translatable("gui.servus_storage.production.any_pattern"), COLOUR_DIM, 8));
+            }
             for (RecipeRow recipe : machine.recipes()) {
                 result.add(text(recipe(recipe), COLOUR_TEXT, 8));
             }

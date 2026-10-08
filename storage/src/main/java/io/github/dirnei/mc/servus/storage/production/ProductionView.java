@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.production;
 
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
@@ -94,6 +95,13 @@ public final class ProductionView {
             if (!level.isLoaded(member.pos())) {
                 continue;
             }
+            if (level.getBlockEntity(member.pos()) instanceof CraftingStationBlockEntity station) {
+                // The CPU's hands: no recipe list, only the job it is crafting.
+                ItemStack crafting = station.working() ? station.job().orElseThrow().result().copyWithCount(1) : ItemStack.EMPTY;
+                rows.add(new MachineRow(member.pos(), name(level, member.pos()), crafting,
+                        crafting.isEmpty() ? "station_idle" : "station_crafting", station.jobLeft(), List.of()));
+                continue;
+            }
             ProductionProvider provider = level.getCapability(ServusFoundationCapabilities.PRODUCTION, member.pos(), null);
             List<ProductionRecipe> recipes = provider == null ? List.of() : provider.recipes();
             List<RecipeRow> recipeRows = new ArrayList<>();
@@ -111,7 +119,7 @@ public final class ProductionView {
                 }
             }
             String state = !working.isEmpty() ? "working" : recipes.isEmpty() ? "no_recipes" : "idle";
-            rows.add(new MachineRow(member.pos(), name(level, member.pos()), working, state, recipeRows));
+            rows.add(new MachineRow(member.pos(), name(level, member.pos()), working, state, 0, recipeRows));
         }
         return rows;
     }
