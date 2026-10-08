@@ -405,7 +405,7 @@
     }
   },
   "crafting": {
-    "servus_lib:configuration_carrot": {
+    "servus_foundation:configuration_carrot": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["R", "I", "C"],
       "key": {
@@ -419,10 +419,10 @@
         {"item": "minecraft:redstone", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_lib:configuration_carrot", "count": 1}
+        {"item": "servus_foundation:configuration_carrot", "count": 1}
       ]
     },
-    "servus_lib:data_cable": {
+    "servus_foundation:data_cable": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["CRC"],
       "key": {
@@ -434,10 +434,10 @@
         {"item": "minecraft:redstone", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_lib:data_cable", "count": 4}
+        {"item": "servus_foundation:data_cable", "count": 4}
       ]
     },
-    "servus_lib:engineer_goggles": {
+    "servus_foundation:engineer_goggles": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["LIL", "G G"],
       "key": {
@@ -451,16 +451,16 @@
         {"item": "minecraft:leather", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_lib:engineer_goggles", "count": 1}
+        {"item": "servus_foundation:engineer_goggles", "count": 1}
       ]
     },
-    "servus_logistics:facade": {
-      "type": "servus_logistics:facade",
+    "servus_foundation:facade": {
+      "type": "servus_foundation:facade",
       "special": true,
       "inputs": [],
       "outputs": []
     },
-    "servus_logistics:fluid_pipe": {
+    "servus_foundation:fluid_pipe": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["III", "GBG", "III"],
       "key": {
@@ -474,10 +474,10 @@
         {"item": "minecraft:iron_ingot", "count": 6}
       ],
       "outputs": [
-        {"item": "servus_logistics:fluid_pipe", "count": 8}
+        {"item": "servus_foundation:fluid_pipe", "count": 8}
       ]
     },
-    "servus_logistics:fluid_tank": {
+    "servus_foundation:fluid_tank": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["IGI", "G G", "IGI"],
       "key": {
@@ -489,10 +489,10 @@
         {"item": "minecraft:iron_ingot", "count": 4}
       ],
       "outputs": [
-        {"item": "servus_logistics:fluid_tank", "count": 1}
+        {"item": "servus_foundation:fluid_tank", "count": 1}
       ]
     },
-    "servus_logistics:item_pipe": {
+    "servus_foundation:item_pipe": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["III", "GCG", "III"],
       "key": {
@@ -506,10 +506,10 @@
         {"item": "minecraft:iron_ingot", "count": 6}
       ],
       "outputs": [
-        {"item": "servus_logistics:item_pipe", "count": 8}
+        {"item": "servus_foundation:item_pipe", "count": 8}
       ]
     },
-    "servus_logistics:power_cable": {
+    "servus_foundation:power_cable": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["CCC", "RGR", "CCC"],
       "key": {
@@ -523,7 +523,7 @@
         {"item": "minecraft:redstone", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_logistics:power_cable", "count": 8}
+        {"item": "servus_foundation:power_cable", "count": 8}
       ]
     },
     "servus_manufacturing:assembler": {
@@ -1044,25 +1044,25 @@
     "minecraft:stone_bricks": {
       "name": "Stone Bricks"
     },
-    "servus_lib:configuration_carrot": {
+    "servus_foundation:configuration_carrot": {
       "name": "Configuration Carrot"
     },
-    "servus_lib:data_cable": {
+    "servus_foundation:data_cable": {
       "name": "Data Cable"
     },
-    "servus_lib:engineer_goggles": {
+    "servus_foundation:engineer_goggles": {
       "name": "Engineer Goggles"
     },
-    "servus_logistics:fluid_pipe": {
+    "servus_foundation:fluid_pipe": {
       "name": "Fluid Pipe"
     },
-    "servus_logistics:fluid_tank": {
+    "servus_foundation:fluid_tank": {
       "name": "Fluid Tank"
     },
-    "servus_logistics:item_pipe": {
+    "servus_foundation:item_pipe": {
       "name": "Item Pipe"
     },
-    "servus_logistics:power_cable": {
+    "servus_foundation:power_cable": {
       "name": "Power Cable"
     },
     "servus_manufacturing:assembler": {

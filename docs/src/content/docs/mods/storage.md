@@ -3,7 +3,7 @@ title: "Servus: Storage"
 description: An in-world warehouse with crates, racks, rails, shuttles, a counter terminal, zones and work orders.
 ---
 
-Servus: Storage (`servus_storage`) lets you build a real warehouse. There are no storage disks: items sit in crates and racks you can see, rails link them into one network, and shuttles drive along the rails to fetch and put away. It depends only on Servus Lib.
+Servus: Storage (`servus_storage`) lets you build a real warehouse. There are no storage disks: items sit in crates and racks you can see, rails link them into one network, and shuttles drive along the rails to fetch and put away. It depends only on Servus: Foundation.
 
 Numbers below are the current defaults. They live in datapack JSON under `data/<namespace>/storage/` (`crate.json`, `rack.json`, `warehouse.json`, `crafting_station.json`) and modpacks can change them.
 
@@ -37,6 +37,5 @@ Every storage block that is part of a working warehouse shows a connection lamp.
 
 ## How it connects
 
-- [Servus Lib](/servus_mc_mods/mods/lib/): network graph, side configuration, the Configuration Carrot, and the production and stock capabilities.
-- [Manufacturing](/servus_mc_mods/mods/manufacturing/): not required. When installed, an Outbound Station in front of an Assembler lets the warehouse plan work orders from the Assembler's recipes, through the Lib production capability.
-- [Logistics](/servus_mc_mods/mods/logistics/): not required. Ducts can move items in and out of any storage block that exposes an item handler.
+- [Servus: Foundation](/servus_mc_mods/mods/foundation/): network graph, side configuration, the Configuration Carrot, the production and stock capabilities, and ducts that move items in and out of any storage block that exposes an item handler.
+- [Manufacturing](/servus_mc_mods/mods/manufacturing/): not required. When installed, an Outbound Station in front of an Assembler lets the warehouse plan work orders from the Assembler's recipes, through the Foundation production capability.

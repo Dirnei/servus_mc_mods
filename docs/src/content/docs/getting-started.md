@@ -11,14 +11,13 @@ Numbers on this page are the current defaults. Balance values live in datapack J
 
 ## Install
 
-You need Minecraft 1.21.1 with NeoForge 21.1.x. Servus Lib is required by every Servus mod. Servus: Manufacturing also needs Servus: Logistics, because its pipes and cables are the Logistics Utility Duct. Logistics and Storage each run with only Servus Lib.
+You need Minecraft 1.21.1 with NeoForge 21.1.x. Servus: Foundation is required by every Servus mod. Manufacturing and Storage each run with only Foundation, and together.
 
 | Mod | Needs |
 |---|---|
-| Servus Lib | nothing else |
-| Servus: Logistics | Servus Lib |
-| Servus: Storage | Servus Lib |
-| Servus: Manufacturing | Servus Lib, Servus: Logistics |
+| Servus: Foundation | nothing else |
+| Servus: Storage | Servus: Foundation |
+| Servus: Manufacturing | Servus: Foundation |
 
 JEI is optional. With it installed, assembling and crushing recipes show up in their own categories.
 
@@ -32,7 +31,7 @@ Craft a Burner Extractor from iron ingots, cobblestone and a furnace and place i
 
 ## Power
 
-The Coal Generator burns furnace fuel and makes 40 FE per tick. It feeds machines that touch it directly; for longer distances use Power Cables from Servus: Logistics.
+The Coal Generator burns furnace fuel and makes 40 FE per tick. It feeds machines that touch it directly; for longer distances use Power Cables from Servus: Foundation.
 
 ## Assembler and the Red Pack
 

@@ -21,7 +21,7 @@
 
 ## 5. Docs and CI
 
-- [ ] 5.1 Merge `docs/src/content/docs/mods/lib.md` and `logistics.md` into `foundation.md`, update the sidebar in `docs/astro.config.mjs`, regenerate `docs/src/data/gamedata.json` with `:manufacturing:runData`, update `docs/src/lib/gamedata.test.ts` and `recipegraph.test.ts` for the new ids. Verify with `npm test` and `npm run build` in `docs/`.
+- [x] 5.1 Merge `docs/src/content/docs/mods/lib.md` and `logistics.md` into `foundation.md`, update the sidebar in `docs/astro.config.mjs`, regenerate `docs/src/data/gamedata.json` with `:manufacturing:runData`, update `docs/src/lib/gamedata.test.ts` and `recipegraph.test.ts` for the new ids. Verify with `npm test` and `npm run build` in `docs/`.
 - [x] 5.2 Point `.github/workflows/build.yml` at `foundation/build/libs` instead of `lib` and `logistics`. Verify by reading the workflow and checking the paths exist after `gradlew build`.
 
 ## 6. Integration

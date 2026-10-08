@@ -5,7 +5,7 @@ description: Factorio style production with infinite deposits, fixed rate machin
 
 Servus: Manufacturing (`servus_manufacturing`) is about building a factory you can plan. Resources come from infinite deposits, machines run at fixed speeds with clean ratios, and progress is gated by research packs that a Research Lab consumes over time.
 
-It requires Servus Lib and Servus: Logistics, because its pipes and cables are the Logistics Utility Duct. JEI is optional.
+It requires Servus: Foundation, whose Utility Duct is its pipe and cable. JEI is optional.
 
 Numbers below are the current defaults. Machine stats, recipes, techs and deposits live in datapack JSON and modpacks can change them (see the [datapack reference](/servus_mc_mods/reference/datapack/machines/)).
 
@@ -45,6 +45,5 @@ The reference block (two extractors and two smelters on iron, one of each on cop
 
 ## How it connects
 
-- [Servus Lib](/servus_mc_mods/mods/lib/): side configuration, the Configuration Carrot, teams and the production capability every machine exposes.
-- [Logistics](/servus_mc_mods/mods/logistics/): Item Pipes and Power Cables move items and FE between machines.
+- [Servus: Foundation](/servus_mc_mods/mods/foundation/): side configuration, the Configuration Carrot, teams, the production capability every machine exposes, and the Item Pipes and Power Cables that move items and FE between machines.
 - [Storage](/servus_mc_mods/mods/storage/): an Outbound Station in front of an Assembler lets the warehouse plan work orders from the Assembler's configured recipes.

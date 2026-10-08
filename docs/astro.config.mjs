@@ -17,9 +17,8 @@ export default defineConfig({
 				{
 					label: 'Mods',
 					items: [
-						{ slug: 'mods/lib' },
+						{ slug: 'mods/foundation' },
 						{ slug: 'mods/manufacturing' },
-						{ slug: 'mods/logistics' },
 						{ slug: 'mods/storage' },
 					],
 				},

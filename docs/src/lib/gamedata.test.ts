@@ -8,8 +8,8 @@ describe('game data', () => {
 		expect(data.schema).toBe(2);
 		expect(data.machines['servus_manufacturing:burner_extractor'].work_ticks).toBe(80);
 		expect(data.recipes['servus_manufacturing:assembling/red_pack'].time).toBe(100);
-		expect(data.crafting['servus_logistics:power_cable'].pattern).toEqual(['CCC', 'RGR', 'CCC']);
-		expect(data.crafting['servus_logistics:facade'].special).toBe(true);
+		expect(data.crafting['servus_foundation:power_cable'].pattern).toEqual(['CCC', 'RGR', 'CCC']);
+		expect(data.crafting['servus_foundation:facade'].special).toBe(true);
 	});
 
 	test('another schema is rejected naming both versions', () => {

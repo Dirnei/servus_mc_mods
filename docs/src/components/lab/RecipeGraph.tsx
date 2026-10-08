@@ -18,8 +18,7 @@ import { Graph, type GraphEdge, type GraphNode } from './Graph';
 import { ItemIcon } from './icons';
 
 const MOD_NAMES: Record<string, string> = {
-	lib: 'Lib',
-	logistics: 'Logistics',
+	foundation: 'Foundation',
 	manufacturing: 'Manufacturing',
 	storage: 'Storage',
 	vanilla: 'Minecraft',
