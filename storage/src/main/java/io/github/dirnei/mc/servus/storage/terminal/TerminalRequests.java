@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
+import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.Request;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.RequestState;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.Tracked;
@@ -64,6 +65,36 @@ public final class TerminalRequests {
                 return refusal[0].isEmpty() ? "out_of_stock" : refusal[0];
             }
         }
+        return "";
+    }
+
+    /**
+     * Crafts {@code amount} of {@code key} on a CPU of the line, independent of
+     * the item's own stock, for a new request whose results land in the output slots.
+     *
+     * @return an empty string when the order was made, else the refusal key:
+     *         {@code offline}, {@code no_cpu}, {@code no_producer} or {@code missing}
+     */
+    public static String craft(ServerLevel level, CounterTerminalBlockEntity terminal, ItemKey key, int amount) {
+        if (TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty()) {
+            return "offline";
+        }
+        OrderBook.Preview preview =
+                TerminalCraftables.preview(level, terminal.getBlockPos(), key, amount);
+        if (!preview.refusal().isEmpty()) {
+            return preview.refusal();
+        }
+        if (!preview.missing().isEmpty()) {
+            return "missing";
+        }
+        Request request = terminal.newRequest(key, amount);
+        request.missing = amount;
+        CpuOrders.Placed placed = CpuOrders.create(level, terminal.getBlockPos(), key, amount, request.id);
+        if (!placed.made()) {
+            terminal.removeRequest(request.id);
+            return placed.refusal();
+        }
+        request.orderCpu = placed.cpu();
         return "";
     }
 

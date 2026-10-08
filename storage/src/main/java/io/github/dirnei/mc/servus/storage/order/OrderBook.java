@@ -91,6 +91,26 @@ public final class OrderBook {
         }
     }
 
+    /**
+     * What an order would do.
+     *
+     * @param fromStock stock it reserves, per key
+     * @param toCraft   what its steps make, per key
+     * @param missing   raw material it cannot get, per key
+     * @param refusal   {@code no_cpu} or {@code no_producer} when no order can be planned, else empty
+     */
+    public record Preview(Map<ItemKey, Integer> fromStock, Map<ItemKey, Integer> toCraft, Map<ItemKey, Integer> missing,
+                          String refusal) {
+        public static Preview refused(String refusal) {
+            return new Preview(Map.of(), Map.of(), Map.of(), refusal);
+        }
+
+        /** Whether an order can start right away: planned, with nothing missing. */
+        public boolean startable() {
+            return refusal.isEmpty() && missing.isEmpty() && !toCraft.isEmpty();
+        }
+    }
+
     /** Which producer runs which recipe; the planner's recipe id. */
     public record StepKey(BlockPos producer, ResourceLocation recipe) {
     }
@@ -186,13 +206,7 @@ public final class OrderBook {
      */
     public Created create(ItemKey key, int amount, int requestId) {
         Map<StepKey, ProductionRecipe> byKey = new HashMap<>();
-        List<OrderPlanner.Recipe<ItemKey>> recipes = recipes(byKey);
-        Map<ItemKey, Long> available = new HashMap<>(host.stock());
-        reservedTotal().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
-        host.reservedElsewhere().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
-        // The amount is what to produce; stock of the item itself is already accounted for by the caller.
-        available.remove(key);
-        OrderPlanner.Plan<ItemKey> plan = OrderPlanner.plan(key, amount, available, recipes, MAX_DEPTH);
+        OrderPlanner.Plan<ItemKey> plan = plan(key, amount, byKey);
         if (plan.steps().isEmpty()) {
             return new Created(null, plan.missing().containsKey(key) ? "no_producer" : "in_stock");
         }
@@ -209,6 +223,35 @@ public final class OrderBook {
         }
         orders.add(order);
         return new Created(order, "");
+    }
+
+    /**
+     * What an order for the amount would do, without making it: the stock it
+     * reserves, what its steps make and the raw material it misses.
+     *
+     * @return the preview; its refusal is {@code no_producer} when nothing makes the item
+     */
+    public Preview preview(ItemKey key, int amount) {
+        OrderPlanner.Plan<ItemKey> plan = plan(key, amount, new HashMap<>());
+        if (plan.steps().isEmpty() && plan.missing().containsKey(key)) {
+            return Preview.refused("no_producer");
+        }
+        Map<ItemKey, Integer> toCraft = new LinkedHashMap<>();
+        for (OrderPlanner.Step<ItemKey> step : plan.steps()) {
+            step.recipe().outputs().forEach((output, count) -> toCraft.merge(output, count * step.batches(), Integer::sum));
+        }
+        return new Preview(new LinkedHashMap<>(plan.reserved()), toCraft, new LinkedHashMap<>(plan.missing()), "");
+    }
+
+    /** Plans the amount from the line's stock minus every reservation; stock of the item itself does not count. */
+    private OrderPlanner.Plan<ItemKey> plan(ItemKey key, int amount, Map<StepKey, ProductionRecipe> byKey) {
+        List<OrderPlanner.Recipe<ItemKey>> recipes = recipes(byKey);
+        Map<ItemKey, Long> available = new HashMap<>(host.stock());
+        reservedTotal().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
+        host.reservedElsewhere().forEach((k, reserved) -> available.merge(k, (long) -reserved, Long::sum));
+        // The amount is what to produce; stock of the item itself is already accounted for by the caller.
+        available.remove(key);
+        return OrderPlanner.plan(key, amount, available, recipes, MAX_DEPTH);
     }
 
     /** The producers' recipes as the planner sees them: producers without planned or running steps first, then idle ones, then by time. */

@@ -4,12 +4,16 @@ import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
+import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
+import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
+import io.github.dirnei.mc.servus.storage.pattern.PatternRunners;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -115,6 +119,38 @@ public final class CpuOrders {
                 }
             }
         }
+    }
+
+    /** The producers of the line with their reported recipes plus the patterns they can run, lowest position first. */
+    public static List<OrderBook.Producer> producers(ServerLevel level, DataNetwork network) {
+        List<OrderBook.Producer> list = new ArrayList<>();
+        List<PatternLibrary.Entry> patterns = PatternLibrary.entries(level, network);
+        for (DataMember member : network.dataMembers(DataRole.PRODUCER)) {
+            if (!level.isLoaded(member.pos())) {
+                continue;
+            }
+            ProductionProvider provider = level.getCapability(ServusFoundationCapabilities.PRODUCTION, member.pos(), null);
+            if (provider != null) {
+                list.add(new OrderBook.Producer(member.pos(), level.getBlockState(member.pos()).getBlock().getName(),
+                        PatternRunners.withPatterns(level, member.pos(), provider.recipes(), patterns), provider.active()));
+            }
+        }
+        list.sort(Comparator.comparingLong(producer -> producer.pos().asLong()));
+        return list;
+    }
+
+    /** What an order for the amount would take from stock, craft and miss, on the CPU {@link CpuChoice} would pick. */
+    public static OrderBook.Preview preview(ServerLevel level, DataNetwork network, ItemKey key, int amount) {
+        List<CpuBlockEntity> cpus = cpus(level, network);
+        List<CpuChoice.Load> loads = new ArrayList<>();
+        for (CpuBlockEntity cpu : cpus) {
+            loads.add(new CpuChoice.Load(cpu.book().openCount(), cpu.slots()));
+        }
+        OptionalInt chosen = CpuChoice.choose(loads);
+        if (chosen.isEmpty()) {
+            return OrderBook.Preview.refused("no_cpu");
+        }
+        return cpus.get(chosen.getAsInt()).book().preview(key, amount);
     }
 
     public static List<CpuBlockEntity> cpus(ServerLevel level, BlockPos pos) {

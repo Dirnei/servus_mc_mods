@@ -2,7 +2,7 @@
 
 ## 1. Server side crafting
 
-- [ ] 1.1 Extract `CpuOrders.producers(level, network)` from the CPU host; add `OrderBook.preview(key, amount)` sharing the planning with `create`, `CpuOrders.preview`, `TerminalRequests.craft` and the craftable list (`TerminalCraftables`). Files: `cpu/CpuOrders.java`, `cpu/CpuBlockEntity.java`, `order/OrderBook.java`, `terminal/TerminalRequests.java`, new `terminal/TerminalCraftables.java`. Verify with `gradlew build`.
+- [x] 1.1 Extract `CpuOrders.producers(level, network)` from the CPU host; add `OrderBook.preview(key, amount)` sharing the planning with `create`, `CpuOrders.preview`, `TerminalRequests.craft` and the craftable list (`TerminalCraftables`). Files: `cpu/CpuOrders.java`, `cpu/CpuBlockEntity.java`, `order/OrderBook.java`, `terminal/TerminalRequests.java`, new `terminal/TerminalCraftables.java`. Verify with `gradlew build`.
 - [ ] 1.2 Payloads: `StockSyncPayload` gets `craftables` with a hand written codec; new `CraftPreviewRequestPayload`, `CraftPreviewPayload`, `CraftStartPayload`, registered in `ServusStoragePayloads`; `CounterTerminalMenu.preview` and `craft`. Verify with `gradlew build` and a grep that every payload TYPE is registered.
 
 ## 2. Instant content and Access Point GUI

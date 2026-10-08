@@ -132,25 +132,7 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
 
         @Override
         public List<OrderBook.Producer> producers() {
-            List<OrderBook.Producer> list = new ArrayList<>();
-            Optional<DataNetwork> network = dataNetwork();
-            if (network.isEmpty()) {
-                return list;
-            }
-            ServerLevel server = serverLevel();
-            List<PatternLibrary.Entry> patterns = PatternLibrary.entries(server, network.get());
-            for (DataMember member : network.get().dataMembers(DataRole.PRODUCER)) {
-                if (!server.isLoaded(member.pos())) {
-                    continue;
-                }
-                ProductionProvider provider = server.getCapability(ServusFoundationCapabilities.PRODUCTION, member.pos(), null);
-                if (provider != null) {
-                    list.add(new OrderBook.Producer(member.pos(), server.getBlockState(member.pos()).getBlock().getName(),
-                            PatternRunners.withPatterns(server, member.pos(), provider.recipes(), patterns), provider.active()));
-                }
-            }
-            list.sort(Comparator.comparingLong(producer -> producer.pos().asLong()));
-            return list;
+            return dataNetwork().map(network -> CpuOrders.producers(serverLevel(), network)).orElse(List.of());
         }
 
         @Override
