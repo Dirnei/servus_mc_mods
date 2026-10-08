@@ -15,7 +15,7 @@
 
 ## 4. Command
 
-- [ ] 4.1 Add `foundation/command/ServusFoundationCommands` with `/servus_foundation data move <from> <to> <item> <count>` on `RegisterCommandsEvent`, and a GameTest or dev server check that it starts a delivery (`packetCommandStartsMove`). Verify with `gradlew build` and the Storage GameTests.
+- [x] 4.1 Add `foundation/command/ServusFoundationCommands` with `/servus_foundation data move <from> <to> <item> <count>` on `RegisterCommandsEvent`, and a GameTest or dev server check that it starts a delivery (`packetCommandStartsMove`). Verify with `gradlew build` and the Storage GameTests.
 
 ## 5. Integration
 

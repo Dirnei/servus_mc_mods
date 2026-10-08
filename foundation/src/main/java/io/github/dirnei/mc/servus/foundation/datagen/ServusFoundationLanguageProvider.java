@@ -17,6 +17,9 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add(ServusFoundationItems.CONFIGURATION_CARROT.get(), "Configuration Carrot");
         add(ServusFoundationItems.GOGGLES.get(), "Engineer Goggles");
         add("message.servus_foundation.data_cable.summary", "Data network: %s cables, %s producers, %s stock");
+        add("commands.servus_foundation.data.move.started", "Delivery %s started: %s %s");
+        add("commands.servus_foundation.data.move.failed", "Delivery %s failed: %s");
+        add("commands.servus_foundation.data.move.invalid", "Nothing to move");
         add("itemGroup.servus", "Servus");
         add("servus_foundation.configuration.wrench", "Configuration Carrot");
         add("servus_foundation.configuration.wrenchRotatesBlocks", "Configuration Carrot rotates blocks");

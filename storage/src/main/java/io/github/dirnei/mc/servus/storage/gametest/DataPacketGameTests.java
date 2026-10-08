@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -209,6 +210,23 @@ public final class DataPacketGameTests {
                 helper.assertTrue(setup.crate().count(0) == 32, "the warehouse keeps its planks");
                 helper.succeed();
             });
+        });
+    }
+
+    /** The op command starts a move and the planks arrive. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void packetCommandStartsMove(GameTestHelper helper) {
+        Setup setup = setup(helper, true);
+        helper.runAfterDelay(2, () -> {
+            BlockPos from = helper.absolutePos(CONTROLLER);
+            BlockPos to = helper.absolutePos(STATION);
+            CommandSourceStack source = helper.getLevel().getServer().createCommandSourceStack()
+                    .withLevel(helper.getLevel()).withPermission(4).withSuppressedOutput();
+            String command = "servus_foundation data move %d %d %d %d %d %d minecraft:oak_planks 8"
+                    .formatted(from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ());
+            helper.getLevel().getServer().getCommands().performPrefixedCommand(source, command);
+            helper.succeedWhen(() -> helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 8,
+                    "the command should move 8 planks, got " + count(setup.station().inputs(), Items.OAK_PLANKS)));
         });
     }
 
