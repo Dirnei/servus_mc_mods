@@ -21,4 +21,4 @@
 
 - [x] 5.1 Update `PLAN.md` section 2.3: rails stand on a floor or hang on rack fronts and elevator segments and bridge gaps up to `rail_max_span`; slopes and ceiling rails stay out.
 - [x] 5.2 Run `openspec validate m6-hanging-rails --strict`. Full `gradlew build` and `gradlew test` green, game launches with all four mods. Commit.
-- [ ] 5.3 Play check by the user: hang a rail on an upper rack front, bridge two elevators across three blocks from both ends, see a fourth rail collapse the bridge.
+- [x] 5.3 Play check by the user: hang a rail on an upper rack front, bridge two elevators across three blocks from both ends, see a fourth rail collapse the bridge.
