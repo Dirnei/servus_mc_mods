@@ -35,21 +35,40 @@ public final class ProductionRows {
     /**
      * One producer of the data line.
      *
-     * @param pos     where it stands
-     * @param name    its block name
-     * @param working the first output of the active recipe, empty when none runs
-     * @param state   working, idle or no_recipes
-     * @param recipes the recipes it reports
+     * @param pos         where it stands
+     * @param name        its block name, or the faced machine's name with "(adapter)" for a Machine Adapter
+     * @param working     the first output of the active recipe, empty when none runs
+     * @param state       working, idle or no_recipes
+     * @param recipes     the recipes it reports
+     * @param upkeep      a Machine Adapter's upkeep item, empty for other producers
+     * @param upkeepCount upkeep items in the machine
+     * @param upkeepLevel the level the adapter keeps
      */
-    public record MachineRow(BlockPos pos, String name, ItemStack working, String state, int left, List<RecipeRow> recipes) {
-        public static final StreamCodec<RegistryFriendlyByteBuf, MachineRow> STREAM_CODEC = StreamCodec.composite(
-                BlockPos.STREAM_CODEC, MachineRow::pos,
-                ByteBufCodecs.STRING_UTF8, MachineRow::name,
-                ItemStack.OPTIONAL_STREAM_CODEC, MachineRow::working,
-                ByteBufCodecs.STRING_UTF8, MachineRow::state,
-                ByteBufCodecs.VAR_INT, MachineRow::left,
-                RecipeRow.STREAM_CODEC.apply(ByteBufCodecs.list()), MachineRow::recipes,
-                MachineRow::new);
+    public record MachineRow(BlockPos pos, String name, ItemStack working, String state, int left, List<RecipeRow> recipes,
+                             ItemStack upkeep, int upkeepCount, int upkeepLevel) {
+
+        public MachineRow(BlockPos pos, String name, ItemStack working, String state, int left, List<RecipeRow> recipes) {
+            this(pos, name, working, state, left, recipes, ItemStack.EMPTY, 0, 0);
+        }
+
+        private static final StreamCodec<RegistryFriendlyByteBuf, List<RecipeRow>> RECIPES = RecipeRow.STREAM_CODEC.apply(ByteBufCodecs.list());
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, MachineRow> STREAM_CODEC = StreamCodec.of(
+                (buf, row) -> {
+                    BlockPos.STREAM_CODEC.encode(buf, row.pos());
+                    ByteBufCodecs.STRING_UTF8.encode(buf, row.name());
+                    ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, row.working());
+                    ByteBufCodecs.STRING_UTF8.encode(buf, row.state());
+                    ByteBufCodecs.VAR_INT.encode(buf, row.left());
+                    RECIPES.encode(buf, row.recipes());
+                    ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, row.upkeep());
+                    ByteBufCodecs.VAR_INT.encode(buf, row.upkeepCount());
+                    ByteBufCodecs.VAR_INT.encode(buf, row.upkeepLevel());
+                },
+                buf -> new MachineRow(BlockPos.STREAM_CODEC.decode(buf), ByteBufCodecs.STRING_UTF8.decode(buf),
+                        ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), ByteBufCodecs.STRING_UTF8.decode(buf),
+                        ByteBufCodecs.VAR_INT.decode(buf), RECIPES.decode(buf), ItemStack.OPTIONAL_STREAM_CODEC.decode(buf),
+                        ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_INT.decode(buf)));
     }
 
     /**

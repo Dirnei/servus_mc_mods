@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.production;
 
+import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
@@ -119,6 +120,12 @@ public final class ProductionView {
                 }
             }
             String state = !working.isEmpty() ? "working" : recipes.isEmpty() ? "no_recipes" : "idle";
+            if (level.getBlockEntity(member.pos()) instanceof MachineAdapterBlockEntity adapter) {
+                String machine = adapter.machineName().getString() + " (adapter)";
+                rows.add(new MachineRow(member.pos(), machine, working, state, 0, recipeRows,
+                        adapter.upkeepItem().copy(), adapter.upkeepCount(), adapter.upkeepLevel()));
+                continue;
+            }
             rows.add(new MachineRow(member.pos(), name(level, member.pos()), working, state, 0, recipeRows));
         }
         return rows;

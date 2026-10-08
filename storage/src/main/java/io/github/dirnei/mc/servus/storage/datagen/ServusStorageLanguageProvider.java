@@ -46,6 +46,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.production.machine_state.station_idle", "idle");
         add("gui.servus_storage.production.machine_state.station_crafting", "crafting %s, %s left");
         add("gui.servus_storage.production.any_pattern", "crafts any pattern");
+        add("gui.servus_storage.production.upkeep", "Upkeep: %s %s of %s");
         add("gui.servus_storage.production.order_state.waiting", "waiting");
         add("gui.servus_storage.production.order_state.running", "running");
         add("gui.servus_storage.production.order_state.blocked", "blocked");

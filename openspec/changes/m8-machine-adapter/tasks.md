@@ -17,7 +17,7 @@
 
 ## 4. Storage integration
 
-- [ ] 4.1 Machines tab: `production/ProductionView.java`, `ProductionRows.java` (upkeep fields and codec), `client/ProductionTerminalScreen.java`; lang. Verify with `gradlew build` and `:storage:runGameTestServer`.
+- [x] 4.1 Machines tab: `production/ProductionView.java`, `ProductionRows.java` (upkeep fields and codec), `client/ProductionTerminalScreen.java`; lang. Verify with `gradlew build` and `:storage:runGameTestServer`.
 - [ ] 4.2 Storage GameTest `AdapterOrderGameTests.java`: upkeep refilled from the warehouse, an order for stone finishes through an adapter on a furnace, the order has no coal step. Verify with `:storage:runGameTestServer`, `:foundation:` and `:manufacturing:runGameTestServer`.
 
 ## 5. Docs and integration

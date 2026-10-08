@@ -381,6 +381,10 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             Component head = Component.literal(machine.name() + ": ").append(state);
             result.add(new Line(12, (graphics, y, hovered) -> graphics.drawString(font, head, MARGIN, y + 2, colour, false),
                     () -> List.of(Component.literal(machine.name() + " @ " + machine.pos().toShortString())), null));
+            if (!machine.upkeep().isEmpty()) {
+                result.add(text(Component.translatable("gui.servus_storage.production.upkeep", machine.upkeep().getHoverName(),
+                        machine.upkeepCount(), machine.upkeepLevel()), machine.upkeepCount() > 0 ? COLOUR_TEXT : COLOUR_DIM, 8));
+            }
             if (machine.state().startsWith("station_")) {
                 result.add(text(Component.translatable("gui.servus_storage.production.any_pattern"), COLOUR_DIM, 8));
             }

@@ -78,6 +78,7 @@
   "gui.servus_storage.production.tab.machines": "Machines",
   "gui.servus_storage.production.tab.orders": "Orders",
   "gui.servus_storage.production.tab.patterns": "Patterns",
+  "gui.servus_storage.production.upkeep": "Upkeep: %s %s of %s",
   "gui.servus_storage.search": "Search",
   "gui.servus_storage.station.blocked.no_room": "%s: no room in %s or in general storage",
   "gui.servus_storage.station.blocked.no_room_general": "%s: no room in general storage",
