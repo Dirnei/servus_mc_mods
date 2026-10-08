@@ -7,7 +7,7 @@ How a Utility Duct looks in the world: its size tells how many lines it carries,
 ## Requirements
 
 ### Requirement: Size follows the line count
-A duct SHALL render and collide as a centre cube plus arms whose thickness grows with the number of lines it carries: one line is thin (example 4 pixels), two lines thicker (example 6 pixels), three lines thickest (example 8 pixels). An arm SHALL be as thick as the lines that connect on that side, not as the centre.
+A duct SHALL render and collide as a centre cube plus arms whose thickness grows with the number of lines it carries: one line is thin (example 4 pixels), two lines thicker (example 6 pixels), three or four lines thickest (example 8 pixels). An arm SHALL be as thick as the lines that connect on that side, not as the centre.
 
 #### Scenario: One line
 - **WHEN** a duct carries only an Item Pipe
@@ -21,6 +21,10 @@ A duct SHALL render and collide as a centre cube plus arms whose thickness grows
 - **WHEN** a Fluid Pipe is added to a duct with an Item Pipe and a Power Cable
 - **THEN** the centre becomes the thickest size without replacing the block
 
+#### Scenario: Four lines
+- **WHEN** a Data Cable is added to a duct with the three other lines
+- **THEN** the centre keeps the thickest size and shows four bands
+
 #### Scenario: Mixed arm
 - **WHEN** a duct with both lines has a neighbour duct that carries only an Item Pipe
 - **THEN** the arm toward that neighbour is thin and the centre stays thick
@@ -30,7 +34,7 @@ A duct SHALL render and collide as a centre cube plus arms whose thickness grows
 - **THEN** only the fluid arm reaches the tank and it is thin
 
 ### Requirement: Each line has a color
-The Item Pipe, the Power Cable and the Fluid Pipe SHALL each have their own color on the block. A duct with one line SHALL show that line's color. A duct with two or three lines SHALL show every line's color as bands running along the duct and its arms, so the player can tell from a distance which lines the block carries. The centre's bands SHALL run along the axis of its arms when every arm lies on one axis. A centre whose arms lie on more than one axis SHALL be a uniform cube in a neutral duct colour, so bends, branches and crossings read as one block.
+The Item Pipe, the Power Cable, the Fluid Pipe and the data line SHALL each have their own color on the block, the data line a teal one. A duct with one line SHALL show that line's color. A duct with two to four lines SHALL show every line's color as bands running along the duct and its arms, so the player can tell from a distance which lines the block carries. The centre's bands SHALL run along the axis of its arms when every arm lies on one axis. A centre whose arms lie on more than one axis SHALL be a uniform cube in a neutral duct colour, so bends, branches and crossings read as one block.
 
 #### Scenario: Item only
 - **WHEN** a duct carries only an Item Pipe
@@ -43,6 +47,10 @@ The Item Pipe, the Power Cable and the Fluid Pipe SHALL each have their own colo
 #### Scenario: Three lines
 - **WHEN** a duct carries all three lines in a straight run
 - **THEN** the item, energy and fluid colors are visible as three bands on the centre and on every arm that carries all three
+
+#### Scenario: Data only
+- **WHEN** a duct carries only the data line
+- **THEN** the duct shows the teal data color only
 
 #### Scenario: Item and fluid
 - **WHEN** a duct carries only the Item Pipe and the Fluid Pipe
@@ -72,7 +80,7 @@ A side SHALL show an arm for a line when that line is present, its mode on that 
 - **THEN** no arm reaches the chest
 
 ### Requirement: Channel ring at endpoints
-An arm that touches an inventory or machine SHALL carry a thin ring at its outer end in the channel color of that line and side. With several lines on the arm each line's band carries its own ring. Arms toward other ducts SHALL have no ring.
+An arm that touches an inventory or machine SHALL carry a thin ring at its outer end in the channel color of that line and side; the data line has no channels and its ring is always the teal data color. With several lines on the arm each line's band carries its own ring. Arms toward other ducts SHALL have no ring.
 
 #### Scenario: Channel 3 endpoint
 - **WHEN** the item line's side toward a chest is on channel 3
@@ -85,6 +93,10 @@ An arm that touches an inventory or machine SHALL carry a thin ring at its outer
 #### Scenario: Fluid ring
 - **WHEN** the fluid line's side toward a tank is on channel 2
 - **THEN** the fluid arm toward the tank ends in a ring of channel 2's color
+
+#### Scenario: Data ring
+- **WHEN** a data duct touches a Warehouse Controller
+- **THEN** the data arm toward it ends in a teal ring
 
 ### Requirement: Facades cover everything
 A duct with a facade SHALL render as the facade block regardless of lines and channels, and SHALL show its lines, arms and rings again when the facade comes off. The hidden duct overlay SHALL draw the arms of the facaded duct.

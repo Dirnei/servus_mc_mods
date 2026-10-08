@@ -7,7 +7,7 @@ The Utility Duct is Foundation's one pipe: channels for items and energy in the 
 ## Requirements
 
 ### Requirement: Channels are placed as items
-An Item Pipe, Power Cable or Fluid Pipe item SHALL place a Utility Duct carrying that line, or add the line to a clicked duct that lacks it. Clicking a duct that already carries the line SHALL place a new duct against the clicked face like any block. Sneaking SHALL use the placement assist with the run axis: the run and its connections are the ducts and arms of the held line, and otherwise the direction is the clicked face. When the spot beside the clicked duct is free, sneaking places there as before. A duct SHALL drop its line items when broken or dismantled, and removing the last line SHALL remove the duct.
+An Item Pipe, Power Cable, Fluid Pipe or Data Cable item SHALL place a Utility Duct carrying that line, or add the line to a clicked duct that lacks it. Clicking a duct that already carries the line SHALL place a new duct against the clicked face like any block. Sneaking SHALL use the placement assist with the run axis: the run and its connections are the ducts and arms of the held line, and otherwise the direction is the clicked face. When the spot beside the clicked duct is free, sneaking places there as before. A duct SHALL drop its line items when broken or dismantled, and removing the last line SHALL remove the duct.
 
 #### Scenario: Add a second channel
 - **WHEN** a player uses a Power Cable on a duct that carries only an Item Pipe
@@ -16,6 +16,10 @@ An Item Pipe, Power Cable or Fluid Pipe item SHALL place a Utility Duct carrying
 #### Scenario: Add the fluid line
 - **WHEN** a player uses a Fluid Pipe on a duct that carries an Item Pipe and a Power Cable
 - **THEN** the duct carries all three lines and one Fluid Pipe is consumed
+
+#### Scenario: Add the data line
+- **WHEN** a player uses a Data Cable on a duct that carries an Item Pipe
+- **THEN** the duct carries both and one Data Cable is consumed
 
 #### Scenario: Extend a run
 - **WHEN** a player uses an Item Pipe on the east face of a duct that already carries an Item Pipe
@@ -83,7 +87,7 @@ Every tick an energy line network SHALL, per channel, move energy from storages 
 - **THEN** machine A works and machine B's buffer stays empty
 
 ### Requirement: Separate channel networks
-Ducts SHALL connect per line: an item line network only spans ducts that carry the Item Pipe, an energy line network only ducts that carry the Power Cable, a fluid line network only ducts that carry the Fluid Pipe.
+Ducts SHALL connect per line: an item line network only spans ducts that carry the Item Pipe, an energy line network only ducts that carry the Power Cable, a fluid line network only ducts that carry the Fluid Pipe, and a data network only ducts that carry the data line.
 
 #### Scenario: Gap in a channel
 - **WHEN** three ducts in a row carry items but only the outer two carry energy
@@ -94,11 +98,15 @@ Ducts SHALL connect per line: an item line network only spans ducts that carry t
 - **THEN** items flow end to end and fluid does not
 
 ### Requirement: Crafting
-Item Pipes SHALL be crafted from iron ingots, glass and a chest; Power Cables from copper ingots, redstone and glass; Fluid Pipes from iron ingots, glass and a bucket; eight each.
+Item Pipes SHALL be crafted from iron ingots, glass and a chest; Power Cables from copper ingots, redstone and glass; Fluid Pipes from iron ingots, glass and a bucket; eight each. Data Cables SHALL be crafted from two copper ingots and a redstone dust, four at a time.
 
 #### Scenario: Recipes
-- **WHEN** the player crafts any of the three patterns
+- **WHEN** the player crafts any of the three pipe and cable patterns
 - **THEN** eight of the line item are produced
+
+#### Scenario: Data Cable recipe
+- **WHEN** the player crafts a copper ingot, a redstone dust and a copper ingot in a row
+- **THEN** four Data Cables are produced
 
 ### Requirement: Per side item filters
 Each side of a duct's item line SHALL have a whitelist of up to nine ghost items, set in the endpoint GUI from the cursor or by shift clicking an inventory item, cleared by clicking with an empty cursor. An empty list passes everything. Items pulled in from a side and items pushed out to a side SHALL match that side's list.
@@ -123,7 +131,7 @@ Each side of a duct's item line SHALL have a priority from -9 to 9, default 0, s
 - **THEN** further items go to the priority 0 chest
 
 ### Requirement: Duct GUI
-Using the Configuration Carrot, not sneaking, on an arm of a duct that touches an inventory or machine SHALL open the endpoint GUI for that side. It SHALL show the side and the touched block's name, one tab per present line on its left edge showing the line's item, and the page of the selected tab: the line's mode button, the eight channel cells with the current channel framed, and a remove button; the Item Pipe page also the filter slots and the priority with minus and plus buttons. The player inventory SHALL be shown under every page. Filter slots SHALL be hidden and inert on the Power Cable and Fluid Pipe pages. Using the carrot on the centre or on an arm toward another duct SHALL open nothing. Bare hand right click SHALL open nothing.
+Using the Configuration Carrot, not sneaking, on an arm of a duct that touches an inventory or machine SHALL open the endpoint GUI for that side. It SHALL show the side and the touched block's name, one tab per present line on its left edge showing the line's item, and the page of the selected tab: the line's mode button, the eight channel cells with the current channel framed, and a remove button; the Item Pipe page also the filter slots and the priority with minus and plus buttons; the data line page only an on and off button and the remove button. The player inventory SHALL be shown under every page. Filter slots SHALL be hidden and inert on every page but the Item Pipe page. Using the carrot on the centre or on an arm toward another duct SHALL open nothing. Bare hand right click SHALL open nothing.
 
 #### Scenario: Configure one side
 - **WHEN** the player uses the carrot on the west arm that touches a chest, sets the item mode to pull in and places cobblestone in a filter slot
@@ -137,12 +145,16 @@ Using the Configuration Carrot, not sneaking, on an arm of a duct that touches a
 - **WHEN** the player opens the GUI of an arm whose duct carries all three lines and that touches a tank
 - **THEN** three tabs show, and the Fluid Pipe page shows its mode, channels and remove button without filter slots or priority
 
+#### Scenario: Data tab
+- **WHEN** the player opens the GUI of an arm toward a Warehouse Controller on a duct with the data line
+- **THEN** the data page shows an on and off button and the remove button, without channels, filter slots or priority
+
 #### Scenario: Duct to duct arm
 - **WHEN** the player uses the carrot on an arm that leads to another duct
 - **THEN** no GUI opens
 
 #### Scenario: Bare hand
-- **WHEN** the player right clicks a duct with an empty hand
+- **WHEN** the player right clicks a duct without the data line with an empty hand
 - **THEN** no GUI opens and the click passes through
 
 ### Requirement: Eight channels per line per side
