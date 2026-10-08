@@ -15,6 +15,7 @@ import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEntity;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -37,6 +38,11 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CounterTerminalBlockEntity>> COUNTER_TERMINAL =
             BLOCK_ENTITIES.register("counter_terminal", () -> BlockEntityType.Builder
                     .of(CounterTerminalBlockEntity::new, ServusStorageBlocks.COUNTER_TERMINAL.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ProductionTerminalBlockEntity>> PRODUCTION_TERMINAL =
+            BLOCK_ENTITIES.register("production_terminal", () -> BlockEntityType.Builder
+                    .of(ProductionTerminalBlockEntity::new, ServusStorageBlocks.PRODUCTION_TERMINAL.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<InboundStationBlockEntity>> INBOUND_STATION =

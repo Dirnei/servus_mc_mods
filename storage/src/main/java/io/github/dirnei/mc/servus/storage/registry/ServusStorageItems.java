@@ -23,6 +23,7 @@ public final class ServusStorageItems {
             properties -> new HeavyRackItem(ServusStorageBlocks.HEAVY_RACK.get(), properties));
     public static final DeferredItem<BlockItem> WAREHOUSE_CONTROLLER = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.WAREHOUSE_CONTROLLER);
     public static final DeferredItem<BlockItem> COUNTER_TERMINAL = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.COUNTER_TERMINAL);
+    public static final DeferredItem<BlockItem> PRODUCTION_TERMINAL = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.PRODUCTION_TERMINAL);
     public static final DeferredItem<AssistedBlockItem> RAIL = ITEMS.registerItem("rail",
             properties -> new AssistedBlockItem(ServusStorageBlocks.RAIL.get(), RailAssist.INSTANCE, properties));
     public static final DeferredItem<AssistedBlockItem> ELEVATOR = ITEMS.registerItem("elevator",
@@ -37,7 +38,7 @@ public final class ServusStorageItems {
     public static final DeferredItem<ZoneLabelItem> ZONE_LABEL = ITEMS.registerItem("zone_label", ZoneLabelItem::new, new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, COUNTER_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, ACCESS_POINT, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, SHUTTLE, ZONE_LABEL);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, COUNTER_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, ACCESS_POINT, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, SHUTTLE, ZONE_LABEL);
 
     private ServusStorageItems() {
     }

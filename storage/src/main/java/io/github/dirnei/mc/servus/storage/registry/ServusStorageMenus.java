@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
+import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -20,6 +21,9 @@ public final class ServusStorageMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<CounterTerminalMenu>> COUNTER_TERMINAL =
             MENUS.register("counter_terminal", () -> IMenuTypeExtension.create(CounterTerminalMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<ProductionTerminalMenu>> PRODUCTION_TERMINAL =
+            MENUS.register("production_terminal", () -> IMenuTypeExtension.create(ProductionTerminalMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<HeavyRackMenu>> HEAVY_RACK =
             MENUS.register("heavy_rack", () -> IMenuTypeExtension.create(HeavyRackMenu::fromNetwork));

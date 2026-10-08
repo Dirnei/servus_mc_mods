@@ -18,6 +18,7 @@ import io.github.dirnei.mc.servus.storage.access.AccessPointBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlock;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -57,6 +58,14 @@ public final class ServusStorageBlocks {
                             .mapColor(MapColor.WOOD)
                             .strength(2.5F)
                             .sound(SoundType.WOOD));
+
+    public static final DeferredBlock<ProductionTerminalBlock> PRODUCTION_TERMINAL =
+            BLOCKS.registerBlock("production_terminal", ProductionTerminalBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .strength(2.5F)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL));
 
     public static final DeferredBlock<RailBlock> RAIL = BLOCKS.registerBlock("rail", RailBlock::new,
             BlockBehaviour.Properties.of()
