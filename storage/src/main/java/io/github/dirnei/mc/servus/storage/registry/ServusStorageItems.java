@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.registry;
 import io.github.dirnei.mc.servus.lib.placement.AssistedBlockItem;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackItem;
+import io.github.dirnei.mc.servus.storage.rail.ElevatorAssist;
 import io.github.dirnei.mc.servus.storage.rail.RailAssist;
 import io.github.dirnei.mc.servus.storage.zone.ZoneLabelItem;
 import java.util.List;
@@ -24,7 +25,8 @@ public final class ServusStorageItems {
     public static final DeferredItem<BlockItem> COUNTER_TERMINAL = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.COUNTER_TERMINAL);
     public static final DeferredItem<AssistedBlockItem> RAIL = ITEMS.registerItem("rail",
             properties -> new AssistedBlockItem(ServusStorageBlocks.RAIL.get(), RailAssist.INSTANCE, properties));
-    public static final DeferredItem<BlockItem> ELEVATOR = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.ELEVATOR);
+    public static final DeferredItem<AssistedBlockItem> ELEVATOR = ITEMS.registerItem("elevator",
+            properties -> new AssistedBlockItem(ServusStorageBlocks.ELEVATOR.get(), ElevatorAssist.INSTANCE, properties));
     public static final DeferredItem<BlockItem> INBOUND_STATION = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.INBOUND_STATION);
     public static final DeferredItem<BlockItem> SHUTTLE_GARAGE = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.SHUTTLE_GARAGE);
     public static final DeferredItem<BlockItem> OUTBOUND_STATION = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.OUTBOUND_STATION);

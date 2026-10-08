@@ -401,7 +401,7 @@ public final class ServusLogisticsGameTests {
         helper.succeed();
     }
 
-    /** Sneaking walks the run of ducts carrying the held line: east along a row, up a column, and not into another line. */
+    /** Sneaking walks the run of ducts carrying the held line: east along a row, along it from its top face, up a column, and not into another line. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void sneakLineExtendsRun(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -420,6 +420,15 @@ public final class ServusLogisticsGameTests {
         helper.assertTrue(end.has(Line.ITEM), "the new Item Pipe duct should land past the sixth duct");
         helper.assertTrue(helper.<UtilityDuctBlockEntity>getBlockEntity(new BlockPos(2, 1, 9)).lines().size() == 1,
                 "the clicked duct should stay unchanged");
+
+        BlockPos fourth = helper.absolutePos(new BlockPos(4, 1, 9));
+        ItemStack pipe = new ItemStack(ServusLogisticsItems.ITEM_PIPE.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, pipe);
+        pipe.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, pipe,
+                new BlockHitResult(new Vec3(fourth.getX() + 0.7, fourth.getY() + 0.75, fourth.getZ() + 0.5), Direction.UP, fourth, false)));
+        helper.assertTrue(helper.<UtilityDuctBlockEntity>getBlockEntity(new BlockPos(8, 1, 9)).has(Line.ITEM),
+                "a hit on the top of a straight pipe east of centre should land past the east end");
+        helper.assertBlockNotPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), new BlockPos(4, 2, 9));
 
         useLine(helper, player, ServusLogisticsItems.POWER_CABLE.get(), new BlockPos(9, 1, 2), Direction.UP);
         UtilityDuctBlockEntity top = helper.getBlockEntity(new BlockPos(9, 5, 2));

@@ -2966,4 +2966,46 @@ public final class ServusStorageGameTests {
             });
         });
     }
+
+    /** Uses an elevator item while sneaking on the east face of a segment. */
+    private static ItemStack sneakElevator(GameTestHelper helper, Player player, BlockPos clicked) {
+        BlockPos absolute = helper.absolutePos(clicked);
+        ItemStack elevator = new ItemStack(ServusStorageBlocks.ELEVATOR.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, elevator);
+        player.setShiftKeyDown(true);
+        elevator.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(absolute).relative(Direction.EAST, 0.5), Direction.EAST, absolute, false)));
+        player.setShiftKeyDown(false);
+        return elevator;
+    }
+
+    private static void shaft(GameTestHelper helper, int x, int z, int height) {
+        helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE.defaultBlockState());
+        for (int y = 1; y <= height; y++) {
+            helper.setBlock(new BlockPos(x, y, z), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        }
+    }
+
+    /** A sneak click on the side of the lowest segment places a new segment on top of the shaft. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void sneakElevatorBuildsUp(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        shaft(helper, 3, 3, 4);
+        sneakElevator(helper, player, new BlockPos(3, 1, 3));
+        helper.assertBlockPresent(ServusStorageBlocks.ELEVATOR.get(), new BlockPos(3, 5, 3));
+        helper.assertBlockNotPresent(ServusStorageBlocks.ELEVATOR.get(), new BlockPos(4, 1, 3));
+        helper.succeed();
+    }
+
+    /** A shaft capped by stone takes no new segment and the stack keeps its count. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void sneakElevatorBlockedTop(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        shaft(helper, 3, 3, 2);
+        helper.setBlock(new BlockPos(3, 3, 3), Blocks.STONE.defaultBlockState());
+        ItemStack held = sneakElevator(helper, player, new BlockPos(3, 1, 3));
+        helper.assertTrue(held.getCount() == 1, "the stack should keep its elevator");
+        helper.assertBlockNotPresent(ServusStorageBlocks.ELEVATOR.get(), new BlockPos(4, 1, 3));
+        helper.succeed();
+    }
 }

@@ -158,7 +158,7 @@ The bridge lives in Servus Lib as a small API (see section 3).
 - `StockProvider` / `StockSink`: "this inventory can supply or accept items"
 - `WorkOrder` model and a planner interface (implemented by Storage, fed by Manufacturing)
 - Shared Configuration Carrot (the wrench role) and goggles
-- Placement assist: sneaking with a rail or duct item extends a straight run at its far end, with a ghost preview
+- Placement assist: sneaking with a rail, duct or elevator item extends a straight run at its far end, with a ghost preview
 - Config helpers
 
 Keep the API small at first and grow it only when a second mod actually needs something.
@@ -227,7 +227,7 @@ Each milestone ends in something playable or testable.
 - Simulated shuttles with client rendering
 - Inbound station, Zone Labels with put-away filters, unzoned storage as overflow
 - Shuttle Garage, rack picks by shuttle, terminal requests
-- Sneak placement assist for rails and ducts
+- Sneak placement assist for rails, ducts and elevators
 - Pick rate stats screen
 
 ### M7: Autocrafting integration
