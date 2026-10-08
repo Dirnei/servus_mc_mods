@@ -4,12 +4,11 @@ A family of NeoForge mods for Minecraft 1.21.1, built to fit packs like ATM10 bu
 
 | Mod | Mod ID | Purpose |
 |---|---|---|
-| Servus Lib | `servus_lib` | Shared library: APIs, network graph, tick mailbox, Configuration Carrot (the wrench role), config helpers |
+| Servus: Foundation | `servus_foundation` | Base of the family: shared APIs, network graph, tick mailbox, the Utility Duct (item, energy, fluid and later data lines) with facades, the Fluid Tank, Configuration Carrot (the wrench role), goggles, config helpers |
 | Servus: Manufacturing | `servus_manufacturing` | Factorio style resource production with its own tech tree |
-| Servus: Logistics | `servus_logistics` | Bundled item, energy and fluid ducts with facades |
 | Servus: Storage | `servus_storage` | In-world warehouse storage that scales to shuttles, autocrafting and wireless access |
 
-Storage and Logistics depend only on Servus Lib. Manufacturing depends on Servus Lib and Servus: Logistics, because its ducts are the Utility Duct. No other content mod depends on another. When several are installed, extra features light up through the Lib API.
+Manufacturing and Storage depend only on Servus: Foundation and never on each other. When both are installed, extra features light up through the Foundation API. Decided in M8: Servus Lib and Servus: Logistics were merged into Servus: Foundation, so every mod gets the ducts and the data line can live in the Utility Duct.
 
 ---
 
@@ -34,9 +33,8 @@ servus_mc_mods/
   .github/workflows/        CI: build and unit tests on every push
   openspec/                 specs and changes (OpenSpec)
   docs/                     documentation site and Balance lab (Astro, Starlight), deployed to GitHub Pages
-  lib/                      servus_lib
+  foundation/               servus_foundation
   manufacturing/            servus_manufacturing
-  logistics/                servus_logistics
   storage/                  servus_storage
     gradle.properties       mod id and name
     build.gradle            dependencies and loaded mods
@@ -47,7 +45,7 @@ servus_mc_mods/
     runs/                   game directories per run config, gitignored
 ```
 
-Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `lib`, `manufacturing`, `logistics`, `storage`. License: MIT.
+Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `manufacturing`, `storage`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
 
 ---
 
@@ -66,7 +64,7 @@ Decisions already made:
 - **FE** is the energy standard. The mod ships its own generators so it works without other mods.
 - Techs, packs, recipes and deposit definitions are **datapack driven** so modpack authors can retune them.
 - Production must work **overnight while chunk loaded**. A chunk loader upgrade with FE upkeep and a config cap per player/team is planned. Respect FTB Chunks if present.
-- Ducts and cables come from Servus: Logistics (the Utility Duct), which Manufacturing requires. Machines also push output into adjacent inventories.
+- Ducts and cables come from Servus: Foundation (the Utility Duct). Machines also push output into adjacent inventories.
 - Every machine and station configures its six sides the same way: Auto, Input, Output, Both, Pull, Push and Off from one shared side panel beside the GUI. The Configuration Carrot cycles the clicked face, and the modes are drawn on the block as coloured frames, with glyphs while the carrot is in hand.
 
 **Tier 1 content (first playable slice)**
@@ -94,7 +92,10 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 
 **Pack tiers (later):** Mechanical (red), Logistic (green), Chemical (blue), Advanced (purple), Exotic (yellow), plus repeatable infinite research at the end.
 
-### 2.2 Servus: Logistics
+### 2.2 Servus: Foundation
+
+The base mod: the shared API (networks, production and stock capabilities, side config, placement assist, config), the Configuration Carrot, the goggles and the transport content below. It was Servus Lib plus Servus: Logistics until M8.
+
 
 - **Utility Duct**: one block with several lines (Item Pipe, Power Cable and Fluid Pipe). Each line is placed as its own item and adds to a duct that lacks it.
 - Per side and per line modes (in and out, pull in, push out, disabled) and one of eight colored channels per line and side, set in an endpoint GUI that the Configuration Carrot (the wrench role) opens on the arm that touches an inventory or machine. Items, energy and fluids only flow between sides on the same channel. A bare hand opens nothing; sneak carrot removes the facade, then the duct.
@@ -122,7 +123,7 @@ Progression:
 **Network topology (decided direction):**
 - Early: adjacency. The controller connects to touching crates and racks.
 - Mid: **rails are the wiring.** Any rack next to a rail joins the network. The same rails carry shuttles later. Decided: the Warehouse Rail is a flat rail, one block wide, that auto connects to neighbouring rails on the same level like ducts do. It stands on a floor or hangs without one on a rack front, an elevator segment or beside a standing rail; free rails between two hung rails bridge a gap of up to `rail_max_span` blocks (3 by default, in `warehouse.json`), and a gap that is wider or held on one side only collapses and drops its rails. No slopes, no ceiling rails. Rails hold nothing and never pull plain inventories in. Floors are linked by the Rail Elevator: a shaft of stacked segments, each taking rails on its sides, that shuttles will ride vertically.
-- Beyond the rails: the **data cable** from Servus Lib links the warehouse, through its Access Points, to terminals, the Crafting CPU and machines far away.
+- Beyond the rails: the **data line** of the Servus: Foundation Utility Duct links the warehouse, through its Access Points, to terminals, the Crafting CPU and machines far away.
 - Late: the **Wireless Access Point** links remote places without a cable (it takes the place of the Warehouse Relay idea).
 
 Shuttles are **simulated as data** on the warehouse network and only rendered moving on the client. No real entities. Decided: Shuttle items go into Shuttle Garages, a few per garage, and park on the rail touching their garage; more garages mean more shuttles. Heavy Duty Racks are served only by shuttles, so a rack warehouse needs a garage; crates and foreign inventories stay instant when no shuttle reaches them. Players request items at the Counter Terminal with an amount and collect the delivery from its output slots.
@@ -134,7 +135,7 @@ Decided: every elevator shaft has one simulated **lift car**. A shuttle that cha
 **USP: production on demand.** Nothing runs without an order. A classic pipe line (Outbound Station, pipe, chest, hopper, furnace, hopper, Inbound Station) produces until storage is full or the input runs out; a machine on the data cable produces exactly what was ordered and then waits.
 
 What M7 built and what M8 does with it:
-- **Lib production API** (production and stock capabilities, `OrderPlanner`): kept. The data cable finds its members through it and the CPU plans with it.
+- **Foundation production API** (production and stock capabilities, `OrderPlanner`): kept. The data cable finds its members through it and the CPU plans with it.
 - **Work orders, bill of materials explosion, reservations**: kept, but they move from the Warehouse Controller to the Crafting CPU, and their steps run over the cable instead of through stations.
 - **Min/max stock levels** per item ("keep 500 to 1,000 iron gears"): kept on the controller; a rule hands its order to the CPU on the controller's data network.
 - **Inbound Station**: kept as the put-away entry of the warehouse. It no longer credits order steps.
@@ -145,7 +146,7 @@ What M7 built and what M8 does with it:
 **One route for orders.** Everything on demand runs over the data cable; everything that runs all the time uses stations and pipes. There is no second order route through Outbound Stations.
 
 Decided for M8 (on-demand autocrafting):
-- **Data cable** (Servus Lib). Like redstone, not like a real network: place it and it works, no addresses, channels or priorities. It never pushes or pulls on its own; it only routes packets for an order. Members are found by the capabilities they expose. Items travel as packets with a size and a speed from datapack JSON, so long distances take time. A High-Speed Data Cable with bigger, faster packets comes later. Item pipes stay useful: they move items all the time and work with any mod.
+- **Data cable** (Servus: Foundation): the Data line of the Utility Duct. Like redstone, not like a real network: place it and it works, no addresses, channels or priorities. It never pushes or pulls on its own; it only routes packets for an order. Members are found by the capabilities they expose. Items travel as packets with a size and a speed from datapack JSON, so long distances take time. A High-Speed Data Cable with bigger, faster packets comes later. Item pipes stay useful: they move items all the time and work with any mod.
 - **Access Point** (Storage). Sits on a rail and on the cable and is the warehouse's door: shuttles bring items to it and it sends them as packets, and packets coming back are handed to shuttles for put-away. A warehouse may have several; each adds packet throughput. The controller picks the Access Point with the shortest shuttle trip; on a tie any of them.
 - **Warehouse Controller** on the cable answers stock questions and assigns shuttles. It moves no items itself.
 - **Counter Terminal** on the cable: the player requests items, shuttles bring them to an Access Point, packets deliver them into the terminal's output slots.
@@ -153,12 +154,12 @@ Decided for M8 (on-demand autocrafting):
 - **Patterns for crafting recipes only.** A pattern item is encoded with the recipe editor (with JEI transfer) and holds concrete items, so the planner never chooses between recipes or tag variants. Patterns live in **Pattern Storage** blocks on the cable, N per block (from datapack JSON); more blocks hold more patterns.
 - **Crafting Stations are the hands.** They lose their own recipe list and craft what the CPU assigns, fed by packets. More stations craft more in parallel.
 - **Machines say what they can do.** Servus machines expose the production capability and join the cable directly, no pattern needed. Building an assembler for gears teaches the system to make gears.
-- **Machine Adapter** (Servus Lib) for machines of other mods. It touches the machine, inserts the ingredients and pulls the results itself, which counts them for the order. Six virtual side roles relative to the machine's facing: Ingredients, Upkeep, Output, Off. The first version uses **profiles** only: datapack JSON that names the blocks, the recipe type and the side roles (vanilla furnace, smoker and blast furnace ship with it, packs can add more). Hand made patterns for adapters may follow after play testing.
+- **Machine Adapter** (Servus: Foundation) for machines of other mods. It touches the machine, inserts the ingredients and pulls the results itself, which counts them for the order. Six virtual side roles relative to the machine's facing: Ingredients, Upkeep, Output, Off. The first version uses **profiles** only: datapack JSON that names the blocks, the recipe type and the side roles (vanilla furnace, smoker and blast furnace ship with it, packs can add more). Hand made patterns for adapters may follow after play testing.
 - **Upkeep is not part of a recipe.** Fuel, infuse items and the like are kept stocked in their slot at a level (an item and an amount set per machine), refilled always, independent of orders. A recipe stays "1 cobblestone to 1 stone". Native burner machines report their upkeep the same way. A machine whose upkeep is not in stock is blocked as out of fuel, the order is not.
 - **Production Terminal** on the cable with three tabs: Patterns (list, add and edit, a capacity bar that shows when to add Pattern Storage), Machines (recipes, state, upkeep) and Orders. It replaces the Order Board.
 - Storage alone crafts with patterns and can smelt through an adapter on a vanilla furnace; Manufacturing machines are the next step (power, speed, real chains).
 
-The bridge lives in Servus Lib as a small API (see section 3).
+The bridge lives in Servus: Foundation as a small API (see section 3).
 
 ---
 
@@ -173,14 +174,14 @@ The bridge lives in Servus Lib as a small API (see section 3).
 7. **Pure logic separated from Minecraft.** Graph algorithms, BOM planning, ratio math, order scheduling live in plain Java classes with no Minecraft types, unit tested with JUnit.
 8. **Persistence:** network and research state in `SavedData`, per chunk deposit data as data attachments, block state in block entities using 1.21 data components and codecs.
 
-### Servus Lib API (initial sketch)
+### Servus: Foundation API (initial sketch)
 
 - `ServusNetwork` base: graph of nodes, mailbox, tick hook, split and merge handling
 - `NetworkManager`: owns all networks per level, routes block events to the right network
 - `ProductionProvider`: "this block can produce X from inputs Y at rate Z"
 - `StockProvider` / `StockSink`: "this inventory can supply or accept items"
 - `WorkOrder` model and a planner interface (implemented by Storage, fed by Manufacturing)
-- Data cable: Lib's first block and its network, members found by capability, packet transport with size and speed from datapack JSON
+- Data line of the Utility Duct and its network, members found by capability, packet transport with size and speed from datapack JSON
 - Machine Adapter with datapack profiles (blocks, recipe type, side roles) and upkeep (keep an item at a level in a slot), so machines of other mods join the data cable
 - Shared Configuration Carrot (the wrench role) and goggles
 - Placement assist: sneaking with a rail, duct or elevator item extends a straight run at its far end, with a ghost preview
@@ -265,16 +266,17 @@ Each milestone ends in something playable or testable.
 ### M8: On-demand autocrafting
 One change per item:
 One change per item, in this order. Each one builds only on the ones before it and leaves the game playable, so nothing is built twice:
-1. `m8-data-cable`: Lib data cable block and network, members found by capability.
-2. `m8-cable-packets`: packets over the cable with size and speed from datapack JSON; a packet is delivered into a member's item handler and results are taken from it. Tested with a Lib command or GameTests, no player feature yet.
-3. `m8-access-point`: Lib `data_link` capability for members without production or stock; Access Point on rail and cable (shuttles to packets and back, shortest shuttle trip wins); Warehouse Controller as a cable member.
-4. `m8-item-terminal-cable`: Counter Terminal joins the cable instead of the warehouse; requests are delivered as packets through an Access Point.
-5. `m8-crafting-cpu`: 3x3x3 multiblock on the cable. Work orders and the order book move from the controller to the CPU, stock rules and terminal shortfalls hand their orders to it, steps run over the cable on producers with the recipes they report today (Assembler, Crafting Station with its own list). Removes the Outbound Station order route, the Inbound Station step credit and the Order Board block; `/servus_warehouse orders` stays for diagnosis. More CPUs run more orders in parallel.
-6. `m8-production-terminal`: terminal on the cable with Machines and Orders tabs, built on the CPU's orders.
-7. `m8-pattern-storage`: pattern items, Pattern Storage with N patterns per block, the Patterns tab in the Production Terminal with the editor and JEI transfer and a capacity bar; the CPU plans crafting recipes from patterns.
-8. `m8-station-hands`: the Crafting Station drops its own recipe list and editor and crafts the pattern jobs the CPU sends it.
-9. `m8-machine-adapter`: Lib Machine Adapter with side roles, upkeep and profiles for the vanilla furnace, smoker and blast furnace.
-10. `m8-native-machines`: Manufacturing machines report upkeep; burner machines join with fuel upkeep.
+1. `m8-foundation-merge`: Servus Lib and Servus: Logistics become one mod, Servus: Foundation (`servus_foundation`); Manufacturing and Storage depend only on it.
+2. `m8-data-cable`: data network with members found by capability, carried by a Data line of the Utility Duct (the standalone Data Cable block goes away).
+3. `m8-cable-packets`: packets over the cable with size and speed from datapack JSON; a packet is delivered into a member's item handler and results are taken from it. Tested with a command or GameTests, no player feature yet.
+4. `m8-access-point`: Foundation `data_link` capability for members without production or stock; Access Point on rail and cable (shuttles to packets and back, shortest shuttle trip wins); Warehouse Controller as a cable member.
+5. `m8-item-terminal-cable`: Counter Terminal joins the cable instead of the warehouse; requests are delivered as packets through an Access Point.
+6. `m8-crafting-cpu`: 3x3x3 multiblock on the cable. Work orders and the order book move from the controller to the CPU, stock rules and terminal shortfalls hand their orders to it, steps run over the cable on producers with the recipes they report today (Assembler, Crafting Station with its own list). Removes the Outbound Station order route, the Inbound Station step credit and the Order Board block; `/servus_warehouse orders` stays for diagnosis. More CPUs run more orders in parallel.
+7. `m8-production-terminal`: terminal on the cable with Machines and Orders tabs, built on the CPU's orders.
+8. `m8-pattern-storage`: pattern items, Pattern Storage with N patterns per block, the Patterns tab in the Production Terminal with the editor and JEI transfer and a capacity bar; the CPU plans crafting recipes from patterns.
+9. `m8-station-hands`: the Crafting Station drops its own recipe list and editor and crafts the pattern jobs the CPU sends it.
+10. `m8-machine-adapter`: Foundation Machine Adapter with side roles, upkeep and profiles for the vanilla furnace, smoker and blast furnace.
+11. `m8-native-machines`: Manufacturing machines report upkeep; burner machines join with fuel upkeep.
 - Later: High-Speed Data Cable.
 
 ### M9: Wireless and scale

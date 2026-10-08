@@ -4,12 +4,11 @@ A family of NeoForge mods for Minecraft 1.21.1. See `PLAN.md` for the design and
 
 | Mod | Mod ID | Folder |
 |---|---|---|
-| Servus Lib | `servus_lib` | `lib/` |
+| Servus: Foundation | `servus_foundation` | `foundation/` |
 | Servus: Manufacturing | `servus_manufacturing` | `manufacturing/` |
-| Servus: Logistics | `servus_logistics` | `logistics/` |
 | Servus: Storage | `servus_storage` | `storage/` |
 
-Storage and Logistics depend only on Servus Lib. Manufacturing also depends on Servus: Logistics for its ducts.
+Manufacturing and Storage depend only on Servus: Foundation, the base mod with the shared API, the Utility Duct, the Fluid Tank and the tools.
 
 ## Prerequisites
 
@@ -19,24 +18,24 @@ Storage and Logistics depend only on Servus Lib. Manufacturing also depends on S
 ## Build and test
 
 ```
-gradlew build          # compiles all four mods, runs unit tests, writes jars to <mod>/build/libs
+gradlew build          # compiles all three mods, runs unit tests, writes jars to <mod>/build/libs
 gradlew test           # unit tests only
 gradlew clean build    # from scratch
 ```
 
 ## Run
 
-Each mod project has its own run configurations. Content mod runs always load Servus Lib as well.
+Each mod project has its own run configurations. Content mod runs always load Servus: Foundation as well.
 
 ```
-gradlew :lib:runClient               # Lib alone
-gradlew :manufacturing:runClient     # Manufacturing plus Lib
-gradlew :logistics:runServer         # Logistics plus Lib, dedicated server
+gradlew :foundation:runClient        # Foundation alone
+gradlew :manufacturing:runClient     # Manufacturing plus Foundation
+gradlew :foundation:runServer        # Foundation alone, dedicated server
 gradlew :storage:runData             # data generation for Storage
 gradlew :storage:runGameTestServer   # game tests for Storage (exits with an error until tests exist)
 ```
 
-Combined runs with all four mods are defined in the root project:
+Combined runs with all three mods are defined in the root project:
 
 ```
 gradlew runClientAll
@@ -65,7 +64,7 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 
 1. Find or place deposits (iron, copper, coal, stone patches on the surface).
 2. Burner Extractor on a deposit, Burner Smelter next to it, coal in both. Machines push output into adjacent inventories.
-3. Coal Generator plus Utility Ducts with a Power Cable (from Servus: Logistics) carry FE to an Assembler Mk1 and a Research Lab.
+3. Coal Generator plus Utility Ducts with a Power Cable (from Servus: Foundation) carry FE to an Assembler Mk1 and a Research Lab.
 4. In the Assembler, lay out a recipe in the pattern grid and press plus, or press the plus button on any recipe in JEI. An Assembler Mk1 holds two recipes and alternates between them. Every machine GUI has a side panel on the left to set which sides take input and give output.
 5. Utility Ducts with an Item Pipe route pushed items to the next inventory on the same channel.
 6. Red packs go into the Research Lab; open the Tech Tree from its GUI and pick a tech.
@@ -80,7 +79,7 @@ Launch with `gradlew runClientAll`, create a new world, and take the Servus crea
 4. Counter Terminal: glass, iron, chest and planks. Opens the stock view: type to search, click to pull a stack to the cursor, shift click to pull into the inventory, click the grid with a carried stack or shift click an inventory slot to store.
 5. Ops can inspect any warehouse with `/servus_warehouse info <x> <y> <z>` on a storage block.
 
-## Logistics playtest guide
+## Foundation playtest guide (ducts, tanks, tools)
 
 1. Item Pipe (iron, glass, chest) and Power Cable (copper, redstone, glass) place a Utility Duct carrying that line. Use a line item on an existing duct to add the other line. A duct with one line is thin, with both lines thicker, and each line shows its own color.
 2. Use the Configuration Carrot on an arm that touches a chest or machine to open that side's configuration: per line a mode (in and out, pull in, push out, disabled), one of eight colored channels (items and energy only flow between sides on the same channel; the ring at the arm's end shows the color), and for the Item Pipe up to nine filter items (empty means everything) and a priority. The carrot on the centre, on an arm toward another duct or a bare hand opens nothing.

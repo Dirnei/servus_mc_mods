@@ -3,14 +3,14 @@ schema: spec-driven
 # Project context shown to the AI when creating artifacts.
 context: |
   Servus mod family for Minecraft 1.21.1 on NeoForge 21.1.x, Java 21, ModDevGradle, Parchment mappings.
-  Multi project Gradle repo: lib (servus_lib), manufacturing (servus_manufacturing),
-  logistics (servus_logistics), storage (servus_storage).
+  Multi project Gradle repo: foundation (servus_foundation), manufacturing (servus_manufacturing),
+  storage (servus_storage).
   Roadmap, architecture principles and milestones live in PLAN.md at the repo root. Read it first.
   Project rules live in CLAUDE.md at the repo root.
 
   Hard constraints:
-  - Storage and Logistics depend only on servus_lib. Manufacturing depends on servus_lib and
-    servus_logistics (its ducts are the Utility Duct). No other dependency between content mods.
+  - Manufacturing and Storage depend only on servus_foundation (API plus the Utility Duct, Fluid
+    Tank and tools). They never depend on each other.
   - World, block entity and capability access only on the server thread.
   - Networks use the mailbox pattern: events queued, drained once per server tick. No Akka, no Pekko.
   - Never scan blocks every tick. React to placement and removal events.
@@ -24,8 +24,8 @@ context: |
   Conventions:
   - One change per milestone item from PLAN.md. Change names are kebab-case with a milestone
     prefix, for example m1-network-graph.
-  - Capability paths are <mod>/<capability>, for example lib/network-graph or storage/crates.
-    Cross mod integration specs go under lib/.
+  - Capability paths are <mod>/<capability>, for example foundation/network-graph or storage/crates.
+    Cross mod integration specs go under foundation/.
 
 # Per-artifact rules.
 rules:
@@ -43,7 +43,7 @@ rules:
   tasks:
     - Each task names the files or packages it touches and ends with a build or test step.
     - Pure logic tasks list the JUnit tests to add.
-    - "The last task is always: full gradle build, tests green, game launches with all four mods."
+    - "The last task is always: full gradle build, tests green, game launches with all three mods."
 
 # Per-operation guidance.
 operations:
