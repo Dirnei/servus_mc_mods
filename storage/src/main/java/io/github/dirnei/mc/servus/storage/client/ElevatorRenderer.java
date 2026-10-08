@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;

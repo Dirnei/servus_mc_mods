@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.logistics.network;
 
-import io.github.dirnei.mc.servus.lib.graph.ConnectionRule;
-import io.github.dirnei.mc.servus.lib.graph.NodePos;
-import io.github.dirnei.mc.servus.lib.network.Conversions;
-import io.github.dirnei.mc.servus.lib.network.NetworkType;
-import io.github.dirnei.mc.servus.lib.network.core.NetworkSet;
-import io.github.dirnei.mc.servus.lib.network.core.ServusNetwork;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.graph.ConnectionRule;
+import io.github.dirnei.mc.servus.foundation.graph.NodePos;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
+import io.github.dirnei.mc.servus.foundation.network.NetworkType;
+import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
+import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.logistics.ServusLogisticsIds;
 import io.github.dirnei.mc.servus.logistics.duct.DuctItemHandler;
 import io.github.dirnei.mc.servus.logistics.duct.DuctStatsManager;

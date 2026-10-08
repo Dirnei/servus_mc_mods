@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
-import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.rail.RailCenter;
 import net.minecraft.resources.ResourceLocation;

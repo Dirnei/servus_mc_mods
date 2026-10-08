@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.logistics;
 
-import io.github.dirnei.mc.servus.lib.network.NetworkTypes;
+import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
 import io.github.dirnei.mc.servus.logistics.network.EnergyChannelNetwork;
 import io.github.dirnei.mc.servus.logistics.network.FluidChannelNetwork;
 import io.github.dirnei.mc.servus.logistics.network.ItemChannelNetwork;

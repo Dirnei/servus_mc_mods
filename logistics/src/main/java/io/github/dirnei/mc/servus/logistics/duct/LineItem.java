@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.logistics.duct;
 
-import io.github.dirnei.mc.servus.lib.placement.AssistedItem;
-import io.github.dirnei.mc.servus.lib.placement.PlacementAssist;
-import io.github.dirnei.mc.servus.lib.placement.PlacementAssists;
+import io.github.dirnei.mc.servus.foundation.placement.AssistedItem;
+import io.github.dirnei.mc.servus.foundation.placement.PlacementAssist;
+import io.github.dirnei.mc.servus.foundation.placement.PlacementAssists;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;

@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import io.github.dirnei.mc.servus.lib.client.RecipeEditorPopup;
+import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.ConfiguredRecipe;
 import io.github.dirnei.mc.servus.manufacturing.menu.AssemblerMenu;

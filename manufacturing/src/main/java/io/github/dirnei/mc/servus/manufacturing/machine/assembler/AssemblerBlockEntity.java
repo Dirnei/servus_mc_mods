@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.assembler;
 
-import io.github.dirnei.mc.servus.lib.craft.IngredientGatherer;
-import io.github.dirnei.mc.servus.lib.craft.RoundRobin;
-import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
-import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
-import io.github.dirnei.mc.servus.lib.team.Teams;
+import io.github.dirnei.mc.servus.foundation.craft.IngredientGatherer;
+import io.github.dirnei.mc.servus.foundation.craft.RoundRobin;
+import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.foundation.team.Teams;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;

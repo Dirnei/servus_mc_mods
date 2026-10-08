@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.logistics.tank;
 
-import io.github.dirnei.mc.servus.lib.network.Conversions;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsComponents;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.logistics.tank;
 
-import io.github.dirnei.mc.servus.lib.graph.NodePos;
+import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

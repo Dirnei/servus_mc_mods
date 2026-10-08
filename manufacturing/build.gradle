@@ -1,13 +1,13 @@
 // Servus: Manufacturing. Shared configuration lives in the root build.gradle.
-evaluationDependsOn(':lib')
+evaluationDependsOn(':foundation')
 evaluationDependsOn(':logistics')
 
 dependencies {
-    // Compile against Lib and Logistics, but do not put their jars on the run
+    // Compile against Foundation and Logistics, but do not put their jars on the run
     // classpath: the run already loads both from their source sets via
     // loadedMods below. Using implementation here makes FML see them twice.
-    compileOnly project(':lib')
-    testImplementation project(':lib')
+    compileOnly project(':foundation')
+    testImplementation project(':foundation')
     // Manufacturing's ducts are the Logistics Utility Duct.
     compileOnly project(':logistics')
     testImplementation project(':logistics')
@@ -30,24 +30,24 @@ dependencies {
     }
 }
 
-// Resolved outside the neoForge block: inside it, project(':lib') would be
+// Resolved outside the neoForge block: inside it, project(':foundation') would be
 // read as a dependency notation instead of the Gradle project.
-def libMod = project(':lib').neoForge.mods.getByName('servus_lib')
+def foundationMod = project(':foundation').neoForge.mods.getByName('servus_foundation')
 def logisticsMod = project(':logistics').neoForge.mods.getByName('servus_logistics')
 def ownMod = neoForge.mods.getByName(project.mod_id)
 
 neoForge {
     runs {
         configureEach {
-            // Manufacturing is always launched together with Servus Lib and Servus: Logistics.
-            loadedMods = [ownMod, libMod, logisticsMod]
+            // Manufacturing is always launched together with Servus: Foundation and Servus: Logistics.
+            loadedMods = [ownMod, foundationMod, logisticsMod]
         }
         data {
             // Game data export for the documentation site (docs/).
             systemProperty 'servus.gamedata.output', rootProject.file('docs/src/data/gamedata.json').absolutePath
             systemProperty 'servus.gamedata.resources', file('src/main/resources').absolutePath
             // Recipes and lang of every Servus mod, read as files so mods not loaded here still take part.
-            systemProperty 'servus.gamedata.generated', ['lib', 'logistics', 'manufacturing', 'storage']
+            systemProperty 'servus.gamedata.generated', ['foundation', 'logistics', 'manufacturing', 'storage']
                     .collect { rootProject.file("${it}/src/generated/resources").absolutePath }
                     .join(File.pathSeparator)
         }
@@ -56,5 +56,5 @@ neoForge {
 
 // The export reads the other mods' generated recipes, so `gradlew runData` writes them first.
 tasks.matching { it.name == 'runData' }.configureEach {
-    mustRunAfter ':lib:runData', ':logistics:runData', ':storage:runData'
+    mustRunAfter ':foundation:runData', ':logistics:runData', ':storage:runData'
 }

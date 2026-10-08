@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.logistics.duct;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
-import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsItems;
 import java.util.Map;

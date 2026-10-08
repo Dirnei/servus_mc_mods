@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.logistics.gametest;
 
-import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.logistics.ServusLogisticsIds;
 import io.github.dirnei.mc.servus.logistics.duct.DuctModelData;
 import io.github.dirnei.mc.servus.logistics.duct.Line;

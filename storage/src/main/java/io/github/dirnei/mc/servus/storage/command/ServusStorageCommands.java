@@ -227,7 +227,7 @@ public final class ServusStorageCommands {
                 continue;
             }
             source.sendSuccess(() -> Component.literal(head + (producer.active().map(id -> ", working on " + id.getPath()).orElse(""))), false);
-            for (io.github.dirnei.mc.servus.lib.production.ProductionRecipe recipe : producer.recipes()) {
+            for (io.github.dirnei.mc.servus.foundation.production.ProductionRecipe recipe : producer.recipes()) {
                 List<String> inputs = new ArrayList<>();
                 for (ItemStack input : recipe.inputs()) {
                     inputs.add(input.getCount() + " " + input.getHoverName().getString());

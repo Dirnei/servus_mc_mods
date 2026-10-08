@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.logistics.tank;
 
-import io.github.dirnei.mc.servus.lib.graph.NodePos;
-import io.github.dirnei.mc.servus.lib.network.Conversions;
-import io.github.dirnei.mc.servus.lib.network.NetworkManager;
-import io.github.dirnei.mc.servus.lib.network.NetworkType;
-import io.github.dirnei.mc.servus.lib.network.NetworkBlockEntity;
+import io.github.dirnei.mc.servus.foundation.graph.NodePos;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
+import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
+import io.github.dirnei.mc.servus.foundation.network.NetworkType;
+import io.github.dirnei.mc.servus.foundation.network.NetworkBlockEntity;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsComponents;
 import java.util.Optional;

@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;

@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.garage;
 
-import io.github.dirnei.mc.servus.lib.graph.Side;
-import io.github.dirnei.mc.servus.lib.network.Conversions;
+import io.github.dirnei.mc.servus.foundation.graph.Side;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;

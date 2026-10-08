@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.machine;
 
-import io.github.dirnei.mc.servus.lib.block.SideConfigWrench;
-import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
-import io.github.dirnei.mc.servus.lib.item.Wrenchable;
+import io.github.dirnei.mc.servus.foundation.block.SideConfigWrench;
+import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;

@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.logistics.network;
 
-import io.github.dirnei.mc.servus.lib.graph.NodePos;
+import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 
 /** Events posted to line networks. */
 public sealed interface DuctEvent {

@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.shuttle;
 
-import io.github.dirnei.mc.servus.lib.graph.NodePos;
-import io.github.dirnei.mc.servus.lib.network.Conversions;
+import io.github.dirnei.mc.servus.foundation.graph.NodePos;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.storage.shuttle.Shafts.Shaft;

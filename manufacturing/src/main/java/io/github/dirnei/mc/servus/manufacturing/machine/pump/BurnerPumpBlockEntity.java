@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.pump;
 
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.BurnerMachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;

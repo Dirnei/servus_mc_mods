@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.research;
 
-import io.github.dirnei.mc.servus.lib.team.Teams;
+import io.github.dirnei.mc.servus.foundation.team.Teams;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturing;
 import io.github.dirnei.mc.servus.manufacturing.network.ResearchSyncPayload;
 import java.util.ArrayList;

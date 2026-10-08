@@ -127,7 +127,7 @@ subprojects {
                 mod_license            : rootProject.mod_license,
                 mod_version            : rootProject.mod_version,
                 mod_authors            : rootProject.mod_authors,
-                lib_version_range      : "[${rootProject.mod_version},)".toString(),
+                foundation_version_range: "[${rootProject.mod_version},)".toString(),
                 logistics_version_range: "[${rootProject.mod_version},)".toString(),
         ]
         inputs.properties replaceProperties
@@ -171,7 +171,7 @@ apply plugin: 'net.neoforged.moddev'
 
 evaluationDependsOnChildren()
 
-def allServusMods = ['lib', 'manufacturing', 'logistics', 'storage'].collect { name ->
+def allServusMods = ['foundation', 'manufacturing', 'logistics', 'storage'].collect { name ->
     def sub = project(":${name}")
     sub.neoForge.mods.getByName(sub.mod_id)
 }

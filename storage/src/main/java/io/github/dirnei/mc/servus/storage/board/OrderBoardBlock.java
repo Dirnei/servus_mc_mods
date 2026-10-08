@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.board;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
-import io.github.dirnei.mc.servus.lib.item.Wrenchable;
+import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import net.minecraft.core.BlockPos;

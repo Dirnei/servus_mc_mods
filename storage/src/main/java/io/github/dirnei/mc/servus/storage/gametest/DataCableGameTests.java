@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
-import io.github.dirnei.mc.servus.lib.data.DataCableBlock;
-import io.github.dirnei.mc.servus.lib.data.DataNetwork;
-import io.github.dirnei.mc.servus.lib.data.DataNetworks;
-import io.github.dirnei.mc.servus.lib.data.DataRole;
-import io.github.dirnei.mc.servus.lib.registry.ServusLibBlocks;
-import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.data.DataCableBlock;
+import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
+import io.github.dirnei.mc.servus.foundation.data.DataRole;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationBlocks;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
@@ -54,7 +54,7 @@ public final class DataCableGameTests {
 
     private static void cable(GameTestHelper helper, BlockPos pos) {
         BlockPos absolute = helper.absolutePos(pos);
-        BlockState state = Block.updateFromNeighbourShapes(ServusLibBlocks.DATA_CABLE.get().defaultBlockState(),
+        BlockState state = Block.updateFromNeighbourShapes(ServusFoundationBlocks.DATA_CABLE.get().defaultBlockState(),
                 helper.getLevel(), absolute);
         helper.setBlock(pos, state);
     }
@@ -164,12 +164,12 @@ public final class DataCableGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
         BlockPos middle = helper.absolutePos(B);
-        ItemStack stack = new ItemStack(ServusLibItems.DATA_CABLE.get());
+        ItemStack stack = new ItemStack(ServusFoundationItems.DATA_CABLE.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
                 new BlockHitResult(new Vec3(middle.getX() + 0.7, middle.getY() + 0.625, middle.getZ() + 0.5), Direction.UP, middle, false)));
-        helper.assertBlockPresent(ServusLibBlocks.DATA_CABLE.get(), EAST_END);
-        helper.assertBlockNotPresent(ServusLibBlocks.DATA_CABLE.get(), ABOVE_B);
+        helper.assertBlockPresent(ServusFoundationBlocks.DATA_CABLE.get(), EAST_END);
+        helper.assertBlockNotPresent(ServusFoundationBlocks.DATA_CABLE.get(), ABOVE_B);
         helper.succeed();
     }
 

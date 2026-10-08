@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.shuttle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.dirnei.mc.servus.lib.graph.NodePos;
+import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;

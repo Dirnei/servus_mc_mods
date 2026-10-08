@@ -2,8 +2,8 @@ package io.github.dirnei.mc.servus.logistics.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
-import io.github.dirnei.mc.servus.lib.item.GogglesItem;
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
 import io.github.dirnei.mc.servus.logistics.ServusLogisticsIds;
 import io.github.dirnei.mc.servus.logistics.duct.DuctTracker;
 import io.github.dirnei.mc.servus.logistics.duct.UtilityDuctBlockEntity;

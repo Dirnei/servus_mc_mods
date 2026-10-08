@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.storage.network;
 
-import io.github.dirnei.mc.servus.lib.network.Conversions;
-import io.github.dirnei.mc.servus.lib.network.NetworkBlockEntity;
-import io.github.dirnei.mc.servus.lib.network.NetworkManager;
-import io.github.dirnei.mc.servus.lib.graph.Side;
-import io.github.dirnei.mc.servus.lib.network.NetworkType;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
+import io.github.dirnei.mc.servus.foundation.network.NetworkBlockEntity;
+import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
+import io.github.dirnei.mc.servus.foundation.graph.Side;
+import io.github.dirnei.mc.servus.foundation.network.NetworkType;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;

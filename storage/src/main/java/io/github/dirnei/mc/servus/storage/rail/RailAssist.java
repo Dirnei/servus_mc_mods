@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
-import io.github.dirnei.mc.servus.lib.placement.PlacementAssist;
-import io.github.dirnei.mc.servus.lib.placement.PlacementAssists;
-import io.github.dirnei.mc.servus.lib.placement.QuadrantDirection;
+import io.github.dirnei.mc.servus.foundation.placement.PlacementAssist;
+import io.github.dirnei.mc.servus.foundation.placement.PlacementAssists;
+import io.github.dirnei.mc.servus.foundation.placement.QuadrantDirection;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

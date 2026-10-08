@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.logistics.client;
 
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.logistics.ServusLogisticsIds;
 import io.github.dirnei.mc.servus.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.logistics.duct.Line;

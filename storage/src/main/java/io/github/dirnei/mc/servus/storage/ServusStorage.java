@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage;
 
-import io.github.dirnei.mc.servus.lib.network.NetworkTypes;
+import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;

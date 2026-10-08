@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.logistics;
 
-import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.logistics.duct.DuctStatsManager;
 import io.github.dirnei.mc.servus.logistics.gametest.FluidTankGameTests;
 import io.github.dirnei.mc.servus.logistics.gametest.ServusLogisticsGameTests;
@@ -37,7 +37,7 @@ public final class ServusLogisticsEvents {
 
         @SubscribeEvent
         public static void onBuildCreativeTab(BuildCreativeModeTabContentsEvent event) {
-            if (event.getTabKey().equals(ServusLibCreativeTabs.SERVUS_KEY)) {
+            if (event.getTabKey().equals(ServusFoundationCreativeTabs.SERVUS_KEY)) {
                 ServusLogisticsItems.CREATIVE_TAB_ORDER.forEach(event::accept);
             }
         }

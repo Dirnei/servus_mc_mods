@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.dirnei.mc.servus.lib.graph.Side;
+import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import org.junit.jupiter.api.Test;
 

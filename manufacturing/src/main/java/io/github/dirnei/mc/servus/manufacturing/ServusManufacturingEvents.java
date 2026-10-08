@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing;
 
-import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
-import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;
 import io.github.dirnei.mc.servus.manufacturing.gametest.ServusManufacturingGameTests;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStatsManager;
@@ -53,7 +53,7 @@ public final class ServusManufacturingEvents {
 
         @SubscribeEvent
         public static void onBuildCreativeTab(BuildCreativeModeTabContentsEvent event) {
-            if (event.getTabKey().equals(ServusLibCreativeTabs.SERVUS_KEY)) {
+            if (event.getTabKey().equals(ServusFoundationCreativeTabs.SERVUS_KEY)) {
                 ServusManufacturingItems.CREATIVE_TAB_ORDER.forEach(event::accept);
             }
         }
@@ -82,7 +82,7 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.ASSEMBLER.get(),
                     (machine, side) -> machine.energyStorage());
-            event.registerBlockEntity(ServusLibCapabilities.PRODUCTION, ServusManufacturingBlockEntities.ASSEMBLER.get(),
+            event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.ASSEMBLER.get(),
                     (machine, side) -> machine.production());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.ELECTRIC_EXTRACTOR.get(),
                     (machine, side) -> machine.sideHandler(side));

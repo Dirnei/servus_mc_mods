@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.controller;
 
-import io.github.dirnei.mc.servus.lib.production.StockProvider;
-import io.github.dirnei.mc.servus.lib.production.StockSink;
+import io.github.dirnei.mc.servus.foundation.production.StockProvider;
+import io.github.dirnei.mc.servus.foundation.production.StockSink;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.StockRules;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
