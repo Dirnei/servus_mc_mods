@@ -22,8 +22,8 @@
 ## 5. Docs and CI
 
 - [ ] 5.1 Merge `docs/src/content/docs/mods/lib.md` and `logistics.md` into `foundation.md`, update the sidebar in `docs/astro.config.mjs`, regenerate `docs/src/data/gamedata.json` with `:manufacturing:runData`, update `docs/src/lib/gamedata.test.ts` and `recipegraph.test.ts` for the new ids. Verify with `npm test` and `npm run build` in `docs/`.
-- [ ] 5.2 Point `.github/workflows/build.yml` at `foundation/build/libs` instead of `lib` and `logistics`. Verify by reading the workflow and checking the paths exist after `gradlew build`.
+- [x] 5.2 Point `.github/workflows/build.yml` at `foundation/build/libs` instead of `lib` and `logistics`. Verify by reading the workflow and checking the paths exist after `gradlew build`.
 
 ## 6. Integration
 
-- [x] 6.1 Grep the repo (excluding `openspec/changes/archive`, `.git`, build outputs and `docs/dist`) for `servus_lib`, `servus_logistics`, `servus.lib.`, `servus.logistics.`, `':lib'`, `':logistics'`: no hits except intended mentions of the old ids in specs. Full `gradlew build` and `gradlew test` green, all GameTest runs green, `runClientAll` and `:foundation:runClient` reach the title screen showing "Servus: Foundation", "Servus: Manufacturing" and "Servus: Storage". Tell the user that dev worlds lost the old namespace blocks and items.
+- [ ] 6.1 Grep the repo (excluding `openspec/changes/archive`, `.git`, build outputs and `docs/dist`) for `servus_lib`, `servus_logistics`, `servus.lib.`, `servus.logistics.`, `':lib'`, `':logistics'`: no hits except intended mentions of the old ids in specs. Full `gradlew build` and `gradlew test` green, all GameTest runs green, `runClientAll` and `:foundation:runClient` reach the title screen showing "Servus: Foundation", "Servus: Manufacturing" and "Servus: Storage". Tell the user that dev worlds lost the old namespace blocks and items.
