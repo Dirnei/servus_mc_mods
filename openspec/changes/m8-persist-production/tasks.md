@@ -14,4 +14,4 @@
 ## 3. Tests and docs
 
 - [x] 3.1 Add `storage/.../gametest/PersistGameTests.java`: terminal request round trip with ids, CPU order mid step round trip and finishing after the CPU block entity was replaced from its saved tag, station job round trip, orphaned job ends, Access Point shipment round trip with cap. Verify with `:storage:runGameTestServer`, `:foundation:runGameTestServer` and `:manufacturing:runGameTestServer` all green.
-- [ ] 3.2 Note in the Storage docs page that requests, orders and jobs survive restarts and add `m8-persist-production` to the PLAN.md M8 list. Verify with `npx vitest run` in `docs/` and `gradlew build test`.
+- [x] 3.2 Note in the Storage docs page that requests, orders and jobs survive restarts and add `m8-persist-production` to the PLAN.md M8 list. Verify with `npx vitest run` in `docs/` and `gradlew build test`.

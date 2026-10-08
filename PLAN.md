@@ -278,6 +278,7 @@ One change per item, in this order. Each one builds only on the ones before it a
 9. `m8-station-hands`: the Crafting Station drops its own recipe list and editor and crafts the pattern jobs the CPU sends it.
 10. `m8-machine-adapter`: Foundation Machine Adapter with side roles, upkeep and profiles for the vanilla furnace, smoker and blast furnace.
 11. `m8-native-machines`: Manufacturing machines report upkeep; burner machines join with fuel upkeep.
+12. `m8-persist-production` (play test follow-up): requests, CPU orders, station jobs and Access Point shipments are saved and survive restarts and chunk unloads; an unloaded CPU pauses its orders instead of cancelling them.
 - Later: High-Speed Data Cable.
 
 ### M9: Wireless and scale
