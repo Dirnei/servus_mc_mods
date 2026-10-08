@@ -150,7 +150,7 @@ public final class DataCableGameTests {
         helper.runAfterDelay(2, () -> {
             Component summary = DataCableBlock.summary(requireNetwork(helper, B));
             helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
-                            && contents.getKey().equals("message.servus_lib.data_cable.summary")
+                            && contents.getKey().equals("message.servus_foundation.data_cable.summary")
                             && Arrays.equals(contents.getArgs(), new Object[] {3, 1, 1}),
                     "summary should say 3 cables, 1 producer, 1 stock, got " + summary.getString());
             helper.succeed();

@@ -52,15 +52,15 @@ public final class SideConfigWrench {
     }
 
     public static Component sideName(RelativeSide side) {
-        return Component.translatable("gui.servus_lib.side." + side.name().toLowerCase(Locale.ROOT));
+        return Component.translatable("gui.servus_foundation.side." + side.name().toLowerCase(Locale.ROOT));
     }
 
     public static Component modeName(SideMode mode) {
-        return Component.translatable("gui.servus_lib.side_mode." + mode.key());
+        return Component.translatable("gui.servus_foundation.side_mode." + mode.key());
     }
 
     /** "Left: Input" for the action bar and the panel tooltip. */
     public static Component message(RelativeSide side, SideMode mode) {
-        return Component.translatable("gui.servus_lib.side_line", sideName(side), modeName(mode));
+        return Component.translatable("gui.servus_foundation.side_line", sideName(side), modeName(mode));
     }
 }

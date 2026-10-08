@@ -34,8 +34,8 @@ class DuctChannelsTest {
     void displayNumbersAndKeysAreOneBased() {
         assertEquals(1, DuctChannels.display(0));
         assertEquals(8, DuctChannels.display(7));
-        assertEquals("gui.servus_logistics.channel.1", DuctChannels.nameKey(0));
-        assertEquals("gui.servus_logistics.channel.8", DuctChannels.nameKey(7));
+        assertEquals("gui.servus_foundation.channel.1", DuctChannels.nameKey(0));
+        assertEquals("gui.servus_foundation.channel.8", DuctChannels.nameKey(7));
         assertNotEquals(DuctChannels.nameKey(0), DuctChannels.nameKey(1));
     }
 }

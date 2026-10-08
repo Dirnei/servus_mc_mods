@@ -101,7 +101,7 @@ public class DataCableBlock extends ConnectableBlock {
     }
 
     public static Component summary(DataNetwork network) {
-        return Component.translatable("message.servus_lib.data_cable.summary", network.cables(),
+        return Component.translatable("message.servus_foundation.data_cable.summary", network.cables(),
                 network.dataMembers(DataRole.PRODUCER).size(), network.dataMembers(DataRole.STOCK).size());
     }
 }

@@ -113,7 +113,7 @@ public final class SideConfigPanel {
         }
         Component text = SideConfigWrench.message(side, modes.apply(side));
         if (locked.test(side)) {
-            text = text.copy().append(" ").append(Component.translatable("gui.servus_lib.side_fixed"));
+            text = text.copy().append(" ").append(Component.translatable("gui.servus_foundation.side_fixed"));
         }
         graphics.renderTooltip(font, text, mouseX, mouseY);
         return true;

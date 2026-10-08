@@ -59,6 +59,6 @@ final class ServusLogisticsRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_bucket", has(Items.BUCKET))
                 .save(output);
 
-        SpecialRecipeBuilder.special(FacadeRecipe::new).save(output, "servus_logistics:facade");
+        SpecialRecipeBuilder.special(FacadeRecipe::new).save(output, "servus_foundation:facade");
     }
 }

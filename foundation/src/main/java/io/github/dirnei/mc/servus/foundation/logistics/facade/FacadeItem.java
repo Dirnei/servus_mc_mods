@@ -37,12 +37,12 @@ public class FacadeItem extends Item {
 
     @Override
     public Component getName(ItemStack stack) {
-        return Component.translatable("item.servus_logistics.facade.named", blockOf(stack).getName());
+        return Component.translatable("item.servus_foundation.facade.named", blockOf(stack).getName());
     }
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("item.servus_logistics.facade.hint"));
+        tooltipComponents.add(Component.translatable("item.servus_foundation.facade.hint"));
     }
 
     @Override

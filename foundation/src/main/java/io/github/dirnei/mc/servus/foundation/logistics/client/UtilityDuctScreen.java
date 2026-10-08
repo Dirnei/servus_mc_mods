@@ -100,7 +100,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         int removeY = line == Line.ITEM ? PRIORITY_Y : CHANNEL_Y + CHANNEL_SIZE + 10;
         Button remove = Button.builder(Component.literal("x"), button -> press(UtilityDuctMenu.BUTTON_REMOVE_LINE + line.ordinal()))
                 .bounds(leftPos + imageWidth - MARGIN - REMOVE_WIDTH, topPos + removeY, REMOVE_WIDTH, 16).build();
-        remove.setTooltip(Tooltip.create(Component.translatable("gui.servus_logistics.remove." + line.id())));
+        remove.setTooltip(Tooltip.create(Component.translatable("gui.servus_foundation.remove." + line.id())));
         addRenderableWidget(remove);
         if (line == Line.ITEM) {
             addRenderableWidget(Button.builder(Component.literal("-"), button -> press(UtilityDuctMenu.BUTTON_PRIORITY_DOWN))
@@ -161,12 +161,12 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         }
         if (modeButton != null && shownPage != null) {
             SideMode mode = menu.duct().mode(shownPage, menu.side());
-            modeButton.setMessage(Component.translatable("gui.servus_logistics.mode." + mode.name().toLowerCase(Locale.ROOT)));
+            modeButton.setMessage(Component.translatable("gui.servus_foundation.mode." + mode.name().toLowerCase(Locale.ROOT)));
         }
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         Line hovered = tabAt(mouseX, mouseY);
         if (hovered != null) {
-            guiGraphics.renderTooltip(font, Component.translatable("gui.servus_logistics.line." + hovered.id()), mouseX, mouseY);
+            guiGraphics.renderTooltip(font, Component.translatable("gui.servus_foundation.line." + hovered.id()), mouseX, mouseY);
             return;
         }
         renderTooltip(guiGraphics, mouseX, mouseY);
@@ -193,11 +193,11 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
         if (shownPage == Line.ITEM) {
-            guiGraphics.drawString(font, Component.translatable("gui.servus_logistics.filter"), MARGIN, FILTER_LABEL_Y, TEXT, false);
-            guiGraphics.drawString(font, Component.translatable("gui.servus_logistics.priority", menu.priority()), MARGIN + 20, PRIORITY_Y + 4, TEXT, false);
+            guiGraphics.drawString(font, Component.translatable("gui.servus_foundation.filter"), MARGIN, FILTER_LABEL_Y, TEXT, false);
+            guiGraphics.drawString(font, Component.translatable("gui.servus_foundation.priority", menu.priority()), MARGIN + 20, PRIORITY_Y + 4, TEXT, false);
         }
         if (shownPage == null) {
-            guiGraphics.drawString(font, Component.translatable("gui.servus_logistics.no_lines"), MARGIN, MODE_Y + 5, TEXT, false);
+            guiGraphics.drawString(font, Component.translatable("gui.servus_foundation.no_lines"), MARGIN, MODE_Y + 5, TEXT, false);
         }
     }
 

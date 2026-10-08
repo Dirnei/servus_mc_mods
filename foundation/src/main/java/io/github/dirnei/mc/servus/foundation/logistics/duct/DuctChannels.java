@@ -40,8 +40,8 @@ public final class DuctChannels {
         return clamp(channel) + 1;
     }
 
-    /** The lang key of a channel name, for example {@code gui.servus_logistics.channel.3}. */
+    /** The lang key of a channel name, for example {@code gui.servus_foundation.channel.3}. */
     public static String nameKey(int channel) {
-        return "gui.servus_logistics.channel." + display(channel);
+        return "gui.servus_foundation.channel." + display(channel);
     }
 }

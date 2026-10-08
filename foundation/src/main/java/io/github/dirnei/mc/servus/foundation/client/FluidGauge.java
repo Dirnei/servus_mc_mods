@@ -76,7 +76,7 @@ public final class FluidGauge {
         Component amount = Component.literal(fluid.getAmount() + " / " + capacity + " mB");
         if (fluid.isEmpty()) {
             graphics.renderComponentTooltip(font, java.util.List.of(
-                    Component.translatable("gui.servus_lib.fluid_gauge.empty"), amount), mouseX, mouseY);
+                    Component.translatable("gui.servus_foundation.fluid_gauge.empty"), amount), mouseX, mouseY);
         } else {
             graphics.renderComponentTooltip(font, java.util.List.of(fluid.getHoverName(), amount), mouseX, mouseY);
         }

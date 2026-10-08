@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.foundation.config;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
- * Common config of Servus Lib, written to {@code config/servus_lib-common.toml}.
+ * Common config of Servus: Foundation, written to {@code config/servus_foundation-common.toml}.
  * Values are read when used, so edits apply without a restart.
  */
 public final class ServusFoundationConfig {

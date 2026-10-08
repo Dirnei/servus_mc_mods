@@ -95,9 +95,9 @@ public class FluidTankBlock extends BaseEntityBlock {
     /** "Water: 3000 / 16000 mB", or "Empty, 16000 mB" for an empty tank. */
     public static Component describe(FluidStack content, int capacity) {
         if (content.isEmpty()) {
-            return Component.translatable("message.servus_logistics.fluid_tank.empty", capacity);
+            return Component.translatable("message.servus_foundation.fluid_tank.empty", capacity);
         }
-        return Component.translatable("message.servus_logistics.fluid_tank.content", content.getHoverName(), content.getAmount(), capacity);
+        return Component.translatable("message.servus_foundation.fluid_tank.content", content.getHoverName(), content.getAmount(), capacity);
     }
 
     @Override

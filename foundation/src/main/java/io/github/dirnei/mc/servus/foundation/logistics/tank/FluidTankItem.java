@@ -51,7 +51,7 @@ public class FluidTankItem extends BlockItem {
         if (!level.isClientSide() && mixesFluids(level, context.getClickedPos(), fluid(context.getItemInHand()))) {
             Player player = context.getPlayer();
             if (player != null) {
-                player.displayClientMessage(Component.translatable("message.servus_logistics.fluid_tank.mixed")
+                player.displayClientMessage(Component.translatable("message.servus_foundation.fluid_tank.mixed")
                         .withStyle(ChatFormatting.RED), true);
             }
             return InteractionResult.FAIL;
@@ -141,9 +141,9 @@ public class FluidTankItem extends BlockItem {
         super.appendHoverText(stack, context, tooltip, flag);
         FluidStack fluid = fluid(stack);
         if (fluid.isEmpty()) {
-            tooltip.add(Component.translatable("tooltip.servus_logistics.fluid_tank.empty").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("tooltip.servus_foundation.fluid_tank.empty").withStyle(ChatFormatting.GRAY));
         } else {
-            tooltip.add(Component.translatable("tooltip.servus_logistics.fluid_tank.fluid", fluid.getHoverName(), fluid.getAmount())
+            tooltip.add(Component.translatable("tooltip.servus_foundation.fluid_tank.fluid", fluid.getHoverName(), fluid.getAmount())
                     .withStyle(ChatFormatting.GRAY));
         }
     }

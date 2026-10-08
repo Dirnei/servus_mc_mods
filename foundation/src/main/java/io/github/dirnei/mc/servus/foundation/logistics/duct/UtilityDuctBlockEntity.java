@@ -511,8 +511,8 @@ public class UtilityDuctBlockEntity extends BlockEntity {
         return new MenuProvider() {
             @Override
             public Component getDisplayName() {
-                return Component.translatable("gui.servus_logistics.utility_duct.title",
-                        Component.translatable("gui.servus_logistics.side." + side.getSerializedName()), touchedBlockName(side));
+                return Component.translatable("gui.servus_foundation.utility_duct.title",
+                        Component.translatable("gui.servus_foundation.side." + side.getSerializedName()), touchedBlockName(side));
             }
 
             @Override
