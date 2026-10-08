@@ -70,4 +70,18 @@ class MachineDefaultsTest {
         assertEquals(20, electric.energyPerTick());
         assertEquals(0, MachineDefaults.stats("servus_manufacturing:crusher").fluidCapacity());
     }
+
+    @Test
+    void onlyBurnerMachinesKeepCoalAsUpkeep() {
+        Set<String> burners = Set.of("burner_extractor", "burner_smelter", "burner_pump", "coal_generator");
+        for (MachineDefaults.MachineInfo info : MachineDefaults.all().values()) {
+            MachineStats stats = info.stats();
+            boolean burner = burners.contains(info.id().substring(info.id().indexOf(':') + 1));
+            assertEquals(burner, stats.hasUpkeep(), info.id());
+            if (burner) {
+                assertEquals("minecraft:coal", stats.upkeepItem(), info.id());
+                assertEquals(16, stats.upkeepLevel(), info.id());
+            }
+        }
+    }
 }
