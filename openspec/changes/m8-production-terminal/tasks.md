@@ -8,7 +8,7 @@
 ## 2. View model, menu and payloads
 
 - [x] 2.1 Add the row records (`MachineRow`, `RecipeRow`, `CpuRow`, `OrderRow`, `StepRow`), `ProductionPayload`, `CancelProductionOrderPayload`, `ProductionView` (server snapshot) and `ProductionTerminalMenu` (sync every 10 ticks on signature change, cancel path); register the menu type and both payloads in `ServusStoragePayloads`, and grep that every payload `TYPE` in the storage sources is registered. Verify with `gradlew build`.
-- [ ] 2.2 GameTests `ProductionTerminalGameTests`: `productionTerminalJoinsLineAndLights`, `productionTerminalAloneIsDark`, `productionTerminalListsIdleStation`, `productionTerminalListsCpuOrder`, `productionTerminalCancelsOrder`, `productionTerminalNoCpuRows`. Verify with `:storage:runGameTestServer`, all green.
+- [x] 2.2 GameTests `ProductionTerminalGameTests`: `productionTerminalJoinsLineAndLights`, `productionTerminalAloneIsDark`, `productionTerminalListsIdleStation`, `productionTerminalListsCpuOrder`, `productionTerminalCancelsOrder`, `productionTerminalNoCpuRows`. Verify with `:storage:runGameTestServer`, all green.
 
 ## 3. Screen
 
