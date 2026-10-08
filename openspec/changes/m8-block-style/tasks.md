@@ -3,7 +3,7 @@
 ## 1. Shared wood material
 
 - [x] 1.1 Add pure `foundation.wood.WoodPick` with JUnit `WoodPickTest` (three equal, two to one, three different picks middle, single, empty). Verify with `gradlew :foundation:test`.
-- [ ] 1.2 Add `servus_foundation:wood` component, `Wood` helpers, `WoodSlot`, `WoodRecipe` with serializer `servus_foundation:wood_shaped`, `WoodBlockItem` with tooltip, client `WoodModel` and `WoodModels` registry with the `ModifyBakingResult` wrapper, the board marker texture and the `LayeredModels` datagen helper. Verify with `gradlew build`.
+- [x] 1.2 Add `servus_foundation:wood` component, `Wood` helpers, `WoodSlot`, `WoodRecipe` with serializer `servus_foundation:wood_shaped`, `WoodBlockItem` with tooltip, client `WoodModel` and `WoodModels` registry with the `ModifyBakingResult` wrapper, the board marker texture and the `LayeredModels` datagen helper. Verify with `gradlew build`.
 
 ## 2. Pure tile and light logic
 

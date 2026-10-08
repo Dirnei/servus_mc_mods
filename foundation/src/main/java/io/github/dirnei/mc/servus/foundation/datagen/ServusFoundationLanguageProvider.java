@@ -15,6 +15,7 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
+        add("tooltip.servus_foundation.wood", "Wood: %s");
         add(ServusFoundationItems.CONFIGURATION_CARROT.get(), "Configuration Carrot");
         add(ServusFoundationItems.GOGGLES.get(), "Engineer Goggles");
         add(AdapterContent.BLOCK.get(), "Machine Adapter");
