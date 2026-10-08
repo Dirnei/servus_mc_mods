@@ -11,4 +11,4 @@
 
 ## 3. Docs
 
-- [ ] 3.1 Update the Storage docs page and PLAN.md 2.4 wording about pattern items, delete the docs icons of the two items, run `:manufacturing:runData` for `gamedata.json` and `npx vitest run` in `docs/`. Verify the tests pass and no `blank_pattern` or `servus_storage:pattern"` remains in docs.
+- [x] 3.1 Update the Storage docs page and PLAN.md 2.4 wording about pattern items, delete the docs icons of the two items, run `:manufacturing:runData` for `gamedata.json` and `npx vitest run` in `docs/`. Verify the tests pass and no `blank_pattern` or `servus_storage:pattern"` remains in docs.
