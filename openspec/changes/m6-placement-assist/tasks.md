@@ -27,5 +27,5 @@
 
 ## 6. Plan and integration
 
-- [ ] 6.1 Update `PLAN.md`: add "Sneak placement assist for rails and ducts" to M6 before the pick rate stats screen, and add the placement assist to the Lib API sketch. Verify that `openspec validate m6-placement-assist` passes and that `gradlew build test` is green across all projects.
+- [x] 6.1 Update `PLAN.md`: add "Sneak placement assist for rails and ducts" to M6 before the pick rate stats screen, and add the placement assist to the Lib API sketch. Verify that `openspec validate m6-placement-assist` passes and that `gradlew build test` is green across all projects.
 - [ ] 6.2 Play check in the dev client, launched by the user from the main checkout. Check that the ghost and arrow appear only while sneaking with a rail or line item, that they follow the top face quadrant on rails and the clicked face on ducts, that they disappear when blocked or out of reach, and that rails bridge a rack gap by sneak clicking. If the translucent ghost renders opaque, switch to the outline fallback from design.md and check again.
