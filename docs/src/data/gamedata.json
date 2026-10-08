@@ -1,5 +1,5 @@
 {
-  "schema": 1,
+  "schema": 2,
   "mod_version": "0.1.0",
   "machines": {
     "servus_manufacturing:assembler": {
@@ -404,6 +404,499 @@
       "time": 200
     }
   },
+  "crafting": {
+    "servus_lib:configuration_carrot": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["R", "I", "C"],
+      "key": {
+        "C": {"item": "minecraft:carrot"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:carrot", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 1},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_lib:configuration_carrot", "count": 1}
+      ]
+    },
+    "servus_lib:data_cable": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["CRC"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_lib:data_cable", "count": 4}
+      ]
+    },
+    "servus_lib:engineer_goggles": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["LIL", "G G"],
+      "key": {
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "L": {"item": "minecraft:leather"}
+      },
+      "inputs": [
+        {"item": "minecraft:glass", "count": 2},
+        {"item": "minecraft:iron_ingot", "count": 1},
+        {"item": "minecraft:leather", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_lib:engineer_goggles", "count": 1}
+      ]
+    },
+    "servus_logistics:facade": {
+      "type": "servus_logistics:facade",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "servus_logistics:fluid_pipe": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["III", "GBG", "III"],
+      "key": {
+        "B": {"item": "minecraft:bucket"},
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bucket", "count": 1},
+        {"item": "minecraft:glass", "count": 2},
+        {"item": "minecraft:iron_ingot", "count": 6}
+      ],
+      "outputs": [
+        {"item": "servus_logistics:fluid_pipe", "count": 8}
+      ]
+    },
+    "servus_logistics:fluid_tank": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IGI", "G G", "IGI"],
+      "key": {
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:glass", "count": 4},
+        {"item": "minecraft:iron_ingot", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_logistics:fluid_tank", "count": 1}
+      ]
+    },
+    "servus_logistics:item_pipe": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["III", "GCG", "III"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:glass", "count": 2},
+        {"item": "minecraft:iron_ingot", "count": 6}
+      ],
+      "outputs": [
+        {"item": "servus_logistics:item_pipe", "count": 8}
+      ]
+    },
+    "servus_logistics:power_cable": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["CCC", "RGR", "CCC"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "G": {"item": "minecraft:glass"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 6},
+        {"item": "minecraft:glass", "count": 1},
+        {"item": "minecraft:redstone", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_logistics:power_cable", "count": 8}
+      ]
+    },
+    "servus_manufacturing:assembler": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["ICI", "RTR", "III"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "minecraft:redstone"},
+        "T": {"item": "minecraft:crafting_table"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 1},
+        {"item": "minecraft:crafting_table", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 5},
+        {"item": "minecraft:redstone", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:assembler", "count": 1}
+      ]
+    },
+    "servus_manufacturing:burner_extractor": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["III", "IFI", "CCC"],
+      "key": {
+        "C": {"item": "minecraft:cobblestone"},
+        "F": {"item": "minecraft:furnace"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:cobblestone", "count": 3},
+        {"item": "minecraft:furnace", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 5}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:burner_extractor", "count": 1}
+      ]
+    },
+    "servus_manufacturing:burner_pump": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IBI", "IFI", "CCC"],
+      "key": {
+        "B": {"item": "minecraft:bucket"},
+        "C": {"item": "minecraft:cobblestone"},
+        "F": {"item": "minecraft:furnace"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bucket", "count": 1},
+        {"item": "minecraft:cobblestone", "count": 3},
+        {"item": "minecraft:furnace", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:burner_pump", "count": 1}
+      ]
+    },
+    "servus_manufacturing:burner_smelter": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["III", "BFB", "BBB"],
+      "key": {
+        "B": {"item": "minecraft:bricks"},
+        "F": {"item": "minecraft:furnace"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bricks", "count": 5},
+        {"item": "minecraft:furnace", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 3}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:burner_smelter", "count": 1}
+      ]
+    },
+    "servus_manufacturing:chimney": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["B B", "B B", "B B"],
+      "key": {
+        "B": {"item": "minecraft:brick"}
+      },
+      "inputs": [
+        {"item": "minecraft:brick", "count": 6}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:chimney", "count": 2}
+      ]
+    },
+    "servus_manufacturing:coal_generator": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["ICI", "CFC", "ICI"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "F": {"item": "minecraft:furnace"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 4},
+        {"item": "minecraft:furnace", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:coal_generator", "count": 1}
+      ]
+    },
+    "servus_manufacturing:research_lab": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IGI", "RBR", "III"],
+      "key": {
+        "B": {"item": "minecraft:book"},
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:book", "count": 1},
+        {"item": "minecraft:glass", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 5},
+        {"item": "minecraft:redstone", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:research_lab", "count": 1}
+      ]
+    },
+    "servus_manufacturing:sink": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["BBB", "BRB", "BBB"],
+      "key": {
+        "B": {"item": "minecraft:bricks"},
+        "R": {"item": "minecraft:iron_bars"}
+      },
+      "inputs": [
+        {"item": "minecraft:bricks", "count": 8},
+        {"item": "minecraft:iron_bars", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:sink", "count": 8}
+      ]
+    },
+    "servus_storage:counter_terminal": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["GGG", "ICI", "PPP"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:glass", "count": 3},
+        {"item": "minecraft:iron_ingot", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_storage:counter_terminal", "count": 1}
+      ]
+    },
+    "servus_storage:crafting_station": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["ITI", "ICI", "III"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "T": {"item": "minecraft:crafting_table"}
+      },
+      "inputs": [
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:crafting_table", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 7}
+      ],
+      "outputs": [
+        {"item": "servus_storage:crafting_station", "count": 1}
+      ]
+    },
+    "servus_storage:crate": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["PPP", "PCP", "PPP"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "P": {"tag": "minecraft:planks"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 8},
+        {"item": "minecraft:chest", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:crate", "count": 1}
+      ]
+    },
+    "servus_storage:double_crate": {
+      "type": "minecraft:crafting_shapeless",
+      "inputs": [
+        {"item": "minecraft:stick", "count": 1},
+        {"item": "servus_storage:crate", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:double_crate", "count": 1}
+      ]
+    },
+    "servus_storage:elevator": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["III", "IRI", "III"],
+      "key": {
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "servus_storage:rail"}
+      },
+      "inputs": [
+        {"item": "minecraft:iron_ingot", "count": 8},
+        {"item": "servus_storage:rail", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:elevator", "count": 4}
+      ]
+    },
+    "servus_storage:heavy_rack": {
+      "type": "servus_storage:heavy_rack",
+      "pattern": ["I I", "PPP", "I I"],
+      "key": {
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:iron_ingot", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_storage:heavy_rack", "count": 1}
+      ]
+    },
+    "servus_storage:inbound_station": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["III", "ICI", "IHI"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "H": {"item": "minecraft:hopper"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:hopper", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 7}
+      ],
+      "outputs": [
+        {"item": "servus_storage:inbound_station", "count": 1}
+      ]
+    },
+    "servus_storage:order_board": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["GGG", "IRI", "PPP"],
+      "key": {
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:glass", "count": 3},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:order_board", "count": 1}
+      ]
+    },
+    "servus_storage:outbound_station": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["ICI", "IDI", "IHI"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "D": {"item": "minecraft:dropper"},
+        "H": {"item": "minecraft:hopper"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:dropper", "count": 1},
+        {"item": "minecraft:hopper", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 6}
+      ],
+      "outputs": [
+        {"item": "servus_storage:outbound_station", "count": 1}
+      ]
+    },
+    "servus_storage:quad_crate": {
+      "type": "minecraft:crafting_shapeless",
+      "inputs": [
+        {"item": "minecraft:stick", "count": 2},
+        {"item": "servus_storage:crate", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:quad_crate", "count": 1}
+      ]
+    },
+    "servus_storage:rail": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["III", " S ", "III"],
+      "key": {
+        "I": {"item": "minecraft:iron_ingot"},
+        "S": {"item": "minecraft:stick"}
+      },
+      "inputs": [
+        {"item": "minecraft:iron_ingot", "count": 6},
+        {"item": "minecraft:stick", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:rail", "count": 8}
+      ]
+    },
+    "servus_storage:shuttle": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["I I", "RBR", "III"],
+      "key": {
+        "B": {"item": "servus_storage:rail"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:iron_ingot", "count": 5},
+        {"item": "minecraft:redstone", "count": 2},
+        {"item": "servus_storage:rail", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:shuttle", "count": 1}
+      ]
+    },
+    "servus_storage:shuttle_garage": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IRI", "PPP"],
+      "key": {
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"},
+        "R": {"item": "servus_storage:rail"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "servus_storage:rail", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:shuttle_garage", "count": 1}
+      ]
+    },
+    "servus_storage:warehouse_controller": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["III", "RCR", "PPP"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 3},
+        {"item": "minecraft:redstone", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_storage:warehouse_controller", "count": 1}
+      ]
+    },
+    "servus_storage:zone_label": {
+      "type": "minecraft:crafting_shapeless",
+      "inputs": [
+        {"tag": "c:dyes", "count": 1},
+        {"item": "minecraft:paper", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:zone_label", "count": 1}
+      ]
+    }
+  },
   "deposits": {
     "servus_manufacturing:coal": {
       "block": "servus_manufacturing:coal_deposit",
@@ -461,8 +954,26 @@
     "minecraft:coal": 1600
   },
   "items": {
+    "minecraft:book": {
+      "name": "Book"
+    },
+    "minecraft:brick": {
+      "name": "Brick"
+    },
+    "minecraft:bricks": {
+      "name": "Bricks"
+    },
+    "minecraft:bucket": {
+      "name": "Bucket"
+    },
+    "minecraft:carrot": {
+      "name": "Carrot"
+    },
     "minecraft:charcoal": {
       "name": "Charcoal"
+    },
+    "minecraft:chest": {
+      "name": "Chest"
     },
     "minecraft:coal": {
       "name": "Coal"
@@ -476,8 +987,17 @@
     "minecraft:cracked_stone_bricks": {
       "name": "Cracked Stone Bricks"
     },
+    "minecraft:crafting_table": {
+      "name": "Crafting Table"
+    },
+    "minecraft:dropper": {
+      "name": "Dropper"
+    },
     "minecraft:ender_pearl": {
       "name": "Ender Pearl"
+    },
+    "minecraft:furnace": {
+      "name": "Furnace"
     },
     "minecraft:glass": {
       "name": "Glass"
@@ -485,8 +1005,20 @@
     "minecraft:gravel": {
       "name": "Gravel"
     },
+    "minecraft:hopper": {
+      "name": "Hopper"
+    },
+    "minecraft:iron_bars": {
+      "name": "Iron Bars"
+    },
     "minecraft:iron_ingot": {
       "name": "Iron Ingot"
+    },
+    "minecraft:leather": {
+      "name": "Leather"
+    },
+    "minecraft:paper": {
+      "name": "Paper"
     },
     "minecraft:raw_copper": {
       "name": "Raw Copper"
@@ -494,17 +1026,44 @@
     "minecraft:raw_iron": {
       "name": "Raw Iron"
     },
+    "minecraft:redstone": {
+      "name": "Redstone Dust"
+    },
     "minecraft:sand": {
       "name": "Sand"
     },
     "minecraft:smooth_stone": {
       "name": "Smooth Stone"
     },
+    "minecraft:stick": {
+      "name": "Stick"
+    },
     "minecraft:stone": {
       "name": "Stone"
     },
     "minecraft:stone_bricks": {
       "name": "Stone Bricks"
+    },
+    "servus_lib:configuration_carrot": {
+      "name": "Configuration Carrot"
+    },
+    "servus_lib:data_cable": {
+      "name": "Data Cable"
+    },
+    "servus_lib:engineer_goggles": {
+      "name": "Engineer Goggles"
+    },
+    "servus_logistics:fluid_pipe": {
+      "name": "Fluid Pipe"
+    },
+    "servus_logistics:fluid_tank": {
+      "name": "Fluid Tank"
+    },
+    "servus_logistics:item_pipe": {
+      "name": "Item Pipe"
+    },
+    "servus_logistics:power_cable": {
+      "name": "Power Cable"
     },
     "servus_manufacturing:assembler": {
       "name": "Assembler Mk1"
@@ -517,6 +1076,9 @@
     },
     "servus_manufacturing:burner_smelter": {
       "name": "Burner Smelter"
+    },
+    "servus_manufacturing:chimney": {
+      "name": "Chimney"
     },
     "servus_manufacturing:chunk_loader": {
       "name": "Chunk Loader"
@@ -550,6 +1112,54 @@
     },
     "servus_manufacturing:research_lab": {
       "name": "Research Lab"
+    },
+    "servus_manufacturing:sink": {
+      "name": "Sink"
+    },
+    "servus_storage:counter_terminal": {
+      "name": "Counter Terminal"
+    },
+    "servus_storage:crafting_station": {
+      "name": "Crafting Station"
+    },
+    "servus_storage:crate": {
+      "name": "Crate"
+    },
+    "servus_storage:double_crate": {
+      "name": "Double Crate"
+    },
+    "servus_storage:elevator": {
+      "name": "Rail Elevator"
+    },
+    "servus_storage:heavy_rack": {
+      "name": "Heavy Duty Rack"
+    },
+    "servus_storage:inbound_station": {
+      "name": "Inbound Station"
+    },
+    "servus_storage:order_board": {
+      "name": "Order Board"
+    },
+    "servus_storage:outbound_station": {
+      "name": "Outbound Station"
+    },
+    "servus_storage:quad_crate": {
+      "name": "Quad Crate"
+    },
+    "servus_storage:rail": {
+      "name": "Warehouse Rail"
+    },
+    "servus_storage:shuttle": {
+      "name": "Shuttle"
+    },
+    "servus_storage:shuttle_garage": {
+      "name": "Shuttle Garage"
+    },
+    "servus_storage:warehouse_controller": {
+      "name": "Warehouse Controller"
+    },
+    "servus_storage:zone_label": {
+      "name": "Zone Label"
     }
   }
 }

@@ -5,14 +5,16 @@ import { GameDataError, parseGameData, stackKey } from './gamedata';
 describe('game data', () => {
 	test('the committed file parses', () => {
 		const data = parseGameData(raw);
-		expect(data.schema).toBe(1);
+		expect(data.schema).toBe(2);
 		expect(data.machines['servus_manufacturing:burner_extractor'].work_ticks).toBe(80);
 		expect(data.recipes['servus_manufacturing:assembling/red_pack'].time).toBe(100);
+		expect(data.crafting['servus_logistics:power_cable'].pattern).toEqual(['CCC', 'RGR', 'CCC']);
+		expect(data.crafting['servus_logistics:facade'].special).toBe(true);
 	});
 
 	test('another schema is rejected naming both versions', () => {
-		expect(() => parseGameData({ ...raw, schema: 2 })).toThrowError(GameDataError);
-		expect(() => parseGameData({ ...raw, schema: 2 })).toThrowError(/schema 2.*schema 1/);
+		expect(() => parseGameData({ ...raw, schema: 1 })).toThrowError(GameDataError);
+		expect(() => parseGameData({ ...raw, schema: 1 })).toThrowError(/schema 1.*schema 2/);
 	});
 
 	test('invalid content names the path', () => {

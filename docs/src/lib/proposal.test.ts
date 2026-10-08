@@ -14,7 +14,7 @@ import {
 } from './proposal';
 
 const data = parseGameData(raw);
-const BUILD = { schema: 1, mod_version: '0.1.0', commit: 'abc1234' };
+const BUILD = { schema: 2, mod_version: '0.1.0', commit: 'abc1234' };
 const RED_PACK = 'servus_manufacturing:red_pack';
 const PACK_TIME = ['recipes', 'servus_manufacturing:assembling/red_pack', 'time'];
 const TARGET = { item: RED_PACK, perSecond: 0.4 };

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /** The game data schema this site understands. */
-export const GAMEDATA_SCHEMA = 1;
+export const GAMEDATA_SCHEMA = 2;
 
 const id = z.string().min(1);
 
@@ -29,6 +29,19 @@ export const recipeSchema = z.object({
 	time: z.number().int().positive(),
 });
 
+/** A grid key entry: an item or a tag, without a count. */
+export const ingredientSchema = z.union([z.object({ item: id }).strict(), z.object({ tag: id }).strict()]);
+
+/** A crafting table style recipe. Grid recipes carry `pattern` and `key`; special ones have no inputs or outputs. */
+export const craftingSchema = z.object({
+	type: id,
+	special: z.boolean().optional(),
+	pattern: z.array(z.string()).optional(),
+	key: z.record(z.string(), ingredientSchema).optional(),
+	inputs: z.array(stackSchema),
+	outputs: z.array(stackSchema),
+});
+
 export const depositSchema = z.object({ block: id, yield: stackSchema });
 
 export const techSchema = z.object({
@@ -43,6 +56,7 @@ export const gameDataSchema = z.object({
 	mod_version: z.string(),
 	machines: z.record(id, machineSchema),
 	recipes: z.record(id, recipeSchema),
+	crafting: z.record(id, craftingSchema),
 	deposits: z.record(id, depositSchema),
 	techs: z.record(id, techSchema),
 	fuels: z.record(id, z.number().int().positive()),
@@ -52,6 +66,7 @@ export const gameDataSchema = z.object({
 export type Stack = z.infer<typeof stackSchema>;
 export type MachineData = z.infer<typeof machineSchema>;
 export type RecipeData = z.infer<typeof recipeSchema>;
+export type CraftingData = z.infer<typeof craftingSchema>;
 export type DepositData = z.infer<typeof depositSchema>;
 export type TechData = z.infer<typeof techSchema>;
 export type GameData = z.infer<typeof gameDataSchema>;
