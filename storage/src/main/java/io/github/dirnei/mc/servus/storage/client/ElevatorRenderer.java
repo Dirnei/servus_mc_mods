@@ -65,7 +65,7 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
     @Override
     public AABB getRenderBoundingBox(ElevatorBlockEntity segment) {
         BlockPos pos = segment.getBlockPos();
-        int height = segment.getLevel() == null ? 1 : column(segment.getLevel(), pos).size();
+        int height = segment.getLevel() == null ? 1 : Math.max(1, column(segment.getLevel(), pos).size());
         return new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + height, pos.getZ() + 1);
     }
 
@@ -79,6 +79,10 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         }
         BlockPos bottom = segment.getBlockPos();
         List<BlockState> floors = column(level, bottom);
+        if (floors.isEmpty()) {
+            // The segment was just broken and the world already holds something else.
+            return;
+        }
         double carY = carY(segment, level.getGameTime() + partialTick) - bottom.getY();
         carY = Math.max(0, Math.min(floors.size() - 1, carY));
         TextureAtlasSprite frame = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(FRAME);
@@ -114,7 +118,7 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         poseStack.popPose();
     }
 
-    /** The segments of the shaft from this one up, as their block states. */
+    /** The segments of the shaft from this one up, as their block states; empty once this segment is gone. */
     private static List<BlockState> column(Level level, BlockPos bottom) {
         List<BlockState> floors = new ArrayList<>();
         BlockPos.MutableBlockPos cursor = bottom.mutable();
@@ -123,9 +127,6 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
             floors.add(state);
             cursor.move(0, 1, 0);
             state = level.getBlockState(cursor);
-        }
-        if (floors.isEmpty()) {
-            floors.add(level.getBlockState(bottom));
         }
         return floors;
     }
