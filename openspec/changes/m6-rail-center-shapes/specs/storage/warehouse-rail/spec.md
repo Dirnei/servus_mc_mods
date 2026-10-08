@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Rails auto connect
-A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal), every Inbound Station and the back of every Shuttle Garage on the same level and SHALL render the matching piece: straight, curve, T or cross. The centre SHALL follow the connections: straight along the axis of a straight run or a single connection, a curve when two connected sides meet at a corner, and a `#` of both line pairs when three or four sides connect. Docks and garage arms count as connections. Towards a storage block or a station the piece SHALL be a dock, visibly different from the arm towards a rail or segment; towards a garage it SHALL be a plain arm. A Heavy Duty Rack SHALL take a dock only on its front side. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment, storage block, station or garage is placed, rotated or removed.
+A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal), every Inbound Station and the back of every Shuttle Garage on the same level and SHALL render the matching piece: straight, curve, T or cross. The centre SHALL follow the connections: straight along the axis of a straight run or a single connection, a curve when two connected sides meet at a corner, and a `#` of both line pairs when three or four sides connect. Docks SHALL NOT shape the centre: a dock is drawn on its own and the centre follows only the sides that carry rail. Towards a storage block or a station the piece SHALL be a dock, visibly different from the arm towards a rail or segment; towards a garage it SHALL be a plain arm. A Heavy Duty Rack SHALL take a dock only on its front side. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment, storage block, station or garage is placed, rotated or removed.
 
 #### Scenario: Straight run
 - **WHEN** three rails are placed in a line
@@ -20,6 +20,10 @@ A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, ev
 #### Scenario: Corner
 - **WHEN** a rail has rails on its north and east sides only
 - **THEN** its centre shows a curve joining the north arm to the east arm
+
+#### Scenario: Rail runs past a rack
+- **WHEN** a rail runs north to south with a rack on its east side
+- **THEN** the rail shows a dock piece towards the rack and its centre stays straight north to south
 
 #### Scenario: Different level
 - **WHEN** a rail is placed directly above another rail

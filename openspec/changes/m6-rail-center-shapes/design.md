@@ -17,9 +17,9 @@
 ### Settles no PLAN.md open decision
 
 ### Centre by multipart condition
-`ConnectableBlock.NORTH..WEST` are true for rails, segments, docks and garage backs alike, so the centre is picked from those four flags alone. The builder emits sixteen centre parts, one per combination, each with all four conditions so exactly one applies. No new block state property.
+`ConnectableBlock.NORTH..WEST` are true for rails, segments, docks and garage backs alike. A side carries rail when its flag is true and its `DOCK_*` flag is false; docks are drawn on their own and do not shape the centre. The builder emits sixteen centre parts, one per rail mask, each an `AND` of four nested condition groups (`MultiPartBlockStateBuilder.PartBuilder.nestedGroup`): a rail side is `side=true, dock_side=false`, a free side is the `OR` of `side=false` and `dock_side=true`. Exactly one part applies. No new block state property.
 
-| Connections | Centre |
+| Rail sides | Centre |
 |---|---|
 | none, N, S, N+S | `rail_center` |
 | E, W, E+W | `rail_center` rotated y 90 |

@@ -7,7 +7,7 @@ Play test (2026-10-08): a rail running east to west always looks like a crossing
 ## What Changes
 
 - The rail centre follows its connections: straight north south or east west, a curve when the two connected sides meet at a corner, and a `#` crossing (both line pairs) for three or four connections. A rail with one connection runs along that side's axis, a lone rail runs north to south.
-- Docks and garage arms count as connections for the centre.
+- Only rails, elevator segments and garage arms shape the centre. A dock towards a storage block or station is drawn on its own and leaves the centre alone, so a rail running past a rack stays straight (play test 2026-10-08).
 
 ## Capabilities
 

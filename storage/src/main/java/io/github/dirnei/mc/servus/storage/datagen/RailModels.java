@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
@@ -57,7 +58,7 @@ final class RailModels {
                 .allFaces((direction, face) -> face.texture("#skin")).end();
     }
 
-    /** One centre part for a connection mask (bits north, east, south, west), conditioned on all four sides so exactly one applies. */
+    /** One centre part for a rail mask (bits north, east, south, west), conditioned on all four sides so exactly one applies. */
     private static void centerPart(MultiPartBlockStateBuilder builder, int mask, BlockModelBuilder center,
                                    BlockModelBuilder curve, BlockModelBuilder cross) {
         boolean north = (mask & 1) != 0;
@@ -76,8 +77,19 @@ final class RailModels {
             model = center;
             rotation = (east || west) ? 90 : 0;
         }
-        builder.part().modelFile(model).rotationY(rotation).addModel()
-                .condition(ConnectableBlock.NORTH, north).condition(ConnectableBlock.EAST, east)
-                .condition(ConnectableBlock.SOUTH, south).condition(ConnectableBlock.WEST, west);
+        MultiPartBlockStateBuilder.PartBuilder part = builder.part().modelFile(model).rotationY(rotation).addModel();
+        side(part, ConnectableBlock.NORTH, RailBlock.DOCK_NORTH, north);
+        side(part, ConnectableBlock.EAST, RailBlock.DOCK_EAST, east);
+        side(part, ConnectableBlock.SOUTH, RailBlock.DOCK_SOUTH, south);
+        side(part, ConnectableBlock.WEST, RailBlock.DOCK_WEST, west);
+    }
+
+    /** A side runs rail into the centre when it connects without a dock; a dock is drawn on its own and leaves the centre alone. */
+    private static void side(MultiPartBlockStateBuilder.PartBuilder part, BooleanProperty connected, BooleanProperty dock, boolean rail) {
+        if (rail) {
+            part.nestedGroup().condition(connected, true).condition(dock, false).end();
+        } else {
+            part.nestedGroup().useOr().condition(connected, false).condition(dock, true).end();
+        }
     }
 }

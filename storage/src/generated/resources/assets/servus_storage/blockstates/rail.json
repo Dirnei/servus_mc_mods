@@ -5,10 +5,48 @@
         "model": "servus_storage:block/rail_center"
       },
       "when": {
-        "east": "false",
-        "north": "false",
-        "south": "false",
-        "west": "false"
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -16,10 +54,42 @@
         "model": "servus_storage:block/rail_center"
       },
       "when": {
-        "east": "false",
-        "north": "true",
-        "south": "false",
-        "west": "false"
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -28,10 +98,42 @@
         "y": 90
       },
       "when": {
-        "east": "true",
-        "north": "false",
-        "south": "false",
-        "west": "false"
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -39,10 +141,36 @@
         "model": "servus_storage:block/rail_center_curve"
       },
       "when": {
-        "east": "true",
-        "north": "true",
-        "south": "false",
-        "west": "false"
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -50,10 +178,42 @@
         "model": "servus_storage:block/rail_center"
       },
       "when": {
-        "east": "false",
-        "north": "false",
-        "south": "true",
-        "west": "false"
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -61,10 +221,36 @@
         "model": "servus_storage:block/rail_center"
       },
       "when": {
-        "east": "false",
-        "north": "true",
-        "south": "true",
-        "west": "false"
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -73,10 +259,36 @@
         "y": 90
       },
       "when": {
-        "east": "true",
-        "north": "false",
-        "south": "true",
-        "west": "false"
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -84,10 +296,30 @@
         "model": "servus_storage:block/rail_center_cross"
       },
       "when": {
-        "east": "true",
-        "north": "true",
-        "south": "true",
-        "west": "false"
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -96,10 +328,42 @@
         "y": 90
       },
       "when": {
-        "east": "false",
-        "north": "false",
-        "south": "false",
-        "west": "true"
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
       }
     },
     {
@@ -108,10 +372,36 @@
         "y": 270
       },
       "when": {
-        "east": "false",
-        "north": "true",
-        "south": "false",
-        "west": "true"
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
       }
     },
     {
@@ -120,10 +410,36 @@
         "y": 90
       },
       "when": {
-        "east": "true",
-        "north": "false",
-        "south": "false",
-        "west": "true"
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
       }
     },
     {
@@ -131,10 +447,30 @@
         "model": "servus_storage:block/rail_center_cross"
       },
       "when": {
-        "east": "true",
-        "north": "true",
-        "south": "false",
-        "west": "true"
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
       }
     },
     {
@@ -143,10 +479,36 @@
         "y": 180
       },
       "when": {
-        "east": "false",
-        "north": "false",
-        "south": "true",
-        "west": "true"
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
       }
     },
     {
@@ -154,10 +516,30 @@
         "model": "servus_storage:block/rail_center_cross"
       },
       "when": {
-        "east": "false",
-        "north": "true",
-        "south": "true",
-        "west": "true"
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
       }
     },
     {
@@ -165,10 +547,30 @@
         "model": "servus_storage:block/rail_center_cross"
       },
       "when": {
-        "east": "true",
-        "north": "false",
-        "south": "true",
-        "west": "true"
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
       }
     },
     {
@@ -176,10 +578,24 @@
         "model": "servus_storage:block/rail_center_cross"
       },
       "when": {
-        "east": "true",
-        "north": "true",
-        "south": "true",
-        "west": "true"
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
       }
     },
     {
