@@ -21,7 +21,7 @@
 
 ## 5. Tests and docs
 
-- [ ] 5.1 GameTests: recipe records birch, birch item places a birch block and its drop keeps birch, dismantle keeps the wood, CPU parts and `ACTIVE` follow forming and orders, Pattern Storage lights follow saves and deletes. Verify with `:storage:runGameTestServer`, `:foundation:runGameTestServer`, `:manufacturing:runGameTestServer`.
+- [x] 5.1 GameTests: recipe records birch, birch item places a birch block and its drop keeps birch, dismantle keeps the wood, CPU parts and `ACTIVE` follow forming and orders, Pattern Storage lights follow saves and deletes. Verify with `:storage:runGameTestServer`, `:foundation:runGameTestServer`, `:manufacturing:runGameTestServer`.
 - [ ] 5.2 Docs: Storage and Foundation pages mention the wood from the recipe and the CPU and Pattern Storage looks. Verify with `npx vitest run` in `docs/`.
 
 ## 6. Integration

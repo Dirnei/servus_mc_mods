@@ -47,6 +47,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Crafting CPUs on the data line. The warehouse is a controller at (2,1,2)
@@ -486,5 +487,42 @@ public final class CraftingCpuGameTests {
         ItemInteractionResult withCarrot = helper.getBlockState(at).useItemOn(carrot, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
         helper.assertTrue(withCarrot == ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION, "the carrot should keep its own use, got " + withCarrot);
         helper.succeed();
+    }
+
+    /** Every block of a formed cube knows its part; breaking one returns the rest to the casing. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void cpuPartsFollowForming(GameTestHelper helper) {
+        cube(helper, CPU_A, -1);
+        helper.assertTrue(form(helper, CPU_A), "the cube should form");
+        for (int part = 0; part < CpuShape.PARTS; part++) {
+            CpuShape.Vec offset = CpuShape.offset(part);
+            BlockState state = helper.getBlockState(CPU_A.offset(offset.x(), offset.y(), offset.z()));
+            helper.assertTrue(state.getValue(CpuBlock.FORMED) && state.getValue(CpuBlock.PART) == part,
+                    "part " + part + " should know its place, got " + state);
+        }
+        helper.setBlock(CPU_A.offset(1, 1, 1), Blocks.AIR.defaultBlockState());
+        BlockState corner = helper.getBlockState(CPU_A.offset(2, 2, 2));
+        helper.assertTrue(!corner.getValue(CpuBlock.FORMED) && corner.getValue(CpuBlock.PART) == 0 && !corner.getValue(CpuBlock.ACTIVE),
+                "an unformed block shows the casing, got " + corner);
+        helper.succeed();
+    }
+
+    /** The cube's lights run while its CPU has open orders and glow when it has none. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void cpuLightsFollowOrders(GameTestHelper helper) {
+        setup(helper, true);
+        helper.runAfterDelay(10, () -> {
+            BlockPos far = CPU_A.offset(2, 2, 2);
+            helper.assertTrue(!helper.getBlockState(far).getValue(CpuBlock.ACTIVE), "an idle CPU glows");
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
+            helper.assertTrue(placed.made(), "the order should land: " + placed.refusal());
+            TerminalWiring.when(helper, () -> helper.getBlockState(far).getValue(CpuBlock.ACTIVE), 20,
+                    () -> "the lights should run with an order", () -> {
+                        cpu(helper, CPU_A).book().cancelAll();
+                        TerminalWiring.when(helper, () -> !helper.getBlockState(far).getValue(CpuBlock.ACTIVE)
+                                        && !helper.getBlockState(CPU_A).getValue(CpuBlock.ACTIVE), 20,
+                                () -> "the lights should glow again once the order is cancelled", helper::succeed);
+                    });
+        });
     }
 }
