@@ -27,6 +27,20 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  */
 public final class TerminalWarehouses {
 
+    /** The last merged stock per set of warehouses, with the index versions it was built from. */
+    private record Merged(long[] versions, List<Map.Entry<ItemKey, Long>> stock) {
+    }
+
+    private static final int MERGED_KEEP = 32;
+
+    /** Keys compare the warehouses by identity, since networks do not override equals. */
+    private static final Map<List<WarehouseNetwork>, Merged> MERGED = new LinkedHashMap<>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<List<WarehouseNetwork>, Merged> eldest) {
+            return size() > MERGED_KEEP;
+        }
+    };
+
     private TerminalWarehouses() {
     }
 
@@ -55,17 +69,34 @@ public final class TerminalWarehouses {
         return list;
     }
 
-    /** The stock of all warehouses added up, largest first. */
+    /** The stock of all warehouses added up, largest first; the same list while no index changed. */
     public static List<Map.Entry<ItemKey, Long>> stock(List<WarehouseNetwork> warehouses) {
+        long[] versions = new long[warehouses.size()];
+        for (int i = 0; i < versions.length; i++) {
+            versions[i] = warehouses.get(i).index().version();
+        }
+        List<WarehouseNetwork> key = List.copyOf(warehouses);
+        Merged merged = MERGED.get(key);
+        if (merged != null && java.util.Arrays.equals(merged.versions(), versions)) {
+            return merged.stock();
+        }
+        if (warehouses.size() == 1) {
+            List<Map.Entry<ItemKey, Long>> single = warehouses.get(0).index().entries();
+            MERGED.put(key, new Merged(versions, single));
+            return single;
+        }
         Map<ItemKey, Long> totals = new LinkedHashMap<>();
         for (WarehouseNetwork warehouse : warehouses) {
             for (Map.Entry<ItemKey, Long> entry : warehouse.index().entries()) {
                 totals.merge(entry.getKey(), entry.getValue(), Long::sum);
             }
         }
-        List<Map.Entry<ItemKey, Long>> list = new ArrayList<>(totals.entrySet());
+        List<Map.Entry<ItemKey, Long>> list = new ArrayList<>(totals.size());
+        totals.forEach((item, total) -> list.add(Map.entry(item, total)));
         list.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
-        return list;
+        List<Map.Entry<ItemKey, Long>> stock = Collections.unmodifiableList(list);
+        MERGED.put(key, new Merged(versions, stock));
+        return stock;
     }
 
     /** The warehouse whose controller sits at {@code controller}, if reachable. */

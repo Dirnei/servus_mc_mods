@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.WeakHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +20,22 @@ import net.minecraft.world.item.ItemStack;
 /** What the producers on a terminal's data line can make, for the stock grid and the craft dialog. Server thread only. */
 public final class TerminalCraftables {
 
+    /** The last craftable list per data line and the producer signature it was built from. */
+    private record Cached(List<Long> key, List<ItemStack> items) {
+    }
+
+    /** Recipe lists longer than this are compared by identity; their providers cache them. */
+    private static final int CONTENT_LIMIT = 64;
+
+    private static final Map<DataNetwork, Cached> CACHE = new WeakHashMap<>();
+    private static int builds;
+
     private TerminalCraftables() {
+    }
+
+    /** How many craftable lists were built from scratch, for tests. */
+    public static int builds() {
+        return builds;
     }
 
     /** The data line the terminal sits on. */
@@ -33,8 +49,21 @@ public final class TerminalCraftables {
         if (line.isEmpty()) {
             return List.of();
         }
+        List<OrderBook.Producer> producers = CpuOrders.producers(level, line.get());
+        List<Long> key = signature(producers);
+        Cached cached = CACHE.get(line.get());
+        if (cached == null || !cached.key().equals(key)) {
+            cached = new Cached(key, build(producers));
+            CACHE.put(line.get(), cached);
+        }
+        List<ItemStack> list = cached.items();
+        return list.size() > limit ? list.subList(0, limit) : list;
+    }
+
+    private static List<ItemStack> build(List<OrderBook.Producer> producers) {
+        builds++;
         Map<ItemKey, ItemStack> found = new LinkedHashMap<>();
-        for (OrderBook.Producer producer : CpuOrders.producers(level, line.get())) {
+        for (OrderBook.Producer producer : producers) {
             for (ProductionRecipe recipe : producer.recipes()) {
                 if (!recipe.outputs().isEmpty()) {
                     ItemStack output = recipe.outputs().get(0);
@@ -44,7 +73,35 @@ public final class TerminalCraftables {
         }
         List<ItemStack> list = new ArrayList<>(found.values());
         list.sort(Comparator.comparing(stack -> stack.getHoverName().getString()));
-        return list.size() > limit ? list.subList(0, limit) : list;
+        return List.copyOf(list);
+    }
+
+    /**
+     * What the craftable list depends on: every producer's position and its
+     * recipe list, long lists by identity (they come from a provider's cache
+     * and change with a recipe reload), short ones by recipe id and output.
+     */
+    private static List<Long> signature(List<OrderBook.Producer> producers) {
+        List<Long> key = new ArrayList<>(producers.size() * 2);
+        for (OrderBook.Producer producer : producers) {
+            key.add(producer.pos().asLong());
+            List<ProductionRecipe> recipes = producer.recipes();
+            long hash = recipes.size();
+            if (recipes.size() > CONTENT_LIMIT) {
+                hash = hash * 31 + System.identityHashCode(recipes);
+            } else {
+                for (ProductionRecipe recipe : recipes) {
+                    hash = hash * 31 + recipe.id().hashCode();
+                    if (!recipe.outputs().isEmpty()) {
+                        ItemStack output = recipe.outputs().get(0);
+                        hash = hash * 31 + output.getItem().hashCode();
+                        hash = hash * 31 + output.getCount();
+                    }
+                }
+            }
+            key.add(hash);
+        }
+        return key;
     }
 
     /** What crafting the amount would take, craft and miss. */

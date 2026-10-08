@@ -10,6 +10,10 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlock;
@@ -46,6 +50,8 @@ public final class TerminalSpeedGameTests {
     private static final BlockPos CPU = new BlockPos(6, 1, 1);
     private static final BlockPos LINE = new BlockPos(4, 2, 3);
     private static final BlockPos PRODUCTION = new BlockPos(3, 3, 3);
+    private static final BlockPos STATION = new BlockPos(4, 3, 3);
+    private static final BlockPos PATTERNS = new BlockPos(5, 3, 3);
 
     /** Stands in for the player's connection: the open path calls it, the test needs no packets. */
     static final ContainerSynchronizer QUIET = new ContainerSynchronizer() {
@@ -132,6 +138,43 @@ public final class TerminalSpeedGameTests {
             }
             helper.assertTrue(menu.firstSyncTick() == now, "the content should go out on open, sent at " + menu.firstSyncTick() + " opened " + now);
             helper.succeed();
+        });
+    }
+
+    private static int producers(GameTestHelper helper) {
+        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(LINE))
+                .map(network -> network.dataMembers(DataRole.PRODUCER).size()).orElse(0);
+    }
+
+    private static boolean lists(List<ItemStack> items, net.minecraft.world.item.Item item) {
+        return items.stream().anyMatch(stack -> stack.is(item));
+    }
+
+    /** The craftable list is built once and reused until a pattern is saved or a producer leaves the line. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void craftablesCachedOnLine(GameTestHelper helper) {
+        setup(helper);
+        helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState()
+                .setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState()
+                .setValue(PatternStorageBlock.FACING, Direction.NORTH));
+        BlockPos terminal = TerminalWiring.at(helper, ACCESS).getBlockPos();
+        TerminalWiring.when(helper, () -> producers(helper) == 2, 120, () -> "the adapter and station should join the line", () -> {
+            List<ItemStack> first = TerminalCraftables.of(helper.getLevel(), terminal, 4096);
+            int builds = TerminalCraftables.builds();
+            List<ItemStack> again = TerminalCraftables.of(helper.getLevel(), terminal, 4096);
+            helper.assertTrue(first == again && TerminalCraftables.builds() == builds, "an unchanged line should reuse its craftable list");
+            helper.assertTrue(lists(first, Items.STONE) && !lists(first, Items.STICK), "stone from the furnace, no sticks without a pattern");
+            PatternStorageBlockEntity storage = helper.getBlockEntity(PATTERNS);
+            storage.set(0, StationJobs.sticks());
+            List<ItemStack> withPattern = TerminalCraftables.of(helper.getLevel(), terminal, 4096);
+            helper.assertTrue(withPattern != again && lists(withPattern, Items.STICK), "a saved pattern should rebuild the list with sticks");
+            helper.setBlock(ADAPTER, Blocks.AIR.defaultBlockState());
+            TerminalWiring.when(helper, () -> producers(helper) == 1, 60, () -> "the adapter should leave the line", () -> {
+                List<ItemStack> without = TerminalCraftables.of(helper.getLevel(), terminal, 4096);
+                helper.assertTrue(!lists(without, Items.STONE) && lists(without, Items.STICK), "stone should be gone with the adapter");
+                helper.succeed();
+            });
         });
     }
 }

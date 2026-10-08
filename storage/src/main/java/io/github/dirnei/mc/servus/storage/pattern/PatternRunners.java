@@ -32,6 +32,10 @@ public final class PatternRunners {
      */
     public static List<ProductionRecipe> withPatterns(ServerLevel level, BlockPos producer, List<ProductionRecipe> reported,
                                                       List<PatternLibrary.Entry> patterns) {
+        if (!(level.getBlockEntity(producer) instanceof CraftingStationBlockEntity)) {
+            // Only stations run patterns; the provider's own list stays the same instance for caches.
+            return reported;
+        }
         List<ProductionRecipe> recipes = new ArrayList<>(reported);
         int ticks = 1;
         for (ProductionRecipe recipe : reported) {
