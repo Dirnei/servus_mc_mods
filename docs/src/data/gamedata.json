@@ -662,6 +662,25 @@
         {"item": "servus_manufacturing:sink", "count": 8}
       ]
     },
+    "servus_storage:access_point": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IRI", "OCO", "III"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "O": {"item": "minecraft:copper_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 2},
+        {"item": "minecraft:iron_ingot", "count": 5},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:access_point", "count": 1}
+      ]
+    },
     "servus_storage:counter_terminal": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["GGG", "ICI", "PPP"],
@@ -1115,6 +1134,9 @@
     },
     "servus_manufacturing:sink": {
       "name": "Sink"
+    },
+    "servus_storage:access_point": {
+      "name": "Access Point"
     },
     "servus_storage:counter_terminal": {
       "name": "Counter Terminal"
