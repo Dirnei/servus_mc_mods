@@ -14,7 +14,7 @@
 
 ## 4. Docs
 
-- [ ] 4.1 Update the Production Terminal section of `docs/src/content/docs/mods/storage.md`. Verify with `npx vitest run` in `docs/`.
+- [x] 4.1 Update the Production Terminal section of `docs/src/content/docs/mods/storage.md`. Verify with `npx vitest run` in `docs/`.
 
 ## 5. Integration
 
