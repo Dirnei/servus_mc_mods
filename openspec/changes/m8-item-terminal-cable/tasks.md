@@ -15,7 +15,7 @@
 
 ## 4. Docs
 
-- [ ] 4.1 Update `docs/src/content/docs/mods/storage.md` (the terminal sits on the data line, deliveries arrive as packets through an Access Point). Verify with `npx vitest run` in `docs/` and `npm run build`.
+- [x] 4.1 Update `docs/src/content/docs/mods/storage.md` (the terminal sits on the data line, deliveries arrive as packets through an Access Point). Verify with `npx vitest run` in `docs/` and `npm run build`.
 
 ## 5. Integration
 

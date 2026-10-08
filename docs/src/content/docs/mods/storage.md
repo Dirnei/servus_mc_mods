@@ -15,7 +15,7 @@ Numbers below are the current defaults. They live in datapack JSON under `data/<
 ## Warehouse blocks
 
 - **Warehouse Controller**: exactly one per network makes it online. Indexes every storage block and every foreign inventory that touches one, polling a few sources per tick.
-- **Counter Terminal**: search the stock, request an amount, push items in. Deliveries land in its nine output slots. Also edits stock rules.
+- **Counter Terminal**: sits on a data line, not on the rails. Search the stock of every warehouse it reaches, request an amount, push items in. Deliveries arrive as packets in its nine output slots. Also edits stock rules.
 - **Warehouse Rail**: a flat floor rail that connects to neighboring rails and docks onto storage blocks and stations. Rails link everything they touch into one network and carry shuttles.
 - **Rail Elevator**: stacked shaft segments that link rails on different floors.
 - **Shuttle Garage**: holds up to four Shuttles. Its back rail is their home. More garages mean more shuttles.
@@ -31,7 +31,7 @@ Every storage block that is part of a working warehouse shows a connection lamp.
 
 ## Automation
 
-- **Requests** at the Counter Terminal become pick jobs: instant from crates and foreign inventories no shuttle reaches, by shuttle otherwise, never instant from a rack.
+- **Requests** at the Counter Terminal become pick jobs to the Access Point with the shortest shuttle trip: instant from crates and foreign inventories no shuttle reaches, by shuttle otherwise, never instant from a rack. The Access Point sends them on as packets. A terminal reaches a warehouse when the warehouse's controller or one of its Access Points shares its data line; with several warehouses the stock adds up and the fullest one ships first.
 - **Work orders**: when a request cannot be filled and an Outbound Station faces a machine that can make the item, the warehouse plans the production, reserves stock on hand, feeds the machine and counts the results collected by Inbound Stations.
 - **Stock rules**: a minimum and maximum per item. When stock drops below the minimum, a work order refills it up to the maximum.
 - **Commands**: `/servus_warehouse` has subcommands to inspect a network (`info`, `zones`, `producers`, `orders`, `rules`) and to act on it (`take`, `feed`, `order`, `rule`, `unrule`, `ship <controller> <target> <item> <count>` to send items through an Access Point to a block on the data line).
