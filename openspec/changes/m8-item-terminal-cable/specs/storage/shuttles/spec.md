@@ -40,10 +40,10 @@ A shuttle SHALL deliver its cargo into the delivery buffer of the block the job 
 - **WHEN** the terminal is broken while packets of its request are on the line
 - **THEN** no item is lost: the packets settle as the data line rules say
 
-#### Scenario: Access Point off the rails
+#### Scenario: Terminal off the rails
 - **WHEN** the only Access Point on the terminal's data line touches no rail and the player requests an item that only sits in a rack
 - **THEN** the request is refused with the reason that there is no rail
 
-#### Scenario: Feed to an Outbound Station
+#### Scenario: Feed to a dock
 - **WHEN** a feed of 4 ingots is made for an Outbound Station on the rail
 - **THEN** the shuttle unloads the ingots into the station's buffer

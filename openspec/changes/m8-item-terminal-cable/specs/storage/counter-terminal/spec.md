@@ -40,7 +40,7 @@ The Counter Terminal GUI SHALL list every indexed item of the warehouses it reac
 ### Requirement: Offline shown
 When no warehouse is reachable the GUI SHALL show the reason instead of the stock and SHALL refuse requests and pushes. Output slots SHALL stay usable so deliveries already made can be collected.
 
-#### Scenario: No warehouse
+#### Scenario: No controller
 - **WHEN** the terminal sits on a data line with no controller and no Access Point of an online warehouse
 - **THEN** the GUI says no warehouse is reachable
 
