@@ -45,8 +45,9 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * Storage's own producer and the hands of the Crafting CPU: crafts the
- * pattern the CPU hands it as a job, without power, and pushes results into
- * neighbours. Without a job it crafts nothing and automation inserts nothing.
+ * pattern the CPU hands it as a job, without power. A job's results wait in the
+ * outputs for the CPU; without a job it crafts nothing, automation inserts
+ * nothing and leftover outputs are pushed into neighbours.
  */
 public class CraftingStationBlockEntity extends BlockEntity implements MenuProvider, SidedBlockEntity {
 
@@ -387,7 +388,8 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
             if (mode.pulls()) {
                 pullFrom(neighbour);
             }
-            if (!mode.pushes()) {
+            // A job's outputs are collected by its CPU; pushed away they would never be counted.
+            if (!mode.pushes() || job != null) {
                 continue;
             }
             for (int i = 0; i < OUTPUT_SLOTS; i++) {

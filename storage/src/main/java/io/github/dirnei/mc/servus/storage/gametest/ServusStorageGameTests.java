@@ -1930,13 +1930,19 @@ public final class ServusStorageGameTests {
         helper.setBlock(DS_CRATE_B, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(DS_OUTBOUND, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
         helper.setBlock(DS_INBOUND, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.SOUTH));
-        CraftingStationBlockEntity station = craftingStationWithSticks(helper, DS_STATION);
+        CraftingStationBlockEntity station = plainStation(helper, DS_STATION);
+        Object owner = StationJobs.sticksJob(station, 2);
         OutboundStationBlockEntity outbound = helper.getBlockEntity(DS_OUTBOUND);
         InboundStationBlockEntity inbound = helper.getBlockEntity(DS_INBOUND);
         CrateBlockEntity crateA = helper.getBlockEntity(DS_CRATE_A);
         CrateBlockEntity crateB = helper.getBlockEntity(DS_CRATE_B);
         outbound.buffer().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 4));
-        helper.runAfterDelay(station.workTicks() * 2 + 80, () -> {
+        // A held job keeps its outputs for the CPU; the sticks leave once the job ends.
+        TerminalWiring.when(helper, () -> !station.working(), station.workTicks() * 2 + 80, () -> "both crafts should be done", () -> {
+            helper.assertTrue(station.outputs().getStackInSlot(0).getCount() == 8, "the sticks wait in the outputs while the job is held");
+            station.release(owner);
+        });
+        helper.runAfterDelay(station.workTicks() * 2 + 140, () -> {
             int sticks = (crateA.count() > 0 && crateA.type(0).is(Items.STICK) ? crateA.count() : 0)
                     + (crateB.count() > 0 && crateB.type(0).is(Items.STICK) ? crateB.count() : 0);
             helper.assertTrue(sticks == 8, "eight sticks should have flowed into the crates, found " + sticks);
