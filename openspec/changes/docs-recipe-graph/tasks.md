@@ -20,7 +20,7 @@
 - [x] 3.3 Add the item panel to `RecipeGraph.tsx`: name and mod, "Made from" with shaped recipes drawn as a 3x3 grid, "Used in", raw cost per one item with "no recipe" and cycle markers and a route choice per item. Next to the graph on wide screens, below it at phone width, with the graph scrolling inside its box. Verify in `npm run dev`: copper ingot and power cable scenarios from the spec, and no horizontal page scroll at 375 px width.
 - [x] 3.4 Mention the Recipe graph in `docs/src/content/docs/lab/index.mdx` and update the "Documentation site and Balance lab" entry in `PLAN.md` section 4 to name it. Verify with `npm run build`.
 
-- [ ] 3.5 Add the opt-in `zoomable` mode to `docs/src/components/lab/Graph.tsx` (design D8: wheel at cursor, drag, pinch, `+`, `-`, Fit, `focus` prop, drag does not click) and use it in `RecipeGraph.tsx`: start fitted, focus the ancestors of the selected item; adjust `lab.css` for the fixed-height box. Verify in the browser: Fit shows the whole graph, selecting the shuttle brings its tree into view, node clicks still select, the chain and research pages still scroll as before, `npm test` and `npm run build` green.
+- [x] 3.5 Add the opt-in `zoomable` mode to `docs/src/components/lab/Graph.tsx` (design D8: wheel at cursor, drag, pinch, `+`, `-`, Fit, `focus` prop, drag does not click) and use it in `RecipeGraph.tsx`: start fitted, focus the ancestors of the selected item; adjust `lab.css` for the fixed-height box. Verify in the browser: Fit shows the whole graph, selecting the shuttle brings its tree into view, node clicks still select, the chain and research pages still scroll as before, `npm test` and `npm run build` green.
 
 ## 4. Item icons
 

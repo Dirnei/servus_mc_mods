@@ -41,6 +41,7 @@ export default function RecipeGraph() {
 	const graph = useMemo(() => buildRecipeGraph(gameData, visible), [visible]);
 	const current = selected && graph.items.includes(selected) ? selected : null;
 	const highlight = useMemo(() => (current ? ancestors(graph, current) : null), [graph, current]);
+	const focus = useMemo(() => (highlight ? [...highlight.nodes].sort() : undefined), [highlight]);
 
 	useEffect(() => {
 		const onKey = (event: KeyboardEvent) => {
@@ -104,10 +105,10 @@ export default function RecipeGraph() {
 						<input type="checkbox" checked={visible.includes(mod)} onChange={() => toggle(mod)} /> {MOD_NAMES[mod]}
 					</label>
 				))}
-				<span class="lab-hint">Click an item to see what it is made from. Escape clears.</span>
+				<span class="lab-hint">Click an item to see what it is made from. Drag to pan, wheel or pinch to zoom, Escape clears.</span>
 			</div>
 			<div class={`lab-recipes${current ? ' lab-recipes-open' : ''}`}>
-				<Graph nodes={nodes} edges={edges} direction="LR" ariaLabel="Recipes of the Servus mods" />
+				<Graph nodes={nodes} edges={edges} direction="LR" ariaLabel="Recipes of the Servus mods" zoomable focus={focus} />
 				{current && <ItemPanel item={current} graph={graph} routes={routes} setRoutes={setRoutes} onSelect={select} />}
 			</div>
 		</div>

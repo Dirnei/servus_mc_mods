@@ -449,8 +449,6 @@
 }
 
 .lab-recipes .lab-graph {
-	overflow: auto;
-	max-height: 75vh;
 	margin-top: 0;
 }
 
@@ -573,4 +571,39 @@
 .lab-cost td:first-child {
 	text-align: right;
 	font-variant-numeric: tabular-nums;
+}
+
+/* Zoomable graph: a fixed box the graph moves inside. */
+
+.lab-graph.lab-graph-zoom {
+	position: relative;
+	overflow: hidden;
+	height: 75vh;
+	min-height: 20rem;
+	touch-action: none;
+	cursor: grab;
+	user-select: none;
+}
+
+.lab-graph-zoom:active {
+	cursor: grabbing;
+}
+
+.lab-graph-zoom svg {
+	width: 100%;
+	height: 100%;
+}
+
+.lab-zoom-buttons {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.5rem;
+	display: flex;
+	gap: 0.25rem;
+}
+
+.lab .lab-zoom-buttons button {
+	min-width: 2rem;
+	padding: 0.15rem 0.5rem;
+	background: var(--sl-color-gray-6);
 }
