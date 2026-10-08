@@ -9,12 +9,18 @@ import io.github.dirnei.mc.servus.foundation.network.NetworkType;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.data.packet.DeliveryReason;
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketLimitsManager;
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketRoutes;
+import io.github.dirnei.mc.servus.foundation.data.packet.Shipment;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -56,6 +62,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
 
     private final DataMembers members = new DataMembers();
     private final Map<NodePos, Probe[]> probes = new HashMap<>();
+    private final List<Shipment> shipments = new ArrayList<>();
     private ServerLevel level;
 
     public DataNetwork(int id, NetworkSet<DataNode, DataEvent, ?> owner) {
@@ -81,6 +88,107 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
     /** How many data nodes (ducts carrying the data line) the network has. */
     public int cables() {
         return size();
+    }
+
+    public ServerLevel level() {
+        return level;
+    }
+
+    /** Whether {@code pos} is a data node of this network or one of its members. */
+    public boolean reaches(BlockPos pos) {
+        NodePos node = Conversions.toNodePos(pos);
+        return owns(node) || members.contains(node);
+    }
+
+    /** Running shipments, read only. */
+    public List<Shipment> shipments() {
+        return Collections.unmodifiableList(shipments);
+    }
+
+    /** Starts ticking a shipment; see {@code DataPackets}. */
+    public void addShipment(Shipment shipment) {
+        shipments.add(shipment);
+    }
+
+    /**
+     * The shortest packet route from {@code from} to {@code to}: the source
+     * position when it is not a data node, the data nodes, and the target
+     * position when it is not a data node.
+     */
+    public Optional<List<NodePos>> packetRoute(BlockPos from, BlockPos to) {
+        NodePos source = Conversions.toNodePos(from);
+        NodePos target = Conversions.toNodePos(to);
+        return route(source, endpoints(source), target);
+    }
+
+    /** A new route for a packet that sits on the data node {@code at}. */
+    public Optional<List<NodePos>> packetRouteFrom(NodePos at, BlockPos to) {
+        if (!owns(at)) {
+            return Optional.empty();
+        }
+        return route(at, Set.of(at), Conversions.toNodePos(to));
+    }
+
+    private Optional<List<NodePos>> route(NodePos source, Set<NodePos> starts, NodePos target) {
+        if (source.equals(target)) {
+            return Optional.empty();
+        }
+        return PacketRoutes.shortest(starts, endpoints(target), owner().graph()::neighbors).map(path -> {
+            List<NodePos> route = new ArrayList<>();
+            if (!path.get(0).equals(source)) {
+                route.add(source);
+            }
+            route.addAll(path);
+            if (!path.get(path.size() - 1).equals(target)) {
+                route.add(target);
+            }
+            return route;
+        }).filter(route -> route.size() >= 2);
+    }
+
+    /** The data nodes of this network a packet can enter or leave {@code pos} through. */
+    private Set<NodePos> endpoints(NodePos pos) {
+        Set<NodePos> result = new HashSet<>();
+        if (owns(pos)) {
+            result.add(pos);
+            return result;
+        }
+        for (Side side : Side.ALL) {
+            NodePos next = pos.relative(side);
+            if (owns(next) && owner().graph().node(next)
+                    .map(node -> node.dataSideOpen(Conversions.toDirection(side.opposite()))).orElse(false)) {
+                result.add(next);
+            }
+        }
+        return result;
+    }
+
+    private boolean owns(NodePos pos) {
+        return owner().networkAt(pos).orElse(null) == this;
+    }
+
+    @Override
+    protected void onTick() {
+        if (shipments.isEmpty() || level == null) {
+            return;
+        }
+        var limits = PacketLimitsManager.INSTANCE.limits();
+        shipments.removeIf(shipment -> shipment.tick(this, level, limits));
+    }
+
+    /** Puts every shipment's items somewhere safe; used when the network goes away or the server stops. */
+    public void settleAll() {
+        if (level != null) {
+            for (Shipment shipment : new ArrayList<>(shipments)) {
+                shipment.settle(level, DeliveryReason.ROUTE_BROKEN);
+            }
+        }
+        shipments.clear();
+    }
+
+    @Override
+    protected void onDisposed() {
+        settleAll();
     }
 
     @Override
@@ -115,6 +223,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
     protected void onNodeRemoved(NodePos pos, DataNode node) {
         probes.remove(pos);
         members.removeCable(pos);
+        shipments.forEach(shipment -> shipment.nodeRemoved(pos));
     }
 
     @Override
@@ -122,6 +231,8 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         if (other instanceof DataNetwork that) {
             members.absorb(that.members);
             probes.putAll(that.probes);
+            shipments.addAll(that.shipments);
+            that.shipments.clear();
             if (level == null) {
                 level = that.level;
             }
