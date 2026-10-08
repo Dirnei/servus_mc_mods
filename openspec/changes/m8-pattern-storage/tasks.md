@@ -27,7 +27,7 @@
 
 ## 7. Docs and plan
 
-- [ ] 7.1 Describe patterns, Pattern Storage and the Patterns tab on `docs/src/content/docs/mods/storage.md`; remove the tier question from PLAN.md section 5; regenerate `docs/src/data/gamedata.json` with `:manufacturing:runData`. Verify with `npx vitest run` and `npm run build` in `docs/`.
+- [x] 7.1 Describe patterns, Pattern Storage and the Patterns tab on `docs/src/content/docs/mods/storage.md`; remove the tier question from PLAN.md section 5; regenerate `docs/src/data/gamedata.json` with `:manufacturing:runData`. Verify with `npx vitest run` and `npm run build` in `docs/`.
 
 ## 8. Integration
 

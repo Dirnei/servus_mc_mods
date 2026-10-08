@@ -681,6 +681,25 @@
         {"item": "servus_storage:access_point", "count": 1}
       ]
     },
+    "servus_storage:blank_pattern": {
+      "type": "minecraft:crafting_shapeless",
+      "inputs": [
+        {"item": "minecraft:paper", "count": 1},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:blank_pattern", "count": 1}
+      ]
+    },
+    "servus_storage:blank_pattern_from_pattern": {
+      "type": "minecraft:crafting_shapeless",
+      "inputs": [
+        {"item": "servus_storage:pattern", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:blank_pattern", "count": 1}
+      ]
+    },
     "servus_storage:counter_terminal": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["GGG", "ICI", "PPP"],
@@ -823,6 +842,25 @@
       ],
       "outputs": [
         {"item": "servus_storage:outbound_station", "count": 1}
+      ]
+    },
+    "servus_storage:pattern_storage": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IBI", "RCR", "IBI"],
+      "key": {
+        "B": {"item": "servus_storage:blank_pattern"},
+        "C": {"item": "minecraft:chest"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 4},
+        {"item": "minecraft:redstone", "count": 2},
+        {"item": "servus_storage:blank_pattern", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_storage:pattern_storage", "count": 1}
       ]
     },
     "servus_storage:production_terminal": {
@@ -1163,6 +1201,9 @@
     "servus_storage:access_point": {
       "name": "Access Point"
     },
+    "servus_storage:blank_pattern": {
+      "name": "Blank Pattern"
+    },
     "servus_storage:counter_terminal": {
       "name": "Counter Terminal"
     },
@@ -1189,6 +1230,12 @@
     },
     "servus_storage:outbound_station": {
       "name": "Outbound Station"
+    },
+    "servus_storage:pattern": {
+      "name": "Pattern"
+    },
+    "servus_storage:pattern_storage": {
+      "name": "Pattern Storage"
     },
     "servus_storage:production_terminal": {
       "name": "Production Terminal"
