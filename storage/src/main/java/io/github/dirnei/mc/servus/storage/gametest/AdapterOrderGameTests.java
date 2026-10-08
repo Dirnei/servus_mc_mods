@@ -50,13 +50,18 @@ public final class AdapterOrderGameTests {
 
     /** Warehouse with cobblestone and coal, Access Point, an adapter on a furnace and a CPU on one data line. */
     private static void setup(GameTestHelper helper) {
+        setup(helper, new ItemStack(Items.COBBLESTONE, 16));
+    }
+
+    /** The same line with {@code material} instead of cobblestone in the first crate. */
+    private static void setup(GameTestHelper helper, ItemStack material) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         for (BlockPos pos : List.of(COBBLE_CRATE, COAL_CRATE)) {
             helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         }
         CrateBlockEntity cobble = helper.getBlockEntity(COBBLE_CRATE);
-        cobble.insert(new ItemStack(Items.COBBLESTONE, 16), false);
+        cobble.insert(material, false);
         CrateBlockEntity coal = helper.getBlockEntity(COAL_CRATE);
         coal.insert(new ItemStack(Items.COAL, 32), false);
         TerminalWiring.place(helper, ACCESS);
@@ -116,6 +121,48 @@ public final class AdapterOrderGameTests {
                             + " " + step.reason() + ", fed " + step.fed(ItemKey.of(new ItemStack(Items.COBBLESTONE)))
                             + ", collected " + step.collected(STONE) + ", furnace " + furnace(helper).getItem(0) + " / "
                             + furnace(helper).getItem(1) + " / " + furnace(helper).getItem(2), helper::succeed);
+        });
+    }
+
+    private static final BlockPos SECOND_CRATE = new BlockPos(3, 1, 2);
+    private static final ItemKey CHARCOAL = ItemKey.of(new ItemStack(Items.CHARCOAL));
+
+    /** Charcoal with only birch logs in stock runs on birch, not on the first log the furnace knows. */
+    @GameTest(template = EMPTY, timeoutTicks = 2400)
+    public static void charcoalFromBirchOnly(GameTestHelper helper) {
+        setup(helper, new ItemStack(Items.BIRCH_LOG, 8));
+        TerminalWiring.when(helper, () -> ready(helper) && CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 4).missing().isEmpty(),
+                100, () -> "the line and the indexed birch logs should be ready", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), CHARCOAL, 4, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            WorkOrder order = placed.created().order();
+            helper.assertTrue(order.steps().size() == 1, "one step, got " + order.steps().size());
+            OrderStep step = order.steps().get(0);
+            helper.assertTrue(step.inputs().keySet().equals(java.util.Set.of(ItemKey.of(new ItemStack(Items.BIRCH_LOG)))),
+                    "the step should smelt birch logs, got " + step.inputs());
+            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 2300,
+                    () -> "the order should finish, state " + order.state() + " " + order.reason() + ", step " + step.state()
+                            + " " + step.reason() + ", collected " + step.collected(CHARCOAL), helper::succeed);
+        });
+    }
+
+    /** With 6 oak and 4 birch logs the preview for 10 charcoal takes both from stock and misses nothing. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void charcoalPreviewSplitsLogs(GameTestHelper helper) {
+        setup(helper, new ItemStack(Items.OAK_LOG, 6));
+        helper.setBlock(SECOND_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity birch = helper.getBlockEntity(SECOND_CRATE);
+        birch.insert(new ItemStack(Items.BIRCH_LOG, 4), false);
+        TerminalWiring.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
+            TerminalWiring.when(helper, () -> CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10).missing().isEmpty(), 100,
+                    () -> "nothing should be missing, got " + CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10), () -> {
+                var preview = CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10);
+                helper.assertTrue(preview.fromStock().getOrDefault(ItemKey.of(new ItemStack(Items.OAK_LOG)), 0) == 6
+                                && preview.fromStock().getOrDefault(ItemKey.of(new ItemStack(Items.BIRCH_LOG)), 0) == 4,
+                        "6 oak and 4 birch logs from stock, got " + preview.fromStock());
+                helper.assertTrue(preview.toCraft().getOrDefault(CHARCOAL, 0) == 10, "10 charcoal to craft, got " + preview.toCraft());
+                helper.succeed();
+            });
         });
     }
 }

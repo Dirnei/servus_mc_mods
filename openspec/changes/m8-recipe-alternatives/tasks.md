@@ -6,7 +6,7 @@
 
 ## 2. Game behaviour
 
-- [ ] 2.1 Add Storage GameTests in `storage/src/main/java/.../storage/gametest/AdapterOrderGameTests.java`: `charcoalFromBirchOnly` (furnace adapter, only birch logs, the charcoal request completes) and `charcoalPreviewSplitsLogs` (oak plus birch, the craft preview lists both from stock and nothing missing). Verify with `:storage:runGameTestServer`, `:foundation:runGameTestServer` and `:manufacturing:runGameTestServer` green.
+- [x] 2.1 Add Storage GameTests in `storage/src/main/java/.../storage/gametest/AdapterOrderGameTests.java`: `charcoalFromBirchOnly` (furnace adapter, only birch logs, the charcoal request completes) and `charcoalPreviewSplitsLogs` (oak plus birch, the craft preview lists both from stock and nothing missing). Verify with `:storage:runGameTestServer`, `:foundation:runGameTestServer` and `:manufacturing:runGameTestServer` green.
 
 ## 3. Integration
 
