@@ -15,6 +15,12 @@ public final class ServusLibConfig {
             .push("wrench")
             .define("wrenchRotatesBlocks", true);
 
+    private static final ModConfigSpec.IntValue PLACEMENT_ASSIST_REACH = BUILDER
+            .pop()
+            .comment("How many blocks a sneak click may walk along a run of rails or ducts to place at its end.")
+            .push("placement")
+            .defineInRange("placementAssistReach", 16, 1, 64);
+
     public static final ModConfigSpec SPEC;
 
     static {
@@ -27,5 +33,9 @@ public final class ServusLibConfig {
 
     public static boolean wrenchRotatesBlocks() {
         return WRENCH_ROTATES_BLOCKS.get();
+    }
+
+    public static int placementAssistReach() {
+        return PLACEMENT_ASSIST_REACH.get();
     }
 }

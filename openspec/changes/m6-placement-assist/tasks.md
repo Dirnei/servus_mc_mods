@@ -8,12 +8,12 @@
 ## 2. Lib config and item hook
 
 - [ ] 2.1 Add the `placement` section with `placementAssistReach` (int, 1 to 64, default 16) to `lib/.../config/ServusLibConfig.java`, plus a `placementAssistReach()` getter. Verify with `gradlew :lib:build` and by checking that `servus_lib-common.toml` gets the commented option on a dev server start.
-- [ ] 2.2 Add `lib/.../placement/PlacementAssist.java` (`isStart`, `isRun`, `direction`), `AssistedItem.java`, and `PlacementAssists.java` (`target(...)` and `place(context, assist, fallback)` using `BlockPlaceContext.at(context, target.relative(dir.getOpposite()), dir)`, FAIL without a target, fallback without sneak or start). Verify with `gradlew :lib:build`.
-- [ ] 2.3 Add `lib/.../placement/AssistedBlockItem.java` (a `BlockItem` taking a `PlacementAssist` that overrides `place` and implements `AssistedItem`). Verify with `gradlew :lib:build`.
+- [x] 2.2 Add `lib/.../placement/PlacementAssist.java` (`isStart`, `isRun`, `direction`), `AssistedItem.java`, and `PlacementAssists.java` (`target(...)` and `place(context, assist, fallback)` using `BlockPlaceContext.at(context, target.relative(dir.getOpposite()), dir)`, FAIL without a target, fallback without sneak or start). Verify with `gradlew :lib:build`.
+- [x] 2.3 Add `lib/.../placement/AssistedBlockItem.java` (a `BlockItem` taking a `PlacementAssist` that overrides `place` and implements `AssistedItem`). Verify with `gradlew :lib:build`.
 
 ## 3. Client preview (lib)
 
-- [ ] 3.1 Add `lib/.../client/PlacementAssistRenderer.java`: a `RenderLevelStageEvent` subscriber at `AFTER_TRANSLUCENT_BLOCKS`, client only. While the player is sneaking with an `AssistedItem` in the main hand and looking at a block, it draws the translucent ghost of the placement state at the target and an arrow of quads in the walk direction, and draws nothing without a target. Verify with `gradlew :lib:build`. The visual check happens in 6.2.
+- [x] 3.1 Add `lib/.../client/PlacementAssistRenderer.java`: a `RenderLevelStageEvent` subscriber at `AFTER_TRANSLUCENT_BLOCKS`, client only. While the player is sneaking with an `AssistedItem` in the main hand and looking at a block, it draws the translucent ghost of the placement state at the target and an arrow of quads in the walk direction, and draws nothing without a target. Verify with `gradlew :lib:build`. The visual check happens in 6.2.
 
 ## 4. Warehouse Rail (storage)
 
