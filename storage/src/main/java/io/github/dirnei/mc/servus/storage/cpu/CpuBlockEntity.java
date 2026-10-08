@@ -16,6 +16,7 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
+import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.pattern.PatternRunners;
@@ -29,6 +30,8 @@ import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -39,8 +42,9 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 /**
  * One block of a Crafting CPU. Every formed block is a link member of the
- * data line it touches; the master (part 0) owns the CPU's work orders, which
- * live in memory and are cancelled when the cube unforms or unloads.
+ * data line it touches; the master (part 0) owns the CPU's work orders. They
+ * are saved with the master, pause while it is unloaded and are cancelled
+ * when the cube unforms.
  */
 public class CpuBlockEntity extends BlockEntity implements DataLink {
 
@@ -105,16 +109,24 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
         }
     }
 
-    @Override
-    public void setRemoved() {
-        cancelAll();
-        super.setRemoved();
-    }
+    // Persistence
 
     @Override
-    public void onChunkUnloaded() {
-        super.onChunkUnloaded();
-        cancelAll();
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        if (book != null) {
+            tag.put("Orders", book.save(registries));
+        }
+    }
+
+    /** Only a formed master takes its saved orders back; one that loads unformed has lost them. */
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        BlockState state = getBlockState();
+        if (tag.contains("Orders") && CpuBlock.isFormed(state) && state.getValue(CpuBlock.PART) == 0) {
+            book().load(tag.getCompound("Orders"), registries);
+        }
     }
 
     public Component summary() {
@@ -158,7 +170,7 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
             int remaining = amount;
             int planned = 0;
             String refusal = "";
-            List<OrderBook.Pending> pending = new ArrayList<>();
+            List<OrderBook.Shipped> shipped = new ArrayList<>();
             for (WarehouseNetwork warehouse : byStock) {
                 if (remaining <= 0) {
                     break;
@@ -171,22 +183,7 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
                 if (shipping.shipped()) {
                     AccessPointBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
                     int asked = shipment.planned();
-                    pending.add(new OrderBook.Pending() {
-                        @Override
-                        public int asked() {
-                            return asked;
-                        }
-
-                        @Override
-                        public int delivered() {
-                            return shipment.delivered();
-                        }
-
-                        @Override
-                        public boolean ended() {
-                            return shipment.ended();
-                        }
-                    });
+                    shipped.add(new OrderBook.Shipped(shipment.id(), asked));
                     planned += asked;
                     remaining -= asked;
                 } else if (refusal.isEmpty()) {
@@ -196,7 +193,22 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
             if (planned < amount && refusal.isEmpty()) {
                 refusal = "out_of_stock";
             }
-            return new OrderBook.Feed(planned, planned >= amount ? "" : refusal, pending);
+            return new OrderBook.Feed(planned, planned >= amount ? "" : refusal, shipped);
+        }
+
+        @Override
+        public ProductionLedger.Transfer transfer(long id) {
+            return ProductionLedger.get(serverLevel()).transfer(id);
+        }
+
+        @Override
+        public BlockPos self() {
+            return worldPosition;
+        }
+
+        @Override
+        public void changed() {
+            setChanged();
         }
 
         @Override
@@ -220,9 +232,15 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
                 }
                 Optional<Delivery> delivery = DataPackets.move(server, producer, target.get(), key.stack(1), toMove);
                 if (delivery.isPresent()) {
-                    int sent = toMove;
-                    step.sent(key, sent);
-                    delivery.get().onEnd(ended -> step.landed(key, sent, ended.delivered()));
+                    // The ledger outlives this block entity, so a landing while the CPU is unloaded still counts.
+                    ProductionLedger ledger = ProductionLedger.get(server);
+                    ProductionLedger.Transfer transfer = ledger.open(toMove);
+                    step.collecting(key, transfer.id(), toMove);
+                    delivery.get().onEnd(ended -> {
+                        ledger.delivered(transfer, ended.delivered());
+                        ledger.end(transfer);
+                    });
+                    setChanged();
                 }
             }
         }
@@ -235,14 +253,14 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
                 return true;
             }
             Optional<EncodedPattern> pattern = patternFor(server, step);
-            return pattern.isPresent() && station.assign(pattern.get(), step.batches(), step);
+            return pattern.isPresent() && station.assign(pattern.get(), step.batches(), step.ref());
         }
 
         @Override
         public void release(OrderStep step) {
             ServerLevel server = serverLevel();
             if (server.isLoaded(step.producer()) && server.getBlockEntity(step.producer()) instanceof CraftingStationBlockEntity station) {
-                station.release(step);
+                station.release(step.ref());
             }
         }
 

@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -39,6 +43,16 @@ public final class OrderBook {
 
         /** Ships up to amount of the key to the producer. */
         Feed feed(BlockPos producer, ItemKey key, int amount);
+
+        /** A shipment or collection by its ledger id, null when the ledger forgot it. */
+        ProductionLedger.Transfer transfer(long id);
+
+        /** The CPU's master position, for step references. */
+        BlockPos self();
+
+        /** Orders changed and should be saved. */
+        default void changed() {
+        }
 
         /** Starts moving the step's outputs out of its producer. */
         void collect(OrderStep step);
@@ -67,21 +81,16 @@ public final class OrderBook {
     public record Producer(BlockPos pos, Component name, List<ProductionRecipe> recipes, Optional<ResourceLocation> active) {
     }
 
-    /** A shipment of inputs on its way. */
-    public interface Pending {
-        int asked();
-
-        int delivered();
-
-        boolean ended();
+    /** A shipment of inputs on its way: its ledger id and how many it was asked to bring. */
+    public record Shipped(long transfer, int asked) {
     }
 
     /**
      * @param planned how many are on their way
      * @param refusal why fewer than asked were planned, empty when all were
-     * @param pending the shipments, so short endings can be shipped again
+     * @param shipped the shipments, so short endings can be shipped again
      */
-    public record Feed(int planned, String refusal, List<Pending> pending) {
+    public record Feed(int planned, String refusal, List<Shipped> shipped) {
     }
 
     /** The outcome of creating an order: the order, or why none was made. */
@@ -216,12 +225,14 @@ public final class OrderBook {
             steps.add(new OrderStep(stepKey.producer(), byKey.get(stepKey), step.batches()));
         }
         WorkOrder order = new WorkOrder(nextId++, key, amount, requestId, steps, plan.reserved(), plan.missing());
+        assignRefs(order);
         if (openCount() >= host.slots()) {
             order.setState(WorkOrder.State.WAITING, WAITING_REASON);
         } else if (!plan.missing().isEmpty()) {
             order.setState(WorkOrder.State.BLOCKED, missingReason(plan.missing()));
         }
         orders.add(order);
+        host.changed();
         return new Created(order, "");
     }
 
@@ -316,6 +327,7 @@ public final class OrderBook {
         for (OrderStep step : order.steps()) {
             host.release(step);
         }
+        host.changed();
         return true;
     }
 
@@ -359,11 +371,16 @@ public final class OrderBook {
                 order.setState(WorkOrder.State.WAITING, WAITING_REASON);
             }
         }
+        boolean removed = false;
         for (Iterator<WorkOrder> it = orders.iterator(); it.hasNext(); ) {
             WorkOrder order = it.next();
             if (!order.open() && order.doneAt() >= 0 && now - order.doneAt() > KEEP_DONE_TICKS) {
                 it.remove();
+                removed = true;
             }
+        }
+        if (removed || !orders.isEmpty()) {
+            host.changed();
         }
     }
 
@@ -371,7 +388,8 @@ public final class OrderBook {
         String blocked = null;
         boolean allDone = true;
         for (OrderStep step : order.steps()) {
-            if (step.active() && step.settleFeedings() && step.state() == OrderStep.State.PRODUCING) {
+            step.settleCollections(host::transfer);
+            if (step.active() && step.settleFeedings(host::transfer) && step.state() == OrderStep.State.PRODUCING) {
                 step.setState(OrderStep.State.DELIVERING);
             }
             if (step.active()) {
@@ -428,7 +446,7 @@ public final class OrderBook {
             }
             Feed feed = host.feed(step.producer(), key, owed);
             if (feed.planned() > 0) {
-                step.addFed(key, feed.planned(), feed.pending());
+                step.addFed(key, feed.planned(), feed.shipped());
                 order.useReserved(key, feed.planned());
             }
             if (feed.planned() < owed && reason == null) {
@@ -452,5 +470,39 @@ public final class OrderBook {
             }
         }
         return host.busyElsewhere(producer);
+    }
+
+    private void assignRefs(WorkOrder order) {
+        List<OrderStep> steps = order.steps();
+        for (int i = 0; i < steps.size(); i++) {
+            steps.get(i).setRef(new StepRef(host.self(), order.id(), i));
+        }
+    }
+
+    // Persistence
+
+    public CompoundTag save(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("NextId", nextId);
+        ListTag list = new ListTag();
+        for (WorkOrder order : orders) {
+            list.add(order.save(registries));
+        }
+        tag.put("Orders", list);
+        return tag;
+    }
+
+    /** Takes over saved orders; their ids stay and new ids continue above them. */
+    public void load(CompoundTag tag, HolderLookup.Provider registries) {
+        orders.clear();
+        nextId = Math.max(1, tag.getInt("NextId"));
+        for (Tag raw : tag.getList("Orders", Tag.TAG_COMPOUND)) {
+            WorkOrder order = WorkOrder.load((CompoundTag) raw, registries);
+            if (order != null) {
+                assignRefs(order);
+                orders.add(order);
+                nextId = Math.max(nextId, order.id() + 1);
+            }
+        }
     }
 }

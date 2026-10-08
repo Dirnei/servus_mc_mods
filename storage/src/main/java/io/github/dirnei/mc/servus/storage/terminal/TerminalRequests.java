@@ -40,6 +40,9 @@ public final class TerminalRequests {
         }
         if (ticks % RETRY_TICKS == 0) {
             retry(level, terminal);
+            if (!terminal.requests().isEmpty()) {
+                terminal.setChanged();
+            }
         }
     }
 

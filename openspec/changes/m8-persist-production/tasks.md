@@ -8,7 +8,7 @@
 ## 2. Requests, orders and jobs
 
 - [x] 2.1 Save terminal requests in `CounterTerminalBlockEntity` (ids from the ledger) and book their shipments by id in `TerminalRequests`. Verify with `gradlew build` and `:storage:runGameTestServer`.
-- [ ] 2.2 Save `WorkOrder`, `OrderStep` and `OrderBook` (feedings and collections by transfer id, `StepRef`, next id); replace `OrderBook.Pending` with `Host.transfer`; `CpuBlockEntity` saves the book, stops cancelling on unload, cancels when it loads unformed, tracks collections in the ledger. Verify with `gradlew build` and `:storage:runGameTestServer`.
+- [x] 2.2 Save `WorkOrder`, `OrderStep` and `OrderBook` (feedings and collections by transfer id, `StepRef`, next id); replace `OrderBook.Pending` with `Host.transfer`; `CpuBlockEntity` saves the book, stops cancelling on unload, cancels when it loads unformed, tracks collections in the ledger. Verify with `gradlew build` and `:storage:runGameTestServer`.
 - [ ] 2.3 Save the Crafting Station job with its `StepRef` owner and end orphaned jobs every 100 ticks. Verify with `gradlew build` and `:storage:runGameTestServer`.
 
 ## 3. Tests and docs

@@ -1,10 +1,15 @@
 package io.github.dirnei.mc.servus.storage.order;
 
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 
 /** Make this many of an item: the steps, the stock reserved for them and how it is going. */
 public final class WorkOrder {
@@ -114,5 +119,45 @@ public final class WorkOrder {
             }
         }
         return false;
+    }
+
+    // Persistence
+
+    CompoundTag save(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("Id", id);
+        tag.put("Item", Saving.key(key, registries));
+        tag.putInt("Amount", amount);
+        tag.putInt("Request", requestId);
+        tag.putString("State", state.name());
+        tag.putString("Reason", reason);
+        tag.putLong("DoneAt", doneAt);
+        tag.put("Reserved", Saving.counts(reserved, registries));
+        tag.put("Missing", Saving.counts(missing, registries));
+        ListTag list = new ListTag();
+        for (OrderStep step : steps) {
+            list.add(step.save(registries));
+        }
+        tag.put("Steps", list);
+        return tag;
+    }
+
+    /** The saved order, or null when its item no longer exists. */
+    static WorkOrder load(CompoundTag tag, HolderLookup.Provider registries) {
+        ItemKey key = Saving.key(tag.getCompound("Item"), registries).orElse(null);
+        if (key == null) {
+            return null;
+        }
+        List<OrderStep> steps = new ArrayList<>();
+        for (Tag raw : tag.getList("Steps", Tag.TAG_COMPOUND)) {
+            steps.add(OrderStep.load((CompoundTag) raw, registries));
+        }
+        WorkOrder order = new WorkOrder(tag.getInt("Id"), key, tag.getInt("Amount"), tag.getInt("Request"), steps,
+                Saving.counts(tag.getList("Reserved", Tag.TAG_COMPOUND), registries),
+                Saving.counts(tag.getList("Missing", Tag.TAG_COMPOUND), registries));
+        order.state = Saving.state(State.class, tag.getString("State"), State.RUNNING);
+        order.reason = tag.getString("Reason");
+        order.doneAt = tag.getLong("DoneAt");
+        return order;
     }
 }

@@ -15,6 +15,7 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -211,10 +212,10 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
      * @return whether the station took the job
      */
     public boolean assign(EncodedPattern pattern, int crafts, Object owner) {
-        if (working() && jobOwner != owner) {
+        if (working() && !Objects.equals(jobOwner, owner)) {
             return false;
         }
-        boolean same = job != null && jobOwner == owner && job.equals(pattern);
+        boolean same = job != null && Objects.equals(jobOwner, owner) && job.equals(pattern);
         job = pattern;
         jobLeft = Math.max(0, crafts);
         jobOwner = owner;
@@ -227,7 +228,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
 
     /** Ends the job of that owner; a job of another owner stays. */
     public void release(Object owner) {
-        if (job != null && jobOwner == owner) {
+        if (job != null && Objects.equals(jobOwner, owner)) {
             job = null;
             jobLeft = 0;
             jobOwner = null;
