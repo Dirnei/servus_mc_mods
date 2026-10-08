@@ -1,4 +1,5 @@
 {
+  "block.servus_lib.data_cable": "Data Cable",
   "gui.servus_lib.fluid_gauge.empty": "Empty",
   "gui.servus_lib.side.back": "Back",
   "gui.servus_lib.side.bottom": "Bottom",
@@ -18,6 +19,7 @@
   "item.servus_lib.configuration_carrot": "Configuration Carrot",
   "item.servus_lib.engineer_goggles": "Engineer Goggles",
   "itemGroup.servus": "Servus",
+  "message.servus_lib.data_cable.summary": "Data network: %s cables, %s producers, %s stock",
   "servus_lib.configuration.wrench": "Configuration Carrot",
   "servus_lib.configuration.wrenchRotatesBlocks": "Configuration Carrot rotates blocks"
 }

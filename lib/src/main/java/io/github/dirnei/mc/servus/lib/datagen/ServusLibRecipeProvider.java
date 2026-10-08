@@ -36,5 +36,12 @@ final class ServusLibRecipeProvider extends RecipeProvider {
                 .define('G', Items.GLASS)
                 .unlockedBy("has_glass", has(Items.GLASS))
                 .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLibItems.DATA_CABLE.get(), 4)
+                .pattern("CRC")
+                .define('C', Items.COPPER_INGOT)
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_copper", has(Items.COPPER_INGOT))
+                .save(output);
     }
 }

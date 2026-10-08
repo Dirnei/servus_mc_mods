@@ -11,7 +11,7 @@
 
 ## 3. Datagen and assets
 
-- [ ] 3.1 Add `ServusLibBlockStateProvider` (`ConnectableModels.connectable(..., 2, true)`), `ServusLibBlockLoot` with a `LootTableProvider`, `ServusLibBlockTagsProvider` (`minecraft:mineable/pickaxe`), the shaped recipe (copper ingot, redstone, copper ingot gives 4) in `ServusLibRecipeProvider` and lang entries for the block and `message.servus_lib.data_cable.summary` in `ServusLibLanguageProvider`; wire them in `ServusLibDataGen`. Add the placeholder texture `lib/src/main/resources/assets/servus_lib/textures/block/data_cable.png`. Run the Lib data run and verify the generated blockstate, models, loot table, tag and recipe files exist, then `gradlew build`.
+- [x] 3.1 Add `ServusLibBlockStateProvider` (`ConnectableModels.connectable(..., 2, true)`), `ServusLibBlockLoot` with a `LootTableProvider`, `ServusLibBlockTagsProvider` (`minecraft:mineable/pickaxe`), the shaped recipe (copper ingot, redstone, copper ingot gives 4) in `ServusLibRecipeProvider` and lang entries for the block and `message.servus_lib.data_cable.summary` in `ServusLibLanguageProvider`; wire them in `ServusLibDataGen`. Add the placeholder texture `lib/src/main/resources/assets/servus_lib/textures/block/data_cable.png`. Run the Lib data run and verify the generated blockstate, models, loot table, tag and recipe files exist, then `gradlew build`.
 
 ## 4. Members on the network
 

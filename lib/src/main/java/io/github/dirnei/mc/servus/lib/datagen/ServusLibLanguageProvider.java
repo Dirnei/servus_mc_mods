@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.lib.datagen;
 
 import io.github.dirnei.mc.servus.lib.ServusLibIds;
+import io.github.dirnei.mc.servus.lib.registry.ServusLibBlocks;
 import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
@@ -15,6 +16,8 @@ final class ServusLibLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         add(ServusLibItems.CONFIGURATION_CARROT.get(), "Configuration Carrot");
         add(ServusLibItems.GOGGLES.get(), "Engineer Goggles");
+        add(ServusLibBlocks.DATA_CABLE.get(), "Data Cable");
+        add("message.servus_lib.data_cable.summary", "Data network: %s cables, %s producers, %s stock");
         add("itemGroup.servus", "Servus");
         add("servus_lib.configuration.wrench", "Configuration Carrot");
         add("servus_lib.configuration.wrenchRotatesBlocks", "Configuration Carrot rotates blocks");
