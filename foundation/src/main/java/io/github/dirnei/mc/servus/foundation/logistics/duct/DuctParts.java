@@ -24,13 +24,14 @@ public final class DuctParts {
     public static final int ITEM = 1 << Line.ITEM.ordinal();
     public static final int ENERGY = 1 << Line.ENERGY.ordinal();
     public static final int FLUID = 1 << Line.FLUID.ordinal();
+    public static final int DATA = 1 << Line.DATA.ordinal();
     /** Every line. */
     public static final int ALL = (1 << Line.VALUES.length) - 1;
 
     private DuctParts() {
     }
 
-    /** Every non empty line set, in mask order: seven sets for three lines. */
+    /** Every non empty line set, in mask order: fifteen sets for four lines. */
     public static List<Integer> lineSets() {
         List<Integer> sets = new ArrayList<>(ALL);
         for (int mask = 1; mask <= ALL; mask++) {

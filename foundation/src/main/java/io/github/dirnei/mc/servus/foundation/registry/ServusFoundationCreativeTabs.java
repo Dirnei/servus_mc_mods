@@ -29,7 +29,6 @@ public final class ServusFoundationCreativeTabs {
                     .displayItems((parameters, output) -> {
                         output.accept(ServusFoundationItems.CONFIGURATION_CARROT.get());
                         output.accept(ServusFoundationItems.GOGGLES.get());
-                        output.accept(ServusFoundationItems.DATA_CABLE.get());
                     })
                     .build());
 

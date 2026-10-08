@@ -14,12 +14,13 @@ class DuctPartsTest {
         assertEquals(1, DuctParts.ITEM);
         assertEquals(2, DuctParts.ENERGY);
         assertEquals(4, DuctParts.FLUID);
-        assertEquals(7, DuctParts.ALL);
+        assertEquals(8, DuctParts.DATA);
+        assertEquals(15, DuctParts.ALL);
     }
 
     @Test
-    void sevenLineSets() {
-        assertEquals(List.of(1, 2, 3, 4, 5, 6, 7), DuctParts.lineSets());
+    void fifteenLineSets() {
+        assertEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15), DuctParts.lineSets());
     }
 
     @Test
@@ -30,19 +31,22 @@ class DuctPartsTest {
         assertEquals("item_energy", DuctParts.suffix(DuctParts.ITEM | DuctParts.ENERGY));
         assertEquals("item_fluid", DuctParts.suffix(DuctParts.ITEM | DuctParts.FLUID));
         assertEquals("energy_fluid", DuctParts.suffix(DuctParts.ENERGY | DuctParts.FLUID));
-        assertEquals("item_energy_fluid", DuctParts.suffix(DuctParts.ALL));
+        assertEquals("item_energy_fluid", DuctParts.suffix(DuctParts.ITEM | DuctParts.ENERGY | DuctParts.FLUID));
+        assertEquals("data", DuctParts.suffix(DuctParts.DATA));
+        assertEquals("item_data", DuctParts.suffix(DuctParts.ITEM | DuctParts.DATA));
+        assertEquals("item_energy_fluid_data", DuctParts.suffix(DuctParts.ALL));
     }
 
     @Test
     void emptyAndUnknownBitsReadAsKnownLines() {
         assertEquals("item", DuctParts.suffix(0));
-        assertEquals("energy", DuctParts.suffix(DuctParts.ENERGY | 8));
+        assertEquals("energy", DuctParts.suffix(DuctParts.ENERGY | 16));
     }
 
     @Test
     void linesOfASet() {
         assertEquals(List.of(Line.ITEM, Line.FLUID), DuctParts.lines(DuctParts.ITEM | DuctParts.FLUID));
-        assertEquals(List.of(Line.ITEM, Line.ENERGY, Line.FLUID), DuctParts.lines(DuctParts.ALL));
+        assertEquals(List.of(Line.ITEM, Line.ENERGY, Line.FLUID, Line.DATA), DuctParts.lines(DuctParts.ALL));
     }
 
     @Test
@@ -63,6 +67,7 @@ class DuctPartsTest {
             assertEquals(line, Line.byId(line.id()));
         }
         assertEquals(Line.FLUID, Line.byId("fluid"));
-        assertEquals(3, new HashSet<>(List.of(Line.VALUES)).size());
+        assertEquals(Line.DATA, Line.byId("data"));
+        assertEquals(4, new HashSet<>(List.of(Line.VALUES)).size());
     }
 }

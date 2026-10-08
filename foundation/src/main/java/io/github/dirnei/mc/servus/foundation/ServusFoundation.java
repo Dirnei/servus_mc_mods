@@ -4,8 +4,6 @@ import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.ServusLogisticsContent;
 import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationBlockEntities;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationBlocks;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import net.neoforged.bus.api.IEventBus;
@@ -24,9 +22,7 @@ public final class ServusFoundation {
     public static final Logger LOGGER = LoggerFactory.getLogger(ServusFoundation.class);
 
     public ServusFoundation(IEventBus modEventBus, ModContainer container) {
-        ServusFoundationBlocks.BLOCKS.register(modEventBus);
         ServusFoundationItems.ITEMS.register(modEventBus);
-        ServusFoundationBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ServusFoundationCreativeTabs.TABS.register(modEventBus);
         NetworkTypes.register(DataNetwork.TYPE);
         ServusLogisticsContent.register(modEventBus);

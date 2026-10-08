@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import io.github.dirnei.mc.servus.foundation.data.DataMembership;
+import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.data.DataNode;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
 import io.github.dirnei.mc.servus.foundation.network.NetworkNode;
@@ -50,14 +53,16 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
- * A utility duct: a set of lines (Item Pipe, Power Cable, Fluid Pipe), each with a mode
+ * A utility duct: a set of lines (Item Pipe, Power Cable, Fluid Pipe, data line), each with a mode
  * and a channel per side, plus item filters and priorities per side. Each
  * present line joins its own network type, so items, energy and fluids form separate
  * graphs through the same blocks. The duct also keeps which sides carry an
  * arm per line and which arms end at an inventory or machine, synced to the
- * client for the model.
+ * client for the model. The data line has no channels; its sides are only on
+ * (both) or off (disabled), and it joins the Foundation data network as a
+ * {@link DataNode}.
  */
-public class UtilityDuctBlockEntity extends BlockEntity {
+public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     public static final int FILTER_SLOTS = 9;
     public static final int MIN_PRIORITY = -9;
@@ -74,7 +79,7 @@ public class UtilityDuctBlockEntity extends BlockEntity {
     private final int[] arms = new int[Line.VALUES.length];
     private int endpoints;
     private final EnumSet<Line> joined = EnumSet.noneOf(Line.class);
-    private final Map<Line, LineNode> nodes = new EnumMap<>(Line.class);
+    private final Map<Line, NetworkNode<?>> nodes = new EnumMap<>(Line.class);
     private final Map<Direction, DuctItemHandler> itemHandlers = new EnumMap<>(Direction.class);
     private final Map<Direction, DuctFluidHandler> fluidHandlers = new EnumMap<>(Direction.class);
     private BlockState facade;
@@ -93,7 +98,7 @@ public class UtilityDuctBlockEntity extends BlockEntity {
             };
         }
         for (Line line : Line.VALUES) {
-            nodes.put(line, new LineNode(line));
+            nodes.put(line, line == Line.DATA ? new DataLineNode() : new LineNode(line));
         }
     }
 
@@ -135,6 +140,10 @@ public class UtilityDuctBlockEntity extends BlockEntity {
 
     public void setMode(Line line, Direction side, SideMode mode) {
         if (mode == SideMode.AUTO) {
+            mode = SideMode.BOTH;
+        }
+        if (line == Line.DATA && mode != SideMode.DISABLED) {
+            // The data line is only on or off.
             mode = SideMode.BOTH;
         }
         if (modes[line.ordinal()][side.ordinal()] == mode) {
@@ -222,6 +231,7 @@ public class UtilityDuctBlockEntity extends BlockEntity {
             case ITEM -> realLevel.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, side.getOpposite()) != null;
             case ENERGY -> realLevel.getCapability(Capabilities.EnergyStorage.BLOCK, neighborPos, side.getOpposite()) != null;
             case FLUID -> realLevel.getCapability(Capabilities.FluidHandler.BLOCK, neighborPos, side.getOpposite()) != null;
+            case DATA -> DataMembership.isMember(realLevel, neighborPos, side.getOpposite());
         };
     }
 
@@ -370,6 +380,15 @@ public class UtilityDuctBlockEntity extends BlockEntity {
         for (Line line : lines) {
             network(line).ifPresent(network -> network.post(new DuctEvent.ConfigChanged(Conversions.toNodePos(worldPosition))));
         }
+        refreshData();
+    }
+
+    /** Data sides decide which neighbours the data graph links to, so the node's edges are re-evaluated. */
+    private void refreshData() {
+        if (level instanceof ServerLevel server && joined.contains(Line.DATA)) {
+            NetworkManager.of(server).refresh(worldPosition, nodes.get(Line.DATA));
+            DataNetwork.sidesChanged(server, worldPosition);
+        }
     }
 
     /**
@@ -419,7 +438,7 @@ public class UtilityDuctBlockEntity extends BlockEntity {
 
     @SuppressWarnings("unchecked")
     public <T extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent>> Optional<T> network(Line line) {
-        if (!(level instanceof ServerLevel server)) {
+        if (!(level instanceof ServerLevel server) || line == Line.DATA) {
             return Optional.empty();
         }
         NetworkType<UtilityDuctBlockEntity, DuctEvent, T> type = (NetworkType<UtilityDuctBlockEntity, DuctEvent, T>) typeOf(line);
@@ -431,7 +450,33 @@ public class UtilityDuctBlockEntity extends BlockEntity {
             case ITEM -> ItemChannelNetwork.TYPE;
             case ENERGY -> EnergyChannelNetwork.TYPE;
             case FLUID -> FluidChannelNetwork.TYPE;
+            case DATA -> throw new IllegalArgumentException("The data line joins the data network, see dataNetwork()");
         };
+    }
+
+    /** The data network of this duct's data line, empty without the line or on the client. */
+    public Optional<DataNetwork> dataNetwork() {
+        if (!(level instanceof ServerLevel server) || !has(Line.DATA)) {
+            return Optional.empty();
+        }
+        return NetworkManager.of(server).set(DataNetwork.TYPE).networkAt(Conversions.toNodePos(worldPosition));
+    }
+
+    // DataNode
+
+    @Override
+    public Level dataLevel() {
+        return level;
+    }
+
+    @Override
+    public boolean dataRemoved() {
+        return isRemoved();
+    }
+
+    @Override
+    public boolean dataSideOpen(Direction side) {
+        return has(Line.DATA) && mode(Line.DATA, side) != SideMode.DISABLED;
     }
 
     private void join(Line line) {
@@ -473,6 +518,20 @@ public class UtilityDuctBlockEntity extends BlockEntity {
         DuctTracker.remove(this);
         for (Line line : Line.VALUES) {
             leave(line);
+        }
+    }
+
+    /** The data line's node: the duct as a {@link DataNode} in the Foundation data network. */
+    private final class DataLineNode implements NetworkNode<DataNode> {
+
+        @Override
+        public NetworkType<DataNode, ?, ?> networkType() {
+            return DataNetwork.TYPE;
+        }
+
+        @Override
+        public DataNode networkNode() {
+            return UtilityDuctBlockEntity.this;
         }
     }
 
@@ -647,6 +706,9 @@ public class UtilityDuctBlockEntity extends BlockEntity {
                     join(line);
                     network(line).ifPresent(network ->
                             network.post(new DuctEvent.ConfigChanged(Conversions.toNodePos(worldPosition))));
+                    if (line == Line.DATA) {
+                        refreshData();
+                    }
                 } else {
                     leave(line);
                 }

@@ -1,8 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.registry;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import io.github.dirnei.mc.servus.foundation.data.DataCableAssist;
-import io.github.dirnei.mc.servus.foundation.placement.AssistedBlockItem;
 import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import net.minecraft.world.item.Item;
@@ -17,9 +15,6 @@ public final class ServusFoundationItems {
             ITEMS.registerItem("configuration_carrot", ConfigurationCarrotItem::new, new Item.Properties().stacksTo(1));
     public static final DeferredItem<GogglesItem> GOGGLES =
             ITEMS.registerItem("engineer_goggles", GogglesItem::new, new Item.Properties());
-
-    public static final DeferredItem<AssistedBlockItem> DATA_CABLE = ITEMS.registerItem("data_cable",
-            properties -> new AssistedBlockItem(ServusFoundationBlocks.DATA_CABLE.get(), new DataCableAssist(), properties));
 
     private ServusFoundationItems() {
     }

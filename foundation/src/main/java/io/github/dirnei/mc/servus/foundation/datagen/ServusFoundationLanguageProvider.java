@@ -2,7 +2,6 @@ package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationBlocks;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
@@ -17,7 +16,6 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         add(ServusFoundationItems.CONFIGURATION_CARROT.get(), "Configuration Carrot");
         add(ServusFoundationItems.GOGGLES.get(), "Engineer Goggles");
-        add(ServusFoundationBlocks.DATA_CABLE.get(), "Data Cable");
         add("message.servus_foundation.data_cable.summary", "Data network: %s cables, %s producers, %s stock");
         add("itemGroup.servus", "Servus");
         add("servus_foundation.configuration.wrench", "Configuration Carrot");

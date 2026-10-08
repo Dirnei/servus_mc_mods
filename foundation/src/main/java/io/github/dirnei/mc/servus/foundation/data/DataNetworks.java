@@ -15,11 +15,11 @@ public final class DataNetworks {
     }
 
     /**
-     * The network of the cable at {@code pos}, else the network (lowest id
+     * The network of the data node at {@code pos}, else the network (lowest id
      * first) that lists {@code pos} as a member, else empty.
      */
     public static Optional<DataNetwork> networkAt(ServerLevel level, BlockPos pos) {
-        NetworkSet<DataCableBlockEntity, DataEvent, DataNetwork> set = NetworkManager.of(level).set(DataNetwork.TYPE);
+        NetworkSet<DataNode, DataEvent, DataNetwork> set = NetworkManager.of(level).set(DataNetwork.TYPE);
         NodePos node = Conversions.toNodePos(pos);
         Optional<DataNetwork> cable = set.networkAt(node);
         if (cable.isPresent()) {

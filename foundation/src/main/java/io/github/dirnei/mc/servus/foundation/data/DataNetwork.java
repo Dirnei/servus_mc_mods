@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.data;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import io.github.dirnei.mc.servus.foundation.graph.ConnectionRule;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
@@ -25,20 +24,21 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 
 /**
- * One data network: connected Data Cables plus the blocks they touch that
- * expose the production or stock capabilities. Members are read through
- * capability caches whose invalidation posts {@link DataEvent.SidesChanged},
- * so nothing is scanned per tick. Server thread only.
+ * One data network: connected data nodes (ducts carrying the data line) plus
+ * the blocks they touch that expose the production or stock capabilities.
+ * Members are read through capability caches whose invalidation posts
+ * {@link DataEvent.SidesChanged}, so nothing is scanned per tick. Server
+ * thread only.
  */
-public final class DataNetwork extends ServusNetwork<DataCableBlockEntity, DataEvent> {
+public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
 
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "data");
 
-    /** The graph holds cables only; members are kept beside it. */
-    public static final NetworkType<DataCableBlockEntity, DataEvent, DataNetwork> TYPE =
-            new NetworkType<>(ID, ConnectionRule.always(), DataNetwork::new);
+    /** The graph holds data nodes only and links them through open sides; members are kept beside it. */
+    public static final NetworkType<DataNode, DataEvent, DataNetwork> TYPE = new NetworkType<>(ID,
+            (from, fromNode, side, to, toNode) -> fromNode.dataSideOpen(Conversions.toDirection(side)), DataNetwork::new);
 
-    /** The capability caches of one cable side. */
+    /** The capability caches of one node side. */
     private record Probe(BlockCapabilityCache<?, Direction> production, BlockCapabilityCache<?, Direction> provider,
                          BlockCapabilityCache<?, Direction> sink) {
 
@@ -58,7 +58,7 @@ public final class DataNetwork extends ServusNetwork<DataCableBlockEntity, DataE
     private final Map<NodePos, Probe[]> probes = new HashMap<>();
     private ServerLevel level;
 
-    public DataNetwork(int id, NetworkSet<DataCableBlockEntity, DataEvent, ?> owner) {
+    public DataNetwork(int id, NetworkSet<DataNode, DataEvent, ?> owner) {
         super(id, owner);
     }
 
@@ -78,7 +78,7 @@ public final class DataNetwork extends ServusNetwork<DataCableBlockEntity, DataE
         return members.contains(Conversions.toNodePos(pos));
     }
 
-    /** How many cables the network has. */
+    /** How many data nodes (ducts carrying the data line) the network has. */
     public int cables() {
         return size();
     }
@@ -91,8 +91,8 @@ public final class DataNetwork extends ServusNetwork<DataCableBlockEntity, DataE
     }
 
     @Override
-    protected void onNodeAdded(NodePos pos, DataCableBlockEntity cable) {
-        if (!(cable.getLevel() instanceof ServerLevel server)) {
+    protected void onNodeAdded(NodePos pos, DataNode node) {
+        if (!(node.dataLevel() instanceof ServerLevel server)) {
             return;
         }
         level = server;
@@ -102,9 +102,9 @@ public final class DataNetwork extends ServusNetwork<DataCableBlockEntity, DataE
         for (Direction direction : Direction.values()) {
             BlockPos target = blockPos.relative(direction);
             sides[direction.ordinal()] = new Probe(
-                    cache(ServusFoundationCapabilities.PRODUCTION, server, target, direction, cable, invalidated),
-                    cache(ServusFoundationCapabilities.STOCK_PROVIDER, server, target, direction, cable, invalidated),
-                    cache(ServusFoundationCapabilities.STOCK_SINK, server, target, direction, cable, invalidated));
+                    cache(ServusFoundationCapabilities.PRODUCTION, server, target, direction, node, invalidated),
+                    cache(ServusFoundationCapabilities.STOCK_PROVIDER, server, target, direction, node, invalidated),
+                    cache(ServusFoundationCapabilities.STOCK_SINK, server, target, direction, node, invalidated));
         }
         probes.put(pos, sides);
         // Neighbours are read on the next tick, never while a chunk is loading.
@@ -112,13 +112,13 @@ public final class DataNetwork extends ServusNetwork<DataCableBlockEntity, DataE
     }
 
     @Override
-    protected void onNodeRemoved(NodePos pos, DataCableBlockEntity cable) {
+    protected void onNodeRemoved(NodePos pos, DataNode node) {
         probes.remove(pos);
         members.removeCable(pos);
     }
 
     @Override
-    protected void onAbsorb(ServusNetwork<DataCableBlockEntity, DataEvent> other) {
+    protected void onAbsorb(ServusNetwork<DataNode, DataEvent> other) {
         if (other instanceof DataNetwork that) {
             members.absorb(that.members);
             probes.putAll(that.probes);
@@ -132,25 +132,32 @@ public final class DataNetwork extends ServusNetwork<DataCableBlockEntity, DataE
 
     private void readSides(NodePos pos) {
         Probe[] sides = probes.get(pos);
+        DataNode node = owner().graph().node(pos).orElse(null);
         for (Side side : Side.ALL) {
             NodePos target = pos.relative(side);
             BlockPos targetPos = Conversions.toBlockPos(target);
-            boolean member = level != null && level.isLoaded(targetPos)
-                    && !(level.getBlockEntity(targetPos) instanceof DataCableBlockEntity);
+            boolean member = level != null && node != null && node.dataSideOpen(Conversions.toDirection(side))
+                    && level.isLoaded(targetPos)
+                    && !(level.getBlockEntity(targetPos) instanceof DataNode);
             members.touch(pos, side, target, member ? sides[side.ordinal()].roles() : Set.of());
         }
     }
 
     private static <T> BlockCapabilityCache<T, Direction> cache(BlockCapability<T, Direction> capability, ServerLevel level,
                                                                 BlockPos target, Direction direction,
-                                                                DataCableBlockEntity cable, Runnable invalidated) {
+                                                                DataNode node, Runnable invalidated) {
         return BlockCapabilityCache.create(capability, level, target, direction.getOpposite(),
-                () -> !cable.isRemoved(), invalidated);
+                () -> !node.dataRemoved(), invalidated);
     }
 
-    /** Invalidation must not query, so it only queues a read for whichever network owns the cable now. */
-    private static void postTo(ServerLevel level, NodePos cable) {
-        NetworkManager.of(level).set(TYPE).networkAt(cable)
-                .ifPresent(network -> network.post(new DataEvent.SidesChanged(cable)));
+    /** Asks the network that owns the node at {@code pos} to read its sides again on the next tick. */
+    public static void sidesChanged(ServerLevel level, BlockPos pos) {
+        postTo(level, Conversions.toNodePos(pos));
+    }
+
+    /** Invalidation must not query, so it only queues a read for whichever network owns the node now. */
+    private static void postTo(ServerLevel level, NodePos node) {
+        NetworkManager.of(level).set(TYPE).networkAt(node)
+                .ifPresent(network -> network.post(new DataEvent.SidesChanged(node)));
     }
 }

@@ -38,13 +38,6 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_glass", has(Items.GLASS))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusFoundationItems.DATA_CABLE.get(), 4)
-                .pattern("CRC")
-                .define('C', Items.COPPER_INGOT)
-                .define('R', Items.REDSTONE)
-                .unlockedBy("has_copper", has(Items.COPPER_INGOT))
-                .save(output);
-
         LogisticsDataParts.recipes(output, RecipeProvider::has);
     }
 }
