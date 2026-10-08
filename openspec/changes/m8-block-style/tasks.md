@@ -7,7 +7,7 @@
 
 ## 2. Pure tile and light logic
 
-- [ ] 2.1 Add pure `storage.cpu.CpuTiles` (tile per part and face) with JUnit `CpuTilesTest` and pure `storage.pattern.PatternLights` with JUnit `PatternLightsTest`. Verify with `gradlew :storage:test`.
+- [x] 2.1 Add pure `storage.cpu.CpuTiles` (tile per part and face) with JUnit `CpuTilesTest` and pure `storage.pattern.PatternLights` with JUnit `PatternLightsTest`. Verify with `gradlew :storage:test`.
 
 ## 3. Textures
 
