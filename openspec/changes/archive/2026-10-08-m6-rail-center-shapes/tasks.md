@@ -10,4 +10,4 @@
 ## 2. Verification
 
 - [x] 2.1 Run `openspec validate m6-rail-center-shapes --strict`. Commit.
-- [ ] 2.2 Play check: east west run shows no crossing, an L shows a curve, a T and a cross show a `#`, a rail past a rack stays straight, elevator floors look the same and the parked car leaves no gap.
+- [x] 2.2 Play check: east west run shows no crossing, an L shows a curve, a T and a cross show a `#`, a rail past a rack stays straight, elevator floors look the same and the parked car leaves no gap.
