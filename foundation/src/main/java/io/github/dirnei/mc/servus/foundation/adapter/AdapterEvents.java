@@ -48,6 +48,8 @@ public final class AdapterEvents {
                     (adapter, side) -> adapter.production());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, AdapterContent.BLOCK_ENTITY.get(),
                     (adapter, side) -> adapter.itemHandler());
+            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, AdapterContent.BLOCK_ENTITY.get(),
+                    (adapter, side) -> adapter.upkeep());
         }
     }
 }

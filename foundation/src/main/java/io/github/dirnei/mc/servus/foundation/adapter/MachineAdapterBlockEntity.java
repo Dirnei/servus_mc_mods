@@ -1,20 +1,14 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
-import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
-import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
-import io.github.dirnei.mc.servus.foundation.production.ItemSupplier;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
-import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
+import io.github.dirnei.mc.servus.foundation.production.SingleInputRecipes;
+import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -32,11 +26,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -48,14 +37,12 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 /**
  * A Machine Adapter: reports the faced machine's recipes from its profile,
  * forwards ingredients and upkeep into the machine, offers its output, and
- * keeps the upkeep side stocked by asking suppliers on the data line.
+ * exposes the upkeep side's upkeep, which the data network keeps stocked.
  */
 public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvider {
 
-    /** Ticks between upkeep checks. */
-    public static final int CHECK_INTERVAL = 40;
     /** Ticks after which an unanswered upkeep request is given up. */
-    public static final int REQUEST_TIMEOUT = 1200;
+    public static final int REQUEST_TIMEOUT = DataNetwork.UPKEEP_TIMEOUT;
     public static final int MIN_LEVEL = 1;
     public static final int MAX_LEVEL = 64;
     /** Cooking time when a recipe type has none. */
@@ -67,13 +54,32 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
 
     private int expected;
     private long deadline;
-    private int timer;
 
-    private RecipeManager cachedManager;
-    private String cachedType;
-    private List<ProductionRecipe> cachedRecipes = List.of();
+    private final SingleInputRecipes recipes = new SingleInputRecipes();
 
     private final AdapterItemHandler handler = new AdapterItemHandler(this);
+    private final UpkeepHolder upkeep = new UpkeepHolder() {
+        @Override
+        public ItemStack upkeepItem() {
+            return MachineAdapterBlockEntity.this.upkeepItem();
+        }
+
+        @Override
+        public int upkeepLevel() {
+            return MachineAdapterBlockEntity.this.upkeepLevel();
+        }
+
+        @Override
+        public int upkeepCount() {
+            return MachineAdapterBlockEntity.this.upkeepCount();
+        }
+
+        @Override
+        public void upkeepRequested(int amount, long until) {
+            expected = amount;
+            deadline = until;
+        }
+    };
     private final ProductionProvider production = new ProductionProvider() {
         @Override
         public List<ProductionRecipe> recipes() {
@@ -96,6 +102,11 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
 
     public ProductionProvider production() {
         return production;
+    }
+
+    /** The machine's upkeep, kept stocked by the data network. */
+    public UpkeepHolder upkeep() {
+        return upkeep;
     }
 
     // The machine
@@ -159,43 +170,8 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
         if (profile.isEmpty()) {
             return List.of();
         }
-        RecipeManager manager = server.getRecipeManager();
-        if (manager != cachedManager || !profile.get().recipeType().equals(cachedType)) {
-            cachedManager = manager;
-            cachedType = profile.get().recipeType();
-            cachedRecipes = build(server, manager, cachedType);
-        }
-        return cachedRecipes;
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static List<ProductionRecipe> build(ServerLevel level, RecipeManager manager, String typeId) {
-        ResourceLocation id = ResourceLocation.tryParse(typeId);
-        RecipeType<?> type = id == null ? null : BuiltInRegistries.RECIPE_TYPE.get(id);
-        if (type == null) {
-            return List.of();
-        }
-        List<ProductionRecipe> recipes = new ArrayList<>();
-        Set<ResourceLocation> ids = new HashSet<>();
-        for (Object entry : manager.getAllRecipesFor((RecipeType) type)) {
-            RecipeHolder<?> holder = (RecipeHolder<?>) entry;
-            Recipe<?> recipe = holder.value();
-            List<Ingredient> ingredients = recipe.getIngredients().stream().filter(ingredient -> !ingredient.isEmpty()).toList();
-            ItemStack result = recipe.getResultItem(level.registryAccess());
-            if (ingredients.size() != 1 || result.isEmpty()) {
-                continue;
-            }
-            int ticks = recipe instanceof AbstractCookingRecipe cooking ? cooking.getCookingTime() : DEFAULT_TICKS;
-            for (ItemStack input : ingredients.get(0).getItems()) {
-                ResourceLocation item = BuiltInRegistries.ITEM.getKey(input.getItem());
-                ResourceLocation recipeId = holder.id().withSuffix("/" + item.getNamespace() + "/" + item.getPath());
-                if (ids.add(recipeId)) {
-                    recipes.add(new ProductionRecipe(recipeId, List.of(input.copyWithCount(1)), List.of(result.copy()), ticks));
-                }
-            }
-        }
-        recipes.sort(Comparator.comparing(recipe -> recipe.id().toString()));
-        return List.copyOf(recipes);
+        return recipes.list(server, SingleInputRecipes.type(profile.get().recipeType()),
+                recipe -> recipe instanceof AbstractCookingRecipe cooking ? cooking.getCookingTime() : DEFAULT_TICKS);
     }
 
     /** The recipe of the item in the machine's ingredient side, while there is one. */
@@ -221,10 +197,12 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
     // Upkeep
 
     public ItemStack upkeepItem() {
+        applyDefaultsOnServer();
         return upkeepItem;
     }
 
     public int upkeepLevel() {
+        applyDefaultsOnServer();
         return upkeepLevel;
     }
 
@@ -246,13 +224,15 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
 
     /** Upkeep items asked for and not yet arrived. */
     public int expected() {
+        if (expected > 0 && level != null && level.getGameTime() > deadline) {
+            expected = 0;
+        }
         return expected;
     }
 
     /** For tests: waits for {@code amount} upkeep items as if a supplier had answered. */
     void expect(int amount) {
-        expected = amount;
-        deadline = level == null ? 0 : level.getGameTime() + REQUEST_TIMEOUT;
+        upkeep.upkeepRequested(amount, level == null ? 0 : level.getGameTime() + REQUEST_TIMEOUT);
     }
 
     public void setUpkeepItem(ItemStack stack) {
@@ -274,7 +254,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
      * @return what is left for the ingredient side
      */
     ItemStack receiveUpkeep(ItemStack stack, boolean simulate) {
-        if (expected <= 0 || upkeepItem.isEmpty() || !ItemStack.isSameItemSameComponents(stack, upkeepItem)) {
+        if (expected() <= 0 || upkeepItem.isEmpty() || !ItemStack.isSameItemSameComponents(stack, upkeepItem)) {
             return stack;
         }
         IItemHandler upkeep = machineHandler(MachineProfile.Role.UPKEEP);
@@ -290,6 +270,12 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
         return stack.copyWithCount(stack.getCount() - taken);
     }
 
+    private void applyDefaultsOnServer() {
+        if (!upkeepSet && level != null && !level.isClientSide()) {
+            profile().ifPresent(this::applyDefaults);
+        }
+    }
+
     /** Takes the profile's default upkeep the first time the adapter meets a machine with a profile. */
     private void applyDefaults(MachineProfile profile) {
         if (upkeepSet) {
@@ -300,53 +286,6 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
         upkeepLevel = Math.max(MIN_LEVEL, Math.min(MAX_LEVEL, profile.upkeepLevel()));
         upkeepSet = true;
         setChanged();
-    }
-
-    public static void serverTick(Level level, BlockPos pos, BlockState state, MachineAdapterBlockEntity adapter) {
-        if (++adapter.timer >= CHECK_INTERVAL) {
-            adapter.timer = 0;
-            adapter.checkUpkeep((ServerLevel) level);
-        }
-    }
-
-    /** Asks a supplier on the data line for the missing upkeep, unless a request is still on its way. */
-    void checkUpkeep(ServerLevel server) {
-        Optional<MachineProfile> profile = profile();
-        if (profile.isEmpty()) {
-            return;
-        }
-        applyDefaults(profile.get());
-        if (upkeepItem.isEmpty()) {
-            return;
-        }
-        if (expected > 0 && server.getGameTime() > deadline) {
-            expected = 0;
-        }
-        int missing = upkeepLevel - upkeepCount();
-        if (expected > 0 || missing <= 0) {
-            return;
-        }
-        Optional<DataNetwork> network = DataNetworks.networkAt(server, worldPosition);
-        if (network.isEmpty()) {
-            return;
-        }
-        List<DataMember> members = new ArrayList<>(network.get().dataMembers());
-        members.sort(Comparator.comparingLong(member -> member.pos().asLong()));
-        for (DataMember member : members) {
-            if (!server.isLoaded(member.pos())) {
-                continue;
-            }
-            ItemSupplier supplier = server.getCapability(ServusFoundationCapabilities.SUPPLIER, member.pos(), null);
-            if (supplier == null) {
-                continue;
-            }
-            int answer = supplier.supply(worldPosition, upkeepItem, missing);
-            if (answer > 0) {
-                expected = answer;
-                deadline = server.getGameTime() + REQUEST_TIMEOUT;
-                return;
-            }
-        }
     }
 
     // Saving
