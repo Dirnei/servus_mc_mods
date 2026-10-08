@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionHand;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
@@ -461,6 +466,25 @@ public final class CraftingCpuGameTests {
         copy.loadWithComponents(tag, helper.getLevel().registryAccess());
         StockRule rule = copy.rules().get(STICK);
         helper.assertTrue(rule != null && rule.min() == 8 && rule.max() == 16, "the rule should survive save and load: " + rule);
+        helper.succeed();
+    }
+
+    /** Any held item but the carrot falls through to the CPU summary; the carrot keeps forming the cube. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void cpuSummaryWithAnyItem(GameTestHelper helper) {
+        BlockPos at = new BlockPos(3, 1, 3);
+        helper.setBlock(at, ServusStorageBlocks.CRAFTING_CPU.get().defaultBlockState());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = helper.absolutePos(at);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
+        ItemStack cobble = new ItemStack(Items.COBBLESTONE);
+        player.setItemInHand(InteractionHand.MAIN_HAND, cobble);
+        ItemInteractionResult withBlock = helper.getBlockState(at).useItemOn(cobble, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        helper.assertTrue(withBlock == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION, "cobblestone should reach the summary, got " + withBlock);
+        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+        ItemInteractionResult withCarrot = helper.getBlockState(at).useItemOn(carrot, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        helper.assertTrue(withCarrot == ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION, "the carrot should keep its own use, got " + withCarrot);
         helper.succeed();
     }
 }

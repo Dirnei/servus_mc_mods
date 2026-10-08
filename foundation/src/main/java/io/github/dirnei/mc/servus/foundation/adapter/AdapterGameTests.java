@@ -1,5 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionHand;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import java.util.List;
@@ -115,6 +122,23 @@ public final class AdapterGameTests {
         helper.assertTrue(adapter.production().recipes().isEmpty(), "no recipes without a profile");
         ItemStack left = ItemHandlerHelper.insertItemStacked(adapter.itemHandler(), new ItemStack(Items.COBBLESTONE, 8), false);
         helper.assertTrue(left.getCount() == 8, "the cobblestone is refused");
+        helper.succeed();
+    }
+
+    /** Like a chest, any held item, the carrot included, falls through to the adapter GUI. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void adapterOpensWithAnyItem(GameTestHelper helper) {
+        onFurnace(helper);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = helper.absolutePos(ADAPTER);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
+        for (ItemStack held : List.of(new ItemStack(Items.COBBLESTONE), new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get()), ItemStack.EMPTY)) {
+            player.setItemInHand(InteractionHand.MAIN_HAND, held);
+            ItemInteractionResult result = helper.getBlockState(ADAPTER)
+                    .useItemOn(held, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+            helper.assertTrue(result == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
+                    "holding " + held + " should reach the GUI, got " + result);
+        }
         helper.succeed();
     }
 }

@@ -6,7 +6,7 @@
 
 ## 2. Tests
 
-- [ ] 2.1 Add GameTests: `adapterOpensWithAnyItem` in `foundation/.../adapter/AdapterGameTests.java` (useItemOn with cobblestone and with the carrot returns PASS_TO_DEFAULT_BLOCK_INTERACTION) and `cpuSummaryWithAnyItem` in `storage/.../gametest/CraftingCpuGameTests.java` (cobblestone passes, carrot skips). Verify with `:foundation:runGameTestServer` and `:storage:runGameTestServer`, all green.
+- [x] 2.1 Add GameTests: `adapterOpensWithAnyItem` in `foundation/.../adapter/AdapterGameTests.java` (useItemOn with cobblestone and with the carrot returns PASS_TO_DEFAULT_BLOCK_INTERACTION) and `cpuSummaryWithAnyItem` in `storage/.../gametest/CraftingCpuGameTests.java` (cobblestone passes, carrot skips). Verify with `:foundation:runGameTestServer` and `:storage:runGameTestServer`, all green.
 
 ## 3. Integration
 
