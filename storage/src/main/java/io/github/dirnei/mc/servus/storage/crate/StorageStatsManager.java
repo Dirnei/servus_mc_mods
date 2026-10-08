@@ -20,6 +20,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_SOURCES_PER_TICK = 4;
     public static final int DEFAULT_RACK_SLOTS = 27;
     public static final int DEFAULT_GARAGE_CAPACITY = 4;
+    public static final int DEFAULT_RAIL_MAX_SPAN = 3;
     public static final int DEFAULT_TERMINAL_OUTPUT_SLOTS = 9;
     public static final int DEFAULT_PUSH_INTERVAL = 8;
     public static final int DEFAULT_OUTBOUND_CHECK_INTERVAL = 40;
@@ -45,6 +46,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int sourcesPerTick = DEFAULT_SOURCES_PER_TICK;
     private volatile int rackSlots = DEFAULT_RACK_SLOTS;
     private volatile int garageCapacity = DEFAULT_GARAGE_CAPACITY;
+    private volatile int railMaxSpan = DEFAULT_RAIL_MAX_SPAN;
     private volatile int terminalOutputSlots = DEFAULT_TERMINAL_OUTPUT_SLOTS;
     private volatile int pushInterval = DEFAULT_PUSH_INTERVAL;
     private volatile int outboundCheckInterval = DEFAULT_OUTBOUND_CHECK_INTERVAL;
@@ -68,6 +70,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         sourcesPerTick = intField(files.get(WAREHOUSE), "sources_per_tick", DEFAULT_SOURCES_PER_TICK);
         rackSlots = intField(files.get(RACK), "slots", DEFAULT_RACK_SLOTS);
         garageCapacity = intField(files.get(WAREHOUSE), "garage_capacity", DEFAULT_GARAGE_CAPACITY);
+        railMaxSpan = intField(files.get(WAREHOUSE), "rail_max_span", DEFAULT_RAIL_MAX_SPAN);
         terminalOutputSlots = intField(files.get(WAREHOUSE), "terminal_output_slots", DEFAULT_TERMINAL_OUTPUT_SLOTS);
         pushInterval = intField(files.get(WAREHOUSE), "push_interval", DEFAULT_PUSH_INTERVAL);
         outboundCheckInterval = intField(files.get(WAREHOUSE), "outbound_check_interval", DEFAULT_OUTBOUND_CHECK_INTERVAL);
@@ -107,6 +110,11 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
 
     public int garageCapacity() {
         return garageCapacity;
+    }
+
+    /** How many free and hung rails a gap between two holds may span. */
+    public int railMaxSpan() {
+        return railMaxSpan;
     }
 
     public int terminalOutputSlots() {

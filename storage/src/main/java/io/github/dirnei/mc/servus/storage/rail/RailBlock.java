@@ -3,10 +3,16 @@ package io.github.dirnei.mc.servus.storage.rail;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.lib.network.Conversions;
+import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -22,9 +28,11 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * Floor rail that links storage blocks into one warehouse network. Rails
- * connect to each other and to elevators sideways; a side that touches a
- * stock holding storage block is a dock and renders its own piece.
+ * Rail that links storage blocks into one warehouse network. Rails connect to
+ * each other and to elevators sideways; a side that touches a stock holding
+ * storage block is a dock and renders its own piece. A rail stands on a floor,
+ * hangs on a rack front or elevator segment, or is free in the air; free rails
+ * bridge short gaps and fall when the gap does not hold (see {@link RailSpan}).
  */
 public class RailBlock extends ConnectableBlock {
 
@@ -99,6 +107,7 @@ public class RailBlock extends ConnectableBlock {
     protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
                                      LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         state = super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        level.scheduleTick(pos, this, 1);
         if (direction.getAxis().isHorizontal()) {
             state = state.setValue(dock(direction), showsDockTo(level, neighborPos, direction));
         }
@@ -110,17 +119,67 @@ public class RailBlock extends ConnectableBlock {
         return SHAPE;
     }
 
+    /** Placed on a floor, or in the air beside a rail or an anchor; whether it stays is decided by {@link RailSpan}. */
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        return canSupportRigidBlock(level, pos.below());
+        if (canSupportRigidBlock(level, pos.below())) {
+            return true;
+        }
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighborPos = pos.relative(direction);
+            if (level.getBlockState(neighborPos).getBlock() instanceof RailBlock || isAnchor(level, neighborPos, direction)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether the neighbour holds a rail up: an elevator segment, or a heavy rack whose front faces the rail. */
+    private static boolean isAnchor(LevelReader level, BlockPos neighborPos, Direction direction) {
+        return level.getBlockState(neighborPos).getBlock() instanceof ElevatorBlock
+                || level.getBlockEntity(neighborPos) instanceof HeavyRackBlockEntity rack
+                && rack.acceptsRail(Conversions.toSide(direction.getOpposite()));
+    }
+
+    /** Standing on a floor, hung on an anchor or free; only meaningful for a position that holds a rail. */
+    static RailSpan.Kind kind(LevelReader level, BlockPos pos) {
+        if (canSupportRigidBlock(level, pos.below())) {
+            return RailSpan.Kind.STANDING;
+        }
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            if (isAnchor(level, pos.relative(direction), direction)) {
+                return RailSpan.Kind.HUNG;
+            }
+        }
+        return RailSpan.Kind.FREE;
+    }
+
+    private static List<BlockPos> linkedRails(LevelReader level, BlockPos pos) {
+        List<BlockPos> rails = new ArrayList<>(4);
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighborPos = pos.relative(direction);
+            if (level.getBlockState(neighborPos).getBlock() instanceof RailBlock) {
+                rails.add(neighborPos);
+            }
+        }
+        return rails;
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
-        if (!level.isClientSide() && !state.canSurvive(level, pos)) {
-            dropResources(state, level, pos, level.getBlockEntity(pos));
-            level.removeBlock(pos, false);
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        if (!oldState.is(state.getBlock())) {
+            level.scheduleTick(pos, this, 1);
+        }
+    }
+
+    /** Checks the gap of a free rail a tick after something beside it changed and drops it when it does not hold. */
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        RailSpan.Verdict<BlockPos> verdict = RailSpan.check(pos, rail -> kind(level, rail),
+                rail -> linkedRails(level, rail), StorageStatsManager.INSTANCE.railMaxSpan());
+        for (BlockPos rail : verdict.drop()) {
+            level.destroyBlock(rail, true);
         }
     }
 

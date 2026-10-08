@@ -5,6 +5,7 @@
   "inbound_buffer_slots": 9,
   "put_away_per_tick": 1,
   "garage_capacity": 4,
+  "rail_max_span": 3,
   "terminal_output_slots": 9,
   "stock_rule_interval": 100,
   "push_interval": 8,
