@@ -67,7 +67,7 @@ Place the adapter against a machine; it faces the block it was placed on. When a
 
 - It reports the machine's recipes, for a furnace every smelting recipe with its cooking time, so the Crafting CPU can plan with them.
 - Packets with ingredients go into the machine's ingredient side, and the CPU takes the results out of its output side.
-- **Upkeep** is kept apart from recipes: the adapter keeps an item, coal by default, at a level in the machine, 16 by default, and asks a warehouse on its data line for the rest whenever it runs low. An order for 64 stone only ever asks for cobblestone. Right click the adapter with an empty hand to change the upkeep item (ghost slot) and the level.
+- **Upkeep** is kept apart from recipes: the adapter keeps an item, coal by default, at a level in the machine, 16 by default (see Upkeep below). An order for 64 stone only ever asks for cobblestone. Right click the adapter with an empty hand to change the upkeep item (ghost slot) and the level.
 - Without a profile the adapter offers nothing.
 
 Profiles live in `data/<namespace>/machine_profiles/*.json`. Foundation ships the furnace, smoker and blast furnace:
@@ -82,6 +82,10 @@ Profiles live in `data/<namespace>/machine_profiles/*.json`. Foundation ships th
 ```
 
 Sides are relative to the machine's facing; sides left out are off. A profile only covers recipes with a single ingredient. Modpacks can add profiles for other machines.
+
+## Upkeep
+
+Upkeep is a consumable a machine keeps stocked, such as its fuel. A block names its upkeep item, the level to keep and how many it holds through the `servus_foundation:upkeep` capability, and becomes an upkeep member of the data line, so the duct shows a data arm toward it. Every 40 ticks the data line looks at its upkeep members: when one holds less than its level and has no request on its way, the line asks a supplier on it (a Warehouse Controller or Access Point, lowest position first) for the difference. What the member gains counts against the request; a request that is not complete after 1200 ticks is given up and asked again. Upkeep is never part of an order. The Machine Adapter and the Manufacturing burner machines use it.
 
 ## Fluid Tank
 
@@ -109,7 +113,7 @@ Sides are relative (front, back, left, right, top, bottom), so a configuration s
 - **Tick mailbox**: network events are queued and handled once per server tick, in order.
 - **Energy distribution**: fair sharing of FE between sources and sinks, used by the Power Cable.
 - **Teams**: every player has a team id. Without a team mod it is the player's own id. Research and chunk loader limits are per team.
-- **Production and stock API**: the capabilities `servus_foundation:production`, `servus_foundation:stock_provider` and `servus_foundation:stock_sink`, plus a pure order planner. This is how a Storage warehouse learns what a Manufacturing machine can make without the two mods knowing each other.
+- **Production and stock API**: the capabilities `servus_foundation:production`, `servus_foundation:stock_provider` and `servus_foundation:stock_sink`, plus a pure order planner, and `servus_foundation:supplier` and `servus_foundation:upkeep` for keeping machines stocked. This is how a Storage warehouse learns what a Manufacturing machine can make without the two mods knowing each other.
 
 ## Datapack values
 

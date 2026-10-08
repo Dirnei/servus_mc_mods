@@ -31,6 +31,8 @@ Every field is optional. A field the file leaves out, or a missing file, falls b
 | `fluid_per_cycle` | int | 0 | mB of water a pump adds to its buffer per work cycle. |
 | `fluid_capacity` | int | 0 | Size of a pump's water buffer in mB. |
 | `min_source_neighbours` | int | 0 | How many of the four horizontal neighbours of the water source below a pump must be water sources too. |
+| `upkeep_item` | item id | per machine | The item a machine keeps stocked in its fuel slot from the data line. `minecraft:coal` for the burner machines and the Coal Generator, empty for the others. |
+| `upkeep_level` | int | per machine | How many of the upkeep item the fuel slot is kept at. 16 for the burner machines and the Coal Generator, 0 for the others. 0 switches upkeep off. |
 
 ## Example
 
@@ -70,7 +72,7 @@ These are the defaults built into the code, used for any field a file leaves out
 | `burner_pump` | burner | water | 20 | 0 | 0 | 1 | 1 |
 | `electric_pump` | powered | water | 20 | 20 | 8000 | 1 | 1 |
 
-`items_per_tick` is 0 for every machine. `fuel_reserve` is 4 for the `burner_extractor` and 0 for every other machine: on a coal deposit the extractor keeps four coal in its fuel slot and pushes only the surplus. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump), `fluid_capacity` 4000 and `min_source_neighbours` 2; these are 0 for every other machine.
+`items_per_tick` is 0 for every machine. `fuel_reserve` is 4 for the `burner_extractor` and 0 for every other machine: on a coal deposit the extractor keeps four coal in its fuel slot and pushes only the surplus. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump), `fluid_capacity` 4000 and `min_source_neighbours` 2; these are 0 for every other machine. `upkeep_item` is `minecraft:coal` and `upkeep_level` 16 for the Burner Extractor, Burner Smelter, Burner Pump and Coal Generator; every other machine keeps no upkeep.
 
 The shipped stats files repeat these defaults, with one difference: `assembler.json` sets `work_ticks` to 1, so plain crafting recipes take one tick in the Assembler.
 

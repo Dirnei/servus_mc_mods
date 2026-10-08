@@ -46,4 +46,5 @@ The reference block (two extractors and two smelters on iron, one of each on cop
 ## How it connects
 
 - [Servus: Foundation](/servus_mc_mods/mods/foundation/): side configuration, the Configuration Carrot, teams, the production capability every machine exposes, and the Item Pipes and Power Cables that move items and FE between machines.
-- [Storage](/servus_mc_mods/mods/storage/): an Assembler on the data line lets a Crafting CPU plan work orders from the Assembler's configured recipes.
+- [Storage](/servus_mc_mods/mods/storage/): an Assembler on the data line lets a Crafting CPU plan work orders from the Assembler's configured recipes. A Burner Smelter or Crusher on the data line runs order steps with its smelting or crushing recipes.
+- **Upkeep**: the Burner Extractor, Burner Smelter, Burner Pump and Coal Generator keep coal at 16 in their fuel slot as upkeep. On a data line with a warehouse they are refilled on their own, independent of orders; the item and level are the machine stats `upkeep_item` and `upkeep_level`.

@@ -18,7 +18,7 @@
 
 ## 4. Docs and data
 
-- [ ] 4.1 Run `:foundation:runData`, `:storage:runData` and `:manufacturing:runData` (lang, gamedata export); docs `gamedata.ts` schema reads `upkeep_item` and `upkeep_level`; `reference/datapack/machines.md` documents both; Manufacturing and Foundation pages describe upkeep and the new producers. Verify with `npx vitest run` and `npm run build` in `docs/`.
+- [x] 4.1 Run `:foundation:runData`, `:storage:runData` and `:manufacturing:runData` (lang, gamedata export); docs `gamedata.ts` schema reads `upkeep_item` and `upkeep_level`; `reference/datapack/machines.md` documents both; Manufacturing and Foundation pages describe upkeep and the new producers. Verify with `npx vitest run` and `npm run build` in `docs/`.
 
 ## 5. Integration
 
