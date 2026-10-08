@@ -20,7 +20,7 @@ final class ServusStorageBlockTagsProvider extends BlockTagsProvider {
     protected void addTags(HolderLookup.Provider provider) {
         tag(BlockTags.MINEABLE_WITH_AXE).add(ServusStorageBlocks.CRATE.get()).add(ServusStorageBlocks.DOUBLE_CRATE.get())
                 .add(ServusStorageBlocks.QUAD_CRATE.get())
-                .add(ServusStorageBlocks.COUNTER_TERMINAL.get()).add(ServusStorageBlocks.CRAFTING_STATION.get()).add(ServusStorageBlocks.ORDER_BOARD.get());
+                .add(ServusStorageBlocks.COUNTER_TERMINAL.get()).add(ServusStorageBlocks.CRAFTING_STATION.get());
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get()).add(ServusStorageBlocks.RAIL.get())
                 .add(ServusStorageBlocks.ELEVATOR.get()).add(ServusStorageBlocks.HEAVY_RACK.get())
                 .add(ServusStorageBlocks.INBOUND_STATION.get()).add(ServusStorageBlocks.ACCESS_POINT.get()).add(ServusStorageBlocks.SHUTTLE_GARAGE.get())

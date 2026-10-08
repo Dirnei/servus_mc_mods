@@ -28,18 +28,14 @@ import io.github.dirnei.mc.servus.storage.access.AccessPointChoice;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.storage.shuttle.RailPaths;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
-import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
-import io.github.dirnei.mc.servus.storage.order.WorkOrder;
+import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
+import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.storage.order.StockRule;
 import io.github.dirnei.mc.servus.storage.order.StockRules;
 import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
-import io.github.dirnei.mc.servus.storage.board.MachineRow;
-import io.github.dirnei.mc.servus.storage.board.OrderRow;
-import io.github.dirnei.mc.servus.storage.board.StepRow;
-import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
 import java.util.ArrayDeque;
@@ -144,37 +140,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private int controllers;
     /** The controller's position while exactly one is in the network. */
     private BlockPos controllerPos;
-    /** Rules whose last order attempt found no producer. */
-    private final Set<ItemKey> rulesWithoutProducer = new HashSet<>();
+    /** The state of each rule after its last order attempt, when not ok. */
+    private final Map<ItemKey, String> ruleStates = new HashMap<>();
     private int ruleTimer;
     private int outboundTimer;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
-    private final OrderBook orders = new OrderBook(new OrderBook.Host() {
-        @Override
-        public List<Producer> producers() {
-            return WarehouseNetwork.this.producers();
-        }
-
-        @Override
-        public Map<ItemKey, Long> stock() {
-            Map<ItemKey, Long> stock = new HashMap<>();
-            for (Map.Entry<ItemKey, Long> entry : index.entries()) {
-                stock.put(entry.getKey(), entry.getValue());
-            }
-            return stock;
-        }
-
-        @Override
-        public OrderBook.Feed feed(BlockPos dock, ItemKey key, int amount) {
-            Started started = planAndStart(dock, key, amount, 0);
-            return new OrderBook.Feed(started.planned(), started.unservable(), started.refusal());
-        }
-
-        @Override
-        public long gameTime() {
-            return level == null ? 0 : level.getGameTime();
-        }
-    });
 
     public WarehouseNetwork(int id, NetworkSet<StorageNodeBlockEntity, WarehouseEvent, ?> owner) {
         super(id, owner);
@@ -629,6 +599,21 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return sum;
     }
 
+    /** The Access Points of this warehouse. */
+    public List<BlockPos> accessPoints() {
+        List<BlockPos> points = new ArrayList<>();
+        if (level == null) {
+            return points;
+        }
+        for (BlockPos pos : stations) {
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof AccessPointBlockEntity) {
+                points.add(pos);
+            }
+        }
+        points.sort(java.util.Comparator.comparingLong(BlockPos::asLong));
+        return points;
+    }
+
     /** The position of the single controller, empty unless online. */
     public Optional<BlockPos> controllerPos() {
         return status() == Status.ONLINE ? Optional.ofNullable(controllerPos) : Optional.empty();
@@ -655,11 +640,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         }
         return best;
-    }
-
-    /** The work orders of this warehouse. */
-    public OrderBook orders() {
-        return orders;
     }
 
     // Outbound stations
@@ -715,56 +695,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return count;
     }
 
-    // Order board
-
-    public boolean cancelOrder(int orderId) {
-        return orders.cancel(orderId);
-    }
-
-    /** Every dock with its machine and what it works on. */
-    public List<MachineRow> machineRows() {
-        List<MachineRow> rows = new ArrayList<>();
-        for (Producer producer : producers()) {
-            ItemStack working = ItemStack.EMPTY;
-            String state;
-            if (!producer.producer()) {
-                state = "no_producer";
-            } else if (producer.recipes().isEmpty()) {
-                state = "no_recipes";
-            } else if (producer.active().isPresent()) {
-                state = "working";
-                for (ProductionRecipe recipe : producer.recipes()) {
-                    if (recipe.id().equals(producer.active().get()) && !recipe.outputs().isEmpty()) {
-                        working = recipe.outputs().get(0).copyWithCount(1);
-                    }
-                }
-            } else {
-                state = "idle";
-            }
-            rows.add(new MachineRow(producer.station(), producer.machineName().getString(), working, state));
-        }
-        return rows;
-    }
-
-    /** Every work order with its steps, machine names from the docks. */
-    public List<OrderRow> orderRows() {
-        Map<BlockPos, String> names = new HashMap<>();
-        for (Producer producer : producers()) {
-            names.put(producer.station(), producer.machineName().getString());
-        }
-        List<OrderRow> rows = new ArrayList<>();
-        for (WorkOrder order : orders.orders()) {
-            List<StepRow> steps = new ArrayList<>();
-            for (OrderStep step : order.steps()) {
-                steps.add(new StepRow(step.station(), names.getOrDefault(step.station(), "?"), step.output().copyWithCount(1), step.batches(),
-                        step.state().name().toLowerCase(java.util.Locale.ROOT), step.reason()));
-            }
-            rows.add(new OrderRow(order.id(), order.key().stack(1), order.amount(), order.state().name().toLowerCase(java.util.Locale.ROOT),
-                    order.reason(), order.requestId(), steps));
-        }
-        return rows;
-    }
-
     // Stock rules
 
     /** The controller's stock rules, present while a controller is in the network and loaded. */
@@ -779,47 +709,56 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public void setStockRule(ItemKey key, int min, int max) {
         stockRules().ifPresent(rules -> {
             rules.set(new StockRule(key, min, max));
-            rulesWithoutProducer.remove(key);
+            ruleStates.remove(key);
         });
         ruleTimer = StorageStatsManager.INSTANCE.stockRuleInterval();
     }
 
     public boolean removeStockRule(ItemKey key) {
-        rulesWithoutProducer.remove(key);
+        ruleStates.remove(key);
         return stockRules().map(rules -> rules.remove(key)).orElse(false);
     }
 
-    /** Orders for every rule whose stock plus open orders fell below its minimum. */
+    /** Orders for every rule whose stock plus open orders on the line's CPUs fell below its minimum. */
     private void tickStockRules() {
-        if (status() != Status.ONLINE) {
+        if (status() != Status.ONLINE || level == null) {
             return;
         }
         Optional<StockRules> rules = stockRules();
         if (rules.isEmpty()) {
             return;
         }
+        Optional<DataNetwork> line = CpuOrders.network(level, this);
         for (StockRule rule : rules.get().all()) {
-            long have = index.count(rule.key()) + orders.openAmountFor(rule.key());
+            int open = line.map(network -> CpuOrders.openAmountFor(level, network, rule.key())).orElse(0);
+            long have = index.count(rule.key()) + open;
             if (have >= rule.min()) {
-                rulesWithoutProducer.remove(rule.key());
+                ruleStates.remove(rule.key());
+                continue;
+            }
+            if (line.isEmpty() || CpuOrders.cpus(level, line.get()).isEmpty()) {
+                ruleStates.put(rule.key(), "no_cpu");
                 continue;
             }
             int wanted = (int) Math.min(Integer.MAX_VALUE, rule.max() - have);
-            OrderBook.Created created = orders.create(rule.key(), wanted, OrderBook.RULE_ORIGIN);
-            if (created.made()) {
-                rulesWithoutProducer.remove(rule.key());
-            } else if (created.refusal().equals("no_producer")) {
-                rulesWithoutProducer.add(rule.key());
+            CpuOrders.Placed placed = CpuOrders.create(level, line.get(), rule.key(), wanted, OrderBook.RULE_ORIGIN);
+            if (placed.made()) {
+                ruleStates.remove(rule.key());
+            } else if (placed.refusal().equals("no_producer")) {
+                ruleStates.put(rule.key(), "no_producer");
             }
         }
     }
 
-    /** The state of a rule: ordering, no producer, or ok. */
+    /** The state of a rule: ordering, no CPU, no producer, or ok. */
     public String ruleState(StockRule rule) {
-        if (orders.openAmountFor(rule.key()) > 0) {
-            return "ordering";
+        if (level != null) {
+            Optional<DataNetwork> line = CpuOrders.network(level, this);
+            if (line.isPresent() && CpuOrders.openAmountFor(level, line.get(), rule.key()) > 0) {
+                return "ordering";
+            }
         }
-        return rulesWithoutProducer.contains(rule.key()) ? "no_producer" : "ok";
+        return ruleStates.getOrDefault(rule.key(), "ok");
     }
 
     public List<RuleRow> ruleRows() {
@@ -837,7 +776,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (status() != Status.ONLINE) {
             return "offline";
         }
-        return orders.create(key, amount, 0).refusal();
+        if (level == null) {
+            return "offline";
+        }
+        Optional<DataNetwork> line = CpuOrders.network(level, this);
+        return line.map(network -> CpuOrders.create(level, network, key, amount, 0).refusal()).orElse("no_cpu");
     }
 
     private List<RequestPlan.Stock<BlockPos>> stockOf(ItemKey key) {
@@ -883,29 +826,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 deliverInstant(pick, taken);
             }
         }
-    }
-
-    /** An outbound station and what the block it faces can make. */
-    public record Producer(BlockPos station, BlockPos machine, Component machineName, boolean producer, List<ProductionRecipe> recipes,
-                           Optional<ResourceLocation> active) {
-    }
-
-    /** Every outbound station of the warehouse with its producer's recipes; stations without a producer list none. */
-    public List<Producer> producers() {
-        List<Producer> list = new ArrayList<>();
-        if (level == null) {
-            return list;
-        }
-        for (BlockPos pos : stations) {
-            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station) {
-                ProductionProvider provider = station.producer();
-                BlockPos machine = station.machinePos();
-                Component name = level.getBlockState(machine).getBlock().getName();
-                list.add(new Producer(pos, machine, name, provider != null, provider == null ? List.of() : provider.recipes(),
-                        provider == null ? Optional.empty() : provider.active()));
-            }
-        }
-        return list;
     }
 
     @Override
@@ -1094,7 +1014,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
             fleet.tick();
             tickStations();
-            orders.tick();
             if (++outboundTimer >= StorageStatsManager.INSTANCE.outboundCheckInterval()) {
                 outboundTimer = 0;
                 tickOutbound();
@@ -1183,7 +1102,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 continue;
             }
             budget--;
-            orders.collected(pos, key, stack.getCount());
             if (fleet.canCarry(pos, target.get())) {
                 station.claim(slot);
                 fleet.requestPutAway(new PutAwayJob(pos, slot, key, stack.getCount(), target.get()));

@@ -55,8 +55,8 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
         public int missing;
         /** Open shipments for this request. */
         public final List<Tracked> shipments = new ArrayList<>();
-        /** The controller of the warehouse holding this request's work order, if any. */
-        public BlockPos orderWarehouse;
+        /** Master of the Crafting CPU holding this request's work order, null without one. */
+        public BlockPos orderCpu;
 
         Request(int id, ItemKey key, int requested) {
             this.id = id;

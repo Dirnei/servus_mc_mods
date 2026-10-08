@@ -1,8 +1,6 @@
 package io.github.dirnei.mc.servus.storage.outbound;
 
 import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
-import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
-import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
@@ -199,14 +197,6 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         } else {
             keep.setStackInSlot(slot, item.copyWithCount(Math.min(KEEP_LIMIT, amount)));
         }
-    }
-
-    /** The production view of the block in front, or null when it has none. */
-    public ProductionProvider producer() {
-        if (level == null) {
-            return null;
-        }
-        return level.getCapability(ServusFoundationCapabilities.PRODUCTION, machinePos(), facing());
     }
 
     // Restocking state, written by the warehouse

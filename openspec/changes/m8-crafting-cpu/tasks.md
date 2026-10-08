@@ -10,9 +10,9 @@
 
 ## 3. Orders on the CPU
 
-- [ ] 3.1 Rework `OrderBook` (new Host, `Producer`, slots, WAITING, pending shipments, collection hook, busy check), `OrderStep` (one producer position, pending feeds, collecting in flight), `WorkOrder` (WAITING). Add `CpuOrders` and the CPU host in `CpuBlockEntity` (producers from the data line, stock, feed by ship, collect by `DataPackets.move` to an Access Point). Verify with `gradlew build`.
-- [ ] 3.2 Move order creation to CPUs: `TerminalRequests` (create, state, cancel), `WarehouseNetwork` stock rules (`no_cpu` state, lang) and `order()`, commands `orders`, `order`, `producers` on the data line. Remove the order book, producers, board rows and Inbound credit from `WarehouseNetwork` and `producer()` from the Outbound Station. Verify with `gradlew build`.
-- [ ] 3.3 Remove the Order Board (block, block entity, item, menu, screen, client cache, payloads, datagen, lang, textures). Verify with `gradlew build`, `:storage:runData` and a grep for `OrderBoard` returning nothing in `storage/src`.
+- [x] 3.1 Rework `OrderBook` (new Host, `Producer`, slots, WAITING, pending shipments, collection hook, busy check), `OrderStep` (one producer position, pending feeds, collecting in flight), `WorkOrder` (WAITING). Add `CpuOrders` and the CPU host in `CpuBlockEntity` (producers from the data line, stock, feed by ship, collect by `DataPackets.move` to an Access Point). Verify with `gradlew build`.
+- [x] 3.2 Move order creation to CPUs: `TerminalRequests` (create, state, cancel), `WarehouseNetwork` stock rules (`no_cpu` state, lang) and `order()`, commands `orders`, `order`, `producers` on the data line. Remove the order book, producers, board rows and Inbound credit from `WarehouseNetwork` and `producer()` from the Outbound Station. Verify with `gradlew build`.
+- [x] 3.3 Remove the Order Board (block, block entity, item, menu, screen, client cache, payloads, datagen, lang, textures). Verify with `gradlew build`, `:storage:runData` and a grep for `OrderBoard` returning nothing in `storage/src`.
 
 ## 4. Tests
 

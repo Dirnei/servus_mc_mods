@@ -12,7 +12,6 @@ import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
-import io.github.dirnei.mc.servus.storage.board.OrderBoardBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import io.github.dirnei.mc.servus.storage.access.AccessPointBlock;
@@ -125,13 +124,6 @@ public final class ServusStorageBlocks {
                             .mapColor(MapColor.COLOR_CYAN)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
-                            .sound(SoundType.METAL));
-
-    public static final DeferredBlock<OrderBoardBlock> ORDER_BOARD =
-            BLOCKS.registerBlock("order_board", OrderBoardBlock::new,
-                    BlockBehaviour.Properties.of()
-                            .mapColor(MapColor.COLOR_GRAY)
-                            .strength(2.0F)
                             .sound(SoundType.METAL));
 
     private ServusStorageBlocks() {

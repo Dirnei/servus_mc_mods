@@ -10,7 +10,6 @@ import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.board.OrderBoardBlockEntity;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
@@ -68,11 +67,6 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CpuBlockEntity>> CRAFTING_CPU =
             BLOCK_ENTITIES.register("crafting_cpu", () -> BlockEntityType.Builder
                     .of(CpuBlockEntity::new, ServusStorageBlocks.CRAFTING_CPU.get())
-                    .build(null));
-
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<OrderBoardBlockEntity>> ORDER_BOARD =
-            BLOCK_ENTITIES.register("order_board", () -> BlockEntityType.Builder
-                    .of(OrderBoardBlockEntity::new, ServusStorageBlocks.ORDER_BOARD.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RailBlockEntity>> RAIL =

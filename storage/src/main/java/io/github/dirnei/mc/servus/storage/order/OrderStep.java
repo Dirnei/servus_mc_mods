@@ -2,30 +2,37 @@ package io.github.dirnei.mc.servus.storage.order;
 
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 
-/** One recipe run a number of times on the machine in front of one Outbound Station. */
+/** One recipe run a number of times on one producer of the data line. */
 public final class OrderStep {
 
     public enum State { WAITING_STATION, DELIVERING, PRODUCING, DONE }
 
-    private final BlockPos station;
-    private final BlockPos machine;
+    /** A shipment of an input on its way to the producer. */
+    private record Feeding(ItemKey key, OrderBook.Pending pending) {
+    }
+
+    private final BlockPos producer;
     private final ProductionRecipe recipe;
     private final int batches;
     private final Map<ItemKey, Integer> inputs = new LinkedHashMap<>();
     private final Map<ItemKey, Integer> fed = new HashMap<>();
     private final Map<ItemKey, Integer> collected = new HashMap<>();
+    private final Map<ItemKey, Integer> inFlight = new HashMap<>();
+    private final List<Feeding> feedings = new ArrayList<>();
     private State state = State.WAITING_STATION;
     private String reason = "";
 
-    public OrderStep(BlockPos station, BlockPos machine, ProductionRecipe recipe, int batches) {
-        this.station = station;
-        this.machine = machine;
+    public OrderStep(BlockPos producer, ProductionRecipe recipe, int batches) {
+        this.producer = producer;
         this.recipe = recipe;
         this.batches = batches;
         for (ItemStack input : recipe.inputs()) {
@@ -33,14 +40,9 @@ public final class OrderStep {
         }
     }
 
-    /** The Outbound Station the inputs are delivered to. */
-    public BlockPos station() {
-        return station;
-    }
-
-    /** The machine in front of the station. */
-    public BlockPos machine() {
-        return machine;
+    /** The producer on the data line that runs the step. */
+    public BlockPos producer() {
+        return producer;
     }
 
     public ProductionRecipe recipe() {
@@ -81,8 +83,33 @@ public final class OrderStep {
         return fed.getOrDefault(key, 0);
     }
 
-    void addFed(ItemKey key, int count) {
+    void addFed(ItemKey key, int count, List<OrderBook.Pending> pending) {
         fed.merge(key, count, Integer::sum);
+        for (OrderBook.Pending one : pending) {
+            feedings.add(new Feeding(key, one));
+        }
+    }
+
+    /**
+     * Books ended shipments: what they did not bring is no longer counted as fed.
+     *
+     * @return whether some input fell short
+     */
+    boolean settleFeedings() {
+        boolean shortfall = false;
+        for (Iterator<Feeding> it = feedings.iterator(); it.hasNext(); ) {
+            Feeding feeding = it.next();
+            if (!feeding.pending().ended()) {
+                continue;
+            }
+            int missing = feeding.pending().asked() - feeding.pending().delivered();
+            if (missing > 0) {
+                fed.merge(feeding.key(), -missing, Integer::sum);
+                shortfall = true;
+            }
+            it.remove();
+        }
+        return shortfall;
     }
 
     public boolean inputsFed() {
@@ -104,18 +131,27 @@ public final class OrderStep {
         return false;
     }
 
-    /** Whether the step is being delivered to or producing, so collected output may be its own. */
+    /** Whether the step is being delivered to or producing, so the producer's outputs may be its own. */
     public boolean active() {
         return state == State.DELIVERING || state == State.PRODUCING;
     }
 
-    /** Whether an inbound station at the position touches this step's machine. */
-    public boolean collectsAt(BlockPos inbound) {
-        return machine.distManhattan(inbound) == 1;
+    /** Outputs of the key travelling from the producer to an Access Point. */
+    public int inFlight(ItemKey key) {
+        return inFlight.getOrDefault(key, 0);
     }
 
-    void addCollected(ItemKey key, int count) {
-        collected.merge(key, count, Integer::sum);
+    /** Outputs left the producer as packets. */
+    public void sent(ItemKey key, int count) {
+        inFlight.merge(key, count, Integer::sum);
+    }
+
+    /** A collection delivery ended: {@code delivered} of the {@code sent} items reached the Access Point. */
+    public void landed(ItemKey key, int sent, int delivered) {
+        inFlight.merge(key, -sent, Integer::sum);
+        if (delivered > 0) {
+            collected.merge(key, delivered, Integer::sum);
+        }
     }
 
     public int collected(ItemKey key) {

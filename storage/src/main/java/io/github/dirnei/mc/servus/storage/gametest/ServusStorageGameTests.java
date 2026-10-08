@@ -11,10 +11,6 @@ import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.board.OrderBoardBlock;
-import io.github.dirnei.mc.servus.storage.board.OrderBoardBlockEntity;
-import io.github.dirnei.mc.servus.storage.board.OrderBoardPayload;
-import io.github.dirnei.mc.servus.storage.board.OrderRow;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
@@ -28,15 +24,10 @@ import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
-import io.github.dirnei.mc.servus.storage.menu.OrderBoardMenu;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.storage.order.OrderBook;
-import io.github.dirnei.mc.servus.storage.order.OrderStep;
-import io.github.dirnei.mc.servus.storage.order.StockRule;
-import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
@@ -51,7 +42,6 @@ import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
-import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
@@ -1736,35 +1726,6 @@ public final class ServusStorageGameTests {
         helper.succeed();
     }
 
-    /** A station in front of a Crafting Station reports its recipes. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void outboundReportsProducer(GameTestHelper helper) {
-        outboundSetup(helper);
-        craftingStationWithSticks(helper, OS_FRONT);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(OS_CONTROLLER);
-        helper.runAfterDelay(5, () -> {
-            List<WarehouseNetwork.Producer> producers = controller.network().orElseThrow().producers();
-            helper.assertTrue(producers.size() == 1, "one station expected, got " + producers.size());
-            helper.assertTrue(producers.get(0).producer() && producers.get(0).recipes().size() == 1
-                    && producers.get(0).machine().equals(helper.absolutePos(OS_FRONT)), "the crafting station is the producer: " + producers.get(0));
-            helper.succeed();
-        });
-    }
-
-    /** A station facing a chest is listed without a producer. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void outboundFacingChestIsNoProducer(GameTestHelper helper) {
-        outboundSetup(helper);
-        helper.setBlock(OS_FRONT, Blocks.CHEST.defaultBlockState());
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(OS_CONTROLLER);
-        helper.runAfterDelay(5, () -> {
-            List<WarehouseNetwork.Producer> producers = controller.network().orElseThrow().producers();
-            helper.assertTrue(producers.size() == 1 && !producers.get(0).producer() && producers.get(0).recipes().isEmpty(),
-                    "the chest is no producer: " + producers);
-            helper.succeed();
-        });
-    }
-
     /** Feeding a station from a crate touching the controller is instant. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void feedOutboundFromCrate(GameTestHelper helper) {
@@ -1972,289 +1933,6 @@ public final class ServusStorageGameTests {
                     + (crateB.count() > 0 && crateB.type(0).is(Items.STICK) ? crateB.count() : 0);
             helper.assertTrue(sticks == 8, "eight sticks should have flowed into the crates, found " + sticks);
             helper.assertTrue(outbound.isEmpty() && inbound.isEmpty(), "both station buffers should be empty");
-            helper.succeed();
-        });
-    }
-
-    private static final BlockPos WO_CONTROLLER = new BlockPos(2, 1, 2);
-    private static final BlockPos WO_TERMINAL = new BlockPos(2, 1, 3);
-    private static final BlockPos WO_CRATE_A = new BlockPos(1, 1, 2);
-    private static final BlockPos WO_CRATE_B = new BlockPos(1, 1, 3);
-    private static final BlockPos WO_CRATE_C = new BlockPos(3, 1, 3);
-    private static final BlockPos WO_OUTBOUND = new BlockPos(3, 1, 2);
-    private static final BlockPos WO_INBOUND = new BlockPos(4, 1, 3);
-    private static final BlockPos WO_STATION = new BlockPos(4, 1, 2);
-
-    /** Controller, terminal, three crates, an outbound station facing a crafting station with the sticks recipe, an inbound station beside it. */
-    private static CraftingStationBlockEntity orderSetup(GameTestHelper helper) {
-        helper.setBlock(WO_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        TerminalWiring.place(helper, WO_TERMINAL);
-        for (BlockPos pos : List.of(WO_CRATE_A, WO_CRATE_B, WO_CRATE_C)) {
-            helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        }
-        helper.setBlock(WO_OUTBOUND, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
-        helper.setBlock(WO_INBOUND, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.SOUTH));
-        return craftingStationWithSticks(helper, WO_STATION);
-    }
-
-    /** A request that stock cannot fill creates an order; the station crafts and the sticks reach the output slots. */
-    @GameTest(template = EMPTY, timeoutTicks = 500)
-    public static void orderCraftsMissingItems(GameTestHelper helper) {
-        orderSetup(helper);
-        CrateBlockEntity planks = helper.getBlockEntity(WO_CRATE_A);
-        planks.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, WO_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
-            menu.request(ItemKey.of(new ItemStack(Items.STICK)), 8);
-            helper.assertTrue(menu.stock().message().isEmpty(), "the request should be accepted, got " + menu.stock().message());
-            WarehouseNetwork network = controller.network().orElseThrow();
-            List<WorkOrder> orders = network.orders().orders();
-            helper.assertTrue(orders.size() == 1 && orders.get(0).amount() == 8 && orders.get(0).steps().size() == 1 && orders.get(0).steps().get(0).batches() == 2,
-                    "one order with one sticks step of two batches, got " + orders);
-            helper.assertTrue(orders.get(0).reserved().getOrDefault(ItemKey.of(new ItemStack(Items.OAK_PLANKS)), 0) == 4, "four planks should be reserved");
-            List<RequestRow> rows = menu.stock().requests();
-            helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("PRODUCING"), "the request should be producing, got " + rows);
-            helper.runAfterDelay(400, () -> {
-                helper.assertTrue(terminal.outputCount(Items.STICK) == 8, "eight sticks should have reached the output slots, had " + terminal.outputCount(Items.STICK));
-                helper.assertTrue(planks.count() == 6, "four planks should have been used, crate has " + planks.count());
-                helper.assertTrue(network.orders().orders().stream().noneMatch(WorkOrder::open), "the order should be done: " + network.orders().orders());
-                helper.assertTrue(menu.stock().requests().isEmpty(), "the request should be settled");
-                helper.succeed();
-            });
-        });
-    }
-
-    /** Nothing makes bread: no order, the request is refused as out of stock, a manual order says no producer. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void orderWithoutProducerIsRefused(GameTestHelper helper) {
-        orderSetup(helper);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, WO_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
-            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 5);
-            helper.assertTrue(menu.stock().message().equals("out_of_stock"), "bread cannot be made: " + menu.stock().message());
-            WarehouseNetwork network = controller.network().orElseThrow();
-            helper.assertTrue(network.orders().orders().isEmpty() && menu.stock().requests().isEmpty(), "no order and no request");
-            helper.assertTrue(network.order(ItemKey.of(new ItemStack(Items.BREAD)), 5).equals("no_producer"), "a manual bread order says no producer");
-            helper.succeed();
-        });
-    }
-
-    /** Sticks from planks from logs: the planks step runs first, then the sticks step, on the same dock. */
-    @GameTest(template = EMPTY, timeoutTicks = 700)
-    public static void twoLevelOrderRunsLeavesFirst(GameTestHelper helper) {
-        CraftingStationBlockEntity station = orderSetup(helper);
-        station.pattern().setStackInSlot(0, ItemStack.EMPTY);
-        for (int i = 0; i < CraftingStationBlockEntity.GRID; i++) {
-            station.pattern().setStackInSlot(i, ItemStack.EMPTY);
-        }
-        station.pattern().setStackInSlot(4, new ItemStack(Items.OAK_LOG));
-        helper.assertTrue(station.saveFromPattern().isEmpty(), "the planks pattern should save");
-        CrateBlockEntity logs = helper.getBlockEntity(WO_CRATE_A);
-        logs.insert(new ItemStack(Items.OAK_LOG, 2), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, WO_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
-            menu.request(ItemKey.of(new ItemStack(Items.STICK)), 8);
-            helper.assertTrue(menu.stock().message().isEmpty(), "the request should be accepted, got " + menu.stock().message());
-            WarehouseNetwork network = controller.network().orElseThrow();
-            List<WorkOrder> orders = network.orders().orders();
-            helper.assertTrue(orders.size() == 1 && orders.get(0).steps().size() == 2, "one order with two steps, got " + orders);
-            List<OrderStep> steps = orders.get(0).steps();
-            helper.assertTrue(steps.get(0).output().is(Items.OAK_PLANKS) && steps.get(0).batches() == 1, "planks first, one batch: " + steps.get(0).output());
-            helper.assertTrue(steps.get(1).output().is(Items.STICK) && steps.get(1).batches() == 2, "sticks second, two batches: " + steps.get(1).output());
-            helper.assertTrue(orders.get(0).reserved().getOrDefault(ItemKey.of(new ItemStack(Items.OAK_LOG)), 0) == 1, "one log should be reserved");
-            helper.runAfterDelay(600, () -> {
-                helper.assertTrue(terminal.outputCount(Items.STICK) == 8, "eight sticks should have reached the output slots, had " + terminal.outputCount(Items.STICK)
-                        + " orders " + network.orders().orders() + " steps " + (network.orders().orders().isEmpty() ? "" : network.orders().orders().get(0).steps().stream().map(st -> st.state() + "/" + st.reason()).toList()));
-                helper.assertTrue(logs.count() == 1, "one log should be left, crate has " + logs.count());
-                helper.succeed();
-            });
-        });
-    }
-
-    /** A second order finds the first order's planks reserved; cancelling the first frees them. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void cancelReleasesReservation(GameTestHelper helper) {
-        orderSetup(helper);
-        CrateBlockEntity planks = helper.getBlockEntity(WO_CRATE_A);
-        planks.insert(new ItemStack(Items.OAK_PLANKS, 4), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
-        helper.runAfterDelay(10, () -> {
-            WarehouseNetwork network = controller.network().orElseThrow();
-            OrderBook book = network.orders();
-            ItemKey sticks = ItemKey.of(new ItemStack(Items.STICK));
-            ItemKey plankKey = ItemKey.of(new ItemStack(Items.OAK_PLANKS));
-            OrderBook.Created first = book.create(sticks, 8, 0);
-            OrderBook.Created second = book.create(sticks, 8, 0);
-            helper.assertTrue(first.made() && second.made(), "both orders should be created");
-            helper.assertTrue(first.order().reserved().getOrDefault(plankKey, 0) == 4, "the first order reserves the four planks");
-            helper.assertTrue(second.order().state() == WorkOrder.State.BLOCKED && second.order().reason().startsWith("missing"),
-                    "the second order finds no planks: " + second.order().state() + " " + second.order().reason());
-            helper.assertTrue(book.reservedTotal().getOrDefault(plankKey, 0) == 4, "four planks reserved in total");
-            helper.assertTrue(book.cancel(first.order().id()), "the first order can be cancelled");
-            helper.assertTrue(book.reservedTotal().getOrDefault(plankKey, 0) == 0, "cancelling frees the planks");
-            helper.assertTrue(first.order().state() == WorkOrder.State.CANCELLED, "the first order is cancelled");
-            helper.succeed();
-        });
-    }
-
-    private static RuleRow ruleRow(WarehouseNetwork network, Item item) {
-        for (RuleRow row : network.ruleRows()) {
-            if (row.stack().is(item)) {
-                return row;
-            }
-        }
-        return null;
-    }
-
-    /** A rule below its minimum orders up to the maximum and reads ok once the sticks are in stock. */
-    @GameTest(template = EMPTY, timeoutTicks = 800)
-    public static void stockRuleOrdersWhenLow(GameTestHelper helper) {
-        orderSetup(helper);
-        CrateBlockEntity planks = helper.getBlockEntity(WO_CRATE_A);
-        planks.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
-        CrateBlockEntity sticks = helper.getBlockEntity(WO_CRATE_B);
-        sticks.insert(new ItemStack(Items.STICK, 2), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
-        helper.runAfterDelay(10, () -> {
-            WarehouseNetwork network = controller.network().orElseThrow();
-            network.setStockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16);
-            helper.runAfterDelay(30, () -> {
-                List<WorkOrder> orders = network.orders().orders();
-                helper.assertTrue(orders.size() == 1 && orders.get(0).amount() == 14 && orders.get(0).requestId() == io.github.dirnei.mc.servus.storage.order.OrderBook.RULE_ORIGIN,
-                        "the rule should order 14 sticks, got " + orders);
-                RuleRow row = ruleRow(network, Items.STICK);
-                helper.assertTrue(row != null && row.state().equals("ordering"), "the rule should read ordering: " + row);
-                helper.runAfterDelay(600, () -> {
-                    helper.assertTrue(network.index().count(ItemKey.of(new ItemStack(Items.STICK))) >= 16,
-                            "at least 16 sticks should be in stock, have " + network.index().count(ItemKey.of(new ItemStack(Items.STICK))));
-                    RuleRow after = ruleRow(network, Items.STICK);
-                    helper.assertTrue(after != null && after.state().equals("ok"), "the rule should read ok: " + after);
-                    helper.succeed();
-                });
-            });
-        });
-    }
-
-    /** A rule above its minimum orders nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
-    public static void stockRuleIgnoresWhenEnough(GameTestHelper helper) {
-        orderSetup(helper);
-        CrateBlockEntity sticks = helper.getBlockEntity(WO_CRATE_B);
-        sticks.insert(new ItemStack(Items.STICK, 10), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
-        helper.runAfterDelay(10, () -> {
-            WarehouseNetwork network = controller.network().orElseThrow();
-            network.setStockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16);
-            helper.runAfterDelay(150, () -> {
-                helper.assertTrue(network.orders().orders().isEmpty(), "no order should be created");
-                RuleRow row = ruleRow(network, Items.STICK);
-                helper.assertTrue(row != null && row.state().equals("ok"), "the rule should read ok: " + row);
-                helper.succeed();
-            });
-        });
-    }
-
-    /** A rule for an item nothing makes reads no producer and orders nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
-    public static void stockRuleWithoutProducerShowsReason(GameTestHelper helper) {
-        orderSetup(helper);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
-        helper.runAfterDelay(10, () -> {
-            WarehouseNetwork network = controller.network().orElseThrow();
-            network.setStockRule(ItemKey.of(new ItemStack(Items.BREAD)), 8, 16);
-            helper.runAfterDelay(150, () -> {
-                helper.assertTrue(network.orders().orders().isEmpty(), "no order should be created");
-                RuleRow row = ruleRow(network, Items.BREAD);
-                helper.assertTrue(row != null && row.state().equals("no_producer"), "the rule should read no producer: " + row);
-                helper.assertTrue(network.removeStockRule(ItemKey.of(new ItemStack(Items.BREAD))), "the rule can be removed");
-                helper.assertTrue(network.ruleRows().isEmpty(), "no rules left");
-                helper.succeed();
-            });
-        });
-    }
-
-    /** Rules survive a save and load of the controller. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void stockRulesPersist(GameTestHelper helper) {
-        helper.setBlock(WO_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
-        controller.rules().set(new StockRule(ItemKey.of(new ItemStack(Items.STICK)), 8, 16));
-        net.minecraft.nbt.CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());
-        WarehouseControllerBlockEntity copy = new WarehouseControllerBlockEntity(helper.absolutePos(WO_CONTROLLER), controller.getBlockState());
-        copy.loadWithComponents(tag, helper.getLevel().registryAccess());
-        StockRule rule = copy.rules().get(ItemKey.of(new ItemStack(Items.STICK)));
-        helper.assertTrue(rule != null && rule.min() == 8 && rule.max() == 16, "the rule should survive save and load: " + rule);
-        helper.succeed();
-    }
-
-    private static final BlockPos WO_BOARD = new BlockPos(2, 1, 1);
-
-    /** The board beside the controller lists the dock's station and an order with its step. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void orderBoardListsMachinesAndOrders(GameTestHelper helper) {
-        orderSetup(helper);
-        helper.setBlock(WO_BOARD, ServusStorageBlocks.ORDER_BOARD.get().defaultBlockState().setValue(OrderBoardBlock.FACING, Direction.NORTH));
-        CrateBlockEntity planks = helper.getBlockEntity(WO_CRATE_A);
-        planks.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.runAfterDelay(10, () -> {
-            OrderBoardBlockEntity board = helper.getBlockEntity(WO_BOARD);
-            OrderBoardMenu menu = new OrderBoardMenu(1, player.getInventory(), board);
-            OrderBoardPayload before = menu.view();
-            helper.assertTrue(before.online(), "the board should be online, reason " + before.reason());
-            helper.assertTrue(before.machines().size() == 1 && before.machines().get(0).machine().equals("Crafting Station")
-                    && before.machines().get(0).state().equals("idle"), "one idle Crafting Station expected, got " + before.machines());
-            helper.assertTrue(before.orders().isEmpty(), "no orders yet");
-            WarehouseNetwork network = controller.network().orElseThrow();
-            helper.assertTrue(network.order(ItemKey.of(new ItemStack(Items.STICK)), 8).isEmpty(), "the manual order should be accepted");
-            helper.runAfterDelay(60, () -> {
-                OrderBoardPayload view = menu.view();
-                helper.assertTrue(view.orders().size() == 1, "one order expected, got " + view.orders());
-                OrderRow order = view.orders().get(0);
-                helper.assertTrue(order.item().is(Items.STICK) && order.amount() == 8 && order.requestId() == 0, "manual sticks order: " + order);
-                helper.assertTrue(order.steps().size() == 1 && order.steps().get(0).machine().equals("Crafting Station")
-                        && order.steps().get(0).output().is(Items.STICK) && order.steps().get(0).batches() == 2, "one sticks step on the station: " + order.steps());
-                String stepState = order.steps().get(0).state();
-                helper.assertTrue(stepState.equals("delivering") || stepState.equals("producing") || stepState.equals("done"), "the step should have started: " + stepState);
-                boolean working = view.machines().get(0).state().equals("working") || stepState.equals("done");
-                helper.assertTrue(working || stepState.equals("delivering"), "the station should be working or still being fed: " + view.machines());
-                helper.succeed();
-            });
-        });
-    }
-
-    /** Cancelling through the board menu cancels the order and releases its reservation. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void orderBoardCancelsOrder(GameTestHelper helper) {
-        orderSetup(helper);
-        helper.setBlock(WO_BOARD, ServusStorageBlocks.ORDER_BOARD.get().defaultBlockState().setValue(OrderBoardBlock.FACING, Direction.NORTH));
-        CrateBlockEntity planks = helper.getBlockEntity(WO_CRATE_A);
-        planks.insert(new ItemStack(Items.OAK_PLANKS, 4), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(WO_CONTROLLER);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.runAfterDelay(10, () -> {
-            WarehouseNetwork network = controller.network().orElseThrow();
-            OrderBook.Created created = network.orders().create(ItemKey.of(new ItemStack(Items.STICK)), 8, 0);
-            helper.assertTrue(created.made(), "the order should be created");
-            OrderBoardBlockEntity board = helper.getBlockEntity(WO_BOARD);
-            OrderBoardMenu menu = new OrderBoardMenu(1, player.getInventory(), board);
-            helper.assertTrue(menu.view().orders().size() == 1 && menu.view().orders().get(0).open(), "the order is listed open");
-            helper.assertTrue(menu.cancel(created.order().id()), "cancel should succeed");
-            helper.assertTrue(menu.view().orders().get(0).state().equals("cancelled"), "the order shows cancelled: " + menu.view().orders());
-            helper.assertTrue(network.orders().reservedTotal().isEmpty(), "reservations released");
-            helper.assertTrue(!menu.cancel(created.order().id()), "cancelling twice does nothing");
             helper.succeed();
         });
     }

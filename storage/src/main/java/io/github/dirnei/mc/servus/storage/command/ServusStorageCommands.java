@@ -169,44 +169,49 @@ public final class ServusStorageCommands {
     private static int orders(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
         CommandSourceStack source = context.getSource();
-        Optional<WarehouseNetwork> network = networkAt(source, pos);
-        if (network.isEmpty()) {
+        java.util.List<io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity> cpus = io.github.dirnei.mc.servus.storage.cpu.CpuOrders.cpus(source.getLevel(), pos);
+        if (cpus.isEmpty()) {
+            source.sendFailure(Component.literal("No Crafting CPU on the data line at " + pos.toShortString()));
             return 0;
         }
-        List<io.github.dirnei.mc.servus.storage.order.WorkOrder> orders = network.get().orders().orders();
-        if (orders.isEmpty()) {
-            source.sendSuccess(() -> Component.literal("No orders"), false);
-            return 0;
-        }
-        for (io.github.dirnei.mc.servus.storage.order.WorkOrder order : orders) {
-            String head = "  #" + order.id() + " " + order.amount() + " " + order.key().stack(1).getHoverName().getString() + ": "
-                    + order.state().name().toLowerCase(java.util.Locale.ROOT) + (order.reason().isEmpty() ? "" : ", " + order.reason())
-                    + (order.requestId() > 0 ? " (request " + order.requestId() + ")" : "");
-            source.sendSuccess(() -> Component.literal(head), false);
-            for (io.github.dirnei.mc.servus.storage.order.OrderStep step : order.steps()) {
-                String line = "      station " + step.station().toShortString() + ": " + step.output().getHoverName().getString() + " x" + step.batches()
-                        + " " + step.state().name().toLowerCase(java.util.Locale.ROOT) + (step.reason().isEmpty() ? "" : ", " + step.reason());
-                source.sendSuccess(() -> Component.literal(line), false);
+        int count = 0;
+        for (io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity cpu : cpus) {
+            String title = "CPU " + cpu.getBlockPos().toShortString() + ":";
+            source.sendSuccess(() -> Component.literal(title), false);
+            for (io.github.dirnei.mc.servus.storage.order.WorkOrder order : cpu.book().orders()) {
+                count++;
+                String head = "  #" + order.id() + " " + order.amount() + " " + order.key().stack(1).getHoverName().getString() + ": "
+                        + order.state().name().toLowerCase(java.util.Locale.ROOT) + (order.reason().isEmpty() ? "" : ", " + order.reason())
+                        + (order.requestId() > 0 ? " (request " + order.requestId() + ")" : order.requestId() < 0 ? " (rule)" : "");
+                source.sendSuccess(() -> Component.literal(head), false);
+                for (io.github.dirnei.mc.servus.storage.order.OrderStep step : order.steps()) {
+                    String name = source.getLevel().getBlockState(step.producer()).getBlock().getName().getString();
+                    String line = "      " + name + " " + step.producer().toShortString() + ": " + step.output().getHoverName().getString()
+                            + " x" + step.batches() + " " + step.state().name().toLowerCase(java.util.Locale.ROOT)
+                            + (step.reason().isEmpty() ? "" : ", " + step.reason());
+                    source.sendSuccess(() -> Component.literal(line), false);
+                }
             }
         }
-        return orders.size();
+        if (count == 0) {
+            source.sendSuccess(() -> Component.literal("No orders"), false);
+        }
+        return count;
     }
 
     private static int order(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
         CommandSourceStack source = context.getSource();
-        Optional<WarehouseNetwork> network = networkAt(source, pos);
-        if (network.isEmpty()) {
-            return 0;
-        }
         ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1, false);
         int count = IntegerArgumentType.getInteger(context, "count");
-        String refused = network.get().order(ItemKey.of(wanted), count);
-        if (!refused.isEmpty()) {
-            source.sendFailure(Component.literal("Order refused: " + refused.replace('_', ' ') + " for " + wanted.getHoverName().getString()));
+        io.github.dirnei.mc.servus.storage.cpu.CpuOrders.Placed placed =
+                io.github.dirnei.mc.servus.storage.cpu.CpuOrders.create(source.getLevel(), pos, ItemKey.of(wanted), count, 0);
+        if (!placed.made()) {
+            source.sendFailure(Component.literal("Order refused: " + placed.refusal().replace('_', ' ') + " for " + wanted.getHoverName().getString()));
             return 0;
         }
-        source.sendSuccess(() -> Component.literal("Ordered " + count + " " + wanted.getHoverName().getString()), false);
+        source.sendSuccess(() -> Component.literal("Ordered " + count + " " + wanted.getHoverName().getString()
+                + " on the CPU at " + placed.cpu().toShortString()), false);
         return count;
     }
 
@@ -235,27 +240,28 @@ public final class ServusStorageCommands {
     private static int producers(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
         CommandSourceStack source = context.getSource();
-        Optional<WarehouseNetwork> network = networkAt(source, pos);
-        if (network.isEmpty()) {
+        Optional<io.github.dirnei.mc.servus.foundation.data.DataNetwork> line =
+                io.github.dirnei.mc.servus.storage.cpu.CpuOrders.network(source.getLevel(), pos);
+        if (line.isEmpty()) {
+            source.sendFailure(Component.literal("No data line at " + pos.toShortString()));
             return 0;
         }
-        List<WarehouseNetwork.Producer> producers = network.get().producers();
+        List<io.github.dirnei.mc.servus.foundation.data.DataMember> producers =
+                line.get().dataMembers(io.github.dirnei.mc.servus.foundation.data.DataRole.PRODUCER);
         if (producers.isEmpty()) {
-            source.sendSuccess(() -> Component.literal("No outbound stations"), false);
+            source.sendSuccess(() -> Component.literal("No producers on the data line"), false);
             return 0;
         }
-        for (WarehouseNetwork.Producer producer : producers) {
-            String head = "  - station " + producer.station().toShortString() + " faces " + producer.machineName().getString();
-            if (!producer.producer()) {
-                source.sendSuccess(() -> Component.literal(head + ": no producer"), false);
-                continue;
-            }
-            if (producer.recipes().isEmpty()) {
+        for (io.github.dirnei.mc.servus.foundation.data.DataMember member : producers) {
+            io.github.dirnei.mc.servus.foundation.production.ProductionProvider provider = source.getLevel()
+                    .getCapability(io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities.PRODUCTION, member.pos(), null);
+            String head = "  - " + source.getLevel().getBlockState(member.pos()).getBlock().getName().getString() + " " + member.pos().toShortString();
+            if (provider == null || provider.recipes().isEmpty()) {
                 source.sendSuccess(() -> Component.literal(head + ": no recipes configured"), false);
                 continue;
             }
-            source.sendSuccess(() -> Component.literal(head + (producer.active().map(id -> ", working on " + id.getPath()).orElse(""))), false);
-            for (io.github.dirnei.mc.servus.foundation.production.ProductionRecipe recipe : producer.recipes()) {
+            source.sendSuccess(() -> Component.literal(head + (provider.active().map(id -> ", working on " + id.getPath()).orElse(""))), false);
+            for (io.github.dirnei.mc.servus.foundation.production.ProductionRecipe recipe : provider.recipes()) {
                 List<String> inputs = new ArrayList<>();
                 for (ItemStack input : recipe.inputs()) {
                     inputs.add(input.getCount() + " " + input.getHoverName().getString());
@@ -264,8 +270,8 @@ public final class ServusStorageCommands {
                 for (ItemStack output : recipe.outputs()) {
                     outputs.add(output.getCount() + " " + output.getHoverName().getString());
                 }
-                String line = "      " + String.join(", ", outputs) + " from " + String.join(", ", inputs) + ", " + recipe.ticks() + " ticks";
-                source.sendSuccess(() -> Component.literal(line), false);
+                String line2 = "      " + String.join(", ", outputs) + " from " + String.join(", ", inputs) + ", " + recipe.ticks() + " ticks";
+                source.sendSuccess(() -> Component.literal(line2), false);
             }
         }
         return producers.size();

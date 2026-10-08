@@ -9,7 +9,7 @@ import java.util.Map;
 /** Make this many of an item: the steps, the stock reserved for them and how it is going. */
 public final class WorkOrder {
 
-    public enum State { RUNNING, BLOCKED, DONE, CANCELLED }
+    public enum State { WAITING, RUNNING, BLOCKED, DONE, CANCELLED }
 
     private final int id;
     private final ItemKey key;
@@ -99,16 +99,16 @@ public final class WorkOrder {
     }
 
     public boolean open() {
-        return state == State.RUNNING || state == State.BLOCKED;
+        return state == State.WAITING || state == State.RUNNING || state == State.BLOCKED;
     }
 
-    /** Whether a step is feeding or producing on the station. */
-    public boolean occupies(net.minecraft.core.BlockPos station, OrderStep except) {
+    /** Whether a step of this order is feeding or producing on the producer. */
+    public boolean occupies(net.minecraft.core.BlockPos producer, OrderStep except) {
         if (!open()) {
             return false;
         }
         for (OrderStep step : steps) {
-            if (step != except && step.station().equals(station)
+            if (step != except && step.producer().equals(producer)
                     && (step.state() == OrderStep.State.DELIVERING || step.state() == OrderStep.State.PRODUCING)) {
                 return true;
             }

@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.terminal;
 import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.storage.order.OrderBook;
+import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.Request;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.RequestState;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.Tracked;
@@ -56,10 +56,9 @@ public final class TerminalRequests {
         int remaining = ship(terminal, request, warehouses, amount, refusal);
         request.missing = remaining;
         if (remaining > 0) {
-            WarehouseNetwork first = warehouses.get(0);
-            OrderBook.Created created = first.orders().create(key, remaining, request.id);
-            if (created.made()) {
-                request.orderWarehouse = first.controllerPos().orElse(null);
+            CpuOrders.Placed placed = CpuOrders.create(level, terminal.getBlockPos(), key, remaining, request.id);
+            if (placed.made()) {
+                request.orderCpu = placed.cpu();
             } else if (request.shipments.isEmpty()) {
                 terminal.removeRequest(request.id);
                 return refusal[0].isEmpty() ? "out_of_stock" : refusal[0];
@@ -138,8 +137,8 @@ public final class TerminalRequests {
         }
         for (WarehouseNetwork warehouse : TerminalWarehouses.reachable(level, terminal.getBlockPos())) {
             warehouse.dropQueuedFor(requestId);
-            warehouse.orders().cancelForRequest(requestId);
         }
+        CpuOrders.cancelForRequest(level, terminal.getBlockPos(), requestId);
         for (Tracked tracked : request.shipments) {
             if (level.getBlockEntity(tracked.accessPoint()) instanceof AccessPointBlockEntity point) {
                 point.cancel(tracked.shipment());
@@ -169,8 +168,7 @@ public final class TerminalRequests {
         if (!request.shipments.isEmpty()) {
             return RequestState.PICKING;
         }
-        Optional<WarehouseNetwork> orders = TerminalWarehouses.byController(warehouses, request.orderWarehouse);
-        if (orders.isPresent() && orders.get().orders().hasOpenOrderFor(request.id)) {
+        if (CpuOrders.cpuAt(level, request.orderCpu).filter(cpu -> cpu.book().hasOpenOrderFor(request.id)).isPresent()) {
             return RequestState.PRODUCING;
         }
         return RequestState.MISSING;
