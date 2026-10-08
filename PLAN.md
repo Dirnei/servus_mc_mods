@@ -133,11 +133,16 @@ Decided: every elevator shaft has one simulated **lift car**. A shuttle that cha
 
 **USP: production on demand.** Nothing runs without an order. A classic pipe line (Outbound Station, pipe, chest, hopper, furnace, hopper, Inbound Station) produces until storage is full or the input runs out; a machine on the data cable produces exactly what was ordered and then waits.
 
-Built in M7, still valid:
-- **Work orders.** Requesting an item that is not in stock creates a work order.
-- **Bill of materials explosion**: the order is broken into sub-orders. Stock on hand is reserved, the rest is produced.
-- **Min/max stock levels** per item create orders automatically ("keep 500 to 1,000 iron gears").
-- **Outbound Station** with its back to a machine and an **Inbound Station** beside it, next to the rails, for pipe lines and machines that do not speak Lib. Station fronts, like machine fronts, never move items.
+What M7 built and what M8 does with it:
+- **Lib production API** (production and stock capabilities, `OrderPlanner`): kept. The data cable finds its members through it and the CPU plans with it.
+- **Work orders, bill of materials explosion, reservations**: kept, but they move from the Warehouse Controller to the Crafting CPU, and their steps run over the cable instead of through stations.
+- **Min/max stock levels** per item ("keep 500 to 1,000 iron gears"): kept on the controller; a rule hands its order to the CPU on the controller's data network.
+- **Inbound Station**: kept as the put-away entry of the warehouse. It no longer credits order steps.
+- **Outbound Station**: kept as a plain buffer with keep slots for pipe lines that run all the time. It no longer feeds work orders. Station fronts, like machine fronts, never move items.
+- **Crafting Station**: kept; it loses its own recipe list once patterns exist and becomes the hands of the CPU.
+- **Order Board**: removed by the CPU change; the Production Terminal takes its place right after.
+
+**One route for orders.** Everything on demand runs over the data cable; everything that runs all the time uses stations and pipes. There is no second order route through Outbound Stations.
 
 Decided for M8 (on-demand autocrafting):
 - **Data cable** (Servus Lib). Like redstone, not like a real network: place it and it works, no addresses, channels or priorities. It never pushes or pulls on its own; it only routes packets for an order. Members are found by the capabilities they expose. Items travel as packets with a size and a speed from datapack JSON, so long distances take time. A High-Speed Data Cable with bigger, faster packets comes later. Item pipes stay useful: they move items all the time and work with any mod.
@@ -259,17 +264,18 @@ Each milestone ends in something playable or testable.
 
 ### M8: On-demand autocrafting
 One change per item:
-- `m8-data-cable`: Lib data cable block and network, members found by capability
-- `m8-cable-packets`: packet transport over the cable, size and speed from datapack JSON
-- `m8-access-point`: Access Point on rail and cable, Warehouse Controller on the cable, shortest shuttle trip wins
-- `m8-item-terminal-cable`: Counter Terminal on the cable, deliveries as packets
-- `m8-pattern-storage`: pattern items, Pattern Storage with N patterns per block, encoding with the editor and JEI transfer
-- `m8-crafting-cpu`: 3x3x3 multiblock, owns work orders (moved from the controller), more CPUs run more orders in parallel
-- `m8-station-hands`: Crafting Station takes jobs over the cable instead of its own recipe list
-- `m8-production-terminal`: Patterns, Machines and Orders tabs, replaces the Order Board
-- `m8-machine-adapter`: Lib Machine Adapter with side roles, upkeep and profiles for the vanilla furnace, smoker and blast furnace
-- `m8-native-machines`: Manufacturing machines on the cable, burner machines report upkeep
-- Later: High-Speed Data Cable
+One change per item, in this order. Each one builds only on the ones before it and leaves the game playable, so nothing is built twice:
+1. `m8-data-cable`: Lib data cable block and network, members found by capability.
+2. `m8-cable-packets`: packets over the cable with size and speed from datapack JSON; a packet is delivered into a member's item handler and results are taken from it. Tested with a Lib command or GameTests, no player feature yet.
+3. `m8-access-point`: Lib `data_link` capability for members without production or stock; Access Point on rail and cable (shuttles to packets and back, shortest shuttle trip wins); Warehouse Controller as a cable member.
+4. `m8-item-terminal-cable`: Counter Terminal joins the cable instead of the warehouse; requests are delivered as packets through an Access Point.
+5. `m8-crafting-cpu`: 3x3x3 multiblock on the cable. Work orders and the order book move from the controller to the CPU, stock rules and terminal shortfalls hand their orders to it, steps run over the cable on producers with the recipes they report today (Assembler, Crafting Station with its own list). Removes the Outbound Station order route, the Inbound Station step credit and the Order Board block; `/servus_warehouse orders` stays for diagnosis. More CPUs run more orders in parallel.
+6. `m8-production-terminal`: terminal on the cable with Machines and Orders tabs, built on the CPU's orders.
+7. `m8-pattern-storage`: pattern items, Pattern Storage with N patterns per block, the Patterns tab in the Production Terminal with the editor and JEI transfer and a capacity bar; the CPU plans crafting recipes from patterns.
+8. `m8-station-hands`: the Crafting Station drops its own recipe list and editor and crafts the pattern jobs the CPU sends it.
+9. `m8-machine-adapter`: Lib Machine Adapter with side roles, upkeep and profiles for the vanilla furnace, smoker and blast furnace.
+10. `m8-native-machines`: Manufacturing machines report upkeep; burner machines join with fuel upkeep.
+- Later: High-Speed Data Cable.
 
 ### M9: Wireless and scale
 - Wireless Access Point (replaces the Warehouse Relay idea)
@@ -284,8 +290,8 @@ One change per item:
 - Tier 2 to 5 content details
 - Art style and texture direction (shared look across the family)
 - Final name for the storage mod (Servus: Storage vs Servus: Warehouse)
-- M8: how stock rules hand their orders to the Crafting CPU, and whether Pattern Storage gets tiers like the crate family or only more blocks
-- M8: whether the Order Board block goes away or stays as a read only view next to the Production Terminal
+- M8: whether Pattern Storage gets tiers like the crate family or only more blocks
+- M8: which CPU takes an order when several CPUs share a data network (first free order slot is the default guess)
 
 ---
 
