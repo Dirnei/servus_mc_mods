@@ -11,11 +11,10 @@ import io.github.dirnei.mc.servus.storage.pattern.PatternEditing;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
-import io.github.dirnei.mc.servus.storage.production.ProductionRows.OrderRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
-import io.github.dirnei.mc.servus.storage.production.ProductionRows.StepRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.production.ProductionView;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -141,7 +140,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         if (terminal.getLevel() instanceof ServerLevel level) {
             return ProductionView.of(level, terminal.getBlockPos());
         }
-        return new ProductionPayload(terminal.getBlockPos(), false, "no_line", List.of(), List.of(), PatternsView.EMPTY);
+        return new ProductionPayload(terminal.getBlockPos(), false, "no_line", List.of(), List.of(), List.of(), PatternsView.EMPTY);
     }
 
     private void resync() {
@@ -379,27 +378,23 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         for (MachineRow machine : payload.machines()) {
             hash = hash * 31 + machine.pos().hashCode();
             hash = hash * 31 + machine.state().hashCode();
-            hash = hash * 31 + machine.working().getItem().hashCode();
+            hash = hash * 31 + machine.item().getItem().hashCode();
             hash = hash * 31 + machine.left();
-            hash = hash * 31 + machine.recipes().size();
-            for (var recipe : machine.recipes()) {
-                for (ItemStack output : recipe.outputs()) {
-                    hash = hash * 31 + output.getItem().hashCode() * 7 + output.getCount();
-                }
-            }
+            hash = hash * 31 + machine.reason().hashCode();
+            hash = hash * 31 + machine.upkeepCount() * 7 + machine.upkeepLevel();
+            hash = hash * 31 + machine.makes();
         }
         for (CpuRow cpu : payload.cpus()) {
             hash = hash * 31 + cpu.cpu().hashCode();
             hash = hash * 31 + cpu.slots() * 7 + cpu.inUse() * 3 + cpu.waiting();
-            for (OrderRow order : cpu.orders()) {
-                hash = hash * 31 + order.id();
-                hash = hash * 31 + order.state().hashCode();
-                hash = hash * 31 + order.reason().hashCode();
-                for (StepRow step : order.steps()) {
-                    hash = hash * 31 + step.state().hashCode();
-                    hash = hash * 31 + step.reason().hashCode();
-                }
-            }
+        }
+        for (JobRow job : payload.jobs()) {
+            hash = hash * 31 + job.cpu().hashCode() + job.id();
+            hash = hash * 31 + job.state().hashCode();
+            hash = hash * 31 + job.crafted();
+            hash = hash * 31 + Long.hashCode(job.doneAt());
+            hash = hash * 31 + job.status().hashCode();
+            hash = hash * 31 + job.args().hashCode();
         }
         PatternsView patterns = payload.patterns();
         hash = hash * 31 + patterns.used() * 7 + patterns.total();

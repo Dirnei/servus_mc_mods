@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import java.util.HashMap;
@@ -12,7 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 
 /**
- * The last CPUs, orders, producers and patterns the server sent, kept per
+ * The last CPUs, jobs, machines and patterns the server sent, kept per
  * Production Terminal for the session, so a terminal opened again shows its
  * last content at once while the fresh one is on its way. Client main thread only.
  */
@@ -79,6 +80,10 @@ public final class ClientProduction {
 
     public static List<CpuRow> cpus() {
         return shown == null ? List.of() : shown.cpus();
+    }
+
+    public static List<JobRow> jobs() {
+        return shown == null ? List.of() : shown.jobs();
     }
 
     public static List<MachineRow> machines() {

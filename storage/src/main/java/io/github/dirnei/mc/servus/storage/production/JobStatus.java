@@ -51,7 +51,8 @@ public final class JobStatus {
             default -> {
             }
         }
-        if (missingCount > 0 && !missingName.isEmpty()) {
+        // The plan keeps what was missing when it was made; it only matters while the order is blocked.
+        if (orderState.equals("blocked") && missingCount > 0 && !missingName.isEmpty()) {
             return new Status("missing", List.of(Integer.toString(missingCount), missingName));
         }
         if (current == null) {

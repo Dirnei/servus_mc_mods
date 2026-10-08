@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
+import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
@@ -22,8 +24,7 @@ import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
-import io.github.dirnei.mc.servus.storage.production.ProductionRows.OrderRow;
-import io.github.dirnei.mc.servus.storage.production.ProductionRows.RecipeRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.production.ProductionView;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -36,6 +37,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FurnaceBlock;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -130,27 +133,28 @@ public final class ProductionTerminalGameTests {
         });
     }
 
-    /** An idle Crafting Station is listed as idle, crafting any pattern, without a recipe list. */
+    /** An idle Crafting Station is a status row: idle, any pattern, no recipe list; with a job it is crafting with crafts left. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
     public static void productionTerminalListsIdleStation(GameTestHelper helper) {
         setup(helper, false);
         TerminalWiring.when(helper, () -> !view(helper, TERMINAL).machines().isEmpty(), 40, () -> "the station should be listed", () -> {
             MachineRow machine = view(helper, TERMINAL).machines().get(0);
-            helper.assertTrue(machine.pos().equals(helper.absolutePos(STATION)) && machine.state().equals("station_idle"),
+            helper.assertTrue(machine.pos().equals(helper.absolutePos(STATION)) && machine.state().equals("idle"),
                     "the station should be idle, got " + machine.state());
-            helper.assertTrue(machine.recipes().isEmpty(), "no recipe list, got " + machine.recipes().size());
+            helper.assertTrue(machine.makes() == -1 && machine.icon().is(ServusStorageBlocks.CRAFTING_STATION.get().asItem()),
+                    "any pattern with the station icon, got " + machine);
             CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
             StationJobs.sticksJob(station, 2);
             MachineRow working = view(helper, TERMINAL).machines().get(0);
-            helper.assertTrue(working.state().equals("station_crafting") && working.working().is(Items.STICK) && working.left() == 2,
+            helper.assertTrue(working.state().equals("crafting") && working.item().is(Items.STICK) && working.left() == 2,
                     "crafting sticks, 2 left, got " + working.state() + " " + working.left());
             helper.succeed();
         });
     }
 
-    /** A CPU with an order shows its slot use, the order and its step. */
+    /** A CPU with a job shows the slot summary and one open job row for 8 sticks with a status. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void productionTerminalListsCpuOrder(GameTestHelper helper) {
+    public static void productionTerminalListsCpuJob(GameTestHelper helper) {
         setup(helper, true);
         TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
@@ -160,12 +164,79 @@ public final class ProductionTerminalGameTests {
             CpuRow row = view.cpus().get(0);
             helper.assertTrue(row.cpu().equals(cpu(helper).getBlockPos()) && row.slots() == 2 && row.inUse() == 1 && row.waiting() == 0,
                     "1 of 2 slots, 0 waiting, got " + row);
-            helper.assertTrue(row.orders().size() == 1, "one order");
-            OrderRow order = row.orders().get(0);
-            helper.assertTrue(order.item().is(Items.STICK) && order.amount() == 8 && order.requestId() == 0 && order.open(),
-                    "an open manual order for 8 sticks, got " + order);
-            helper.assertTrue(order.steps().size() == 1 && order.steps().get(0).producer().equals(helper.absolutePos(STATION))
-                    && order.steps().get(0).output().is(Items.STICK), "its sticks step on the station, got " + order.steps());
+            helper.assertTrue(view.jobs().size() == 1, "one job, got " + view.jobs());
+            JobRow job = view.jobs().get(0);
+            helper.assertTrue(job.item().is(Items.STICK) && job.amount() == 8 && job.crafted() == 0 && job.open() && job.requestId() == 0,
+                    "an open manual job for 8 sticks, got " + job);
+            helper.assertTrue(!job.status().isEmpty() && job.doneAt() == -1, "a status and no end time, got " + job);
+            helper.succeed();
+        });
+    }
+
+    /** A job that runs says "Crafting Station: crafting n of 2" and ends done with a full bar. */
+    @GameTest(template = EMPTY, timeoutTicks = 600)
+    public static void productionTerminalJobWording(GameTestHelper helper) {
+        setup(helper, true);
+        CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+        crate.insert(new ItemStack(Items.OAK_PLANKS, 4), false);
+        helper.setBlock(new BlockPos(2, 1, 1), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            boolean[] sawWorking = {false};
+            java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+            TerminalWiring.when(helper, () -> {
+                JobRow job = view(helper, TERMINAL).jobs().get(0);
+                seen.add(job.status() + job.args());
+                if (job.status().equals("working")) {
+                    helper.assertTrue(job.args().size() == 4 && job.args().get(1).equals("crafting") && job.args().get(3).equals("2"),
+                            "Crafting Station: crafting n of 2, got " + job.args());
+                    sawWorking[0] = true;
+                }
+                return job.state().equals("done");
+            }, 500, () -> "the job should finish, got " + view(helper, TERMINAL).jobs(), () -> {
+                JobRow done = view(helper, TERMINAL).jobs().get(0);
+                helper.assertTrue(sawWorking[0], "the job should have shown the crafting step, saw " + seen);
+                helper.assertTrue(done.status().equals("done") && done.crafted() == 8 && done.doneAt() >= 0 && !done.open(),
+                        "done with a full bar and an end time, got " + done);
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A third job on a CPU with 2 slots waits for a CPU. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void productionTerminalWaitingForCpu(GameTestHelper helper) {
+        setup(helper, true);
+        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+            for (int i = 0; i < 3; i++) {
+                helper.assertTrue(CpuOrders.create(helper.getLevel(), line(helper), STICK, 4, 0).made(), "order " + i + " should be made");
+            }
+            List<JobRow> jobs = view(helper, TERMINAL).jobs();
+            helper.assertTrue(jobs.size() == 3, "three jobs, got " + jobs);
+            helper.assertTrue(jobs.stream().filter(job -> job.status().equals("waiting_cpu")).count() == 1,
+                    "one job waits for a CPU, got " + jobs.stream().map(JobRow::status).toList());
+            helper.succeed();
+        });
+    }
+
+    /** A furnace adapter without fuel is listed first as out of fuel, with a count instead of a recipe list. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void productionTerminalMachinesProblemsFirst(GameTestHelper helper) {
+        setup(helper, false);
+        BlockPos furnace = new BlockPos(5, 1, 1);
+        BlockPos adapter = new BlockPos(5, 1, 2);
+        helper.setBlock(furnace, Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.WEST));
+        helper.setBlock(adapter, AdapterContent.BLOCK.get().defaultBlockState().setValue(MachineAdapterBlock.FACING, Direction.NORTH));
+        TerminalWiring.when(helper, () -> view(helper, TERMINAL).machines().size() == 2, 60, () -> "station and adapter should be listed", () -> {
+            List<MachineRow> machines = view(helper, TERMINAL).machines();
+            MachineRow first = machines.get(0);
+            helper.assertTrue(first.pos().equals(helper.absolutePos(adapter)) && first.state().equals("out_of_fuel") && first.problem(),
+                    "the empty furnace adapter should come first as out of fuel, got " + machines);
+            helper.assertTrue(first.name().endsWith("(adapter)") && first.icon().is(Items.FURNACE), "named and shown as the furnace, got " + first);
+            helper.assertTrue(first.makes() > 10 && first.upkeep().is(Items.COAL) && first.upkeepCount() == 0 && first.upkeepLevel() > 0,
+                    "a count of smeltable items and an empty coal upkeep, got " + first);
+            helper.assertTrue(machines.get(1).state().equals("idle"), "the station follows as idle, got " + machines.get(1));
             helper.succeed();
         });
     }

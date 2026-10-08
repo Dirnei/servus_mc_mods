@@ -20,7 +20,7 @@
 `StepRow`, `OrderRow` and `RecipeRow` are removed. The payload becomes `(terminal, online, reason, cpus, jobs, machines, patterns)`.
 
 ### Job wording (pure, JUnit)
-`production/JobStatus` turns plain facts into a status key and arguments, no Minecraft imports: order state and reason, the first missing item and count, the first step that is not done (machine name, step state, step reason, verb, crafts done, crafts total) and whether that step's machine is out of upkeep. Precedence: done, cancelled, waiting for a CPU slot, missing material, out of fuel, step reason (blocked), waiting for the machine, getting ingredients, working ("Crafting Station: crafting 1 of 2"). Crafts done = collected step output divided by the output per craft, capped at the batches.
+`production/JobStatus` turns plain facts into a status key and arguments, no Minecraft imports: order state and reason, the first missing item and count, the first step that is not done (machine name, step state, step reason, verb, crafts done, crafts total) and whether that step's machine is out of upkeep. Precedence: done, cancelled, waiting for a CPU slot, missing material (only while the order is blocked, since the plan keeps what was missing when it was made), out of fuel, step reason (blocked), waiting for the machine, getting ingredients, working ("Crafting Station: crafting 1 of 2"). Crafts done = collected step output divided by the output per craft, capped at the batches.
 
 The verb comes from the step recipe's type, looked up by recipe id in the server's recipe manager: crafting, smelting, blasting, smoking, campfire cooking, and the type path for other mods (crushing, assembling); unknown or not found gives "working". Patterns use vanilla crafting ids, so stations say crafting.
 

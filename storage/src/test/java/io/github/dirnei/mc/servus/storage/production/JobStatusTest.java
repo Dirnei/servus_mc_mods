@@ -31,6 +31,11 @@ class JobStatusTest {
     }
 
     @Test
+    void missingIgnoredWhileRunning() {
+        assertEquals("working", JobStatus.of("running", "", "Oak Planks", 4, step("producing", "", false)).key());
+    }
+
+    @Test
     void outOfFuel() {
         assertEquals(new Status("out_of_fuel", List.of("Crafting Station")), JobStatus.of("running", "", "", 0, step("producing", "busy", true)));
     }

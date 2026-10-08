@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.production;
 
-import java.util.ArrayList;
+import io.netty.buffer.ByteBuf;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -16,128 +16,6 @@ public final class ProductionRows {
 
     private static final StreamCodec<RegistryFriendlyByteBuf, List<ItemStack>> STACKS =
             ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list());
-
-    /**
-     * One recipe a producer reports.
-     *
-     * @param inputs  consumed per run
-     * @param outputs made per run
-     * @param ticks   time per run
-     */
-    public record RecipeRow(List<ItemStack> inputs, List<ItemStack> outputs, int ticks) {
-        public static final StreamCodec<RegistryFriendlyByteBuf, RecipeRow> STREAM_CODEC = StreamCodec.composite(
-                STACKS, RecipeRow::inputs,
-                STACKS, RecipeRow::outputs,
-                ByteBufCodecs.VAR_INT, RecipeRow::ticks,
-                RecipeRow::new);
-    }
-
-    /**
-     * One producer of the data line.
-     *
-     * @param pos         where it stands
-     * @param name        its block name, or the faced machine's name with "(adapter)" for a Machine Adapter
-     * @param working     the first output of the active recipe, empty when none runs
-     * @param state       working, idle or no_recipes
-     * @param recipes     the recipes it reports
-     * @param upkeep      a Machine Adapter's upkeep item, empty for other producers
-     * @param upkeepCount upkeep items in the machine
-     * @param upkeepLevel the level the adapter keeps
-     */
-    public record MachineRow(BlockPos pos, String name, ItemStack working, String state, int left, List<RecipeRow> recipes,
-                             ItemStack upkeep, int upkeepCount, int upkeepLevel) {
-
-        public MachineRow(BlockPos pos, String name, ItemStack working, String state, int left, List<RecipeRow> recipes) {
-            this(pos, name, working, state, left, recipes, ItemStack.EMPTY, 0, 0);
-        }
-
-        private static final StreamCodec<RegistryFriendlyByteBuf, List<RecipeRow>> RECIPES = RecipeRow.STREAM_CODEC.apply(ByteBufCodecs.list());
-
-        public static final StreamCodec<RegistryFriendlyByteBuf, MachineRow> STREAM_CODEC = StreamCodec.of(
-                (buf, row) -> {
-                    BlockPos.STREAM_CODEC.encode(buf, row.pos());
-                    ByteBufCodecs.STRING_UTF8.encode(buf, row.name());
-                    ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, row.working());
-                    ByteBufCodecs.STRING_UTF8.encode(buf, row.state());
-                    ByteBufCodecs.VAR_INT.encode(buf, row.left());
-                    RECIPES.encode(buf, row.recipes());
-                    ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, row.upkeep());
-                    ByteBufCodecs.VAR_INT.encode(buf, row.upkeepCount());
-                    ByteBufCodecs.VAR_INT.encode(buf, row.upkeepLevel());
-                },
-                buf -> new MachineRow(BlockPos.STREAM_CODEC.decode(buf), ByteBufCodecs.STRING_UTF8.decode(buf),
-                        ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), ByteBufCodecs.STRING_UTF8.decode(buf),
-                        ByteBufCodecs.VAR_INT.decode(buf), RECIPES.decode(buf), ItemStack.OPTIONAL_STREAM_CODEC.decode(buf),
-                        ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_INT.decode(buf)));
-    }
-
-    /**
-     * One step of an order.
-     *
-     * @param producer the producer the step runs on
-     * @param machine  the producer's block name
-     * @param output   the step's first output, may be empty
-     * @param batches  how often the recipe runs
-     * @param state    waiting_station, delivering, producing or done
-     * @param reason   why the step waits, empty when it does not
-     */
-    public record StepRow(BlockPos producer, String machine, ItemStack output, int batches, String state, String reason) {
-        public static final StreamCodec<RegistryFriendlyByteBuf, StepRow> STREAM_CODEC = StreamCodec.composite(
-                BlockPos.STREAM_CODEC, StepRow::producer,
-                ByteBufCodecs.STRING_UTF8, StepRow::machine,
-                ItemStack.OPTIONAL_STREAM_CODEC, StepRow::output,
-                ByteBufCodecs.VAR_INT, StepRow::batches,
-                ByteBufCodecs.STRING_UTF8, StepRow::state,
-                ByteBufCodecs.STRING_UTF8, StepRow::reason,
-                StepRow::new);
-    }
-
-    /**
-     * One work order of a CPU.
-     *
-     * @param id        the order id within its CPU
-     * @param item      a one item stack of what is made
-     * @param amount    how many are made
-     * @param state     waiting, running, blocked, done or cancelled
-     * @param reason    why the order waits or is blocked, empty otherwise
-     * @param requestId the terminal request, 0 for a manual order, negative for a stock rule
-     * @param steps     the steps in plan order
-     */
-    public record OrderRow(int id, ItemStack item, int amount, String state, String reason, int requestId, List<StepRow> steps) {
-        public static final StreamCodec<RegistryFriendlyByteBuf, OrderRow> STREAM_CODEC = StreamCodec.of(OrderRow::write, OrderRow::read);
-
-        public boolean open() {
-            return state.equals("waiting") || state.equals("running") || state.equals("blocked");
-        }
-
-        private static void write(RegistryFriendlyByteBuf buf, OrderRow row) {
-            buf.writeVarInt(row.id);
-            ItemStack.STREAM_CODEC.encode(buf, row.item);
-            buf.writeVarInt(row.amount);
-            buf.writeUtf(row.state);
-            buf.writeUtf(row.reason);
-            buf.writeInt(row.requestId);
-            buf.writeVarInt(row.steps.size());
-            for (StepRow step : row.steps) {
-                StepRow.STREAM_CODEC.encode(buf, step);
-            }
-        }
-
-        private static OrderRow read(RegistryFriendlyByteBuf buf) {
-            int id = buf.readVarInt();
-            ItemStack item = ItemStack.STREAM_CODEC.decode(buf);
-            int amount = buf.readVarInt();
-            String state = buf.readUtf();
-            String reason = buf.readUtf();
-            int requestId = buf.readInt();
-            int count = buf.readVarInt();
-            List<StepRow> steps = new ArrayList<>(count);
-            for (int i = 0; i < count; i++) {
-                steps.add(StepRow.STREAM_CODEC.decode(buf));
-            }
-            return new OrderRow(id, item, amount, state, reason, requestId, steps);
-        }
-    }
 
     /**
      * One pattern of the line.
@@ -173,22 +51,107 @@ public final class ProductionRows {
                 PatternsView::new);
     }
 
+    private static final StreamCodec<ByteBuf, List<String>> STRINGS = ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list());
+
     /**
-     * One Crafting CPU of the line with its orders.
+     * One formed Crafting CPU of the line, for the header tooltip.
      *
      * @param cpu     the CPU's master position
      * @param slots   its order slots
      * @param inUse   slots taken by open orders
      * @param waiting open orders beyond the slots
-     * @param orders  its orders, oldest first
      */
-    public record CpuRow(BlockPos cpu, int slots, int inUse, int waiting, List<OrderRow> orders) {
+    public record CpuRow(BlockPos cpu, int slots, int inUse, int waiting) {
         public static final StreamCodec<RegistryFriendlyByteBuf, CpuRow> STREAM_CODEC = StreamCodec.composite(
                 BlockPos.STREAM_CODEC, CpuRow::cpu,
                 ByteBufCodecs.VAR_INT, CpuRow::slots,
                 ByteBufCodecs.VAR_INT, CpuRow::inUse,
                 ByteBufCodecs.VAR_INT, CpuRow::waiting,
-                OrderRow.STREAM_CODEC.apply(ByteBufCodecs.list()), CpuRow::orders,
                 CpuRow::new);
+    }
+
+    /**
+     * One crafting job: a work order of a CPU of the line.
+     *
+     * @param cpu       the CPU that holds it
+     * @param id        the order id within that CPU
+     * @param item      a one item stack of what is made
+     * @param amount    how many are made
+     * @param crafted   how many are made so far
+     * @param state     waiting, running, blocked, done or cancelled
+     * @param doneAt    the game time it ended, -1 while open
+     * @param status    lang key suffix of what it is doing, see {@link JobStatus}
+     * @param args      the status arguments
+     * @param requestId the terminal request, 0 for a manual order, negative for a stock rule
+     */
+    public record JobRow(BlockPos cpu, int id, ItemStack item, int amount, int crafted, String state, long doneAt, String status,
+                         List<String> args, int requestId) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, JobRow> STREAM_CODEC = StreamCodec.of(JobRow::write, JobRow::read);
+
+        public boolean open() {
+            return state.equals("waiting") || state.equals("running") || state.equals("blocked");
+        }
+
+        private static void write(RegistryFriendlyByteBuf buf, JobRow row) {
+            BlockPos.STREAM_CODEC.encode(buf, row.cpu);
+            buf.writeVarInt(row.id);
+            ItemStack.STREAM_CODEC.encode(buf, row.item);
+            buf.writeVarInt(row.amount);
+            buf.writeVarInt(row.crafted);
+            buf.writeUtf(row.state);
+            buf.writeLong(row.doneAt);
+            buf.writeUtf(row.status);
+            STRINGS.encode(buf, row.args);
+            buf.writeInt(row.requestId);
+        }
+
+        private static JobRow read(RegistryFriendlyByteBuf buf) {
+            return new JobRow(BlockPos.STREAM_CODEC.decode(buf), buf.readVarInt(), ItemStack.STREAM_CODEC.decode(buf), buf.readVarInt(),
+                    buf.readVarInt(), buf.readUtf(), buf.readLong(), buf.readUtf(), STRINGS.decode(buf), buf.readInt());
+        }
+    }
+
+    /**
+     * One producer or upkeep member of the line, as a status line.
+     *
+     * @param pos         where it stands
+     * @param icon        the block to show, the faced machine's for a Machine Adapter
+     * @param name        its block name, or the faced machine's name with "(adapter)" for a Machine Adapter
+     * @param state       crafting, idle, out_of_fuel, blocked, no_machine, no_recipes or upkeep_only
+     * @param item        what it is crafting, empty otherwise
+     * @param left        crafts left of a Crafting Station's job, 0 otherwise
+     * @param reason      why a step on it waits, for blocked
+     * @param upkeep      its upkeep item, empty when it keeps none
+     * @param upkeepCount upkeep items it holds
+     * @param upkeepLevel the level it keeps
+     * @param makes       how many different items it can make, -1 for any pattern
+     */
+    public record MachineRow(BlockPos pos, ItemStack icon, String name, String state, ItemStack item, int left, String reason,
+                             ItemStack upkeep, int upkeepCount, int upkeepLevel, int makes) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, MachineRow> STREAM_CODEC = StreamCodec.of(MachineRow::write, MachineRow::read);
+
+        public boolean problem() {
+            return MachineOrder.problem(state);
+        }
+
+        private static void write(RegistryFriendlyByteBuf buf, MachineRow row) {
+            BlockPos.STREAM_CODEC.encode(buf, row.pos);
+            ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, row.icon);
+            buf.writeUtf(row.name);
+            buf.writeUtf(row.state);
+            ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, row.item);
+            buf.writeVarInt(row.left);
+            buf.writeUtf(row.reason);
+            ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, row.upkeep);
+            buf.writeVarInt(row.upkeepCount);
+            buf.writeVarInt(row.upkeepLevel);
+            buf.writeInt(row.makes);
+        }
+
+        private static MachineRow read(RegistryFriendlyByteBuf buf) {
+            return new MachineRow(BlockPos.STREAM_CODEC.decode(buf), ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), buf.readUtf(),
+                    buf.readUtf(), ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readUtf(),
+                    ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readVarInt(), buf.readInt());
+        }
     }
 }
