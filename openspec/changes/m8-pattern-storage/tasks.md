@@ -31,4 +31,4 @@
 
 ## 8. Integration
 
-- [ ] 8.1 Full `gradlew build` and `gradlew test` green, all three GameTest runs green, `runClientAll` reaches the title screen without asset warnings for the new blocks and items.
+- [x] 8.1 Full `gradlew build` and `gradlew test` green, all three GameTest runs green, `runClientAll` reaches the title screen without asset warnings for the new blocks and items.
