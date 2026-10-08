@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
+import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
 /**
  * A Crafting CPU block. 27 of them in a 3x3x3 cube form a CPU when the
@@ -212,7 +213,7 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
             return InteractionResult.SUCCESS;
         }
         if (sneaking) {
-            Block.popResource(level, pos, new ItemStack(this));
+            Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
             level.removeBlock(pos, false);
             return InteractionResult.SUCCESS;
         }

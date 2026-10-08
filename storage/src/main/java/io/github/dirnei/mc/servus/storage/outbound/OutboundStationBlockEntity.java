@@ -33,6 +33,12 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * The outbound dock: the warehouse keeps the buffer stocked at the keep
@@ -40,7 +46,9 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * neighbours take from it. The machine it serves stands behind it. Deliveries
  * for work orders land here as well.
  */
-public class OutboundStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider, DeliveryTarget, SidedBlockEntity {
+public class OutboundStationBlockEntity extends StorageNodeBlockEntity implements WoodHolder, MenuProvider, DeliveryTarget, SidedBlockEntity {
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     public static final int KEEP_LIMIT = 4096;
 
@@ -287,6 +295,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        woodSlot.save(tag);
         tag.put("Items", buffer.serializeNBT(registries));
         tag.put("Keep", keep.serializeNBT(registries));
         tag.putByteArray("Sides", sides.toBytes());
@@ -295,6 +304,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        woodSlot.load(tag);
         if (tag.contains("Items")) {
             load(buffer, tag.getCompound("Items"), registries);
         }
@@ -309,6 +319,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
         tag.putByteArray("Sides", sides.toBytes());
         return tag;
     }
@@ -329,5 +340,36 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         for (int i = 0; i < into.getSlots(); i++) {
             into.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
         }
+    }
+
+    // Wood: the planks the block was crafted from, shown as its boards
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        WoodSlot.removeFromTag(tag);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 }

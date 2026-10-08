@@ -15,6 +15,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * Keeps patterns as data, {@code patterns_per_block} places of them. A link
@@ -22,7 +29,9 @@ import net.minecraft.world.level.block.state.BlockState;
  * places. Patterns kept beyond a smaller configured size stay kept. The
  * patterns travel with the dropped block item.
  */
-public class PatternStorageBlockEntity extends BlockEntity implements DataLink {
+public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder, DataLink {
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     public static final int MAX_SLOTS = 27;
 
@@ -119,6 +128,7 @@ public class PatternStorageBlockEntity extends BlockEntity implements DataLink {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        woodSlot.save(tag);
         StoredPatterns.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), stored())
                 .ifSuccess(saved -> tag.put("Patterns", saved));
     }
@@ -126,6 +136,7 @@ public class PatternStorageBlockEntity extends BlockEntity implements DataLink {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        woodSlot.load(tag);
         StoredPatterns saved = tag.contains("Patterns")
                 ? StoredPatterns.CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), tag.get("Patterns"))
                         .result().orElse(null)
@@ -138,12 +149,14 @@ public class PatternStorageBlockEntity extends BlockEntity implements DataLink {
     @Override
     protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
         super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
         restore(input.get(ServusStorageComponents.PATTERNS.get()));
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
         StoredPatterns stored = stored();
         if (!stored.isEmpty()) {
             builder.set(ServusStorageComponents.PATTERNS.get(), stored);
@@ -154,6 +167,31 @@ public class PatternStorageBlockEntity extends BlockEntity implements DataLink {
     @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(CompoundTag tag) {
         super.removeComponentsFromTag(tag);
+        WoodSlot.removeFromTag(tag);
         tag.remove("Patterns");
+    }
+
+    // Wood: the planks the block was crafted from, shown as its boards
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 }

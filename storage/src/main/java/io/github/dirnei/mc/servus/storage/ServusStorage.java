@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage;
 
 import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
+import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -30,6 +31,12 @@ public final class ServusStorage {
         ServusStorageComponents.COMPONENTS.register(modEventBus);
         ServusStorageRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         NetworkTypes.register(WarehouseNetwork.TYPE);
+        for (var block : java.util.List.of(ServusStorageBlocks.CRAFTING_CPU, ServusStorageBlocks.ACCESS_POINT,
+                ServusStorageBlocks.INBOUND_STATION, ServusStorageBlocks.OUTBOUND_STATION, ServusStorageBlocks.COUNTER_TERMINAL,
+                ServusStorageBlocks.PRODUCTION_TERMINAL, ServusStorageBlocks.PATTERN_STORAGE, ServusStorageBlocks.CRAFTING_STATION,
+                ServusStorageBlocks.WAREHOUSE_CONTROLLER, ServusStorageBlocks.SHUTTLE_GARAGE)) {
+            Wood.register(block.getId());
+        }
         LOGGER.info("Servus: Storage loaded");
     }
 }

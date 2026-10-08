@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
 /**
  * The Access Point: a station on the rails that is also a link member of the
@@ -52,7 +53,7 @@ public class AccessPointBlock extends InboundStationBlock {
             if (level.getBlockEntity(pos) instanceof AccessPointBlockEntity point) {
                 point.dropContents(level, pos);
             }
-            Block.popResource(level, pos, new ItemStack(this));
+            Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
             level.removeBlock(pos, false);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());

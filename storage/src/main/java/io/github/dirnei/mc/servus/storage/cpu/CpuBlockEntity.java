@@ -39,6 +39,14 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * One block of a Crafting CPU. Every formed block is a link member of the
@@ -46,7 +54,9 @@ import net.neoforged.neoforge.items.IItemHandler;
  * are saved with the master, pause while it is unloaded and are cancelled
  * when the cube unforms.
  */
-public class CpuBlockEntity extends BlockEntity implements DataLink {
+public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink {
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     private OrderBook book;
 
@@ -114,6 +124,7 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        woodSlot.save(tag);
         if (book != null) {
             tag.put("Orders", book.save(registries));
         }
@@ -123,6 +134,7 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        woodSlot.load(tag);
         BlockState state = getBlockState();
         if (tag.contains("Orders") && CpuBlock.isFormed(state) && state.getValue(CpuBlock.PART) == 0) {
             book().load(tag.getCompound("Orders"), registries);
@@ -339,5 +351,48 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
             }
         }
         return points.stream().min(Comparator.comparingLong(BlockPos::asLong));
+    }
+
+    // Wood: the planks the block was crafted from, shown as its boards
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        WoodSlot.removeFromTag(tag);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 }

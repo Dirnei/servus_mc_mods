@@ -15,9 +15,21 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /** The production overview on the data line. Holds nothing; it only reads the CPUs and producers of its line. */
-public class ProductionTerminalBlockEntity extends BlockEntity implements MenuProvider, DataLink {
+public class ProductionTerminalBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, DataLink {
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     private static final int LAMP_TICKS = 20;
 
@@ -49,5 +61,60 @@ public class ProductionTerminalBlockEntity extends BlockEntity implements MenuPr
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new ProductionTerminalMenu(containerId, playerInventory, this);
+    }
+
+    // Wood: the planks the block was crafted from, shown as its boards
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        woodSlot.save(tag);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        woodSlot.load(tag);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        WoodSlot.removeFromTag(tag);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 }

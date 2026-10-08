@@ -21,13 +21,24 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * Keeps shuttles as items, one per slot, and sends them out through its
  * back onto the rail. The live shuttles are data on the network's fleet;
  * this only holds the items and tells the network how many there are.
  */
-public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
+public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements WoodHolder, MenuProvider {
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     private final ItemStackHandler shuttles = new ItemStackHandler(StorageStatsManager.INSTANCE.garageCapacity()) {
         @Override
@@ -158,6 +169,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        woodSlot.save(tag);
         tag.put("ShuttleItems", shuttles.serializeNBT(registries));
         tag.putBoolean("Active", active);
     }
@@ -165,6 +177,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        woodSlot.load(tag);
         active = !tag.contains("Active") || tag.getBoolean("Active");
         if (tag.contains("ShuttleItems")) {
             ItemStackHandler saved = new ItemStackHandler();
@@ -179,5 +192,48 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
                 shuttles.setStackInSlot(i, new ItemStack(ServusStorageItems.SHUTTLE.get()));
             }
         }
+    }
+
+    // Wood: the planks the block was crafted from, shown as its boards
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        WoodSlot.removeFromTag(tag);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 }

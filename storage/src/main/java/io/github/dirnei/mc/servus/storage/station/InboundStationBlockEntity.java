@@ -35,12 +35,20 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * The inbound dock: an intake buffer that hoppers, ducts and players fill and
  * the warehouse drains into storage by its zone rules. Never indexed.
  */
-public class InboundStationBlockEntity extends StorageNodeBlockEntity implements MenuProvider, SidedBlockEntity {
+public class InboundStationBlockEntity extends StorageNodeBlockEntity implements WoodHolder, MenuProvider, SidedBlockEntity {
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     private final ItemStackHandler buffer = new ItemStackHandler(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
@@ -286,6 +294,7 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        woodSlot.save(tag);
         tag.put("Items", buffer.serializeNBT(registries));
         tag.putByteArray("Sides", sides.toBytes());
     }
@@ -293,6 +302,7 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
         tag.putByteArray("Sides", sides.toBytes());
         return tag;
     }
@@ -305,6 +315,7 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        woodSlot.load(tag);
         Arrays.fill(claimed, false);
         if (tag.contains("Items")) {
             ItemStackHandler saved = new ItemStackHandler();
@@ -316,5 +327,36 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
         if (tag.contains("Sides")) {
             sides.fromBytes(tag.getByteArray("Sides"));
         }
+    }
+
+    // Wood: the planks the block was crafted from, shown as its boards
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        WoodSlot.removeFromTag(tag);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 }

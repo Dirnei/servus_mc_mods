@@ -33,13 +33,20 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.core.component.DataComponentMap;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * A Machine Adapter: reports the faced machine's recipes from its profile,
  * forwards ingredients and upkeep into the machine, offers its output, and
  * exposes the upkeep side's upkeep, which the data network keeps stocked.
  */
-public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvider {
+public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder, MenuProvider {
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     /** Ticks after which an unanswered upkeep request is given up. */
     public static final int REQUEST_TIMEOUT = DataNetwork.UPKEEP_TIMEOUT;
@@ -293,6 +300,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        woodSlot.save(tag);
         if (!upkeepItem.isEmpty()) {
             tag.put("upkeep", upkeepItem.save(registries));
         }
@@ -303,6 +311,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        woodSlot.load(tag);
         upkeepItem = tag.contains("upkeep") ? ItemStack.parseOptional(registries, tag.getCompound("upkeep")) : ItemStack.EMPTY;
         upkeepLevel = tag.contains("level") ? tag.getInt("level") : MachineProfile.DEFAULT_LEVEL;
         upkeepSet = tag.getBoolean("set");
@@ -336,5 +345,36 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
         return new AdapterMenu(containerId, inventory, this);
+    }
+
+    // Wood: the planks the block was crafted from, shown as its boards
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        WoodSlot.removeFromTag(tag);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 }

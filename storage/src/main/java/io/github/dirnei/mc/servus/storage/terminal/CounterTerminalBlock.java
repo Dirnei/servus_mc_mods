@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
 /** Right click opens the stock GUI. Sits on the data line, never on a rail. */
 public class CounterTerminalBlock extends BaseEntityBlock implements Wrenchable {
@@ -102,7 +103,7 @@ public class CounterTerminalBlock extends BaseEntityBlock implements Wrenchable 
         boolean dismantle = player != null && player.isShiftKeyDown();
         if (!level.isClientSide()) {
             if (dismantle) {
-                Block.popResource(level, pos, new ItemStack(this));
+                Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
                 level.removeBlock(pos, false);
             } else {
                 level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);

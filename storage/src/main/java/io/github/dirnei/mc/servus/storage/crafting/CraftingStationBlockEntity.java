@@ -47,6 +47,11 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.core.component.DataComponentMap;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * Storage's own producer and the hands of the Crafting CPU: crafts the
@@ -54,7 +59,9 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * outputs for the CPU; without a job it crafts nothing, automation inserts
  * nothing and leftover outputs are pushed into neighbours.
  */
-public class CraftingStationBlockEntity extends BlockEntity implements MenuProvider, SidedBlockEntity {
+public class CraftingStationBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, SidedBlockEntity {
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     public static final int INPUT_SLOTS = 9;
     public static final int OUTPUT_SLOTS = 4;
@@ -483,6 +490,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        woodSlot.save(tag);
         tag.put("Inputs", inputs.serializeNBT(registries));
         tag.put("Outputs", outputs.serializeNBT(registries));
         tag.putByteArray("Sides", sides.toBytes());
@@ -500,6 +508,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        woodSlot.load(tag);
         if (tag.contains("Inputs")) {
             inputs.deserializeNBT(registries, tag.getCompound("Inputs"));
         }
@@ -531,6 +540,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
         ItemStack result = working() ? job.result() : ItemStack.EMPTY;
         tag.put("JobResult", result.isEmpty() ? new CompoundTag() : result.save(registries));
         tag.putInt("JobLeft", jobLeft());
@@ -541,5 +551,36 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    // Wood: the planks the block was crafted from, shown as its boards
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        WoodSlot.removeFromTag(tag);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 }

@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
 /**
  * Holds shuttles behind a doorway with a rail. Right click opens the slot GUI.
@@ -112,7 +113,7 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
                 if (occupied(level, pos)) {
                     player.displayClientMessage(Component.translatable("message.servus_storage.garage.occupied"), true);
                 } else {
-                    Block.popResource(level, pos, new ItemStack(this));
+                    Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
                     level.removeBlock(pos, false);
                 }
             } else {

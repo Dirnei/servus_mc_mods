@@ -30,6 +30,14 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * The pickup desk on the data line: opens the stock GUI of the warehouses it
@@ -37,7 +45,9 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * requests made here. Requests are saved with the terminal; their ids come
  * from the {@link ProductionLedger}, so they never repeat.
  */
-public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvider, DataLink {
+public class CounterTerminalBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, DataLink {
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     /** How a request is doing, as the GUI shows it. */
     public enum RequestState { PICKING, SENDING, WAITING_ROOM, PRODUCING, MISSING }
@@ -206,6 +216,7 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        woodSlot.save(tag);
         tag.put("Output", output.serializeNBT(registries));
         ListTag list = new ListTag();
         for (Request request : requests) {
@@ -235,6 +246,7 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        woodSlot.load(tag);
         if (tag.contains("Output")) {
             ItemStackHandler saved = new ItemStackHandler();
             saved.deserializeNBT(registries, tag.getCompound("Output"));
@@ -300,5 +312,48 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
         public boolean isItemValid(int slot, ItemStack stack) {
             return output.isItemValid(slot, stack);
         }
+    }
+
+    // Wood: the planks the block was crafted from, shown as its boards
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        WoodSlot.removeFromTag(tag);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 }

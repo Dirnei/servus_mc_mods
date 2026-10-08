@@ -1,9 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.wood.Wood;
+import io.github.dirnei.mc.servus.foundation.wood.WoodBlockItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -31,7 +32,8 @@ public final class AdapterContent {
                     .sound(SoundType.COPPER)
                     .requiresCorrectToolForDrops());
 
-    public static final DeferredItem<BlockItem> ITEM = ITEMS.registerSimpleBlockItem(BLOCK);
+    public static final DeferredItem<WoodBlockItem> ITEM = ITEMS.registerItem("machine_adapter",
+            properties -> new WoodBlockItem(BLOCK.get(), properties));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MachineAdapterBlockEntity>> BLOCK_ENTITY =
             BLOCK_ENTITIES.register("machine_adapter", () -> BlockEntityType.Builder
@@ -45,6 +47,7 @@ public final class AdapterContent {
     }
 
     public static void register(IEventBus modEventBus) {
+        Wood.register(BLOCK.getId());
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
