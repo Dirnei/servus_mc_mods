@@ -2,7 +2,7 @@
 
 ## 1. Send on open
 
-- [ ] 1.1 Add `storage/.../gametest/TerminalSpeedGameTests.java` with `counterSendsOnOpen` and `productionSendsOnOpen` that open through `setSynchronizer` (the real open path) and fail today; switch `TerminalCraftGameTests.terminalSendsOnOpen` to the same path. Override `sendAllDataToRemote()` in `CounterTerminalMenu` and `ProductionTerminalMenu` with a shared `sendNow()` also used by `broadcastFullState()`. Verify with `gradlew build` and `:storage:runGameTestServer` green.
+- [x] 1.1 Add `storage/.../gametest/TerminalSpeedGameTests.java` with `counterSendsOnOpen` and `productionSendsOnOpen` that open through `setSynchronizer` (the real open path) and fail today; switch `TerminalCraftGameTests.terminalSendsOnOpen` to the same path. Override `sendAllDataToRemote()` in `CounterTerminalMenu` and `ProductionTerminalMenu` with a shared `sendNow()` also used by `broadcastFullState()`. Verify with `gradlew build` and `:storage:runGameTestServer` green.
 
 ## 2. Server view cache
 

@@ -147,7 +147,7 @@ public final class TerminalCraftGameTests {
             CounterTerminalMenu menu = menu(helper, player);
             long now = helper.getLevel().getGameTime();
             try {
-                menu.broadcastFullState();
+                menu.setSynchronizer(TerminalSpeedGameTests.QUIET);
             } catch (RuntimeException refused) {
                 // The mock connection negotiated no Servus payloads; the send was attempted, which is what counts here.
             }

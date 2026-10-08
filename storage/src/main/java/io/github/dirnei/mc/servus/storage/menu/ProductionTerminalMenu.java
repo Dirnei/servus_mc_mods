@@ -321,10 +321,24 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         return stillValid(access, player, ServusStorageBlocks.PRODUCTION_TERMINAL.get());
     }
 
-    /** Called when the screen opens: the content goes out at once instead of with the next periodic check. */
+    /**
+     * Called by {@code setSynchronizer} when the game opens the screen: the
+     * content goes out at once instead of with the next periodic check.
+     */
+    @Override
+    public void sendAllDataToRemote() {
+        super.sendAllDataToRemote();
+        sendNow();
+    }
+
+    /** A resync sends the full content too. */
     @Override
     public void broadcastFullState() {
         super.broadcastFullState();
+        sendNow();
+    }
+
+    private void sendNow() {
         if (player instanceof ServerPlayer serverPlayer) {
             ProductionPayload payload = view();
             lastSignature = signature(payload);
