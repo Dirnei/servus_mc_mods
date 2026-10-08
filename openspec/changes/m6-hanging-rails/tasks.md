@@ -15,10 +15,10 @@
 
 ## 4. GameTests
 
-- [ ] 4.1 `storage/gametest/ServusStorageGameTests.java`: open air refusal (and beside a rack side and a crate) through `BlockItem` use with the mock player; a rail hung on a raised rack front stays; a row of hung rails along five raised racks stays; a three rail bridge between two elevator shafts stays and links them; a three rail bridge between two raised facing racks stays; the fourth rail in a four block gap drops all four; an overhang of one free rail drops both; breaking one rack of a bridge drops all three; breaking the floor under a rail in front of a rack leaves it hung. Verify `gradlew :storage:runGameTestServer` is green.
+- [x] 4.1 `storage/gametest/ServusStorageGameTests.java`: open air refusal (and beside a rack side and a crate) through `BlockItem` use with the mock player; a rail hung on a raised rack front stays; a row of hung rails along five raised racks stays; a three rail bridge between two elevator shafts stays and links them; a three rail bridge between two raised facing racks stays; a fourth rail beside the middle of a three rail bridge drops all four; a four block gap cannot be bridged; a floor bridge (one rail off each edge, then the middle) stays and falls when one floor edge is broken; an overhang of one free rail drops both; breaking one rack of a bridge drops all three; breaking the floor under a rail in front of a rack leaves it hung. Verify `gradlew :storage:runGameTestServer` is green.
 
 ## 5. Plan and verification
 
-- [ ] 5.1 Update `PLAN.md` section 2.3: rails stand on a floor or hang on rack fronts and elevator segments and bridge gaps up to `rail_max_span`; slopes and ceiling rails stay out.
-- [ ] 5.2 Run `openspec validate m6-hanging-rails --strict`. Full `gradlew build` and `gradlew test` green, game launches with all four mods. Commit.
+- [x] 5.1 Update `PLAN.md` section 2.3: rails stand on a floor or hang on rack fronts and elevator segments and bridge gaps up to `rail_max_span`; slopes and ceiling rails stay out.
+- [x] 5.2 Run `openspec validate m6-hanging-rails --strict`. Full `gradlew build` and `gradlew test` green, game launches with all four mods. Commit.
 - [ ] 5.3 Play check by the user: hang a rail on an upper rack front, bridge two elevators across three blocks from both ends, see a fourth rail collapse the bridge.

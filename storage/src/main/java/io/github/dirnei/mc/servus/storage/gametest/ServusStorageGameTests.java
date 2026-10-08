@@ -2639,4 +2639,204 @@ public final class ServusStorageGameTests {
             }
         });
     }
+
+    private static final int HANG_Y = 3;
+
+    private static void hangRack(GameTestHelper helper, int x, int z, Direction facing) {
+        helper.setBlock(new BlockPos(x, HANG_Y, z), ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, facing));
+    }
+
+    private static void hangRail(GameTestHelper helper, int x, int z) {
+        helper.setBlock(new BlockPos(x, HANG_Y, z), ServusStorageBlocks.RAIL.get().defaultBlockState());
+    }
+
+    private static boolean railAt(GameTestHelper helper, int x, int z) {
+        return helper.getBlockState(new BlockPos(x, HANG_Y, z)).getBlock() instanceof RailBlock;
+    }
+
+    /** Uses a rail item on the given face of a block, like a player clicking it. */
+    private static void clickRail(GameTestHelper helper, Player player, BlockPos clicked, Direction face) {
+        BlockPos absolute = helper.absolutePos(clicked);
+        ItemStack rail = new ItemStack(ServusStorageBlocks.RAIL.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, rail);
+        rail.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(absolute).relative(face, 0.5), face, absolute, false)));
+    }
+
+    /** A rail hangs on a raised rack front; the rack side, a crate and open air take none. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void railHangsOnRackFrontOnly(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        hangRack(helper, 2, 2, Direction.SOUTH);
+        helper.setBlock(new BlockPos(8, HANG_Y, 2), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        clickRail(helper, player, new BlockPos(2, HANG_Y, 2), Direction.SOUTH);
+        clickRail(helper, player, new BlockPos(2, HANG_Y, 2), Direction.EAST);
+        clickRail(helper, player, new BlockPos(8, HANG_Y, 2), Direction.SOUTH);
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(railAt(helper, 2, 3), "a rail should hang on the rack front");
+            helper.assertFalse(railAt(helper, 3, 2), "the rack side is no anchor");
+            helper.assertFalse(railAt(helper, 8, 3), "a crate is no anchor");
+            helper.succeed();
+        });
+    }
+
+    /** A row of rails hangs along five raised racks at any length. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void hungRowAlongRacksHolds(GameTestHelper helper) {
+        for (int x = 1; x <= 5; x++) {
+            hangRack(helper, x, 2, Direction.SOUTH);
+            hangRail(helper, x, 3);
+        }
+        helper.runAfterDelay(5, () -> {
+            for (int x = 1; x <= 5; x++) {
+                helper.assertTrue(railAt(helper, x, 3), "rail " + x + " of the row should hang");
+            }
+            helper.succeed();
+        });
+    }
+
+    /** Three rails bridge two elevator shafts, ends first, and link them. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void bridgeBetweenElevatorsHolds(GameTestHelper helper) {
+        for (int x : new int[] {1, 5}) {
+            helper.setBlock(new BlockPos(x, HANG_Y - 1, 2), Blocks.STONE.defaultBlockState());
+            helper.setBlock(new BlockPos(x, HANG_Y, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        }
+        hangRail(helper, 2, 2);
+        hangRail(helper, 4, 2);
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(railAt(helper, 2, 2) && railAt(helper, 4, 2), "a rail should hang on each shaft");
+            hangRail(helper, 3, 2);
+            helper.runAfterDelay(5, () -> {
+                for (int x = 2; x <= 4; x++) {
+                    helper.assertTrue(railAt(helper, x, 2), "bridge rail " + x + " should stay");
+                }
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Three rails bridge two raised racks facing each other; breaking one rack drops the bridge. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void bridgeBetweenRacksFallsWithItsRack(GameTestHelper helper) {
+        hangRack(helper, 1, 2, Direction.EAST);
+        hangRack(helper, 5, 2, Direction.WEST);
+        hangRail(helper, 2, 2);
+        hangRail(helper, 4, 2);
+        helper.runAfterDelay(3, () -> {
+            hangRail(helper, 3, 2);
+            helper.runAfterDelay(5, () -> {
+                for (int x = 2; x <= 4; x++) {
+                    helper.assertTrue(railAt(helper, x, 2), "bridge rail " + x + " should stay");
+                }
+                helper.setBlock(new BlockPos(5, HANG_Y, 2), Blocks.AIR.defaultBlockState());
+                helper.runAfterDelay(5, () -> {
+                    for (int x = 2; x <= 4; x++) {
+                        helper.assertFalse(railAt(helper, x, 2), "bridge rail " + x + " should fall with its rack");
+                    }
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** A fourth rail beside the middle of a three rail bridge drops all four. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void fourthRailCollapsesBridge(GameTestHelper helper) {
+        hangRack(helper, 1, 2, Direction.EAST);
+        hangRack(helper, 5, 2, Direction.WEST);
+        hangRail(helper, 2, 2);
+        hangRail(helper, 4, 2);
+        helper.runAfterDelay(3, () -> {
+            hangRail(helper, 3, 2);
+            helper.runAfterDelay(3, () -> {
+                helper.assertTrue(railAt(helper, 2, 2) && railAt(helper, 3, 2) && railAt(helper, 4, 2), "three rails should hold");
+                hangRail(helper, 3, 3);
+                helper.runAfterDelay(5, () -> {
+                    helper.assertFalse(railAt(helper, 2, 2) || railAt(helper, 3, 2) || railAt(helper, 4, 2) || railAt(helper, 3, 3),
+                            "all four rails should have collapsed");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** In a four block gap the first free rail drops with the hung rail it touches; the far hung rail stays. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void fourBlockGapCannotBeBridged(GameTestHelper helper) {
+        hangRack(helper, 1, 2, Direction.EAST);
+        hangRack(helper, 6, 2, Direction.WEST);
+        hangRail(helper, 2, 2);
+        hangRail(helper, 5, 2);
+        helper.runAfterDelay(3, () -> {
+            hangRail(helper, 3, 2);
+            helper.runAfterDelay(5, () -> {
+                helper.assertFalse(railAt(helper, 2, 2) || railAt(helper, 3, 2), "the overhang should drop");
+                helper.assertTrue(railAt(helper, 5, 2), "the far hung rail should stay");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Two floor edges three blocks apart are bridged by one rail off each edge and one in the middle. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void bridgeBetweenFloorsHolds(GameTestHelper helper) {
+        for (int x : new int[] {1, 5}) {
+            helper.setBlock(new BlockPos(x, HANG_Y - 1, 2), Blocks.STONE.defaultBlockState());
+            hangRail(helper, x, 2);
+        }
+        hangRail(helper, 2, 2);
+        hangRail(helper, 4, 2);
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(railAt(helper, 2, 2) && railAt(helper, 4, 2), "a rail should hang off each floor edge");
+            hangRail(helper, 3, 2);
+            helper.runAfterDelay(5, () -> {
+                for (int x = 1; x <= 5; x++) {
+                    helper.assertTrue(railAt(helper, x, 2), "rail " + x + " should stay");
+                }
+                helper.setBlock(new BlockPos(5, HANG_Y - 1, 2), Blocks.AIR.defaultBlockState());
+                helper.runAfterDelay(5, () -> {
+                    helper.assertTrue(railAt(helper, 1, 2), "the standing rail should stay");
+                    for (int x = 2; x <= 5; x++) {
+                        helper.assertFalse(railAt(helper, x, 2), "rail " + x + " should fall with the floor");
+                    }
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** A free rail beside a hung rail and nothing else drops both. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void overhangCollapses(GameTestHelper helper) {
+        hangRack(helper, 1, 2, Direction.EAST);
+        hangRail(helper, 2, 2);
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(railAt(helper, 2, 2), "the hung rail should stay on its own");
+            hangRail(helper, 3, 2);
+            helper.runAfterDelay(5, () -> {
+                helper.assertFalse(railAt(helper, 2, 2) || railAt(helper, 3, 2), "the overhang should drop both rails");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Breaking the floor under a rail leaves it hung on a rack front and drops a lone rail. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void floorRemovedUnderRails(GameTestHelper helper) {
+        hangRack(helper, 2, 2, Direction.SOUTH);
+        helper.setBlock(new BlockPos(2, HANG_Y - 1, 3), Blocks.STONE.defaultBlockState());
+        hangRail(helper, 2, 3);
+        helper.setBlock(new BlockPos(8, HANG_Y - 1, 3), Blocks.STONE.defaultBlockState());
+        hangRail(helper, 8, 3);
+        helper.runAfterDelay(3, () -> {
+            helper.setBlock(new BlockPos(2, HANG_Y - 1, 3), Blocks.AIR.defaultBlockState());
+            helper.setBlock(new BlockPos(8, HANG_Y - 1, 3), Blocks.AIR.defaultBlockState());
+            helper.runAfterDelay(5, () -> {
+                helper.assertTrue(railAt(helper, 2, 3), "the rail in front of the rack should stay hung");
+                helper.assertFalse(railAt(helper, 8, 3), "the lone rail should drop");
+                helper.succeed();
+            });
+        });
+    }
 }

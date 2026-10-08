@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Rail stands or hangs
-The Warehouse Rail SHALL be a flat block in the bottom of its block space, one block wide, with a selection shape a few pixels high so players walk over it. A rail with a block with a solid top under it SHALL be standing. A rail without one SHALL be hung when one of its horizontal neighbours is an anchor and free otherwise. An anchor SHALL be the front side of a Heavy Duty Rack or any side of a Rail Elevator segment; crates, controllers, terminals, stations and garages SHALL NOT be anchors. Standing and hung rails SHALL hold on their own. A rail SHALL be placeable on any block with a solid top, and in open air only when one of its horizontal neighbours is an anchor or another rail. Hung and free rails SHALL look the same as standing rails.
+The Warehouse Rail SHALL be a flat block in the bottom of its block space, one block wide, with a selection shape a few pixels high so players walk over it. A rail with a block with a solid top under it SHALL be standing. A rail without one SHALL be hung when one of its horizontal neighbours is an anchor and free otherwise. An anchor SHALL be the front side of a Heavy Duty Rack, any side of a Rail Elevator segment or a standing rail; crates, controllers, terminals, stations and garages SHALL NOT be anchors. Standing and hung rails SHALL hold on their own. A rail SHALL be placeable on any block with a solid top, and in open air only when one of its horizontal neighbours is an anchor or another rail. Hung and free rails SHALL look the same as standing rails.
 
 #### Scenario: Walk over
 - **WHEN** a player walks along an aisle paved with rails
@@ -32,7 +32,7 @@ The Warehouse Rail SHALL be a flat block in the bottom of its block space, one b
 - **THEN** no rail is placed
 
 ### Requirement: Free rails bridge short gaps
-Free rails that link to each other SHALL form a gap. The span of a gap SHALL be its number of free rails plus the number of hung rails linked to them. A gap SHALL hold when its span is at most the maximum span (for example 3, set in the warehouse datapack config) and it links to at least two rails that are standing or hung. A gap that does not hold SHALL collapse: its free rails and the hung rails linked to them drop as items. A gap SHALL be checked again when a rail is placed into it or beside it, when a rail, anchor or floor block it relies on is removed, and when one of its rails loses its floor. Gaps SHALL NOT be checked every tick.
+Free rails that link to each other SHALL form a gap. The span of a gap SHALL be its number of free rails plus the number of hung rails linked to them. A gap SHALL hold when its span is at most the maximum span (for example 3, set in the warehouse datapack config) and it links to at least two hung rails. A gap that does not hold SHALL collapse: its free rails and the hung rails linked to them drop as items. A gap SHALL be checked again when a rail is placed into it or beside it, when a rail, anchor or floor block it relies on is removed, and when one of its rails loses its floor. Gaps SHALL NOT be checked every tick.
 
 #### Scenario: Bridge between two elevators
 - **WHEN** two elevator shafts stand with a three block gap between them and the player fills it with three rails, one at each shaft first and the middle one last
@@ -43,20 +43,24 @@ Free rails that link to each other SHALL form a gap. The span of a gap SHALL be 
 - **THEN** all three rails stay
 
 #### Scenario: Fourth rail collapses the bridge
-- **WHEN** two racks face each other across a four block gap, the player has hung a rail on each rack front and placed one free rail beside one of them, and then places the fourth rail
+- **WHEN** a three rail bridge spans two racks and the player places a fourth rail beside its middle rail
 - **THEN** all four rails drop as items
+
+#### Scenario: Four block gap cannot be bridged
+- **WHEN** two racks face each other across a four block gap with a rail hung on each front and the player places a rail beside one of them
+- **THEN** that rail and the hung rail it touches drop as items
 
 #### Scenario: Overhang collapses
 - **WHEN** a rail hangs on a rack front and the player places a free rail beside it that touches nothing else
 - **THEN** both rails drop as items
 
 #### Scenario: Bridge between floors
-- **WHEN** two standing rails end at a drop three blocks wide and the player fills it with three free rails
-- **THEN** the three free rails stay
+- **WHEN** two standing rails end at a drop three blocks wide and the player hangs a rail off each and then fills the middle
+- **THEN** the three rails stay
 
-#### Scenario: Gap too wide between floors
-- **WHEN** two standing rails end at a drop four blocks wide and the player fills it with four free rails
-- **THEN** the four free rails drop as items as soon as the last one is placed
+#### Scenario: One rail off a floor
+- **WHEN** a standing rail ends at a drop and the player places one rail beyond it
+- **THEN** the rail stays, hung off the standing rail
 
 #### Scenario: Rack row to elevator
 - **WHEN** a row of rails hangs along an upper rack row and one free rail links its last rail to a rail hung on an elevator segment
@@ -67,7 +71,7 @@ Free rails that link to each other SHALL form a gap. The span of a gap SHALL be 
 - **THEN** all three rails drop as items
 
 #### Scenario: Floor removed under a bridge end
-- **WHEN** a standing rail links to a rack front through two free rails and a hung rail, and the block under the standing rail is broken
+- **WHEN** a rail hung on a rack front links through a free rail to a rail hung off a standing rail, and the block under the standing rail is broken
 - **THEN** all four rails drop as items
 
 ## MODIFIED Requirements

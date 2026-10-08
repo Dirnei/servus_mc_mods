@@ -21,19 +21,21 @@
 ### Three rail kinds
 A rail is classified from its own surroundings only:
 - **standing**: `canSupportRigidBlock(level, pos.below())`, as today.
-- **hung**: not standing, and a horizontal neighbour is an anchor: an `ElevatorBlock`, or a `HeavyRackBlockEntity` whose `acceptsRail(side)` is true for the side facing the rail.
+- **hung**: not standing, and a horizontal neighbour is an anchor: an `ElevatorBlock`, or a `HeavyRackBlockEntity` whose `acceptsRail(side)` is true for the side facing the rail, or a standing rail.
 - **free**: neither.
 
 Standing and hung rails always hold. Only free rails are checked.
 
+A standing rail is an anchor so that a floor bridge is built like a rack bridge: one rail off each floor edge (hung), then the middle. Found during apply: without it, the first free rail beyond a floor edge has a single hold and falls at once, so no floor bridge could ever be built.
+
 ### Gap rule (pure, `RailSpan`)
-Starting at a free rail, walk the links to other free rails (rails link sideways only, so the walk follows the rail network on one level). The walk collects the free rails of the gap and the distinct standing and hung rails linked to them. Then:
+Starting at a free rail, walk the links to other free rails (rails link sideways only, so the walk follows the rail network on one level). The walk collects the free rails of the gap and the distinct hung rails linked to them (a free rail never touches a standing rail, since that would make it hung). Then:
 - span = free rails + hung rails linked to the gap
-- holds = standing rails + hung rails linked to the gap
+- holds = hung rails linked to the gap
 - the gap holds when `span <= maxSpan` and `holds >= 2`
 - otherwise every free rail of the gap and every hung rail linked to it is dropped.
 
-This gives the cases the user asked for with a max span of 3: elevator, hung, free, hung, elevator holds (span 3); rack, hung, free, free, hung, rack collapses (span 4); standing, free, free, free, standing holds (span 3); a hung rail with one free rail beside it collapses (one hold). A row of hung rails along an upper rack row has no free rail and is never checked, so it holds at any length.
+This gives the cases the user asked for with a max span of 3: elevator, hung, free, hung, elevator holds (span 3); rack, hung, free, hung, rack holds; a fourth rail beside the middle of such a bridge makes the span 4 and drops all four; standing, hung, free, hung, standing holds; a hung rail with one free rail beside it collapses (one hold). A four block gap can never be bridged: its first free rail touches one hung rail only. A row of hung rails along an upper rack row has no free rail and is never checked, so it holds at any length.
 
 Hung rails count towards the span so that the span equals the number of blocks between two anchors, which is how the user described the bridge ("rack, rail, rail, rail, rack"). Considered alternative: count only free rails. Rejected because a four block gap between two racks would hold, which contradicts the request.
 
@@ -44,6 +46,7 @@ The walk stops once the span passes `maxSpan`; the verdict is already "collapse"
 ### When checks run
 - `onPlace` and `updateShape` (any direction, so a removed floor block counts too) call `level.scheduleTick(pos, this, 1)`.
 - `tick(BlockState, ServerLevel, BlockPos, RandomSource)` classifies the rail; if it is free, it runs `RailSpan.check` and destroys the drop set with `level.destroyBlock(pos, true)`.
+- The tick also checks every free rail linked to the ticking rail, because a rail's kind depends on its neighbours: when a standing rail loses its floor but stays hung, the rail beside it turns free without being notified.
 - Every change that can break a gap reaches a free rail of that gap: placing a rail notifies its neighbours, removing an anchor turns its hung rail free (that rail ticks), removing a floor block notifies the rail above, removing a rail notifies the free rails beside it.
 - Duplicate scheduled ticks for the same position and block are merged by `LevelChunkTicks` (its `ticksPerPosition` set uses `ScheduledTick.UNIQUE_TICK_HASH`), so a burst of updates costs one check per rail.
 
@@ -69,5 +72,5 @@ Section 2.3 said "flat floor rail ... No slopes, no ceiling rails". This change 
 - [A long hung row loses its end rail when a gap beside it collapses] Accepted: the bridge the player built falls with its abutments, as described in the request.
 - [Shuttles on a rail that collapses] Covered by the existing rail removal handling; no new code.
 - [Branching gaps (a free rail with hung rails on three sides) count every hung rail into the span] Rare; accepted for a simple rule. Revisit if play testing finds it annoying.
-- [Holds are counted, not placed: a gap whose two holds sit at the same end (a T off two standing rails) carries a short overhang within the span] Rare and harmless; accepted for a rule without geometry.
+- [Holds are counted, not placed: a gap whose two holds sit at the same end (a T off two hung rails) carries a short overhang within the span] Rare and harmless; accepted for a rule without geometry.
 - [GameTest placement] `helper.setBlock` skips placement checks; open air refusal is tested through `BlockItem` use with a mock player as in earlier storage tests.

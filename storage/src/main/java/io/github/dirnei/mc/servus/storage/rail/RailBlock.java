@@ -134,9 +134,11 @@ public class RailBlock extends ConnectableBlock {
         return false;
     }
 
-    /** Whether the neighbour holds a rail up: an elevator segment, or a heavy rack whose front faces the rail. */
+    /** Whether the neighbour holds a rail up: an elevator segment, a heavy rack whose front faces the rail, or a standing rail. */
     private static boolean isAnchor(LevelReader level, BlockPos neighborPos, Direction direction) {
-        return level.getBlockState(neighborPos).getBlock() instanceof ElevatorBlock
+        Block block = level.getBlockState(neighborPos).getBlock();
+        return block instanceof ElevatorBlock
+                || block instanceof RailBlock && canSupportRigidBlock(level, neighborPos.below())
                 || level.getBlockEntity(neighborPos) instanceof HeavyRackBlockEntity rack
                 && rack.acceptsRail(Conversions.toSide(direction.getOpposite()));
     }
@@ -173,13 +175,25 @@ public class RailBlock extends ConnectableBlock {
         }
     }
 
-    /** Checks the gap of a free rail a tick after something beside it changed and drops it when it does not hold. */
+    /**
+     * Checks the gaps of this rail and the rails beside it a tick after something
+     * changed and drops the ones that do not hold. The neighbours are checked too
+     * because their kind depends on this rail: a rail that loses its floor but
+     * stays hung turns the rail beside it free without notifying it.
+     */
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        RailSpan.Verdict<BlockPos> verdict = RailSpan.check(pos, rail -> kind(level, rail),
-                rail -> linkedRails(level, rail), StorageStatsManager.INSTANCE.railMaxSpan());
-        for (BlockPos rail : verdict.drop()) {
-            level.destroyBlock(rail, true);
+        List<BlockPos> rails = linkedRails(level, pos);
+        rails.add(0, pos);
+        for (BlockPos start : rails) {
+            if (!(level.getBlockState(start).getBlock() instanceof RailBlock)) {
+                continue;
+            }
+            RailSpan.Verdict<BlockPos> verdict = RailSpan.check(start, rail -> kind(level, rail),
+                    rail -> linkedRails(level, rail), StorageStatsManager.INSTANCE.railMaxSpan());
+            for (BlockPos rail : verdict.drop()) {
+                level.destroyBlock(rail, true);
+            }
         }
     }
 
