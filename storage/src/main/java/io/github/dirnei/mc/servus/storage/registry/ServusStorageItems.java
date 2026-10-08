@@ -1,7 +1,9 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
+import io.github.dirnei.mc.servus.lib.placement.AssistedBlockItem;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackItem;
+import io.github.dirnei.mc.servus.storage.rail.RailAssist;
 import io.github.dirnei.mc.servus.storage.zone.ZoneLabelItem;
 import java.util.List;
 import net.minecraft.world.item.BlockItem;
@@ -20,7 +22,8 @@ public final class ServusStorageItems {
             properties -> new HeavyRackItem(ServusStorageBlocks.HEAVY_RACK.get(), properties));
     public static final DeferredItem<BlockItem> WAREHOUSE_CONTROLLER = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.WAREHOUSE_CONTROLLER);
     public static final DeferredItem<BlockItem> COUNTER_TERMINAL = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.COUNTER_TERMINAL);
-    public static final DeferredItem<BlockItem> RAIL = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.RAIL);
+    public static final DeferredItem<AssistedBlockItem> RAIL = ITEMS.registerItem("rail",
+            properties -> new AssistedBlockItem(ServusStorageBlocks.RAIL.get(), RailAssist.INSTANCE, properties));
     public static final DeferredItem<BlockItem> ELEVATOR = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.ELEVATOR);
     public static final DeferredItem<BlockItem> INBOUND_STATION = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.INBOUND_STATION);
     public static final DeferredItem<BlockItem> SHUTTLE_GARAGE = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.SHUTTLE_GARAGE);

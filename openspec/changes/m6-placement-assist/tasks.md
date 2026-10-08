@@ -7,7 +7,7 @@
 
 ## 2. Lib config and item hook
 
-- [ ] 2.1 Add the `placement` section with `placementAssistReach` (int, 1 to 64, default 16) to `lib/.../config/ServusLibConfig.java`, plus a `placementAssistReach()` getter. Verify with `gradlew :lib:build` and by checking that `servus_lib-common.toml` gets the commented option on a dev server start.
+- [x] 2.1 Add the `placement` section with `placementAssistReach` (int, 1 to 64, default 16) to `lib/.../config/ServusLibConfig.java`, plus a `placementAssistReach()` getter. Verify with `gradlew :lib:build` and by checking that `servus_lib-common.toml` gets the commented option on a dev server start.
 - [x] 2.2 Add `lib/.../placement/PlacementAssist.java` (`isStart`, `isRun`, `direction`), `AssistedItem.java`, and `PlacementAssists.java` (`target(...)` and `place(context, assist, fallback)` using `BlockPlaceContext.at(context, target.relative(dir.getOpposite()), dir)`, FAIL without a target, fallback without sneak or start). Verify with `gradlew :lib:build`.
 - [x] 2.3 Add `lib/.../placement/AssistedBlockItem.java` (a `BlockItem` taking a `PlacementAssist` that overrides `place` and implements `AssistedItem`). Verify with `gradlew :lib:build`.
 
@@ -17,8 +17,8 @@
 
 ## 4. Warehouse Rail (storage)
 
-- [ ] 4.1 Add `storage/.../rail/RailAssist.java` (run = `RailBlock`, side face hit uses the face, top or bottom hit uses `QuadrantDirection` on the local hit point) and register `ServusStorageItems.RAIL` as an `AssistedBlockItem` with it. Verify with `gradlew :storage:build`.
-- [ ] 4.2 Add storage GameTests to `ServusStorageGameTests.java` that use a mock sneaking player with a rail in hand and `stack.useOn`: quick straight on a floor (rail lands past the 4th), side face hit, walk passes a junction, run ends at stone (nothing placed, stack count unchanged), bridge between two racks (middle placed, all three stay), overhang collapses, and a non-sneak click places against the face. Verify with `gradlew :storage:runGameTestServer` and with all storage GameTests green.
+- [x] 4.1 Add `storage/.../rail/RailAssist.java` (run = `RailBlock`, side face hit uses the face, top or bottom hit uses `QuadrantDirection` on the local hit point) and register `ServusStorageItems.RAIL` as an `AssistedBlockItem` with it. Verify with `gradlew :storage:build`.
+- [x] 4.2 Add storage GameTests to `ServusStorageGameTests.java` that use a mock sneaking player with a rail in hand and `stack.useOn`: quick straight on a floor (rail lands past the 4th), side face hit, walk passes a junction, run ends at stone (nothing placed, stack count unchanged), bridge between two racks (middle placed, all three stay), overhang collapses, and a non-sneak click places against the face. Verify with `gradlew :storage:runGameTestServer` and with all storage GameTests green.
 
 ## 5. Utility Duct (logistics)
 
