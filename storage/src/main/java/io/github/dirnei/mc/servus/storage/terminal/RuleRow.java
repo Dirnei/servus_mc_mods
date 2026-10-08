@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
  * @param stack a one item stack as display
  * @param min   the minimum
  * @param max   the maximum
- * @param state {@code ok}, {@code ordering} or {@code no_producer}
+ * @param state {@code ok}, {@code ordering}, {@code no_producer} or {@code no_cpu}
  */
 public record RuleRow(ItemStack stack, int min, int max, String state) {
 

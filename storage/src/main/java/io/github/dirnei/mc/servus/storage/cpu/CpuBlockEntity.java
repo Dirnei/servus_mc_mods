@@ -113,7 +113,7 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
         cancelAll();
     }
 
-    Component summary() {
+    public Component summary() {
         int open = book == null ? 0 : book.openCount();
         int slots = slots();
         return Component.translatable("message.servus_storage.cpu.summary", Math.min(open, slots), slots, Math.max(0, open - slots));

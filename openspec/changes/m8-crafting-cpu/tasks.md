@@ -16,7 +16,7 @@
 
 ## 4. Tests
 
-- [ ] 4.1 Add `CraftingCpuGameTests`: `cpuFormsAndUnforms`, `cpuIncompleteCubeDoesNotForm`, `cpuOrderCraftsShortfallOverTheLine`, `cpuSlotsQueueThirdOrder`, `twoCpusShareOrders`, `cpuUnformCancelsOrders`, `stockRuleOrdersThroughCpu`, `stockRuleWithoutCpu`, `noCpuLeavesShortfallMissing`. Migrate `orderWithoutProducerIsRefused`, `twoLevelOrderRunsLeavesFirst`, `cancelReleasesReservation` and the stock rule tests to the CPU setup; delete `outboundReportsProducer`, `outboundFacingChestIsNoProducer`, `orderCraftsMissingItems` (replaced) and the `orderBoard*` tests. Verify with `gradlew test` and `:storage:runGameTestServer`, `:foundation:runGameTestServer`, `:manufacturing:runGameTestServer` green.
+- [x] 4.1 Add `CraftingCpuGameTests`: `cpuFormsAndUnforms`, `cpuIncompleteCubeDoesNotForm`, `cpuOrderCraftsShortfallOverTheLine`, `cpuSlotsQueueThirdOrder`, `twoCpusShareOrders`, `cpuUnformCancelsOrders`, `stockRuleOrdersThroughCpu`, `stockRuleWithoutCpu`, `noCpuLeavesShortfallMissing`. Migrate `orderWithoutProducerIsRefused`, `twoLevelOrderRunsLeavesFirst`, `cancelReleasesReservation` and the stock rule tests to the CPU setup; delete `outboundReportsProducer`, `outboundFacingChestIsNoProducer`, `orderCraftsMissingItems` (replaced) and the `orderBoard*` tests. Verify with `gradlew test` and `:storage:runGameTestServer`, `:foundation:runGameTestServer`, `:manufacturing:runGameTestServer` green.
 
 ## 5. Docs and plan
 
