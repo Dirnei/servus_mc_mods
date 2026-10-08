@@ -16,6 +16,7 @@ public final class DataMembership {
         return level.getCapability(ServusFoundationCapabilities.PRODUCTION, pos, side) != null
                 || level.getCapability(ServusFoundationCapabilities.STOCK_PROVIDER, pos, side) != null
                 || level.getCapability(ServusFoundationCapabilities.STOCK_SINK, pos, side) != null
-                || level.getCapability(ServusFoundationCapabilities.DATA_LINK, pos, side) != null;
+                || level.getCapability(ServusFoundationCapabilities.DATA_LINK, pos, side) != null
+                || level.getCapability(ServusFoundationCapabilities.UPKEEP, pos, side) != null;
     }
 }

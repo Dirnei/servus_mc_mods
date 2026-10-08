@@ -8,13 +8,16 @@ import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
 import io.github.dirnei.mc.servus.foundation.network.NetworkType;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
+import io.github.dirnei.mc.servus.foundation.production.ItemSupplier;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.foundation.data.packet.DeliveryReason;
 import io.github.dirnei.mc.servus.foundation.data.packet.PacketLimitsManager;
 import io.github.dirnei.mc.servus.foundation.data.packet.PacketRoutes;
 import io.github.dirnei.mc.servus.foundation.data.packet.Shipment;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,13 +43,19 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
 
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "data");
 
+    /** Ticks between upkeep checks of the members. */
+    public static final int UPKEEP_INTERVAL = 40;
+    /** Ticks after which an incomplete upkeep request is given up. */
+    public static final int UPKEEP_TIMEOUT = 1200;
+
     /** The graph holds data nodes only and links them through open sides; members are kept beside it. */
     public static final NetworkType<DataNode, DataEvent, DataNetwork> TYPE = new NetworkType<>(ID,
             (from, fromNode, side, to, toNode) -> fromNode.dataSideOpen(Conversions.toDirection(side)), DataNetwork::new);
 
     /** The capability caches of one node side. */
     private record Probe(BlockCapabilityCache<?, Direction> production, BlockCapabilityCache<?, Direction> provider,
-                         BlockCapabilityCache<?, Direction> sink, BlockCapabilityCache<?, Direction> link) {
+                         BlockCapabilityCache<?, Direction> sink, BlockCapabilityCache<?, Direction> link,
+                         BlockCapabilityCache<?, Direction> upkeep) {
 
         Set<DataRole> roles() {
             Set<DataRole> roles = EnumSet.noneOf(DataRole.class);
@@ -59,6 +68,9 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
             if (link.getCapability() != null) {
                 roles.add(DataRole.LINK);
             }
+            if (upkeep.getCapability() != null) {
+                roles.add(DataRole.UPKEEP);
+            }
             return roles;
         }
     }
@@ -66,6 +78,8 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
     private final DataMembers members = new DataMembers();
     private final Map<NodePos, Probe[]> probes = new HashMap<>();
     private final List<Shipment> shipments = new ArrayList<>();
+    private final UpkeepBook<BlockPos> upkeep = new UpkeepBook<>();
+    private int upkeepTimer;
     private ServerLevel level;
 
     public DataNetwork(int id, NetworkSet<DataNode, DataEvent, ?> owner) {
@@ -172,11 +186,61 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
 
     @Override
     protected void onTick() {
-        if (shipments.isEmpty() || level == null) {
+        if (level == null) {
             return;
         }
-        var limits = PacketLimitsManager.INSTANCE.limits();
-        shipments.removeIf(shipment -> shipment.tick(this, level, limits));
+        if (!shipments.isEmpty()) {
+            var limits = PacketLimitsManager.INSTANCE.limits();
+            shipments.removeIf(shipment -> shipment.tick(this, level, limits));
+        }
+        if (++upkeepTimer >= UPKEEP_INTERVAL) {
+            upkeepTimer = 0;
+            keepUpkeep(level);
+        }
+    }
+
+    /** Asks suppliers on the line for the upkeep each upkeep member is missing, one open request per member. */
+    private void keepUpkeep(ServerLevel server) {
+        List<DataMember> holders = dataMembers(DataRole.UPKEEP);
+        upkeep.retain(holders.stream().map(DataMember::pos).toList());
+        if (holders.isEmpty()) {
+            return;
+        }
+        List<DataMember> suppliers = null;
+        long now = server.getGameTime();
+        for (DataMember member : holders) {
+            if (!server.isLoaded(member.pos())) {
+                continue;
+            }
+            UpkeepHolder holder = server.getCapability(ServusFoundationCapabilities.UPKEEP, member.pos(), null);
+            if (holder == null || holder.upkeepItem().isEmpty() || holder.upkeepLevel() <= 0) {
+                continue;
+            }
+            int count = holder.upkeepCount();
+            int missing = upkeep.ask(member.pos(), count, holder.upkeepLevel(), now);
+            if (missing <= 0) {
+                continue;
+            }
+            if (suppliers == null) {
+                suppliers = new ArrayList<>(dataMembers());
+                suppliers.sort(Comparator.comparingLong(candidate -> candidate.pos().asLong()));
+            }
+            for (DataMember candidate : suppliers) {
+                if (candidate.pos().equals(member.pos()) || !server.isLoaded(candidate.pos())) {
+                    continue;
+                }
+                ItemSupplier supplier = server.getCapability(ServusFoundationCapabilities.SUPPLIER, candidate.pos(), null);
+                if (supplier == null) {
+                    continue;
+                }
+                int answer = supplier.supply(member.pos(), holder.upkeepItem().copyWithCount(1), missing);
+                if (answer > 0) {
+                    upkeep.asked(member.pos(), answer, count, now, UPKEEP_TIMEOUT);
+                    holder.upkeepRequested(answer, now + UPKEEP_TIMEOUT);
+                    break;
+                }
+            }
+        }
     }
 
     /** Puts every shipment's items somewhere safe; used when the network goes away or the server stops. */
@@ -216,7 +280,8 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
                     cache(ServusFoundationCapabilities.PRODUCTION, server, target, direction, node, invalidated),
                     cache(ServusFoundationCapabilities.STOCK_PROVIDER, server, target, direction, node, invalidated),
                     cache(ServusFoundationCapabilities.STOCK_SINK, server, target, direction, node, invalidated),
-                    cache(ServusFoundationCapabilities.DATA_LINK, server, target, direction, node, invalidated));
+                    cache(ServusFoundationCapabilities.DATA_LINK, server, target, direction, node, invalidated),
+                    cache(ServusFoundationCapabilities.UPKEEP, server, target, direction, node, invalidated));
         }
         probes.put(pos, sides);
         // Neighbours are read on the next tick, never while a chunk is loading.

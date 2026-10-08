@@ -27,6 +27,9 @@ public final class ServusFoundationCapabilities {
     public static final BlockCapability<ItemSupplier, Direction> SUPPLIER =
             BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "supplier"), ItemSupplier.class);
 
+    public static final BlockCapability<UpkeepHolder, Direction> UPKEEP =
+            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "upkeep"), UpkeepHolder.class);
+
     private ServusFoundationCapabilities() {
     }
 }

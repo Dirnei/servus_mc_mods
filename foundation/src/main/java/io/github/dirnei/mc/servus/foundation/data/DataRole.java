@@ -7,5 +7,7 @@ public enum DataRole {
     /** Exposes the stock provider or stock sink capability: it holds items. */
     STOCK,
     /** Exposes the data link capability: it is on the line without making or holding items. */
-    LINK
+    LINK,
+    /** Exposes the upkeep capability: it keeps a consumable stocked from suppliers on the line. */
+    UPKEEP
 }

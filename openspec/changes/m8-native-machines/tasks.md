@@ -3,7 +3,7 @@
 ## 1. Foundation upkeep
 
 - [x] 1.1 Add pure `foundation/data/UpkeepBook.java` and `foundation/src/test/.../data/UpkeepBookTest.java` with tests `firstCheckAsksTheMissingAmount`, `levelMetAsksNothing`, `openRequestBlocksAsking`, `arrivalCompletesTheRequest`, `timeoutReopens`, `retainForgetsMembersThatLeft`. Verify with `gradlew :foundation:test`.
-- [ ] 1.2 Add `production/UpkeepHolder.java` and `ServusFoundationCapabilities.UPKEEP`; `DataRole.UPKEEP`; the fifth probe in `DataNetwork` and the upkeep check in `DataMembership`; the keeper in `DataNetwork.onTick` (interval 40, timeout 1200, suppliers lowest position first, the member itself skipped). Verify with `gradlew build` and `:foundation:runGameTestServer`.
+- [x] 1.2 Add `production/UpkeepHolder.java` and `ServusFoundationCapabilities.UPKEEP`; `DataRole.UPKEEP`; the fifth probe in `DataNetwork` and the upkeep check in `DataMembership`; the keeper in `DataNetwork.onTick` (interval 40, timeout 1200, suppliers lowest position first, the member itself skipped). Verify with `gradlew build` and `:foundation:runGameTestServer`.
 - [ ] 1.3 Move the single ingredient recipe listing to `production/SingleInputRecipes.java`; refactor `MachineAdapterBlockEntity` to expose `UPKEEP` through a holder, drop its own loop and ticker (`MachineAdapterBlock`), keep `expect(int)` for tests; register the capability in `AdapterEvents`. Verify with `gradlew build`, `:foundation:runGameTestServer` and `:storage:runGameTestServer` (adapter tests green).
 
 ## 2. Manufacturing
