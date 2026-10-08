@@ -11,6 +11,8 @@ dependencies {
     // Manufacturing's ducts are the Logistics Utility Duct.
     compileOnly project(':logistics')
     testImplementation project(':logistics')
+    // The game data reader is plain Gson; Minecraft 1.21.1 ships this version.
+    testImplementation 'com.google.code.gson:gson:2.10.1'
 
     // JEI: API at compile time, full mod only in dev runs (soft dependency).
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
@@ -44,6 +46,15 @@ neoForge {
             // Game data export for the documentation site (docs/).
             systemProperty 'servus.gamedata.output', rootProject.file('docs/src/data/gamedata.json').absolutePath
             systemProperty 'servus.gamedata.resources', file('src/main/resources').absolutePath
+            // Recipes and lang of every Servus mod, read as files so mods not loaded here still take part.
+            systemProperty 'servus.gamedata.generated', ['lib', 'logistics', 'manufacturing', 'storage']
+                    .collect { rootProject.file("${it}/src/generated/resources").absolutePath }
+                    .join(File.pathSeparator)
         }
     }
+}
+
+// The export reads the other mods' generated recipes, so `gradlew runData` writes them first.
+tasks.matching { it.name == 'runData' }.configureEach {
+    mustRunAfter ':lib:runData', ':logistics:runData', ':storage:runData'
 }

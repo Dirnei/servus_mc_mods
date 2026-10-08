@@ -8,12 +8,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Writes the game data export (schema 1) for tools outside the game. Plain Java: entries are sorted by id,
+ * Writes the game data export (schema 2) for tools outside the game. Plain Java: entries are sorted by id,
  * keys come in a fixed order and there is no timestamp, so the same data always gives the same text.
  */
 public final class GameDataJson {
 
-    public static final int SCHEMA = 1;
+    public static final int SCHEMA = 2;
 
     /** An item or tag stack. Exactly one of {@code item} and {@code tag} is set. */
     public record Stack(String item, String tag, int count) {
@@ -33,14 +33,23 @@ public final class GameDataJson {
     public record Recipe(String id, String type, List<Stack> inputs, List<Stack> outputs, int time) {
     }
 
+    /**
+     * A crafting table style recipe. {@code pattern} and {@code key} are null for shapeless and special recipes; a
+     * special recipe has no fixed ingredients or result, so its inputs and outputs are empty.
+     */
+    public record Crafting(String id, String type, boolean special, List<String> pattern, Map<String, Stack> key,
+                           List<Stack> inputs, List<Stack> outputs) {
+    }
+
     public record Deposit(String id, String block, Stack yield) {
     }
 
     public record Tech(String id, List<String> parents, List<Stack> cost, int ticksPerPack, List<String> unlocks) {
     }
 
-    public record GameData(String modVersion, List<Machine> machines, List<Recipe> recipes, List<Deposit> deposits,
-                           List<Tech> techs, Map<String, Integer> fuels, Map<String, String> itemNames) {
+    public record GameData(String modVersion, List<Machine> machines, List<Recipe> recipes, List<Crafting> crafting,
+                           List<Deposit> deposits, List<Tech> techs, Map<String, Integer> fuels,
+                           Map<String, String> itemNames) {
     }
 
     private final StringBuilder out = new StringBuilder();
@@ -66,6 +75,9 @@ public final class GameDataJson {
         next();
         key("recipes");
         objectOf(data.recipes(), Recipe::id, this::recipe);
+        next();
+        key("crafting");
+        objectOf(data.crafting(), Crafting::id, this::crafting);
         next();
         key("deposits");
         objectOf(data.deposits(), Deposit::id, this::deposit);
@@ -109,6 +121,31 @@ public final class GameDataJson {
         stacks(recipe.outputs());
         next();
         key("time").append(recipe.time());
+        close('}');
+    }
+
+    private void crafting(Crafting crafting) {
+        open('{');
+        key("type").append(quote(crafting.type()));
+        if (crafting.special()) {
+            next();
+            key("special").append(true);
+        }
+        if (crafting.pattern() != null) {
+            next();
+            key("pattern");
+            strings(crafting.pattern());
+            next();
+            key("key");
+            objectOf(new TreeMap<>(crafting.key()).entrySet().stream().toList(), Map.Entry::getKey,
+                    entry -> ingredient(entry.getValue()));
+        }
+        next();
+        key("inputs");
+        stacks(crafting.inputs());
+        next();
+        key("outputs");
+        stacks(crafting.outputs());
         close('}');
     }
 
@@ -190,6 +227,13 @@ public final class GameDataJson {
         out.append('{');
         out.append(stack.item() != null ? "\"item\": " + quote(stack.item()) : "\"tag\": " + quote(stack.tag()));
         out.append(", \"count\": ").append(stack.count()).append('}');
+    }
+
+    /** A stack without its count, as a grid key entry. */
+    private void ingredient(Stack stack) {
+        out.append('{');
+        out.append(stack.item() != null ? "\"item\": " + quote(stack.item()) : "\"tag\": " + quote(stack.tag()));
+        out.append('}');
     }
 
     private void strings(List<String> values) {

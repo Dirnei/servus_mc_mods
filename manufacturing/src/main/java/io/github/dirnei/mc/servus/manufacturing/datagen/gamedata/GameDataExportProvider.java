@@ -9,6 +9,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturing;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Crafting;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Deposit;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.GameData;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Machine;
@@ -21,6 +22,7 @@ import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.recipe.AssemblingRecipeSerializer;
 import io.github.dirnei.mc.servus.manufacturing.recipe.CrushingRecipeSerializer;
 import io.github.dirnei.mc.servus.manufacturing.research.TechDefinition;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -41,7 +43,6 @@ import java.util.stream.Stream;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
-import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.VanillaPackResources;
@@ -55,8 +56,11 @@ import net.neoforged.fml.ModList;
  * item names) to the documentation site. Runs last in the data run, so this run's recipes and lang file exist.
  *
  * <p>Paths come from system properties set by the Manufacturing data run: {@code servus.gamedata.output} (the
- * JSON file) and {@code servus.gamedata.resources} (the hand written {@code src/main/resources}). Without them the
- * provider does nothing, so other data runs are unaffected.
+ * JSON file), {@code servus.gamedata.resources} (the hand written {@code src/main/resources}) and
+ * {@code servus.gamedata.generated} (the generated resource folders of all Servus mods, joined with the path
+ * separator). Recipes and language files of the other mods are read from those folders as plain files, so mods
+ * that are not loaded in this run still take part. Without the properties the provider does nothing, so other
+ * data runs are unaffected.
  */
 public final class GameDataExportProvider implements DataProvider {
 
@@ -66,22 +70,21 @@ public final class GameDataExportProvider implements DataProvider {
     private static final int VANILLA_COOKING_TIME = 200;
     private static final List<String> ALWAYS_FUELS = List.of("minecraft:coal", "minecraft:charcoal");
 
-    private final PackOutput output;
-
-    public GameDataExportProvider(PackOutput output) {
-        this.output = output;
+    public GameDataExportProvider() {
     }
 
     @Override
     public CompletableFuture<?> run(CachedOutput cache) {
         String target = System.getProperty("servus.gamedata.output");
         String resources = System.getProperty("servus.gamedata.resources");
-        if (target == null || resources == null) {
+        String generated = System.getProperty("servus.gamedata.generated");
+        if (target == null || resources == null || generated == null) {
             ServusManufacturing.LOGGER.info("Game data export skipped: servus.gamedata.output not set");
             return CompletableFuture.completedFuture(null);
         }
         try {
-            String json = GameDataJson.write(collect(Path.of(resources)));
+            List<Path> generatedRoots = Stream.of(generated.split(File.pathSeparator)).map(Path::of).toList();
+            String json = GameDataJson.write(collect(Path.of(resources), generatedRoots));
             Path file = Path.of(target);
             Files.createDirectories(file.getParent());
             if (!Files.exists(file) || !Files.readString(file, StandardCharsets.UTF_8).equals(json)) {
@@ -94,12 +97,17 @@ public final class GameDataExportProvider implements DataProvider {
         }
     }
 
-    private GameData collect(Path resources) throws IOException {
+    private GameData collect(Path resources, List<Path> generatedRoots) throws IOException {
         Path mainData = resources.resolve("data").resolve(NS);
-        Path generatedData = output.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(NS);
 
         List<Machine> machines = machines(mainData.resolve("machine"));
-        List<Recipe> recipes = new ArrayList<>(servusRecipes(generatedData.resolve("recipe")));
+        List<Recipe> recipes = new ArrayList<>();
+        List<Crafting> crafting = new ArrayList<>();
+        for (Path root : generatedRoots) {
+            for (Path namespace : servusNamespaces(root.resolve("data"))) {
+                servusRecipes(namespace.getFileName().toString(), namespace.resolve("recipe"), recipes, crafting);
+            }
+        }
         List<Deposit> deposits = deposits(mainData.resolve("deposit"));
         List<Tech> techs = techs(mainData.resolve(NS).resolve("tech"));
 
@@ -113,7 +121,13 @@ public final class GameDataExportProvider implements DataProvider {
         Map<String, Integer> fuels = fuels(referenced);
         referenced.addAll(fuels.keySet());
         machines.forEach(machine -> referenced.add(machine.id()));
-        return new GameData(modVersion(), machines, recipes, deposits, techs, fuels, names(referenced));
+        // Crafting entries only add names: they never feed the vanilla cooking closure or the fuels.
+        crafting.forEach(entry -> {
+            entry.inputs().forEach(stack -> reference(referenced, stack));
+            entry.outputs().forEach(stack -> reference(referenced, stack));
+        });
+        return new GameData(modVersion(), machines, recipes, crafting, deposits, techs, fuels,
+                names(referenced, generatedRoots));
     }
 
     // Machines
@@ -144,10 +158,24 @@ public final class GameDataExportProvider implements DataProvider {
 
     // Recipes
 
-    private static List<Recipe> servusRecipes(Path dir) throws IOException {
-        List<Recipe> recipes = new ArrayList<>();
+    /** The {@code servus_*} namespace folders under a generated {@code data} or {@code assets} folder, sorted. */
+    private static List<Path> servusNamespaces(Path dir) throws IOException {
+        if (!Files.isDirectory(dir)) {
+            return List.of();
+        }
+        try (Stream<Path> dirs = Files.list(dir)) {
+            return dirs.filter(Files::isDirectory)
+                    .filter(namespace -> namespace.getFileName().toString().startsWith("servus_"))
+                    .sorted()
+                    .toList();
+        }
+    }
+
+    /** Production recipe types go to {@code recipes}, everything else to {@code crafting}. */
+    private static void servusRecipes(String namespace, Path dir, List<Recipe> recipes, List<Crafting> crafting)
+            throws IOException {
         for (Path file : jsonFiles(dir)) {
-            String id = NS + ":" + relativeId(dir, file);
+            String id = namespace + ":" + relativeId(dir, file);
             JsonObject json = readJson(file).getAsJsonObject();
             String type = json.get("type").getAsString();
             switch (type) {
@@ -160,12 +188,9 @@ public final class GameDataExportProvider implements DataProvider {
                         List.of(result(json.get("result"))),
                         intOr(json, "time", CrushingRecipeSerializer.DEFAULT_TIME)));
                 case SMELTING, BLASTING -> recipes.add(cooking(id, type, json));
-                default -> {
-                    // Crafting recipes are build costs, not part of production chains.
-                }
+                default -> crafting.add(CraftingRecipeReader.read(id, json));
             }
         }
-        return recipes;
     }
 
     /** Vanilla smelting and blasting recipes whose input is referenced, closed over their results. */
@@ -220,11 +245,11 @@ public final class GameDataExportProvider implements DataProvider {
 
     /** An ingredient as item or tag. A list ingredient keeps its first entry. */
     private static Stack ingredient(JsonElement element, int count) {
-        JsonObject object = element.isJsonArray() ? element.getAsJsonArray().get(0).getAsJsonObject() : element.getAsJsonObject();
-        if (object.has("tag")) {
-            return Stack.tag(object.get("tag").getAsString(), count);
+        Stack stack = CraftingRecipeReader.ingredient(element, count);
+        if (stack == null) {
+            throw new IllegalArgumentException("Unsupported ingredient " + element);
         }
-        return Stack.item(object.get("item").getAsString(), count);
+        return stack;
     }
 
     private static Stack result(JsonElement element) {
@@ -273,23 +298,38 @@ public final class GameDataExportProvider implements DataProvider {
         return fuels;
     }
 
-    private Map<String, String> names(Set<String> items) throws IOException {
+    /**
+     * Display names: vanilla ids by their registry description id, Servus ids by language key ({@code item.} then
+     * {@code block.}), because mods that are not loaded in this run are not in the registry.
+     */
+    private static Map<String, String> names(Set<String> items, List<Path> generatedRoots) throws IOException {
         Map<String, String> lang = new LinkedHashMap<>();
         classpathJson("assets/minecraft/lang/en_us.json").ifPresent(json -> json.entrySet()
                 .forEach(entry -> lang.put(entry.getKey(), entry.getValue().getAsString())));
-        Path ownLang = output.getOutputFolder(PackOutput.Target.RESOURCE_PACK).resolve(NS).resolve("lang/en_us.json");
-        if (Files.exists(ownLang)) {
-            readJson(ownLang).getAsJsonObject().entrySet()
-                    .forEach(entry -> lang.put(entry.getKey(), entry.getValue().getAsString()));
+        for (Path root : generatedRoots) {
+            for (Path namespace : servusNamespaces(root.resolve("assets"))) {
+                Path file = namespace.resolve("lang/en_us.json");
+                if (Files.exists(file)) {
+                    readJson(file).getAsJsonObject().entrySet()
+                            .forEach(entry -> lang.put(entry.getKey(), entry.getValue().getAsString()));
+                }
+            }
         }
         Map<String, String> names = new TreeMap<>();
         for (String id : items) {
             if (id == null) {
                 continue;
             }
-            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(id));
-            String name = lang.get(item.getDescriptionId());
-            names.put(id, name != null ? name : titleCase(ResourceLocation.parse(id).getPath()));
+            ResourceLocation location = ResourceLocation.parse(id);
+            String name;
+            if (location.getNamespace().startsWith("servus_")) {
+                String suffix = location.getNamespace() + "." + location.getPath().replace('/', '.');
+                name = lang.getOrDefault("item." + suffix, lang.get("block." + suffix));
+            } else {
+                Item item = BuiltInRegistries.ITEM.get(location);
+                name = lang.get(item.getDescriptionId());
+            }
+            names.put(id, name != null ? name : titleCase(location.getPath()));
         }
         return names;
     }

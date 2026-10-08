@@ -38,6 +38,6 @@ public final class ServusManufacturingDataGen {
                 List.of(new LootTableProvider.SubProviderEntry(ServusManufacturingBlockLoot::new, LootContextParamSets.BLOCK)),
                 lookup));
         // Last: reads the recipes and lang file written above.
-        generator.addProvider(event.includeServer(), new GameDataExportProvider(output));
+        generator.addProvider(event.includeServer(), new GameDataExportProvider());
     }
 }
