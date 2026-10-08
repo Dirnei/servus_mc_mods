@@ -17,4 +17,4 @@
 ## 4. Docs and integration
 
 - [x] 4.1 Describe the Production Terminal on `docs/src/content/docs/mods/storage.md`; regenerate `docs/src/data/gamedata.json` with `:manufacturing:runData`; run `npx vitest run` in `docs/`. Verify the tests pass.
-- [ ] 4.2 Full `gradlew build` and `gradlew test`, GameTests of Foundation, Manufacturing and Storage green, `runClientAll` reaches the title screen without asset warnings.
+- [x] 4.2 Full `gradlew build` and `gradlew test`, GameTests of Foundation, Manufacturing and Storage green, `runClientAll` reaches the title screen without asset warnings.
