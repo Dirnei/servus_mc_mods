@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.lib.data.DataCableBlock;
 import io.github.dirnei.mc.servus.lib.data.DataNetwork;
 import io.github.dirnei.mc.servus.lib.data.DataNetworks;
 import io.github.dirnei.mc.servus.lib.data.DataRole;
@@ -12,11 +13,14 @@ import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import java.util.Arrays;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -126,6 +130,22 @@ public final class DataCableGameTests {
                             && network.dataMembers(DataRole.STOCK).get(0).pos().equals(helper.absolutePos(EAST_END)),
                     "the controller should be the one stock member, got " + network.dataMembers());
             helper.assertTrue(arm(helper, A, Direction.WEST) && arm(helper, C, Direction.EAST), "arms toward both members");
+            helper.succeed();
+        });
+    }
+
+    /** The click summary counts cables, producers and stock members. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void dataCableSummaryCounts(GameTestHelper helper) {
+        cableRow(helper);
+        sticksStation(helper, WEST_END);
+        controller(helper, EAST_END);
+        helper.runAfterDelay(2, () -> {
+            Component summary = DataCableBlock.summary(requireNetwork(helper, B));
+            helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
+                            && contents.getKey().equals("message.servus_lib.data_cable.summary")
+                            && Arrays.equals(contents.getArgs(), new Object[] {3, 1, 1}),
+                    "summary should say 3 cables, 1 producer, 1 stock, got " + summary.getString());
             helper.succeed();
         });
     }

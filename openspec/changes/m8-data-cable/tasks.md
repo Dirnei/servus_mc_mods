@@ -21,7 +21,7 @@
 
 ## 5. Player interaction
 
-- [ ] 5.1 `DataCableBlock.useWithoutItem` sends the summary (cables, producers, stock) to the action bar on the server; sneak carrot dismantle comes from `ConnectableBlock`. Verify with `gradlew build`.
+- [x] 5.1 `DataCableBlock.useWithoutItem` sends the summary (cables, producers, stock) to the action bar on the server; sneak carrot dismantle comes from `ConnectableBlock`. Any held item skips the summary so cables place against cables. GameTest `dataCableSummaryCounts`. Verify with `gradlew build` and the Storage GameTests.
 - [ ] 5.2 Add `data/DataCableAssist` (cables start and continue a run, direction from `PlacementAssists.alongRun` over arms toward cables, else the clicked face) and make the cable item an `AssistedBlockItem`. Verify with `gradlew build`.
 
 ## 6. Integration
