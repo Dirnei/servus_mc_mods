@@ -17,7 +17,7 @@ Foundation loads on its own, and each content mod loads with only Foundation ins
 - **Data Cable**: places a duct with the data line, or adds it to a duct. Four from two copper ingots and a redstone dust.
 - **Facade**: any full block without a block entity plus one iron ingot gives six facades of that block. Use one on a duct to make it look like that block.
 - **Fluid Tank**: a glass block that holds one fluid. Iron ingots and glass.
-- **Machine Adapter**: makes a machine of vanilla or another mod a producer on the data line. Copper ingots around a hopper, redstone and a Data Cable.
+- **Machine Adapter**: makes a machine of vanilla or another mod a producer on the data line. Copper ingots around a hopper, redstone and a Data Cable over a row of planks; it shows the wood of the planks, like the Storage blocks.
 
 All of them are listed in the Servus creative tab.
 
