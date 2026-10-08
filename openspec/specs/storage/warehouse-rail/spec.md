@@ -81,7 +81,7 @@ Free rails that link to each other SHALL form a gap. The span of a gap SHALL be 
 - **THEN** all four rails drop as items
 
 ### Requirement: Rails auto connect
-A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, every stock holding storage block (crate, shelving rack, warehouse controller, counter terminal), every Inbound Station and the back of every Shuttle Garage on the same level and SHALL render the matching piece: straight, curve, T or cross. The centre SHALL follow the connections: straight along the axis of a straight run or a single connection, a curve when two connected sides meet at a corner, and a `#` of both line pairs when three or four sides connect. Docks SHALL NOT shape the centre: a dock is drawn on its own and the centre follows only the sides that carry rail. Towards a storage block or a station the piece SHALL be a dock, visibly different from the arm towards a rail or segment; towards a garage it SHALL be a plain arm. A Heavy Duty Rack SHALL take a dock only on its front side. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment, storage block, station or garage is placed, rotated or removed.
+A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, every stock holding storage block (crate, shelving rack, warehouse controller), every Inbound Station and the back of every Shuttle Garage on the same level and SHALL render the matching piece: straight, curve, T or cross. The centre SHALL follow the connections: straight along the axis of a straight run or a single connection, a curve when two connected sides meet at a corner, and a `#` of both line pairs when three or four sides connect. Docks SHALL NOT shape the centre: a dock is drawn on its own and the centre follows only the sides that carry rail. Towards a storage block or a station the piece SHALL be a dock, visibly different from the arm towards a rail or segment; towards a garage it SHALL be a plain arm. A Heavy Duty Rack SHALL take a dock only on its front side. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment, storage block, station or garage is placed, rotated or removed.
 
 #### Scenario: Straight run
 - **WHEN** three rails are placed in a line
@@ -128,11 +128,11 @@ A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, ev
 - **THEN** the rail shows a plain arm towards the garage, and turning the garage with the carrot removes it
 
 ### Requirement: Storage blocks join through rails
-Every rail SHALL be a node of the warehouse network. Crates, shelving racks, warehouse controllers, counter terminals and inbound stations touching a rail on any side SHALL belong to the same network as that rail, and a chain of connected rails SHALL carry membership along its whole length. Rails SHALL link to each other sideways only; a rail directly above another rail does not link to it.
+Every rail SHALL be a node of the warehouse network. Crates, shelving racks, warehouse controllers and inbound stations touching a rail on any side SHALL belong to the same network as that rail, and a chain of connected rails SHALL carry membership along its whole length. Rails SHALL link to each other sideways only; a rail directly above another rail does not link to it.
 
 #### Scenario: Two aisles one controller
 - **WHEN** a controller touches a rail, the rail runs ten blocks, and racks stand beside the rail at both ends
-- **THEN** all racks and the controller form one online warehouse and the counter terminal lists their contents
+- **THEN** all racks and the controller form one online warehouse and a counter terminal on the data line lists their contents
 
 #### Scenario: Rail removed
 - **WHEN** a rail in the middle of that run is broken

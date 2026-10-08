@@ -7,7 +7,7 @@ The connection indicator shows on a storage block itself whether it is part of a
 ## Requirements
 
 ### Requirement: Lamp on storage blocks
-Crates of every size, warehouse controllers and counter terminals SHALL show a small lamp on their front face. The lamp SHALL be lit while the block belongs to an online warehouse network and dark otherwise. Heavy Duty Racks SHALL carry no lamp.
+Crates of every size, warehouse controllers and counter terminals SHALL show a small lamp on their front face. The lamp SHALL be lit while the block belongs to an online warehouse network and dark otherwise; a counter terminal's lamp SHALL be lit while a warehouse is reachable over its data line. Heavy Duty Racks SHALL carry no lamp.
 
 #### Scenario: Crate joins a warehouse
 - **WHEN** a crate is placed beside a rail of a warehouse with one controller

@@ -19,4 +19,4 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build` and `gradlew test` green, all three GameTest suites green, `runClientAll` reaches the title screen.
+- [x] 5.1 Full `gradlew build` and `gradlew test` green, all three GameTest suites green, `runClientAll` reaches the title screen.
