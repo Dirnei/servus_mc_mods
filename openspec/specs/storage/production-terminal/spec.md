@@ -17,11 +17,15 @@ The Production Terminal SHALL be a horizontal facing block that holds no items a
 - **THEN** its lamp is dark and its screen says that no CPU or warehouse is on the line
 
 ### Requirement: Tab bar
-The screen SHALL show a tab bar with a Machines tab and an Orders tab, the Orders tab selected when the screen opens. Clicking a tab SHALL show its content. The bar SHALL leave room for further tabs.
+The screen SHALL show a tab bar with an Orders tab, a Machines tab and a Patterns tab, the Orders tab selected when the screen opens. Clicking a tab SHALL show its content. The bar SHALL leave room for further tabs.
 
 #### Scenario: Switch tab
 - **WHEN** the player clicks the Machines tab
 - **THEN** the screen shows the producers of the line
+
+#### Scenario: Patterns tab
+- **WHEN** the player clicks the Patterns tab
+- **THEN** the screen shows the patterns of the line and the capacity bar
 
 ### Requirement: Machines tab
 The Machines tab SHALL list every member of the data line with the producer role with its block name and its state: working on an item when the producer reports an active recipe, idle when it has recipes and none runs, no recipes when it has none. Under each producer it SHALL list the recipes it reports as outputs from inputs with their time. The list SHALL scroll with the mouse wheel when it does not fit.
@@ -53,8 +57,30 @@ Clicking an open order in the Orders tab SHALL cancel it on its CPU like any can
 - **THEN** the order is cancelled on its CPU and its reserved planks are available again
 
 ### Requirement: Live view
-While the screen is open the terminal SHALL send the current CPUs, machines and orders every half second when something changed, and nothing when nothing changed.
+While the screen is open the terminal SHALL send the current CPUs, machines, orders, patterns and pattern capacity every half second when something changed, and nothing when nothing changed.
 
 #### Scenario: Step progresses
 - **WHEN** the sticks step changes from delivering to producing while the screen is open
 - **THEN** the screen shows producing within half a second
+
+#### Scenario: Pattern added elsewhere
+- **WHEN** another player puts an encoded Pattern into a Pattern Storage of the line while the screen is open
+- **THEN** the Patterns tab lists it within half a second
+
+### Requirement: Patterns tab
+The Patterns tab SHALL show a capacity bar with the used and total pattern slots of the line, a plus button, and every pattern of the line with its result, its inputs and the position of its Pattern Storage. Plus SHALL open the recipe editor with an empty grid; clicking a pattern SHALL open the editor prefilled with its template and offer Delete. While the editor is open the player inventory SHALL be shown so items can be put into the ghost grid, and the rest of the screen SHALL be dimmed and inert.
+
+#### Scenario: Capacity bar
+- **WHEN** the line has one Pattern Storage with 9 slots holding 2 patterns
+- **THEN** the bar reads 2 of 9
+
+#### Scenario: Edit a pattern
+- **WHEN** the player clicks the sticks pattern, changes the grid to a torch layout and presses Save
+- **THEN** that pattern now holds the torch recipe and no Blank Pattern is used
+
+### Requirement: Recipe viewer transfer into the terminal
+With JEI installed, the transfer button on a vanilla crafting recipe SHALL open the editor of the open Production Terminal prefilled with that recipe's layout. Without JEI the terminal SHALL work unchanged.
+
+#### Scenario: Plus button in JEI
+- **WHEN** the terminal screen is open and the player presses the transfer button on the stick recipe in JEI
+- **THEN** the editor opens with a plank above a plank and the preview shows four sticks
