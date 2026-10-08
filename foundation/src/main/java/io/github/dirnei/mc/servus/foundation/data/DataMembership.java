@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
-/** Which blocks are data members: those exposing the production or stock capabilities. Server side. */
+/** Which blocks are data members: those exposing the production, stock or data link capabilities. Server side. */
 public final class DataMembership {
 
     private DataMembership() {
@@ -15,6 +15,7 @@ public final class DataMembership {
     public static boolean isMember(Level level, BlockPos pos, Direction side) {
         return level.getCapability(ServusFoundationCapabilities.PRODUCTION, pos, side) != null
                 || level.getCapability(ServusFoundationCapabilities.STOCK_PROVIDER, pos, side) != null
-                || level.getCapability(ServusFoundationCapabilities.STOCK_SINK, pos, side) != null;
+                || level.getCapability(ServusFoundationCapabilities.STOCK_SINK, pos, side) != null
+                || level.getCapability(ServusFoundationCapabilities.DATA_LINK, pos, side) != null;
     }
 }

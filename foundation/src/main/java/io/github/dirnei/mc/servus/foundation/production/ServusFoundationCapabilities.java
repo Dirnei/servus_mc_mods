@@ -21,6 +21,9 @@ public final class ServusFoundationCapabilities {
     public static final BlockCapability<StockSink, Direction> STOCK_SINK =
             BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "stock_sink"), StockSink.class);
 
+    public static final BlockCapability<DataLink, Direction> DATA_LINK =
+            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "data_link"), DataLink.class);
+
     private ServusFoundationCapabilities() {
     }
 }

@@ -38,7 +38,7 @@ class DataMembersTest {
         DataMembers members = new DataMembers();
         members.touch(CABLE_A, Side.EAST, MEMBER, Set.of(DataRole.STOCK));
         members.touch(CABLE_B, Side.WEST, MEMBER, Set.of(DataRole.PRODUCER));
-        assertEquals(EnumSet.allOf(DataRole.class), members.all().get(MEMBER));
+        assertEquals(EnumSet.of(DataRole.PRODUCER, DataRole.STOCK), members.all().get(MEMBER));
     }
 
     @Test
@@ -82,6 +82,6 @@ class DataMembersTest {
         other.touch(CABLE_B, Side.UP, OTHER, Set.of(DataRole.STOCK));
         members.absorb(other);
         assertEquals(2, members.size());
-        assertEquals(EnumSet.allOf(DataRole.class), members.all().get(MEMBER));
+        assertEquals(EnumSet.of(DataRole.PRODUCER, DataRole.STOCK), members.all().get(MEMBER));
     }
 }

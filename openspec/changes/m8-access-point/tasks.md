@@ -2,7 +2,7 @@
 
 ## 1. Foundation link role
 
-- [ ] 1.1 Add `DataLink` and `ServusFoundationCapabilities.DATA_LINK`, `DataRole.LINK`, the link check in `DataMembership.isMember` and the fourth cache in `DataNetwork`'s probe (`foundation/src/main/java/.../foundation/{production,data}`). Verify with `gradlew build` and `gradlew test`.
+- [x] 1.1 Add `DataLink` and `ServusFoundationCapabilities.DATA_LINK`, `DataRole.LINK`, the link check in `DataMembership.isMember` and the fourth cache in `DataNetwork`'s probe (`foundation/src/main/java/.../foundation/{production,data}`). Verify with `gradlew build` and `gradlew test`.
 
 ## 2. Pure choice
 

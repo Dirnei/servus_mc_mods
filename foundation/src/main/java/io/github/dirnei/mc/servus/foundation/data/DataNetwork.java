@@ -46,7 +46,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
 
     /** The capability caches of one node side. */
     private record Probe(BlockCapabilityCache<?, Direction> production, BlockCapabilityCache<?, Direction> provider,
-                         BlockCapabilityCache<?, Direction> sink) {
+                         BlockCapabilityCache<?, Direction> sink, BlockCapabilityCache<?, Direction> link) {
 
         Set<DataRole> roles() {
             Set<DataRole> roles = EnumSet.noneOf(DataRole.class);
@@ -55,6 +55,9 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
             }
             if (provider.getCapability() != null || sink.getCapability() != null) {
                 roles.add(DataRole.STOCK);
+            }
+            if (link.getCapability() != null) {
+                roles.add(DataRole.LINK);
             }
             return roles;
         }
@@ -212,7 +215,8 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
             sides[direction.ordinal()] = new Probe(
                     cache(ServusFoundationCapabilities.PRODUCTION, server, target, direction, node, invalidated),
                     cache(ServusFoundationCapabilities.STOCK_PROVIDER, server, target, direction, node, invalidated),
-                    cache(ServusFoundationCapabilities.STOCK_SINK, server, target, direction, node, invalidated));
+                    cache(ServusFoundationCapabilities.STOCK_SINK, server, target, direction, node, invalidated),
+                    cache(ServusFoundationCapabilities.DATA_LINK, server, target, direction, node, invalidated));
         }
         probes.put(pos, sides);
         // Neighbours are read on the next tick, never while a chunk is loading.
