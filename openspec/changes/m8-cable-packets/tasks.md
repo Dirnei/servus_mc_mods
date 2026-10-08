@@ -2,7 +2,7 @@
 
 ## 1. Pure packet logic
 
-- [ ] 1.1 Add `PacketRoutes`, `PacketFlight`, `PacketLimits`, `Delivery` and `DeliveryReason` in `foundation/src/main/java/.../foundation/data/packet/` (no Minecraft imports) with JUnit tests `PacketRoutesTest` (`straightLine`, `shorterBranch`, `noRoute`, `startIsGoal`), `PacketFlightTest` (`sevenBlocksAtFourPerSecondTake35Ticks`, `currentNodeFollowsProgress`, `rerouteKeepsPosition`) and `DeliveryTest` (`countsDelivered`, `doneOnce`, `failedWithReason`, `listenersRunOnce`). Verify with `gradlew :foundation:test`.
+- [x] 1.1 Add `PacketRoutes`, `PacketFlight`, `PacketLimits`, `Delivery` and `DeliveryReason` in `foundation/src/main/java/.../foundation/data/packet/` (no Minecraft imports) with JUnit tests `PacketRoutesTest` (`straightLine`, `shorterBranch`, `noRoute`, `startIsGoal`), `PacketFlightTest` (`sevenBlocksAtFourPerSecondTake35Ticks`, `currentNodeFollowsProgress`, `rerouteKeepsPosition`) and `DeliveryTest` (`countsDelivered`, `doneOnce`, `failedWithReason`, `listenersRunOnce`). Verify with `gradlew :foundation:test`.
 
 ## 2. Limits and stash
 
