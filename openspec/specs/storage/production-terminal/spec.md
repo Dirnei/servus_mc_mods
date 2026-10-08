@@ -73,7 +73,7 @@ Clicking an open order in the Orders tab SHALL cancel it on its CPU like any can
 - **THEN** the order is cancelled on its CPU and its reserved planks are available again
 
 ### Requirement: Live view
-While the screen is open the terminal SHALL send the current CPUs, machines, orders, patterns and pattern capacity every half second when something changed, and nothing when nothing changed.
+The terminal SHALL send its full content as soon as the screen opens, without waiting for the periodic update, and the screen SHALL show a loading hint until it arrives. While the screen is open the terminal SHALL send the current CPUs, machines, orders, patterns and pattern capacity every half second when something changed, and nothing when nothing changed.
 
 #### Scenario: Step progresses
 - **WHEN** the sticks step changes from delivering to producing while the screen is open
@@ -82,6 +82,10 @@ While the screen is open the terminal SHALL send the current CPUs, machines, ord
 #### Scenario: Pattern added elsewhere
 - **WHEN** another player saves a pattern from a second Production Terminal on the same line while the screen is open
 - **THEN** the Patterns tab lists it within half a second
+
+#### Scenario: Instant content
+- **WHEN** the player opens the terminal
+- **THEN** its content is sent in the same tick the screen opens
 
 ### Requirement: Patterns tab
 The Patterns tab SHALL show a capacity bar with the used and total pattern places of the line, a plus button, and every pattern of the line with its result, its inputs and the position of its Pattern Storage. Plus SHALL open the recipe editor with an empty grid; clicking a pattern SHALL open the editor prefilled with its template and offer Delete. While the editor is open the player inventory SHALL be shown so items can be put into the ghost grid, and the rest of the screen SHALL be dimmed and inert.
@@ -100,3 +104,10 @@ With JEI installed, the transfer button on a vanilla crafting recipe SHALL open 
 #### Scenario: Plus button in JEI
 - **WHEN** the terminal screen is open and the player presses the transfer button on the stick recipe in JEI
 - **THEN** the editor opens with a plank above a plank and the preview shows four sticks
+
+### Requirement: Screen layout
+The Production Terminal screen SHALL show the title on its own row, the tab bar on the row below it and the list below the tab bar, so the title, the tabs and the rows never overlap; the pattern editor SHALL cover the list area with the player inventory below it, inside the panel. The panel SHALL fit a 1080p screen at the automatic GUI scale.
+
+#### Scenario: Title and tabs
+- **WHEN** the screen opens with all three tabs
+- **THEN** the title and the tabs do not overlap
