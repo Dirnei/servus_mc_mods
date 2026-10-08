@@ -24,4 +24,4 @@
 
 ## 6. Integration
 
-- [ ] 6.1 Full `gradlew build` and `gradlew test`, all three GameTest runs green, `runClientAll` reaches the title screen without asset warnings for the CPU.
+- [x] 6.1 Full `gradlew build` and `gradlew test`, all three GameTest runs green, `runClientAll` reaches the title screen without asset warnings for the CPU.
