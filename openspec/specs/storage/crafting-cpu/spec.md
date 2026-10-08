@@ -35,7 +35,7 @@ A formed CPU block touching a data line SHALL be a member of that data line with
 - **THEN** the duct shows no arm toward it
 
 ### Requirement: Order slots
-A formed CPU SHALL run at most `order_slots` open orders at a time (example 2, from `data/<ns>/storage/cpu.json`), the oldest first. Further orders on that CPU SHALL wait and show "waiting for CPU" until a slot is free. Right clicking a formed CPU block with an empty hand SHALL show in the action bar how many slots are in use and how many orders wait.
+A formed CPU SHALL run at most `order_slots` open orders at a time (example 2, from `data/<ns>/storage/cpu.json`), the oldest first. Further orders on that CPU SHALL wait and show "waiting for CPU" until a slot is free. Right clicking a formed CPU block with an empty hand or with any item except the Configuration Carrot SHALL show in the action bar how many slots are in use and how many orders wait; a sneaking player holding an item uses that item instead.
 
 #### Scenario: Third order waits
 - **WHEN** one CPU with 2 slots holds three open orders
@@ -44,6 +44,10 @@ A formed CPU SHALL run at most `order_slots` open orders at a time (example 2, f
 #### Scenario: Summary
 - **WHEN** a player right clicks that CPU with an empty hand
 - **THEN** the action bar says 2 of 2 slots in use and 1 waiting
+
+#### Scenario: Summary while holding a block
+- **WHEN** a player holding cobblestone right clicks a formed CPU block without sneaking
+- **THEN** the action bar shows the slot summary and no cobblestone is placed
 
 ### Requirement: Choice of CPU
 A new order SHALL go to the CPU of the data line that has a free slot, the one with the lowest position first. When no CPU has a free slot, it SHALL go to the CPU with the fewest open orders, the lowest position on a tie. Orders SHALL NOT move between CPUs afterwards.
