@@ -89,4 +89,67 @@ class OrderPlannerTest {
         assertEquals(Map.of("ingot", 2), plan.reserved());
         assertTrue(plan.complete());
     }
+
+    private static Recipe<String> charcoal(String log) {
+        return new Recipe<>(log, Map.of(log, 1), Map.of("charcoal", 1), 200);
+    }
+
+    private static final Recipe<String> ACACIA = charcoal("acacia_log");
+    private static final Recipe<String> OAK = charcoal("oak_log");
+    private static final Recipe<String> BIRCH = charcoal("birch_log");
+    private static final List<Recipe<String>> CHARCOAL = List.of(ACACIA, OAK, BIRCH);
+
+    @Test
+    void stockedAlternativeIsUsed() {
+        Plan<String> plan = OrderPlanner.plan("charcoal", 4, Map.of("oak_log", 10L), CHARCOAL, 8);
+        assertEquals(List.of(new Step<>(OAK, 4)), plan.steps());
+        assertEquals(Map.of("oak_log", 4), plan.reserved());
+        assertTrue(plan.complete());
+    }
+
+    @Test
+    void splitsAcrossAlternatives() {
+        Plan<String> plan = OrderPlanner.plan("charcoal", 10, Map.of("oak_log", 6L, "birch_log", 4L), CHARCOAL, 8);
+        assertEquals(List.of(new Step<>(OAK, 6), new Step<>(BIRCH, 4)), plan.steps());
+        assertEquals(Map.of("oak_log", 6, "birch_log", 4), plan.reserved());
+        assertTrue(plan.complete());
+    }
+
+    @Test
+    void producesInputsOfAnAlternative() {
+        Recipe<String> fromBamboo = new Recipe<>("bamboo_sticks", Map.of("bamboo", 2), Map.of("stick", 1), 10);
+        Recipe<String> fromPlanks = new Recipe<>("plank_sticks", Map.of("planks", 2), Map.of("stick", 4), 10);
+        Recipe<String> planks = new Recipe<>("planks", Map.of("log", 1), Map.of("planks", 4), 10);
+        Plan<String> plan = OrderPlanner.plan("stick", 2, Map.of("log", 5L),
+                List.of(fromBamboo, fromPlanks, planks), 8);
+        assertEquals(List.of(new Step<>(planks, 1), new Step<>(fromPlanks, 1)), plan.steps());
+        assertTrue(plan.complete());
+    }
+
+    @Test
+    void missingFollowsTheBestAlternative() {
+        Plan<String> plan = OrderPlanner.plan("charcoal", 4, Map.of("birch_log", 3L), CHARCOAL, 8);
+        assertEquals(List.of(new Step<>(BIRCH, 4)), plan.steps());
+        assertEquals(Map.of("birch_log", 1), plan.missing());
+        assertFalse(plan.complete());
+    }
+
+    @Test
+    void tieGoesByRecipeOrder() {
+        Plan<String> plan = OrderPlanner.plan("charcoal", 2, Map.of("acacia_log", 5L, "oak_log", 5L), CHARCOAL, 8);
+        assertEquals(List.of(new Step<>(ACACIA, 2)), plan.steps());
+        Plan<String> none = OrderPlanner.plan("charcoal", 2, Map.of(), CHARCOAL, 8);
+        assertEquals(Map.of("acacia_log", 2), none.missing());
+    }
+
+    @Test
+    void stepsStayLeavesFirstWhenAnAlternativeIsTopped() {
+        Recipe<String> fromPlanks = new Recipe<>("plank_sticks", Map.of("planks", 2), Map.of("stick", 4), 10);
+        Recipe<String> fromBamboo = new Recipe<>("bamboo_sticks", Map.of("bamboo", 2), Map.of("stick", 1), 10);
+        Recipe<String> planks = new Recipe<>("planks", Map.of("log", 1), Map.of("planks", 4), 10);
+        Plan<String> plan = OrderPlanner.plan("stick", 8, Map.of("planks", 2L, "log", 1L),
+                List.of(fromBamboo, fromPlanks, planks), 8);
+        assertEquals(List.of(new Step<>(planks, 1), new Step<>(fromPlanks, 2)), plan.steps());
+        assertTrue(plan.complete());
+    }
 }
