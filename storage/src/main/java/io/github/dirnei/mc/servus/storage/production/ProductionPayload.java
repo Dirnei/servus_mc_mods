@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.production;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import java.util.List;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -17,8 +18,10 @@ import net.minecraft.resources.ResourceLocation;
  * @param reason   why not, when offline: no_line or nothing
  * @param cpus     every formed CPU of the line with its orders
  * @param machines every producer of the line
+ * @param patterns the patterns of the line and their capacity
  */
-public record ProductionPayload(boolean online, String reason, List<CpuRow> cpus, List<MachineRow> machines)
+public record ProductionPayload(boolean online, String reason, List<CpuRow> cpus, List<MachineRow> machines,
+                                PatternsView patterns)
         implements CustomPacketPayload {
 
     public static final Type<ProductionPayload> TYPE =
@@ -29,6 +32,7 @@ public record ProductionPayload(boolean online, String reason, List<CpuRow> cpus
             ByteBufCodecs.STRING_UTF8, ProductionPayload::reason,
             CpuRow.STREAM_CODEC.apply(ByteBufCodecs.list()), ProductionPayload::cpus,
             MachineRow.STREAM_CODEC.apply(ByteBufCodecs.list()), ProductionPayload::machines,
+            PatternsView.STREAM_CODEC, ProductionPayload::patterns,
             ProductionPayload::new);
 
     @Override

@@ -21,5 +21,6 @@ public final class ServusStorageJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
         registration.addRecipeTransferHandler(new CraftingStationRecipeTransferHandler(), RecipeTypes.CRAFTING);
+        registration.addRecipeTransferHandler(new ProductionTerminalRecipeTransferHandler(), RecipeTypes.CRAFTING);
     }
 }

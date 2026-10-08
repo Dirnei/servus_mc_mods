@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.terminal;
 import io.github.dirnei.mc.servus.storage.client.ClientProduction;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.production.CancelProductionOrderPayload;
+import io.github.dirnei.mc.servus.storage.production.EditPatternPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.client.ClientStock;
@@ -54,6 +55,16 @@ public final class ServusStoragePayloads {
                     if (context.player() instanceof ServerPlayer player
                             && player.containerMenu instanceof CraftingStationMenu menu) {
                         menu.openEditorWith(payload.recipe());
+                    } else if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof ProductionTerminalMenu menu) {
+                        menu.openEditorWith(payload.recipe());
+                    }
+                });
+        registrar.playToServer(EditPatternPayload.TYPE, EditPatternPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof ProductionTerminalMenu menu) {
+                        menu.openExisting(payload.storage(), payload.slot());
                     }
                 });
         registrar.playToClient(ShuttleSyncPayload.TYPE, ShuttleSyncPayload.STREAM_CODEC,

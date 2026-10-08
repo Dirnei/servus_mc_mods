@@ -11,9 +11,12 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
+import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.OrderRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.RecipeRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.StepRow;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
@@ -47,7 +50,7 @@ public final class ProductionView {
     public static ProductionPayload of(ServerLevel level, BlockPos pos) {
         Optional<DataNetwork> line = DataNetworks.networkAt(level, pos);
         if (line.isEmpty()) {
-            return new ProductionPayload(false, "no_line", List.of(), List.of());
+            return new ProductionPayload(false, "no_line", List.of(), List.of(), PatternsView.EMPTY);
         }
         List<CpuRow> cpus = new ArrayList<>();
         for (CpuBlockEntity cpu : CpuOrders.cpus(level, line.get())) {
@@ -55,7 +58,16 @@ public final class ProductionView {
         }
         List<MachineRow> machines = machines(level, line.get());
         boolean online = !cpus.isEmpty() || !TerminalWarehouses.reachable(level, pos).isEmpty();
-        return new ProductionPayload(online, online ? "" : "nothing", cpus, machines);
+        return new ProductionPayload(online, online ? "" : "nothing", cpus, machines, patterns(level, line.get()));
+    }
+
+    /** The patterns of the line with their storage and the line's capacity. */
+    public static PatternsView patterns(ServerLevel level, DataNetwork line) {
+        List<PatternRow> rows = new ArrayList<>();
+        for (PatternLibrary.Entry entry : PatternLibrary.entries(level, line)) {
+            rows.add(new PatternRow(entry.storage(), entry.slot(), entry.pattern().result(), entry.pattern().inputs()));
+        }
+        return new PatternsView(rows, rows.size(), PatternLibrary.capacity(level, line));
     }
 
     private static CpuRow cpuRow(ServerLevel level, CpuBlockEntity cpu) {

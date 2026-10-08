@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.client;
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import java.util.List;
 
 /** The last CPUs, orders and producers the server sent for the open Production Terminal. */
@@ -12,6 +13,7 @@ public final class ClientProduction {
     private static volatile String reason = "";
     private static volatile List<CpuRow> cpus = List.of();
     private static volatile List<MachineRow> machines = List.of();
+    private static volatile PatternsView patterns = PatternsView.EMPTY;
     private static volatile int version;
 
     private ClientProduction() {
@@ -22,6 +24,7 @@ public final class ClientProduction {
         reason = payload.reason();
         cpus = List.copyOf(payload.cpus());
         machines = List.copyOf(payload.machines());
+        patterns = payload.patterns();
         version++;
     }
 
@@ -30,6 +33,7 @@ public final class ClientProduction {
         reason = "";
         cpus = List.of();
         machines = List.of();
+        patterns = PatternsView.EMPTY;
         version++;
     }
 
@@ -47,6 +51,10 @@ public final class ClientProduction {
 
     public static List<MachineRow> machines() {
         return machines;
+    }
+
+    public static PatternsView patterns() {
+        return patterns;
     }
 
     public static int version() {

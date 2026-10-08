@@ -18,7 +18,7 @@
 
 ## 5. Production Terminal
 
-- [ ] 5.1 Extend `ProductionPayload`, `ProductionRows` (`PatternRow`), `ProductionView` and `ClientProduction` with patterns and capacity, and the menu signature. Add the editor to `ProductionTerminalMenu` (ghost slots, inventory slots, editing state, save, delete, cancel, open new) and `EditPatternPayload`; register it in `ServusStoragePayloads`; extend the `OpenStationEditorPayload` handler and add a JEI transfer handler for the terminal. Grep that every payload TYPE is registered. Verify with `gradlew build`.
+- [x] 5.1 Extend `ProductionPayload`, `ProductionRows` (`PatternRow`), `ProductionView` and `ClientProduction` with patterns and capacity, and the menu signature. Add the editor to `ProductionTerminalMenu` (ghost slots, inventory slots, editing state, save, delete, cancel, open new) and `EditPatternPayload`; register it in `ServusStoragePayloads`; extend the `OpenStationEditorPayload` handler and add a JEI transfer handler for the terminal. Grep that every payload TYPE is registered. Verify with `gradlew build`.
 - [ ] 5.2 `ProductionTerminalScreen`: Patterns tab (capacity bar, plus line, pattern lines with tooltips and clicks), the editor popup with dimmed list and the inventory frames, preview from the client recipe manager; lang. Verify with `gradlew build`.
 
 ## 6. Tests

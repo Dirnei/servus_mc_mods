@@ -120,6 +120,40 @@ public final class ProductionRows {
     }
 
     /**
+     * One pattern of the line.
+     *
+     * @param storage the Pattern Storage that keeps it
+     * @param slot    its slot there
+     * @param result  what one craft makes
+     * @param inputs  what one craft consumes, with counts
+     */
+    public record PatternRow(BlockPos storage, int slot, ItemStack result, List<ItemStack> inputs) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, PatternRow> STREAM_CODEC = StreamCodec.composite(
+                BlockPos.STREAM_CODEC, PatternRow::storage,
+                ByteBufCodecs.VAR_INT, PatternRow::slot,
+                ItemStack.OPTIONAL_STREAM_CODEC, PatternRow::result,
+                STACKS, PatternRow::inputs,
+                PatternRow::new);
+    }
+
+    /**
+     * The patterns of the line and how many fit.
+     *
+     * @param rows  every pattern, Pattern Storages by lowest position, slots in order
+     * @param used  slots holding a pattern
+     * @param total slots of every Pattern Storage of the line
+     */
+    public record PatternsView(List<PatternRow> rows, int used, int total) {
+        public static final PatternsView EMPTY = new PatternsView(List.of(), 0, 0);
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, PatternsView> STREAM_CODEC = StreamCodec.composite(
+                PatternRow.STREAM_CODEC.apply(ByteBufCodecs.list()), PatternsView::rows,
+                ByteBufCodecs.VAR_INT, PatternsView::used,
+                ByteBufCodecs.VAR_INT, PatternsView::total,
+                PatternsView::new);
+    }
+
+    /**
      * One Crafting CPU of the line with its orders.
      *
      * @param cpu     the CPU's master position
