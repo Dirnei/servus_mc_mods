@@ -26,7 +26,7 @@ export default defineConfig({
 				{ label: 'Datapack reference', items: [{ autogenerate: { directory: 'reference/datapack' } }] },
 				{
 					label: 'Balance lab',
-					items: [{ slug: 'lab' }, { slug: 'lab/chains' }, { slug: 'lab/research' }],
+					items: [{ slug: 'lab' }, { slug: 'lab/chains' }, { slug: 'lab/recipes' }, { slug: 'lab/research' }],
 				},
 			],
 		}),

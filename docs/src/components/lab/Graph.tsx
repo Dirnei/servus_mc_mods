@@ -9,6 +9,8 @@ export interface GraphNode {
 	height: number;
 	tone?: 'normal' | 'draft' | 'warning' | 'muted';
 	selected?: boolean;
+	/** Extra classes on the node button, for example a colour. */
+	className?: string;
 	body: ComponentChildren;
 	onSelect?: () => void;
 }
@@ -18,6 +20,7 @@ export interface GraphEdge {
 	to: string;
 	label?: string;
 	dashed?: boolean;
+	dimmed?: boolean;
 }
 
 /** Lays out nodes with dagre (top to bottom by default: raw resources flow down into products) and draws them as SVG. */
@@ -62,10 +65,10 @@ export function Graph({ nodes, edges, direction = 'TB', ariaLabel }: {
 					if (points.length === 0) {
 						return null;
 					}
-					const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+					const d = points.map((p: { x: number; y: number }, i: number) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
 					const mid = points[Math.floor(points.length / 2)];
 					return (
-						<g key={`${edge.from}>${edge.to}`}>
+						<g key={`${edge.from}>${edge.to}`} class={edge.dimmed ? 'lab-dim' : undefined}>
 							<path d={d} class={`lab-edge${edge.dashed ? ' lab-edge-dashed' : ''}`} marker-end="url(#lab-arrow)" />
 							{edge.label && (
 								<text x={mid.x} y={mid.y - 4} class="lab-edge-label" text-anchor="middle">
@@ -81,7 +84,7 @@ export function Graph({ nodes, edges, direction = 'TB', ariaLabel }: {
 						<foreignObject key={node.id} x={p.x - node.width / 2} y={p.y - node.height / 2} width={node.width} height={node.height}>
 							<button
 								type="button"
-								class={`lab-node lab-node-${node.tone ?? 'normal'}${node.selected ? ' lab-node-selected' : ''}`}
+								class={`lab-node lab-node-${node.tone ?? 'normal'}${node.selected ? ' lab-node-selected' : ''}${node.className ? ` ${node.className}` : ''}`}
 								onClick={node.onSelect}
 							>
 								{node.body}
