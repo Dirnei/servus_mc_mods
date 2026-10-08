@@ -13,7 +13,7 @@
 ## 3. Tests and docs
 
 - [x] 3.1 Rework the Storage GameTests that configured station recipes (`ServusStorageGameTests`, `CraftingCpuGameTests`, `PatternGameTests`, `ProductionTerminalGameTests`, `AccessPointGameTests`, `DataCableGameTests`, `DataPacketGameTests`), delete tests of the removed editor, and add `StationHandsGameTests` (pattern order on an unconfigured station, two stations in parallel, no job refuses a hopper, cancel returns to idle and keeps inputs, second job refused). Verify with `gradlew test` and `:storage:runGameTestServer`, `:foundation:runGameTestServer`, `:manufacturing:runGameTestServer` all green.
-- [ ] 3.2 Update the Storage docs page (Crafting Station, patterns), run `:storage:runData` and `:manufacturing:runData`, docs `npx vitest run` and `npm run build`. Verify the tests pass and the build succeeds.
+- [x] 3.2 Update the Storage docs page (Crafting Station, patterns), run `:storage:runData` and `:manufacturing:runData`, docs `npx vitest run` and `npm run build`. Verify the tests pass and the build succeeds.
 
 ## 4. Integration
 
