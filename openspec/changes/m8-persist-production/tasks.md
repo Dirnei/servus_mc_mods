@@ -2,7 +2,7 @@
 
 ## 1. Ledger and shipments
 
-- [ ] 1.1 Add `storage/.../order/ProductionLedger.java` (SavedData: transfers by id, next transfer id, next request id, pruning) and pure `storage/.../access/ShipmentCap.java` with `storage/src/test/.../access/ShipmentCapTest.java` (`capsInOrder`, `nothingToCap`, `firstShipmentShort`). Verify with `gradlew :storage:test`.
+- [x] 1.1 Add `storage/.../order/ProductionLedger.java` (SavedData: transfers by id, next transfer id, next request id, pruning) and pure `storage/.../access/ShipmentCap.java` with `storage/src/test/.../access/ShipmentCapTest.java` (`capsInOrder`, `nothingToCap`, `firstShipmentShort`). Verify with `gradlew :storage:test`.
 - [ ] 1.2 Back `AccessPointBlockEntity.Shipment` with ledger transfers, save shipment ids, resolve and cap them on the first tick after loading; `isSending` and `cancel` by id; `WarehouseNetwork.Shipping` and its users (`WarehouseSupplier`, `ServusStorageCommands`, `AccessPointGameTests`) follow. Verify with `gradlew build` and `:storage:runGameTestServer`.
 
 ## 2. Requests, orders and jobs
