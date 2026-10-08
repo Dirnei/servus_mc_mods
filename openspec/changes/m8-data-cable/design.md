@@ -29,7 +29,7 @@ New package `io.github.dirnei.mc.servus.lib.data`:
 - `DataEvent` sealed interface with `SidesChanged(NodePos cable)`.
 - `DataRole` enum `PRODUCER`, `STOCK` (pure).
 - `DataMembers` (pure, no Minecraft imports): bookkeeping of which cable sides touch which member position with which roles. Adding and removing a touch keeps one entry per member position, roles are the union over its touches, the entry disappears with its last touch. JUnit tested.
-- `DataNetworks`: the query API. `networkAt(ServerLevel, BlockPos)` returns the network of a cable at that position or, failing that, the first network (lowest id) that lists that position as a member; `DataNetwork.members()` and `members(DataRole)` return immutable `DataMember(BlockPos pos, Set<DataRole> roles)` records.
+- `DataNetworks`: the query API. `networkAt(ServerLevel, BlockPos)` returns the network of a cable at that position or, failing that, the first network (lowest id) that lists that position as a member; `DataNetwork.dataMembers()` and `dataMembers(DataRole)` (`members()` is the final graph view of `ServusNetwork`) return immutable `DataMember(BlockPos pos, Set<DataRole> roles)` records.
 
 Alternative considered: making members graph nodes too. Rejected: members are foreign block entities that do not implement `NetworkNode`, a member can touch two networks, and the duct already proves the endpoint pattern.
 

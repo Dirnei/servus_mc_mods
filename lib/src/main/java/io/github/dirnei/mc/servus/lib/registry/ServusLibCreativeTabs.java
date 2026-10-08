@@ -29,6 +29,7 @@ public final class ServusLibCreativeTabs {
                     .displayItems((parameters, output) -> {
                         output.accept(ServusLibItems.CONFIGURATION_CARROT.get());
                         output.accept(ServusLibItems.GOGGLES.get());
+                        output.accept(ServusLibItems.DATA_CABLE.get());
                     })
                     .build());
 

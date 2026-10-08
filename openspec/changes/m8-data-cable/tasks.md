@@ -6,8 +6,8 @@
 
 ## 2. Lib block registration
 
-- [ ] 2.1 Add `registry/ServusLibBlocks` and `registry/ServusLibBlockEntities` and register both in `ServusLib` before items. Verify with `gradlew :lib:build`.
-- [ ] 2.2 Add `data/DataCableBlock` (extends `ConnectableBlock`, radius 2, cable to cable arms only for now), `data/DataCableBlockEntity` (extends `NetworkBlockEntity`), `data/DataEvent`, `data/DataNetwork` with `TYPE` and a cable to cable `ConnectionRule`, registered in `ServusLib` through `NetworkTypes.register`; the `data_cable` block item in `ServusLibItems` and the Lib creative tab. Verify with `gradlew :lib:build`.
+- [x] 2.1 Add `registry/ServusLibBlocks` and `registry/ServusLibBlockEntities` and register both in `ServusLib` before items. Verify with `gradlew :lib:build`.
+- [x] 2.2 Add `data/DataCableBlock` (extends `ConnectableBlock`, radius 2, cable to cable arms only for now), `data/DataCableBlockEntity` (extends `NetworkBlockEntity`), `data/DataEvent`, `data/DataNetwork` with `TYPE` and a cable to cable `ConnectionRule`, registered in `ServusLib` through `NetworkTypes.register`; the `data_cable` block item in `ServusLibItems` and the Lib creative tab. Verify with `gradlew :lib:build`.
 
 ## 3. Datagen and assets
 
@@ -15,7 +15,7 @@
 
 ## 4. Members on the network
 
-- [ ] 4.1 In `DataNetwork`: per cable side three `BlockCapabilityCache`s (production, stock provider, stock sink, context `side.getOpposite()`) whose invalidation listener posts `SidesChanged`; `onNodeAdded`, `onNodeRemoved`, `onAbsorb` and `handle` keep `DataMembers` current; expose `members()` and `members(DataRole)` as `DataMember` records. Add `data/DataNetworks.networkAt(ServerLevel, BlockPos)` for cable and member positions. Verify with `gradlew :lib:build`.
+- [ ] 4.1 In `DataNetwork`: per cable side three `BlockCapabilityCache`s (production, stock provider, stock sink, context `side.getOpposite()`) whose invalidation listener posts `SidesChanged`; `onNodeAdded`, `onNodeRemoved`, `onAbsorb` and `handle` keep `DataMembers` current; expose `dataMembers()` and `dataMembers(DataRole)` as `DataMember` records. Add `data/DataNetworks.networkAt(ServerLevel, BlockPos)` for cable and member positions. Verify with `gradlew :lib:build`.
 - [ ] 4.2 `DataCableBlock.connectsTo` also returns true toward a neighbour exposing one of the three capabilities on the facing side, only on a server `Level`, keeping the flag otherwise; `neighborChanged` recomputes the six flags. Verify with `gradlew build`.
 - [ ] 4.3 Add GameTests in `storage/src/main/java/.../storage/gametest/ServusStorageGameTests.java` (template structures as the existing tests do): `dataCableRowIsOneNetwork`, `dataCableSplitsWhenBroken`, `dataCableFindsStationAndController`, `dataCableIgnoresChest` (no member, no arm), `dataCableMemberBrokenLeaves`, `dataCableTouchedTwiceCountsOnce`, `dataCableMovesNothing` (controller with planks and a sticks station linked for 100 ticks), `dataNetworksAtMemberAndStone`. Verify with `gradlew :storage:runGameTestServer`, all Storage GameTests green.
 
