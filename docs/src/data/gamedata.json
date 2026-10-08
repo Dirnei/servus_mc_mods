@@ -509,6 +509,25 @@
         {"item": "servus_foundation:item_pipe", "count": 8}
       ]
     },
+    "servus_foundation:machine_adapter": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["CHC", "RDR", "CCC"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "D": {"item": "servus_foundation:data_cable"},
+        "H": {"item": "minecraft:hopper"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 5},
+        {"item": "minecraft:hopper", "count": 1},
+        {"item": "minecraft:redstone", "count": 2},
+        {"item": "servus_foundation:data_cable", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:machine_adapter", "count": 1}
+      ]
+    },
     "servus_foundation:power_cable": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["CCC", "RGR", "CCC"],
@@ -1143,6 +1162,9 @@
     },
     "servus_foundation:item_pipe": {
       "name": "Item Pipe"
+    },
+    "servus_foundation:machine_adapter": {
+      "name": "Machine Adapter"
     },
     "servus_foundation:power_cable": {
       "name": "Power Cable"

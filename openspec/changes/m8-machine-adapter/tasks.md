@@ -22,4 +22,4 @@
 
 ## 5. Docs and integration
 
-- [ ] 5.1 Docs Foundation page section on the Machine Adapter, PLAN.md section 3 lists the supplier capability, `:manufacturing:runData` regenerates game data, `npx vitest run` in docs green. Full `gradlew build test`, all GameTest suites green, `runClientAll` reaches the title screen.
+- [x] 5.1 Docs Foundation page section on the Machine Adapter, PLAN.md section 3 lists the supplier capability, `:manufacturing:runData` regenerates game data, `npx vitest run` in docs green. Full `gradlew build test`, all GameTest suites green, `runClientAll` reaches the title screen.

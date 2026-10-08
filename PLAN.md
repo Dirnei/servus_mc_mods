@@ -183,6 +183,7 @@ The bridge lives in Servus: Foundation as a small API (see section 3).
 - `WorkOrder` model and a planner interface (implemented by Storage, fed by Manufacturing)
 - Data line of the Utility Duct and its network, members found by capability, packet transport with size and speed from datapack JSON
 - Machine Adapter with datapack profiles (blocks, recipe type, side roles) and upkeep (keep an item at a level in a slot), so machines of other mods join the data cable
+- `ItemSupplier` capability (`servus_foundation:supplier`): a block that sends items to a data member on request; warehouses implement it, adapters use it for upkeep
 - Shared Configuration Carrot (the wrench role) and goggles
 - Placement assist: sneaking with a rail, duct or elevator item extends a straight run at its far end, with a ghost preview
 - Config helpers
