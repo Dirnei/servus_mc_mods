@@ -82,19 +82,8 @@ The station SHALL be a member of the warehouse network like an Inbound Station: 
 - **WHEN** a keep slot asks for sticks that are not in stock
 - **THEN** the activity lamp is red and turns green once the sticks arrived
 
-### Requirement: Station reports its producer
-A station whose back faces a block with the Lib production capability SHALL report that block's recipes and active recipe to the warehouse. `/servus_warehouse producers <pos>` SHALL list every Outbound Station of the network with the block behind it and its recipes, or say that it faces no producer.
-
-#### Scenario: Assembler in front
-- **WHEN** an op runs the producers command on a warehouse whose station stands with its back to an Assembler with the iron gear recipe
-- **THEN** chat lists the station, the Assembler and "iron gear from 2 iron ingot, 20 ticks"
-
-#### Scenario: Chest in front
-- **WHEN** a station stands with its back to a chest
-- **THEN** the producers list says the station faces no producer
-
 ### Requirement: Deliveries on request
-The warehouse SHALL deliver a requested amount of an item into the station's buffer when asked by a work order step or by `/servus_warehouse feed <station> <item> <count>`, planned like a terminal request and answering with the refusal reason when it cannot. Such deliveries SHALL come on top of the keep amounts.
+The warehouse SHALL deliver a requested amount of an item into the station's buffer when asked by `/servus_warehouse feed <station> <item> <count>`, planned like a terminal request and answering with the refusal reason when it cannot. Such deliveries SHALL come on top of the keep amounts. Work orders SHALL NOT deliver to Outbound Stations.
 
 #### Scenario: Op feeds a station
 - **WHEN** an op feeds 4 iron ingots to a station while a crate touching the controller holds 10

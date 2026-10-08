@@ -137,7 +137,7 @@ The Counter Terminal SHALL be a member of a data line with the link role, and SH
 - **THEN** the rail shows no dock or arm towards the terminal
 
 ### Requirement: Several warehouses on one line
-When more than one warehouse is reachable, the stock view SHALL show the sum of their stock. A request SHALL be served first by the warehouse holding the most of the item, then by the next, until the amount is covered or the stock runs out. Work orders for a shortfall, stock rules set in the terminal and pushes SHALL use the first reachable warehouse, the one whose controller has the lowest position.
+When more than one warehouse is reachable, the stock view SHALL show the sum of their stock. A request SHALL be served first by the warehouse holding the most of the item, then by the next, until the amount is covered or the stock runs out. Work orders for a shortfall SHALL go to a Crafting CPU on the terminal's data line; stock rules set in the terminal and pushes SHALL use the first reachable warehouse, the one whose controller has the lowest position.
 
 #### Scenario: Merged stock
 - **WHEN** one reachable warehouse holds 30 cobblestone and another 20
