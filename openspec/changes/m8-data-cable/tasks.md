@@ -2,7 +2,7 @@
 
 ## 1. Pure membership logic
 
-- [ ] 1.1 Add `DataRole` and `DataMembers` in `lib/src/main/java/io/github/dirnei/mc/servus/lib/data/` (no Minecraft imports): add and remove a touch (cable position, side, member position, roles), one entry per member with the union of roles, entry removed with its last touch, query all members and members by role. Add `lib/src/test/java/.../lib/data/DataMembersTest.java` with tests `oneTouchMakesAMember`, `twoTouchesOfOneMemberCountOnce`, `rolesAreTheUnionOfTouches`, `lastTouchRemovesTheMember`, `removingACableDropsAllItsTouches`, `membersByRole`. Verify with `gradlew :lib:test`.
+- [x] 1.1 Add `DataRole` and `DataMembers` in `lib/src/main/java/io/github/dirnei/mc/servus/lib/data/` (no Minecraft imports): add and remove a touch (cable position, side, member position, roles), one entry per member with the union of roles, entry removed with its last touch, query all members and members by role. Add `lib/src/test/java/.../lib/data/DataMembersTest.java` with tests `oneTouchMakesAMember`, `twoTouchesOfOneMemberCountOnce`, `rolesAreTheUnionOfTouches`, `lastTouchRemovesTheMember`, `removingACableDropsAllItsTouches`, `membersByRole`. Verify with `gradlew :lib:test`.
 
 ## 2. Lib block registration
 
