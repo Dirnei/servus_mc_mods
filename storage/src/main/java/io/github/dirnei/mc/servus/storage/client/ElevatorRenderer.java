@@ -23,6 +23,7 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import org.joml.Quaternionf;
 
 /**
  * Draws the moving parts of a whole shaft from its lowest segment: the deck
@@ -137,69 +138,127 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         return pieces;
     }
 
+    /** Shaft edges, in the order of {@link #arms}. */
+    private enum Edge { NORTH, SOUTH, WEST, EAST }
+
     /**
-     * Two flaps hinged on axle bars between the posts. Along the west and
-     * east edges when a rail lies west or east, along north and south otherwise.
+     * The floor of a rail level. The plate lies just below the segment and
+     * the rail on it at the height of the outside rail. It folds away only on
+     * edges without a rail, so a folded part never stands in a shuttle's way:
+     * two flaps on free opposite edges, else one flap on a free edge, else four
+     * quarters that pull back into the corner posts.
      */
     private static void deck(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
                              BlockState state, float angle, int light, int overlay) {
-        boolean westEast = state.getValue(ConnectableBlock.WEST) || state.getValue(ConnectableBlock.EAST);
+        boolean[] arms = arms(state);
         List<float[]> pieces = railPieces(state);
-        // Flap areas as x0, z0, x1, z1 with the hinge on the first or the second edge.
-        float[][] flaps = westEast
-                ? new float[][] {{2, 2, 8, 14}, {8, 2, 14, 14}}
-                : new float[][] {{2, 2, 14, 8}, {2, 8, 14, 14}};
-        if (westEast) {
-            box(poseStack, buffer, frame, 0.5F, 0, 2, 1.5F, 1, 14, light, overlay);
-            box(poseStack, buffer, frame, 14.5F, 0, 2, 15.5F, 1, 14, light, overlay);
+        boolean northSouthFree = !arms[0] && !arms[1];
+        boolean westEastFree = !arms[2] && !arms[3];
+        if (northSouthFree) {
+            flap(poseStack, buffer, frame, rail, pieces, new float[] {2, 2, 14, 8}, Edge.NORTH, angle, light, overlay);
+            flap(poseStack, buffer, frame, rail, pieces, new float[] {2, 8, 14, 14}, Edge.SOUTH, angle, light, overlay);
+        } else if (westEastFree) {
+            flap(poseStack, buffer, frame, rail, pieces, new float[] {2, 2, 8, 14}, Edge.WEST, angle, light, overlay);
+            flap(poseStack, buffer, frame, rail, pieces, new float[] {8, 2, 14, 14}, Edge.EAST, angle, light, overlay);
         } else {
-            box(poseStack, buffer, frame, 2, 0, 0.5F, 14, 1, 1.5F, light, overlay);
-            box(poseStack, buffer, frame, 2, 0, 14.5F, 14, 1, 15.5F, light, overlay);
-        }
-        for (int i = 0; i < 2; i++) {
-            float[] area = flaps[i];
-            poseStack.pushPose();
-            if (westEast) {
-                float hinge = i == 0 ? 2 : 14;
-                poseStack.translate(hinge / 16F, 1 / 16F, 0);
-                poseStack.mulPose(Axis.ZP.rotationDegrees(i == 0 ? angle : -angle));
-                poseStack.translate(-hinge / 16F, -1 / 16F, 0);
-            } else {
-                float hinge = i == 0 ? 2 : 14;
-                poseStack.translate(0, 1 / 16F, hinge / 16F);
-                poseStack.mulPose(Axis.XP.rotationDegrees(i == 0 ? -angle : angle));
-                poseStack.translate(0, -1 / 16F, -hinge / 16F);
-            }
-            box(poseStack, buffer, frame, area[0], 0, area[1], area[2], 1, area[3], light, overlay);
-            for (float[] piece : pieces) {
-                float[] part = clip(piece, area);
-                if (part != null) {
-                    box(poseStack, buffer, rail, part[0], 1, part[1], part[2], 2, part[3], light, overlay);
+            Edge free = null;
+            for (Edge edge : Edge.values()) {
+                if (!arms[edge.ordinal()]) {
+                    free = edge;
+                    break;
                 }
             }
-            poseStack.popPose();
+            if (free != null) {
+                flap(poseStack, buffer, frame, rail, pieces, new float[] {2, 2, 14, 14}, free, angle, light, overlay);
+            } else {
+                quarters(poseStack, buffer, frame, rail, pieces, angle, light, overlay);
+            }
         }
-        // Rail stubs over the shaft edge, outside both flaps, stay put.
+        // Rail stubs over the shaft edge, outside the deck, stay put.
         float[] inner = {2, 2, 14, 14};
         for (float[] piece : pieces) {
             for (float[] stub : outside(piece, inner)) {
-                box(poseStack, buffer, rail, stub[0], 1, stub[1], stub[2], 2, stub[3], light, overlay);
+                box(poseStack, buffer, rail, stub[0], 0, stub[1], stub[2], 1, stub[3], light, overlay);
             }
         }
     }
 
-    /** The car: a platform between the posts at rail height with a sleeve around each post, carrying the nearest floor's rail. */
+    /**
+     * One flap over the area, with an axle bar between the posts on its hinge
+     * edge. It pivots on the plate's lower outer edge, so folded up it stands
+     * at the shaft edge outside the car's footprint.
+     */
+    private static void flap(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
+                             List<float[]> pieces, float[] area, Edge hinge, float angle, int light, int overlay) {
+        switch (hinge) {
+            case NORTH -> box(poseStack, buffer, frame, 2, -1, 0.5F, 14, 0, 1.5F, light, overlay);
+            case SOUTH -> box(poseStack, buffer, frame, 2, -1, 14.5F, 14, 0, 15.5F, light, overlay);
+            case WEST -> box(poseStack, buffer, frame, 0.5F, -1, 2, 1.5F, 0, 14, light, overlay);
+            case EAST -> box(poseStack, buffer, frame, 14.5F, -1, 2, 15.5F, 0, 14, light, overlay);
+        }
+        poseStack.pushPose();
+        float pivotY = -1 / 16F;
+        switch (hinge) {
+            case NORTH -> rotate(poseStack, 0, pivotY, area[1] / 16F, Axis.XP.rotationDegrees(-angle));
+            case SOUTH -> rotate(poseStack, 0, pivotY, area[3] / 16F, Axis.XP.rotationDegrees(angle));
+            case WEST -> rotate(poseStack, area[0] / 16F, pivotY, 0, Axis.ZP.rotationDegrees(angle));
+            case EAST -> rotate(poseStack, area[2] / 16F, pivotY, 0, Axis.ZP.rotationDegrees(-angle));
+        }
+        plate(poseStack, buffer, frame, rail, pieces, area, light, overlay);
+        poseStack.popPose();
+    }
+
+    private static void rotate(PoseStack poseStack, float x, float y, float z, Quaternionf rotation) {
+        poseStack.translate(x, y, z);
+        poseStack.mulPose(rotation);
+        poseStack.translate(-x, -y, -z);
+    }
+
+    /** Four quarter plates that shrink towards their corner posts as the angle goes from 0 to 90. */
+    private static void quarters(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
+                                 List<float[]> pieces, float angle, int light, int overlay) {
+        float scale = 1F - angle / 90F;
+        if (scale <= 0.01F) {
+            return;
+        }
+        float[][] areas = {{2, 2, 8, 8}, {8, 2, 14, 8}, {2, 8, 8, 14}, {8, 8, 14, 14}};
+        float[][] corners = {{2, 2}, {14, 2}, {2, 14}, {14, 14}};
+        for (int i = 0; i < 4; i++) {
+            poseStack.pushPose();
+            float cx = corners[i][0] / 16F;
+            float cz = corners[i][1] / 16F;
+            poseStack.translate(cx, 0, cz);
+            poseStack.scale(scale, 1, scale);
+            poseStack.translate(-cx, 0, -cz);
+            plate(poseStack, buffer, frame, rail, pieces, areas[i], light, overlay);
+            poseStack.popPose();
+        }
+    }
+
+    /** A deck plate below the segment with the rail pieces over it at outside rail height. */
+    private static void plate(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
+                              List<float[]> pieces, float[] area, int light, int overlay) {
+        box(poseStack, buffer, frame, area[0], -1, area[1], area[2], 0, area[3], light, overlay);
+        for (float[] piece : pieces) {
+            float[] part = clip(piece, area);
+            if (part != null) {
+                box(poseStack, buffer, rail, part[0], 0, part[1], part[2], 1, part[3], light, overlay);
+            }
+        }
+    }
+
+    /** The car: a platform between the posts with a sleeve around each post, carrying the nearest floor's rail at outside rail height. */
     private static void car(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
                             BlockState floor, int light, int overlay) {
-        box(poseStack, buffer, frame, 2, -1, 2, 14, 1, 14, light, overlay);
+        box(poseStack, buffer, frame, 2, -2, 2, 14, 0, 14, light, overlay);
         float[][] sleeves = {{-0.25F, -0.25F}, {13, -0.25F}, {-0.25F, 13}, {13, 13}};
         for (float[] sleeve : sleeves) {
-            box(poseStack, buffer, frame, sleeve[0], -2, sleeve[1], sleeve[0] + 3.25F, 3, sleeve[1] + 3.25F, light, overlay);
+            box(poseStack, buffer, frame, sleeve[0], -3, sleeve[1], sleeve[0] + 3.25F, 2, sleeve[1] + 3.25F, light, overlay);
         }
         for (float[] piece : railPieces(floor)) {
             float[] part = clip(piece, new float[] {2, 2, 14, 14});
             if (part != null) {
-                box(poseStack, buffer, rail, part[0], 1, part[1], part[2], 2, part[3], light, overlay);
+                box(poseStack, buffer, rail, part[0], 0, part[1], part[2], 1, part[3], light, overlay);
             }
         }
     }

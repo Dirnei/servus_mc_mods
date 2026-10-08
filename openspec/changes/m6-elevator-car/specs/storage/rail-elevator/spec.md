@@ -47,19 +47,23 @@ An elevator segment SHALL NOT block players or other entities. It SHALL still sh
 - **THEN** that segment and every segment above it drop as items
 
 ### Requirement: Rail floors are decks
-A segment with at least one rail beside it SHALL have a deck: two flaps that together cover the shaft floor, each hinged on an axle that runs between two corner posts along one shaft edge. The axles SHALL lie on the west and east edges when a rail lies west or east of the segment, and on the north and south edges otherwise. The deck SHALL show a rail towards every connected rail.
+A segment with at least one rail beside it SHALL have a deck that covers the shaft floor. Its rail SHALL lie at the same height as the Warehouse Rail outside and join every connected rail; the deck plate under it SHALL sit just below the segment. The deck SHALL fold away only on edges without a rail, so a folded deck never stands in the way of a shuttle: two flaps on the two free opposite edges, one flap on a free edge when no opposite pair is free, and four quarter plates pulled into the corner posts when rails lie on all four sides.
 
 #### Scenario: Straight run
 - **WHEN** rails lie west and east of a segment
-- **THEN** the deck hangs on axles along the west and east edges and its rail joins both outside rails
+- **THEN** the deck hangs on axles along the north and south edges and its rail joins both outside rails at the same height
 
 #### Scenario: Corner
 - **WHEN** rails lie north and east of a segment
-- **THEN** the deck hangs on axles along the west and east edges and its rail turns from the north edge to the east edge
+- **THEN** the deck is one flap hinged on a free edge (south or west) and its rail turns from the north edge to the east edge
 
 #### Scenario: Dead end entry
 - **WHEN** a single rail lies south of a segment
-- **THEN** the deck hangs on axles along the north and south edges and its rail runs from the south edge to the centre
+- **THEN** the deck hangs on axles along the west and east edges and its rail runs from the south edge to the centre
+
+#### Scenario: Crossing
+- **WHEN** rails lie on all four sides of a segment and the car comes to that floor
+- **THEN** the deck splits into four quarters that pull back into the corner posts and leave all four rail entries clear
 
 ### Requirement: One lift car per shaft
 Every shaft SHALL have exactly one lift car. The car SHALL be drawn as a platform at rail height with a sleeve around each corner post, and SHALL move only along its shaft at `lift_speed` (in `data/<ns>/storage/warehouse.json`, for example 0.1 blocks per tick). The car SHALL stay at the last floor it served and SHALL start at the lowest segment when the shaft is built or the world is loaded.

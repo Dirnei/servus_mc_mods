@@ -28,6 +28,8 @@ Paths below are relative to `storage/src/main/java/io/github/dirnei/mc/servus/st
 - [x] 4.2 Add `client/ElevatorRenderer.java` per design.md (only on segments with `down=false`, column walk, decks with two flaps on post to post axles, axis from the arms, rail drawn per arm, angle from `Flaps.angle`, car platform with four post sleeves, column render bounds) and register it in `client/ServusStorageClient.java`. Verify `gradlew :storage:build` is green.
 - [x] 4.3 In `client/ShuttleGarageRenderer.java` draw riding shuttles at the extrapolated car height of their shaft, and make `headingAfter` keep the last horizontal heading on vertical segments. Verify `gradlew :storage:build` is green and commit.
 
+- [ ] 4.4 Play check fix in `client/ElevatorRenderer.java`: deck plate at y -1 to 0 px with the rail at 0 to 1 px flush with the outside rail, car platform likewise; flaps hinge only on edges without an arm (two opposite free edges, else one flap on a free edge, else four quarters retracting into the posts), axles only on hinge edges. Verify `gradlew :storage:build` is green and in game the rail joins the outside rail and a boarding shuttle never passes a flap.
+
 ## 5. Plan, specs and verification
 
 - [x] 5.1 Add a paragraph to `PLAN.md` section 2.3 on the lift car (one per shaft, FIFO calls, one shuttle per trip, decks that fold, crossing without the car, climbable shaft). Run `openspec validate m6-elevator-car --strict` and fix any finding. Verify that validate passes.
