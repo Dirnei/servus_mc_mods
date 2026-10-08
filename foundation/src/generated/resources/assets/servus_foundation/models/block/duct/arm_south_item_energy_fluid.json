@@ -332,6 +332,7 @@
   "textures": {
     "bands": "servus_foundation:block/duct_item_energy_fluid",
     "bands_v": "servus_foundation:block/duct_item_energy_fluid_v",
+    "data": "servus_foundation:block/duct_data",
     "energy": "servus_foundation:block/duct_energy",
     "fluid": "servus_foundation:block/duct_fluid",
     "item": "servus_foundation:block/duct_item",

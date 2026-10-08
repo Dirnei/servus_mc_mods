@@ -1,3 +1,6 @@
 {
-  "parent": "servus_foundation:block/data_cable_inventory"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "servus_foundation:item/data_cable"
+  }
 }

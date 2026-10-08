@@ -1,0 +1,343 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#bands_v",
+          "uv": [
+            0.0,
+            16.0,
+            16.0,
+            0.0
+          ]
+        },
+        "east": {
+          "texture": "#bands",
+          "uv": [
+            16.0,
+            0.0,
+            0.0,
+            16.0
+          ]
+        },
+        "north": {
+          "texture": "#energy"
+        },
+        "south": {
+          "texture": "#data"
+        },
+        "up": {
+          "texture": "#bands_v",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#bands",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            16.0
+          ]
+        }
+      },
+      "from": [
+        0,
+        4,
+        4
+      ],
+      "to": [
+        4,
+        12,
+        12
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "east": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "north": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "up": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "west": {
+          "texture": "#ring",
+          "tintindex": 110
+        }
+      },
+      "from": [
+        0,
+        3.5,
+        3.5
+      ],
+      "to": [
+        1,
+        12.5,
+        4
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "east": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "south": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "up": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "west": {
+          "texture": "#ring",
+          "tintindex": 122
+        }
+      },
+      "from": [
+        0,
+        3.5,
+        12
+      ],
+      "to": [
+        1,
+        12.5,
+        12.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "east": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "north": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "south": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "west": {
+          "texture": "#ring",
+          "tintindex": 110
+        }
+      },
+      "from": [
+        0,
+        3.5,
+        4
+      ],
+      "to": [
+        1,
+        4,
+        6.666667
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "north": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "south": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "up": {
+          "texture": "#ring",
+          "tintindex": 110
+        },
+        "west": {
+          "texture": "#ring",
+          "tintindex": 110
+        }
+      },
+      "from": [
+        0,
+        12,
+        4
+      ],
+      "to": [
+        1,
+        12.5,
+        6.666667
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#ring",
+          "tintindex": 116
+        },
+        "east": {
+          "texture": "#ring",
+          "tintindex": 116
+        },
+        "north": {
+          "texture": "#ring",
+          "tintindex": 116
+        },
+        "south": {
+          "texture": "#ring",
+          "tintindex": 116
+        },
+        "west": {
+          "texture": "#ring",
+          "tintindex": 116
+        }
+      },
+      "from": [
+        0,
+        3.5,
+        6.666667
+      ],
+      "to": [
+        1,
+        4,
+        9.333334
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#ring",
+          "tintindex": 116
+        },
+        "north": {
+          "texture": "#ring",
+          "tintindex": 116
+        },
+        "south": {
+          "texture": "#ring",
+          "tintindex": 116
+        },
+        "up": {
+          "texture": "#ring",
+          "tintindex": 116
+        },
+        "west": {
+          "texture": "#ring",
+          "tintindex": 116
+        }
+      },
+      "from": [
+        0,
+        12,
+        6.666667
+      ],
+      "to": [
+        1,
+        12.5,
+        9.333334
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "east": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "north": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "south": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "west": {
+          "texture": "#ring",
+          "tintindex": 122
+        }
+      },
+      "from": [
+        0,
+        3.5,
+        9.333334
+      ],
+      "to": [
+        1,
+        4,
+        12
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "north": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "south": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "up": {
+          "texture": "#ring",
+          "tintindex": 122
+        },
+        "west": {
+          "texture": "#ring",
+          "tintindex": 122
+        }
+      },
+      "from": [
+        0,
+        12,
+        9.333334
+      ],
+      "to": [
+        1,
+        12.5,
+        12
+      ]
+    }
+  ],
+  "textures": {
+    "bands": "servus_foundation:block/duct_energy_fluid_data",
+    "bands_v": "servus_foundation:block/duct_energy_fluid_data_v",
+    "data": "servus_foundation:block/duct_data",
+    "energy": "servus_foundation:block/duct_energy",
+    "fluid": "servus_foundation:block/duct_fluid",
+    "item": "servus_foundation:block/duct_item",
+    "junction": "servus_foundation:block/duct_junction",
+    "particle": "servus_foundation:block/duct_energy",
+    "ring": "servus_foundation:block/duct_ring"
+  }
+}
