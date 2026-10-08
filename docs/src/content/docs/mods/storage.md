@@ -21,6 +21,7 @@ Numbers below are the current defaults. They live in datapack JSON under `data/<
 - **Shuttle Garage**: holds up to four Shuttles. Its back rail is their home. More garages mean more shuttles.
 - **Shuttle**: an item placed in a garage. Shuttles are simulated as data and drawn moving on the client.
 - **Inbound Station**: an intake buffer. The warehouse puts its contents away, by shuttle when it has shuttles.
+- **Access Point**: the warehouse's door to the data line. It sits beside a rail like a station and touches a duct with the data line. Packets that arrive are put away like an Inbound Station delivery; shipments to a block on the data line are picked into it (instantly from crates, by shuttle from racks) and leave as packets, one stream at a time. With several Access Points, a shipment uses the one with the shortest shuttle trip from the racks holding the item, so more Access Points mean more throughput.
 - **Outbound Station**: keeps a configured set of items stocked in its buffer and pushes them into the block it faces, usually a machine.
 - **Order Board**: shows every Outbound Station's machine and every work order with its steps and why it is blocked.
 - **Crafting Station**: a powerless crafter for up to four vanilla recipes, so a warehouse can autocraft without Manufacturing.
@@ -33,7 +34,7 @@ Every storage block that is part of a working warehouse shows a connection lamp.
 - **Requests** at the Counter Terminal become pick jobs: instant from crates and foreign inventories no shuttle reaches, by shuttle otherwise, never instant from a rack.
 - **Work orders**: when a request cannot be filled and an Outbound Station faces a machine that can make the item, the warehouse plans the production, reserves stock on hand, feeds the machine and counts the results collected by Inbound Stations.
 - **Stock rules**: a minimum and maximum per item. When stock drops below the minimum, a work order refills it up to the maximum.
-- **Commands**: `/servus_warehouse` has subcommands to inspect a network (`info`, `zones`, `producers`, `orders`, `rules`) and to act on it (`take`, `feed`, `order`, `rule`, `unrule`).
+- **Commands**: `/servus_warehouse` has subcommands to inspect a network (`info`, `zones`, `producers`, `orders`, `rules`) and to act on it (`take`, `feed`, `order`, `rule`, `unrule`, `ship <controller> <target> <item> <count>` to send items through an Access Point to a block on the data line).
 
 ## How it connects
 

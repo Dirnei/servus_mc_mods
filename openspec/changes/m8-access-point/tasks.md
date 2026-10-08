@@ -20,4 +20,4 @@
 
 ## 5. Docs and integration
 
-- [ ] 5.1 Add an Access Point section to `docs/src/content/docs/mods/storage.md` and the link role to `foundation.md`; run `npx vitest run` in `docs/`. Full `gradlew build` and `gradlew test` green, all three GameTest suites green, `runClientAll` reaches the title screen.
+- [x] 5.1 Add an Access Point section to `docs/src/content/docs/mods/storage.md` and the link role to `foundation.md`; run `npx vitest run` in `docs/`. Full `gradlew build` and `gradlew test` green, all three GameTest suites green, `runClientAll` reaches the title screen.

@@ -46,7 +46,7 @@ A duct grows thicker with its lines, and each line has its own color, so you can
 The data line is the wiring for on-demand autocrafting. It never moves anything on its own; it only links blocks that make or hold items, so later Servus blocks can find them without any setup.
 
 - Ducts with the data line link to each other and form a data network.
-- A block is a member when it can make items (a Crafting Station, an Assembler) or holds stock (a Warehouse Controller). Other mods join by exposing the same Foundation capabilities. Chests and other plain inventories are not members.
+- A block is a member when it can make items (a Crafting Station, an Assembler), holds stock (a Warehouse Controller) or is a link on the line without either (an Access Point, through the `servus_foundation:data_link` capability). Other mods join by exposing the same Foundation capabilities. Chests and other plain inventories are not members.
 - There are no channels, filters or priorities. In the endpoint GUI the data tab only switches a side on or off; an off side reaches no member and does not link to the next duct.
 - Right click a duct with the data line with an empty hand to see how many ducts, producers and stock members its network has.
 - The data line is teal, and its ring at a member is always teal.
