@@ -2,36 +2,37 @@
 
 ## Why
 
-PLAN.md M8 (on-demand autocrafting) builds on a data cable that links the warehouse, the Crafting CPU, terminals and machines without any setup. This change implements the first M8 item, `m8-data-cable`: the cable block and its network in Servus Lib, so every later M8 change has a place to plug into and other mods can join through capabilities alone.
+PLAN.md M8 (on-demand autocrafting) builds on a data cable that links the warehouse, the Crafting CPU, terminals and machines without any setup. This change implements the M8 item `m8-data-cable`. It first shipped as a standalone Lib block; after `m8-foundation-merge` the user wants data to live in the same block as the other lines, so the data cable becomes the fourth line of the Utility Duct and the standalone block goes away.
 
 ## What Changes
 
-- New block **Data Cable** in `servus_lib`, Lib's first block. It is a thin connectable block that links to neighbouring Data Cables and to blocks that are data members. It holds nothing, moves nothing and needs no configuration.
-- A block is a **data member** on a side when it exposes `servus_lib:production` (role producer) or `servus_lib:stock_provider` or `servus_lib:stock_sink` (role stock) on that side. Today that covers the Assembler, the Crafting Station and the Warehouse Controller. Plain inventories are not members.
-- A new Lib network type **data network**: cables are graph nodes, members are found when cables join, when a neighbour changes and when a member's capability goes away. Each network keeps its member list by role. Nothing scans blocks every tick.
-- A Lib API to ask for the data network at a cable or member position and for its members by role, for the later M8 changes (packets, Access Point, CPU).
-- Right clicking a Data Cable with an empty hand shows a one line summary in the action bar: cable count, producers and stock members of its network.
-- Sneak placement assist for the Data Cable item, like rails and ducts.
-- Datagen in Lib grows a blockstate, loot table, block tag and recipe for the cable.
+- New duct line **Data** with the item **Data Cable** (`servus_foundation:data_cable`, copper ingot, redstone, copper ingot gives 4). Like the Item Pipe, Power Cable and Fluid Pipe it places a Utility Duct carrying the line or adds the line to a duct, uses the sneak placement assist and drops from a broken duct.
+- The data line links to the data line of neighbouring ducts and forms a **data network**. A block is a **data member** on a side when it exposes `servus_foundation:production` (role producer) or `servus_foundation:stock_provider` or `servus_foundation:stock_sink` (role stock) there; today that covers the Assembler, the Crafting Station and the Warehouse Controller. Plain inventories are not members. Members are found through capability invalidation, nothing scans blocks every tick.
+- The data line has no channels, filters or priorities: in the endpoint GUI its tab only switches a side on or off and removes the line. An off side reaches no member and does not link to the neighbouring duct's data line.
+- Its own teal colour and band, a fixed teal ring at member endpoints, and four line band textures.
+- A Foundation API to ask for the data network at a data duct or member position and for its members by role, for the later M8 changes.
+- Right clicking a duct with the data line with an empty hand shows a one line summary: ducts, producers and stock members.
+- The standalone Data Cable block, its block entity, placement assist, block models and loot table are removed.
 
 ## Capabilities
 
 ### New Capabilities
-- `foundation/data-cable`: the Data Cable block, the data network, member detection by capability and the member query API.
+- `foundation/data-cable`: the data line, the data network, member detection by capability, on and off sides, the summary and the member query API.
 
 ### Modified Capabilities
-None. The placement assist spec is generic; the cable only uses it.
+- `foundation/utility-duct`: line items include the Data Cable, the data network is a separate per line network, the Data Cable recipe, the Data tab of the endpoint GUI.
+- `foundation/duct-appearance`: four lines keep the thickest size, the teal data colour and the fixed teal data ring.
 
 ## Non-goals
 
-- Moving items over the cable (packets, size and speed): `m8-cable-packets`.
-- A `data_link` capability for members without production or stock (terminals, CPU, Pattern Storage, Access Point): added by `m8-access-point`, the first change that needs it.
-- Access Point, Counter Terminal on the cable, Crafting CPU, Pattern Storage, Production Terminal: their own M8 changes.
+- Moving items over the data line (packets, size and speed): `m8-cable-packets`.
+- A `data_link` capability for members without production or stock (terminals, CPU, Pattern Storage, Access Point): `m8-access-point`.
 - Machine Adapter and plain inventories as members: `m8-machine-adapter`.
-- High-Speed Data Cable, wireless, facades or goggles overlay for the cable.
+- High-Speed Data Cable and wireless.
 
 ## Impact
 
-- `lib`: new packages for the cable block, block entity and data network; first `DeferredRegister` for blocks and block entities in `ServusLib`; datagen providers for blockstates, loot tables and block tags; a texture.
-- `storage`: GameTests that wire the cable to the Warehouse Controller and a Crafting Station (both already expose the capabilities), since Lib has no members of its own.
-- No change to existing blocks, specs or saved data. All four mods still load alone with Lib.
+- `foundation`: `logistics.duct` (Line, block, block entity, line item), `logistics.menu` and `logistics.client` (Data tab, ring colour), `logistics.datagen` (parts for 15 line sets, recipe, lang, item model), `data` package (node type becomes the duct through a small `DataNode` interface, standalone block classes removed), registries and creative tab, textures (`duct_data`, band textures with data, item texture).
+- `storage`: `DataCableGameTests` use ducts with the data line.
+- `manufacturing`: none beyond recompiling (the pump stub counts arms per line generically).
+- Docs: Foundation page gets a Data line section; `gamedata.json` regenerated.

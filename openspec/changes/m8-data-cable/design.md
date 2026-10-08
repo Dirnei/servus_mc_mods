@@ -2,71 +2,53 @@
 
 ## Context
 
-Servus Lib already has everything a cable network needs except a block: `NetworkGraph` with split and merge, `NetworkSet`, `ServusNetwork` with a `Mailbox`, `NetworkManager` driven by `NetworkEvents`, `NetworkBlockEntity` that joins on load and leaves on removal or chunk unload, `ConnectableBlock` with six connection flags and `ConnectableModels` for the multipart model. The Utility Duct (Logistics) is the reference: ducts are graph nodes, the things they touch are endpoints kept per duct in the network, each with a `BlockCapabilityCache`.
-
-The production and stock capabilities exist in `lib/production` (`ServusLibCapabilities.PRODUCTION`, `STOCK_PROVIDER`, `STOCK_SINK`). Today they are exposed by the Assembler (Manufacturing), the Crafting Station and the Warehouse Controller (Storage). Lib registers items only; it has no block or block entity register yet.
-
-See proposal.md for why and specs/foundation/data-cable/spec.md for the behavior.
+The first version of this change (committed, never archived) built a standalone `DataCableBlock` with `DataCableBlockEntity` as the node of `DataNetwork`, pure `DataMembers` bookkeeping, `DataNetworks.networkAt`, capability caches with invalidation listeners, a summary on click and a placement assist. `m8-foundation-merge` then moved everything into `servus_foundation`: the data code lives in `foundation.data`, the duct in `foundation.logistics.duct`. The Utility Duct has three lines (`Line` enum); each present line joins its own network type through a `LineNode` adapter; arms, endpoints and models are generic over line sets (`DuctParts`, `DuctPartModels`). See proposal.md for why.
 
 ## Goals / Non-Goals
 
 **Goals:**
-- A data network that later M8 changes can query for producers and stock without knowing any content mod.
-- Membership kept up to date by events and capability invalidation, never by a per tick scan.
-- The first block in Lib, registered and datagenned like the content mods do it.
+- Data as `Line.DATA`, joining the existing `DataNetwork`, with the member logic, query API and tests of the first version kept.
+- API and content stay apart: `foundation.data` must not import duct classes.
 
 **Non-Goals:**
-- Any traffic on the network (packets come in `m8-cable-packets`). `DataNetwork.onTick` does nothing in this change.
-- A `data_link` capability (comes with `m8-access-point`).
+- Traffic on the network (`m8-cable-packets`).
+- Changing the item, energy and fluid lines.
 
 ## Decisions
 
-### Package and classes
-New package `io.github.dirnei.mc.servus.lib.data`:
-- `DataCableBlock extends ConnectableBlock` (radius 2, a 4 by 4 core, thinner than the duct so the two read differently).
-- `DataCableBlockEntity extends NetworkBlockEntity<DataCableBlockEntity>`; the node is the block entity itself, like the duct.
-- `DataNetwork extends ServusNetwork<DataCableBlockEntity, DataEvent>` with `TYPE`, registered in the `ServusLib` constructor through `NetworkTypes.register`.
-- `DataEvent` sealed interface with `SidesChanged(NodePos cable)`.
-- `DataRole` enum `PRODUCER`, `STOCK` (pure).
-- `DataMembers` (pure, no Minecraft imports): bookkeeping of which cable sides touch which member position with which roles. Adding and removing a touch keeps one entry per member position, roles are the union over its touches, the entry disappears with its last touch. JUnit tested.
-- `DataNetworks`: the query API. `networkAt(ServerLevel, BlockPos)` returns the network of a cable at that position or, failing that, the first network (lowest id) that lists that position as a member; `DataNetwork.dataMembers()` and `dataMembers(DataRole)` (`members()` is the final graph view of `ServusNetwork`) return immutable `DataMember(BlockPos pos, Set<DataRole> roles)` records.
+### Node type: `DataNode` interface
+`DataNetwork` becomes `ServusNetwork<DataNode, DataEvent>`. `DataNode` (in `foundation.data`) is what a data network needs from a node: `Level dataLevel()`, `boolean dataRemoved()` and `boolean dataSideOpen(Direction side)`. `UtilityDuctBlockEntity` implements it (side open means the duct has the data line and the data mode of that side is not disabled). Alternative: making `DataNetwork` use `UtilityDuctBlockEntity` directly; rejected because the API package would then depend on content.
 
-Alternative considered: making members graph nodes too. Rejected: members are foreign block entities that do not implement `NetworkNode`, a member can touch two networks, and the duct already proves the endpoint pattern.
+### Joining
+The duct keeps one network node per line. Its `nodes` map becomes `Map<Line, NetworkNode<?>>`: item, energy and fluid keep the existing `LineNode` (node type the duct); `DATA` gets a `DataLineNode` whose type is `DataNetwork.TYPE` and whose node is the duct as `DataNode`. `typeOf(Line)` stays for the three duct networks; `network(Line)` returns empty for `DATA`, and `dataNetwork()` gives the data network. `NetworkManager.join/leave/refresh` are already generic over the node type.
 
-### Member detection
-For every side of a cable, the network creates three `BlockCapabilityCache`s (production, stock provider, stock sink) for the neighbour, with context `side.getOpposite()`, an `isValid` supplier tied to the cable block entity and an invalidation listener that posts `SidesChanged(cable)` to the mailbox. Handling `SidesChanged` re-reads that cable's six sides and updates `DataMembers`. `onNodeAdded` builds the caches and reads the sides once; `onNodeRemoved` drops the cable's touches and caches; `onAbsorb` copies the other network's members and caches.
+### Connection rule and on or off sides
+`DataNetwork.TYPE` uses a rule that links two nodes only when both report the facing side open. When a data side mode changes, the duct calls `NetworkManager.refresh` for its data node (the graph re-evaluates its edges) and posts `SidesChanged`. This makes "off" a real disconnect for data, unlike the other lines whose graphs always link and only stop at endpoints; that is fine because data has no channels to separate traffic. The data mode cycle is `BOTH` and `DISABLED` only; the menu toggles between them and the screen labels them On and Off.
 
-Why invalidation listeners: NeoForge invalidates block capabilities when a block or block entity changes and when chunks load or unload (`Level.invalidateCapabilities`, called by vanilla hooks NeoForge patches in). The listener must not query right away (NeoForge docs: "Block Capabilities", caching section, 21.1), so it only posts to the mailbox and the query happens next tick on the server thread. This covers "member placed", "member broken" and "member chunk unloads" without `neighborChanged` bookkeeping and without a per tick scan.
+### Members
+`DataNetwork.readSides` treats a side as a possible member only when the node reports it open and the neighbour is not a `DataNode`; the role probing through `BlockCapabilityCache` with invalidation listeners stays. A new `DataMembership.isMember(Level, BlockPos, Direction)` in `foundation.data` replaces `DataCableBlock.isMember`, and the duct's `computeArm(DATA, side)` uses it for non duct neighbours (duct neighbours need the data line).
 
-API reference: `net.neoforged.neoforge.capabilities.BlockCapabilityCache#create(BlockCapability, ServerLevel, BlockPos, Object, BooleanSupplier, Runnable)` in NeoForge 21.1.x, as already used by `ItemChannelNetwork` and `WarehouseNetwork`.
+### Duct block interaction
+`UtilityDuctBlock.useWithoutItem` shows the summary when the main hand is empty and the duct has the data line (server side, action bar), returning success; otherwise it still passes, so a bare hand on a duct without data opens nothing and items keep their own use. `DataSummary.of(DataNetwork)` builds the component (`message.servus_foundation.data_cable.summary`, cables = `network.cables()`, the number of ducts in the data graph).
 
-### Arms toward members
-`DataCableBlock.connectsTo` returns true for a neighbouring `DataCableBlock` and, when the accessor is a server `Level`, for a neighbour that exposes any of the three capabilities on the facing side. On the client and in world generation accessors it keeps the current flag, so the state is decided on the server and synced. `neighborChanged` recomputes the six flags like `UtilityDuctBlock.refreshConnections`; a newly placed member's block entity already exists when its neighbours are updated. The graph's `ConnectionRule` links cable to cable only; arms toward members are visual and members live in `DataMembers`.
+### Item and registration
+`ServusLogisticsItems.DATA_CABLE` is a `LineItem` for `Line.DATA` with id `data_cable`, listed in the creative tab after the Fluid Pipe. `ServusFoundationBlocks`, `ServusFoundationBlockEntities`, `DataCableBlock`, `DataCableBlockEntity` and `DataCableAssist` are deleted with their datagen (blockstate, models, loot, pickaxe tag entry). The recipe moves to `LogisticsDataParts`.
 
-### Summary on click
-`DataCableBlock.useWithoutItem` on the server looks up the network and sends `Component.translatable("message.servus_lib.data_cable.summary", cables, producers, stock)` with `player.displayClientMessage(..., true)`. Producers and stock are counted by role, so a member with both roles counts in both.
-
-### Placement assist
-`DataCableAssist implements PlacementAssist`: any Data Cable starts and continues a run; the direction comes from `PlacementAssists.alongRun` over the arms toward other cables, else the clicked face. The item is an `AssistedBlockItem`.
-
-### Registration and datagen
-- `registry/ServusLibBlocks` (`DeferredRegister.Blocks`) and `registry/ServusLibBlockEntities` (`DeferredRegister<BlockEntityType<?>>`), registered in the `ServusLib` constructor before items; the cable item goes into `ServusLibItems` and the Lib creative tab.
-- New datagen providers in `lib/datagen`: `ServusLibBlockStateProvider` (calls `ConnectableModels.connectable(..., 2, true)`), `ServusLibBlockLoot` via `LootTableProvider` (drop self), `ServusLibBlockTagsProvider` (`minecraft:mineable/pickaxe`), plus the shaped recipe in `ServusLibRecipeProvider` (copper ingot, redstone, copper ingot gives 4) and lang entries for the block and the summary.
-- Texture `assets/servus_lib/textures/block/data_cable.png` as a placeholder made with the session PNG helper.
-- Block properties: copper sound, strength like the duct, `noOcclusion`.
+### Appearance
+- `Line.DATA` id `data`. `DuctParts` and `DuctPartModels` are generic: 15 line sets now, radius from `DuctShapes.radius` (four lines use the thickest radius). The shape cache key packs four arm masks into 28 bits, still an int.
+- Textures: `duct_data.png` (teal noise with a darker border like the others), and band textures `duct_<set>.png` and `duct_<set>_v.png` for every new multi line set containing data, generated by a script in the session helpers from the single line textures: bands of the line palettes separated by the 2 px dark divider used today; four bands use widths 3, 3, 3 and 4 with 1 px dividers. Existing band textures stay untouched. Item texture `item/data_cable.png`.
+- `DuctBlockColor` returns the fixed teal for data ring tints (`DuctChannels` colours are not used for data).
 
 ### Testing
-- Pure Java, JUnit in `lib/src/test`: `DataMembersTest` (one touch, two touches of one member, union of roles, last touch removes the member, two members).
-- Minecraft side, GameTests in a new `DataCableGameTests` class in Storage because Lib has no member blocks: cable row forms one network and splits; Crafting Station is a producer and Warehouse Controller a stock member; chest is not a member and gets no arm; member broken leaves the list (after one tick); two cables touching one controller give one member; linked controller and station move nothing over 100 ticks; `DataNetworks.networkAt` from a member position and from stone.
-- Manual in game: summary text, arms, placement assist, Lib only run, chunk unload of a member.
+- JUnit: `DataMembersTest` unchanged; `DuctPartsTest` updated for four lines (15 sets, ring tint ranges).
+- GameTests (Storage `DataCableGameTests`, rewritten with ducts carrying the data line): row is one network, split when broken, gap in the data line, station and controller found, chest ignored, member broken leaves, touched twice counts once, side off removes the member and splits duct links, summary counts, moves nothing, networkAt from member and stone, sneak placement extends a data run, broken duct drops the Data Cable. Foundation GameTests: adding the data line to an item duct.
+- Manual: model and colours, GUI tab, summary text, chunk unload.
 
-### PLAN.md open decisions
-None of section 5 is settled here. The change follows PLAN 2.4 (data cable in Lib, members found by capability) as written.
+### PLAN.md
+PLAN.md already describes `m8-data-cable` as the duct Data line after the merge; nothing to change.
 
 ## Risks / Trade-offs
 
-- [Capability lookups during `updateShape` for arms] -> only on a server `Level`, only three cheap lookups per changed side, never per tick.
-- [A member that changes its capabilities without a block change, so no invalidation fires] -> such a block must call `Level.invalidateCapabilities(pos)`, which is the NeoForge contract anyway; the Servus blocks never change theirs.
-- [Member arms are visual only; a cable that shows an arm while the member list is one tick behind] -> acceptable, the list catches up on the next tick.
-- [`DataNetworks.networkAt` from a member position walks every data network of the level] -> networks are few; a position index can come later if a profile shows a cost.
-- [Lib now ships a block, so Lib alone adds content to a pack] -> intended: the cable is the shared wiring, and PLAN.md section 3 lists it in the Lib API.
+- [More part models (15 sets, about 150 models) and band textures] -> generated; load time impact is small.
+- [Off sides disconnect data graphs but not the other lines' graphs] -> documented in the spec; it matches the user's "on or off" wording.
+- [Existing dev worlds with standalone Data Cables] -> the block id disappears; unreleased, accepted.
