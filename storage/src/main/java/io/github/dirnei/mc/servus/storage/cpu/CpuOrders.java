@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
+import io.github.dirnei.mc.servus.storage.order.StepRef;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.pattern.PatternRunners;
@@ -186,6 +187,26 @@ public final class CpuOrders {
             return Optional.empty();
         }
         return Optional.ofNullable(CpuBlock.master(level, master));
+    }
+
+    /**
+     * Whether the CPU named by the reference still runs that step: empty while
+     * the CPU's master is not loaded, false when it is loaded and the order is
+     * gone, closed or the step is done.
+     */
+    public static Optional<Boolean> runsStep(ServerLevel level, StepRef ref) {
+        if (!level.isLoaded(ref.cpu())) {
+            return Optional.empty();
+        }
+        CpuBlockEntity cpu = CpuBlock.master(level, ref.cpu());
+        if (cpu == null || !cpu.getBlockPos().equals(ref.cpu())) {
+            return Optional.of(false);
+        }
+        WorkOrder order = cpu.book().order(ref.order());
+        if (order == null || !order.open() || ref.step() < 0 || ref.step() >= order.steps().size()) {
+            return Optional.of(false);
+        }
+        return Optional.of(order.steps().get(ref.step()).state() != OrderStep.State.DONE);
     }
 
     /** Amount of the key on open orders of every CPU of the line. */

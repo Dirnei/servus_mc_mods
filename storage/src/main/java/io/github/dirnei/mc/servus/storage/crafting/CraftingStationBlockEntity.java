@@ -7,10 +7,12 @@ import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.craft.IngredientGatherer;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.order.StepRef;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,11 +24,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -75,9 +79,12 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     private EncodedPattern job;
     private int jobLeft;
     private Object jobOwner;
+    /** How often a station checks that its job's step still exists. */
+    private static final int OWNER_CHECK_TICKS = 100;
     private ItemStack clientJobResult = ItemStack.EMPTY;
     private int clientJobLeft;
     private int progress;
+    private int ownerCheck;
     private int pushTimer;
 
     private final SideConfig sides = SideConfig.machine();
@@ -425,10 +432,24 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, CraftingStationBlockEntity station) {
+        if (++station.ownerCheck >= OWNER_CHECK_TICKS) {
+            station.ownerCheck = 0;
+            station.dropOrphanedJob((ServerLevel) level);
+        }
         boolean working = station.tick();
         station.pushOutputs();
         if (state.hasProperty(CraftingStationBlock.LIT) && state.getValue(CraftingStationBlock.LIT) != working) {
             level.setBlock(pos, state.setValue(CraftingStationBlock.LIT, working), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /**
+     * Ends a job whose CPU is loaded but no longer runs its step, e.g. after the
+     * CPU was broken while the station was unloaded. An unloaded CPU keeps it.
+     */
+    private void dropOrphanedJob(ServerLevel level) {
+        if (job != null && jobOwner instanceof StepRef ref && !CpuOrders.runsStep(level, ref).orElse(true)) {
+            release(ref);
         }
     }
 
@@ -465,6 +486,15 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         tag.put("Inputs", inputs.serializeNBT(registries));
         tag.put("Outputs", outputs.serializeNBT(registries));
         tag.putByteArray("Sides", sides.toBytes());
+        if (job != null && jobOwner instanceof StepRef ref) {
+            CompoundTag saved = new CompoundTag();
+            EncodedPattern.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), job)
+                    .result().ifPresent(pattern -> saved.put("Pattern", pattern));
+            saved.putInt("Crafts", jobLeft);
+            saved.putInt("Progress", progress);
+            saved.put("Owner", ref.save());
+            tag.put("Job", saved);
+        }
     }
 
     @Override
@@ -483,6 +513,18 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         }
         if (tag.contains("Sides")) {
             sides.fromBytes(tag.getByteArray("Sides"));
+        }
+        if (tag.contains("Job")) {
+            CompoundTag saved = tag.getCompound("Job");
+            Optional<EncodedPattern> pattern = EncodedPattern.CODEC
+                    .parse(registries.createSerializationContext(NbtOps.INSTANCE), saved.get("Pattern")).result();
+            Optional<StepRef> owner = StepRef.load(saved.getCompound("Owner"));
+            if (pattern.isPresent() && owner.isPresent()) {
+                job = pattern.get();
+                jobLeft = saved.getInt("Crafts");
+                progress = saved.getInt("Progress");
+                jobOwner = owner.get();
+            }
         }
     }
 
