@@ -26,4 +26,4 @@
 
 ## 6. Integration
 
-- [ ] 6.1 Grep the repo (excluding `openspec/changes/archive`, `.git`, build outputs and `docs/dist`) for `servus_lib`, `servus_logistics`, `servus.lib.`, `servus.logistics.`, `':lib'`, `':logistics'`: no hits except intended mentions of the old ids in specs. Full `gradlew build` and `gradlew test` green, all GameTest runs green, `runClientAll` and `:foundation:runClient` reach the title screen showing "Servus: Foundation", "Servus: Manufacturing" and "Servus: Storage". Tell the user that dev worlds lost the old namespace blocks and items.
+- [x] 6.1 Grep the repo (excluding `openspec/changes/archive`, `.git`, build outputs and `docs/dist`) for `servus_lib`, `servus_logistics`, `servus.lib.`, `servus.logistics.`, `':lib'`, `':logistics'`: no hits except intended mentions of the old ids in specs. Full `gradlew build` and `gradlew test` green, all GameTest runs green, `runClientAll` and `:foundation:runClient` reach the title screen showing "Servus: Foundation", "Servus: Manufacturing" and "Servus: Storage". Tell the user that dev worlds lost the old namespace blocks and items.
