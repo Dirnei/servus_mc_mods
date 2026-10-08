@@ -23,4 +23,4 @@
 ## 5. Verification
 
 - [x] 5.1 Full `gradlew build` and `gradlew test` green, all GameTests green, the client launches with all four mods (from main, when the user asks). Commit.
-- [ ] 5.2 Play check: a section of three opens one 9 row GUI from any bay, shift click fills bay after bay, breaking a bay spills only its items, a shuttle serves every bay of a section from one front rail, a side rail serves nothing, stacked racks keep separate GUIs.
+- [x] 5.2 Play check: a section of three opens one 9 row GUI from any bay, shift click fills bay after bay, breaking a bay spills only its items, a shuttle serves every bay of a section from one front rail, a side rail serves nothing, stacked racks keep separate GUIs.
