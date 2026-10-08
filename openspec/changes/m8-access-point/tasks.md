@@ -6,7 +6,7 @@
 
 ## 2. Pure choice
 
-- [ ] 2.1 Add `storage/access/AccessPointChoice` (no Minecraft imports) and `AccessPointChoiceTest` with `lowestTripWins`, `tieKeepsFirst`, `unreachableLoses`, `allUnreachablePicksFirst`, `emptyHasNone`. Verify with `gradlew :storage:test`.
+- [x] 2.1 Add `storage/access/AccessPointChoice` (no Minecraft imports) and `AccessPointChoiceTest` with `lowestTripWins`, `tieKeepsFirst`, `unreachableLoses`, `allUnreachablePicksFirst`, `emptyHasNone`. Verify with `gradlew :storage:test`.
 
 ## 3. Access Point block
 
