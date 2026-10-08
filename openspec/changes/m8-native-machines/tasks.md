@@ -9,7 +9,7 @@
 ## 2. Manufacturing
 
 - [x] 2.1 `MachineStats` with `upkeepItem` and `upkeepLevel` (codec fields `upkeep_item`, `upkeep_level`, factory defaults), `MachineDefaults`, `GameDataExportProvider`, `MachineDefaultsTest` extended with the upkeep defaults. Verify with `gradlew :manufacturing:test`.
-- [ ] 2.2 `BurnerMachineBlockEntity.upkeep()` over the fuel slot; register `UPKEEP` for Burner Extractor, Burner Smelter, Burner Pump and Coal Generator; `production()` for Burner Smelter (smelting through `SingleInputRecipes`, its work time) and Crusher (crushing recipes with count and time), registered in `ServusManufacturingEvents`. Manufacturing GameTests `burnerMachinesExposeUpkeep`, `electricExtractorHasNoUpkeep`, `smelterReportsSmeltingProduction`, `crusherReportsCrushingProduction`. Verify with `gradlew build` and `:manufacturing:runGameTestServer`.
+- [x] 2.2 `BurnerMachineBlockEntity.upkeep()` over the fuel slot; register `UPKEEP` for Burner Extractor, Burner Smelter, Burner Pump and Coal Generator; `production()` for Burner Smelter (smelting through `SingleInputRecipes`, its work time) and Crusher (crushing recipes with count and time), registered in `ServusManufacturingEvents`. Manufacturing GameTests `burnerMachinesExposeUpkeep`, `electricExtractorHasNoUpkeep`, `smelterReportsSmeltingProduction`, `crusherReportsCrushingProduction`. Verify with `gradlew build` and `:manufacturing:runGameTestServer`.
 
 ## 3. Storage
 

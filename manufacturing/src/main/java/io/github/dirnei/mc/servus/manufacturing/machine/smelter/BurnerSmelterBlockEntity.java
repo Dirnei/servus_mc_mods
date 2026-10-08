@@ -1,14 +1,19 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.smelter;
 
+import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.foundation.production.SingleInputRecipes;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.BurnerMachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerSmelterMenu;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -27,6 +32,8 @@ public class BurnerSmelterBlockEntity extends BurnerMachineBlockEntity {
     public static final int SLOT_OUTPUT = 2;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "burner_smelter");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
+
+    private final SingleInputRecipes production = new SingleInputRecipes();
 
     public BurnerSmelterBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.BURNER_SMELTER.get(), pos, state, 3);
@@ -97,6 +104,34 @@ public class BurnerSmelterBlockEntity extends BurnerMachineBlockEntity {
         }
         inventory.extractItem(SLOT_INPUT, 1, false);
         insertOutput(SLOT_OUTPUT, result);
+    }
+
+    /** The Foundation production view: every single item smelting recipe at the smelter's own work time. */
+    public ProductionProvider production() {
+        return new ProductionProvider() {
+            @Override
+            public List<ProductionRecipe> recipes() {
+                if (!(level instanceof ServerLevel server)) {
+                    return List.of();
+                }
+                int ticks = workTicks();
+                return production.list(server, RecipeType.SMELTING, recipe -> ticks);
+            }
+
+            @Override
+            public Optional<ResourceLocation> active() {
+                ItemStack input = inventory.getStackInSlot(SLOT_INPUT);
+                if (input.isEmpty()) {
+                    return Optional.empty();
+                }
+                for (ProductionRecipe recipe : recipes()) {
+                    if (ItemStack.isSameItemSameComponents(recipe.inputs().get(0), input)) {
+                        return Optional.of(recipe.id());
+                    }
+                }
+                return Optional.empty();
+            }
+        };
     }
 
     @Override

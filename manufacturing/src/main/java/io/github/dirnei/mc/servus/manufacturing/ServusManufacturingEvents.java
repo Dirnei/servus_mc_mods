@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabili
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;
+import io.github.dirnei.mc.servus.manufacturing.gametest.NativeUpkeepGameTests;
 import io.github.dirnei.mc.servus.manufacturing.gametest.ServusManufacturingGameTests;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStatsManager;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkStatsManager;
@@ -61,6 +62,7 @@ public final class ServusManufacturingEvents {
         @SubscribeEvent
         public static void onRegisterGameTests(RegisterGameTestsEvent event) {
             event.register(ServusManufacturingGameTests.class);
+            event.register(NativeUpkeepGameTests.class);
         }
 
         @SubscribeEvent
@@ -92,6 +94,19 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.CRUSHER.get(),
                     (machine, side) -> machine.energyStorage());
+            // Burner machines keep their fuel slot stocked from the data line; smelter and crusher run order steps.
+            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.BURNER_EXTRACTOR.get(),
+                    (machine, side) -> machine.upkeep());
+            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.BURNER_SMELTER.get(),
+                    (machine, side) -> machine.upkeep());
+            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.BURNER_PUMP.get(),
+                    (machine, side) -> machine.upkeep());
+            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.COAL_GENERATOR.get(),
+                    (machine, side) -> machine.upkeep());
+            event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.BURNER_SMELTER.get(),
+                    (machine, side) -> machine.production());
+            event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.CRUSHER.get(),
+                    (machine, side) -> machine.production());
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.CHUNK_LOADER.get(),
                     (machine, side) -> machine.energyStorage());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.RESEARCH_LAB.get(),

@@ -1,8 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.machine;
 
+import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -17,6 +20,27 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
     protected int burnTime;
     protected int burnDuration;
 
+    private String upkeepId = "";
+    private ItemStack upkeepStack = ItemStack.EMPTY;
+    private final UpkeepHolder upkeep = new UpkeepHolder() {
+        @Override
+        public ItemStack upkeepItem() {
+            return upkeepStack();
+        }
+
+        @Override
+        public int upkeepLevel() {
+            return stats().upkeepLevel();
+        }
+
+        @Override
+        public int upkeepCount() {
+            ItemStack item = upkeepStack();
+            ItemStack fuel = inventory.getStackInSlot(fuelSlot());
+            return !item.isEmpty() && ItemStack.isSameItemSameComponents(item, fuel) ? fuel.getCount() : 0;
+        }
+    };
+
     protected BurnerMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, int slots) {
         super(type, pos, state, slots);
     }
@@ -28,6 +52,22 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
 
     /** Performs one finished work cycle. Only called when {@link #canWork()} was true. */
     protected abstract void finishWork();
+
+    /** The fuel slot as upkeep, or null when the machine's stats keep none. */
+    public UpkeepHolder upkeep() {
+        return stats().hasUpkeep() ? upkeep : null;
+    }
+
+    private ItemStack upkeepStack() {
+        String id = stats().upkeepItem();
+        if (!id.equals(upkeepId)) {
+            upkeepId = id;
+            ResourceLocation location = ResourceLocation.tryParse(id);
+            upkeepStack = location == null || !BuiltInRegistries.ITEM.containsKey(location)
+                    ? ItemStack.EMPTY : new ItemStack(BuiltInRegistries.ITEM.get(location));
+        }
+        return upkeepStack;
+    }
 
     @Override
     protected boolean isFuelSlot(int slot) {
