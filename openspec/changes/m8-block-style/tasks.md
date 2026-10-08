@@ -11,7 +11,7 @@
 
 ## 3. Textures
 
-- [ ] 3.1 Generate the overlay textures (stations, terminals, controller, garage, Pattern Storage with 10 light states, Crafting Station, CPU casing and 18 animated tiles with `.mcmeta`, Machine Adapter) and the board marker with scripts in the helpers dir. Verify the files exist and decode.
+- [x] 3.1 Generate the overlay textures (stations, terminals, controller, garage, Pattern Storage with 10 light states, Crafting Station, CPU casing and 18 animated tiles with `.mcmeta`, Machine Adapter) and the board marker with scripts in the helpers dir. Verify the files exist and decode.
 
 ## 4. Blocks
 
