@@ -20,7 +20,7 @@ import net.neoforged.neoforge.items.IItemHandlerModifiable;
  */
 public class AdapterMenu extends AbstractContainerMenu {
 
-    public static final int GHOST_X = 26;
+    public static final int GHOST_X = 8;
     public static final int GHOST_Y = 40;
     public static final int INVENTORY_Y = 84;
     public static final int HOTBAR_Y = 142;

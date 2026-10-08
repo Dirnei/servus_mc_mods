@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
+import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
+import io.github.dirnei.mc.servus.foundation.adapter.AdapterScreen;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctParts;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlockEntities;
@@ -29,6 +31,7 @@ public final class ServusLogisticsClient {
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ServusLogisticsMenus.UTILITY_DUCT.get(), UtilityDuctScreen::new);
+        event.register(AdapterContent.MENU.get(), AdapterScreen::new);
     }
 
     @SubscribeEvent

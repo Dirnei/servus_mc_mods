@@ -11,7 +11,7 @@
 ## 3. Adapter block
 
 - [x] 3.1 Add `adapter/MachineProfiles.java` (reload listener, block and tag lookup), `MachineAdapterBlock`, `MachineAdapterBlockEntity` (recipes cache, active recipe, upkeep tick), `AdapterItemHandler`, `AdapterContent` registries and `AdapterEvents` (capabilities: production, item handler; reload listener; creative tab); default profiles `data/servus_foundation/machine_profiles/{furnace,smoker,blast_furnace}.json`. Verify with `gradlew build`.
-- [ ] 3.2 Add `AdapterMenu`, client `AdapterScreen` (ghost slot, level buttons, machine name, count) and its registration. Verify with `gradlew build`.
+- [x] 3.2 Add `AdapterMenu`, client `AdapterScreen` (ghost slot, level buttons, machine name, count) and its registration. Verify with `gradlew build`.
 - [ ] 3.3 Datagen: blockstate and model, loot, pickaxe tag, recipe, lang; textures from `servus-helpers/gen_machine_adapter.py`. Run `:foundation:runData`, check the generated files, `gradlew build`.
 - [ ] 3.4 Foundation GameTests `adapter/AdapterGameTests.java` registered in `AdapterEvents`: `adapterReportsSmelting`, `adapterForwardsIngredients`, `adapterRoutesExpectedUpkeep`, `adapterOffersOutput`, `adapterOnChestOffersNothing`. Verify with `:foundation:runGameTestServer`.
 
