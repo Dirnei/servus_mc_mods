@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import java.util.concurrent.CompletableFuture;
@@ -39,5 +41,16 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .save(output);
 
         LogisticsDataParts.recipes(output, RecipeProvider::has);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, AdapterContent.ITEM.get())
+                .pattern("CHC")
+                .pattern("RDR")
+                .pattern("CCC")
+                .define('C', Items.COPPER_INGOT)
+                .define('H', Items.HOPPER)
+                .define('R', Items.REDSTONE)
+                .define('D', ServusLogisticsItems.DATA_CABLE.get())
+                .unlockedBy("has_data_cable", has(ServusLogisticsItems.DATA_CABLE.get()))
+                .save(output);
     }
 }

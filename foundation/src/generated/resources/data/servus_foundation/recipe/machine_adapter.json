@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "D": {
+      "item": "servus_foundation:data_cable"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "CHC",
+    "RDR",
+    "CCC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_foundation:machine_adapter"
+  }
+}

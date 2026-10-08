@@ -33,7 +33,8 @@ public final class ServusFoundationDataGen {
         generator.addProvider(event.includeServer(), new ServusFoundationBlockTagsProvider(output, lookup, existingFileHelper));
         generator.addProvider(event.includeServer(), new ServusFoundationRecipeProvider(output, lookup));
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
-                List.of(new LootTableProvider.SubProviderEntry(ServusLogisticsBlockLoot::new, LootContextParamSets.BLOCK)),
+                List.of(new LootTableProvider.SubProviderEntry(ServusLogisticsBlockLoot::new, LootContextParamSets.BLOCK),
+                        new LootTableProvider.SubProviderEntry(AdapterBlockLoot::new, LootContextParamSets.BLOCK)),
                 lookup));
     }
 }

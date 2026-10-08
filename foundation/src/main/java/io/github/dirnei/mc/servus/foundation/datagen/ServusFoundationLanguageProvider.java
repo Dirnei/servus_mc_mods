@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -16,6 +17,12 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         add(ServusFoundationItems.CONFIGURATION_CARROT.get(), "Configuration Carrot");
         add(ServusFoundationItems.GOGGLES.get(), "Engineer Goggles");
+        add(AdapterContent.BLOCK.get(), "Machine Adapter");
+        add("gui.servus_foundation.machine_adapter.machine", "Machine: %s");
+        add("gui.servus_foundation.machine_adapter.no_profile", "No machine this adapter knows");
+        add("gui.servus_foundation.machine_adapter.upkeep", "Upkeep item and level");
+        add("gui.servus_foundation.machine_adapter.count", "%s of %s in the machine");
+        add("gui.servus_foundation.machine_adapter.no_upkeep", "No upkeep");
         add("message.servus_foundation.data_cable.summary", "Data network: %s cables, %s producers, %s stock");
         add("commands.servus_foundation.data.move.started", "Delivery %s started: %s %s");
         add("commands.servus_foundation.data.move.failed", "Delivery %s failed: %s");

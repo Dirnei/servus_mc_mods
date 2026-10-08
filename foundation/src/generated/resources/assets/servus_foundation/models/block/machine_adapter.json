@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "servus_foundation:block/machine_adapter_back",
+    "east": "servus_foundation:block/machine_adapter_side",
+    "north": "servus_foundation:block/machine_adapter_side",
+    "particle": "servus_foundation:block/machine_adapter_side",
+    "south": "servus_foundation:block/machine_adapter_side",
+    "up": "servus_foundation:block/machine_adapter_front",
+    "west": "servus_foundation:block/machine_adapter_side"
+  }
+}

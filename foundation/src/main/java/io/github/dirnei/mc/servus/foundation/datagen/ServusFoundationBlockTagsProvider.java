@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import java.util.concurrent.CompletableFuture;
@@ -19,5 +20,6 @@ final class ServusFoundationBlockTagsProvider extends BlockTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider provider) {
         LogisticsDataParts.pickaxeBlocks().forEach(block -> tag(BlockTags.MINEABLE_WITH_PICKAXE).add(block));
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(AdapterContent.BLOCK.get());
     }
 }

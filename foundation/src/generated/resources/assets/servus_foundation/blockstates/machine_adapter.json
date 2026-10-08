@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "servus_foundation:block/machine_adapter",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "servus_foundation:block/machine_adapter",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "servus_foundation:block/machine_adapter",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "servus_foundation:block/machine_adapter",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "servus_foundation:block/machine_adapter"
+    },
+    "facing=west": {
+      "model": "servus_foundation:block/machine_adapter",
+      "x": 90,
+      "y": 270
+    }
+  }
+}
