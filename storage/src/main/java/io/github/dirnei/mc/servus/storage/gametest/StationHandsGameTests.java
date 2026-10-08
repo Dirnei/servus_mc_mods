@@ -53,7 +53,7 @@ public final class StationHandsGameTests {
     }
 
     /** Warehouse with planks, Access Point, two plain stations, a sticks pattern and a CPU on one data line. */
-    private static CrateBlockEntity setup(GameTestHelper helper, int planks) {
+    static CrateBlockEntity setup(GameTestHelper helper, int planks) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
@@ -77,7 +77,7 @@ public final class StationHandsGameTests {
         return crate;
     }
 
-    private static DataNetwork line(GameTestHelper helper) {
+    static DataNetwork line(GameTestHelper helper) {
         return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2))).orElseThrow();
     }
 
