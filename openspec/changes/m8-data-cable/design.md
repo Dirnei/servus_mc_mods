@@ -57,7 +57,7 @@ API reference: `net.neoforged.neoforge.capabilities.BlockCapabilityCache#create(
 
 ### Testing
 - Pure Java, JUnit in `lib/src/test`: `DataMembersTest` (one touch, two touches of one member, union of roles, last touch removes the member, two members).
-- Minecraft side, GameTests in `ServusStorageGameTests` because Lib has no member blocks: cable row forms one network and splits; Crafting Station is a producer and Warehouse Controller a stock member; chest is not a member and gets no arm; member broken leaves the list (after one tick); two cables touching one controller give one member; linked controller and station move nothing over 100 ticks; `DataNetworks.networkAt` from a member position and from stone.
+- Minecraft side, GameTests in a new `DataCableGameTests` class in Storage because Lib has no member blocks: cable row forms one network and splits; Crafting Station is a producer and Warehouse Controller a stock member; chest is not a member and gets no arm; member broken leaves the list (after one tick); two cables touching one controller give one member; linked controller and station move nothing over 100 ticks; `DataNetworks.networkAt` from a member position and from stone.
 - Manual in game: summary text, arms, placement assist, Lib only run, chunk unload of a member.
 
 ### PLAN.md open decisions
