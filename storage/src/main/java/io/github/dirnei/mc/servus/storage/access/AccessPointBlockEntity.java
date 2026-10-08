@@ -45,7 +45,7 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
         private final int id;
         private final BlockPos target;
         private final ItemKey key;
-        private final int planned;
+        private int planned;
         private int delivered;
         private boolean ended;
 
@@ -129,6 +129,24 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
         shipments.add(shipment);
         setChanged();
         return shipment;
+    }
+
+    /** A pick for a shipment of this item came up short: expect fewer items. */
+    public void shortfall(ItemKey key, int count) {
+        for (Shipment shipment : shipments) {
+            if (count <= 0) {
+                break;
+            }
+            if (!shipment.ended && shipment.key.equals(key)) {
+                int cut = Math.min(count, shipment.missing());
+                shipment.planned -= cut;
+                count -= cut;
+                if (shipment.missing() == 0 && shipment.delivered >= shipment.planned) {
+                    shipment.ended = true;
+                }
+            }
+        }
+        setChanged();
     }
 
     public boolean sending() {

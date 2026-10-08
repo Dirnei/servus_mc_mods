@@ -25,6 +25,10 @@ import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
 import io.github.dirnei.mc.servus.storage.shuttle.Shafts;
 import io.github.dirnei.mc.servus.storage.shuttle.Shafts.Shaft;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
+import io.github.dirnei.mc.servus.storage.access.AccessPointChoice;
+import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
+import io.github.dirnei.mc.servus.storage.shuttle.RailPaths;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
@@ -607,6 +611,67 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return planAndStart(station.getBlockPos(), key, amount, 0).refusal();
     }
 
+    /** The outcome of a shipping request: a refusal key, or the shipment on its Access Point. */
+    public record Shipping(String refusal, Optional<AccessPointBlockEntity.Shipment> shipment, BlockPos accessPoint) {
+        public boolean shipped() {
+            return refusal.isEmpty();
+        }
+    }
+
+    /**
+     * Ships items to a data member through the Access Point with the shortest
+     * shuttle trip from the racks holding them.
+     *
+     * @return refusal keys: {@code offline}, {@code no_access_point}, {@code out_of_stock},
+     *         {@code needs_shuttle} or {@code no_rail}
+     */
+    public Shipping ship(BlockPos target, ItemKey key, int amount) {
+        if (status() != Status.ONLINE || level == null) {
+            return new Shipping("offline", Optional.empty(), null);
+        }
+        List<AccessPointBlockEntity> candidates = new ArrayList<>();
+        for (BlockPos pos : stations) {
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof AccessPointBlockEntity point
+                    && DataNetworks.networkAt(level, pos).filter(network -> network.reaches(target)).isPresent()) {
+                candidates.add(point);
+            }
+        }
+        candidates.sort(java.util.Comparator.comparing(point -> point.getBlockPos().asLong()));
+        List<BlockPos> racks = sourcesHolding(key).stream().filter(this::isRack).toList();
+        Optional<AccessPointBlockEntity> chosen = AccessPointChoice.choose(candidates, point -> trip(racks, point.getBlockPos()));
+        if (chosen.isEmpty()) {
+            return new Shipping("no_access_point", Optional.empty(), null);
+        }
+        BlockPos destination = chosen.get().getBlockPos();
+        boolean reachable = fleet.canReach(destination);
+        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), reachable, stockOf(key));
+        if (plan.jobs().isEmpty()) {
+            String refusal = plan.needsShuttle() ? (fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle") : "out_of_stock";
+            return new Shipping(refusal, Optional.empty(), destination);
+        }
+        AccessPointBlockEntity.Shipment shipment = chosen.get().addShipment(target, key, plan.planned());
+        startJobs(plan, 0, key, destination);
+        return new Shipping("", Optional.of(shipment), destination);
+    }
+
+    /** Rail steps from the nearest rack to the Access Point, 0 without racks, unreachable without a path. */
+    private int trip(List<BlockPos> racks, BlockPos accessPoint) {
+        if (racks.isEmpty()) {
+            return 0;
+        }
+        Set<NodePos> goal = dockRails(Conversions.toNodePos(accessPoint));
+        int best = AccessPointChoice.UNREACHABLE;
+        for (BlockPos rack : racks) {
+            for (NodePos start : dockRails(Conversions.toNodePos(rack))) {
+                List<NodePos> path = RailPaths.find(start, goal::contains, this::travelNeighbours);
+                if (!path.isEmpty()) {
+                    best = Math.min(best, path.size() - 1);
+                }
+            }
+        }
+        return best;
+    }
+
     /** The work orders of this warehouse. */
     public OrderBook orders() {
         return orders;
@@ -933,6 +998,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     @Override
     public void pickLoaded(PickJob job, int loaded) {
+        if (loaded < job.amount() && level != null && level.getBlockEntity(job.terminal()) instanceof AccessPointBlockEntity point) {
+            point.shortfall(job.key(), job.amount() - loaded);
+        }
         CounterTerminalBlockEntity terminal = terminalAt(job.terminal());
         CounterTerminalBlockEntity.Request request = terminal == null ? null : terminal.request(job.requestId());
         if (request != null && loaded < job.amount()) {
@@ -942,6 +1010,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     @Override
     public void pickDropped(PickJob job, int count) {
+        if (level != null && level.getBlockEntity(job.terminal()) instanceof AccessPointBlockEntity point) {
+            point.shortfall(job.key(), count);
+        }
         CounterTerminalBlockEntity terminal = terminalAt(job.terminal());
         CounterTerminalBlockEntity.Request request = terminal == null ? null : terminal.request(job.requestId());
         if (request != null) {

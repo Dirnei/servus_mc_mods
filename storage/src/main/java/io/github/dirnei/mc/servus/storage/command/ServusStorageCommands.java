@@ -71,6 +71,12 @@ public final class ServusStorageCommands {
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
                                         .executes(ServusStorageCommands::unrule))))
+                .then(Commands.literal("ship")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .then(Commands.argument("target", BlockPosArgument.blockPos())
+                                        .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
+                                                .then(Commands.argument("count", IntegerArgumentType.integer(1, 4096))
+                                                        .executes(ServusStorageCommands::ship))))))
                 .then(Commands.literal("take")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
@@ -202,6 +208,28 @@ public final class ServusStorageCommands {
         }
         source.sendSuccess(() -> Component.literal("Ordered " + count + " " + wanted.getHoverName().getString()), false);
         return count;
+    }
+
+    private static int ship(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        BlockPos target = BlockPosArgument.getLoadedBlockPos(context, "target");
+        CommandSourceStack source = context.getSource();
+        Optional<WarehouseNetwork> network = networkAt(source, pos);
+        if (network.isEmpty()) {
+            return 0;
+        }
+        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        int count = IntegerArgumentType.getInteger(context, "count");
+        WarehouseNetwork.Shipping shipping = network.get().ship(target, ItemKey.of(wanted), count);
+        if (!shipping.shipped()) {
+            source.sendFailure(Component.literal("Shipping refused: " + shipping.refusal().replace('_', ' ') + " for " + wanted.getHoverName().getString()));
+            return 0;
+        }
+        int planned = shipping.shipment().map(shipment -> shipment.planned()).orElse(0);
+        BlockPos via = shipping.accessPoint();
+        source.sendSuccess(() -> Component.literal("Shipping " + planned + " " + wanted.getHoverName().getString()
+                + " via the Access Point at " + via.toShortString()), false);
+        return planned;
     }
 
     private static int producers(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
