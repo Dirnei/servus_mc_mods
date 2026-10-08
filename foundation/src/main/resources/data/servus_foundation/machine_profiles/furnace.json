@@ -1,0 +1,13 @@
+{
+  "blocks": ["minecraft:furnace"],
+  "recipe_type": "minecraft:smelting",
+  "sides": {
+    "top": "ingredients",
+    "bottom": "output",
+    "back": "upkeep",
+    "left": "upkeep",
+    "right": "upkeep",
+    "front": "off"
+  },
+  "upkeep": {"item": "minecraft:coal", "level": 16}
+}
