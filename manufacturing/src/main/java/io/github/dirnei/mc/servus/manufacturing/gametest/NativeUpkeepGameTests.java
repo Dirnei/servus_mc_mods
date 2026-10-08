@@ -1,5 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.foundation.data.DataMember;
+import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
+import io.github.dirnei.mc.servus.foundation.data.DataRole;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
@@ -10,6 +16,8 @@ import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlo
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -17,6 +25,10 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -112,5 +124,59 @@ public final class NativeUpkeepGameTests {
         crusher.inventory().setStackInSlot(CrusherBlockEntity.SLOT_INPUT, new ItemStack(Items.RAW_IRON));
         helper.assertTrue(provider.active().filter(id -> id.equals(grit.id())).isPresent(), "raw iron in the input is active");
         helper.succeed();
+    }
+
+    private static void dataDuct(GameTestHelper helper, BlockPos pos) {
+        helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        duct.addLine(Line.DATA);
+        BlockPos absolute = helper.absolutePos(pos);
+        BlockState state = helper.getLevel().getBlockState(absolute);
+        helper.getLevel().setBlock(absolute, Block.updateFromNeighbourShapes(state, helper.getLevel(), absolute), Block.UPDATE_ALL);
+    }
+
+    private static Optional<DataMember> member(GameTestHelper helper, BlockPos duct, BlockPos pos) {
+        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(duct)).flatMap(network ->
+                network.dataMembers().stream().filter(member -> member.pos().equals(helper.absolutePos(pos))).findFirst());
+    }
+
+    /** On a data line the smelter is a producer with upkeep and the Coal Generator an upkeep only member. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void burnersJoinTheDataLine(GameTestHelper helper) {
+        BlockPos smelter = new BlockPos(3, 2, 3);
+        BlockPos generator = new BlockPos(5, 2, 3);
+        BlockPos duct = new BlockPos(4, 2, 3);
+        helper.setBlock(smelter, ServusManufacturingBlocks.BURNER_SMELTER.get().defaultBlockState());
+        helper.setBlock(generator, ServusManufacturingBlocks.COAL_GENERATOR.get().defaultBlockState());
+        dataDuct(helper, duct);
+        helper.succeedWhen(() -> {
+            DataMember smelterMember = member(helper, duct, smelter).orElse(null);
+            DataMember generatorMember = member(helper, duct, generator).orElse(null);
+            helper.assertTrue(smelterMember != null && smelterMember.roles().equals(Set.of(DataRole.PRODUCER, DataRole.UPKEEP)),
+                    "the smelter should be producer and upkeep, got " + smelterMember);
+            helper.assertTrue(generatorMember != null && generatorMember.roles().equals(Set.of(DataRole.UPKEEP)),
+                    "the generator should be upkeep only, got " + generatorMember);
+        });
+    }
+
+    /** What packets do to a producer: raw iron and coal in through one face, the ingot out through it. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void smelterTakesOrderItemsThroughAFace(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 2, 3);
+        helper.setBlock(pos, ServusManufacturingBlocks.BURNER_SMELTER.get().defaultBlockState());
+        IItemHandler face = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), Direction.EAST);
+        helper.assertTrue(face != null, "the smelter should expose an item handler on its side");
+        helper.assertTrue(ItemHandlerHelper.insertItemStacked(face, new ItemStack(Items.COAL, 4), false).isEmpty(), "coal goes in");
+        helper.assertTrue(ItemHandlerHelper.insertItemStacked(face, new ItemStack(Items.RAW_IRON, 1), false).isEmpty(), "raw iron goes in");
+        BurnerSmelterBlockEntity smelter = helper.getBlockEntity(pos);
+        helper.assertTrue(smelter.inventory().getStackInSlot(BurnerSmelterBlockEntity.SLOT_FUEL).is(Items.COAL)
+                && smelter.inventory().getStackInSlot(BurnerSmelterBlockEntity.SLOT_INPUT).is(Items.RAW_IRON), "coal is fuel, raw iron the input");
+        helper.succeedWhen(() -> {
+            ItemStack out = ItemStack.EMPTY;
+            for (int slot = 0; slot < face.getSlots() && out.isEmpty(); slot++) {
+                out = face.extractItem(slot, 1, true);
+            }
+            helper.assertTrue(out.is(Items.IRON_INGOT), "the ingot should be extractable through the side, got " + out);
+        });
     }
 }

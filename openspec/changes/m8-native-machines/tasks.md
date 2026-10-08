@@ -13,8 +13,8 @@
 
 ## 3. Storage
 
-- [ ] 3.1 `ProductionView.machines` over producer and upkeep members, upkeep from the capability, state `upkeep_only` with its lang entry in `ServusStorageLanguageProvider` and the screen. Verify with `gradlew build` and `:storage:runGameTestServer`.
-- [ ] 3.2 Storage GameTests in a new `NativeMachineGameTests`: `smelterFuelRefilledFromWarehouse`, `orderRunsOnBurnerSmelter`, `coalGeneratorIsUpkeepOnly` (member role and terminal view). Verify with `:storage:runGameTestServer` all green.
+- [x] 3.1 `ProductionView.machines` over producer and upkeep members, upkeep from the capability, state `upkeep_only` with its lang entry in `ServusStorageLanguageProvider` and the screen. Verify with `gradlew build` and `:storage:runGameTestServer`.
+- [x] 3.2 Storage may not reference Manufacturing blocks, so the smelter tests live in Manufacturing (`NativeUpkeepGameTests`): `burnersJoinTheDataLine` (smelter producer and upkeep, Coal Generator upkeep only, through a Foundation data duct) and `smelterTakesOrderItemsThroughAFace` (coal and raw iron in through a side, the ingot out through it, as packets do); the keeper's refill from a warehouse stays covered by `AdapterOrderGameTests.adapterUpkeepFromWarehouse`. Verify with `:manufacturing:runGameTestServer` and `:storage:runGameTestServer` all green.
 
 ## 4. Docs and data
 

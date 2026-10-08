@@ -43,6 +43,7 @@
   "gui.servus_storage.production.machine_state.no_recipes": "no recipes",
   "gui.servus_storage.production.machine_state.station_crafting": "crafting %s, %s left",
   "gui.servus_storage.production.machine_state.station_idle": "idle",
+  "gui.servus_storage.production.machine_state.upkeep_only": "upkeep only",
   "gui.servus_storage.production.machine_state.working": "working on %s",
   "gui.servus_storage.production.new_pattern": "+ New pattern",
   "gui.servus_storage.production.new_pattern_hint": "Encode a Blank Pattern from your inventory",

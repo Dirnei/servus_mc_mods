@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
@@ -90,7 +91,8 @@ public final class ProductionView {
 
     private static List<MachineRow> machines(ServerLevel level, DataNetwork line) {
         List<MachineRow> rows = new ArrayList<>();
-        List<DataMember> producers = new ArrayList<>(line.dataMembers(DataRole.PRODUCER));
+        List<DataMember> producers = new ArrayList<>(line.dataMembers().stream()
+                .filter(member -> member.has(DataRole.PRODUCER) || member.has(DataRole.UPKEEP)).toList());
         producers.sort(Comparator.comparingLong(member -> member.pos().asLong()));
         for (DataMember member : producers) {
             if (!level.isLoaded(member.pos())) {
@@ -101,6 +103,16 @@ public final class ProductionView {
                 ItemStack crafting = station.working() ? station.job().orElseThrow().result().copyWithCount(1) : ItemStack.EMPTY;
                 rows.add(new MachineRow(member.pos(), name(level, member.pos()), crafting,
                         crafting.isEmpty() ? "station_idle" : "station_crafting", station.jobLeft(), List.of()));
+                continue;
+            }
+            UpkeepHolder upkeep = level.getCapability(ServusFoundationCapabilities.UPKEEP, member.pos(), null);
+            boolean keeps = upkeep != null && !upkeep.upkeepItem().isEmpty() && upkeep.upkeepLevel() > 0;
+            ItemStack upkeepItem = keeps ? upkeep.upkeepItem().copyWithCount(1) : ItemStack.EMPTY;
+            int upkeepCount = keeps ? upkeep.upkeepCount() : 0;
+            int upkeepLevel = keeps ? upkeep.upkeepLevel() : 0;
+            if (!member.has(DataRole.PRODUCER)) {
+                rows.add(new MachineRow(member.pos(), name(level, member.pos()), ItemStack.EMPTY, "upkeep_only", 0, List.of(),
+                        upkeepItem, upkeepCount, upkeepLevel));
                 continue;
             }
             ProductionProvider provider = level.getCapability(ServusFoundationCapabilities.PRODUCTION, member.pos(), null);
@@ -120,13 +132,9 @@ public final class ProductionView {
                 }
             }
             String state = !working.isEmpty() ? "working" : recipes.isEmpty() ? "no_recipes" : "idle";
-            if (level.getBlockEntity(member.pos()) instanceof MachineAdapterBlockEntity adapter) {
-                String machine = adapter.machineName().getString() + " (adapter)";
-                rows.add(new MachineRow(member.pos(), machine, working, state, 0, recipeRows,
-                        adapter.upkeepItem().copy(), adapter.upkeepCount(), adapter.upkeepLevel()));
-                continue;
-            }
-            rows.add(new MachineRow(member.pos(), name(level, member.pos()), working, state, 0, recipeRows));
+            String machine = level.getBlockEntity(member.pos()) instanceof MachineAdapterBlockEntity adapter
+                    ? adapter.machineName().getString() + " (adapter)" : name(level, member.pos());
+            rows.add(new MachineRow(member.pos(), machine, working, state, 0, recipeRows, upkeepItem, upkeepCount, upkeepLevel));
         }
         return rows;
     }

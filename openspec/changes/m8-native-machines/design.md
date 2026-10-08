@@ -51,7 +51,7 @@ M8 is complete with this change; the M8 heading gets a short "done" note matchin
 - Pure: `UpkeepBookTest` (first ask, open request blocks, arrival completes, timeout reopens, retain forgets, level met asks nothing).
 - Foundation GameTests: adapter tests stay green; a holder probe through the capability on an adapter.
 - Manufacturing GameTests: each burner machine exposes upkeep for its fuel slot with coal 16; Burner Smelter and Crusher report production recipes and the active one; electric extractor has no upkeep.
-- Storage GameTests: Burner Smelter on a data line gets coal from the warehouse; an order for iron ingots runs on a Burner Smelter; Coal Generator is an upkeep member and listed upkeep only in the terminal view; adapter refill still works.
+- Storage GameTests may not reference Manufacturing blocks (the content mods stay independent), so the cross mod path is split: the keeper's refill from a warehouse is covered by the adapter's Storage GameTest (same keeper, same supplier), and Manufacturing GameTests cover the smelter's and generator's roles on a Foundation data duct and the item path through a face that packets use. A full order on a Burner Smelter and the Coal Generator row in the terminal are checked in game.
 
 ## Risks / Trade-offs
 
