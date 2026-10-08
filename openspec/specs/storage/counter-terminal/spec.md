@@ -177,6 +177,10 @@ Clicking a craftable item that is not in stock, or Ctrl clicking or middle click
 - **WHEN** no formed Crafting CPU is on the line
 - **THEN** Start is disabled and the dialog says there is no CPU
 
+#### Scenario: Alternatives in the preview
+- **WHEN** the player opens the craft dialog for 10 charcoal with a furnace adapter on the line and the warehouse holds 6 oak logs and 4 birch logs but no acacia
+- **THEN** the preview shows 6 oak logs and 4 birch logs from stock, 10 charcoal to craft and nothing missing
+
 ### Requirement: Craft request
 Start SHALL create a work order for the full amount on a Crafting CPU of the line, independent of the stock of the item itself, linked to a new request of the terminal that shows producing. The crafted items SHALL be put away and delivered into the output slots like any request. Cancelling the request SHALL cancel the order.
 
