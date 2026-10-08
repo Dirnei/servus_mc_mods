@@ -8,6 +8,8 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
+import io.github.dirnei.mc.servus.storage.order.OrderStep;
+import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -89,6 +91,30 @@ public final class CpuOrders {
         List<CpuBlockEntity> list = new ArrayList<>(found);
         list.sort(Comparator.comparingLong(cpu -> cpu.getBlockPos().asLong()));
         return list;
+    }
+
+    /**
+     * A neighbour of an Access Point pushed {@code count} of the key into it.
+     * Counts them for the running steps of the line's CPUs that run on that
+     * neighbour and make the key, oldest order first.
+     */
+    public static void creditPushed(ServerLevel level, BlockPos accessPoint, BlockPos neighbour, ItemKey key, int count) {
+        int left = count;
+        for (CpuBlockEntity cpu : cpus(level, accessPoint)) {
+            for (WorkOrder order : cpu.book().orders()) {
+                if (!order.open()) {
+                    continue;
+                }
+                for (OrderStep step : order.steps()) {
+                    if (left <= 0) {
+                        return;
+                    }
+                    if (step.active() && step.producer().equals(neighbour) && step.produces(key)) {
+                        left -= step.creditPushed(key, left);
+                    }
+                }
+            }
+        }
     }
 
     public static List<CpuBlockEntity> cpus(ServerLevel level, BlockPos pos) {

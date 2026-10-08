@@ -6,7 +6,7 @@
 
 ## 2. Credit pushed outputs
 
-- [ ] 2.1 `OrderStep.creditPushed(ItemKey, int)` capped at the step's need; `CpuOrders.creditPushed(ServerLevel, BlockPos accessPoint, BlockPos neighbour, ItemKey, int)` over the line's CPUs and open orders; `AccessPointBlockEntity.handlerFor(side)` returns cached per side wrappers that credit real inserts. Verify with `gradlew build`, `gradlew test` and `:storage:runGameTestServer` (both new tests green, all others green), plus `:foundation:` and `:manufacturing:runGameTestServer`.
+- [x] 2.1 `OrderStep.creditPushed(ItemKey, int)` capped at the step's need; `CpuOrders.creditPushed(ServerLevel, BlockPos accessPoint, BlockPos neighbour, ItemKey, int)` over the line's CPUs and open orders; `AccessPointBlockEntity.handlerFor(side)` returns cached per side wrappers that credit real inserts. Verify with `gradlew build`, `gradlew test` and `:storage:runGameTestServer` (both new tests green, all others green), plus `:foundation:` and `:manufacturing:runGameTestServer`.
 
 ## 3. Integration
 

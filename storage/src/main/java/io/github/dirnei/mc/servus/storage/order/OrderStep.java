@@ -154,6 +154,27 @@ public final class OrderStep {
         }
     }
 
+    /**
+     * The producer pushed outputs of the key into an Access Point on its own.
+     * Counts up to what the step still needs of the key.
+     *
+     * @return how many were counted
+     */
+    public int creditPushed(ItemKey key, int count) {
+        int wanted = 0;
+        for (ItemStack output : recipe.outputs()) {
+            if (ItemKey.of(output).equals(key)) {
+                wanted += output.getCount() * batches;
+            }
+        }
+        int credit = Math.min(count, wanted - collected(key));
+        if (credit <= 0) {
+            return 0;
+        }
+        collected.merge(key, credit, Integer::sum);
+        return credit;
+    }
+
     public int collected(ItemKey key) {
         return collected.getOrDefault(key, 0);
     }

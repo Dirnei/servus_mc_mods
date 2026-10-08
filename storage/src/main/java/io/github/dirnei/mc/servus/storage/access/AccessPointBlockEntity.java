@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.access;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
+import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -98,6 +99,7 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
     private Delivery running;
     private Shipment runningFor;
     private int sendTimer;
+    private final IItemHandler[] faces = new IItemHandler[6];
 
     public AccessPointBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.ACCESS_POINT.get(), pos, state);
@@ -112,10 +114,67 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
         return outgoing;
     }
 
-    /** Packets may arrive through any face, the front included. */
+    /**
+     * Packets may arrive through any face, the front included. An insert
+     * through a face counts for the CPU step running on the block behind that
+     * face, so a producer that pushes its outputs in on its own is counted.
+     */
     @Override
     public IItemHandler handlerFor(Direction side) {
-        return intake();
+        if (side == null) {
+            return intake();
+        }
+        IItemHandler handler = faces[side.ordinal()];
+        if (handler == null) {
+            handler = new PushCredit(side);
+            faces[side.ordinal()] = handler;
+        }
+        return handler;
+    }
+
+    /** The intake seen through one face; real inserts are credited to the neighbour's running step. */
+    private final class PushCredit implements IItemHandler {
+
+        private final Direction side;
+
+        private PushCredit(Direction side) {
+            this.side = side;
+        }
+
+        @Override
+        public int getSlots() {
+            return intake().getSlots();
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return intake().getStackInSlot(slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            ItemStack left = intake().insertItem(slot, stack, simulate);
+            int inserted = stack.getCount() - left.getCount();
+            if (!simulate && inserted > 0 && level instanceof ServerLevel server) {
+                CpuOrders.creditPushed(server, worldPosition, worldPosition.relative(side), ItemKey.of(stack), inserted);
+            }
+            return left;
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return intake().extractItem(slot, amount, simulate);
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return intake().getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return intake().isItemValid(slot, stack);
+        }
     }
 
     /** Open shipments, oldest first. */
