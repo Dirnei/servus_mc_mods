@@ -17,67 +17,29 @@ The Production Terminal SHALL be a horizontal facing block that holds no items a
 - **THEN** its lamp is dark and its screen says that no CPU or warehouse is on the line
 
 ### Requirement: Tab bar
-The screen SHALL show a tab bar with an Orders tab, a Machines tab and a Patterns tab, the Orders tab selected when the screen opens. Clicking a tab SHALL show its content. The bar SHALL leave room for further tabs.
+The screen SHALL show a tab bar with a Crafting tab, a Patterns tab and a Machines tab, the Crafting tab selected when the screen opens. Clicking a tab SHALL show its content. The bar SHALL leave room for further tabs.
 
 #### Scenario: Switch tab
 - **WHEN** the player clicks the Machines tab
-- **THEN** the screen shows the producers of the line
+- **THEN** the screen shows the status of the producers of the line
 
 #### Scenario: Patterns tab
 - **WHEN** the player clicks the Patterns tab
 - **THEN** the screen shows the patterns of the line and the capacity bar
 
-### Requirement: Machines tab
-The Machines tab SHALL list every member of the data line with the producer or the upkeep role with its block name and its state: working on an item when the producer reports an active recipe, idle when it has recipes and none runs, no recipes when it has none. A Crafting Station SHALL instead show crafting an item with the crafts left while it has a job, or idle, and one line saying it crafts any pattern. A Machine Adapter SHALL be named after the machine it faces with "(adapter)" added. Every member with upkeep SHALL show its upkeep item with the count it holds and the level. A member with upkeep but without the producer role SHALL show the state "upkeep only" instead of a recipe state. Under each other producer it SHALL list the recipes it reports as outputs from inputs with their time. The list SHALL scroll with the mouse wheel when it does not fit.
-
-#### Scenario: Crafting Station with sticks
-- **WHEN** a Crafting Station without a job is on a line that has a sticks pattern
-- **THEN** the Machines tab lists the Crafting Station as idle and says it crafts any pattern, with no recipe list
-
-#### Scenario: Crafting Station at work
-- **WHEN** a Crafting Station has a sticks job with 2 crafts left
-- **THEN** the Machines tab lists it as crafting sticks, 2 left
-
-#### Scenario: No producers
-- **WHEN** the line has no producer
-- **THEN** the Machines tab says that no machines are on the line
-
-#### Scenario: Adapter on a furnace
-- **WHEN** a Machine Adapter faces a furnace holding 12 coal with an upkeep level of 16
-- **THEN** the Machines tab lists "Furnace (adapter)" with upkeep Coal 12 of 16 and its smelting recipes
-
-#### Scenario: Coal Generator
-- **WHEN** a Coal Generator holding 9 coal with an upkeep level of 16 is on the line
-- **THEN** the Machines tab lists Coal Generator as upkeep only with upkeep Coal 9 of 16
-
-#### Scenario: Burner Smelter
-- **WHEN** a Burner Smelter is on the line
-- **THEN** the Machines tab lists it with its state, its upkeep and its smelting recipes
-
-### Requirement: Orders tab
-The Orders tab SHALL list every formed Crafting CPU of the line, lowest position first, with how many of its order slots are in use, its slot count and how many of its orders wait. Under each CPU it SHALL list its orders with id, item, amount, state, blocked reason and source (request, stock rule or manual), and under each order its steps with the producer's name, the step output, its batches, its state and its reason. The list SHALL scroll with the mouse wheel when it does not fit.
-
-#### Scenario: Running order
-- **WHEN** a CPU on the line runs a request's order for 8 sticks with one step on a Crafting Station
-- **THEN** the Orders tab shows the CPU with 1 of 2 slots in use and 0 waiting, the order for 8 sticks from a request, and its sticks step on the Crafting Station with its state
-
-#### Scenario: No CPU
-- **WHEN** the line has no formed Crafting CPU
-- **THEN** the Orders tab says that no Crafting CPU is on the line
-
 ### Requirement: Cancel from the terminal
-Clicking an open order in the Orders tab SHALL cancel it on its CPU like any cancel: steps not yet fed are dropped and their reservations released; a linked request keeps its missing amount. Done and cancelled orders SHALL NOT react to clicks.
+Clicking the cancel button of an open job in the Crafting tab SHALL cancel it on its CPU like any cancel: steps not yet fed are dropped and their reservations released; a linked request keeps its missing amount. Done and cancelled jobs SHALL show no cancel button.
 
 #### Scenario: Cancel
-- **WHEN** a player clicks an open sticks order in the Orders tab
+- **WHEN** a player clicks the cancel button of an open sticks job in the Crafting tab
 - **THEN** the order is cancelled on its CPU and its reserved planks are available again
 
 ### Requirement: Live view
-The terminal SHALL send its full content when the game opens the screen, without waiting for the periodic update. The client SHALL keep the last content of each terminal for the session and SHALL show it at once when that terminal is opened again, replacing it when the fresh content arrives; the screen SHALL show a loading hint only while it has no content for that terminal yet. While the screen is open the terminal SHALL send the current CPUs, machines, orders, patterns and pattern capacity every half second when something changed, and nothing when nothing changed.
+The terminal SHALL send its full content when the game opens the screen, without waiting for the periodic update. The client SHALL keep the last content of each terminal for the session and SHALL show it at once when that terminal is opened again, replacing it when the fresh content arrives; the screen SHALL show a loading hint only while it has no content for that terminal yet. While the screen is open the terminal SHALL send the current CPUs, jobs, machine states, patterns and pattern capacity every half second when something changed, and nothing when nothing changed. The content SHALL carry no recipe lists, only how many items a member can make.
 
 #### Scenario: Step progresses
-- **WHEN** the sticks step changes from delivering to producing while the screen is open
-- **THEN** the screen shows producing within half a second
+- **WHEN** the sticks step changes from getting its ingredients to crafting while the screen is open
+- **THEN** the screen shows the crafting step within half a second
 
 #### Scenario: Pattern added elsewhere
 - **WHEN** another player saves a pattern from a second Production Terminal on the same line while the screen is open
@@ -110,8 +72,70 @@ With JEI installed, the transfer button on a vanilla crafting recipe SHALL open 
 - **THEN** the editor opens with a plank above a plank and the preview shows four sticks
 
 ### Requirement: Screen layout
-The Production Terminal screen SHALL show the title on its own row, the tab bar on the row below it and the list below the tab bar, so the title, the tabs and the rows never overlap; the pattern editor SHALL cover the list area with the player inventory below it, inside the panel. The panel SHALL fit a 1080p screen at the automatic GUI scale.
+The Production Terminal screen SHALL show the title on its own row, the tab bar on the row below it and the list below the tab bar, so the title, the tabs and the rows never overlap; the parts of a job row (icon, name, progress bar, step text, cancel button) and of a machine row (icon, name, state, upkeep bar) SHALL not overlap and SHALL fit the list width; the pattern editor SHALL cover the list area with the player inventory below it, inside the panel. The panel SHALL fit a 1080p screen at the automatic GUI scale.
 
 #### Scenario: Title and tabs
 - **WHEN** the screen opens with all three tabs
 - **THEN** the title and the tabs do not overlap
+
+#### Scenario: Job row
+- **WHEN** a job row shows a long item name and a long step text
+- **THEN** the texts are cut short before the progress bar and the cancel button
+
+### Requirement: Crafting tab
+The Crafting tab SHALL list every job of the formed Crafting CPUs of the line, open jobs first and then oldest first, one row each with the item icon, the amount and item name, a progress bar of the items made against the amount, the current step in plain words and a cancel button. Above the jobs a one line header SHALL count the CPUs and their slots in use; its tooltip SHALL list each CPU with its slots and waiting jobs.
+
+#### Scenario: Running job
+- **WHEN** a CPU on the line runs a job for 8 sticks whose step on a Crafting Station has made 4 sticks of 2 crafts
+- **THEN** the row shows 8 Stick, a half full progress bar and "Crafting Station: crafting 1 of 2"
+
+#### Scenario: Missing ingredient
+- **WHEN** a job waits because 3 Oak Planks are missing
+- **THEN** its row says "Waiting: 3 Oak Planks missing"
+
+#### Scenario: Waiting for a CPU slot
+- **WHEN** a job waits for a free CPU slot
+- **THEN** its row says "Waiting for a CPU"
+
+#### Scenario: Out of fuel
+- **WHEN** a job's step runs on a furnace adapter whose furnace has no upkeep left
+- **THEN** its row says "Waiting: Furnace (adapter) out of fuel"
+
+#### Scenario: Header
+- **WHEN** the line has two CPUs with 2 slots each and one open job
+- **THEN** the header reads "2 CPUs, 1 of 4 slots"
+
+#### Scenario: Finished job fades
+- **WHEN** a job is done
+- **THEN** its row shows "Done" with a full bar and disappears a few seconds later
+
+#### Scenario: No CPU
+- **WHEN** the line has no formed Crafting CPU
+- **THEN** the Crafting tab says that no Crafting CPU is on the line
+
+### Requirement: Machines status tab
+The Machines tab SHALL list every member of the data line with the producer or the upkeep role in one compact row with its icon, its name and its state, and an upkeep bar when it keeps upkeep. States SHALL be: crafting an item (with crafts left for a Crafting Station), idle, out of fuel when its upkeep is empty, blocked with the reason a step on it waits for, no machine for a Machine Adapter that faces nothing it knows, no recipes, and upkeep only for a member without the producer role. Rows with a problem (out of fuel, blocked, no machine, no recipes) SHALL come first. The tab SHALL NOT list recipes; the row tooltip SHALL say how many different items the member can make, or that a Crafting Station crafts any pattern. A Machine Adapter SHALL be named after the machine it faces with "(adapter)" added and show that machine's icon.
+
+#### Scenario: Idle station
+- **WHEN** a Crafting Station without a job is on the line
+- **THEN** its row says idle and its tooltip says it crafts any pattern
+
+#### Scenario: Station at work
+- **WHEN** a Crafting Station has a sticks job with 2 crafts left
+- **THEN** its row says crafting Stick, 2 left
+
+#### Scenario: Furnace adapter
+- **WHEN** a Machine Adapter faces a furnace holding 12 coal with an upkeep level of 16
+- **THEN** the row reads "Furnace (adapter)" with an upkeep bar at 12 of 16, and its tooltip gives the number of items it can smelt instead of a recipe list
+
+#### Scenario: Out of fuel first
+- **WHEN** one furnace adapter has coal and another has none
+- **THEN** the empty one is listed first as out of fuel
+
+#### Scenario: Coal Generator
+- **WHEN** a Coal Generator holding 9 coal with an upkeep level of 16 is on the line
+- **THEN** its row says upkeep only with an upkeep bar at 9 of 16
+
+#### Scenario: No producers
+- **WHEN** the line has no producer
+- **THEN** the Machines tab says that no machines are on the line

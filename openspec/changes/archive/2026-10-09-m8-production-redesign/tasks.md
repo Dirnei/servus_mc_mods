@@ -18,4 +18,4 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build` and `gradlew test` green, `:storage:runGameTestServer` green, every payload type registered.
+- [x] 5.1 Full `gradlew build` and `gradlew test` green, `:storage:runGameTestServer` green, every payload type registered.
