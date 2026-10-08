@@ -17,4 +17,4 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Full `gradlew build` and `gradlew test` green, all GameTest suites green, `runClientAll` reaches the title screen without asset warnings.
+- [x] 4.1 Full `gradlew build` and `gradlew test` green, all GameTest suites green, `runClientAll` reaches the title screen without asset warnings.

@@ -54,12 +54,12 @@ Saving a new pattern in the Production Terminal's editor SHALL match the 3x3 gho
 - **THEN** the pattern is gone from its Pattern Storage and the player gets a Blank Pattern
 
 ### Requirement: CPU plans with patterns
-A Crafting CPU SHALL plan with the patterns of its data line in addition to the recipes producers report. A pattern SHALL be usable when a producer on the line can execute it; until Crafting Stations are the CPU's hands, a Crafting Station can execute a pattern when its own recipe list holds the same recipe id with the same items. A pattern step SHALL run on such a producer like any step, with the pattern's items as inputs and its result as output.
+A Crafting CPU SHALL plan with the patterns of its data line in addition to the recipes producers report. A pattern SHALL be usable when a producer on the line can execute it; every Crafting Station on the line can execute every crafting pattern. A pattern step SHALL run on such a producer like any step, with the pattern's items as inputs and its result as output, stations that are not busy preferred.
 
 #### Scenario: Pattern with a matching station
-- **WHEN** the line has a sticks pattern and a Crafting Station configured with the same sticks recipe, and a terminal requests 8 sticks that are not in stock
+- **WHEN** the line has a sticks pattern and a Crafting Station without any job, and a terminal requests 8 sticks that are not in stock
 - **THEN** the CPU makes an order whose step runs the sticks pattern on that station
 
 #### Scenario: Pattern without a producer
-- **WHEN** the line has a sticks pattern and no producer can execute it
+- **WHEN** the line has a sticks pattern and no Crafting Station
 - **THEN** the pattern does not make sticks orderable
