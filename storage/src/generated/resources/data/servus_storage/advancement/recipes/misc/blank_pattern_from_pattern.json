@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_pattern": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_storage:pattern"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_storage:blank_pattern_from_pattern"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_pattern"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_storage:blank_pattern_from_pattern"
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
+import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackRecipe;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.concurrent.CompletableFuture;
@@ -176,6 +177,18 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .requires(Tags.Items.DYES)
                 .unlockedBy("has_paper", has(Items.PAPER))
                 .save(output);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ServusStorageItems.BLANK_PATTERN.get())
+                .requires(Items.PAPER)
+                .requires(Items.REDSTONE)
+                .unlockedBy("has_paper", has(Items.PAPER))
+                .save(output);
+
+        // Any Pattern alone wipes back to a Blank Pattern; the ingredient ignores the encoded recipe.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ServusStorageItems.BLANK_PATTERN.get())
+                .requires(ServusStorageItems.PATTERN.get())
+                .unlockedBy("has_pattern", has(ServusStorageItems.PATTERN.get()))
+                .save(output, ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "blank_pattern_from_pattern"));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.SHUTTLE.get())
                 .pattern("I I")

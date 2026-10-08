@@ -6,7 +6,7 @@
 
 ## 2. Pattern items
 
-- [ ] 2.1 Add `EncodedPattern` with codec and stream codec and the `pattern` data component in `ServusStorageComponents`; items `blank_pattern` and `pattern` (`PatternItem` with tooltip) in `ServusStorageItems` and the creative tab; recipes (blank from paper and redstone, pattern alone back to blank) in `ServusStorageRecipeProvider`; item models and textures (PNG helper); lang. Run `:storage:runData`, verify with `gradlew build`.
+- [x] 2.1 Add `EncodedPattern` with codec and stream codec and the `pattern` data component in `ServusStorageComponents`; items `blank_pattern` and `pattern` (`PatternItem` with tooltip) in `ServusStorageItems` and the creative tab; recipes (blank from paper and redstone, pattern alone back to blank) in `ServusStorageRecipeProvider`; item models and textures (PNG helper); lang. Run `:storage:runData`, verify with `gradlew build`.
 
 ## 3. Pattern Storage
 

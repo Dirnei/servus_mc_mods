@@ -89,6 +89,10 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.garage.paused", "Paused");
         add(ServusStorageItems.SHUTTLE.get(), "Shuttle");
         add(ServusStorageItems.ZONE_LABEL.get(), "Zone Label");
+        add(ServusStorageItems.BLANK_PATTERN.get(), "Blank Pattern");
+        add(ServusStorageItems.PATTERN.get(), "Pattern");
+        add("item.servus_storage.pattern.recipe", "%s %s from %s");
+        add("item.servus_storage.pattern.empty", "Not encoded");
         add("message.servus_storage.zone_label.unnamed", "Give the label a name first: right click the air with it");
         add("message.servus_storage.zone_label.stamped", "Zone: %s");
         add("message.servus_storage.zone_label.cleared", "Zone cleared");
