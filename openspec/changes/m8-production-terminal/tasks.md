@@ -3,7 +3,7 @@
 ## 1. Block on the data line
 
 - [x] 1.1 Add `storage/production/ProductionTerminalBlock` and `ProductionTerminalBlockEntity` (facing, online lamp refreshed every 20 ticks from CPUs and warehouses on the line, `DataLink`), register block, item, block entity, the `DATA_LINK` capability in `ServusStorageEvents` and the creative tab order. Verify with `gradlew build`.
-- [ ] 1.2 Datagen: oriented block state, item model, loot (drop self), pickaxe tag, recipe, lang; textures `production_terminal_front`, `production_terminal_front_online`, `production_terminal_side`, `production_terminal_top` via the PNG helper; copy the GUI panel to `textures/gui/production_terminal.png`. Run `:storage:runData`, verify the generated files, then `gradlew build`.
+- [x] 1.2 Datagen: oriented block state, item model, loot (drop self), pickaxe tag, recipe, lang; textures `production_terminal_front`, `production_terminal_front_online`, `production_terminal_side`, `production_terminal_top` via the PNG helper; copy the GUI panel to `textures/gui/production_terminal.png`. Run `:storage:runData`, verify the generated files, then `gradlew build`.
 
 ## 2. View model, menu and payloads
 

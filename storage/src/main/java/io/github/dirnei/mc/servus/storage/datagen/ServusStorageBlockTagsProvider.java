@@ -24,7 +24,8 @@ final class ServusStorageBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get()).add(ServusStorageBlocks.RAIL.get())
                 .add(ServusStorageBlocks.ELEVATOR.get()).add(ServusStorageBlocks.HEAVY_RACK.get())
                 .add(ServusStorageBlocks.INBOUND_STATION.get()).add(ServusStorageBlocks.ACCESS_POINT.get()).add(ServusStorageBlocks.SHUTTLE_GARAGE.get())
-                .add(ServusStorageBlocks.OUTBOUND_STATION.get()).add(ServusStorageBlocks.CRAFTING_CPU.get());
+                .add(ServusStorageBlocks.OUTBOUND_STATION.get()).add(ServusStorageBlocks.CRAFTING_CPU.get())
+                .add(ServusStorageBlocks.PRODUCTION_TERMINAL.get());
         tag(BlockTags.CLIMBABLE).add(ServusStorageBlocks.ELEVATOR.get());
     }
 }
