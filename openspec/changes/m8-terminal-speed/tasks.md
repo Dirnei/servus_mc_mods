@@ -15,4 +15,4 @@
 
 ## 4. Docs and wrap up
 
-- [ ] 4.1 Note in `docs/src/content/docs/mods/storage.md` that terminals open with their last content at once; run the docs tests. Verify with `npx vitest run` in `docs/` and `gradlew build test`.
+- [x] 4.1 Note in `docs/src/content/docs/mods/storage.md` that terminals open with their last content at once; run the docs tests. Verify with `npx vitest run` in `docs/` and `gradlew build test`.

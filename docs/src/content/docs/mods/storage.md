@@ -15,7 +15,7 @@ Numbers below are the current defaults. They live in datapack JSON under `data/<
 ## Warehouse blocks
 
 - **Warehouse Controller**: exactly one per network makes it online. Indexes every storage block and every foreign inventory that touches one, polling a few sources per tick.
-- **Counter Terminal**: sits on a data line, not on the rails. Search the stock of every warehouse it reaches, request an amount, push items in. Deliveries arrive as packets in its nine output slots. Also edits stock rules.
+- **Counter Terminal**: sits on a data line, not on the rails. Search the stock of every warehouse it reaches, request an amount, push items in. Deliveries arrive as packets in its nine output slots. Also edits stock rules. Both terminals open with their content right away: a terminal you opened before in this session shows its last content at once, and the fresh content replaces it a moment later.
 - **Warehouse Rail**: a flat floor rail that connects to neighboring rails and docks onto storage blocks and stations. Rails link everything they touch into one network and carry shuttles.
 - **Rail Elevator**: stacked shaft segments that link rails on different floors.
 - **Shuttle Garage**: holds up to four Shuttles. Its back rail is their home. More garages mean more shuttles.
