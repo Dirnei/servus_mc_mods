@@ -10,4 +10,4 @@
 
 ## 3. Integration
 
-- [ ] 3.1 Full `gradlew build` and `gradlew test` green and all three GameTest runs green; docs mention that the planner picks alternatives by stock (Storage page, craft section). Verify with `npx vitest run` in `docs/`.
+- [x] 3.1 Full `gradlew build` and `gradlew test` green and all three GameTest runs green; docs mention that the planner picks alternatives by stock (Storage page, craft section). Verify with `npx vitest run` in `docs/`.
