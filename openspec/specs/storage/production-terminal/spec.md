@@ -1,0 +1,60 @@
+# storage/production-terminal Specification
+
+## Purpose
+The Production Terminal is the production overview on the data line: it shows what the producers of the line can make and what the Crafting CPUs of the line are making, and lets a player cancel an order.
+
+## Requirements
+
+### Requirement: Terminal on the data line
+The Production Terminal SHALL be a horizontal facing block that holds no items and joins the data line it touches as a member with the link role. It SHALL show the online lamp while a formed Crafting CPU or an online warehouse is reachable on that line, checked regularly, and the dark lamp otherwise. Right click with an empty hand SHALL open its screen. The carrot SHALL turn it and the sneak carrot SHALL dismantle it; it SHALL drop itself when broken and be craftable.
+
+#### Scenario: Lamp
+- **WHEN** a Production Terminal touches a data duct whose line has a formed Crafting CPU
+- **THEN** the duct shows an arm toward the terminal, the network lists it as a link member and its lamp is lit
+
+#### Scenario: Alone
+- **WHEN** a Production Terminal touches no data line
+- **THEN** its lamp is dark and its screen says that no CPU or warehouse is on the line
+
+### Requirement: Tab bar
+The screen SHALL show a tab bar with a Machines tab and an Orders tab, the Orders tab selected when the screen opens. Clicking a tab SHALL show its content. The bar SHALL leave room for further tabs.
+
+#### Scenario: Switch tab
+- **WHEN** the player clicks the Machines tab
+- **THEN** the screen shows the producers of the line
+
+### Requirement: Machines tab
+The Machines tab SHALL list every member of the data line with the producer role with its block name and its state: working on an item when the producer reports an active recipe, idle when it has recipes and none runs, no recipes when it has none. Under each producer it SHALL list the recipes it reports as outputs from inputs with their time. The list SHALL scroll with the mouse wheel when it does not fit.
+
+#### Scenario: Crafting Station with sticks
+- **WHEN** a Crafting Station with the sticks recipe and no inputs is on the line
+- **THEN** the Machines tab lists the Crafting Station as idle with one recipe, 4 sticks from 2 oak planks
+
+#### Scenario: No producers
+- **WHEN** the line has no producer
+- **THEN** the Machines tab says that no machines are on the line
+
+### Requirement: Orders tab
+The Orders tab SHALL list every formed Crafting CPU of the line, lowest position first, with how many of its order slots are in use, its slot count and how many of its orders wait. Under each CPU it SHALL list its orders with id, item, amount, state, blocked reason and source (request, stock rule or manual), and under each order its steps with the producer's name, the step output, its batches, its state and its reason. The list SHALL scroll with the mouse wheel when it does not fit.
+
+#### Scenario: Running order
+- **WHEN** a CPU on the line runs a request's order for 8 sticks with one step on a Crafting Station
+- **THEN** the Orders tab shows the CPU with 1 of 2 slots in use and 0 waiting, the order for 8 sticks from a request, and its sticks step on the Crafting Station with its state
+
+#### Scenario: No CPU
+- **WHEN** the line has no formed Crafting CPU
+- **THEN** the Orders tab says that no Crafting CPU is on the line
+
+### Requirement: Cancel from the terminal
+Clicking an open order in the Orders tab SHALL cancel it on its CPU like any cancel: steps not yet fed are dropped and their reservations released; a linked request keeps its missing amount. Done and cancelled orders SHALL NOT react to clicks.
+
+#### Scenario: Cancel
+- **WHEN** a player clicks an open sticks order in the Orders tab
+- **THEN** the order is cancelled on its CPU and its reserved planks are available again
+
+### Requirement: Live view
+While the screen is open the terminal SHALL send the current CPUs, machines and orders every half second when something changed, and nothing when nothing changed.
+
+#### Scenario: Step progresses
+- **WHEN** the sticks step changes from delivering to producing while the screen is open
+- **THEN** the screen shows producing within half a second
