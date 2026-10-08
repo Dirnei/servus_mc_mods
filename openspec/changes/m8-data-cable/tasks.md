@@ -20,4 +20,4 @@ The first version (standalone Data Cable block, pure `DataMembers`, `DataNetwork
 
 ## 5. Docs and integration
 
-- [ ] 5.1 Add a Data line section to `docs/src/content/docs/mods/foundation.md`; run `npx vitest run` in `docs/`. Full `gradlew build` and `gradlew test` green, all GameTest runs green, and `runClientAll` reaches the title screen.
+- [x] 5.1 Add a Data line section to `docs/src/content/docs/mods/foundation.md`; run `npx vitest run` in `docs/`. Full `gradlew build` and `gradlew test` green, all GameTest runs green, and `runClientAll` reaches the title screen.

@@ -14,6 +14,7 @@ Foundation loads on its own, and each content mod loads with only Foundation ins
 - **Item Pipe**: places a duct with an item line, or adds the item line to a duct that lacks it. Eight from iron ingots, glass and a chest.
 - **Power Cable**: places a duct with an energy line, or adds it to a duct. Eight from copper ingots, redstone and glass.
 - **Fluid Pipe**: places a duct with a fluid line, or adds it to a duct. Eight from iron ingots, glass and a bucket.
+- **Data Cable**: places a duct with the data line, or adds it to a duct. Four from two copper ingots and a redstone dust.
 - **Facade**: any full block without a block entity plus one iron ingot gives six facades of that block. Use one on a duct to make it look like that block.
 - **Fluid Tank**: a glass block that holds one fluid. Iron ingots and glass.
 
@@ -21,7 +22,7 @@ All of them are listed in the Servus creative tab.
 
 ## Utility Duct
 
-One block that carries up to three lines: Item Pipe, Power Cable and Fluid Pipe. It works with any block that offers the standard item, energy or fluid capability.
+One block that carries up to four lines: Item Pipe, Power Cable, Fluid Pipe and the data line. It works with any block that offers the standard item, energy or fluid capability.
 
 - Each line forms its own network: an item network only spans ducts with an Item Pipe, and so on.
 - Every side of every line has a mode: in and out (default), pull in, push out or disabled. A disabled side does not connect.
@@ -39,6 +40,16 @@ Use the Configuration Carrot on an arm that touches an inventory or machine. The
 ### Appearance
 
 A duct grows thicker with its lines, and each line has its own color, so you can tell from a distance what a duct carries. An arm that ends at an inventory or machine carries a ring in its channel color. A duct with a facade renders as the facade block. While you wear Engineer Goggles or hold the carrot, facaded ducts within 32 blocks show as a translucent overlay. Sneak with the carrot to take the facade off.
+
+### Data line
+
+The data line is the wiring for on-demand autocrafting. It never moves anything on its own; it only links blocks that make or hold items, so later Servus blocks can find them without any setup.
+
+- Ducts with the data line link to each other and form a data network.
+- A block is a member when it can make items (a Crafting Station, an Assembler) or holds stock (a Warehouse Controller). Other mods join by exposing the same Foundation capabilities. Chests and other plain inventories are not members.
+- There are no channels, filters or priorities. In the endpoint GUI the data tab only switches a side on or off; an off side reaches no member and does not link to the next duct.
+- Right click a duct with the data line with an empty hand to see how many ducts, producers and stock members its network has.
+- The data line is teal, and its ring at a member is always teal.
 
 ## Fluid Tank
 
