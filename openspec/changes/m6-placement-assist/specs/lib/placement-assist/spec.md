@@ -66,11 +66,15 @@ The maximum number of blocks the walk may cover SHALL be the `placementAssistRea
 - **THEN** nothing is placed
 
 ### Requirement: Ghost and arrow preview
-While a player sneaks, holds an assisted item in the main hand and looks at a block of its run, the client SHALL draw a translucent ghost of the block that would be placed at the target, and an arrow on it pointing in the walk direction. Nothing SHALL be drawn when there is no target, when the player stops sneaking, or when the player looks elsewhere.
+While a player sneaks, holds an assisted item in the main hand and looks at a block of its run, the client SHALL draw a translucent ghost of the block that would be placed at the target, and an arrow on it pointing in the walk direction. Next to the crosshair it SHALL draw a small indicator: an arrow pointing towards the target on screen, or a ring when the target lies straight ahead, with the distance to the target in blocks. Nothing SHALL be drawn when there is no target, when the player stops sneaking, or when the player looks elsewhere.
 
 #### Scenario: Preview appears
 - **WHEN** a player holding an assisted item sneaks and looks at a block of a run with a free target
 - **THEN** a ghost block with an arrow is drawn at the target
+
+#### Scenario: Indicator at the crosshair
+- **WHEN** a sneaking player holding an assisted item looks at the top of a horizontal run whose free end is 12 blocks to the right on screen
+- **THEN** an arrow beside the crosshair points to the right and the number 12 is shown with it
 
 #### Scenario: Preview follows the direction
 - **WHEN** the player keeps sneaking and moves the crosshair so that the chosen direction changes
@@ -78,7 +82,7 @@ While a player sneaks, holds an assisted item in the main hand and looks at a bl
 
 #### Scenario: No preview without sneaking
 - **WHEN** the same player stops sneaking
-- **THEN** no ghost and no arrow are drawn
+- **THEN** no ghost, no arrow and no crosshair indicator are drawn
 
 #### Scenario: No preview when blocked
 - **WHEN** a sneaking player looks at a run that ends against a stone block in the chosen direction

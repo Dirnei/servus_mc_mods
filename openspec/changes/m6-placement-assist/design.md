@@ -110,6 +110,12 @@ Alternative: keep the clicked face and ask players to aim at the end cap. Reject
 - It renders the state's block model at the target with `BlockRenderDispatcher.renderSingleBlock` into a translucent buffer, through a vertex consumer wrapper that forces alpha to about 0.5. The duct's dynamic model draws without block entity data, so the ghost shows a bare centre. That is acceptable for a preview.
 - It draws an arrow as flat quads (`RenderType.debugQuads()`, like `SideMarkerRenderer`) through the middle of the target, pointing in the walk direction, in a fixed accent colour.
 
+The crosshair indicator is a GUI layer registered above `VanillaGuiLayers.CROSSHAIR` with `RegisterGuiLayersEvent.registerAbove` (mod bus, client only). It reuses the same preview computation as the world renderer:
+- It projects the vector from the hit point to the target centre onto the camera's right and up vectors (`Camera.getLookVector` and `getUpVector`, with right as look cross up).
+- If that projection is shorter than a quarter of the vector, the target lies straight ahead or behind, and a small ring is drawn. Otherwise an arrow is drawn about 12 GUI pixels from the crosshair, rotated to the screen angle.
+- The distance in blocks, from the clicked block to the target, is drawn as small text under it.
+- Arrow and ring are `GuiGraphics.fill` rectangles under a rotated pose, in the same accent colour as the world arrow.
+
 This is one walk per frame, of at most `placementAssistReach` block state reads, and only while sneaking with an assisted item. It is not a per-tick world scan.
 
 ### PLAN.md

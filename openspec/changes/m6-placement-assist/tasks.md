@@ -35,6 +35,10 @@
 - [x] 7.3 Use `StraightAxis` in `DuctAssist` with the arms of the held line, and add a top-of-a-horizontal-pipe case to `ServusLogisticsGameTests.java`. Verify with `gradlew :logistics:runGameTestServer` and with all logistics GameTests green.
 - [x] 7.4 Add `storage/.../rail/ElevatorAssist.java` (run = `ElevatorBlock`, direction up) and register `ServusStorageItems.ELEVATOR` as an `AssistedBlockItem`. Add storage GameTests `sneakElevatorBuildsUp` (side click on the lowest of five segments places a sixth on top) and `sneakElevatorBlockedTop` (stone on top: nothing placed, stack kept). Verify with `gradlew build test` and with all storage GameTests green.
 
-## 8. Play check
+## 8. Crosshair indicator
 
-- [ ] 8.1 Play check in the dev client, launched from the main checkout. Check that the ghost and arrow appear only while sneaking with a rail or line item, that they follow the top face quadrant on rails and the clicked face on ducts, that they disappear when blocked or out of reach, that rails bridge a rack gap by sneak clicking, that the top of a horizontal pipe and the middle of a rail line extend along the run by the half you aim at, and that a sneak click on an elevator builds the shaft up. If the translucent ghost renders opaque, switch to the outline fallback from design.md and check again.
+- [ ] 8.1 Move the preview computation in `lib/.../client/PlacementAssistRenderer.java` into a shared client helper, and add `lib/.../client/PlacementAssistHud.java`: a GUI layer above the crosshair that draws the screen space arrow (or a ring for straight ahead) and the distance, as in design.md. Verify with `gradlew build test` and in the play check.
+
+## 9. Play check
+
+- [ ] 9.1 Play check in the dev client, launched from the main checkout. Check that the ghost and arrow appear only while sneaking with a rail or line item, that they follow the top face quadrant on rails and the clicked face on ducts, that they disappear when blocked or out of reach, that rails bridge a rack gap by sneak clicking, that the top of a horizontal pipe and the middle of a rail line extend along the run by the half you aim at, that a sneak click on an elevator builds the shaft up, and that the crosshair indicator points at the ghost with the right distance. If the translucent ghost renders opaque, switch to the outline fallback from design.md and check again.
