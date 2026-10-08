@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
-import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -9,12 +8,15 @@ import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -25,7 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** The terminal's output slots, the player inventory and the warehouse behind the terminal. */
+/** The terminal's output slots, the player inventory and the warehouses the terminal reaches over its data line. */
 public class CounterTerminalMenu extends AbstractContainerMenu {
 
     public static final int OUTPUT_Y = 154;
@@ -86,20 +88,17 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         return inventoryStart;
     }
 
+    /** The first reachable warehouse, for rules and pushes. */
     private Optional<WarehouseNetwork> online() {
-        return terminal.network().filter(network -> network.status() == WarehouseNetwork.Status.ONLINE);
+        return terminal.getLevel() instanceof ServerLevel server ? TerminalRequests.first(server, terminal.getBlockPos()) : Optional.empty();
     }
 
     // Operations (server side)
 
     /** Requests this many of the key; deliveries land in the output slots. */
     public void request(ItemKey key, int amount) {
-        Optional<WarehouseNetwork> network = online();
-        if (network.isEmpty()) {
-            message = "offline";
-        } else {
-            message = network.get().request(terminal, key, Math.max(1, amount));
-        }
+        message = terminal.getLevel() instanceof ServerLevel server
+                ? TerminalRequests.request(server, terminal, key, Math.max(1, amount)) : "offline";
         forceSync();
     }
 
@@ -116,7 +115,9 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
     }
 
     public void cancel(int requestId) {
-        terminal.network().ifPresent(network -> network.cancelRequest(terminal, requestId));
+        if (terminal.getLevel() instanceof ServerLevel server) {
+            TerminalRequests.cancel(server, terminal, requestId);
+        }
         forceSync();
     }
 
@@ -196,21 +197,21 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
 
     /** The current stock, requests and message as the client should see them. */
     public StockSyncPayload stock() {
-        Optional<WarehouseNetwork> network = terminal.network();
-        if (network.isEmpty()) {
-            return new StockSyncPayload(false, "not_connected", List.of(), List.of(), message, List.of());
+        if (!(terminal.getLevel() instanceof ServerLevel server)) {
+            return new StockSyncPayload(false, "no_warehouse", List.of(), List.of(), message, List.of());
         }
-        WarehouseNetwork warehouse = network.get();
-        return switch (warehouse.status()) {
-            case NO_CONTROLLER -> new StockSyncPayload(false, "no_controller", List.of(), List.of(), message, List.of());
-            case MULTIPLE_CONTROLLERS -> new StockSyncPayload(false, "multiple_controllers", List.of(), List.of(), message, List.of());
-            case ONLINE -> new StockSyncPayload(true, "", entries(warehouse.index()), warehouse.requestRows(terminal), message, warehouse.ruleRows());
-        };
+        List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(server, terminal.getBlockPos());
+        List<RequestRow> requests = TerminalRequests.rows(server, terminal, warehouses);
+        if (warehouses.isEmpty()) {
+            return new StockSyncPayload(false, "no_warehouse", List.of(), requests, message, List.of());
+        }
+        return new StockSyncPayload(true, "", entries(TerminalWarehouses.stock(warehouses)), requests, message,
+                warehouses.get(0).ruleRows());
     }
 
-    private static List<StockEntry> entries(WarehouseIndex<BlockPos, ItemKey> index) {
+    private static List<StockEntry> entries(List<Map.Entry<ItemKey, Long>> stock) {
         List<StockEntry> list = new ArrayList<>();
-        for (Map.Entry<ItemKey, Long> entry : index.entries()) {
+        for (Map.Entry<ItemKey, Long> entry : stock) {
             if (list.size() >= MAX_ENTRIES) {
                 break;
             }

@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.terminal;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
-import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,12 +20,14 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** Right click opens the stock GUI. */
+/** Right click opens the stock GUI. Sits on the data line, never on a rail. */
 public class CounterTerminalBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<CounterTerminalBlock> CODEC = simpleCodec(CounterTerminalBlock::new);
@@ -87,9 +89,9 @@ public class CounterTerminalBlock extends BaseEntityBlock implements Wrenchable 
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
-        StorageNodeBlockEntity.neighborsChanged(level, pos);
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide() ? null
+                : createTickerHelper(type, ServusStorageBlockEntities.COUNTER_TERMINAL.get(), CounterTerminalBlockEntity::serverTick);
     }
 
     @Override

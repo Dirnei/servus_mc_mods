@@ -14,8 +14,6 @@ import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.shuttle.RequestPlan;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
-import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import java.util.function.Predicate;
 import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
@@ -128,10 +126,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Set<BlockPos> stations = new HashSet<>();
     /** Shuttle garages: members that are neither sources nor travel nodes. */
     private final Set<BlockPos> garages = new HashSet<>();
-    /** Counter terminals, for retrying requests with missing stock. */
-    private final Set<BlockPos> terminals = new HashSet<>();
-    private static final int MISSING_RETRY_TICKS = 40;
-    private int missingRetry;
     /** Stations whose buffer changed; drained on the next tick. */
     private final Set<BlockPos> pendingStations = new LinkedHashSet<>();
     /** Stations holding a stack that found no room; retried on zone and rule changes and on a slow timer. */
@@ -199,9 +193,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             addSource(blockPos, true);
             addCandidatesAround(blockPos);
             rememberZone(blockPos, node);
-            if (node instanceof CounterTerminalBlockEntity) {
-                terminals.add(blockPos);
-            }
             // A new storage block may give waiting stacks a place to go.
             zonesDirty = true;
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.STATION) {
@@ -244,7 +235,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (garages.remove(blockPos)) {
             fleet.releaseGarage(blockPos);
         }
-        terminals.remove(blockPos);
         held.remove(blockPos);
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers--;
@@ -275,7 +265,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         stations.addAll(that.stations);
         pendingStations.addAll(that.stations);
         garages.addAll(that.garages);
-        terminals.addAll(that.terminals);
         that.held.forEach((pos, loads) -> held.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(loads));
         zoneOf.putAll(that.zoneOf);
         that.sources.forEach((pos, source) -> {
@@ -565,9 +554,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return shaftFloors.get(node);
     }
 
-    // Terminal requests
+    // Requests and shipments
 
-    /** Instant loads that did not fit into a terminal's output slots yet, per terminal. */
+    /** Instant loads that did not fit into a destination's delivery buffer yet, per destination. */
     private final Map<BlockPos, List<HeldLoad>> held = new HashMap<>();
 
     private record HeldLoad(PickJob job, ItemStack stack) {
@@ -576,34 +565,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Whether some garage shuttle can drive to a rail beside the position. */
     public boolean canReach(BlockPos pos) {
         return fleet.canReach(pos);
-    }
-
-    /**
-     * Plans and starts a request at a terminal.
-     *
-     * @return an empty string when the request was made, else the refusal key:
-     *         {@code offline}, {@code needs_shuttle}, {@code no_rail} or {@code out_of_stock}
-     */
-    public String request(CounterTerminalBlockEntity terminal, ItemKey key, int amount) {
-        if (status() != Status.ONLINE) {
-            return "offline";
-        }
-        BlockPos destination = terminal.getBlockPos();
-        boolean reachable = fleet.canReach(destination);
-        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), reachable, stockOf(key));
-        if (plan.jobs().isEmpty() && plan.needsShuttle()) {
-            return fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle";
-        }
-        CounterTerminalBlockEntity.Request request = terminal.newRequest(key, amount, plan.unservable());
-        startJobs(plan, request.id, key, destination);
-        if (plan.unservable() > 0) {
-            OrderBook.Created created = orders.create(key, plan.unservable(), request.id);
-            if (!created.made() && plan.jobs().isEmpty()) {
-                terminal.removeRequest(request.id);
-                return "out_of_stock";
-            }
-        }
-        return "";
     }
 
     /** Delivers items into an outbound station's buffer, planned and refused like a request. */
@@ -626,6 +587,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      *         {@code needs_shuttle} or {@code no_rail}
      */
     public Shipping ship(BlockPos target, ItemKey key, int amount) {
+        return ship(target, key, amount, 0);
+    }
+
+    /** Like {@link #ship(BlockPos, ItemKey, int)}, with pick jobs tagged by {@code requestId} so they can be dropped. */
+    public Shipping ship(BlockPos target, ItemKey key, int amount, int requestId) {
         if (status() != Status.ONLINE || level == null) {
             return new Shipping("offline", Optional.empty(), null);
         }
@@ -650,8 +616,27 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return new Shipping(refusal, Optional.empty(), destination);
         }
         AccessPointBlockEntity.Shipment shipment = chosen.get().addShipment(target, key, plan.planned());
-        startJobs(plan, 0, key, destination);
+        startJobs(plan, requestId, key, destination);
         return new Shipping("", Optional.of(shipment), destination);
+    }
+
+    /** How many of an item the sources hold right now. */
+    public long available(ItemKey key) {
+        long sum = 0;
+        for (RequestPlan.Stock<BlockPos> stock : stockOf(key)) {
+            sum += stock.count();
+        }
+        return sum;
+    }
+
+    /** The position of the single controller, empty unless online. */
+    public Optional<BlockPos> controllerPos() {
+        return status() == Status.ONLINE ? Optional.ofNullable(controllerPos) : Optional.empty();
+    }
+
+    /** Drops the queued pick jobs of a request; loads already taken keep going. */
+    public void dropQueuedFor(int requestId) {
+        fleet.removeQueued(requestId);
     }
 
     /** Rail steps from the nearest rack to the Access Point, 0 without racks, unreachable without a path. */
@@ -923,88 +908,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return list;
     }
 
-    /** Plans the missing part of every idle request again; stock may have arrived meanwhile. */
-    private void retryMissing() {
-        if (status() != Status.ONLINE) {
-            return;
-        }
-        for (BlockPos pos : terminals) {
-            CounterTerminalBlockEntity terminal = terminalAt(pos);
-            if (terminal == null) {
-                continue;
-            }
-            for (CounterTerminalBlockEntity.Request request : new ArrayList<>(terminal.requests())) {
-                if (request.missing <= 0 || fleet.queuedFor(request.id) > 0 || fleet.ridingFor(request.id) > 0 || heldFor(pos, request.id) > 0) {
-                    continue;
-                }
-                // While an order produces for it, only pick up what has actually arrived in storage.
-
-                RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(request.missing, request.key.stack(1).getMaxStackSize(),
-                        fleet.canReach(pos), stockOf(request.key));
-                request.missing -= plan.planned();
-                startJobs(plan, request.id, request.key, pos);
-            }
-        }
-    }
-
-    /** Cancels a request: queued loads are dropped, loads on a shuttle still arrive in the output slots. */
-    public void cancelRequest(CounterTerminalBlockEntity terminal, int requestId) {
-        fleet.removeQueued(requestId);
-        terminal.removeRequest(requestId);
-        orders.cancelForRequest(requestId);
-        // Held and riding loads keep trying to land: the items are already out of the shelves.
-    }
-
-    /** The open requests of a terminal as the GUI shows them, after dropping finished ones. */
-    public List<RequestRow> requestRows(CounterTerminalBlockEntity terminal) {
-        BlockPos terminalPos = terminal.getBlockPos();
-        terminal.prune(request -> fleet.queuedFor(request.id) > 0 || fleet.ridingFor(request.id) > 0 || heldFor(terminalPos, request.id) > 0
-                || orders.hasOpenOrderFor(request.id));
-        List<RequestRow> rows = new ArrayList<>();
-        for (CounterTerminalBlockEntity.Request request : terminal.requests()) {
-            int queued = fleet.queuedFor(request.id);
-            int riding = fleet.ridingFor(request.id);
-            int heldCount = heldFor(terminalPos, request.id);
-            CounterTerminalBlockEntity.RequestState state;
-            if (request.waitingRoom || heldCount > 0) {
-                state = CounterTerminalBlockEntity.RequestState.WAITING_ROOM;
-            } else if (riding > 0) {
-                state = CounterTerminalBlockEntity.RequestState.PICKING;
-            } else if (queued > 0) {
-                state = CounterTerminalBlockEntity.RequestState.WAITING_SHUTTLE;
-            } else if (orders.hasOpenOrderFor(request.id)) {
-                state = CounterTerminalBlockEntity.RequestState.PRODUCING;
-            } else {
-                state = CounterTerminalBlockEntity.RequestState.MISSING;
-            }
-            rows.add(new RequestRow(request.id, request.key.stack(1), request.requested, request.delivered, request.missing, state.name()));
-        }
-        return rows;
-    }
-
-    private int heldFor(BlockPos terminal, int requestId) {
-        int count = 0;
-        for (HeldLoad load : held.getOrDefault(terminal, List.of())) {
-            if (load.job().requestId() == requestId) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private CounterTerminalBlockEntity terminalAt(BlockPos pos) {
-        return level != null && level.getBlockEntity(pos) instanceof CounterTerminalBlockEntity terminal ? terminal : null;
-    }
-
     @Override
     public void pickLoaded(PickJob job, int loaded) {
         if (loaded < job.amount() && level != null && level.getBlockEntity(job.terminal()) instanceof AccessPointBlockEntity point) {
             point.shortfall(job.key(), job.amount() - loaded);
-        }
-        CounterTerminalBlockEntity terminal = terminalAt(job.terminal());
-        CounterTerminalBlockEntity.Request request = terminal == null ? null : terminal.request(job.requestId());
-        if (request != null && loaded < job.amount()) {
-            request.missing += job.amount() - loaded;
         }
     }
 
@@ -1012,11 +919,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public void pickDropped(PickJob job, int count) {
         if (level != null && level.getBlockEntity(job.terminal()) instanceof AccessPointBlockEntity point) {
             point.shortfall(job.key(), count);
-        }
-        CounterTerminalBlockEntity terminal = terminalAt(job.terminal());
-        CounterTerminalBlockEntity.Request request = terminal == null ? null : terminal.request(job.requestId());
-        if (request != null) {
-            request.missing += count;
         }
     }
 
@@ -1030,16 +932,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             Block.popResource(level, job.terminal(), stack);
             return ItemStack.EMPTY;
         }
-        int before = stack.getCount();
-        ItemStack left = ItemHandlerHelper.insertItem(target.deliveries(), stack, false);
-        if (destination instanceof CounterTerminalBlockEntity terminal) {
-            CounterTerminalBlockEntity.Request request = terminal.request(job.requestId());
-            if (request != null) {
-                request.delivered += before - left.getCount();
-                request.waitingRoom = !left.isEmpty();
-            }
-        }
-        return left;
+        return ItemHandlerHelper.insertItem(target.deliveries(), stack, false);
     }
 
     @Override
@@ -1050,7 +943,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
-    /** Retries the held loads of a terminal after its output slots changed. */
+    /** Retries the held loads of a destination after its delivery buffer changed. */
     private void retryHeld(BlockPos terminalPos) {
         List<HeldLoad> loads = held.get(terminalPos);
         if (loads == null) {
@@ -1079,7 +972,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         shaftFloors = Map.of();
         stations.clear();
         garages.clear();
-        terminals.clear();
         held.clear();
         pendingStations.clear();
         blockedStations.clear();
@@ -1210,10 +1102,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (++ruleTimer >= StorageStatsManager.INSTANCE.stockRuleInterval()) {
                 ruleTimer = 0;
                 tickStockRules();
-            }
-            if (!terminals.isEmpty() && ++missingRetry >= MISSING_RETRY_TICKS) {
-                missingRetry = 0;
-                retryMissing();
             }
         }
         if (level == null || sources.isEmpty()) {

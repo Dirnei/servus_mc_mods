@@ -153,6 +153,22 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
         return running != null && !running.ended();
     }
 
+    /** Whether the packets on the line right now belong to this shipment. */
+    public boolean isSending(Shipment shipment) {
+        return sending() && runningFor == shipment;
+    }
+
+    /**
+     * Ends a shipment early. Packets already on the line still land; what is
+     * still waiting in the outgoing buffer goes back into storage.
+     */
+    public void cancel(Shipment shipment) {
+        if (shipments.contains(shipment) && !shipment.ended) {
+            shipment.ended = true;
+            setChanged();
+        }
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, AccessPointBlockEntity point) {
         InboundStationBlockEntity.serverTick(level, pos, state, point);
         if (level instanceof ServerLevel server && ++point.sendTimer >= StorageStatsManager.INSTANCE.pushInterval()) {

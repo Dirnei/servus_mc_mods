@@ -2,11 +2,11 @@
 
 ## 1. Warehouse side
 
-- [ ] 1.1 In `storage/network/WarehouseNetwork.java` remove the terminal paths (`terminals`, `request(terminal, ...)`, `retryMissing` and its timer, `cancelRequest`, `requestRows`, terminal branches in `deliverTo`, `pickLoaded`, `pickDropped`) and add `available(ItemKey)`, `ship(target, key, amount, requestId)`, `controllerPos()` and the order helpers; in `storage/access/AccessPointBlockEntity.java` add `isSending(Shipment)` and `cancel(Shipment)`. Verify with `gradlew :storage:compileJava` (the terminal still compiles against the new API after 1.2).
+- [x] 1.1 In `storage/network/WarehouseNetwork.java` remove the terminal paths (`terminals`, `request(terminal, ...)`, `retryMissing` and its timer, `cancelRequest`, `requestRows`, terminal branches in `deliverTo`, `pickLoaded`, `pickDropped`) and add `available(ItemKey)`, `ship(target, key, amount, requestId)`, `controllerPos()` and the order helpers; in `storage/access/AccessPointBlockEntity.java` add `isSending(Shipment)` and `cancel(Shipment)`. Verify with `gradlew :storage:compileJava` (the terminal still compiles against the new API after 1.2).
 
 ## 2. Terminal on the data line
 
-- [ ] 2.1 `storage/terminal`: `CounterTerminalBlockEntity` extends `BlockEntity`, implements `DataLink`, owns requests (global ids, tracked shipments, order warehouse, waiting flag), lamp, insert only output handler; `TerminalWarehouses` (reachable warehouses, merged stock); `TerminalRequests` (request, retry, bookkeeping, states, cancel); `CounterTerminalBlock` ticker and no warehouse neighbour updates; `RequestState` with `SENDING` and without `WAITING_SHUTTLE`. Register `DATA_LINK` and the item handler in `ServusStorageEvents`. Update `CounterTerminalMenu` to use them. Lang: `sending`, `no_warehouse`, drop `waiting_shuttle` and the controller reasons; run `:storage:runData`. Verify with `gradlew build`.
+- [x] 2.1 `storage/terminal`: `CounterTerminalBlockEntity` extends `BlockEntity`, implements `DataLink`, owns requests (global ids, tracked shipments, order warehouse, waiting flag), lamp, insert only output handler; `TerminalWarehouses` (reachable warehouses, merged stock); `TerminalRequests` (request, retry, bookkeeping, states, cancel); `CounterTerminalBlock` ticker and no warehouse neighbour updates; `RequestState` with `SENDING` and without `WAITING_SHUTTLE`. Register `DATA_LINK` and the item handler in `ServusStorageEvents`. Update `CounterTerminalMenu` to use them. Lang: `sending`, `no_warehouse`, drop `waiting_shuttle` and the controller reasons; run `:storage:runData`. Verify with `gradlew build`.
 
 ## 3. Tests
 

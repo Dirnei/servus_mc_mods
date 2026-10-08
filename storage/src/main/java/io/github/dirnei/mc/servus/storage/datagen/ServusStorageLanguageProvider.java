@@ -85,9 +85,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("message.servus_storage.zone_label.cleared", "Zone cleared");
         add("gui.servus_storage.search", "Search");
         add("gui.servus_storage.stored", "Stored: %s");
-        add("gui.servus_storage.terminal.not_connected", "Not connected to a warehouse");
-        add("gui.servus_storage.terminal.no_controller", "Warehouse has no controller");
-        add("gui.servus_storage.terminal.multiple_controllers", "Warehouse has more than one controller");
+        add("gui.servus_storage.terminal.no_warehouse", "No warehouse on this data line");
         add("gui.servus_storage.terminal.requests", "Requests");
         add("gui.servus_storage.terminal.output", "Output");
         add("gui.servus_storage.terminal.amount", "Amount");
@@ -97,7 +95,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.click_hint", "Click to request, shift click for a stack");
         add("gui.servus_storage.terminal.cancel_hint", "Click to cancel this request");
         add("gui.servus_storage.terminal.no_requests", "No open requests");
-        add("gui.servus_storage.terminal.state.waiting_shuttle", "waiting for a shuttle");
+        add("gui.servus_storage.terminal.state.sending", "sending");
         add("gui.servus_storage.terminal.state.picking", "picking");
         add("gui.servus_storage.terminal.state.waiting_room", "waiting for room");
         add("gui.servus_storage.terminal.state.producing", "producing");
@@ -111,9 +109,10 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.rule_state.ordering", "ordering");
         add("gui.servus_storage.terminal.rule_state.no_producer", "no producer");
         add("gui.servus_storage.terminal.state.missing", "%s missing");
-        add("gui.servus_storage.terminal.message.offline", "The warehouse is offline");
+        add("gui.servus_storage.terminal.message.offline", "No warehouse on this data line");
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");
-        add("gui.servus_storage.terminal.message.no_rail", "This terminal has no rail for shuttle deliveries");
+        add("gui.servus_storage.terminal.message.no_rail", "The Access Point has no rail for shuttle deliveries");
+        add("gui.servus_storage.terminal.message.no_access_point", "No Access Point of the warehouse on this data line");
         add("gui.servus_storage.terminal.message.out_of_stock", "Nothing of that in stock");
         add("gui.servus_storage.station.blocked.no_room", "%s: no room in %s or in general storage");
         add("gui.servus_storage.station.blocked.no_room_general", "%s: no room in general storage");
