@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.terminal;
 
+import io.github.dirnei.mc.servus.storage.client.ClientProduction;
+import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
+import io.github.dirnei.mc.servus.storage.production.CancelProductionOrderPayload;
+import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.client.ClientStock;
 import io.github.dirnei.mc.servus.storage.crafting.OpenStationEditorPayload;
@@ -36,6 +40,15 @@ public final class ServusStoragePayloads {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToClient(StockSyncPayload.TYPE, StockSyncPayload.STREAM_CODEC,
                 (payload, context) -> ClientStock.update(payload));
+        registrar.playToClient(ProductionPayload.TYPE, ProductionPayload.STREAM_CODEC,
+                (payload, context) -> ClientProduction.update(payload));
+        registrar.playToServer(CancelProductionOrderPayload.TYPE, CancelProductionOrderPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof ProductionTerminalMenu menu) {
+                        menu.cancel(payload.cpu(), payload.id());
+                    }
+                });
         registrar.playToServer(OpenStationEditorPayload.TYPE, OpenStationEditorPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
