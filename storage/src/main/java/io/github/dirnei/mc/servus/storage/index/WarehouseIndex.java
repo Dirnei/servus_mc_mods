@@ -21,25 +21,39 @@ public final class WarehouseIndex<S, K> {
     private final Map<S, Map<K, Integer>> snapshots = new HashMap<>();
     private final Map<K, Long> totals = new HashMap<>();
     private final Map<K, LinkedHashSet<S>> holders = new HashMap<>();
+    private long version;
+    private long sortedVersion = -1;
+    private List<Map.Entry<K, Long>> sorted = List.of();
 
-    /** Replaces the contribution of {@code source} with {@code snapshot}. */
+    /**
+     * Replaces the contribution of {@code source} with {@code snapshot}. A
+     * snapshot equal to the current one changes nothing, not even the version.
+     */
     public void update(S source, Map<K, Integer> snapshot) {
-        remove(source);
-        if (snapshot.isEmpty()) {
-            return;
-        }
         Map<K, Integer> copy = new HashMap<>();
         snapshot.forEach((key, count) -> {
-            if (count == null || count <= 0) {
-                return;
+            if (count != null && count > 0) {
+                copy.put(key, count);
             }
-            copy.put(key, count);
+        });
+        if (copy.equals(snapshots.getOrDefault(source, Map.of()))) {
+            return;
+        }
+        remove(source);
+        if (copy.isEmpty()) {
+            return;
+        }
+        copy.forEach((key, count) -> {
             totals.merge(key, (long) count, Long::sum);
             holders.computeIfAbsent(key, k -> new LinkedHashSet<>()).add(source);
         });
-        if (!copy.isEmpty()) {
-            snapshots.put(source, copy);
-        }
+        snapshots.put(source, copy);
+        version++;
+    }
+
+    /** Moves whenever the totals change; equal versions mean equal stock. */
+    public long version() {
+        return version;
     }
 
     /** Drops a source and everything it contributed. */
@@ -48,6 +62,7 @@ public final class WarehouseIndex<S, K> {
         if (old == null) {
             return;
         }
+        version++;
         old.forEach((key, count) -> {
             long left = totals.merge(key, (long) -count, Long::sum);
             Set<S> set = holders.get(key);
@@ -65,11 +80,16 @@ public final class WarehouseIndex<S, K> {
         return totals.getOrDefault(key, 0L);
     }
 
-    /** All keys with their totals, largest first. */
+    /** All keys with their totals, largest first. The same read only list while the version holds. */
     public List<Map.Entry<K, Long>> entries() {
-        List<Map.Entry<K, Long>> list = new ArrayList<>(totals.entrySet());
-        list.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
-        return list;
+        if (sortedVersion != version) {
+            List<Map.Entry<K, Long>> list = new ArrayList<>(totals.size());
+            totals.forEach((key, total) -> list.add(Map.entry(key, total)));
+            list.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
+            sorted = Collections.unmodifiableList(list);
+            sortedVersion = version;
+        }
+        return sorted;
     }
 
     /** Sources that currently hold the key, in the order they reported it. */

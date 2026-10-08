@@ -60,4 +60,49 @@ class WarehouseIndexTest {
         assertEquals(0, index.typeCount());
         assertTrue(index.isEmptySource("a"));
     }
+
+    @Test
+    void unchangedSnapshotKeepsVersion() {
+        WarehouseIndex<String, String> index = new WarehouseIndex<>();
+        index.update("a", Map.of("cobble", 50));
+        long version = index.version();
+        index.update("a", Map.of("cobble", 50));
+        assertEquals(version, index.version());
+    }
+
+    @Test
+    void changeBumpsVersion() {
+        WarehouseIndex<String, String> index = new WarehouseIndex<>();
+        index.update("a", Map.of("cobble", 50));
+        long version = index.version();
+        index.update("a", Map.of("cobble", 49));
+        assertTrue(index.version() != version);
+        assertEquals(49, index.count("cobble"));
+    }
+
+    @Test
+    void removeBumpsVersion() {
+        WarehouseIndex<String, String> index = new WarehouseIndex<>();
+        index.update("a", Map.of("cobble", 50));
+        long version = index.version();
+        index.remove("a");
+        assertTrue(index.version() != version);
+        long after = index.version();
+        index.remove("a");
+        assertEquals(after, index.version());
+    }
+
+    @Test
+    void entriesCachedPerVersion() {
+        WarehouseIndex<String, String> index = new WarehouseIndex<>();
+        index.update("a", Map.of("cobble", 50, "bread", 4));
+        List<Map.Entry<String, Long>> first = index.entries();
+        index.update("a", Map.of("cobble", 50, "bread", 4));
+        assertTrue(first == index.entries());
+        index.update("b", Map.of("bread", 100));
+        List<Map.Entry<String, Long>> second = index.entries();
+        assertTrue(first != second);
+        assertEquals("bread", second.get(0).getKey());
+        assertEquals(50L, first.get(0).getValue());
+    }
 }
