@@ -18,7 +18,7 @@
 ## 4. Tests and docs
 
 - [x] 4.1 GameTests in a new `gametest/TerminalCraftGameTests.java`: `craftablesListSticks`, `craftPreviewFromStock`, `craftPreviewMissing`, `craftPreviewNoCpu`, `craftStartDeliversSticks`, `terminalSendsOnOpen`, `accessPointMenuStaysValid`. Verify with `gradlew :storage:runGameTestServer`, all green.
-- [ ] 4.2 Storage docs page: crafting from the Counter Terminal, filter, preview. Verify with `npx vitest run` in `docs/`.
+- [x] 4.2 Storage docs page: crafting from the Counter Terminal, filter, preview. Verify with `npx vitest run` in `docs/`.
 
 ## 5. Integration
 
