@@ -6,7 +6,7 @@
 
 ## 2. Supplier capability
 
-- [ ] 2.1 Add `production/ItemSupplier.java` and `SUPPLIER` in `ServusFoundationCapabilities`; register it in Storage (`ServusStorageEvents`) on the Warehouse Controller and the Access Point via a small `access/WarehouseSupplier.java`. Verify with `gradlew build`.
+- [x] 2.1 Add `production/ItemSupplier.java` and `SUPPLIER` in `ServusFoundationCapabilities`; register it in Storage (`ServusStorageEvents`) on the Warehouse Controller and the Access Point via a small `access/WarehouseSupplier.java`. Verify with `gradlew build`.
 
 ## 3. Adapter block
 

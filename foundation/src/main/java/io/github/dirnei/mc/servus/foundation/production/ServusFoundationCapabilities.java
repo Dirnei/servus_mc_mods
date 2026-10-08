@@ -24,6 +24,9 @@ public final class ServusFoundationCapabilities {
     public static final BlockCapability<DataLink, Direction> DATA_LINK =
             BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "data_link"), DataLink.class);
 
+    public static final BlockCapability<ItemSupplier, Direction> SUPPLIER =
+            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "supplier"), ItemSupplier.class);
+
     private ServusFoundationCapabilities() {
     }
 }
