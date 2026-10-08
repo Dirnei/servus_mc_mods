@@ -29,7 +29,7 @@ A block that implements the `Wrenchable` interface SHALL receive the wrench use 
 - **THEN** the block's own handler runs and decides the result, and the block is not rotated by the wrench
 
 ### Requirement: Wrench is obtainable and listed
-The item that fills the wrench role is the Configuration Carrot. It SHALL be craftable from vanilla materials and SHALL appear in the Servus creative tab, which exists whenever Servus Lib is installed. No item named wrench SHALL exist.
+The item that fills the wrench role is the Configuration Carrot. It SHALL be craftable from vanilla materials and SHALL appear in the Servus creative tab, which exists whenever Servus: Foundation is installed. No item named wrench SHALL exist.
 
 #### Scenario: Crafting
 - **WHEN** the player places a carrot, an iron ingot and one redstone dust in the Configuration Carrot pattern (for example a column with redstone on top, the ingot in the middle and the carrot at the bottom)
@@ -40,7 +40,7 @@ The item that fills the wrench role is the Configuration Carrot. It SHALL be cra
 - **THEN** a tab named "Servus" exists with the Configuration Carrot as its icon and lists the Configuration Carrot
 
 #### Scenario: Old wrench id
-- **WHEN** a command refers to the item id `servus_lib:wrench`
+- **WHEN** a command refers to the item id `servus_foundation:wrench` or `servus_lib:wrench`
 - **THEN** no such item exists
 
 ### Requirement: Configuration Carrot appearance

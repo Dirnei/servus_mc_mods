@@ -46,8 +46,8 @@ An Item Pipe, Power Cable or Fluid Pipe item SHALL place a Utility Duct carrying
 - **THEN** one Item Pipe, one Power Cable and one Fluid Pipe drop
 
 #### Scenario: Old item ids
-- **WHEN** a command refers to `servus_logistics:item_channel` or `servus_logistics:energy_channel`
-- **THEN** no such item exists; the items are `servus_logistics:item_pipe`, `servus_logistics:power_cable` and `servus_logistics:fluid_pipe`
+- **WHEN** a command refers to `servus_logistics:item_pipe`, `servus_logistics:item_channel` or `servus_foundation:energy_channel`
+- **THEN** no such item exists; the items are `servus_foundation:item_pipe`, `servus_foundation:power_cable` and `servus_foundation:fluid_pipe`
 
 ### Requirement: Per side modes per channel
 Each line of a duct SHALL have one of the modes in and out, pull in, push out or disabled per side, default in and out, set through the endpoint GUI's mode button for that line and kept with the block. A disabled side SHALL not connect visually or logically.
