@@ -1,0 +1,340 @@
+package io.github.dirnei.mc.servus.storage.client;
+
+import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
+import io.github.dirnei.mc.servus.storage.production.CancelProductionOrderPayload;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.OrderRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.RecipeRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.StepRow;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.function.Supplier;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+/**
+ * Tabs on the title row, a scrollable list below. Each tab turns the last
+ * synced rows into lines; a line can draw itself, show a tooltip and react to
+ * a click. More tabs are more entries in {@link #tabs}.
+ */
+public class ProductionTerminalScreen extends AbstractContainerScreen<ProductionTerminalMenu> {
+
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/production_terminal.png");
+    private static final int WIDTH = 240;
+    private static final int HEIGHT = 200;
+    private static final int MARGIN = 8;
+    private static final int TAB_Y = 4;
+    private static final int TAB_HEIGHT = 12;
+    private static final int TAB_WIDTH = 56;
+    private static final int LIST_Y = 22;
+    private static final int LIST_BOTTOM = HEIGHT - 8;
+    private static final int ORDER_ROW = 18;
+    private static final int ROW = 10;
+    private static final int COLOUR_TEXT = 0x404040;
+    private static final int COLOUR_DIM = 0x707070;
+    private static final int COLOUR_ALERT = 0xB03030;
+    private static final int COLOUR_GOOD = 0x2E7D32;
+    private static final int COLOUR_HEAD = 0x1F4E5A;
+
+    /** Draws one line at its top edge. */
+    private interface Painter {
+        void paint(GuiGraphics graphics, int y, boolean hovered);
+    }
+
+    /** One drawn line: its height, how it looks, its tooltip and what a click does (null for nothing). */
+    private record Line(int height, Painter painter, Supplier<List<Component>> tooltip, Runnable click) {
+    }
+
+    /** One tab: its title key and how it lists the synced rows. */
+    private record Tab(String key, Supplier<List<Line>> lines) {
+    }
+
+    private final List<Tab> tabs = List.of(
+            new Tab("orders", this::orderLines),
+            new Tab("machines", this::machineLines));
+    private final int[] scrolls = new int[tabs.size()];
+    private final List<Line> lines = new ArrayList<>();
+    private int selected;
+    private int linesVersion = -1;
+    private int linesTab = -1;
+
+    public ProductionTerminalScreen(ProductionTerminalMenu menu, Inventory playerInventory, Component title) {
+        super(menu, playerInventory, title);
+        this.imageWidth = WIDTH;
+        this.imageHeight = HEIGHT;
+        ClientProduction.clear();
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        this.inventoryLabelY = Integer.MIN_VALUE;
+    }
+
+    // Drawing
+
+    @Override
+    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.render(graphics, mouseX, mouseY, partialTick);
+        Line hovered = lineAt(mouseX, mouseY);
+        if (hovered != null && hovered.tooltip() != null) {
+            List<Component> tooltip = hovered.tooltip().get();
+            if (!tooltip.isEmpty()) {
+                graphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+            }
+        }
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(font, title, titleLabelX, titleLabelY, COLOUR_TEXT, false);
+        renderTabs(graphics);
+        if (!ClientProduction.online()) {
+            String reason = ClientProduction.reason().isEmpty() ? "no_line" : ClientProduction.reason();
+            graphics.drawString(font, Component.translatable("gui.servus_storage.production." + reason), MARGIN, LIST_Y, COLOUR_ALERT, false);
+            return;
+        }
+        rebuildLines();
+        Line hovered = lineAt(mouseX, mouseY);
+        graphics.enableScissor(leftPos + MARGIN, topPos + LIST_Y, leftPos + WIDTH - MARGIN, topPos + LIST_BOTTOM);
+        int y = LIST_Y - scrolls[selected];
+        for (Line line : lines) {
+            if (y + line.height() > LIST_Y && y < LIST_BOTTOM) {
+                line.painter().paint(graphics, y, line == hovered);
+            }
+            y += line.height();
+        }
+        graphics.disableScissor();
+    }
+
+    private void renderTabs(GuiGraphics graphics) {
+        for (int i = 0; i < tabs.size(); i++) {
+            int x = tabX(i);
+            boolean active = i == selected;
+            graphics.fill(x, TAB_Y, x + TAB_WIDTH, TAB_Y + TAB_HEIGHT, active ? 0xFF8B8B8B : 0xFFC6C6C6);
+            graphics.renderOutline(x, TAB_Y, TAB_WIDTH, TAB_HEIGHT, 0xFF373737);
+            Component label = Component.translatable("gui.servus_storage.production.tab." + tabs.get(i).key());
+            graphics.drawString(font, label, x + (TAB_WIDTH - font.width(label)) / 2, TAB_Y + 2, active ? 0xFFFFFF : COLOUR_TEXT, false);
+        }
+    }
+
+    /** Tabs sit right aligned on the title row, the first tab leftmost. */
+    private int tabX(int index) {
+        return WIDTH - MARGIN - (tabs.size() - index) * (TAB_WIDTH + 2);
+    }
+
+    private void rebuildLines() {
+        if (linesVersion == ClientProduction.version() && linesTab == selected) {
+            return;
+        }
+        linesVersion = ClientProduction.version();
+        linesTab = selected;
+        lines.clear();
+        lines.addAll(tabs.get(selected).lines().get());
+        scrolls[selected] = Math.min(scrolls[selected], maxScroll());
+    }
+
+    private int maxScroll() {
+        int total = 0;
+        for (Line line : lines) {
+            total += line.height();
+        }
+        return Math.max(0, total - (LIST_BOTTOM - LIST_Y));
+    }
+
+    // Orders tab
+
+    private List<Line> orderLines() {
+        List<Line> result = new ArrayList<>();
+        List<CpuRow> cpus = ClientProduction.cpus();
+        if (cpus.isEmpty()) {
+            result.add(text(Component.translatable("gui.servus_storage.production.no_cpu"), COLOUR_DIM, 0));
+            return result;
+        }
+        for (CpuRow cpu : cpus) {
+            Component head = Component.translatable("gui.servus_storage.production.cpu", cpu.cpu().toShortString(),
+                    cpu.inUse(), cpu.slots(), cpu.waiting());
+            result.add(new Line(12, (graphics, y, hovered) -> graphics.drawString(font, head, MARGIN, y + 2, COLOUR_HEAD, false),
+                    null, null));
+            if (cpu.orders().isEmpty()) {
+                result.add(text(Component.translatable("gui.servus_storage.production.no_orders"), COLOUR_DIM, 6));
+            }
+            for (OrderRow order : cpu.orders()) {
+                result.add(orderLine(cpu, order));
+                for (StepRow step : order.steps()) {
+                    result.add(stepLine(step));
+                }
+            }
+        }
+        return result;
+    }
+
+    private Line orderLine(CpuRow cpu, OrderRow order) {
+        Painter painter = (graphics, y, hovered) -> {
+            if (hovered && order.open()) {
+                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + ORDER_ROW, 0x30000000);
+            }
+            graphics.renderItem(order.item(), MARGIN + 4, y + 1);
+            Component head = Component.literal("#" + order.id() + "  " + order.amount() + " x ").append(order.item().getHoverName());
+            graphics.drawString(font, head, MARGIN + 24, y + 1, COLOUR_TEXT, false);
+            int colour = switch (order.state()) {
+                case "running" -> COLOUR_GOOD;
+                case "blocked" -> COLOUR_ALERT;
+                default -> COLOUR_DIM;
+            };
+            MutableComponent state = Component.translatable("gui.servus_storage.production.order_state." + order.state());
+            graphics.drawString(font, state.append(order.reason().isEmpty() ? "" : ", " + order.reason()), MARGIN + 24, y + 10, colour, false);
+            Component origin = Component.translatable(origin(order));
+            graphics.drawString(font, origin, WIDTH - MARGIN - font.width(origin) - 2, y + 1, COLOUR_DIM, false);
+        };
+        Supplier<List<Component>> tooltip = () -> {
+            List<Component> list = new ArrayList<>();
+            list.add(Component.literal("#" + order.id() + " " + order.amount() + " x " + order.item().getHoverName().getString()));
+            list.add(Component.translatable(origin(order)));
+            if (!order.reason().isEmpty()) {
+                list.add(Component.literal(order.reason()));
+            }
+            if (order.open()) {
+                list.add(Component.translatable("gui.servus_storage.production.cancel_hint"));
+            }
+            return list;
+        };
+        Runnable click = order.open() ? () -> PacketDistributor.sendToServer(new CancelProductionOrderPayload(cpu.cpu(), order.id())) : null;
+        return new Line(ORDER_ROW, painter, tooltip, click);
+    }
+
+    private Line stepLine(StepRow step) {
+        Component text = Component.literal(step.machine() + ": ")
+                .append(step.output().isEmpty() ? Component.literal("?") : step.output().getHoverName())
+                .append(" x" + step.batches() + ", ")
+                .append(Component.translatable("gui.servus_storage.production.step_state." + step.state()))
+                .append(step.reason().isEmpty() ? "" : ", " + step.reason());
+        int colour = switch (step.state()) {
+            case "producing" -> COLOUR_GOOD;
+            case "done" -> COLOUR_DIM;
+            default -> step.reason().isEmpty() ? COLOUR_TEXT : COLOUR_ALERT;
+        };
+        Supplier<List<Component>> tooltip = () -> {
+            List<Component> list = new ArrayList<>();
+            list.add(Component.literal(step.machine() + " @ " + step.producer().toShortString()));
+            if (!step.reason().isEmpty()) {
+                list.add(Component.literal(step.reason()));
+            }
+            return list;
+        };
+        return new Line(ROW, (graphics, y, hovered) -> graphics.drawString(font, text, MARGIN + 26, y + 1, colour, false), tooltip, null);
+    }
+
+    private static String origin(OrderRow order) {
+        if (order.requestId() > 0) {
+            return "gui.servus_storage.production.origin.request";
+        }
+        return order.requestId() < 0 ? "gui.servus_storage.production.origin.rule" : "gui.servus_storage.production.origin.manual";
+    }
+
+    // Machines tab
+
+    private List<Line> machineLines() {
+        List<Line> result = new ArrayList<>();
+        List<MachineRow> machines = ClientProduction.machines();
+        if (machines.isEmpty()) {
+            result.add(text(Component.translatable("gui.servus_storage.production.no_machines"), COLOUR_DIM, 0));
+            return result;
+        }
+        for (MachineRow machine : machines) {
+            Component state = machine.state().equals("working")
+                    ? Component.translatable("gui.servus_storage.production.machine_state.working", machine.working().getHoverName())
+                    : Component.translatable("gui.servus_storage.production.machine_state." + machine.state());
+            int colour = machine.state().equals("working") ? COLOUR_GOOD : machine.state().equals("idle") ? COLOUR_TEXT : COLOUR_DIM;
+            Component head = Component.literal(machine.name() + ": ").append(state);
+            result.add(new Line(12, (graphics, y, hovered) -> graphics.drawString(font, head, MARGIN, y + 2, colour, false),
+                    () -> List.of(Component.literal(machine.name() + " @ " + machine.pos().toShortString())), null));
+            for (RecipeRow recipe : machine.recipes()) {
+                result.add(text(recipe(recipe), COLOUR_TEXT, 8));
+            }
+        }
+        return result;
+    }
+
+    private static Component recipe(RecipeRow recipe) {
+        return Component.translatable("gui.servus_storage.production.recipe", stacks(recipe.outputs()), stacks(recipe.inputs()),
+                String.format(Locale.ROOT, "%.1f", recipe.ticks() / 20.0));
+    }
+
+    private static Component stacks(List<ItemStack> stacks) {
+        MutableComponent text = Component.empty();
+        for (int i = 0; i < stacks.size(); i++) {
+            if (i > 0) {
+                text.append(", ");
+            }
+            text.append(stacks.get(i).getCount() + " ").append(stacks.get(i).getHoverName());
+        }
+        return text;
+    }
+
+    private Line text(Component text, int colour, int indent) {
+        return new Line(ROW, (graphics, y, hovered) -> graphics.drawString(font, text, MARGIN + indent, y + 1, colour, false), null, null);
+    }
+
+    // Input
+
+    private Line lineAt(double mouseX, double mouseY) {
+        if (!ClientProduction.online()) {
+            return null;
+        }
+        int x = (int) mouseX - leftPos;
+        int yy = (int) mouseY - topPos;
+        if (x < MARGIN || x >= WIDTH - MARGIN || yy < LIST_Y || yy >= LIST_BOTTOM) {
+            return null;
+        }
+        int y = LIST_Y - scrolls[selected];
+        for (Line line : lines) {
+            if (yy >= y && yy < y + line.height()) {
+                return line;
+            }
+            y += line.height();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        int x = (int) mouseX - leftPos;
+        int y = (int) mouseY - topPos;
+        if (y >= TAB_Y && y < TAB_Y + TAB_HEIGHT) {
+            for (int i = 0; i < tabs.size(); i++) {
+                if (x >= tabX(i) && x < tabX(i) + TAB_WIDTH) {
+                    selected = i;
+                    return true;
+                }
+            }
+        }
+        Line line = lineAt(mouseX, mouseY);
+        if (line != null && line.click() != null) {
+            line.click().run();
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        scrolls[selected] = Math.max(0, Math.min(maxScroll(), scrolls[selected] - (int) (scrollY * ROW)));
+        return true;
+    }
+}

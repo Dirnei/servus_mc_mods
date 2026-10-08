@@ -12,7 +12,7 @@
 
 ## 3. Screen
 
-- [ ] 3.1 Add `ClientProduction` and `ProductionTerminalScreen` with the tab bar (ordered tab list, Orders selected first), Machines and Orders tabs, per tab scroll, tooltips and click to cancel; register the screen in `ServusStorageClient` and the payload handler on the client. Verify with `gradlew build`.
+- [x] 3.1 Add `ClientProduction` and `ProductionTerminalScreen` with the tab bar (ordered tab list, Orders selected first), Machines and Orders tabs, per tab scroll, tooltips and click to cancel; register the screen in `ServusStorageClient` and the payload handler on the client. Verify with `gradlew build`.
 
 ## 4. Docs and integration
 
