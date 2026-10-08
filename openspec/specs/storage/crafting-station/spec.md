@@ -22,7 +22,7 @@ The station SHALL have nine input slots and four output slots. While it has a jo
 - **THEN** nothing is crafted
 
 ### Requirement: Machine like sides
-The station SHALL have a Lib side configuration like a machine: Auto, Input, Output, Both, Pull, Push and Off, all sides Auto by default except the front, which is fixed to Off, shown in the Lib side panel and cycled by the carrot. Through sides that allow insertion the inputs accept only items the current job's pattern uses, and nothing while the station has no job with crafts left; through sides that allow extraction the outputs can be taken. Items in the outputs SHALL be pushed into adjacent inventories through Auto and Push sides, checking regularly, and items the job uses SHALL be pulled from neighbours through Pull sides.
+The station SHALL have a Lib side configuration like a machine: Auto, Input, Output, Both, Pull, Push and Off, all sides Auto by default except the front, which is fixed to Off, shown in the Lib side panel and cycled by the carrot. Through sides that allow insertion the inputs accept only items the current job's pattern uses, and nothing while the station has no job with crafts left; through sides that allow extraction the outputs can be taken. While the station has no job, items in the outputs SHALL be pushed into adjacent inventories through Auto and Push sides, checking regularly; while it holds a job it SHALL NOT push, because the CPU collects the job's outputs. Items the job uses SHALL be pulled from neighbours through Pull sides.
 
 #### Scenario: Packets feed the job
 - **WHEN** the station has a sticks job and packets of planks arrive over a data duct on an Auto side
@@ -41,8 +41,12 @@ The station SHALL have a Lib side configuration like a machine: Auto, Input, Out
 - **THEN** the planks stay in the hopper
 
 #### Scenario: Dock feeds and collects
-- **WHEN** the station has a sticks job, an Outbound Station faces it with planks in its buffer and an Inbound Station touches it
-- **THEN** the planks move into the station and the sticks end up in the Inbound Station's buffer
+- **WHEN** the station has a sticks job, an Outbound Station faces it with planks in its buffer and an Inbound Station touches it, and the job ends after its crafts
+- **THEN** the planks move into the station, the sticks stay in its outputs while the job is held, and they end up in the Inbound Station's buffer once the job ends
+
+#### Scenario: Job outputs stay for the CPU
+- **WHEN** the station holds a sticks job, has crafted sticks and an Access Point touches it on an Auto side
+- **THEN** the sticks stay in the outputs until the CPU collects them as packets, and the order finishes
 
 #### Scenario: Front closed
 - **WHEN** the station has a sticks job and an Outbound Station pushes planks against the station's front
