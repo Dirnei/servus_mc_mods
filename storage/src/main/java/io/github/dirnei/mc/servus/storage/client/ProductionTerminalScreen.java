@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Production;
 import io.github.dirnei.mc.servus.storage.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.production.CancelProductionOrderPayload;
 import io.github.dirnei.mc.servus.storage.production.EditPatternPayload;
@@ -22,7 +22,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -38,16 +37,14 @@ import org.lwjgl.glfw.GLFW;
  */
 public class ProductionTerminalScreen extends AbstractContainerScreen<ProductionTerminalMenu> {
 
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/production_terminal.png");
-    private static final int WIDTH = 240;
-    private static final int HEIGHT = 200;
-    private static final int MARGIN = 8;
-    private static final int TAB_Y = 4;
-    private static final int TAB_HEIGHT = 12;
-    private static final int TAB_WIDTH = 56;
-    private static final int LIST_Y = 22;
-    private static final int LIST_BOTTOM = HEIGHT - 8;
+    private static final int WIDTH = Production.WIDTH;
+    private static final int HEIGHT = Production.HEIGHT;
+    private static final int MARGIN = Production.LIST.x();
+    private static final int TAB_Y = Production.TABS.y();
+    private static final int TAB_HEIGHT = Production.TABS.h();
+    private static final int TAB_WIDTH = Production.TAB_WIDTH;
+    private static final int LIST_Y = Production.LIST.y();
+    private static final int LIST_BOTTOM = Production.LIST.bottom();
     private static final int ORDER_ROW = 18;
     private static final int ROW = 10;
     private static final int COLOUR_TEXT = 0x404040;
@@ -97,7 +94,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        PanelPainter.panel(graphics, leftPos, topPos, imageWidth, imageHeight);
+        graphics.fill(leftPos + MARGIN, topPos + LIST_Y - 2, leftPos + WIDTH - MARGIN, topPos + LIST_Y - 1, 0xFF8B8B8B);
         if (menu.isEditing()) {
             boolean existing = menu.editing() == ProductionTerminalMenu.EDIT_EXISTING;
             Component title = Component.translatable(existing ? "gui.servus_storage.production.edit_pattern"
@@ -158,8 +156,12 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         if (menu.isEditing()) {
             return;
         }
-        graphics.drawString(font, title, titleLabelX, titleLabelY, COLOUR_TEXT, false);
+        graphics.drawString(font, title, Production.TITLE.x(), Production.TITLE.y(), COLOUR_TEXT, false);
         renderTabs(graphics);
+        if (!ClientProduction.loaded()) {
+            graphics.drawString(font, Component.translatable("gui.servus_storage.production.loading"), MARGIN, LIST_Y, COLOUR_DIM, false);
+            return;
+        }
         if (!ClientProduction.online()) {
             String reason = ClientProduction.reason().isEmpty() ? "no_line" : ClientProduction.reason();
             graphics.drawString(font, Component.translatable("gui.servus_storage.production." + reason), MARGIN, LIST_Y, COLOUR_ALERT, false);
@@ -189,9 +191,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
     }
 
-    /** Tabs sit right aligned on the title row, the first tab leftmost. */
+    /** Tabs sit left aligned on their own row below the title. */
     private int tabX(int index) {
-        return WIDTH - MARGIN - (tabs.size() - index) * (TAB_WIDTH + 2);
+        return Production.tabX(index);
     }
 
     private void rebuildLines() {
@@ -247,7 +249,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             }
             graphics.renderItem(order.item(), MARGIN + 4, y + 1);
             Component head = Component.literal("#" + order.id() + "  " + order.amount() + " x ").append(order.item().getHoverName());
-            graphics.drawString(font, head, MARGIN + 24, y + 1, COLOUR_TEXT, false);
+            Component originText = Component.translatable(origin(order));
+            int room = WIDTH - MARGIN - font.width(originText) - 6 - (MARGIN + 24);
+            graphics.drawString(font, font.plainSubstrByWidth(head.getString(), room), MARGIN + 24, y + 1, COLOUR_TEXT, false);
             int colour = switch (order.state()) {
                 case "running" -> COLOUR_GOOD;
                 case "blocked" -> COLOUR_ALERT;
