@@ -26,4 +26,4 @@
 
 ## 6. Integration
 
-- [ ] 6.1 Full `gradlew build` and `gradlew test` green, all GameTest runs green, docs tests green. (The client is not launched in this run; the user checks the look in game.)
+- [x] 6.1 Full `gradlew build` and `gradlew test` green, all GameTest runs green, docs tests green. (The client is not launched in this run; the user checks the look in game.)
