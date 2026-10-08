@@ -7,7 +7,7 @@ import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import net.minecraft.resources.ResourceLocation;
 
-/** JEI integration, loaded only when JEI is present: the transfer button opens the Crafting Station's editor. */
+/** JEI integration, loaded only when JEI is present: the transfer button opens the Production Terminal's pattern editor. */
 @JeiPlugin
 public final class ServusStorageJeiPlugin implements IModPlugin {
 
@@ -20,7 +20,6 @@ public final class ServusStorageJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
-        registration.addRecipeTransferHandler(new CraftingStationRecipeTransferHandler(), RecipeTypes.CRAFTING);
         registration.addRecipeTransferHandler(new ProductionTerminalRecipeTransferHandler(), RecipeTypes.CRAFTING);
     }
 }

@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.storage.pattern;
 
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +41,7 @@ public final class PatternEditing {
         if (!any) {
             return "empty";
         }
-        Optional<RecipeHolder<CraftingRecipe>> match = CraftingStationBlockEntity.match(level, cells);
+        Optional<RecipeHolder<CraftingRecipe>> match = CraftingGrid.match(level, cells);
         if (match.isEmpty()) {
             return "no_match";
         }

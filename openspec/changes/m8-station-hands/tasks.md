@@ -2,7 +2,7 @@
 
 ## 1. Station jobs
 
-- [ ] 1.1 Move `match` and `templateOf` to `storage/pattern/CraftingGrid`, rename `OpenStationEditorPayload` to `pattern/OpenRecipeEditorPayload` handled only by the Production Terminal, delete the station's JEI transfer handler and its registration. Verify with `gradlew build` and a grep that every payload TYPE in `ServusStoragePayloads` is registered.
+- [x] 1.1 Move `match` and `templateOf` to `storage/pattern/CraftingGrid`, rename `OpenStationEditorPayload` to `pattern/OpenRecipeEditorPayload` handled only by the Production Terminal, delete the station's JEI transfer handler and its registration. Verify with `gradlew build` and a grep that every payload TYPE in `ServusStoragePayloads` is registered.
 - [ ] 1.2 Replace the configured recipes of `CraftingStationBlockEntity` with the transient job (`assign`, `release`, `job`, `jobLeft`), crafting and insertion from the job, production capability with no recipes and the job as active, update tag with job result and crafts left; drop `recipes` from `crafting_station.json` and `StorageStatsManager`. Rework `CraftingStationMenu` and `CraftingStationScreen` (no grid, no editor, job area) and the station lang keys. Verify with `gradlew build`.
 
 ## 2. CPU and terminal

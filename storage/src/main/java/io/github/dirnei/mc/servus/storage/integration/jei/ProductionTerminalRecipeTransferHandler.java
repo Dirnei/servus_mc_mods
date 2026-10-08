@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.integration.jei;
 
-import io.github.dirnei.mc.servus.storage.crafting.OpenStationEditorPayload;
+import io.github.dirnei.mc.servus.storage.pattern.OpenRecipeEditorPayload;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import java.util.Optional;
@@ -40,7 +40,7 @@ public final class ProductionTerminalRecipeTransferHandler implements IRecipeTra
     public IRecipeTransferError transferRecipe(ProductionTerminalMenu menu, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView slots,
                                                Player player, boolean maxTransfer, boolean doTransfer) {
         if (doTransfer) {
-            PacketDistributor.sendToServer(new OpenStationEditorPayload(recipe.id()));
+            PacketDistributor.sendToServer(new OpenRecipeEditorPayload(recipe.id()));
         }
         return null;
     }

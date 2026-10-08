@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.terminal;
 
+import io.github.dirnei.mc.servus.storage.pattern.OpenRecipeEditorPayload;
 import io.github.dirnei.mc.servus.storage.client.ClientProduction;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.production.CancelProductionOrderPayload;
@@ -7,8 +8,6 @@ import io.github.dirnei.mc.servus.storage.production.EditPatternPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.client.ClientStock;
-import io.github.dirnei.mc.servus.storage.crafting.OpenStationEditorPayload;
-import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
@@ -50,12 +49,9 @@ public final class ServusStoragePayloads {
                         menu.cancel(payload.cpu(), payload.id());
                     }
                 });
-        registrar.playToServer(OpenStationEditorPayload.TYPE, OpenStationEditorPayload.STREAM_CODEC,
+        registrar.playToServer(OpenRecipeEditorPayload.TYPE, OpenRecipeEditorPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof CraftingStationMenu menu) {
-                        menu.openEditorWith(payload.recipe());
-                    } else if (context.player() instanceof ServerPlayer player
                             && player.containerMenu instanceof ProductionTerminalMenu menu) {
                         menu.openEditorWith(payload.recipe());
                     }

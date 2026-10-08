@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.storage.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.pattern.PatternItem;
 import io.github.dirnei.mc.servus.storage.production.CancelProductionOrderPayload;
@@ -124,7 +124,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         if (level == null) {
             return ItemStack.EMPTY;
         }
-        return CraftingStationBlockEntity.match(level, menu.gridCells())
+        return CraftingGrid.match(level, menu.gridCells())
                 .map(holder -> holder.value().getResultItem(level.registryAccess()).copy())
                 .orElse(ItemStack.EMPTY);
     }

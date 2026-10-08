@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.storage.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternEditing;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
@@ -215,7 +215,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         if (player.level().isClientSide()) {
             return;
         }
-        CraftingStationBlockEntity.templateOf(player.level(), id).ifPresent(template -> {
+        CraftingGrid.templateOf(player.level(), id).ifPresent(template -> {
             fill(template);
             if (!isEditing()) {
                 editingSlot = null;
