@@ -12,7 +12,7 @@
 
 ## 3. Tests
 
-- [ ] 3.1 Copy `eula.txt` and the RCON `server.properties` from `logistics/runs/server` to `foundation/runs/server` if missing. Run `:foundation:runGameTestServer` (former Logistics tests, 24), `:manufacturing:runGameTestServer` (39) and `:storage:runGameTestServer` (105); all green. Fix test helpers that referenced old ids (`CraftingRecipeReaderTest`, `GameDataJsonTest`, `DataCableGameTests`). Verify with `gradlew test` and the three GameTest runs.
+- [x] 3.1 Copy `eula.txt` and the RCON `server.properties` from `logistics/runs/server` to `foundation/runs/server` if missing. Run `:foundation:runGameTestServer` (former Logistics tests, 24), `:manufacturing:runGameTestServer` (39) and `:storage:runGameTestServer` (105); all green. Fix test helpers that referenced old ids (`CraftingRecipeReaderTest`, `GameDataJsonTest`, `DataCableGameTests`). Verify with `gradlew test` and the three GameTest runs.
 
 ## 4. Specs and planning
 
