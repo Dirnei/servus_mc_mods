@@ -10,4 +10,4 @@
 
 ## 3. Integration
 
-- [ ] 3.1 Full `gradlew build` and `gradlew test`, all three GameTest runs, docs `npx vitest run`, and `runClientAll` reaches the title screen.
+- [x] 3.1 Full `gradlew build` and `gradlew test`, all three GameTest runs, docs `npx vitest run`, and `runClientAll` reaches the title screen.
