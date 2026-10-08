@@ -150,7 +150,7 @@ Decided for M8 (on-demand autocrafting):
 - **Access Point** (Storage). Sits on a rail and on the cable and is the warehouse's door: shuttles bring items to it and it sends them as packets, and packets coming back are handed to shuttles for put-away. A warehouse may have several; each adds packet throughput. The controller picks the Access Point with the shortest shuttle trip; on a tie any of them.
 - **Warehouse Controller** on the cable answers stock questions and assigns shuttles. It moves no items itself.
 - **Counter Terminal** on the cable: the player requests items, shuttles bring them to an Access Point, packets deliver them into the terminal's output slots.
-- **Crafting CPU** (Storage, 3x3x3 multiblock on the cable) owns work orders; this moves order handling from the controller to the CPU. Every CPU adds order slots, more CPUs run more orders in parallel.
+- **Crafting CPU** (Storage, 3x3x3 multiblock on the cable) owns work orders; this moves order handling from the controller to the CPU. Every CPU adds order slots, more CPUs run more orders in parallel. Decided: a new order goes to the CPU with a free slot and the lowest position, else to the one with the fewest open orders; orders stay on their CPU.
 - **Patterns for crafting recipes only.** A pattern item is encoded with the recipe editor (with JEI transfer) and holds concrete items, so the planner never chooses between recipes or tag variants. Patterns live in **Pattern Storage** blocks on the cable, N per block (from datapack JSON); more blocks hold more patterns.
 - **Crafting Stations are the hands.** They lose their own recipe list and craft what the CPU assigns, fed by packets. More stations craft more in parallel.
 - **Machines say what they can do.** Servus machines expose the production capability and join the cable directly, no pattern needed. Building an assembler for gears teaches the system to make gears.
@@ -293,7 +293,6 @@ One change per item, in this order. Each one builds only on the ones before it a
 - Art style and texture direction (shared look across the family)
 - Final name for the storage mod (Servus: Storage vs Servus: Warehouse)
 - M8: whether Pattern Storage gets tiers like the crate family or only more blocks
-- M8: which CPU takes an order when several CPUs share a data network (first free order slot is the default guess)
 
 ---
 

@@ -20,7 +20,7 @@
 
 ## 5. Docs and plan
 
-- [ ] 5.1 Update `docs/src/content/docs/mods/storage.md` (Crafting CPU section, order board gone, outbound station wording), PLAN.md (settle the CPU choice in section 5, M8 item text), regenerate `docs/src/data/gamedata.json` with `:manufacturing:runData`. Verify with `npx vitest run` and `npm run build` in `docs/`.
+- [x] 5.1 Update `docs/src/content/docs/mods/storage.md` (Crafting CPU section, order board gone, outbound station wording), PLAN.md (settle the CPU choice in section 5, M8 item text), regenerate `docs/src/data/gamedata.json` with `:manufacturing:runData`. Verify with `npx vitest run` and `npm run build` in `docs/`.
 
 ## 6. Integration
 
