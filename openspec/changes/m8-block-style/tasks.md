@@ -16,7 +16,7 @@
 ## 4. Blocks
 
 - [x] 4.1 Wood on the ten Storage block entities and the Machine Adapter (`WoodSlot`, model data, update tag), items as `WoodBlockItem`, dismantle drops stamped, blocks registered with `WoodModels`. Verify with `gradlew build`.
-- [ ] 4.2 CPU `ACTIVE` state driven by order changes; Pattern Storage `LIGHTS` state driven by saves, deletes, load and placement. Verify with `gradlew build`.
+- [x] 4.2 CPU `ACTIVE` state driven by order changes; Pattern Storage `LIGHTS` state driven by saves, deletes, load and placement. Verify with `gradlew build`.
 - [ ] 4.3 Datagen: layered models and blockstates for all eleven blocks (CPU per part and active), wood recipes, loot copying the wood, lang for the tooltip. Run `:foundation:runData`, `:storage:runData`, `:manufacturing:runData`; verify generated files and `gradlew build`.
 
 ## 5. Tests and docs

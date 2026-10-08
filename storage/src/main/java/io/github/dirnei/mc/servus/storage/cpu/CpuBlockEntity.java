@@ -35,6 +35,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -109,6 +110,30 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     void serverTick() {
         if (book != null) {
             book.tick();
+        }
+    }
+
+    /**
+     * Sets the lights of every block of a formed cube to running while the
+     * master has open orders and to the slow glow otherwise. Called when the
+     * order book changes, never per tick; only changed states are written.
+     */
+    void updateActive() {
+        BlockState state = getBlockState();
+        if (!(level instanceof ServerLevel server) || !CpuBlock.isFormed(state) || state.getValue(CpuBlock.PART) != 0) {
+            return;
+        }
+        boolean active = book != null && book.openCount() > 0;
+        if (state.getValue(CpuBlock.ACTIVE) == active) {
+            return;
+        }
+        for (int part = CpuShape.PARTS - 1; part >= 0; part--) {
+            CpuShape.Vec offset = CpuShape.offset(part);
+            BlockPos at = worldPosition.offset(offset.x(), offset.y(), offset.z());
+            BlockState partState = server.getBlockState(at);
+            if (CpuBlock.isFormed(partState) && partState.getValue(CpuBlock.ACTIVE) != active) {
+                server.setBlock(at, partState.setValue(CpuBlock.ACTIVE, active), Block.UPDATE_CLIENTS);
+            }
         }
     }
 
@@ -221,6 +246,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         @Override
         public void changed() {
             setChanged();
+            updateActive();
         }
 
         @Override

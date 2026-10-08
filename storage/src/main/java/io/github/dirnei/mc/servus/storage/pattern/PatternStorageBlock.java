@@ -23,16 +23,21 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.Nullable;
 
 /** Keeps patterns on the data line; an empty hand shows how many. The patterns travel with the dropped block. */
 public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<PatternStorageBlock> CODEC = simpleCodec(PatternStorageBlock::new);
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    /** How many of the nine front lights are lit, see {@link PatternLights}. */
+    public static final IntegerProperty LIGHTS = IntegerProperty.create("lights", 0, PatternLights.LIGHTS);
 
     public PatternStorageBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIGHTS, 0));
     }
 
     @Override
@@ -42,7 +47,16 @@ public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, LIGHTS);
+    }
+
+    /** A placed item may carry patterns: the lights follow them. */
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (level.getBlockEntity(pos) instanceof PatternStorageBlockEntity storage) {
+            storage.updateLights();
+        }
     }
 
     @Override

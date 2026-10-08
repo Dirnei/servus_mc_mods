@@ -22,6 +22,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.neoforged.neoforge.client.model.data.ModelData;
+import net.minecraft.world.level.block.Block;
 
 /**
  * Keeps patterns as data, {@code patterns_per_block} places of them. A link
@@ -87,12 +88,29 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
         grow(slot + 1);
         patterns[slot] = pattern;
         setChanged();
+        updateLights();
     }
 
     public void clear(int slot) {
         if (slot >= 0 && slot < patterns.length) {
             patterns[slot] = null;
             setChanged();
+            updateLights();
+        }
+    }
+
+    /** Sets the front lights to the stored patterns; only a changed count is written. */
+    public void updateLights() {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        BlockState state = getBlockState();
+        if (!state.hasProperty(PatternStorageBlock.LIGHTS)) {
+            return;
+        }
+        int lit = PatternLights.lit(usedSlots().size(), capacity());
+        if (state.getValue(PatternStorageBlock.LIGHTS) != lit) {
+            level.setBlock(worldPosition, state.setValue(PatternStorageBlock.LIGHTS, lit), Block.UPDATE_CLIENTS);
         }
     }
 

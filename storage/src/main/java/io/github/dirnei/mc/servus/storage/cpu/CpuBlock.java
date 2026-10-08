@@ -41,10 +41,12 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
     public static final MapCodec<CpuBlock> CODEC = simpleCodec(CpuBlock::new);
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
     public static final IntegerProperty PART = IntegerProperty.create("part", 0, CpuShape.PARTS - 1);
+    /** A formed cube whose CPU has open orders: its lights run. */
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     public CpuBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FORMED, false).setValue(PART, 0));
+        registerDefaultState(stateDefinition.any().setValue(FORMED, false).setValue(PART, 0).setValue(ACTIVE, false));
     }
 
     @Override
@@ -54,7 +56,7 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FORMED, PART);
+        builder.add(FORMED, PART, ACTIVE);
     }
 
     @Override
