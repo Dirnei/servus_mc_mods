@@ -2886,20 +2886,36 @@ public final class ServusStorageGameTests {
         helper.succeed();
     }
 
-    /** The top face quadrant and side faces pick the direction; the walk passes a junction. */
+    /** On lone rails the top face quadrant and side faces pick the direction; the walk passes a junction. */
     @GameTest(template = EMPTY, timeoutTicks = 40)
     public static void sneakRailDirectionAndJunction(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         floorRails(helper, 1, 4, 3);
+        stoneFloor(helper, 1);
         stoneFloor(helper, 2);
-        stoneFloor(helper, 4);
         placeRail(helper, new BlockPos(2, 2, 2));
         sneakRail(helper, player, new BlockPos(1, 2, 3), Direction.UP, 0.85, 0.4);
         helper.assertTrue(railAt(helper, 5, 2, 3), "the walk should pass the junction and land past the line");
-        sneakRail(helper, player, new BlockPos(1, 2, 3), Direction.SOUTH, 0.5, 0.5);
-        helper.assertTrue(railAt(helper, 1, 2, 4), "a side face hit should walk towards that face");
-        sneakRail(helper, player, new BlockPos(4, 2, 3), Direction.UP, 0.5, 0.1);
-        helper.assertTrue(railAt(helper, 4, 2, 2), "a hit near the north edge should place north");
+        placeRail(helper, new BlockPos(8, 2, 3));
+        sneakRail(helper, player, new BlockPos(8, 2, 3), Direction.UP, 0.5, 0.1);
+        helper.assertTrue(railAt(helper, 8, 2, 2), "a hit near the north edge of a lone rail should place north");
+        placeRail(helper, new BlockPos(0, 2, 1));
+        sneakRail(helper, player, new BlockPos(0, 2, 1), Direction.SOUTH, 0.5, 0.5);
+        helper.assertTrue(railAt(helper, 0, 2, 2), "a side face hit on a lone rail should walk towards that face");
+        helper.succeed();
+    }
+
+    /** A hit near the north edge of a rail inside an east west line still extends the line by the half it lands in. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void sneakRailFollowsStraightRun(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        floorRails(helper, 1, 4, 3);
+        stoneFloor(helper, 2);
+        sneakRail(helper, player, new BlockPos(2, 2, 3), Direction.UP, 0.6, 0.1);
+        helper.assertTrue(railAt(helper, 5, 2, 3), "the rail should land past the east end of the line");
+        helper.assertFalse(railAt(helper, 2, 2, 2), "no rail should land north of the clicked rail");
+        sneakRail(helper, player, new BlockPos(3, 2, 3), Direction.NORTH, 0.5, 0.5);
+        helper.assertTrue(railAt(helper, 6, 2, 3), "a side face hit across the line follows the line too");
         helper.succeed();
     }
 

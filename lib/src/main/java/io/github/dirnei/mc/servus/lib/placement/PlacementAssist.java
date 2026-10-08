@@ -21,5 +21,5 @@ public interface PlacementAssist {
     boolean isRun(Level level, BlockPos pos, ItemStack stack);
 
     /** The walk direction for a click on a block that starts a walk. */
-    Direction direction(BlockHitResult hit);
+    Direction direction(Level level, BlockHitResult hit, ItemStack stack);
 }

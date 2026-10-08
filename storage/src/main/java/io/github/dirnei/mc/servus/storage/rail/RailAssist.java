@@ -1,17 +1,21 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
 import io.github.dirnei.mc.servus.lib.placement.PlacementAssist;
+import io.github.dirnei.mc.servus.lib.placement.PlacementAssists;
 import io.github.dirnei.mc.servus.lib.placement.QuadrantDirection;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
- * Sneak placement for rails: the run is the rails in a straight line, the
- * direction is the clicked side face or, on the top or bottom, the edge
- * nearest to the hit.
+ * Sneak placement for rails: the run is the rails in a straight line. On a
+ * straight run of rails and elevator segments the walk keeps that axis;
+ * otherwise the direction is the clicked side face or, on the top or bottom,
+ * the edge nearest to the hit.
  */
 public final class RailAssist implements PlacementAssist {
 
@@ -26,7 +30,19 @@ public final class RailAssist implements PlacementAssist {
     }
 
     @Override
-    public Direction direction(BlockHitResult hit) {
+    public Direction direction(Level level, BlockHitResult hit, ItemStack stack) {
+        BlockPos clicked = hit.getBlockPos();
+        int connections = 0;
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            Block neighbour = level.getBlockState(clicked.relative(side)).getBlock();
+            if (neighbour instanceof RailBlock || neighbour instanceof ElevatorBlock) {
+                connections |= 1 << side.ordinal();
+            }
+        }
+        Optional<Direction> along = PlacementAssists.alongRun(connections, hit);
+        if (along.isPresent()) {
+            return along.get();
+        }
         Direction face = hit.getDirection();
         if (face.getAxis().isHorizontal()) {
             return face;

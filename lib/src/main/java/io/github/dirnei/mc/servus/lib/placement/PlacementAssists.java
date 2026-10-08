@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.lib.placement;
 
 import io.github.dirnei.mc.servus.lib.config.ServusLibConfig;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -44,7 +45,7 @@ public final class PlacementAssists {
     public static Optional<Target> target(BlockPlaceContext context, PlacementAssist assist) {
         Level level = context.getLevel();
         BlockHitResult hit = hitResult(context);
-        Direction direction = assist.direction(hit);
+        Direction direction = assist.direction(level, hit, context.getItemInHand());
         BlockPos start = hit.getBlockPos();
         Player player = context.getPlayer();
         Optional<RunWalk.Cell> cell = RunWalk.walk(cell(start), cell(direction),
@@ -73,6 +74,19 @@ public final class PlacementAssists {
         return target(context, assist)
                 .map(target -> place.apply(target.context(context)))
                 .orElse(InteractionResult.FAIL);
+    }
+
+    /**
+     * The walk direction along a straight run (see {@link StraightAxis}), or
+     * empty when the connections are not on one axis or the hit is on that axis.
+     *
+     * @param connections mask with bit {@code 1 << direction.ordinal()} per connected side
+     */
+    public static Optional<Direction> alongRun(int connections, BlockHitResult hit) {
+        BlockPos pos = hit.getBlockPos();
+        OptionalInt side = StraightAxis.along(connections, hit.getDirection().ordinal(),
+                hit.getLocation().x - pos.getX(), hit.getLocation().y - pos.getY(), hit.getLocation().z - pos.getZ());
+        return side.isPresent() ? Optional.of(Direction.values()[side.getAsInt()]) : Optional.empty();
     }
 
     /** The clicked block, not the spot in front of it that a place context reports. */

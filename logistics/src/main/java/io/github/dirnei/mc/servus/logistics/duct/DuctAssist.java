@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.logistics.duct;
 
 import io.github.dirnei.mc.servus.lib.placement.PlacementAssist;
+import io.github.dirnei.mc.servus.lib.placement.PlacementAssists;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -8,8 +9,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
- * Sneak placement for a line item: any duct starts a walk, the run is the
- * ducts carrying the line and the direction is the clicked face.
+ * Sneak placement for a line item: any duct starts a walk and the run is the
+ * ducts carrying the line. On a straight run of the line the walk keeps that
+ * axis; otherwise the direction is the clicked face.
  */
 public final class DuctAssist implements PlacementAssist {
 
@@ -30,7 +32,15 @@ public final class DuctAssist implements PlacementAssist {
     }
 
     @Override
-    public Direction direction(BlockHitResult hit) {
-        return hit.getDirection();
+    public Direction direction(Level level, BlockHitResult hit, ItemStack stack) {
+        int connections = 0;
+        if (level.getBlockEntity(hit.getBlockPos()) instanceof UtilityDuctBlockEntity duct) {
+            for (Direction side : Direction.values()) {
+                if (duct.hasArm(line, side)) {
+                    connections |= 1 << side.ordinal();
+                }
+            }
+        }
+        return PlacementAssists.alongRun(connections, hit).orElse(hit.getDirection());
     }
 }
