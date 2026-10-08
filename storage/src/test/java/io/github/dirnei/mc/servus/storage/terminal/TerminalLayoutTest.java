@@ -63,6 +63,18 @@ class TerminalLayoutTest {
     }
 
     @Test
+    void jobRowPartsApartAndInsideRow() {
+        assertDisjoint(Production.jobAreas());
+        assertInside(Production.jobAreas(), Production.LIST.w(), Production.JOB_HEIGHT);
+    }
+
+    @Test
+    void machineRowPartsApartAndInsideRow() {
+        assertDisjoint(Production.machineAreas());
+        assertInside(Production.machineAreas(), Production.LIST.w(), Production.MACHINE_HEIGHT);
+    }
+
+    @Test
     void panelsFit1080p() {
         assertTrue(Counter.HEIGHT <= TerminalLayout.MAX_HEIGHT, "counter panel too tall");
         assertTrue(Production.HEIGHT <= TerminalLayout.MAX_HEIGHT, "production panel too tall");

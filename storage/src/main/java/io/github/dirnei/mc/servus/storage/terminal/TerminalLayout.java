@@ -122,5 +122,35 @@ public final class TerminalLayout {
         public static int tabX(int index) {
             return TABS.x() + index * (TAB_WIDTH + TAB_GAP);
         }
+
+        // Rows of the list. Their parts are relative to the row's top left corner on the list.
+
+        /** The Crafting tab's one line CPU header. */
+        public static final int HEADER_HEIGHT = 12;
+        /** One job of the Crafting tab. */
+        public static final int JOB_HEIGHT = 22;
+        public static final Rect JOB_ICON = new Rect(2, 3, 16, 16);
+        public static final Rect JOB_TITLE = new Rect(22, 2, 150, 9);
+        public static final Rect JOB_BAR = new Rect(176, 4, 28, 6);
+        public static final Rect JOB_STATUS = new Rect(22, 12, 182, 9);
+        public static final Rect JOB_CANCEL = new Rect(208, 4, 12, 12);
+        /** One member of the Machines tab. */
+        public static final int MACHINE_HEIGHT = 20;
+        public static final Rect MACHINE_ICON = new Rect(2, 2, 16, 16);
+        public static final Rect MACHINE_NAME = new Rect(22, 1, 150, 9);
+        public static final Rect MACHINE_STATE = new Rect(22, 11, 150, 9);
+        public static final Rect MACHINE_BAR = new Rect(176, 8, 44, 5);
+
+        /** The parts of a job row. */
+        public static List<Area> jobAreas() {
+            return List.of(new Area("job icon", JOB_ICON), new Area("job title", JOB_TITLE), new Area("job bar", JOB_BAR),
+                    new Area("job status", JOB_STATUS), new Area("job cancel", JOB_CANCEL));
+        }
+
+        /** The parts of a machine row. */
+        public static List<Area> machineAreas() {
+            return List.of(new Area("machine icon", MACHINE_ICON), new Area("machine name", MACHINE_NAME),
+                    new Area("machine state", MACHINE_STATE), new Area("machine bar", MACHINE_BAR));
+        }
     }
 }

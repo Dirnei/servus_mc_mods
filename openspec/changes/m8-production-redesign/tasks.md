@@ -2,7 +2,7 @@
 
 ## 1. Pure helpers
 
-- [ ] 1.1 Add `storage/.../production/JobStatus` and `MachineOrder` (no Minecraft imports) and row geometry in `terminal/TerminalLayout.Production` (`HEADER`, job and machine row parts, `jobAreas()`, `machineAreas()`). JUnit: `JobStatusTest` (done, cancelled, waiting for CPU, missing, out of fuel, blocked reason, waiting for machine, getting ingredients, crafting 1 of 2, precedence), `MachineOrderTest` (problems first, then position), and `TerminalLayoutTest` cases for job and machine rows. Verify with `gradlew :storage:test`.
+- [x] 1.1 Add `storage/.../production/JobStatus` and `MachineOrder` (no Minecraft imports) and row geometry in `terminal/TerminalLayout.Production` (`HEADER`, job and machine row parts, `jobAreas()`, `machineAreas()`). JUnit: `JobStatusTest` (done, cancelled, waiting for CPU, missing, out of fuel, blocked reason, waiting for machine, getting ingredients, crafting 1 of 2, precedence), `MachineOrderTest` (problems first, then position), and `TerminalLayoutTest` cases for job and machine rows. Verify with `gradlew :storage:test`.
 
 ## 2. Server rows
 
