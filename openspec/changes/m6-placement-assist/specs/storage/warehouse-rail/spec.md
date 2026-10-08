@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Sneak placement extends a rail run
-The rail item SHALL use the placement assist. Its run SHALL be the rails in a straight line from the clicked rail. On a hit on the top or bottom face, the direction SHALL be the horizontal side whose edge is nearest to the hit point. On a hit on a side face, it SHALL be that face. The placed rail SHALL follow the normal stand, hang and gap rules, with no special handling for rails placed this way.
+The rail item SHALL use the placement assist with the run axis. Its run SHALL be the rails in a straight line from the clicked rail, and its run connections the rails and elevator segments beside it. Otherwise a top or bottom face hit SHALL pick the horizontal side whose edge is nearest to the hit point, and a side face hit that face. The placed rail SHALL follow the normal stand, hang and gap rules, with no special handling for rails placed this way.
 
 #### Scenario: Quick straight on a floor
 - **WHEN** four rails lie on a floor from west to east and a sneaking player clicks the top of the first rail near its east edge while holding a rail
@@ -13,8 +13,12 @@ The rail item SHALL use the placement assist. Its run SHALL be the rails in a st
 - **WHEN** a sneaking player clicks the top of a lone rail near its north edge
 - **THEN** the ghost and the placed rail are north of it
 
+#### Scenario: Middle of a straight run
+- **WHEN** rails lie on a floor from west to east and a sneaking player clicks the top of the second rail near its north edge and east of its centre
+- **THEN** a rail is placed past the east end of the line, not north of the clicked rail
+
 #### Scenario: Side face hit
-- **WHEN** a sneaking player clicks the south side face of a rail
+- **WHEN** a sneaking player clicks the south side face of a lone rail
 - **THEN** the rail is placed past the run to the south
 
 #### Scenario: Run passes a junction

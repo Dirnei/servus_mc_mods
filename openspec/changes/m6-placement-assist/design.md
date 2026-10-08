@@ -41,8 +41,8 @@ public interface PlacementAssist {
     default boolean isStart(Level level, BlockPos pos, ItemStack stack) { return isRun(level, pos, stack); }
     /** Whether the block at pos continues this item's run. */
     boolean isRun(Level level, BlockPos pos, ItemStack stack);
-    /** Walk direction for a click on a run block. */
-    Direction direction(BlockHitResult hit);
+    /** Walk direction for a click on a block that starts a walk. */
+    Direction direction(Level level, BlockHitResult hit, ItemStack stack);
 }
 ```
 
@@ -70,15 +70,29 @@ Lib ships `AssistedBlockItem extends BlockItem`, which takes a `PlacementAssist`
 
 Alternative: a global `PlayerInteractEvent.RightClickBlock` handler that redirects placement. Rejected, because cancelling and re-dispatching the event duplicates vanilla placement logic and breaks client prediction.
 
-### Rail and duct assists
+### Straight runs keep their axis
+
+`lib/placement/StraightAxis.along(int connections, int face, double x, double y, double z)` is pure. Sides are numbered like `Direction.ordinal()` (down, up, north, south, west, east), and the hit point is block local. It returns a side or empty:
+- It returns empty when the connection mask is empty, spans more than one axis, or the face lies on the connection axis.
+- Otherwise it returns the positive side of the axis (east, up, south) when the hit coordinate on that axis is at least 0.5, and the negative side when it is not.
+
+Rails and ducts call it first and fall back to their own rule on empty. This is Create's shaft rule. With sneak meaning "keep going straight", a hit on the top of a straight pipe or on the middle of a rail line is almost never meant as a branch. A plain click still branches.
+
+Alternative: keep the clicked face and ask players to aim at the end cap. Rejected after the play check: on a horizontal pipe the top face is what players look at, and on a straight rail the quadrant rule picks north or south for nearly every hit near the middle.
+
+### Rail, duct and elevator assists
 
 - **Rail** (`storage/rail/RailAssist`):
   - `isRun`: the block is a `RailBlock`.
-  - `direction`: a hit on a horizontal face uses that face. A hit on the top or bottom face uses `QuadrantDirection.nearestEdge` on the local hit x and z.
+  - `direction`: `StraightAxis.along` with a mask of the horizontal sides that hold a `RailBlock` or an `ElevatorBlock`. Fallback: a hit on a horizontal face uses that face, and a hit on the top or bottom face uses `QuadrantDirection.nearestEdge` on the local hit x and z.
   - Rails keep their stand, hang and gap behaviour through the normal `onPlace` path and the scheduled `tick` with `RailSpan`. Nothing changes there.
 - **Duct** (`logistics/duct/DuctAssist`, constructed per `LineItem` with its `Line`):
   - `isRun`: the block entity is a `UtilityDuctBlockEntity` whose `has(line)` holds. The walk never tests the clicked block with `isRun`, because it begins with the next block.
-  - `direction`: `hit.getDirection()`.
+  - `direction`: `StraightAxis.along` with a mask of the sides where the clicked duct `hasArm(line, side)`. Fallback: `hit.getDirection()`.
+- **Elevator** (`storage/rail/ElevatorAssist`):
+  - `isRun`: the block is an `ElevatorBlock`.
+  - `direction`: always `UP`, because `ElevatorBlock.canSurvive` needs a segment or a solid block below, so there is nothing to build downwards or sideways.
+  - `ServusStorageItems.ELEVATOR` becomes an `AssistedBlockItem`.
 - **Start check:** the rail keeps the default `isStart` (a rail). The duct overrides `isStart` to "any `UtilityDuctBlock`", so a sneak click on a duct that lacks the line walks from it, which keeps today's sneak behaviour as the case where the next block is free.
 
 `LineItem.useOn` keeps its add-line branch for non-sneak clicks. Sneak clicks already fall through to `super.useOn`, then `place`, so they reach the assist without other changes.

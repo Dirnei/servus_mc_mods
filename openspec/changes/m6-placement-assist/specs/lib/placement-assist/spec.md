@@ -28,6 +28,21 @@ An assisted item used without sneaking, or used on a block that does not start a
 - **WHEN** a sneaking player uses an assisted item on the top of a stone block
 - **THEN** the block is placed on top of the stone as before
 
+### Requirement: Direction follows a straight run
+An assisted item that uses the run axis SHALL look at the run connections of the clicked block. When they all lie on one axis and the hit is on a face across that axis, the walk SHALL follow that axis towards the half of the block the hit lands in. A hit on a face along the axis, a block without connections and a block with connections on several axes SHALL use the item's own direction rule.
+
+#### Scenario: Top of a straight run
+- **WHEN** a run lies from west to east and a sneaking player looks at the top of one of its blocks, east of the block's centre
+- **THEN** the walk goes east and the ghost is past the east end of the run
+
+#### Scenario: Other half
+- **WHEN** the same player moves the crosshair west of the block's centre
+- **THEN** the walk goes west and the ghost is past the west end of the run
+
+#### Scenario: End cap
+- **WHEN** the player looks at the east face of the east end of that run
+- **THEN** the item's own rule decides the direction
+
 ### Requirement: Walk stops at the end or fails
 The walk SHALL stop at the first block that is not part of the run. If that block can be replaced by the placed block (air, for example), it SHALL be the target. If it cannot be replaced, or the walk passes the maximum reach before reaching it, there SHALL be no target. The click SHALL then place nothing and consume no item.
 
