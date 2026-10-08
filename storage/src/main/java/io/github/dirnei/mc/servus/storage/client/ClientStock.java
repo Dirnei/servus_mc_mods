@@ -5,86 +5,106 @@ import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.world.item.ItemStack;
 
-/** The last stock, craftables, requests, message and craft preview the server sent for the open terminal. */
+/**
+ * The last stock, craftables, requests, message and craft preview the server
+ * sent, kept per Counter Terminal for the session, so a terminal opened again
+ * shows its last content at once while the fresh one is on its way.
+ * Client main thread only.
+ */
 public final class ClientStock {
 
-    private static volatile boolean loaded;
-    private static volatile boolean online;
-    private static volatile String reason = "";
-    private static volatile List<StockEntry> entries = List.of();
-    private static volatile List<RequestRow> requests = List.of();
-    private static volatile String message = "";
-    private static volatile List<RuleRow> rules = List.of();
-    private static volatile List<ItemStack> craftables = List.of();
-    private static volatile CraftPreviewPayload preview;
-    private static volatile int version;
+    private static final Map<GlobalPos, StockSyncPayload> CACHE = new HashMap<>();
+
+    private static GlobalPos open;
+    private static StockSyncPayload shown;
+    private static CraftPreviewPayload preview;
+    private static int version;
 
     private ClientStock() {
     }
 
-    public static void update(StockSyncPayload payload) {
-        online = payload.online();
-        reason = payload.reason();
-        entries = List.copyOf(payload.entries());
-        requests = List.copyOf(payload.requests());
-        message = payload.message();
-        rules = List.copyOf(payload.rules());
-        craftables = List.copyOf(payload.craftables());
-        loaded = true;
+    /** A Counter Terminal screen opens: show what was last seen of it, if anything. */
+    public static void open(BlockPos terminal) {
+        open = key(terminal);
+        shown = open == null ? null : CACHE.get(open);
+        preview = null;
         version++;
+    }
+
+    /** The screen closed; its content stays cached. */
+    public static void close() {
+        open = null;
+        shown = null;
+        preview = null;
+        version++;
+    }
+
+    /** Forget every terminal, when leaving the world. */
+    public static void forgetAll() {
+        CACHE.clear();
+        close();
+    }
+
+    public static void update(StockSyncPayload payload) {
+        GlobalPos key = key(payload.terminal());
+        if (key == null) {
+            return;
+        }
+        CACHE.put(key, payload);
+        if (key.equals(open)) {
+            shown = payload;
+            version++;
+        }
+    }
+
+    private static GlobalPos key(BlockPos pos) {
+        Minecraft minecraft = Minecraft.getInstance();
+        return minecraft.level == null ? null : GlobalPos.of(minecraft.level.dimension(), pos);
     }
 
     public static void preview(CraftPreviewPayload payload) {
         preview = payload;
     }
 
-    public static void clear() {
-        loaded = false;
-        online = false;
-        reason = "";
-        entries = List.of();
-        requests = List.of();
-        message = "";
-        rules = List.of();
-        craftables = List.of();
-        preview = null;
-        version++;
-    }
-
-    /** Whether the server sent the content since the screen opened. */
+    /** Whether content for the open terminal exists, fresh or from earlier in the session. */
     public static boolean loaded() {
-        return loaded;
+        return shown != null;
     }
 
     public static boolean online() {
-        return online;
+        return shown != null && shown.online();
     }
 
     public static String reason() {
-        return reason;
+        return shown == null ? "" : shown.reason();
     }
 
     public static List<StockEntry> entries() {
-        return entries;
+        return shown == null ? List.of() : shown.entries();
     }
 
     public static List<RequestRow> requests() {
-        return requests;
+        return shown == null ? List.of() : shown.requests();
     }
 
     public static String message() {
-        return message;
+        return shown == null ? "" : shown.message();
     }
 
     public static List<RuleRow> rules() {
-        return rules;
+        return shown == null ? List.of() : shown.rules();
     }
 
     public static List<ItemStack> craftables() {
-        return craftables;
+        return shown == null ? List.of() : shown.craftables();
     }
 
     /** The last craft preview, or null. */
@@ -98,7 +118,7 @@ public final class ClientStock {
 
     /** Whether a producer of the line can make the item. */
     public static boolean craftable(ItemStack stack) {
-        for (ItemStack craftable : craftables) {
+        for (ItemStack craftable : craftables()) {
             if (ItemStack.isSameItemSameComponents(craftable, stack)) {
                 return true;
             }
@@ -108,7 +128,7 @@ public final class ClientStock {
 
     /** The rule for a stack, or null. */
     public static RuleRow ruleFor(ItemStack stack) {
-        for (RuleRow rule : rules) {
+        for (RuleRow rule : rules()) {
             if (ItemStack.isSameItemSameComponents(rule.stack(), stack)) {
                 return rule;
             }
@@ -116,7 +136,7 @@ public final class ClientStock {
         return null;
     }
 
-    /** Bumps on every update so screens can refilter lazily. */
+    /** Bumps whenever the shown content changes so screens can refilter lazily. */
     public static int version() {
         return version;
     }

@@ -141,7 +141,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         if (terminal.getLevel() instanceof ServerLevel level) {
             return ProductionView.of(level, terminal.getBlockPos());
         }
-        return new ProductionPayload(false, "no_line", List.of(), List.of(), PatternsView.EMPTY);
+        return new ProductionPayload(terminal.getBlockPos(), false, "no_line", List.of(), List.of(), PatternsView.EMPTY);
     }
 
     private void resync() {

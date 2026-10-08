@@ -53,7 +53,7 @@ public final class ProductionView {
     public static ProductionPayload of(ServerLevel level, BlockPos pos) {
         Optional<DataNetwork> line = DataNetworks.networkAt(level, pos);
         if (line.isEmpty()) {
-            return new ProductionPayload(false, "no_line", List.of(), List.of(), PatternsView.EMPTY);
+            return new ProductionPayload(pos, false, "no_line", List.of(), List.of(), PatternsView.EMPTY);
         }
         List<CpuRow> cpus = new ArrayList<>();
         for (CpuBlockEntity cpu : CpuOrders.cpus(level, line.get())) {
@@ -61,7 +61,7 @@ public final class ProductionView {
         }
         List<MachineRow> machines = machines(level, line.get());
         boolean online = !cpus.isEmpty() || !TerminalWarehouses.reachable(level, pos).isEmpty();
-        return new ProductionPayload(online, online ? "" : "nothing", cpus, machines, patterns(level, line.get()));
+        return new ProductionPayload(pos, online, online ? "" : "nothing", cpus, machines, patterns(level, line.get()));
     }
 
     /** The patterns of the line with their storage and the line's capacity. */

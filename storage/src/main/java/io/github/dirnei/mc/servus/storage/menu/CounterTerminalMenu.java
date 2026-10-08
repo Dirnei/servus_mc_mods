@@ -258,14 +258,14 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
     /** The current stock, requests and message as the client should see them. */
     public StockSyncPayload stock() {
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
-            return new StockSyncPayload(false, "no_warehouse", List.of(), List.of(), message, List.of(), List.of());
+            return new StockSyncPayload(terminal.getBlockPos(), false, "no_warehouse", List.of(), List.of(), message, List.of(), List.of());
         }
         List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(server, terminal.getBlockPos());
         List<RequestRow> requests = TerminalRequests.rows(server, terminal, warehouses);
         if (warehouses.isEmpty()) {
-            return new StockSyncPayload(false, "no_warehouse", List.of(), requests, message, List.of(), List.of());
+            return new StockSyncPayload(terminal.getBlockPos(), false, "no_warehouse", List.of(), requests, message, List.of(), List.of());
         }
-        return new StockSyncPayload(true, "", entries(TerminalWarehouses.stock(warehouses)), requests, message,
+        return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(TerminalWarehouses.stock(warehouses)), requests, message,
                 warehouses.get(0).ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES));
     }
 

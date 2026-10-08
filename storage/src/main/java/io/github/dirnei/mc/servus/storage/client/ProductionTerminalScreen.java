@@ -81,7 +81,13 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         super(menu, playerInventory, title);
         this.imageWidth = WIDTH;
         this.imageHeight = HEIGHT;
-        ClientProduction.clear();
+        ClientProduction.open(menu.terminal().getBlockPos());
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        ClientProduction.close();
     }
 
     @Override

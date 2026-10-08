@@ -87,7 +87,7 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
         super(menu, playerInventory, title);
         this.imageWidth = Counter.WIDTH;
         this.imageHeight = Counter.HEIGHT;
-        ClientStock.clear();
+        ClientStock.open(menu.terminal().getBlockPos());
     }
 
     private int dx() {
@@ -669,6 +669,6 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
     @Override
     public void removed() {
         super.removed();
-        ClientStock.clear();
+        ClientStock.close();
     }
 }

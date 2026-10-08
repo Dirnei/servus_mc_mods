@@ -11,7 +11,7 @@
 
 ## 3. Client cache
 
-- [ ] 3.1 Add the terminal position (and dimension) to `StockSyncPayload` and `ProductionPayload`; keep content per terminal in `ClientStock` and `ClientProduction` with `open(pos)` instead of `clear()` in the screen constructors; clear the maps on client logout. Verify with `gradlew build`, `:storage:runGameTestServer`, and a grep that every payload type is registered.
+- [x] 3.1 Add the terminal position (and dimension) to `StockSyncPayload` and `ProductionPayload`; keep content per terminal in `ClientStock` and `ClientProduction` with `open(pos)` instead of `clear()` in the screen constructors; clear the maps on client logout. Verify with `gradlew build`, `:storage:runGameTestServer`, and a grep that every payload type is registered.
 
 ## 4. Docs and wrap up
 
