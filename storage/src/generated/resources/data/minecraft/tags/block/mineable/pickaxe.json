@@ -7,6 +7,7 @@
     "servus_storage:inbound_station",
     "servus_storage:access_point",
     "servus_storage:shuttle_garage",
-    "servus_storage:outbound_station"
+    "servus_storage:outbound_station",
+    "servus_storage:crafting_cpu"
   ]
 }

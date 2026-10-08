@@ -35,11 +35,22 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         garage(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "shuttle_garage");
         station(ServusStorageBlocks.OUTBOUND_STATION.get(), "outbound_station");
         machine(ServusStorageBlocks.CRAFTING_STATION.get(), "crafting_station");
+        cpu(ServusStorageBlocks.CRAFTING_CPU.get(), "crafting_cpu");
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
         itemModels().getBuilder("shuttle").parent(new ModelFile.UncheckedModelFile("block/block"))
                 .texture("particle", modLoc("item/shuttle")).texture("skin", modLoc("item/shuttle"))
                 .element().from(2, 0, 2).to(14, 3, 14)
                 .allFaces((direction, face) -> face.texture("#skin")).end();
+    }
+
+    /** A cube block that looks different once formed. */
+    private void cpu(Block block, String name) {
+        ModelFile casing = models().cubeAll(name, modLoc("block/" + name));
+        ModelFile formed = models().cubeAll(name + "_formed", modLoc("block/" + name + "_formed"));
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(io.github.dirnei.mc.servus.storage.cpu.CpuBlock.FORMED) ? formed : casing)
+                .build());
+        simpleBlockItem(block, casing);
     }
 
     /** Horizontal block with a lit front while it works. */

@@ -1,0 +1,166 @@
+{
+  "variants": {
+    "formed=false,part=0": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=1": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=10": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=11": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=12": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=13": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=14": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=15": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=16": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=17": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=18": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=19": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=2": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=20": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=21": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=22": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=23": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=24": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=25": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=26": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=3": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=4": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=5": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=6": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=7": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=8": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=false,part=9": {
+      "model": "servus_storage:block/crafting_cpu"
+    },
+    "formed=true,part=0": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=1": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=10": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=11": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=12": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=13": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=14": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=15": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=16": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=17": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=18": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=19": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=2": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=20": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=21": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=22": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=23": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=24": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=25": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=26": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=3": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=4": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=5": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=6": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=7": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=8": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    },
+    "formed=true,part=9": {
+      "model": "servus_storage:block/crafting_cpu_formed"
+    }
+  }
+}

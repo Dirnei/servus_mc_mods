@@ -6,7 +6,7 @@
 
 ## 2. CPU block
 
-- [ ] 2.1 Add `CpuBlock` and `CpuBlockEntity` (FORMED, PART, carrot forming, unform on removal, data_link capability while formed, summary click), register block, item, block entity, `cpu.json` with `order_slots` in `StorageStatsManager`, datagen blockstate, models, loot, pickaxe tag, recipe, lang and two textures. Verify with `gradlew build` and `:storage:runData`.
+- [x] 2.1 Add `CpuBlock` and `CpuBlockEntity` (FORMED, PART, carrot forming, unform on removal, data_link capability while formed, summary click), register block, item, block entity, `cpu.json` with `order_slots` in `StorageStatsManager`, datagen blockstate, models, loot, pickaxe tag, recipe, lang and two textures. Verify with `gradlew build` and `:storage:runData`.
 
 ## 3. Orders on the CPU
 

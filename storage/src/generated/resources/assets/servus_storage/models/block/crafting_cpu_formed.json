@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "servus_storage:block/crafting_cpu_formed"
+  }
+}

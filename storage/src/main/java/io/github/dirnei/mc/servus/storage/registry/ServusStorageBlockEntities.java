@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.RailBlockEntity;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardBlockEntity;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
@@ -62,6 +63,11 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CraftingStationBlockEntity>> CRAFTING_STATION =
             BLOCK_ENTITIES.register("crafting_station", () -> BlockEntityType.Builder
                     .of(CraftingStationBlockEntity::new, ServusStorageBlocks.CRAFTING_STATION.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CpuBlockEntity>> CRAFTING_CPU =
+            BLOCK_ENTITIES.register("crafting_cpu", () -> BlockEntityType.Builder
+                    .of(CpuBlockEntity::new, ServusStorageBlocks.CRAFTING_CPU.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<OrderBoardBlockEntity>> ORDER_BOARD =

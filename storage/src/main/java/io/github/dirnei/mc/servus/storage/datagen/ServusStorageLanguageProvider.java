@@ -28,6 +28,11 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "Shuttle Garage");
         add(ServusStorageBlocks.OUTBOUND_STATION.get(), "Outbound Station");
         add(ServusStorageBlocks.CRAFTING_STATION.get(), "Crafting Station");
+        add(ServusStorageBlocks.CRAFTING_CPU.get(), "Crafting CPU");
+        add("message.servus_storage.cpu.casing", "Not formed: build a full 3x3x3 cube and use the Configuration Carrot on it");
+        add("message.servus_storage.cpu.incomplete", "A Crafting CPU needs a full 3x3x3 cube of unformed CPU blocks");
+        add("message.servus_storage.cpu.formed", "Crafting CPU formed");
+        add("message.servus_storage.cpu.summary", "Crafting CPU: %s of %s order slots in use, %s waiting");
         add(ServusStorageBlocks.ORDER_BOARD.get(), "Order Board");
         add("gui.servus_storage.board.machines", "Machines");
         add("gui.servus_storage.board.orders", "Orders");
@@ -108,6 +113,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.rule_state.ok", "ok");
         add("gui.servus_storage.terminal.rule_state.ordering", "ordering");
         add("gui.servus_storage.terminal.rule_state.no_producer", "no producer");
+        add("gui.servus_storage.terminal.rule_state.no_cpu", "no CPU");
         add("gui.servus_storage.terminal.state.missing", "%s missing");
         add("gui.servus_storage.terminal.message.offline", "No warehouse on this data line");
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");
