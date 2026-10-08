@@ -15,6 +15,8 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
+import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
+import io.github.dirnei.mc.servus.storage.pattern.PatternRunners;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import java.util.ArrayList;
@@ -134,6 +136,7 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
                 return list;
             }
             ServerLevel server = serverLevel();
+            List<PatternLibrary.Entry> patterns = PatternLibrary.entries(server, network.get());
             for (DataMember member : network.get().dataMembers(DataRole.PRODUCER)) {
                 if (!server.isLoaded(member.pos())) {
                     continue;
@@ -141,7 +144,7 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
                 ProductionProvider provider = server.getCapability(ServusFoundationCapabilities.PRODUCTION, member.pos(), null);
                 if (provider != null) {
                     list.add(new OrderBook.Producer(member.pos(), server.getBlockState(member.pos()).getBlock().getName(),
-                            provider.recipes(), provider.active()));
+                            PatternRunners.withPatterns(server, member.pos(), provider.recipes(), patterns), provider.active()));
                 }
             }
             list.sort(Comparator.comparingLong(producer -> producer.pos().asLong()));

@@ -14,7 +14,7 @@
 
 ## 4. Patterns on the line and the CPU
 
-- [ ] 4.1 Add `PatternLibrary` (entries, capacity, first free slot, find, duplicate check) and `PatternRunners.canRun` (Crafting Station with the same recipe id and counts); `CpuBlockEntity.Host.producers()` appends runnable pattern recipes not already reported. Verify with `gradlew build` and `:storage:runGameTestServer`.
+- [x] 4.1 Add `PatternLibrary` (entries, capacity, first free slot, find, duplicate check) and `PatternRunners.canRun` (Crafting Station with the same recipe id and counts); `CpuBlockEntity.Host.producers()` appends runnable pattern recipes not already reported. Verify with `gradlew build` and `:storage:runGameTestServer`.
 
 ## 5. Production Terminal
 
