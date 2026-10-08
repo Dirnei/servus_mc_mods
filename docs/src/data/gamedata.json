@@ -825,6 +825,27 @@
         {"item": "servus_storage:outbound_station", "count": 1}
       ]
     },
+    "servus_storage:production_terminal": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["GGG", "CMC", "IRI"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "G": {"item": "minecraft:glass_pane"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "M": {"item": "minecraft:comparator"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:comparator", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 2},
+        {"item": "minecraft:glass_pane", "count": 3},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:production_terminal", "count": 1}
+      ]
+    },
     "servus_storage:quad_crate": {
       "type": "minecraft:crafting_shapeless",
       "inputs": [
@@ -998,6 +1019,9 @@
     "minecraft:cobblestone": {
       "name": "Cobblestone"
     },
+    "minecraft:comparator": {
+      "name": "Redstone Comparator"
+    },
     "minecraft:copper_ingot": {
       "name": "Copper Ingot"
     },
@@ -1018,6 +1042,9 @@
     },
     "minecraft:glass": {
       "name": "Glass"
+    },
+    "minecraft:glass_pane": {
+      "name": "Glass Pane"
     },
     "minecraft:gravel": {
       "name": "Gravel"
@@ -1162,6 +1189,9 @@
     },
     "servus_storage:outbound_station": {
       "name": "Outbound Station"
+    },
+    "servus_storage:production_terminal": {
+      "name": "Production Terminal"
     },
     "servus_storage:quad_crate": {
       "name": "Quad Crate"
