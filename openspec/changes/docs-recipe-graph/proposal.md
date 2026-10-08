@@ -13,12 +13,15 @@ This is tooling for the docs site, not a PLAN.md milestone item. It extends the 
 - The game data schema goes from 1 to 2.
 - A new Balance lab page, "Recipe graph", draws one layered graph of every recipe defined in a `servus_*` namespace, from raw materials on the left to products on the right. Vanilla recipes never appear. Vanilla items and tags appear only as inputs or outputs of Servus recipes.
 - Nodes are coloured by mod and can be filtered by mod. Clicking an item highlights everything it is made from, back to the leaves, and a side panel shows the item's recipes, what it is used in, and its raw cost in vanilla items per one item.
+- The graph can be zoomed and panned: mouse wheel, drag, pinch, `+`, `-` and Fit buttons, and it zooms to the highlighted part when an item is selected.
+- Items show their inventory icon. A dev-only client run (`iconExport`) renders every item in the game data the way the inventory draws it. Servus icons are committed; vanilla icons go to a gitignored folder, so they show only locally and the published site falls back to the item name.
 
 ## Non-goals
 
 - Drafting crafting recipes, drawing a 3x3 grid in an editor, changing recipe ingredients from the graph, and showing drafts in the graph. These go in the follow-up change `docs-recipe-editor`.
 - Using crafting recipes in the chain view or the ratio math, including the Assembler running crafting recipes.
 - Applying lab edits or drafts to the graph. The graph shows the committed game data.
+- Icons for tags, and running the icon export in CI: it needs a GPU, so icons are rendered again by hand after a texture or model changes.
 - Any change to recipes in the game. The Copper Circuit idea will be its own change, discussed with this graph.
 
 ## Capabilities
@@ -35,4 +38,6 @@ This is tooling for the docs site, not a PLAN.md milestone item. It extends the 
 - `manufacturing/build.gradle`: a system property naming the four generated resource folders.
 - `docs/src/data/gamedata.json` regenerated at schema 2.
 - `docs/src/lib/gamedata.ts` (schema 2, `crafting` section), a new pure `docs/src/lib/recipegraph.ts` with vitest tests, a new `RecipeGraph` component, a new `docs/src/content/docs/lab/recipes.mdx` page, a sidebar entry in `docs/astro.config.mjs`, and styles in `docs/src/styles/lab.css`.
-- No game code, no recipe, no gameplay change.
+- Root `build.gradle`: a client run `iconExport` with all four mods. Manufacturing client code: a dev-only `IconExporter`, active only when its system property is set.
+- `docs/src/icons/` with the committed Servus icons, and a `docs/.gitignore` entry for the local vanilla icons.
+- No recipe and no gameplay change.

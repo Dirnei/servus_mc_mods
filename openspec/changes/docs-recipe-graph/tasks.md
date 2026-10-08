@@ -20,6 +20,14 @@
 - [x] 3.3 Add the item panel to `RecipeGraph.tsx`: name and mod, "Made from" with shaped recipes drawn as a 3x3 grid, "Used in", raw cost per one item with "no recipe" and cycle markers and a route choice per item. Next to the graph on wide screens, below it at phone width, with the graph scrolling inside its box. Verify in `npm run dev`: copper ingot and power cable scenarios from the spec, and no horizontal page scroll at 375 px width.
 - [x] 3.4 Mention the Recipe graph in `docs/src/content/docs/lab/index.mdx` and update the "Documentation site and Balance lab" entry in `PLAN.md` section 4 to name it. Verify with `npm run build`.
 
-## 4. Integration
+- [ ] 3.5 Add the opt-in `zoomable` mode to `docs/src/components/lab/Graph.tsx` (design D8: wheel at cursor, drag, pinch, `+`, `-`, Fit, `focus` prop, drag does not click) and use it in `RecipeGraph.tsx`: start fitted, focus the ancestors of the selected item; adjust `lab.css` for the fixed-height box. Verify in the browser: Fit shows the whole graph, selecting the shuttle brings its tree into view, node clicks still select, the chain and research pages still scroll as before, `npm test` and `npm run build` green.
 
-- [ ] 4.1 Full check: `gradlew build` and `gradlew test` green, `npm test` and `npm run build` green in `docs/`, `gradlew :manufacturing:runData` leaves no diff, and the game launches with all four mods (no gameplay change expected; the user does the play test from main).
+## 4. Item icons
+
+- [ ] 4.1 Add `IconExporter` to Manufacturing's client code (design D9), registered only when `servus.icons.output` is set; add the `iconExport` client run with all Servus mods and both properties to the root `build.gradle`; add `src/icons/minecraft/` to `docs/.gitignore`. Verify with `gradlew build` and that the normal client run writes no icons.
+- [ ] 4.2 Run `gradlew iconExport`; check a few PNGs (shuttle, crate, power cable, assembler, redstone) look like the inventory icons on a transparent background; confirm `git status` lists only `servus_*` icons; commit them.
+- [ ] 4.3 Load icons in the site with `import.meta.glob` (design D9) and show them on item nodes, in the panel's grid cells and in the raw cost, with the name as fallback and `image-rendering: pixelated`. Verify in the browser with the vanilla icons present, and once with `docs/src/icons/minecraft/` moved away (no missing image requests); `npm test` and `npm run build` green.
+
+## 5. Integration
+
+- [ ] 5.1 Full check: `gradlew build` and `gradlew test` green, `npm test` and `npm run build` green in `docs/`, `gradlew :manufacturing:runData` leaves no diff, and the game launches with all four mods (no gameplay change expected; the user does the play test from main).

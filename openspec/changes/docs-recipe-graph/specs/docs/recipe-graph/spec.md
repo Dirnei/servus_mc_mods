@@ -22,7 +22,7 @@ The Recipe graph SHALL draw every production and crafting recipe from the game d
 - **THEN** redstone appears as a node with no incoming recipe
 
 ### Requirement: Layered layout from raw materials to products
-The graph SHALL lay out item and recipe nodes in layers from left to right, with each recipe between its inputs and its outputs, so items nothing produces sit on the left and items nothing consumes sit on the right. Each edge SHALL show its count when it is more than one. The page SHALL stay usable at phone width by scrolling the graph rather than the page.
+The graph SHALL lay out item and recipe nodes in layers from left to right, with each recipe between its inputs and its outputs, so items nothing produces sit on the left and items nothing consumes sit on the right. Each edge SHALL show its count when it is more than one. The page SHALL stay usable at phone width by panning inside the graph box rather than scrolling the page.
 
 #### Scenario: Power cable edges
 - **WHEN** the graph draws the power cable recipe
@@ -73,3 +73,25 @@ When a Servus item in the cost tree has more than one producing recipe, the raw 
 #### Scenario: Two routes
 - **WHEN** a Servus item has a crafting recipe and an assembling recipe
 - **THEN** the panel shows a route choice for it and the cost changes when the user switches route
+
+### Requirement: Zoom and pan
+The user SHALL be able to zoom the graph with the mouse wheel around the cursor and with a pinch on touch screens, pan it by dragging, and use `+`, `-` and Fit buttons. The graph SHALL start fitted to its box. Selecting an item SHALL zoom and pan so its highlighted ancestors fill the box. Clicking a node SHALL still select it.
+
+#### Scenario: Fit
+- **WHEN** the user presses Fit
+- **THEN** the whole graph is visible inside the box
+
+#### Scenario: Zoom to the selection
+- **WHEN** the user selects the shuttle
+- **THEN** the shuttle, the rail, iron ingot, redstone and stick are all inside the visible box
+
+### Requirement: Item icons
+An item with an exported icon SHALL show that icon next to its name on its node, in the panel's recipe grid and in the raw cost. Items without an icon and all tags SHALL show their name only.
+
+#### Scenario: Servus icon
+- **WHEN** the site is built from the repository
+- **THEN** the shuttle node shows the shuttle icon
+
+#### Scenario: Vanilla icon missing
+- **WHEN** the site is built without the local vanilla icons
+- **THEN** the redstone node shows "Redstone Dust" without an icon and nothing fails to load

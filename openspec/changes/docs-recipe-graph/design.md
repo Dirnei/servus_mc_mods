@@ -18,7 +18,7 @@ PLAN.md leaves no open decision for this change. It is docs tooling under the "D
 - Keep the graph logic pure and covered by vitest; keep the recipe JSON reading pure and covered by JUnit.
 
 **Non-Goals:**
-- Pan and zoom beyond the existing scroll container.
+- Icons for tags.
 - Showing lab edits or drafts in the graph (see proposal, `docs-recipe-editor`).
 
 ## Decisions
@@ -66,21 +66,50 @@ Language maps load in this order: vanilla `en_us.json` from the classpath, then 
 
 The page reads `gameData` from `committed.ts` directly, not the lab draft store.
 
+### D8: Pan and zoom with our own transform
+`Graph` gets an opt-in `zoomable` mode, so the chain and research pages keep their scroll box. In that mode the SVG fills a fixed-height box and an inner `<g>` carries `translate(x, y) scale(k)` from Preact state:
+- the wheel zooms around the cursor; dragging pans with pointer capture; two pointers pinch
+- `k` is limited to 0.1 to 3
+- Fit computes the transform from the dagre bounds; a `focus` prop (node ids) fits their union
+- a drag of more than a few pixels does not count as a click, so node clicks still select
+
+The graph starts fitted, and selecting an item focuses its ancestors.
+- *Alternative:* `@panzoom/panzoom`. Rejected: it transforms the DOM element with CSS, which fights the foreignObject buttons and their click handling, and it adds a dependency for about 80 lines of code.
+
+### D9: Icons rendered in game by a dev run
+`IconExporter` lives in Manufacturing's client code (next to the game data export) and is registered on the client only when `servus.icons.output` is set. On the first `ScreenEvent.Render.Post` of the title screen it reads the item ids from `servus.icons.gamedata` (`gamedata.json`), then for each item:
+1. bind a `TextureTarget(64, 64, true, Minecraft.ON_OSX)`, clear it to transparent
+2. set an orthographic projection from 0 to 16 with `VertexSorting.ORTHOGRAPHIC_Z` and the GUI model view translation, as `GameRenderer` does for the GUI, with `Lighting.setupFor3DItems()`
+3. draw with `new GuiGraphics(mc, mc.renderBuffers().bufferSource()).renderItem(stack, 0, 0)` and `flush()`
+4. read the pixels like `Screenshot.takeScreenshot`: `NativeImage.downloadTexture(0, false)`, `flipY()`, `writeToFile(path)`
+
+Then it restores the main render target and calls `Minecraft.stop()`. The root `build.gradle` gets a client run `iconExport` with all Servus mods, its own game directory and both properties. `docs/.gitignore` ignores `src/icons/minecraft/`.
+
+The site loads icons with `import.meta.glob('../../icons/**/*.png', { eager: true, query: '?url', import: 'default' })`, so a missing vanilla folder is just an empty set and nothing 404s. Icons are drawn with `image-rendering: pixelated`.
+- *Alternative:* flat textures from `textures/item`. Rejected: 25 of 38 Servus items are 3D block models without an item texture.
+- *Alternative:* committing vanilla icons. Rejected by the user: Mojang assets stay out of the repository and the published site.
+
 ### APIs used
 No new NeoForge API. The export keeps using `DataProvider`, `PackOutput.getOutputFolder(PackOutput.Target.DATA_PACK / RESOURCE_PACK)` and `BuiltInRegistries.ITEM` for vanilla names, all already in use and building against NeoForge 21.1.x in this repo.
+
+Icon export (all verified in the NeoForge 21.1.255 sources): `ScreenEvent.Render.Post`, `com.mojang.blaze3d.pipeline.TextureTarget`, `GuiGraphics(Minecraft, BufferSource)`, `GuiGraphics.renderItem(ItemStack, int, int)`, `GuiGraphics.flush()`, `RenderSystem.setProjectionMatrix(Matrix4f, VertexSorting)`, `NativeImage.downloadTexture`, `flipY`, `writeToFile(Path)`.
 
 ### Testing split
 - Pure Java, JUnit: `CraftingRecipeReader` (shaped, shapeless, special, Servus grid type, tag and list ingredients, summing), `GameDataJson` (crafting section output, schema 2).
 - Touches Minecraft, checked by running the data run: `GameDataExportProvider` wiring, folder list, names. The result is checked in the regenerated `gamedata.json`.
 - Pure TypeScript, vitest: `recipegraph.ts`.
-- Visual check in `npm run dev`: the page, colours, filter, highlight, panel, phone width.
+- Visual check in `npm run dev`: the page, colours, filter, highlight, panel, phone width, zoom and pan, icons.
+- Icon export, touches Minecraft and the GPU: checked by running `gradlew iconExport` and looking at the PNGs.
 
 ## Risks / Trade-offs
 
 - [Another mod's generated folder is stale, so the export reads old recipes] → D2 orders `gradlew runData`. CI's stale check still only compares `gamedata.json`, as today.
-- [About 70 recipes and 60 items give a tall graph] → the mod filter and the ancestor highlight keep it readable. Pan and zoom can follow if it is not enough.
+- [About 70 recipes and 60 items give a tall graph] → the mod filter and the ancestor highlight keep it readable. Pan and zoom (D8) let the user move around it.
 - [Dagre crossings make long edges hard to follow] → the highlight dims everything that does not matter for the selected item.
 - [A future recipe type with a grid under other field names would be classified special] → it still shows up as a marked node, so it is visible rather than silently missing. The reader can learn the shape then.
+
+- [Icons go stale when a texture or model changes] → rerun `gradlew iconExport` and commit the Servus icons. CI does not check icons.
+- [An item renders empty, for example one drawn by a custom renderer that needs a level] → the PNG is transparent; the site then shows the name only. Checked by looking at the exported icons.
 
 ## Migration Plan
 
