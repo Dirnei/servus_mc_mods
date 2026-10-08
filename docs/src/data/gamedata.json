@@ -520,16 +520,18 @@
       ]
     },
     "servus_foundation:machine_adapter": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["CHC", "RDR", "CCC"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["CHC", "RDR", "PPP"],
       "key": {
         "C": {"item": "minecraft:copper_ingot"},
         "D": {"item": "servus_foundation:data_cable"},
         "H": {"item": "minecraft:hopper"},
+        "P": {"tag": "minecraft:planks"},
         "R": {"item": "minecraft:redstone"}
       },
       "inputs": [
-        {"item": "minecraft:copper_ingot", "count": 5},
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:copper_ingot", "count": 2},
         {"item": "minecraft:hopper", "count": 1},
         {"item": "minecraft:redstone", "count": 2},
         {"item": "servus_foundation:data_cable", "count": 1}
@@ -692,18 +694,20 @@
       ]
     },
     "servus_storage:access_point": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["IRI", "OCO", "III"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["IRI", "OCO", "PPP"],
       "key": {
         "C": {"item": "minecraft:chest"},
         "I": {"item": "minecraft:iron_ingot"},
         "O": {"item": "minecraft:copper_ingot"},
+        "P": {"tag": "minecraft:planks"},
         "R": {"item": "minecraft:redstone"}
       },
       "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
         {"item": "minecraft:chest", "count": 1},
         {"item": "minecraft:copper_ingot", "count": 2},
-        {"item": "minecraft:iron_ingot", "count": 5},
+        {"item": "minecraft:iron_ingot", "count": 2},
         {"item": "minecraft:redstone", "count": 1}
       ],
       "outputs": [
@@ -711,7 +715,7 @@
       ]
     },
     "servus_storage:counter_terminal": {
-      "type": "minecraft:crafting_shaped",
+      "type": "servus_foundation:wood_shaped",
       "pattern": ["GGG", "ICI", "PPP"],
       "key": {
         "C": {"item": "minecraft:chest"},
@@ -730,34 +734,38 @@
       ]
     },
     "servus_storage:crafting_cpu": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["IRI", "RCR", "IRI"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["IRI", "RCR", "PPP"],
       "key": {
         "C": {"item": "minecraft:crafting_table"},
         "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"},
         "R": {"item": "minecraft:redstone"}
       },
       "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
         {"item": "minecraft:crafting_table", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 4},
-        {"item": "minecraft:redstone", "count": 4}
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 3}
       ],
       "outputs": [
         {"item": "servus_storage:crafting_cpu", "count": 4}
       ]
     },
     "servus_storage:crafting_station": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["ITI", "ICI", "III"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["ITI", "ICI", "PPP"],
       "key": {
         "C": {"item": "minecraft:chest"},
         "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"},
         "T": {"item": "minecraft:crafting_table"}
       },
       "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
         {"item": "minecraft:chest", "count": 1},
         {"item": "minecraft:crafting_table", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 7}
+        {"item": "minecraft:iron_ingot", "count": 4}
       ],
       "outputs": [
         {"item": "servus_storage:crafting_station", "count": 1}
@@ -819,54 +827,60 @@
       ]
     },
     "servus_storage:inbound_station": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["III", "ICI", "IHI"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["III", "ICI", "PHP"],
       "key": {
         "C": {"item": "minecraft:chest"},
         "H": {"item": "minecraft:hopper"},
-        "I": {"item": "minecraft:iron_ingot"}
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"}
       },
       "inputs": [
+        {"tag": "minecraft:planks", "count": 2},
         {"item": "minecraft:chest", "count": 1},
         {"item": "minecraft:hopper", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 7}
+        {"item": "minecraft:iron_ingot", "count": 5}
       ],
       "outputs": [
         {"item": "servus_storage:inbound_station", "count": 1}
       ]
     },
     "servus_storage:outbound_station": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["ICI", "IDI", "IHI"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["ICI", "IDI", "PHP"],
       "key": {
         "C": {"item": "minecraft:chest"},
         "D": {"item": "minecraft:dropper"},
         "H": {"item": "minecraft:hopper"},
-        "I": {"item": "minecraft:iron_ingot"}
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"}
       },
       "inputs": [
+        {"tag": "minecraft:planks", "count": 2},
         {"item": "minecraft:chest", "count": 1},
         {"item": "minecraft:dropper", "count": 1},
         {"item": "minecraft:hopper", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 6}
+        {"item": "minecraft:iron_ingot", "count": 4}
       ],
       "outputs": [
         {"item": "servus_storage:outbound_station", "count": 1}
       ]
     },
     "servus_storage:pattern_storage": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["IPI", "RCR", "IPI"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["IAI", "RCR", "PPP"],
       "key": {
+        "A": {"item": "minecraft:paper"},
         "C": {"item": "minecraft:chest"},
         "I": {"item": "minecraft:iron_ingot"},
-        "P": {"item": "minecraft:paper"},
+        "P": {"tag": "minecraft:planks"},
         "R": {"item": "minecraft:redstone"}
       },
       "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
         {"item": "minecraft:chest", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 4},
-        {"item": "minecraft:paper", "count": 2},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:paper", "count": 1},
         {"item": "minecraft:redstone", "count": 2}
       ],
       "outputs": [
@@ -874,20 +888,20 @@
       ]
     },
     "servus_storage:production_terminal": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["GGG", "CMC", "IRI"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["GGG", "CMC", "PRP"],
       "key": {
         "C": {"item": "minecraft:copper_ingot"},
         "G": {"item": "minecraft:glass_pane"},
-        "I": {"item": "minecraft:iron_ingot"},
         "M": {"item": "minecraft:comparator"},
+        "P": {"tag": "minecraft:planks"},
         "R": {"item": "minecraft:redstone"}
       },
       "inputs": [
+        {"tag": "minecraft:planks", "count": 2},
         {"item": "minecraft:comparator", "count": 1},
         {"item": "minecraft:copper_ingot", "count": 2},
         {"item": "minecraft:glass_pane", "count": 3},
-        {"item": "minecraft:iron_ingot", "count": 2},
         {"item": "minecraft:redstone", "count": 1}
       ],
       "outputs": [
@@ -937,7 +951,7 @@
       ]
     },
     "servus_storage:shuttle_garage": {
-      "type": "minecraft:crafting_shaped",
+      "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "PPP"],
       "key": {
         "I": {"item": "minecraft:iron_ingot"},
@@ -954,7 +968,7 @@
       ]
     },
     "servus_storage:warehouse_controller": {
-      "type": "minecraft:crafting_shaped",
+      "type": "servus_foundation:wood_shaped",
       "pattern": ["III", "RCR", "PPP"],
       "key": {
         "C": {"item": "minecraft:chest"},

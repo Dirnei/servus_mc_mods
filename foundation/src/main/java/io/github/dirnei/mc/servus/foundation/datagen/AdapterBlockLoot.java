@@ -7,6 +7,8 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 
 /** The Machine Adapter drops itself. */
 final class AdapterBlockLoot extends BlockLootSubProvider {
@@ -17,7 +19,9 @@ final class AdapterBlockLoot extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
-        dropSelf(AdapterContent.BLOCK.get());
+        add(AdapterContent.BLOCK.get(), createSingleItemTable(AdapterContent.BLOCK.get())
+                .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                        .include(WoodContent.WOOD.get())));
     }
 
     @Override

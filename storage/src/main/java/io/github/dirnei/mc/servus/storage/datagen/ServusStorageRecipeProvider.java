@@ -20,6 +20,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.ICondition;
+import io.github.dirnei.mc.servus.foundation.datagen.WoodRecipes;
 
 final class ServusStorageRecipeProvider extends RecipeProvider {
 
@@ -59,7 +60,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('C', Items.CHEST)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_redstone", has(Items.REDSTONE))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.COUNTER_TERMINAL.get())
                 .pattern("GGG")
@@ -70,40 +71,42 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('C', Items.CHEST)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_glass", has(Items.GLASS))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.PRODUCTION_TERMINAL.get())
                 .pattern("GGG")
                 .pattern("CMC")
-                .pattern("IRI")
+                .pattern("PRP")
                 .define('G', Items.GLASS_PANE)
                 .define('C', Items.COPPER_INGOT)
                 .define('M', Items.COMPARATOR)
-                .define('I', Items.IRON_INGOT)
                 .define('R', Items.REDSTONE)
+                .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_comparator", has(Items.COMPARATOR))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.PATTERN_STORAGE.get())
-                .pattern("IPI")
+                .pattern("IAI")
                 .pattern("RCR")
-                .pattern("IPI")
+                .pattern("PPP")
                 .define('I', Items.IRON_INGOT)
-                .define('P', Items.PAPER)
+                .define('A', Items.PAPER)
                 .define('R', Items.REDSTONE)
                 .define('C', Items.CHEST)
+                .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_paper", has(Items.PAPER))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.CRAFTING_CPU.get(), 4)
                 .pattern("IRI")
                 .pattern("RCR")
-                .pattern("IRI")
+                .pattern("PPP")
                 .define('I', Items.IRON_INGOT)
                 .define('R', Items.REDSTONE)
                 .define('C', Items.CRAFTING_TABLE)
+                .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_redstone", has(Items.REDSTONE))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.RAIL.get(), 8)
                 .pattern("III")
@@ -135,23 +138,25 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.CRAFTING_STATION.get())
                 .pattern("ITI")
                 .pattern("ICI")
-                .pattern("III")
+                .pattern("PPP")
                 .define('I', Items.IRON_INGOT)
                 .define('T', Items.CRAFTING_TABLE)
                 .define('C', Items.CHEST)
+                .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_crafting_table", has(Items.CRAFTING_TABLE))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.OUTBOUND_STATION.get())
                 .pattern("ICI")
                 .pattern("IDI")
-                .pattern("IHI")
+                .pattern("PHP")
                 .define('I', Items.IRON_INGOT)
                 .define('C', Items.CHEST)
                 .define('D', Items.DROPPER)
                 .define('H', Items.HOPPER)
+                .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_hopper", has(Items.HOPPER))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.SHUTTLE_GARAGE.get())
                 .pattern("IRI")
@@ -160,28 +165,30 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('R', ServusStorageItems.RAIL.get())
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_rail", has(ServusStorageItems.RAIL.get()))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.INBOUND_STATION.get())
                 .pattern("III")
                 .pattern("ICI")
-                .pattern("IHI")
+                .pattern("PHP")
                 .define('I', Items.IRON_INGOT)
                 .define('C', Items.CHEST)
                 .define('H', Items.HOPPER)
+                .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_hopper", has(Items.HOPPER))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.ACCESS_POINT.get())
                 .pattern("IRI")
                 .pattern("OCO")
-                .pattern("III")
+                .pattern("PPP")
                 .define('I', Items.IRON_INGOT)
                 .define('R', Items.REDSTONE)
                 .define('O', Items.COPPER_INGOT)
                 .define('C', Items.CHEST)
+                .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_chest", has(Items.CHEST))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ServusStorageItems.ZONE_LABEL.get())
                 .requires(Items.PAPER)

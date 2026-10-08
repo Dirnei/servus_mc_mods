@@ -12,6 +12,17 @@ import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import io.github.dirnei.mc.servus.foundation.datagen.LayeredModels;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
+import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
+import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
+import io.github.dirnei.mc.servus.storage.cpu.CpuTiles;
+import io.github.dirnei.mc.servus.storage.pattern.PatternLights;
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+import net.minecraft.core.Direction;
 
 final class ServusStorageBlockStateProvider extends BlockStateProvider {
 
@@ -24,13 +35,10 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         oriented(ServusStorageBlocks.CRATE.get(), "crate", "crate");
         oriented(ServusStorageBlocks.DOUBLE_CRATE.get(), "double_crate", "crate");
         oriented(ServusStorageBlocks.QUAD_CRATE.get(), "quad_crate", "crate");
-        oriented(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "warehouse_controller", "warehouse_controller");
-        oriented(ServusStorageBlocks.COUNTER_TERMINAL.get(), "counter_terminal", "counter_terminal");
-        oriented(ServusStorageBlocks.PRODUCTION_TERMINAL.get(), "production_terminal", "production_terminal");
-        ModelFile patternStorage = models().orientable("pattern_storage", modLoc("block/pattern_storage_side"),
-                modLoc("block/pattern_storage_front"), modLoc("block/pattern_storage_top"));
-        horizontalBlock(ServusStorageBlocks.PATTERN_STORAGE.get(), patternStorage);
-        simpleBlockItem(ServusStorageBlocks.PATTERN_STORAGE.get(), patternStorage);
+        woodOriented(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "warehouse_controller");
+        woodOriented(ServusStorageBlocks.COUNTER_TERMINAL.get(), "counter_terminal");
+        woodOriented(ServusStorageBlocks.PRODUCTION_TERMINAL.get(), "production_terminal");
+        patternStorage(ServusStorageBlocks.PATTERN_STORAGE.get(), "pattern_storage");
         RailModels.rail(this, ServusStorageBlocks.RAIL.get(), "rail");
         ElevatorModels.elevator(this, ServusStorageBlocks.ELEVATOR.get(), "elevator");
         HeavyRackModels.rack(this, ServusStorageBlocks.HEAVY_RACK.get(), "heavy_rack");
@@ -47,21 +55,60 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
                 .allFaces((direction, face) -> face.texture("#skin")).end();
     }
 
-    /** A cube block that looks different once formed. */
+    /**
+     * The CPU: a riveted casing while unformed; formed, each block shows the
+     * tile of its position on every face (see {@link CpuTiles}) with running
+     * or idle lights.
+     */
     private void cpu(Block block, String name) {
-        ModelFile casing = models().cubeAll(name, modLoc("block/" + name));
-        ModelFile formed = models().cubeAll(name + "_formed", modLoc("block/" + name + "_formed"));
+        ModelFile casing = LayeredModels.cube(this, name, allFaces(modLoc("block/" + name)));
+        Map<String, ModelFile> formed = new HashMap<>();
+        for (int part = 0; part < CpuShape.PARTS; part++) {
+            for (boolean active : new boolean[] {false, true}) {
+                Map<Direction, ResourceLocation> faces = new EnumMap<>(Direction.class);
+                for (Direction direction : Direction.values()) {
+                    String tile = CpuTiles.tile(part, Conversions.toSide(direction)).substring("tile_".length());
+                    faces.put(direction, modLoc("block/" + name + (active ? "_active_" : "_idle_") + tile));
+                }
+                String model = name + "_" + part + (active ? "_active" : "_idle");
+                formed.put(model, LayeredModels.cube(this, model, faces));
+            }
+        }
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(state.getValue(io.github.dirnei.mc.servus.storage.cpu.CpuBlock.FORMED) ? formed : casing)
+                .modelFile(state.getValue(CpuBlock.FORMED)
+                        ? formed.get(name + "_" + state.getValue(CpuBlock.PART) + (state.getValue(CpuBlock.ACTIVE) ? "_active" : "_idle"))
+                        : casing)
                 .build());
         simpleBlockItem(block, casing);
     }
 
+    private static Map<Direction, ResourceLocation> allFaces(ResourceLocation texture) {
+        Map<Direction, ResourceLocation> faces = new EnumMap<>(Direction.class);
+        for (Direction direction : Direction.values()) {
+            faces.put(direction, texture);
+        }
+        return faces;
+    }
+
+    /** Pattern Storage: the front shows one lit light per stored pattern. */
+    private void patternStorage(Block block, String name) {
+        ModelFile[] models = new ModelFile[PatternLights.LIGHTS + 1];
+        for (int lit = 0; lit <= PatternLights.LIGHTS; lit++) {
+            models[lit] = LayeredModels.orientable(this, name + "_" + lit, modLoc("block/" + name + "_side"),
+                    modLoc("block/" + name + "_front_" + lit), modLoc("block/" + name + "_top"));
+        }
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(models[state.getValue(PatternStorageBlock.LIGHTS)])
+                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                .build());
+        simpleBlockItem(block, models[0]);
+    }
+
     /** Horizontal block with a lit front while it works. */
     private void machine(Block block, String name) {
-        ModelFile dark = models().orientable(name, modLoc("block/" + name + "_side"),
+        ModelFile dark = LayeredModels.orientable(this, name, modLoc("block/" + name + "_side"),
                 modLoc("block/" + name + "_front"), modLoc("block/" + name + "_top"));
-        ModelFile lit = models().orientable(name + "_lit", modLoc("block/" + name + "_side"),
+        ModelFile lit = LayeredModels.orientable(this, name + "_lit", modLoc("block/" + name + "_side"),
                 modLoc("block/" + name + "_front_lit"), modLoc("block/" + name + "_top"));
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? lit : dark)
@@ -72,13 +119,13 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
 
     /** Like {@link #oriented} with an activity lamp: idle, working and blocked fronts while online. */
     private void station(Block block, String name) {
-        ModelFile dark = models().orientable(name, modLoc("block/" + name + "_side"),
+        ModelFile dark = LayeredModels.orientable(this, name, modLoc("block/" + name + "_side"),
                 modLoc("block/" + name + "_front"), modLoc("block/" + name + "_top"));
-        ModelFile idle = models().orientable(name + "_idle", modLoc("block/" + name + "_side"),
+        ModelFile idle = LayeredModels.orientable(this, name + "_idle", modLoc("block/" + name + "_side"),
                 modLoc("block/" + name + "_front_idle"), modLoc("block/" + name + "_top"));
-        ModelFile working = models().orientable(name + "_working", modLoc("block/" + name + "_side"),
+        ModelFile working = LayeredModels.orientable(this, name + "_working", modLoc("block/" + name + "_side"),
                 modLoc("block/" + name + "_front_working"), modLoc("block/" + name + "_top"));
-        ModelFile blocked = models().orientable(name + "_blocked", modLoc("block/" + name + "_side"),
+        ModelFile blocked = LayeredModels.orientable(this, name + "_blocked", modLoc("block/" + name + "_side"),
                 modLoc("block/" + name + "_front_blocked"), modLoc("block/" + name + "_top"));
         getVariantBuilder(block).forAllStates(state -> {
             ModelFile model = dark;
@@ -115,8 +162,27 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
     private ModelFile garageModel(String model, String front) {
         ResourceLocation side = modLoc("block/shuttle_garage_side");
         ResourceLocation top = modLoc("block/shuttle_garage_top");
-        return models().cube(model, top, top, modLoc("block/" + front), modLoc("block/shuttle_garage_back"), side, side)
-                .texture("particle", top);
+        Map<Direction, ResourceLocation> faces = new EnumMap<>(Direction.class);
+        faces.put(Direction.DOWN, top);
+        faces.put(Direction.UP, top);
+        faces.put(Direction.NORTH, modLoc("block/" + front));
+        faces.put(Direction.SOUTH, modLoc("block/shuttle_garage_back"));
+        faces.put(Direction.EAST, side);
+        faces.put(Direction.WEST, side);
+        return LayeredModels.cube(this, model, faces);
+    }
+
+    /** {@link #oriented} for a wood block: board panels under the iron overlay textures named after the block. */
+    private void woodOriented(Block block, String name) {
+        ModelFile dark = LayeredModels.orientable(this, name, modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front"), modLoc("block/" + name + "_top"));
+        ModelFile lit = LayeredModels.orientable(this, name + "_online", modLoc("block/" + name + "_side"),
+                modLoc("block/" + name + "_front_online"), modLoc("block/" + name + "_top"));
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(StorageNodeBlocks.ONLINE) ? lit : dark)
+                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
+                .build());
+        simpleBlockItem(block, dark);
     }
 
     /**

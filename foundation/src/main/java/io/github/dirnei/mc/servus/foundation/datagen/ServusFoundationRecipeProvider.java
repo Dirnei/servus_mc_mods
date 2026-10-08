@@ -11,6 +11,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 
 final class ServusFoundationRecipeProvider extends RecipeProvider {
@@ -45,12 +46,13 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
         ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, AdapterContent.ITEM.get())
                 .pattern("CHC")
                 .pattern("RDR")
-                .pattern("CCC")
+                .pattern("PPP")
                 .define('C', Items.COPPER_INGOT)
                 .define('H', Items.HOPPER)
                 .define('R', Items.REDSTONE)
                 .define('D', ServusLogisticsItems.DATA_CABLE.get())
+                .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_data_cable", has(ServusLogisticsItems.DATA_CABLE.get()))
-                .save(output);
+                .save(WoodRecipes.output(output));
     }
 }

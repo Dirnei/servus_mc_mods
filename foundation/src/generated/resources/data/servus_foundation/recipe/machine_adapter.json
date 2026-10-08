@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "servus_foundation:wood_shaped",
   "category": "redstone",
   "key": {
     "C": {
@@ -11,6 +11,9 @@
     "H": {
       "item": "minecraft:hopper"
     },
+    "P": {
+      "tag": "minecraft:planks"
+    },
     "R": {
       "item": "minecraft:redstone"
     }
@@ -18,7 +21,7 @@
   "pattern": [
     "CHC",
     "RDR",
-    "CCC"
+    "PPP"
   ],
   "result": {
     "count": 1,

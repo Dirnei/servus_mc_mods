@@ -1,18 +1,153 @@
 {
   "variants": {
-    "facing=east": {
-      "model": "servus_storage:block/pattern_storage",
+    "facing=east,lights=0": {
+      "model": "servus_storage:block/pattern_storage_0",
       "y": 90
     },
-    "facing=north": {
-      "model": "servus_storage:block/pattern_storage"
+    "facing=east,lights=1": {
+      "model": "servus_storage:block/pattern_storage_1",
+      "y": 90
     },
-    "facing=south": {
-      "model": "servus_storage:block/pattern_storage",
+    "facing=east,lights=2": {
+      "model": "servus_storage:block/pattern_storage_2",
+      "y": 90
+    },
+    "facing=east,lights=3": {
+      "model": "servus_storage:block/pattern_storage_3",
+      "y": 90
+    },
+    "facing=east,lights=4": {
+      "model": "servus_storage:block/pattern_storage_4",
+      "y": 90
+    },
+    "facing=east,lights=5": {
+      "model": "servus_storage:block/pattern_storage_5",
+      "y": 90
+    },
+    "facing=east,lights=6": {
+      "model": "servus_storage:block/pattern_storage_6",
+      "y": 90
+    },
+    "facing=east,lights=7": {
+      "model": "servus_storage:block/pattern_storage_7",
+      "y": 90
+    },
+    "facing=east,lights=8": {
+      "model": "servus_storage:block/pattern_storage_8",
+      "y": 90
+    },
+    "facing=east,lights=9": {
+      "model": "servus_storage:block/pattern_storage_9",
+      "y": 90
+    },
+    "facing=north,lights=0": {
+      "model": "servus_storage:block/pattern_storage_0"
+    },
+    "facing=north,lights=1": {
+      "model": "servus_storage:block/pattern_storage_1"
+    },
+    "facing=north,lights=2": {
+      "model": "servus_storage:block/pattern_storage_2"
+    },
+    "facing=north,lights=3": {
+      "model": "servus_storage:block/pattern_storage_3"
+    },
+    "facing=north,lights=4": {
+      "model": "servus_storage:block/pattern_storage_4"
+    },
+    "facing=north,lights=5": {
+      "model": "servus_storage:block/pattern_storage_5"
+    },
+    "facing=north,lights=6": {
+      "model": "servus_storage:block/pattern_storage_6"
+    },
+    "facing=north,lights=7": {
+      "model": "servus_storage:block/pattern_storage_7"
+    },
+    "facing=north,lights=8": {
+      "model": "servus_storage:block/pattern_storage_8"
+    },
+    "facing=north,lights=9": {
+      "model": "servus_storage:block/pattern_storage_9"
+    },
+    "facing=south,lights=0": {
+      "model": "servus_storage:block/pattern_storage_0",
       "y": 180
     },
-    "facing=west": {
-      "model": "servus_storage:block/pattern_storage",
+    "facing=south,lights=1": {
+      "model": "servus_storage:block/pattern_storage_1",
+      "y": 180
+    },
+    "facing=south,lights=2": {
+      "model": "servus_storage:block/pattern_storage_2",
+      "y": 180
+    },
+    "facing=south,lights=3": {
+      "model": "servus_storage:block/pattern_storage_3",
+      "y": 180
+    },
+    "facing=south,lights=4": {
+      "model": "servus_storage:block/pattern_storage_4",
+      "y": 180
+    },
+    "facing=south,lights=5": {
+      "model": "servus_storage:block/pattern_storage_5",
+      "y": 180
+    },
+    "facing=south,lights=6": {
+      "model": "servus_storage:block/pattern_storage_6",
+      "y": 180
+    },
+    "facing=south,lights=7": {
+      "model": "servus_storage:block/pattern_storage_7",
+      "y": 180
+    },
+    "facing=south,lights=8": {
+      "model": "servus_storage:block/pattern_storage_8",
+      "y": 180
+    },
+    "facing=south,lights=9": {
+      "model": "servus_storage:block/pattern_storage_9",
+      "y": 180
+    },
+    "facing=west,lights=0": {
+      "model": "servus_storage:block/pattern_storage_0",
+      "y": 270
+    },
+    "facing=west,lights=1": {
+      "model": "servus_storage:block/pattern_storage_1",
+      "y": 270
+    },
+    "facing=west,lights=2": {
+      "model": "servus_storage:block/pattern_storage_2",
+      "y": 270
+    },
+    "facing=west,lights=3": {
+      "model": "servus_storage:block/pattern_storage_3",
+      "y": 270
+    },
+    "facing=west,lights=4": {
+      "model": "servus_storage:block/pattern_storage_4",
+      "y": 270
+    },
+    "facing=west,lights=5": {
+      "model": "servus_storage:block/pattern_storage_5",
+      "y": 270
+    },
+    "facing=west,lights=6": {
+      "model": "servus_storage:block/pattern_storage_6",
+      "y": 270
+    },
+    "facing=west,lights=7": {
+      "model": "servus_storage:block/pattern_storage_7",
+      "y": 270
+    },
+    "facing=west,lights=8": {
+      "model": "servus_storage:block/pattern_storage_8",
+      "y": 270
+    },
+    "facing=west,lights=9": {
+      "model": "servus_storage:block/pattern_storage_9",
       "y": 270
     }
   }

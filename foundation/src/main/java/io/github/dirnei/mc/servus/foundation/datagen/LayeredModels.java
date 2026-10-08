@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.client.model.generators.ModelProvider;
 
 /**
  * Datagen helper for wood blocks: a full cube of board panels ({@link Wood#BOARD},
@@ -35,6 +36,8 @@ public final class LayeredModels {
 
     /** One overlay texture per face. */
     public static ModelFile cube(BlockStateProvider provider, String name, Map<Direction, ResourceLocation> faces) {
+        // The board texture lives in Foundation; other mods' data runs only know their own resources.
+        provider.models().existingFileHelper.trackGenerated(Wood.BOARD, ModelProvider.TEXTURE);
         BlockModelBuilder builder = provider.models().getBuilder(name)
                 .parent(new ModelFile.UncheckedModelFile("minecraft:block/block"))
                 .renderType("minecraft:cutout")

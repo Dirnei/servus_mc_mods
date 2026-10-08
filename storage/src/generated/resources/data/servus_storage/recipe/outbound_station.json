@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "servus_foundation:wood_shaped",
   "category": "misc",
   "key": {
     "C": {
@@ -13,12 +13,15 @@
     },
     "I": {
       "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "tag": "minecraft:planks"
     }
   },
   "pattern": [
     "ICI",
     "IDI",
-    "IHI"
+    "PHP"
   ],
   "result": {
     "count": 1,

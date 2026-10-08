@@ -1,7 +1,10 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "servus_foundation:wood_shaped",
   "category": "misc",
   "key": {
+    "A": {
+      "item": "minecraft:paper"
+    },
     "C": {
       "item": "minecraft:chest"
     },
@@ -9,16 +12,16 @@
       "item": "minecraft:iron_ingot"
     },
     "P": {
-      "item": "minecraft:paper"
+      "tag": "minecraft:planks"
     },
     "R": {
       "item": "minecraft:redstone"
     }
   },
   "pattern": [
-    "IPI",
+    "IAI",
     "RCR",
-    "IPI"
+    "PPP"
   ],
   "result": {
     "count": 1,

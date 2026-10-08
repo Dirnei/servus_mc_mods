@@ -4,7 +4,8 @@
     {
       "function": "minecraft:copy_components",
       "include": [
-        "servus_storage:patterns"
+        "servus_storage:patterns",
+        "servus_foundation:wood"
       ],
       "source": "block_entity"
     }

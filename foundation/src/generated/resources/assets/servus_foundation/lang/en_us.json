@@ -77,5 +77,6 @@
   "servus_foundation.configuration.wrench": "Configuration Carrot",
   "servus_foundation.configuration.wrenchRotatesBlocks": "Configuration Carrot rotates blocks",
   "tooltip.servus_foundation.fluid_tank.empty": "Empty",
-  "tooltip.servus_foundation.fluid_tank.fluid": "%s: %s mB"
+  "tooltip.servus_foundation.fluid_tank.fluid": "%s: %s mB",
+  "tooltip.servus_foundation.wood": "Wood: %s"
 }
