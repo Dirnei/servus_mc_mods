@@ -22,4 +22,4 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build` and `gradlew test` green, Storage, Foundation and Manufacturing GameTests green. (The client is not launched by this change; the user checks in game.)
+- [x] 5.1 Full `gradlew build` and `gradlew test` green, Storage, Foundation and Manufacturing GameTests green. (The client is not launched by this change; the user checks in game.)
