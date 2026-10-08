@@ -23,7 +23,7 @@
 
 ## 6. Tests
 
-- [ ] 6.1 Add `storage/.../gametest/PatternGameTests` covering membership, encoded only slots, capacity from JSON over two blocks, save new (blank used, stored first free), refusals `no_blank`, `full`, `duplicate`, edit in place, delete returns a blank, CPU order on a line with a sticks pattern and a matching station, and the view listing patterns and capacity. Verify with `:storage:runGameTestServer`, `:foundation:runGameTestServer`, `:manufacturing:runGameTestServer` all green.
+- [x] 6.1 Add `storage/.../gametest/PatternGameTests` covering membership, encoded only slots, capacity from JSON over two blocks, save new (blank used, stored first free), refusals `no_blank`, `full`, `duplicate`, edit in place, delete returns a blank, CPU order on a line with a sticks pattern and a matching station, and the view listing patterns and capacity. Verify with `:storage:runGameTestServer`, `:foundation:runGameTestServer`, `:manufacturing:runGameTestServer` all green.
 
 ## 7. Docs and plan
 
