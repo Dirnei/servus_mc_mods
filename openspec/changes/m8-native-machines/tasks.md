@@ -22,4 +22,4 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build` and `gradlew test`, all three GameTest suites green, `runClientAll` reaches the title screen. PLAN.md M8 marked complete if the plan records finished milestones.
+- [x] 5.1 Full `gradlew build` and `gradlew test`, all three GameTest suites green, `runClientAll` reaches the title screen. PLAN.md records no finished milestones, so its M8 list stays.
