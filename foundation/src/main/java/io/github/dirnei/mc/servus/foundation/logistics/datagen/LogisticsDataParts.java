@@ -43,6 +43,7 @@ public final class LogisticsDataParts {
         provider.basicItem(ServusLogisticsItems.ITEM_PIPE.get());
         provider.basicItem(ServusLogisticsItems.POWER_CABLE.get());
         provider.basicItem(ServusLogisticsItems.FLUID_PIPE.get());
+        provider.basicItem(ServusLogisticsItems.DATA_CABLE.get());
         provider.basicItem(ServusLogisticsItems.FACADE.get());
     }
 
@@ -90,6 +91,13 @@ public final class LogisticsDataParts {
                 .unlockedBy("has_bucket", has.apply(Items.BUCKET))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.DATA_CABLE.get(), 4)
+                .pattern("CRC")
+                .define('C', Items.COPPER_INGOT)
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_copper", has.apply(Items.COPPER_INGOT))
+                .save(output);
+
         SpecialRecipeBuilder.special(FacadeRecipe::new).save(output, "servus_foundation:facade");
     }
 
@@ -98,6 +106,7 @@ public final class LogisticsDataParts {
         provider.add(ServusLogisticsItems.ITEM_PIPE.get(), "Item Pipe");
         provider.add(ServusLogisticsItems.POWER_CABLE.get(), "Power Cable");
         provider.add(ServusLogisticsItems.FLUID_PIPE.get(), "Fluid Pipe");
+        provider.add(ServusLogisticsItems.DATA_CABLE.get(), "Data Cable");
         provider.add(ServusLogisticsItems.FACADE.get(), "Facade");
         provider.add("item.servus_foundation.facade.named", "Facade (%s)");
         provider.add("item.servus_foundation.facade.hint", "Use on a utility duct to hide it");
@@ -112,6 +121,9 @@ public final class LogisticsDataParts {
         provider.add("gui.servus_foundation.remove.item", "Remove Item Pipe");
         provider.add("gui.servus_foundation.remove.energy", "Remove Power Cable");
         provider.add("gui.servus_foundation.remove.fluid", "Remove Fluid Pipe");
+        provider.add("gui.servus_foundation.remove.data", "Remove Data Cable");
+        provider.add("gui.servus_foundation.data.on", "Data: on");
+        provider.add("gui.servus_foundation.data.off", "Data: off");
         provider.add("gui.servus_foundation.filter", "Filter (empty = everything)");
         provider.add("gui.servus_foundation.priority", "Priority %s");
         provider.add("gui.servus_foundation.no_lines", "No lines");
@@ -121,6 +133,7 @@ public final class LogisticsDataParts {
         provider.add("gui.servus_foundation.line.item", "Items");
         provider.add("gui.servus_foundation.line.energy", "Energy");
         provider.add("gui.servus_foundation.line.fluid", "Fluids");
+        provider.add("gui.servus_foundation.line.data", "Data");
         provider.add("gui.servus_foundation.mode.both", "In and out");
         provider.add("gui.servus_foundation.mode.auto", "In and out");
         provider.add("gui.servus_foundation.mode.input", "Pull in");

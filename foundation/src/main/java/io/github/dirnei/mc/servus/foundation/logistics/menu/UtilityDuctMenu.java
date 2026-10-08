@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.foundation.logistics.menu;
 
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
@@ -22,7 +23,8 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 /**
  * The endpoint configuration of one duct side: per present line (Item Pipe,
- * Power Cable, Fluid Pipe) the mode, the channel and a remove button, for the
+ * Power Cable, Fluid Pipe) the mode, the channel and a remove button (the data
+ * line only on or off and remove), for the
  * Item Pipe the side's filter as ghost slots and its priority, plus the
  * player inventory. Everything but the slots goes through button ids.
  */
@@ -132,7 +134,11 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         if (id >= BUTTON_CYCLE_MODE && id < BUTTON_CYCLE_MODE + Line.VALUES.length) {
             Line line = Line.byOrdinal(id - BUTTON_CYCLE_MODE);
             if (duct.has(line)) {
-                duct.setMode(line, side, UtilityDuctBlockEntity.cycle(duct.mode(line, side)));
+                SideMode current = duct.mode(line, side);
+                SideMode next = line == Line.DATA
+                        ? (current == SideMode.DISABLED ? SideMode.BOTH : SideMode.DISABLED)
+                        : UtilityDuctBlockEntity.cycle(current);
+                duct.setMode(line, side, next);
             }
             return true;
         }

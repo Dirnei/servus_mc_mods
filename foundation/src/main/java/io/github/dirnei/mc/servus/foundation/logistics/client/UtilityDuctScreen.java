@@ -22,7 +22,8 @@ import net.minecraft.world.item.ItemStack;
  * The endpoint GUI of one duct side: one tab per present line on the left
  * edge, and the page of the selected line with its mode, channels and remove
  * button; the Item Pipe page adds the filter slots and the priority. The
- * Power Cable and Fluid Pipe pages have no filter or priority.
+ * Power Cable and Fluid Pipe pages have no filter or priority; the data page
+ * only switches the side on or off and removes the line.
  */
 public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> {
 
@@ -91,13 +92,13 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         modeButton = Button.builder(Component.empty(), button -> press(UtilityDuctMenu.BUTTON_CYCLE_MODE + line.ordinal()))
                 .bounds(leftPos + MARGIN, topPos + MODE_Y, imageWidth - 2 * MARGIN, MODE_HEIGHT).build();
         addRenderableWidget(modeButton);
-        for (int channel = 0; channel < DuctChannels.COUNT; channel++) {
+        for (int channel = 0; line != Line.DATA && channel < DuctChannels.COUNT; channel++) {
             int id = UtilityDuctMenu.BUTTON_CHANNEL + line.ordinal() * DuctChannels.COUNT + channel;
             int current = channel;
             addRenderableWidget(new ChannelButton(leftPos + MARGIN + channel * CHANNEL_STRIDE, topPos + CHANNEL_Y, CHANNEL_SIZE, channel,
                     () -> menu.duct().channel(line, menu.side()) == current, () -> press(id)));
         }
-        int removeY = line == Line.ITEM ? PRIORITY_Y : CHANNEL_Y + CHANNEL_SIZE + 10;
+        int removeY = line == Line.ITEM ? PRIORITY_Y : line == Line.DATA ? CHANNEL_Y : CHANNEL_Y + CHANNEL_SIZE + 10;
         Button remove = Button.builder(Component.literal("x"), button -> press(UtilityDuctMenu.BUTTON_REMOVE_LINE + line.ordinal()))
                 .bounds(leftPos + imageWidth - MARGIN - REMOVE_WIDTH, topPos + removeY, REMOVE_WIDTH, 16).build();
         remove.setTooltip(Tooltip.create(Component.translatable("gui.servus_foundation.remove." + line.id())));
@@ -161,7 +162,10 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
         }
         if (modeButton != null && shownPage != null) {
             SideMode mode = menu.duct().mode(shownPage, menu.side());
-            modeButton.setMessage(Component.translatable("gui.servus_foundation.mode." + mode.name().toLowerCase(Locale.ROOT)));
+            String key = shownPage == Line.DATA
+                    ? (mode == SideMode.DISABLED ? "gui.servus_foundation.data.off" : "gui.servus_foundation.data.on")
+                    : "gui.servus_foundation.mode." + mode.name().toLowerCase(Locale.ROOT);
+            modeButton.setMessage(Component.translatable(key));
         }
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         Line hovered = tabAt(mouseX, mouseY);

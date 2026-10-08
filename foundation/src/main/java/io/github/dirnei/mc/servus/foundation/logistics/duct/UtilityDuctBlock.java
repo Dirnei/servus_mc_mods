@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.data.DataSummary;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
@@ -9,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -165,10 +167,20 @@ public class UtilityDuctBlock extends ConnectableBlock {
         return state;
     }
 
-    /** A bare hand opens nothing; the endpoint GUI is opened with the Configuration Carrot. */
+    /**
+     * A bare hand opens nothing; the endpoint GUI is opened with the Configuration Carrot.
+     * On a duct with the data line an empty hand shows the data network summary.
+     */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        return InteractionResult.PASS;
+        if (!player.getMainHandItem().isEmpty() || !(level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct)
+                || !duct.has(Line.DATA)) {
+            return InteractionResult.PASS;
+        }
+        if (level instanceof ServerLevel) {
+            duct.dataNetwork().ifPresent(network -> player.displayClientMessage(DataSummary.of(network), true));
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     @Override

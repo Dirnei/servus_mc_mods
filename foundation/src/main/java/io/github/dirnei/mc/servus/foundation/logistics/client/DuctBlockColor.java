@@ -19,6 +19,8 @@ import org.jetbrains.annotations.Nullable;
 public final class DuctBlockColor implements BlockColor {
 
     private static final int WHITE = 0xFFFFFF;
+    /** The data line has no channels; its ring is always teal. */
+    private static final int DATA_RING = 0x40DCC8;
 
     @Override
     public int getColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos, int tintIndex) {
@@ -32,6 +34,9 @@ public final class DuctBlockColor implements BlockColor {
                 return Minecraft.getInstance().getBlockColors().getColor(facade, level, pos, tintIndex);
             }
             return WHITE;
+        }
+        if (line == Line.DATA) {
+            return DATA_RING;
         }
         return DuctChannels.color(duct.channel(line, DuctParts.ringSide(tintIndex))) & WHITE;
     }
