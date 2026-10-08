@@ -249,6 +249,12 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MenuProvid
         return expected;
     }
 
+    /** For tests: waits for {@code amount} upkeep items as if a supplier had answered. */
+    void expect(int amount) {
+        expected = amount;
+        deadline = level == null ? 0 : level.getGameTime() + REQUEST_TIMEOUT;
+    }
+
     public void setUpkeepItem(ItemStack stack) {
         upkeepItem = stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(1);
         upkeepSet = true;

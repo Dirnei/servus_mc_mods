@@ -24,9 +24,8 @@ import net.minecraft.world.level.block.state.BlockState;
 public final class MachineProfiles extends SimpleJsonResourceReloadListener {
 
     public static final String DIRECTORY = "machine_profiles";
-    public static final MachineProfiles INSTANCE = new MachineProfiles();
-
     private static final Gson GSON = new GsonBuilder().create();
+    public static final MachineProfiles INSTANCE = new MachineProfiles();
 
     private volatile List<MachineProfile> profiles = List.of();
     private final Map<Block, Optional<MachineProfile>> byBlock = new ConcurrentHashMap<>();
