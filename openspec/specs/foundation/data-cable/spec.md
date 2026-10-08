@@ -21,7 +21,7 @@ The Data Cable item SHALL place a Utility Duct carrying the data line or add the
 - **THEN** the outer two report two different data networks
 
 ### Requirement: Members by capability
-A block SHALL be a member of a data network on a side that touches a duct's data line when it exposes, on that side, the production capability (role producer), the stock provider or stock sink capability (role stock), or the data link capability `servus_foundation:data_link` (role link). A block with several kinds SHALL have all their roles. The duct SHALL show a data arm toward a member. Blocks without these capabilities, such as chests, hoppers and rails, SHALL NOT be members and the duct SHALL show no data arm toward them.
+A block SHALL be a member of a data network on a side that touches a duct's data line when it exposes, on that side, the production capability (role producer), the stock provider or stock sink capability (role stock), the data link capability `servus_foundation:data_link` (role link), or the upkeep capability `servus_foundation:upkeep` (role upkeep). A block with several kinds SHALL have all their roles. The duct SHALL show a data arm toward a member. Blocks without these capabilities, such as chests, hoppers and rails, SHALL NOT be members and the duct SHALL show no data arm toward them.
 
 #### Scenario: Crafting Station
 - **WHEN** a duct with the data line touches a Crafting Station
@@ -38,6 +38,10 @@ A block SHALL be a member of a data network on a side that touches a duct's data
 #### Scenario: Chest
 - **WHEN** a duct carrying only the data line touches a chest
 - **THEN** the duct shows no arm toward it and the network has no member there
+
+#### Scenario: Upkeep member
+- **WHEN** a duct with the data line touches a Coal Generator
+- **THEN** the duct shows a data arm toward it and the generator is an upkeep member of that network
 
 ### Requirement: Data sides on and off
 Every side of a duct's data line SHALL be on or off, on by default, and SHALL have no channel, filter or priority. A side that is off SHALL reach no member and SHALL NOT link to the data line of the duct on that side.

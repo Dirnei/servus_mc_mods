@@ -28,7 +28,7 @@ The screen SHALL show a tab bar with an Orders tab, a Machines tab and a Pattern
 - **THEN** the screen shows the patterns of the line and the capacity bar
 
 ### Requirement: Machines tab
-The Machines tab SHALL list every member of the data line with the producer role with its block name and its state: working on an item when the producer reports an active recipe, idle when it has recipes and none runs, no recipes when it has none. A Crafting Station SHALL instead show crafting an item with the crafts left while it has a job, or idle, and one line saying it crafts any pattern. A Machine Adapter SHALL be named after the machine it faces with "(adapter)" added, and SHALL show its upkeep item with the count in the machine and the level. Under each other producer it SHALL list the recipes it reports as outputs from inputs with their time. The list SHALL scroll with the mouse wheel when it does not fit.
+The Machines tab SHALL list every member of the data line with the producer or the upkeep role with its block name and its state: working on an item when the producer reports an active recipe, idle when it has recipes and none runs, no recipes when it has none. A Crafting Station SHALL instead show crafting an item with the crafts left while it has a job, or idle, and one line saying it crafts any pattern. A Machine Adapter SHALL be named after the machine it faces with "(adapter)" added. Every member with upkeep SHALL show its upkeep item with the count it holds and the level. A member with upkeep but without the producer role SHALL show the state "upkeep only" instead of a recipe state. Under each other producer it SHALL list the recipes it reports as outputs from inputs with their time. The list SHALL scroll with the mouse wheel when it does not fit.
 
 #### Scenario: Crafting Station with sticks
 - **WHEN** a Crafting Station without a job is on a line that has a sticks pattern
@@ -45,6 +45,14 @@ The Machines tab SHALL list every member of the data line with the producer role
 #### Scenario: Adapter on a furnace
 - **WHEN** a Machine Adapter faces a furnace holding 12 coal with an upkeep level of 16
 - **THEN** the Machines tab lists "Furnace (adapter)" with upkeep Coal 12 of 16 and its smelting recipes
+
+#### Scenario: Coal Generator
+- **WHEN** a Coal Generator holding 9 coal with an upkeep level of 16 is on the line
+- **THEN** the Machines tab lists Coal Generator as upkeep only with upkeep Coal 9 of 16
+
+#### Scenario: Burner Smelter
+- **WHEN** a Burner Smelter is on the line
+- **THEN** the Machines tab lists it with its state, its upkeep and its smelting recipes
 
 ### Requirement: Orders tab
 The Orders tab SHALL list every formed Crafting CPU of the line, lowest position first, with how many of its order slots are in use, its slot count and how many of its orders wait. Under each CPU it SHALL list its orders with id, item, amount, state, blocked reason and source (request, stock rule or manual), and under each order its steps with the producer's name, the step output, its batches, its state and its reason. The list SHALL scroll with the mouse wheel when it does not fit.

@@ -50,7 +50,7 @@ Items inserted into the adapter, by packets or any automation, SHALL go into the
 - **THEN** the data line can take 8 stone out of the adapter
 
 ### Requirement: Upkeep stays stocked
-The adapter SHALL keep the machine's upkeep side stocked with its upkeep item at its level: whenever the machine holds less than the level and no earlier request is still on its way, it SHALL ask a supplier on its data line for the difference, independent of orders. Recipes SHALL never contain upkeep. A request that has not arrived after a while SHALL be given up so the next check asks again. The GUI SHALL show the upkeep item as a ghost slot, the level with buttons to change it, and the count in the machine; an empty ghost slot means no upkeep.
+The adapter SHALL expose the upkeep capability for the machine's upkeep side (its upkeep item, its level, the count in the machine), so the data network's shared upkeep keeper keeps that side stocked at the level, independent of orders. Recipes SHALL never contain upkeep. Upkeep the adapter was told is coming SHALL go through the upkeep side until it has arrived or the request timed out. The GUI SHALL show the upkeep item as a ghost slot, the level with buttons to change it, and the count in the machine; an empty ghost slot means no upkeep.
 
 #### Scenario: Refill
 - **WHEN** an adapter with upkeep coal at level 16 faces a furnace holding 4 coal and a warehouse with coal is on the line
