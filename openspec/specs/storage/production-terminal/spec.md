@@ -73,7 +73,7 @@ Clicking an open order in the Orders tab SHALL cancel it on its CPU like any can
 - **THEN** the order is cancelled on its CPU and its reserved planks are available again
 
 ### Requirement: Live view
-The terminal SHALL send its full content as soon as the screen opens, without waiting for the periodic update, and the screen SHALL show a loading hint until it arrives. While the screen is open the terminal SHALL send the current CPUs, machines, orders, patterns and pattern capacity every half second when something changed, and nothing when nothing changed.
+The terminal SHALL send its full content when the game opens the screen, without waiting for the periodic update. The client SHALL keep the last content of each terminal for the session and SHALL show it at once when that terminal is opened again, replacing it when the fresh content arrives; the screen SHALL show a loading hint only while it has no content for that terminal yet. While the screen is open the terminal SHALL send the current CPUs, machines, orders, patterns and pattern capacity every half second when something changed, and nothing when nothing changed.
 
 #### Scenario: Step progresses
 - **WHEN** the sticks step changes from delivering to producing while the screen is open
@@ -86,6 +86,10 @@ The terminal SHALL send its full content as soon as the screen opens, without wa
 #### Scenario: Instant content
 - **WHEN** the player opens the terminal
 - **THEN** its content is sent in the same tick the screen opens
+
+#### Scenario: Opened again
+- **WHEN** the player closes the terminal and opens it again in the same session
+- **THEN** the last content shows at once without a loading hint and is replaced by the fresh content
 
 ### Requirement: Patterns tab
 The Patterns tab SHALL show a capacity bar with the used and total pattern places of the line, a plus button, and every pattern of the line with its result, its inputs and the position of its Pattern Storage. Plus SHALL open the recipe editor with an empty grid; clicking a pattern SHALL open the editor prefilled with its template and offer Delete. While the editor is open the player inventory SHALL be shown so items can be put into the ghost grid, and the rest of the screen SHALL be dimmed and inert.
