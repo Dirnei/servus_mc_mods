@@ -9,12 +9,12 @@ import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
+import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -39,27 +39,24 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  */
 public class AccessPointBlockEntity extends InboundStationBlockEntity implements DeliveryTarget, DataLink {
 
-    private static final AtomicInteger NEXT_SHIPMENT = new AtomicInteger(1);
-
-    /** Items on their way to one data member. */
+    /**
+     * Items on their way to one data member. Its progress is a transfer in the
+     * {@link ProductionLedger}, so whoever waits for it can book it by id.
+     */
     public static final class Shipment {
-        private final int id;
         private final BlockPos target;
         private final ItemKey key;
-        private int planned;
-        private int delivered;
-        private boolean ended;
+        private final ProductionLedger.Transfer transfer;
 
-        Shipment(int id, BlockPos target, ItemKey key, int planned, int delivered) {
-            this.id = id;
+        Shipment(BlockPos target, ItemKey key, ProductionLedger.Transfer transfer) {
             this.target = target;
             this.key = key;
-            this.planned = planned;
-            this.delivered = delivered;
+            this.transfer = transfer;
         }
 
-        public int id() {
-            return id;
+        /** The ledger id of this shipment. */
+        public long id() {
+            return transfer.id();
         }
 
         public BlockPos target() {
@@ -71,20 +68,24 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
         }
 
         public int planned() {
-            return planned;
+            return transfer.asked();
         }
 
         public int delivered() {
-            return delivered;
+            return transfer.delivered();
         }
 
         public boolean ended() {
-            return ended;
+            return transfer.ended();
         }
 
         int missing() {
-            return Math.max(0, planned - delivered);
+            return transfer.missing();
         }
+    }
+
+    /** A saved shipment, resolved against the ledger on the first tick after loading. */
+    private record SavedShipment(long id, BlockPos target, ItemKey key) {
     }
 
     private final ItemStackHandler outgoing = new ItemStackHandler(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
@@ -96,7 +97,9 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
     };
 
     private final List<Shipment> shipments = new ArrayList<>();
+    private final List<SavedShipment> unresolved = new ArrayList<>();
     private Delivery running;
+    private ServerLevel shippingLevel;
     private Shipment runningFor;
     private int sendTimer;
     private final IItemHandler[] faces = new IItemHandler[6];
@@ -184,10 +187,14 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
 
     /** Registers a shipment of {@code planned} items; picks arrive in the outgoing buffer afterwards. */
     public Shipment addShipment(BlockPos target, ItemKey key, int planned) {
-        Shipment shipment = new Shipment(NEXT_SHIPMENT.getAndIncrement(), target.immutable(), key, planned, 0);
+        Shipment shipment = new Shipment(target.immutable(), key, ledger().open(planned));
         shipments.add(shipment);
         setChanged();
         return shipment;
+    }
+
+    private ProductionLedger ledger() {
+        return ProductionLedger.get((ServerLevel) level);
     }
 
     /** A pick for a shipment of this item came up short: expect fewer items. */
@@ -196,13 +203,11 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
             if (count <= 0) {
                 break;
             }
-            if (!shipment.ended && shipment.key.equals(key)) {
+            if (!shipment.ended() && shipment.key.equals(key)) {
                 int cut = Math.min(count, shipment.missing());
-                shipment.planned -= cut;
+                ledger().shortfall(shipment.transfer, cut);
                 count -= cut;
-                if (shipment.missing() == 0 && shipment.delivered >= shipment.planned) {
-                    shipment.ended = true;
-                }
+                endIfComplete(shipment);
             }
         }
         setChanged();
@@ -212,19 +217,27 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
         return running != null && !running.ended();
     }
 
-    /** Whether the packets on the line right now belong to this shipment. */
-    public boolean isSending(Shipment shipment) {
-        return sending() && runningFor == shipment;
+    /** Whether the packets on the line right now belong to the shipment with that id. */
+    public boolean isSending(long shipmentId) {
+        return sending() && runningFor != null && runningFor.id() == shipmentId;
+    }
+
+    private void endIfComplete(Shipment shipment) {
+        if (shipment.missing() == 0) {
+            ledger().end(shipment.transfer);
+        }
     }
 
     /**
      * Ends a shipment early. Packets already on the line still land; what is
      * still waiting in the outgoing buffer goes back into storage.
      */
-    public void cancel(Shipment shipment) {
-        if (shipments.contains(shipment) && !shipment.ended) {
-            shipment.ended = true;
-            setChanged();
+    public void cancel(long shipmentId) {
+        for (Shipment shipment : shipments) {
+            if (shipment.id() == shipmentId && !shipment.ended()) {
+                ledger().end(shipment.transfer);
+                setChanged();
+            }
         }
     }
 
@@ -238,6 +251,9 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
 
     /** Starts the next delivery when none runs, and hands items nobody waits for to the intake. */
     private void ship(ServerLevel server) {
+        if (!unresolved.isEmpty()) {
+            resolve();
+        }
         if (sending()) {
             return;
         }
@@ -252,11 +268,12 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
             if (started.isEmpty() || started.get().ended() && started.get().state() == Delivery.State.FAILED) {
                 // Refused at once: the stack is still ours, and this shipment cannot be served.
                 ItemHandlerHelper.insertItemStacked(outgoing, stack, false);
-                shipment.ended = true;
+                ledger().end(shipment.transfer);
                 continue;
             }
             running = started.get();
             runningFor = shipment;
+            shippingLevel = server;
             running.onEnd(delivery -> finished(shipment, delivery, count));
             setActivity(true);
             return;
@@ -266,9 +283,10 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
     }
 
     private void finished(Shipment shipment, Delivery delivery, int sent) {
-        shipment.delivered += delivery.delivered();
+        ProductionLedger ledger = ProductionLedger.get(shippingLevel);
+        ledger.delivered(shipment.transfer, delivery.delivered());
         if (delivery.state() == Delivery.State.FAILED || shipment.missing() == 0) {
-            shipment.ended = true;
+            ledger.end(shipment.transfer);
         }
         if (runningFor == shipment) {
             running = null;
@@ -291,7 +309,7 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
 
     private boolean wanted(ItemKey key) {
         for (Shipment shipment : shipments) {
-            if (!shipment.ended && shipment.key.equals(key)) {
+            if (!shipment.ended() && shipment.key.equals(key)) {
                 return true;
             }
         }
@@ -313,6 +331,48 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
             }
         }
         return taken;
+    }
+
+    /**
+     * Finds the saved shipments in the ledger again and lets each wait only for
+     * what the outgoing buffer holds for it, oldest first: picks that were on
+     * their way may have been lost with the reload. The rest ends short.
+     */
+    private void resolve() {
+        ProductionLedger ledger = ledger();
+        for (SavedShipment saved : unresolved) {
+            ProductionLedger.Transfer transfer = ledger.transfer(saved.id());
+            if (transfer != null && !transfer.ended()) {
+                shipments.add(new Shipment(saved.target(), saved.key(), transfer));
+            }
+        }
+        unresolved.clear();
+        List<ItemKey> keys = new ArrayList<>();
+        for (Shipment shipment : shipments) {
+            if (!keys.contains(shipment.key)) {
+                keys.add(shipment.key);
+            }
+        }
+        for (ItemKey key : keys) {
+            List<Shipment> ofKey = shipments.stream().filter(shipment -> shipment.key.equals(key)).toList();
+            List<Integer> cuts = ShipmentCap.shortfalls(ofKey.stream().map(Shipment::missing).toList(), outgoingCount(key));
+            for (int i = 0; i < ofKey.size(); i++) {
+                ledger.shortfall(ofKey.get(i).transfer, cuts.get(i));
+                endIfComplete(ofKey.get(i));
+            }
+        }
+        setChanged();
+    }
+
+    private int outgoingCount(ItemKey key) {
+        int count = 0;
+        for (int slot = 0; slot < outgoing.getSlots(); slot++) {
+            ItemStack stack = outgoing.getStackInSlot(slot);
+            if (!stack.isEmpty() && ItemKey.of(stack).equals(key)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
     }
 
     private void setActivity(boolean working) {
@@ -355,15 +415,12 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
         tag.put("Outgoing", outgoing.serializeNBT(registries));
         ListTag list = new ListTag();
         for (Shipment shipment : shipments) {
-            if (shipment.ended) {
-                continue;
+            if (!shipment.ended()) {
+                list.add(savedShipment(shipment.id(), shipment.target, shipment.key, registries));
             }
-            CompoundTag entry = new CompoundTag();
-            entry.put("Target", NbtUtils.writeBlockPos(shipment.target));
-            entry.put("Item", shipment.key.stack(1).save(registries));
-            entry.putInt("Planned", shipment.planned);
-            entry.putInt("Delivered", shipment.delivered);
-            list.add(entry);
+        }
+        for (SavedShipment saved : unresolved) {
+            list.add(savedShipment(saved.id(), saved.target(), saved.key(), registries));
         }
         tag.put("Shipments", list);
     }
@@ -379,14 +436,22 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
             }
         }
         shipments.clear();
+        unresolved.clear();
         for (Tag raw : tag.getList("Shipments", Tag.TAG_COMPOUND)) {
             CompoundTag entry = (CompoundTag) raw;
             Optional<BlockPos> target = NbtUtils.readBlockPos(entry, "Target");
             ItemStack item = ItemStack.parseOptional(registries, entry.getCompound("Item"));
-            if (target.isPresent() && !item.isEmpty()) {
-                shipments.add(new Shipment(NEXT_SHIPMENT.getAndIncrement(), target.get(), ItemKey.of(item),
-                        entry.getInt("Planned"), entry.getInt("Delivered")));
+            if (target.isPresent() && !item.isEmpty() && entry.contains("Id")) {
+                unresolved.add(new SavedShipment(entry.getLong("Id"), target.get(), ItemKey.of(item)));
             }
         }
+    }
+
+    private static CompoundTag savedShipment(long id, BlockPos target, ItemKey key, HolderLookup.Provider registries) {
+        CompoundTag entry = new CompoundTag();
+        entry.putLong("Id", id);
+        entry.put("Target", NbtUtils.writeBlockPos(target));
+        entry.put("Item", key.stack(1).save(registries));
+        return entry;
     }
 }

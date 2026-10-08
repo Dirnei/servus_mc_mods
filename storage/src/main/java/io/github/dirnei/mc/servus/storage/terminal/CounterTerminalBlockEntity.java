@@ -1,19 +1,21 @@
 package io.github.dirnei.mc.servus.storage.terminal;
 
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
@@ -32,18 +34,16 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 /**
  * The pickup desk on the data line: opens the stock GUI of the warehouses it
  * reaches, keeps the output slots packets land in, and remembers the open
- * requests made here. Requests are not persisted; a reload clears them.
+ * requests made here. Requests are saved with the terminal; their ids come
+ * from the {@link ProductionLedger}, so they never repeat.
  */
 public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvider, DataLink {
-
-    /** Request ids are unique across terminals, so pick jobs and work orders never mix them up. */
-    private static final AtomicInteger NEXT_REQUEST = new AtomicInteger(1);
 
     /** How a request is doing, as the GUI shows it. */
     public enum RequestState { PICKING, SENDING, WAITING_ROOM, PRODUCING, MISSING }
 
-    /** A shipment an Access Point runs for a request, and how many items were asked of it. */
-    public record Tracked(BlockPos accessPoint, AccessPointBlockEntity.Shipment shipment, int asked) {
+    /** A shipment an Access Point runs for a request, by its ledger id, and how many items were asked of it. */
+    public record Tracked(BlockPos accessPoint, long shipmentId, int asked) {
     }
 
     /** One open request: what was asked, what arrived, what cannot come. */
@@ -79,6 +79,7 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
     private final IItemHandler packets = new OutputInsertHandler();
     private final List<Request> requests = new ArrayList<>();
     private int ticks;
+    private boolean idsSeen;
 
     public CounterTerminalBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.COUNTER_TERMINAL.get(), pos, state);
@@ -121,14 +122,30 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
         return null;
     }
 
-    public Request newRequest(ItemKey key, int requested) {
-        Request request = new Request(NEXT_REQUEST.getAndIncrement(), key, requested);
+    public Request newRequest(ServerLevel level, ItemKey key, int requested) {
+        seeIds(level);
+        Request request = new Request(ProductionLedger.get(level).nextRequestId(), key, requested);
         requests.add(request);
+        setChanged();
         return request;
     }
 
     public void removeRequest(int id) {
-        requests.removeIf(request -> request.id == id);
+        if (requests.removeIf(request -> request.id == id)) {
+            setChanged();
+        }
+    }
+
+    /** Keeps the ledger's request counter above the ids of loaded requests. */
+    void seeIds(ServerLevel level) {
+        if (idsSeen) {
+            return;
+        }
+        idsSeen = true;
+        ProductionLedger ledger = ProductionLedger.get(level);
+        for (Request request : requests) {
+            ledger.seenRequestId(request.id);
+        }
     }
 
     /** Gives arrived items to the open requests of that item, oldest first. */
@@ -190,6 +207,29 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("Output", output.serializeNBT(registries));
+        ListTag list = new ListTag();
+        for (Request request : requests) {
+            CompoundTag entry = new CompoundTag();
+            entry.putInt("Id", request.id);
+            entry.put("Item", request.key.stack(1).save(registries));
+            entry.putInt("Requested", request.requested);
+            entry.putInt("Delivered", request.delivered);
+            entry.putInt("Missing", request.missing);
+            if (request.orderCpu != null) {
+                entry.put("OrderCpu", NbtUtils.writeBlockPos(request.orderCpu));
+            }
+            ListTag shipments = new ListTag();
+            for (Tracked tracked : request.shipments) {
+                CompoundTag shipment = new CompoundTag();
+                shipment.put("AccessPoint", NbtUtils.writeBlockPos(tracked.accessPoint()));
+                shipment.putLong("Id", tracked.shipmentId());
+                shipment.putInt("Asked", tracked.asked());
+                shipments.add(shipment);
+            }
+            entry.put("Shipments", shipments);
+            list.add(entry);
+        }
+        tag.put("Requests", list);
     }
 
     @Override
@@ -201,6 +241,25 @@ public class CounterTerminalBlockEntity extends BlockEntity implements MenuProvi
             for (int i = 0; i < output.getSlots(); i++) {
                 output.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
+        }
+        requests.clear();
+        idsSeen = false;
+        for (Tag raw : tag.getList("Requests", Tag.TAG_COMPOUND)) {
+            CompoundTag entry = (CompoundTag) raw;
+            ItemStack item = ItemStack.parseOptional(registries, entry.getCompound("Item"));
+            if (item.isEmpty()) {
+                continue;
+            }
+            Request request = new Request(entry.getInt("Id"), ItemKey.of(item), entry.getInt("Requested"));
+            request.delivered = entry.getInt("Delivered");
+            request.missing = entry.getInt("Missing");
+            request.orderCpu = NbtUtils.readBlockPos(entry, "OrderCpu").orElse(null);
+            for (Tag rawShipment : entry.getList("Shipments", Tag.TAG_COMPOUND)) {
+                CompoundTag shipment = (CompoundTag) rawShipment;
+                NbtUtils.readBlockPos(shipment, "AccessPoint").ifPresent(point -> request.shipments.add(
+                        new Tracked(point, shipment.getLong("Id"), shipment.getInt("Asked"))));
+            }
+            requests.add(request);
         }
     }
 

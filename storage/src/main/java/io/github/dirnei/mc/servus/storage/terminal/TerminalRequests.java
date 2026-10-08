@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
+import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.Request;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.RequestState;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.Tracked;
@@ -32,6 +33,7 @@ public final class TerminalRequests {
 
     /** Called every server tick by the terminal. */
     static void tick(ServerLevel level, CounterTerminalBlockEntity terminal, int ticks) {
+        terminal.seeIds(level);
         book(level, terminal);
         if (ticks % LAMP_TICKS == 0) {
             terminal.setOnline(!TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty());
@@ -52,7 +54,7 @@ public final class TerminalRequests {
         if (warehouses.isEmpty()) {
             return "offline";
         }
-        Request request = terminal.newRequest(key, amount);
+        Request request = terminal.newRequest(level, key, amount);
         String[] refusal = {""};
         int remaining = ship(terminal, request, warehouses, amount, refusal);
         request.missing = remaining;
@@ -87,7 +89,7 @@ public final class TerminalRequests {
         if (!preview.missing().isEmpty()) {
             return "missing";
         }
-        Request request = terminal.newRequest(key, amount);
+        Request request = terminal.newRequest(level, key, amount);
         request.missing = amount;
         CpuOrders.Placed placed = CpuOrders.create(level, terminal.getBlockPos(), key, amount, request.id);
         if (!placed.made()) {
@@ -116,7 +118,8 @@ public final class TerminalRequests {
                     (int) Math.min(available, remaining), request.id);
             if (shipping.shipped()) {
                 AccessPointBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
-                request.shipments.add(new Tracked(shipping.accessPoint(), shipment, shipment.planned()));
+                request.shipments.add(new Tracked(shipping.accessPoint(), shipment.id(), shipment.planned()));
+                terminal.setChanged();
                 remaining -= shipment.planned();
             } else if (refusal[0].isEmpty()) {
                 refusal[0] = shipping.refusal();
@@ -128,12 +131,17 @@ public final class TerminalRequests {
     /** Books ended shipments: what they did not bring is missing again. Drops requests that are done. */
     private static void book(ServerLevel level, CounterTerminalBlockEntity terminal) {
         List<Integer> done = new ArrayList<>();
+        ProductionLedger ledger = ProductionLedger.get(level);
         for (Request request : terminal.requests()) {
             for (Iterator<Tracked> it = request.shipments.iterator(); it.hasNext(); ) {
                 Tracked tracked = it.next();
-                if (tracked.shipment().ended()) {
-                    request.missing += Math.max(0, tracked.asked() - tracked.shipment().delivered());
+                ProductionLedger.Transfer transfer = ledger.transfer(tracked.shipmentId());
+                // A shipment the ledger forgot is shipped again rather than waited for.
+                if (transfer == null || transfer.ended()) {
+                    int delivered = transfer == null ? 0 : transfer.delivered();
+                    request.missing += Math.max(0, tracked.asked() - delivered);
                     it.remove();
+                    terminal.setChanged();
                 }
             }
             if (request.delivered >= request.requested && request.shipments.isEmpty()) {
@@ -172,7 +180,7 @@ public final class TerminalRequests {
         CpuOrders.cancelForRequest(level, terminal.getBlockPos(), requestId);
         for (Tracked tracked : request.shipments) {
             if (level.getBlockEntity(tracked.accessPoint()) instanceof AccessPointBlockEntity point) {
-                point.cancel(tracked.shipment());
+                point.cancel(tracked.shipmentId());
             }
         }
         terminal.removeRequest(requestId);
@@ -190,7 +198,7 @@ public final class TerminalRequests {
 
     static RequestState state(ServerLevel level, CounterTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
         for (Tracked tracked : request.shipments) {
-            if (level.getBlockEntity(tracked.accessPoint()) instanceof AccessPointBlockEntity point && point.isSending(tracked.shipment())) {
+            if (level.getBlockEntity(tracked.accessPoint()) instanceof AccessPointBlockEntity point && point.isSending(tracked.shipmentId())) {
                 // Packets that find no room wait at the terminal.
                 boolean fits = ItemHandlerHelper.insertItemStacked(terminal.output(), request.key.stack(1), true).isEmpty();
                 return fits ? RequestState.SENDING : RequestState.WAITING_ROOM;
