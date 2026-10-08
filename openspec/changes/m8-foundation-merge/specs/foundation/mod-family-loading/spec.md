@@ -35,9 +35,7 @@ Each content mod SHALL declare `servus_foundation` as a required dependency with
 - **WHEN** a game starts with a content mod but without `servus_foundation`
 - **THEN** NeoForge refuses to start and reports the missing dependency `servus_foundation` for that mod
 
-## MODIFIED Requirements
-
-### Requirement: Content mods are independent of each other
+### Requirement: Manufacturing and Storage are independent
 Manufacturing and Storage SHALL NOT declare a dependency, required or optional, on each other and SHALL NOT reference each other's classes. Both MAY reference any Foundation class, including the Utility Duct.
 
 #### Scenario: Storage without Manufacturing
@@ -65,3 +63,7 @@ Manufacturing and Storage SHALL NOT declare a dependency, required or optional, 
 ### Requirement: Content mods require Lib
 **Reason**: Lib is now Foundation.
 **Migration**: See "Content mods require Foundation".
+
+### Requirement: Content mods are independent of each other
+**Reason**: Logistics is no longer a content mod, so only Manufacturing and Storage remain to keep apart.
+**Migration**: See "Manufacturing and Storage are independent".

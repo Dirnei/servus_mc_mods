@@ -16,7 +16,7 @@
 
 ## 4. Specs and planning
 
-- [ ] 4.1 `git mv` every capability under `openspec/specs/lib/` and `openspec/specs/logistics/` to `openspec/specs/foundation/`; edit each moved spec's title line and the Purpose texts that name Lib or Logistics as owner; move `openspec/changes/m8-data-cable/specs/lib/data-cable` to `.../specs/foundation/data-cable` and update its proposal and design paths. Verify with `openspec validate m8-foundation-merge --strict` (no "target spec does not exist" notices) and `openspec validate m8-data-cable --strict`.
+- [x] 4.1 `git mv` every capability under `openspec/specs/lib/` and `openspec/specs/logistics/` to `openspec/specs/foundation/`; edit each moved spec's title line and the Purpose texts that name Lib or Logistics as owner; move `openspec/changes/m8-data-cable/specs/lib/data-cable` to `.../specs/foundation/data-cable` and update its proposal and design paths. Verify with `openspec validate m8-foundation-merge --strict` (no "target spec does not exist" notices) and `openspec validate m8-data-cable --strict`.
 - [ ] 4.2 Update PLAN.md (section 1 table and dependency text, repository layout, 2.2 Servus: Foundation, 2.3 and 2.4 dependency remarks, section 3 API heading, M8 list with `m8-foundation-merge` first and `m8-data-cable` as the duct Data line), CLAUDE.md (stack, projects, mod ids, rules), `openspec/config.yaml` context and README. Verify with a grep for "Servus Lib", "Logistics depend" and "four mods" in these files, and `openspec validate --all`.
 
 ## 5. Docs and CI

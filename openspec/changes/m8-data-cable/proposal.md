@@ -17,7 +17,7 @@ PLAN.md M8 (on-demand autocrafting) builds on a data cable that links the wareho
 ## Capabilities
 
 ### New Capabilities
-- `lib/data-cable`: the Data Cable block, the data network, member detection by capability and the member query API.
+- `foundation/data-cable`: the Data Cable block, the data network, member detection by capability and the member query API.
 
 ### Modified Capabilities
 None. The placement assist spec is generic; the cable only uses it.
