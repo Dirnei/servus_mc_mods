@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.lib.data.DataNetwork;
 import io.github.dirnei.mc.servus.lib.data.DataNetworks;
 import io.github.dirnei.mc.servus.lib.data.DataRole;
 import io.github.dirnei.mc.servus.lib.registry.ServusLibBlocks;
+import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
@@ -21,11 +22,17 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -148,6 +155,22 @@ public final class DataCableGameTests {
                     "summary should say 3 cables, 1 producer, 1 stock, got " + summary.getString());
             helper.succeed();
         });
+    }
+
+    /** A sneak click on the top of a straight run, east of centre, places past the east end and not on top. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void dataCableSneakExtendsRun(GameTestHelper helper) {
+        cableRow(helper);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setShiftKeyDown(true);
+        BlockPos middle = helper.absolutePos(B);
+        ItemStack stack = new ItemStack(ServusLibItems.DATA_CABLE.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
+                new BlockHitResult(new Vec3(middle.getX() + 0.7, middle.getY() + 0.625, middle.getZ() + 0.5), Direction.UP, middle, false)));
+        helper.assertBlockPresent(ServusLibBlocks.DATA_CABLE.get(), EAST_END);
+        helper.assertBlockNotPresent(ServusLibBlocks.DATA_CABLE.get(), ABOVE_B);
+        helper.succeed();
     }
 
     /** A chest is no member and gets no arm. */

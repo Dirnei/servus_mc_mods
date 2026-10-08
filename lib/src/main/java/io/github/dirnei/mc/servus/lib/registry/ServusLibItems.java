@@ -1,9 +1,10 @@
 package io.github.dirnei.mc.servus.lib.registry;
 
 import io.github.dirnei.mc.servus.lib.ServusLibIds;
+import io.github.dirnei.mc.servus.lib.data.DataCableAssist;
+import io.github.dirnei.mc.servus.lib.placement.AssistedBlockItem;
 import io.github.dirnei.mc.servus.lib.item.GogglesItem;
 import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -17,8 +18,8 @@ public final class ServusLibItems {
     public static final DeferredItem<GogglesItem> GOGGLES =
             ITEMS.registerItem("engineer_goggles", GogglesItem::new, new Item.Properties());
 
-    public static final DeferredItem<BlockItem> DATA_CABLE =
-            ITEMS.registerSimpleBlockItem(ServusLibBlocks.DATA_CABLE);
+    public static final DeferredItem<AssistedBlockItem> DATA_CABLE = ITEMS.registerItem("data_cable",
+            properties -> new AssistedBlockItem(ServusLibBlocks.DATA_CABLE.get(), new DataCableAssist(), properties));
 
     private ServusLibItems() {
     }
