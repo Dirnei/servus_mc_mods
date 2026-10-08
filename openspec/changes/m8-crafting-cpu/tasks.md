@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 Add `storage/cpu/CpuShape` (candidate cube origins for a block, lowest first; part index of a position) and `storage/cpu/CpuChoice` (first CPU with a free slot, else fewest open, earliest on a tie). JUnit `CpuShapeTest` (`twentySevenOriginsLowestFirst`, `partIndexRoundTrip`) and `CpuChoiceTest` (`firstFreeSlotWins`, `allFullPicksFewestOpen`, `tieGoesToEarliest`, `emptyListChoosesNothing`). Verify with `gradlew :storage:test`.
+- [x] 1.1 Add `storage/cpu/CpuShape` (candidate cube origins for a block, lowest first; part index of a position) and `storage/cpu/CpuChoice` (first CPU with a free slot, else fewest open, earliest on a tie). JUnit `CpuShapeTest` (`twentySevenOriginsLowestFirst`, `partIndexRoundTrip`) and `CpuChoiceTest` (`firstFreeSlotWins`, `allFullPicksFewestOpen`, `tieGoesToEarliest`, `emptyListChoosesNothing`). Verify with `gradlew :storage:test`.
 
 ## 2. CPU block
 
