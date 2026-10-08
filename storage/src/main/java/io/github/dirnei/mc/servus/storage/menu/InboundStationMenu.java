@@ -119,7 +119,9 @@ public class InboundStationMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ServusStorageBlocks.INBOUND_STATION.get());
+        // The Access Point shares this menu but is a block of its own.
+        return stillValid(access, player, ServusStorageBlocks.INBOUND_STATION.get())
+                || stillValid(access, player, ServusStorageBlocks.ACCESS_POINT.get());
     }
 
     // Sync

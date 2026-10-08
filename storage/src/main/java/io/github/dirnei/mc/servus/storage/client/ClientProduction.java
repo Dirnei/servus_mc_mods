@@ -9,6 +9,7 @@ import java.util.List;
 /** The last CPUs, orders and producers the server sent for the open Production Terminal. */
 public final class ClientProduction {
 
+    private static volatile boolean loaded;
     private static volatile boolean online;
     private static volatile String reason = "";
     private static volatile List<CpuRow> cpus = List.of();
@@ -20,6 +21,7 @@ public final class ClientProduction {
     }
 
     public static void update(ProductionPayload payload) {
+        loaded = true;
         online = payload.online();
         reason = payload.reason();
         cpus = List.copyOf(payload.cpus());
@@ -29,12 +31,18 @@ public final class ClientProduction {
     }
 
     public static void clear() {
+        loaded = false;
         online = false;
         reason = "";
         cpus = List.of();
         machines = List.of();
         patterns = PatternsView.EMPTY;
         version++;
+    }
+
+    /** Whether the server sent the content since the screen opened. */
+    public static boolean loaded() {
+        return loaded;
     }
 
     public static boolean online() {

@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Counter;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import java.util.ArrayList;
@@ -33,10 +34,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 /** The terminal's output slots, the player inventory and the warehouses the terminal reaches over its data line. */
 public class CounterTerminalMenu extends AbstractContainerMenu {
 
-    public static final int OUTPUT_Y = 154;
-    public static final int INVENTORY_Y = 176;
-    public static final int HOTBAR_Y = 234;
-    private static final int COLUMNS = 9;
     private static final int SYNC_INTERVAL = 10;
     private static final int MAX_ENTRIES = 4096;
 
@@ -57,7 +54,7 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         this.access = ContainerLevelAccess.create(terminal.getLevel(), terminal.getBlockPos());
         this.outputSlots = terminal.output().getSlots();
         for (int slot = 0; slot < outputSlots; slot++) {
-            addSlot(new SlotItemHandler(terminal.output(), slot, 8 + (slot % COLUMNS) * 18, OUTPUT_Y + (slot / COLUMNS) * 18) {
+            addSlot(new SlotItemHandler(terminal.output(), slot, Counter.outputX(slot), Counter.outputY(slot)) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return false;
@@ -67,11 +64,12 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         inventoryStart = slots.size();
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
+                addSlot(new Slot(playerInventory, column + row * 9 + 9, Counter.INVENTORY.x() + column * 18,
+                        Counter.INVENTORY.y() + row * 18));
             }
         }
         for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
+            addSlot(new Slot(playerInventory, column, Counter.HOTBAR.x() + column * 18, Counter.HOTBAR.y()));
         }
     }
 

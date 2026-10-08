@@ -20,6 +20,7 @@ import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEnti
 import io.github.dirnei.mc.servus.storage.production.ProductionView;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,11 +49,11 @@ import net.neoforged.neoforge.network.PacketDistributor;
  */
 public class ProductionTerminalMenu extends AbstractContainerMenu {
 
-    public static final int POPUP_X = 40;
-    public static final int POPUP_Y = 22;
-    public static final int INVENTORY_X = 40;
-    public static final int INVENTORY_Y = 112;
-    public static final int HOTBAR_Y = 170;
+    public static final int POPUP_X = TerminalLayout.Production.POPUP.x();
+    public static final int POPUP_Y = TerminalLayout.Production.POPUP.y();
+    public static final int INVENTORY_X = TerminalLayout.Production.INVENTORY.x();
+    public static final int INVENTORY_Y = TerminalLayout.Production.INVENTORY.y();
+    public static final int HOTBAR_Y = TerminalLayout.Production.HOTBAR.y();
     /** Editor state for an existing pattern; the server keeps which one. */
     public static final int EDIT_EXISTING = 0;
     private static final int SYNC_INTERVAL = 10;
@@ -66,6 +67,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     private PatternLibrary.Free editingSlot;
     private int syncTimer;
     private long lastSignature = Long.MIN_VALUE;
+    private long firstSyncTick = -1;
 
     public ProductionTerminalMenu(int containerId, Inventory playerInventory, ProductionTerminalBlockEntity terminal) {
         super(ServusStorageMenus.PRODUCTION_TERMINAL.get(), containerId);
@@ -317,6 +319,26 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return stillValid(access, player, ServusStorageBlocks.PRODUCTION_TERMINAL.get());
+    }
+
+    /** Called when the screen opens: the content goes out at once instead of with the next periodic check. */
+    @Override
+    public void broadcastFullState() {
+        super.broadcastFullState();
+        if (player instanceof ServerPlayer serverPlayer) {
+            ProductionPayload payload = view();
+            lastSignature = signature(payload);
+            syncTimer = 0;
+            if (firstSyncTick < 0) {
+                firstSyncTick = serverPlayer.serverLevel().getGameTime();
+            }
+            PacketDistributor.sendToPlayer(serverPlayer, payload);
+        }
+    }
+
+    /** The game time the content was first sent, -1 before that. */
+    public long firstSyncTick() {
+        return firstSyncTick;
     }
 
     @Override
