@@ -10,11 +10,13 @@ import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
+import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.pattern.PatternRunners;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
@@ -244,6 +246,25 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
         }
 
         @Override
+        public boolean start(OrderStep step) {
+            ServerLevel server = serverLevel();
+            if (!server.isLoaded(step.producer())
+                    || !(server.getBlockEntity(step.producer()) instanceof CraftingStationBlockEntity station)) {
+                return true;
+            }
+            Optional<EncodedPattern> pattern = patternFor(server, step);
+            return pattern.isPresent() && station.assign(pattern.get(), step.batches(), step);
+        }
+
+        @Override
+        public void release(OrderStep step) {
+            ServerLevel server = serverLevel();
+            if (server.isLoaded(step.producer()) && server.getBlockEntity(step.producer()) instanceof CraftingStationBlockEntity station) {
+                station.release(step);
+            }
+        }
+
+        @Override
         public boolean busyElsewhere(BlockPos producer) {
             return dataNetwork().map(network -> CpuOrders.busyElsewhere(serverLevel(), network, producer, book)).orElse(false);
         }
@@ -257,6 +278,21 @@ public class CpuBlockEntity extends BlockEntity implements DataLink {
         public long gameTime() {
             return level == null ? 0 : level.getGameTime();
         }
+    }
+
+    /** The pattern of the CPU's data line that the step was planned from: same recipe id, same inputs per batch. */
+    private Optional<EncodedPattern> patternFor(ServerLevel level, OrderStep step) {
+        Optional<DataNetwork> network = dataNetwork();
+        if (network.isEmpty()) {
+            return Optional.empty();
+        }
+        for (PatternLibrary.Entry entry : PatternLibrary.entries(level, network.get())) {
+            EncodedPattern pattern = entry.pattern();
+            if (pattern.recipe().equals(step.recipe().id()) && pattern.required().equals(step.inputs())) {
+                return Optional.of(pattern);
+            }
+        }
+        return Optional.empty();
     }
 
     /** The distinct outputs of the step's recipe. */

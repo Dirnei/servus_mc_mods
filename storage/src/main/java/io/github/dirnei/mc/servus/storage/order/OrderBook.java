@@ -43,6 +43,17 @@ public final class OrderBook {
         /** Starts moving the step's outputs out of its producer. */
         void collect(OrderStep step);
 
+        /**
+         * The step is about to be fed: hands its producer the work, a pattern
+         * job on a Crafting Station.
+         *
+         * @return false when the producer refuses, so the step keeps waiting
+         */
+        boolean start(OrderStep step);
+
+        /** The step is done or its order is cancelled: the producer's job for it ends. */
+        void release(OrderStep step);
+
         /** Whether a step of another CPU of the line occupies the producer. */
         boolean busyElsewhere(BlockPos producer);
 
@@ -200,10 +211,11 @@ public final class OrderBook {
         return new Created(order, "");
     }
 
-    /** The producers' recipes as the planner sees them, idle producers first, then by time. */
+    /** The producers' recipes as the planner sees them: producers without planned or running steps first, then idle ones, then by time. */
     private List<OrderPlanner.Recipe<ItemKey>> recipes(Map<StepKey, ProductionRecipe> byKey) {
         List<Producer> producers = new ArrayList<>(host.producers());
-        producers.sort(Comparator.comparing((Producer producer) -> producer.active().isPresent()));
+        producers.sort(Comparator.comparing((Producer producer) -> plannedOn(producer.pos()) || host.busyElsewhere(producer.pos()))
+                .thenComparing(producer -> producer.active().isPresent()));
         List<OrderPlanner.Recipe<ItemKey>> list = new ArrayList<>();
         for (Producer producer : producers) {
             for (ProductionRecipe recipe : producer.recipes()) {
@@ -228,6 +240,21 @@ public final class OrderBook {
         return list;
     }
 
+    /** Whether an open order of this book has a step on the producer that is not done yet. */
+    private boolean plannedOn(BlockPos producer) {
+        for (WorkOrder order : orders) {
+            if (!order.open()) {
+                continue;
+            }
+            for (OrderStep step : order.steps()) {
+                if (step.producer().equals(producer) && step.state() != OrderStep.State.DONE) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private static String missingReason(Map<ItemKey, Integer> missing) {
         ItemKey first = missing.keySet().iterator().next();
         return "missing " + first.stack(1).getHoverName().getString();
@@ -243,6 +270,9 @@ public final class OrderBook {
         order.clearReserved();
         order.setState(WorkOrder.State.CANCELLED, "");
         order.setDoneAt(host.gameTime());
+        for (OrderStep step : order.steps()) {
+            host.release(step);
+        }
         return true;
     }
 
@@ -306,12 +336,14 @@ public final class OrderBook {
             }
             switch (step.state()) {
                 case WAITING_STATION -> {
-                    if (!producerBusy(step.producer(), step)) {
+                    if (producerBusy(step.producer(), step)) {
+                        step.setReason("producer busy");
+                    } else if (!host.start(step)) {
+                        step.setReason("station busy");
+                    } else {
                         step.setState(OrderStep.State.DELIVERING);
                         step.setReason("");
                         blocked = feed(order, step, blocked);
-                    } else {
-                        step.setReason("producer busy");
                     }
                     allDone = false;
                 }
@@ -323,6 +355,7 @@ public final class OrderBook {
                     if (step.outputsCollected()) {
                         step.setState(OrderStep.State.DONE);
                         step.setReason("");
+                        host.release(step);
                     } else {
                         allDone = false;
                     }

@@ -13,29 +13,17 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * Which producers can execute a pattern, and the recipes patterns add to a
- * producer for the CPU's planner. Until Crafting Stations are the CPU's hands,
- * a station runs a pattern only when its own list holds the same recipe with
- * the same items. Server thread only.
+ * producer for the CPU's planner: every Crafting Station runs every crafting
+ * pattern of its data line. Server thread only.
  */
 public final class PatternRunners {
 
     private PatternRunners() {
     }
 
+    /** Every Crafting Station is the CPU's hands and can run any crafting pattern. */
     public static boolean canRun(ServerLevel level, BlockPos producer, EncodedPattern pattern) {
-        if (!(level.getBlockEntity(producer) instanceof CraftingStationBlockEntity station)) {
-            return false;
-        }
-        for (CraftingStationBlockEntity.StationRecipe recipe : station.recipes()) {
-            List<ItemKey> keys = new ArrayList<>();
-            for (ItemStack cell : recipe.template()) {
-                keys.add(cell.isEmpty() ? null : ItemKey.of(cell));
-            }
-            if (pattern.sameWork(recipe.id(), keys)) {
-                return true;
-            }
-        }
-        return false;
+        return level.getBlockEntity(producer) instanceof CraftingStationBlockEntity;
     }
 
     /**
