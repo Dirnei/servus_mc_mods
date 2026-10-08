@@ -2,7 +2,7 @@
 
 ## Context
 
-The data network (`foundation.data`) keeps data nodes (Utility Ducts with the Data line, `DataNode`) in a `NetworkGraph` and members beside it in `DataMembers`, found by the production and stock capabilities. Its `onTick` does nothing yet. Datapack values elsewhere in Foundation load through `SimpleJsonResourceReloadListener` subclasses registered in `ServusLogisticsEvents` (`DuctStatsManager`, `TankStatsManager`). See proposal.md for why and specs/foundation/data-packets/spec.md for the behavior.
+The data network (`foundation.data`) keeps data nodes (Utility Ducts with the Data line, `DataNode`) in a `NetworkGraph` and members beside it in `DataMembers`, found by the production and stock capabilities. Its `onTick` does nothing yet. Datapack values elsewhere in Foundation load through `SimpleJsonResourceReloadListener` subclasses registered in `ServusLogisticsEvents` (`DuctStatsManager`, `TankStatsManager`); the packet listener registers itself in `foundation.data.packet.DataPacketEvents` next to the stash tick. See proposal.md for why and specs/foundation/data-packets/spec.md for the behavior.
 
 ## Goals / Non-Goals
 

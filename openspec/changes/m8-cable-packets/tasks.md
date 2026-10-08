@@ -6,7 +6,7 @@
 
 ## 2. Limits and stash
 
-- [ ] 2.1 Add `PacketLimitsManager` (reload listener for `data/<ns>/data/packets.json`, defaults when missing), register it in `ServusLogisticsEvents`, add `foundation/src/main/resources/data/servus_foundation/data/packets.json` (8, 4.0, 20). Add `PacketStash` (`SavedData` with stacks and positions, drops when a position is loaded, ticked from `LevelTickEvent.Post` only while not empty). Verify with `gradlew build`.
+- [x] 2.1 Add `PacketLimitsManager` (reload listener for `data/<ns>/data/packets.json`, defaults when missing), register it in a new `DataPacketEvents`, add `foundation/src/main/resources/data/servus_foundation/data/packets.json` (8, 4.0, 20). Add `PacketStash` (`SavedData` with stacks and positions, drops when a position is loaded, ticked from `LevelTickEvent.Post` only while not empty). Verify with `gradlew build`.
 
 ## 3. Shipments on the network
 
