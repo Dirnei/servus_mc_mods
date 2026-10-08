@@ -12,5 +12,4 @@ rootProject.name = 'servus_mc_mods'
 
 include 'foundation'
 include 'manufacturing'
-include 'logistics'
 include 'storage'

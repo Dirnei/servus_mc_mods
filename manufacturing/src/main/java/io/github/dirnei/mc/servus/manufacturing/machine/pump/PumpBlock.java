@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.pump;
 
-import io.github.dirnei.mc.servus.logistics.duct.Line;
-import io.github.dirnei.mc.servus.logistics.duct.UtilityDuctBlockEntity;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import java.util.EnumMap;
 import java.util.Map;

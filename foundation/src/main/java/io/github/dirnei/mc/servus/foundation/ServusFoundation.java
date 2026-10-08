@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.foundation;
 
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.logistics.ServusLogisticsContent;
 import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationBlockEntities;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationBlocks;
@@ -15,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Mod entrypoint for Servus Lib.
+ * Mod entrypoint for Servus: Foundation.
  */
 @Mod(ServusFoundationIds.MOD_ID)
 public final class ServusFoundation {
@@ -28,7 +29,8 @@ public final class ServusFoundation {
         ServusFoundationBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ServusFoundationCreativeTabs.TABS.register(modEventBus);
         NetworkTypes.register(DataNetwork.TYPE);
+        ServusLogisticsContent.register(modEventBus);
         container.registerConfig(ModConfig.Type.COMMON, ServusFoundationConfig.SPEC);
-        LOGGER.info("Servus Lib loaded");
+        LOGGER.info("Servus: Foundation loaded");
     }
 }
