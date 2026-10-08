@@ -26,6 +26,7 @@ import io.github.dirnei.mc.servus.storage.shuttle.ShuttleSyncPayload;
 import io.github.dirnei.mc.servus.storage.shuttle.LiftSyncPayload;
 import io.github.dirnei.mc.servus.storage.client.ClientLifts;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Registers the terminal payloads. */
@@ -95,6 +96,22 @@ public final class ServusStoragePayloads {
                     if (context.player() instanceof ServerPlayer player
                             && player.containerMenu instanceof CounterTerminalMenu menu) {
                         menu.request(ItemKey.of(payload.item()), payload.amount());
+                    }
+                });
+        registrar.playToServer(CraftPreviewRequestPayload.TYPE, CraftPreviewRequestPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                        PacketDistributor.sendToPlayer(player, menu.preview(ItemKey.of(payload.item()), payload.amount()));
+                    }
+                });
+        registrar.playToClient(CraftPreviewPayload.TYPE, CraftPreviewPayload.STREAM_CODEC,
+                (payload, context) -> ClientStock.preview(payload));
+        registrar.playToServer(CraftStartPayload.TYPE, CraftStartPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                        menu.craft(ItemKey.of(payload.item()), payload.amount());
                     }
                 });
         registrar.playToServer(SetStockRulePayload.TYPE, SetStockRulePayload.STREAM_CODEC,

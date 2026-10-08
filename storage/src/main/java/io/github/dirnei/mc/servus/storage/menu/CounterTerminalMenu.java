@@ -4,10 +4,13 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
+import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import java.util.ArrayList;
@@ -45,6 +48,7 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
     private String message = "";
     private int syncTimer;
     private long lastSignature = Long.MIN_VALUE;
+    private long firstSyncTick = -1;
 
     public CounterTerminalMenu(int containerId, Inventory playerInventory, CounterTerminalBlockEntity terminal) {
         super(ServusStorageMenus.COUNTER_TERMINAL.get(), containerId);
@@ -99,6 +103,30 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
     public void request(ItemKey key, int amount) {
         message = terminal.getLevel() instanceof ServerLevel server
                 ? TerminalRequests.request(server, terminal, key, Math.max(1, amount)) : "offline";
+        forceSync();
+    }
+
+    /** What crafting this many of the key would take, craft and miss, as the craft dialog shows it. */
+    public CraftPreviewPayload preview(ItemKey key, int amount) {
+        int wanted = Math.max(1, amount);
+        if (!(terminal.getLevel() instanceof ServerLevel server)) {
+            return new CraftPreviewPayload(key.stack(1), wanted, List.of(), List.of(), List.of(), "offline");
+        }
+        OrderBook.Preview preview = TerminalCraftables.preview(server, terminal.getBlockPos(), key, wanted);
+        return new CraftPreviewPayload(key.stack(1), wanted, rows(preview.fromStock()), rows(preview.toCraft()),
+                rows(preview.missing()), preview.refusal());
+    }
+
+    private static List<StockEntry> rows(Map<ItemKey, Integer> counts) {
+        List<StockEntry> list = new ArrayList<>();
+        counts.forEach((key, count) -> list.add(new StockEntry(key.stack(1), count)));
+        return list;
+    }
+
+    /** Crafts this many of the key on a CPU of the line; the results land in the output slots. */
+    public void craft(ItemKey key, int amount) {
+        message = terminal.getLevel() instanceof ServerLevel server
+                ? TerminalRequests.craft(server, terminal, key, Math.max(1, amount)) : "offline";
         forceSync();
     }
 
@@ -177,6 +205,26 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
 
     // Stock sync
 
+    /** Called when the screen opens: the content goes out at once instead of with the next periodic check. */
+    @Override
+    public void broadcastFullState() {
+        super.broadcastFullState();
+        if (player instanceof ServerPlayer serverPlayer) {
+            StockSyncPayload payload = stock();
+            lastSignature = signature(payload);
+            syncTimer = 0;
+            if (firstSyncTick < 0) {
+                firstSyncTick = serverPlayer.serverLevel().getGameTime();
+            }
+            PacketDistributor.sendToPlayer(serverPlayer, payload);
+        }
+    }
+
+    /** The game time the content was first sent, -1 before that. */
+    public long firstSyncTick() {
+        return firstSyncTick;
+    }
+
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
@@ -198,15 +246,15 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
     /** The current stock, requests and message as the client should see them. */
     public StockSyncPayload stock() {
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
-            return new StockSyncPayload(false, "no_warehouse", List.of(), List.of(), message, List.of());
+            return new StockSyncPayload(false, "no_warehouse", List.of(), List.of(), message, List.of(), List.of());
         }
         List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(server, terminal.getBlockPos());
         List<RequestRow> requests = TerminalRequests.rows(server, terminal, warehouses);
         if (warehouses.isEmpty()) {
-            return new StockSyncPayload(false, "no_warehouse", List.of(), requests, message, List.of());
+            return new StockSyncPayload(false, "no_warehouse", List.of(), requests, message, List.of(), List.of());
         }
         return new StockSyncPayload(true, "", entries(TerminalWarehouses.stock(warehouses)), requests, message,
-                warehouses.get(0).ruleRows());
+                warehouses.get(0).ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES));
     }
 
     private static List<StockEntry> entries(List<Map.Entry<ItemKey, Long>> stock) {
@@ -233,6 +281,9 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
             hash = hash * 31 + rule.min();
             hash = hash * 31 + rule.max();
             hash = hash * 31 + rule.state().hashCode();
+        }
+        for (ItemStack craftable : payload.craftables()) {
+            hash = hash * 31 + craftable.getItem().hashCode();
         }
         for (RequestRow row : payload.requests()) {
             hash = hash * 31 + row.id();
