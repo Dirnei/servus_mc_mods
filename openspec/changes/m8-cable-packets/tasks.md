@@ -19,4 +19,4 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build` and `gradlew test` green, Foundation, Manufacturing and Storage GameTests green, `runClientAll` reaches the title screen; update the Foundation docs page with a short "Packets" section and `packets.json` values, docs tests and build green.
+- [x] 5.1 Full `gradlew build` and `gradlew test` green, Foundation, Manufacturing and Storage GameTests green, `runClientAll` reaches the title screen; update the Foundation docs page with a short "Packets" section and `packets.json` values, docs tests and build green.

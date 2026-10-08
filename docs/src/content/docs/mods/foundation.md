@@ -51,6 +51,15 @@ The data line is the wiring for on-demand autocrafting. It never moves anything 
 - Right click a duct with the data line with an empty hand to see how many ducts, producers and stock members its network has.
 - The data line is teal, and its ring at a member is always teal.
 
+### Packets
+
+When a Servus block asks for a delivery, the data line carries the items as packets. Nothing else ever sends them.
+
+- A delivery is split into packets of `packet_size` items. One packet of a delivery travels at a time, along the shortest route of data ducts, at `packet_speed` blocks per second. Throughput is packet size times speed over distance.
+- An arriving packet goes into the target's inventory on the side that touches the duct. What does not fit waits at the target and is offered again every `retry_interval` ticks.
+- When a duct on the way is broken, the packet takes another route. If there is none, its items go into the target, back to the source, or onto the ground. They are never lost.
+- Ops can test it with `/servus_foundation data move <from> <to> <item> <count>`.
+
 ## Fluid Tank
 
 Touching tank blocks that fill a complete rectangular box form one tank with a shared content. A group that is not a full box works as single block tanks until it is. Buckets work on every face, and an empty hand shows what the tank holds. A broken block keeps its share of the fluid in its item.
@@ -81,7 +90,7 @@ Sides are relative (front, back, left, right, top, bottom), so a configuration s
 
 ## Datapack values
 
-Transfer rates live in `data/servus_foundation/duct/utility_duct.json` and the tank size in `data/servus_foundation/tank/fluid_tank.json`. Current values, which modpacks can change:
+Transfer rates live in `data/servus_foundation/duct/utility_duct.json`, the tank size in `data/servus_foundation/tank/fluid_tank.json` and the packet limits in `data/servus_foundation/data/packets.json`. Current values, which modpacks can change:
 
 ```json
 {
@@ -95,6 +104,14 @@ Transfer rates live in `data/servus_foundation/duct/utility_duct.json` and the t
 ```json
 {
   "capacity_per_block": 16000
+}
+```
+
+```json
+{
+  "packet_size": 8,
+  "packet_speed": 4.0,
+  "retry_interval": 20
 }
 ```
 
