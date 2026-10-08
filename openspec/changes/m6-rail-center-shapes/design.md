@@ -26,6 +26,12 @@
 | N+E, E+S, S+W, W+N | `rail_center_curve` rotated 0, 90, 180, 270 |
 | three or four | `rail_center_cross` |
 
+### Shared rule
+The table lives in pure `RailCenter.of(north, east, south, west)` (shape and clockwise rotation) in `storage.rail`, covered by `RailCenterTest`. Datagen picks model and rotation from it.
+
+### Elevator rails
+`ElevatorRenderer` draws rail pieces itself. Each piece carries its shape and rotation: the centre from `RailCenter`, arms straight with rotation 0 (north, south) or 90 (west, east). The top face maps the texture by position through the same turn a rotated block model applies (90: u = z, v = 16 - x), so pieces cut at the car and deck edges still line up. On the ground floor the stubs outside the posts (2..14) are always drawn and the part between the posts only while the car is away; before, the whole ground rail disappeared under the parked car and left the edge strips empty.
+
 ### Textures
 `rail_curve.png` draws a north to east curve inside the centre square (pixels 5..10): the outer line from x 6 on the north edge to z 9 on the east edge, the inner line from x 9 to z 6. `rail_cross.png` draws lines at x 6 and 9 and at z 6 and 9. Model rotation without uvlock turns the texture with the plate.
 

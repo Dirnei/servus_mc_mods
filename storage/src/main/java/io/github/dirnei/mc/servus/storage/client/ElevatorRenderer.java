@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
+import io.github.dirnei.mc.servus.storage.rail.RailCenter;
 import io.github.dirnei.mc.servus.storage.shuttle.Flaps;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,10 +35,24 @@ import org.joml.Quaternionf;
 public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity> {
 
     private static final ResourceLocation FRAME = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/elevator");
-    private static final ResourceLocation RAIL = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/rail");
+    /** Rail textures in the order of {@link RailCenter.Shape}, the same as the outside rail's models. */
+    private static final ResourceLocation[] RAIL = {
+            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/rail"),
+            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/rail_curve"),
+            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/rail_cross")};
     /** Rail pieces as x0, z0, x1, z1: the centre plate and the arm towards north, south, west, east. */
     private static final float[] CENTER = {5, 5, 11, 11};
     private static final float[][] ARMS = {{5, 0, 11, 5}, {5, 11, 11, 16}, {0, 5, 5, 11}, {11, 5, 16, 11}};
+    /** The shaft area between the posts that the car and the decks cover. */
+    private static final float[] INNER = {2, 2, 14, 14};
+
+    /** One rail piece: its rectangle, the texture of its shape and that texture's clockwise rotation in degrees. */
+    private record Piece(float[] area, RailCenter.Shape shape, int rotation) {
+
+        Piece within(float[] part) {
+            return new Piece(part, shape, rotation);
+        }
+    }
 
     public ElevatorRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -67,7 +82,10 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         double carY = carY(segment, level.getGameTime() + partialTick) - bottom.getY();
         carY = Math.max(0, Math.min(floors.size() - 1, carY));
         TextureAtlasSprite frame = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(FRAME);
-        TextureAtlasSprite rail = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(RAIL);
+        TextureAtlasSprite[] rail = new TextureAtlasSprite[RAIL.length];
+        for (int i = 0; i < RAIL.length; i++) {
+            rail[i] = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(RAIL[i]);
+        }
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(InventoryMenu.BLOCK_ATLAS));
 
         for (int floor = 0; floor < floors.size(); floor++) {
@@ -80,10 +98,8 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
             poseStack.translate(0, floor, 0);
             float angle = (float) Flaps.angle(carY, floor);
             if (floor == 0) {
-                // The floor below is the ground level's deck; the parked car brings its own rail.
-                if (angle < 90F) {
-                    groundRail(poseStack, buffer, rail, state, light, packedOverlay);
-                }
+                // The floor below is the ground level's deck; the parked car brings its own rail between the posts.
+                groundRail(poseStack, buffer, rail, state, angle < 90F, light, packedOverlay);
             } else {
                 deck(poseStack, buffer, frame, rail, state, angle, light, packedOverlay);
             }
@@ -133,14 +149,15 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
                 state.getValue(ConnectableBlock.WEST), state.getValue(ConnectableBlock.EAST)};
     }
 
-    /** The rail pieces of a floor, as x0, z0, x1, z1 rectangles. */
-    private static List<float[]> railPieces(BlockState state) {
-        List<float[]> pieces = new ArrayList<>();
-        pieces.add(CENTER);
+    /** The rail pieces of a floor: the centre shaped like an outside rail's and a straight arm per connected side. */
+    private static List<Piece> railPieces(BlockState state) {
+        List<Piece> pieces = new ArrayList<>();
         boolean[] arms = arms(state);
+        RailCenter center = RailCenter.of(arms[0], arms[3], arms[1], arms[2]);
+        pieces.add(new Piece(CENTER, center.shape(), center.rotation()));
         for (int i = 0; i < ARMS.length; i++) {
             if (arms[i]) {
-                pieces.add(ARMS[i]);
+                pieces.add(new Piece(ARMS[i], RailCenter.Shape.STRAIGHT, i < 2 ? 0 : 90));
             }
         }
         return pieces;
@@ -156,10 +173,10 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
      * two flaps on free opposite edges, else one flap on a free edge, else four
      * quarters that pull back into the corner posts.
      */
-    private static void deck(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
+    private static void deck(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite[] rail,
                              BlockState state, float angle, int light, int overlay) {
         boolean[] arms = arms(state);
-        List<float[]> pieces = railPieces(state);
+        List<Piece> pieces = railPieces(state);
         boolean northSouthFree = !arms[0] && !arms[1];
         boolean westEastFree = !arms[2] && !arms[3];
         if (northSouthFree) {
@@ -183,10 +200,15 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
             }
         }
         // Rail stubs over the shaft edge, outside the deck, stay put.
-        float[] inner = {2, 2, 14, 14};
-        for (float[] piece : pieces) {
-            for (float[] stub : outside(piece, inner)) {
-                box(poseStack, buffer, rail, stub[0], 0, stub[1], stub[2], 1, stub[3], light, overlay);
+        stubs(poseStack, buffer, rail, pieces, light, overlay);
+    }
+
+    /** The parts of the rail pieces outside the posts, which neither deck nor car covers. */
+    private static void stubs(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite[] rail, List<Piece> pieces,
+                              int light, int overlay) {
+        for (Piece piece : pieces) {
+            for (float[] stub : outside(piece.area(), INNER)) {
+                railBox(poseStack, buffer, rail, piece.within(stub), light, overlay);
             }
         }
     }
@@ -196,8 +218,8 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
      * edge. It pivots on the plate's lower outer edge, so folded up it stands
      * at the shaft edge outside the car's footprint.
      */
-    private static void flap(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
-                             List<float[]> pieces, float[] area, Edge hinge, float angle, int light, int overlay) {
+    private static void flap(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite[] rail,
+                             List<Piece> pieces, float[] area, Edge hinge, float angle, int light, int overlay) {
         switch (hinge) {
             case NORTH -> box(poseStack, buffer, frame, 2, -1, 0.5F, 14, 0, 1.5F, light, overlay);
             case SOUTH -> box(poseStack, buffer, frame, 2, -1, 14.5F, 14, 0, 15.5F, light, overlay);
@@ -223,8 +245,8 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
     }
 
     /** Four quarter plates that shrink towards their corner posts as the angle goes from 0 to 90. */
-    private static void quarters(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
-                                 List<float[]> pieces, float angle, int light, int overlay) {
+    private static void quarters(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite[] rail,
+                                 List<Piece> pieces, float angle, int light, int overlay) {
         float scale = 1F - angle / 90F;
         if (scale <= 0.01F) {
             return;
@@ -243,40 +265,43 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         }
     }
 
-    /** The lowest segment's rail, lying on the floor block like an outside rail. */
-    private static void groundRail(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite rail, BlockState state,
-                                   int light, int overlay) {
-        for (float[] piece : railPieces(state)) {
-            box(poseStack, buffer, rail, piece[0], 0, piece[1], piece[2], 1, piece[3], light, overlay);
+    /** The lowest segment's rail, lying on the floor block like an outside rail; between the posts only while the car is away. */
+    private static void groundRail(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite[] rail, BlockState state,
+                                   boolean carAway, int light, int overlay) {
+        List<Piece> pieces = railPieces(state);
+        stubs(poseStack, buffer, rail, pieces, light, overlay);
+        if (carAway) {
+            clipped(poseStack, buffer, rail, pieces, INNER, light, overlay);
         }
     }
 
-    /** A deck plate below the segment with the rail pieces over it at outside rail height. */
-    private static void plate(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
-                              List<float[]> pieces, float[] area, int light, int overlay) {
-        box(poseStack, buffer, frame, area[0], -1, area[1], area[2], 0, area[3], light, overlay);
-        for (float[] piece : pieces) {
-            float[] part = clip(piece, area);
+    /** The parts of the rail pieces inside the area. */
+    private static void clipped(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite[] rail, List<Piece> pieces,
+                                float[] area, int light, int overlay) {
+        for (Piece piece : pieces) {
+            float[] part = clip(piece.area(), area);
             if (part != null) {
-                box(poseStack, buffer, rail, part[0], 0, part[1], part[2], 1, part[3], light, overlay);
+                railBox(poseStack, buffer, rail, piece.within(part), light, overlay);
             }
         }
     }
 
+    /** A deck plate below the segment with the rail pieces over it at outside rail height. */
+    private static void plate(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite[] rail,
+                              List<Piece> pieces, float[] area, int light, int overlay) {
+        box(poseStack, buffer, frame, area[0], -1, area[1], area[2], 0, area[3], light, overlay);
+        clipped(poseStack, buffer, rail, pieces, area, light, overlay);
+    }
+
     /** The car: a platform between the posts with a sleeve around each post, carrying the nearest floor's rail at outside rail height. */
-    private static void car(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
+    private static void car(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite[] rail,
                             BlockState floor, int light, int overlay) {
         box(poseStack, buffer, frame, 2, -2, 2, 14, -0.1F, 14, light, overlay);
         float[][] sleeves = {{-0.25F, -0.25F}, {13, -0.25F}, {-0.25F, 13}, {13, 13}};
         for (float[] sleeve : sleeves) {
             box(poseStack, buffer, frame, sleeve[0], -3, sleeve[1], sleeve[0] + 3.25F, 2, sleeve[1] + 3.25F, light, overlay);
         }
-        for (float[] piece : railPieces(floor)) {
-            float[] part = clip(piece, new float[] {2, 2, 14, 14});
-            if (part != null) {
-                box(poseStack, buffer, rail, part[0], 0, part[1], part[2], 1, part[3], light, overlay);
-            }
-        }
+        clipped(poseStack, buffer, rail, railPieces(floor), INNER, light, overlay);
     }
 
     /** The part of rectangle a inside rectangle b, or null. */
@@ -306,19 +331,53 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         }
     }
 
+    /**
+     * A rail piece one pixel high. The top shows its shape's texture mapped by
+     * position and turned with the piece like a rotated block model, so pieces
+     * cut at the deck and car edges still line up with each other.
+     */
+    private static void railBox(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite[] rail, Piece piece,
+                                int light, int overlay) {
+        TextureAtlasSprite sprite = rail[piece.shape().ordinal()];
+        float[] a = piece.area();
+        sidesAndBottom(poseStack, buffer, sprite, a[0], 0, a[1], a[2], 1, a[3], light, overlay);
+        PoseStack.Pose pose = poseStack.last();
+        float[][] corners = {{a[0], a[1]}, {a[0], a[3]}, {a[2], a[3]}, {a[2], a[1]}};
+        for (float[] corner : corners) {
+            float[] uv = turnedUv(piece.rotation(), corner[0], corner[1]);
+            vertex(buffer, pose, corner[0], 1, corner[1], sprite.getU(uv[0] / 16F), sprite.getV(uv[1] / 16F),
+                    light, overlay, 0, 1, 0);
+        }
+    }
+
+    /** The texture pixel shown at x, z under a model turned clockwise by the rotation. */
+    private static float[] turnedUv(int rotation, float x, float z) {
+        return switch (rotation) {
+            case 90 -> new float[] {z, 16 - x};
+            case 180 -> new float[] {16 - x, 16 - z};
+            case 270 -> new float[] {16 - z, x};
+            default -> new float[] {x, z};
+        };
+    }
+
     /** A textured box in pixel coordinates; the texture is mapped by position like a block model's default UVs. */
     private static void box(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite sprite,
                             float x0, float y0, float z0, float x1, float y1, float z1, int light, int overlay) {
+        sidesAndBottom(poseStack, buffer, sprite, x0, y0, z0, x1, y1, z1, light, overlay);
+        face(buffer, poseStack.last(), sprite, light, overlay, 0, 1, 0,
+                x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, z0, x1, z1);
+    }
+
+    private static void sidesAndBottom(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite sprite,
+                                       float x0, float y0, float z0, float x1, float y1, float z1, int light, int overlay) {
         PoseStack.Pose pose = poseStack.last();
         // Side texture rows repeat every block, so parts below y 0 still map onto the sprite.
         float shift = (float) Math.floor(y0 / 16F) * 16F;
         float v0 = 16 - (y1 - shift);
         float v1 = 16 - (y0 - shift);
-        // Down and up
+        // Down
         face(buffer, pose, sprite, light, overlay, 0, -1, 0,
                 x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, x0, z0, x1, z1);
-        face(buffer, pose, sprite, light, overlay, 0, 1, 0,
-                x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, z0, x1, z1);
         // North and south
         face(buffer, pose, sprite, light, overlay, 0, 0, -1,
                 x0, y0, z0, x0, y1, z0, x1, y1, z0, x1, y0, z0, x0, v0, x1, v1);

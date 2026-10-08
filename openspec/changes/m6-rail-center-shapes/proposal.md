@@ -9,10 +9,13 @@ Play test (2026-10-08): a rail running east to west always looks like a crossing
 - The rail centre follows its connections: straight north south or east west, a curve when the two connected sides meet at a corner, and a `#` crossing (both line pairs) for three or four connections. A rail with one connection runs along that side's axis, a lone rail runs north to south.
 - Only rails, elevator segments and garage arms shape the centre. A dock towards a storage block or station is drawn on its own and leaves the centre alone, so a rail running past a rack stays straight (play test 2026-10-08).
 
+- The elevator draws its deck, ground floor and car rails with the same centre shapes and turns the arm texture with each arm, so east west arms no longer show a crossing. The ground floor keeps its rail outside the posts while the car is parked, so the car's rail meets it without a gap.
+
 ## Capabilities
 
 ### Modified Capabilities
 - `storage/warehouse-rail`: the centre piece matches the connections.
+- `storage/rail-elevator`: deck, ground floor and car rails look like outside rails and the parked car leaves no gap.
 
 ## Non-goals
 
@@ -20,4 +23,4 @@ Play test (2026-10-08): a rail running east to west always looks like a crossing
 
 ## Impact
 
-- `storage`: datagen in `RailModels.java` (centre straight, curve and cross models chosen by multipart conditions), two new textures `rail_curve.png` and `rail_cross.png`, regenerated blockstate and models.
+- `storage`: datagen in `RailModels.java` (centre straight, curve and cross models chosen by multipart conditions), two new textures `rail_curve.png` and `rail_cross.png`, regenerated blockstate and models; a pure `RailCenter` shared by datagen and `ElevatorRenderer`.

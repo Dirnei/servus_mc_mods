@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.datagen;
 
 import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
+import io.github.dirnei.mc.servus.storage.rail.RailCenter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -65,18 +66,13 @@ final class RailModels {
         boolean east = (mask & 2) != 0;
         boolean south = (mask & 4) != 0;
         boolean west = (mask & 8) != 0;
-        BlockModelBuilder model;
-        int rotation;
-        if (Integer.bitCount(mask) >= 3) {
-            model = cross;
-            rotation = 0;
-        } else if (Integer.bitCount(mask) == 2 && north != south) {
-            model = curve;
-            rotation = north ? (east ? 0 : 270) : (east ? 90 : 180);
-        } else {
-            model = center;
-            rotation = (east || west) ? 90 : 0;
-        }
+        RailCenter shape = RailCenter.of(north, east, south, west);
+        BlockModelBuilder model = switch (shape.shape()) {
+            case STRAIGHT -> center;
+            case CURVE -> curve;
+            case CROSS -> cross;
+        };
+        int rotation = shape.rotation();
         MultiPartBlockStateBuilder.PartBuilder part = builder.part().modelFile(model).rotationY(rotation).addModel();
         side(part, ConnectableBlock.NORTH, RailBlock.DOCK_NORTH, north);
         side(part, ConnectableBlock.EAST, RailBlock.DOCK_EAST, east);
