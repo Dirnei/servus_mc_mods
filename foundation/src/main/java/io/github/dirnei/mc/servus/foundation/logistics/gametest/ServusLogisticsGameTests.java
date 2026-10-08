@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.logistics.gametest;
 
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.network.chat.Component;
+import io.github.dirnei.mc.servus.foundation.data.DataSummary;
+import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
+import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
@@ -207,6 +212,25 @@ public final class ServusLogisticsGameTests {
                 "removing should give the stone facade back");
         helper.assertTrue(duct.facade() == null, "duct should have no facade after removal");
         helper.succeed();
+    }
+
+    /** A Data Cable adds the data line to an item duct; two data ducts form one network with no members. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void dataLineOnAnItemDuct(GameTestHelper helper) {
+        UtilityDuctBlockEntity first = duct(helper, DUCT, Line.ITEM);
+        UtilityDuctBlockEntity second = duct(helper, DUCT.east(), Line.DATA);
+        helper.assertTrue(first.addLine(Line.DATA), "the data line should be added to the item duct");
+        helper.assertTrue(first.has(Line.ITEM) && first.has(Line.DATA), "the duct carries both lines");
+        helper.runAfterDelay(2, () -> {
+            DataNetwork network = DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(DUCT)).orElse(null);
+            helper.assertTrue(network != null && network == second.dataNetwork().orElse(null), "both ducts share one data network");
+            helper.assertTrue(first.hasArm(Line.DATA, Direction.EAST), "a data arm links the two ducts");
+            Component summary = DataSummary.of(network);
+            helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
+                            && java.util.Arrays.equals(contents.getArgs(), new Object[] {2, 0, 0}),
+                    "summary should say 2 cables, 0 producers, 0 stock, got " + summary.getString());
+            helper.succeed();
+        });
     }
 
     // Fluid Pipe: vanilla cauldrons are the fixtures, 1,000 mB each through NeoForge's cauldron wrapper.
