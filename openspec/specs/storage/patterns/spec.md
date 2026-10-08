@@ -5,53 +5,35 @@ Patterns are how the warehouse knows crafting recipes: the player encodes a vani
 
 ## Requirements
 
-### Requirement: Blank and encoded patterns
-A Blank Pattern SHALL be craftable from cheap vanilla materials (example: paper and redstone). An encoded Pattern SHALL hold one vanilla crafting recipe: its recipe id, a 3x3 template with one concrete item per used cell, and its result. Its tooltip SHALL show the result and the inputs with counts. A Pattern crafted alone in a crafting grid SHALL give back a Blank Pattern.
-
-#### Scenario: Tooltip
-- **WHEN** the player hovers a Pattern encoded with a plank above a plank
-- **THEN** the tooltip shows 4 Stick from 2 Oak Planks
-
-#### Scenario: Wipe
-- **WHEN** the player crafts a Pattern alone in a crafting grid
-- **THEN** the result is one Blank Pattern
-
-### Requirement: Pattern Storage holds patterns
-Pattern Storage SHALL be a horizontal facing block that holds `patterns_per_block` encoded Patterns (example 9, from `data/<ns>/storage/pattern_storage.json`) in a slot GUI opened by right click. Its slots SHALL accept encoded Patterns only. It SHALL drop itself and its patterns when broken.
-
-#### Scenario: Only patterns
-- **WHEN** the player tries to put a Blank Pattern or a stick into a Pattern Storage slot
-- **THEN** it is refused
-
-#### Scenario: Capacity from data
-- **WHEN** `patterns_per_block` is 9
-- **THEN** a Pattern Storage has 9 slots
-
 ### Requirement: Pattern Storage joins the data line
-A Pattern Storage touching a data line SHALL be a member of that line with the link role. The patterns of a data line SHALL be the encoded Patterns of every Pattern Storage on it, Pattern Storages by lowest position first, slots in order. The capacity of a line SHALL be the sum of the slots of its Pattern Storages.
+A Pattern Storage touching a data line SHALL be a member of that line with the link role. The patterns of a data line SHALL be the patterns of every Pattern Storage on it, Pattern Storages by lowest position first, patterns in their kept order. The capacity of a line SHALL be the sum of the configured pattern places of its Pattern Storages.
 
 #### Scenario: Two blocks
-- **WHEN** two Pattern Storages with 9 slots each are on one data line and hold 3 patterns together
+- **WHEN** two Pattern Storages with 9 places each are on one data line and hold 3 patterns together
 - **THEN** the line has 3 patterns and a capacity of 18
 
 ### Requirement: Encoding from the terminal
-Saving a new pattern in the Production Terminal's editor SHALL match the 3x3 ghost grid to a vanilla crafting recipe, take one Blank Pattern from the player's inventory, encode it with the recipe id, the grid items and the result, and put it into the first Pattern Storage of the terminal's line with a free slot. It SHALL refuse with an action bar message and keep the editor open when the grid is empty or matches nothing, when the player has no Blank Pattern, when the line already has a pattern for the same recipe with the same items, or when no Pattern Storage has room. Saving an existing pattern SHALL rewrite it in place without a Blank Pattern. Deleting a pattern SHALL remove it and give the player a Blank Pattern.
+Saving a new pattern in the Production Terminal's editor SHALL match the 3x3 ghost grid to a vanilla crafting recipe and store a pattern with the recipe id, the grid items and the result in the first Pattern Storage of the terminal's line with a free place. It SHALL refuse with an action bar message and keep the editor open when the grid is empty or matches nothing, when the line already has a pattern for the same recipe with the same items, when the line has no Pattern Storage, or when no Pattern Storage has room. Saving an existing pattern SHALL rewrite it in place. Deleting a pattern SHALL remove it.
 
 #### Scenario: New pattern
-- **WHEN** the player has a Blank Pattern, opens the editor with plus, puts a plank above a plank and presses Save
-- **THEN** the Blank Pattern is gone, a sticks Pattern is in the first Pattern Storage with room, and the Patterns tab lists it
+- **WHEN** the player opens the editor with plus, puts a plank above a plank and presses Save
+- **THEN** a sticks pattern is in the first Pattern Storage with room and the Patterns tab lists it, and the player's inventory is unchanged
 
 #### Scenario: No blank
-- **WHEN** the player has no Blank Pattern and saves a matching grid
-- **THEN** nothing is stored and the action bar says a Blank Pattern is needed
+- **WHEN** the player has an empty inventory and saves a matching grid
+- **THEN** the pattern is stored; no item is needed
+
+#### Scenario: No Pattern Storage
+- **WHEN** the terminal's line has no Pattern Storage and the player saves a matching grid
+- **THEN** nothing is stored and the action bar says there is no Pattern Storage on this data line
 
 #### Scenario: Full
 - **WHEN** every Pattern Storage of the line is full and the player saves a new pattern
-- **THEN** nothing is stored, the Blank Pattern stays with the player and the action bar says the Pattern Storage is full
+- **THEN** nothing is stored and the action bar says the Pattern Storage is full
 
 #### Scenario: Delete
 - **WHEN** the player clicks the sticks pattern in the Patterns tab and presses Delete
-- **THEN** the pattern is gone from its Pattern Storage and the player gets a Blank Pattern
+- **THEN** the pattern is gone from its Pattern Storage and the player gets nothing
 
 ### Requirement: CPU plans with patterns
 A Crafting CPU SHALL plan with the patterns of its data line in addition to the recipes producers report. A pattern SHALL be usable when a producer on the line can execute it; every Crafting Station on the line can execute every crafting pattern. A pattern step SHALL run on such a producer like any step, with the pattern's items as inputs and its result as output, stations that are not busy preferred.
@@ -63,3 +45,24 @@ A Crafting CPU SHALL plan with the patterns of its data line in addition to the 
 #### Scenario: Pattern without a producer
 - **WHEN** the line has a sticks pattern and no Crafting Station
 - **THEN** the pattern does not make sticks orderable
+
+### Requirement: Patterns are data
+A pattern SHALL be data kept by a Pattern Storage, never an item: one vanilla crafting recipe with its recipe id, a 3x3 template with one concrete item per used cell, and its result. No item SHALL represent a blank or an encoded pattern.
+
+#### Scenario: No pattern items
+- **WHEN** a player searches the creative inventory for patterns
+- **THEN** there is no Blank Pattern and no Pattern item, only the Pattern Storage block
+
+### Requirement: Pattern Storage keeps patterns as data
+Pattern Storage SHALL be a horizontal facing block that keeps up to `patterns_per_block` patterns (example 9, from `data/<ns>/storage/pattern_storage.json`) as data. It SHALL have no slot GUI and expose no item handler. Right clicking it with an empty hand SHALL show how many patterns it holds of how many in the action bar. Patterns kept beyond a smaller configured size SHALL stay kept and count as used.
+
+#### Scenario: Read out
+- **WHEN** a player right clicks a Pattern Storage holding 2 patterns with an empty hand and `patterns_per_block` is 9
+- **THEN** the action bar says 2 of 9 patterns
+
+### Requirement: Patterns travel with the block
+Breaking a Pattern Storage, or dismantling it by sneaking with the Configuration Carrot, SHALL drop the block as one item that carries its patterns, and placing that item SHALL restore them in the same order. An empty Pattern Storage SHALL drop a plain item.
+
+#### Scenario: Break and place again
+- **WHEN** a Pattern Storage holding a sticks pattern is mined with a pickaxe and placed again on the data line
+- **THEN** it holds the sticks pattern and the line lists it again
