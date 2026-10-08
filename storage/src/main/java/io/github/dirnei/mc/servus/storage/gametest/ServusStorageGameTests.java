@@ -1845,51 +1845,59 @@ public final class ServusStorageGameTests {
 
     private static final BlockPos CR_STATION = new BlockPos(9, 1, 9);
 
-    private static CraftingStationBlockEntity craftingStationWithSticks(GameTestHelper helper, BlockPos pos) {
+    private static CraftingStationBlockEntity plainStation(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(pos);
-        station.pattern().setStackInSlot(1, new ItemStack(Items.OAK_PLANKS));
-        station.pattern().setStackInSlot(4, new ItemStack(Items.OAK_PLANKS));
-        String saved = station.saveFromPattern();
-        helper.assertTrue(saved.isEmpty(), "the stick pattern should save, got " + saved);
+        return helper.getBlockEntity(pos);
+    }
+
+    /** A station with a long sticks job, so it takes planks and crafts them. */
+    private static CraftingStationBlockEntity craftingStationWithSticks(GameTestHelper helper, BlockPos pos) {
+        CraftingStationBlockEntity station = plainStation(helper, pos);
+        StationJobs.sticksJob(station, 64);
         return station;
     }
 
-    /** A configured vanilla recipe is crafted from the inputs, one craft per work time. */
+    /** A sticks job is crafted from the inputs, one craft per work time, and ends with no crafts left. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void craftingStationCraftsConfiguredRecipe(GameTestHelper helper) {
-        CraftingStationBlockEntity station = craftingStationWithSticks(helper, CR_STATION);
-        helper.assertTrue(station.recipes().size() == 1 && station.recipes().get(0).result(helper.getLevel()).is(Items.STICK), "the sticks recipe should be configured");
-        helper.assertTrue(station.saveFromPattern().equals("duplicate"), "saving the same pattern again is a duplicate");
-        station.inputs().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 4));
+    public static void craftingStationCraftsJob(GameTestHelper helper) {
+        CraftingStationBlockEntity station = plainStation(helper, CR_STATION);
+        station.inputs().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 6));
+        Object owner = StationJobs.sticksJob(station, 2);
+        helper.assertTrue(station.working() && station.jobLeft() == 2, "the job should have 2 crafts left");
         int ticks = station.workTicks();
         helper.runAfterDelay(ticks + 5, () -> {
             helper.assertTrue(station.outputs().getStackInSlot(0).is(Items.STICK) && station.outputs().getStackInSlot(0).getCount() == 4,
                     "four sticks should be in the outputs after one work time, got " + station.outputs().getStackInSlot(0));
-            helper.assertTrue(station.inputs().getStackInSlot(0).getCount() == 2, "two planks should remain");
-            helper.runAfterDelay(ticks + 2, () -> {
-                helper.assertTrue(station.outputs().getStackInSlot(0).getCount() == 8, "eight sticks after the second craft, got " + station.outputs().getStackInSlot(0).getCount());
-                helper.assertTrue(station.inputs().getStackInSlot(0).isEmpty(), "all planks used");
-                station.removeRecipe(0);
-                helper.assertTrue(station.recipes().isEmpty(), "the recipe should be removed");
+            helper.assertTrue(station.inputs().getStackInSlot(0).getCount() == 4, "four planks should remain");
+            helper.runAfterDelay(ticks * 2 + 4, () -> {
+                helper.assertTrue(station.outputs().getStackInSlot(0).getCount() == 8, "eight sticks after the second craft and no third, got "
+                        + station.outputs().getStackInSlot(0).getCount());
+                helper.assertTrue(!station.working() && station.jobLeft() == 0, "no crafts left");
+                helper.assertTrue(station.inputs().getStackInSlot(0).getCount() == 2, "the leftover planks stay");
+                station.release(owner);
+                helper.assertTrue(station.job().isEmpty(), "released, the station is idle");
                 helper.succeed();
             });
         });
     }
 
-    /** The station exposes its configured recipe through the Lib production capability. */
+    /** Without a job the station crafts nothing, reports no recipes and takes nothing from automation. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void craftingStationReportsProduction(GameTestHelper helper) {
-        CraftingStationBlockEntity station = craftingStationWithSticks(helper, CR_STATION);
+    public static void craftingStationIdleWithoutJob(GameTestHelper helper) {
+        CraftingStationBlockEntity station = plainStation(helper, CR_STATION);
+        station.inputs().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 4));
         ProductionProvider provider = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(CR_STATION), null);
-        helper.assertTrue(provider != null && provider.recipes().size() == 1, "one recipe should be reported");
-        ProductionRecipe sticks = provider.recipes().get(0);
-        helper.assertTrue(sticks.inputs().size() == 1 && sticks.inputs().get(0).is(Items.OAK_PLANKS) && sticks.inputs().get(0).getCount() == 2,
-                "two planks in, got " + sticks.inputs());
-        helper.assertTrue(sticks.outputs().size() == 1 && sticks.outputs().get(0).is(Items.STICK) && sticks.outputs().get(0).getCount() == 4,
-                "four sticks out, got " + sticks.outputs());
-        helper.assertTrue(sticks.ticks() == station.workTicks(), "ticks should be the work time");
-        helper.succeed();
+        helper.assertTrue(provider != null && provider.recipes().isEmpty() && provider.active().isEmpty(), "no recipes and nothing active");
+        IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(CR_STATION), Direction.UP);
+        helper.assertTrue(ItemHandlerHelper.insertItem(handler, new ItemStack(Items.OAK_PLANKS, 5), false).getCount() == 5, "planks are refused without a job");
+        helper.runAfterDelay(station.workTicks() + 5, () -> {
+            helper.assertTrue(station.outputs().getStackInSlot(0).isEmpty(), "nothing is crafted without a job");
+            StationJobs.sticksJob(station, 1);
+            ProductionProvider working = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(CR_STATION), null);
+            helper.assertTrue(working.recipes().isEmpty() && working.active().map(id -> id.equals(ResourceLocation.withDefaultNamespace("stick"))).orElse(false),
+                    "with a job the sticks recipe is active");
+            helper.succeed();
+        });
     }
 
     /** Automation can insert only used items into the inputs and extract only from the outputs. */
@@ -2040,82 +2048,6 @@ public final class ServusStorageGameTests {
                 });
             });
         });
-    }
-
-    private static void pattern(CraftingStationBlockEntity station, Item... cells) {
-        station.clearPattern();
-        for (int i = 0; i < cells.length; i++) {
-            if (cells[i] != null) {
-                station.pattern().setStackInSlot(i, new ItemStack(cells[i]));
-            }
-        }
-    }
-
-    /** Plus, save, a refused save, cancel, edit and delete all go through the editor popup state. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void craftingStationEditorFlow(GameTestHelper helper) {
-        helper.setBlock(CR_STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(CR_STATION);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        CraftingStationMenu menu = new CraftingStationMenu(0, player.getInventory(), station);
-        helper.assertTrue(!menu.isEditing(), "the editor starts closed");
-
-        menu.clickMenuButton(player, RecipeEditorButtons.OPEN_NEW);
-        helper.assertTrue(menu.editing() == RecipeEditorButtons.EDIT_NEW, "plus opens the editor for a new recipe");
-        pattern(station, null, Items.OAK_PLANKS, null, null, Items.OAK_PLANKS);
-        menu.clickMenuButton(player, RecipeEditorButtons.SAVE);
-        helper.assertTrue(!menu.isEditing(), "a successful save closes the editor");
-        helper.assertTrue(station.recipes().size() == 1 && station.recipes().get(0).result(helper.getLevel()).is(Items.STICK), "sticks are configured");
-        helper.assertTrue(station.pattern().getStackInSlot(1).isEmpty(), "closing the editor clears the grid");
-
-        menu.clickMenuButton(player, RecipeEditorButtons.OPEN_NEW);
-        pattern(station, Items.COBBLESTONE);
-        menu.clickMenuButton(player, RecipeEditorButtons.SAVE);
-        helper.assertTrue(menu.isEditing(), "a grid matching nothing keeps the editor open");
-        helper.assertTrue(station.recipes().size() == 1, "nothing is added for an unmatched grid");
-        menu.clickMenuButton(player, RecipeEditorButtons.CANCEL);
-        helper.assertTrue(!menu.isEditing() && station.recipes().size() == 1, "cancel closes and keeps the sticks");
-
-        menu.clickMenuButton(player, RecipeEditorButtons.OPEN_EDIT_FIRST);
-        helper.assertTrue(menu.editing() == 0 && station.pattern().getStackInSlot(1).is(Items.OAK_PLANKS), "a cell opens the editor prefilled");
-        pattern(station, null, Items.COAL, null, null, Items.STICK);
-        menu.clickMenuButton(player, RecipeEditorButtons.SAVE);
-        helper.assertTrue(station.recipes().size() == 1 && station.recipes().get(0).result(helper.getLevel()).is(Items.TORCH), "save replaces the edited recipe");
-
-        menu.clickMenuButton(player, RecipeEditorButtons.OPEN_EDIT_FIRST);
-        menu.clickMenuButton(player, RecipeEditorButtons.DELETE);
-        helper.assertTrue(!menu.isEditing() && station.recipes().isEmpty(), "delete removes the recipe and closes the editor");
-        helper.succeed();
-    }
-
-    /** With every slot used a new recipe is refused and the editor stays open; the recipe viewer path prefills the grid. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void craftingStationEditorFullAndViewer(GameTestHelper helper) {
-        helper.setBlock(CR_STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(CR_STATION);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        CraftingStationMenu menu = new CraftingStationMenu(0, player.getInventory(), station);
-
-        menu.openEditorWith(ResourceLocation.withDefaultNamespace("stick"));
-        helper.assertTrue(menu.editing() == RecipeEditorButtons.EDIT_NEW, "the recipe viewer opens the editor");
-        menu.clickMenuButton(player, RecipeEditorButtons.SAVE);
-        helper.assertTrue(station.recipes().size() == 1 && station.recipes().get(0).result(helper.getLevel()).is(Items.STICK),
-                "the prefilled stick layout saves as sticks");
-
-        pattern(station, null, Items.COAL, null, null, Items.STICK);
-        helper.assertTrue(station.saveFromPattern().isEmpty(), "torch saves");
-        pattern(station, Items.OAK_LOG);
-        helper.assertTrue(station.saveFromPattern().isEmpty(), "planks save");
-        pattern(station, Items.OAK_PLANKS, Items.OAK_PLANKS, null, Items.OAK_PLANKS, Items.OAK_PLANKS);
-        helper.assertTrue(station.saveFromPattern().isEmpty(), "crafting table saves");
-        helper.assertTrue(station.recipes().size() == station.recipeSlots(), "every slot is used");
-
-        menu.clickMenuButton(player, RecipeEditorButtons.OPEN_NEW);
-        pattern(station, Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS, null, Items.OAK_PLANKS,
-                Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS);
-        menu.clickMenuButton(player, RecipeEditorButtons.SAVE);
-        helper.assertTrue(menu.isEditing() && station.recipes().size() == station.recipeSlots(), "a full station refuses and keeps the editor open");
-        helper.succeed();
     }
 
     // Lift car: a shaft at x 4, z 3 from y 1 to 3. Ground rails x 1 to 3, garage north of x 3,

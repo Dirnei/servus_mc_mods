@@ -24,7 +24,7 @@ Crafting reuses the existing plan and finish code with the job's template and re
 ### CPU hands out jobs
 `OrderBook.Host` gains `boolean start(OrderStep step)` and `void release(OrderStep step)`. A step leaving WAITING_STATION calls `start` first; `false` keeps it waiting with the reason "station busy". `release` is called when a step is done and for every step of a cancelled order (cancel, cancelAll). `CpuBlockEntity` implements them: for a Crafting Station producer it finds the pattern of the line with the step's recipe id and the same inputs (`PatternLibrary.entries`) and calls `assign`/`release`; other producers return true and do nothing. A missing pattern (removed meanwhile) returns false with the reason "pattern missing".
 
-`PatternRunners.canRun` becomes "the producer is a Crafting Station". So that two orders spread over two stations, `OrderBook.recipes` orders producers by whether a step of this book or another CPU occupies them, then by whether they report an active recipe.
+`PatternRunners.canRun` becomes "the producer is a Crafting Station". So that two orders spread over two stations, `OrderBook.recipes` orders producers by whether an open order of this CPU has an unfinished step planned on them or a step of another CPU runs there, then by whether they report an active recipe. Planned steps count, not only running ones, because two orders are often made in the same tick.
 
 ### GUI
 The station menu keeps inputs, outputs, progress, work ticks and the side panel; the ghost grid, editor state and recipe cell buttons are removed. The screen draws the job area in the middle: an 18 by 18 frame with the job result and "N left", or "Idle". The texture keeps its size; the area formerly used by cells is drawn over.
@@ -40,6 +40,9 @@ The station menu keeps inputs, outputs, progress, work ticks and the side panel;
 
 ### Testing
 GameTests (Storage): a new `StationHandsGameTests` with a pattern order crafted on a station without configuration, two stations crafting two orders in parallel, no job refuses hopper input, cancel returns the station to idle and keeps its inputs, a second job is refused. Existing tests that configured station recipes switch to a sticks pattern in a Pattern Storage (CPU tests) or to a sticks job set directly (packet and data line tests that need the station to accept planks); tests of the removed editor are deleted. No new pure logic, so no new JUnit tests.
+
+### Found during apply
+A station whose Auto side touches an Access Point pushes its outputs straight into it; they are put away but never counted for the step, so the order stays running. This was true before this change as well. Tests keep stations away from Access Points; the play check covers it and a later change may stop stations from pushing outputs while they have a job.
 
 ### PLAN.md
 Item 8 is implemented as written. PLAN.md section 2.4 already says stations craft what the CPU assigns; no change needed.

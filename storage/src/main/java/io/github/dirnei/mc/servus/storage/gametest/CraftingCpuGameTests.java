@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
@@ -58,6 +60,7 @@ public final class CraftingCpuGameTests {
     private static final BlockPos CRATE_A = new BlockPos(1, 1, 2);
     private static final BlockPos CRATE_B = new BlockPos(1, 1, 3);
     private static final BlockPos STATION = new BlockPos(4, 1, 2);
+    private static final BlockPos PATTERNS = new BlockPos(4, 3, 2);
     private static final BlockPos CPU_A = new BlockPos(6, 1, 1);
     private static final BlockPos CPU_B = new BlockPos(6, 1, 5);
     private static final ItemKey STICK = ItemKey.of(new ItemStack(Items.STICK));
@@ -90,13 +93,13 @@ public final class CraftingCpuGameTests {
         return cpu;
     }
 
+    /** A plain station and a Pattern Storage with the sticks pattern on the line. */
     private static CraftingStationBlockEntity sticksStation(GameTestHelper helper) {
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
-        station.pattern().setStackInSlot(1, new ItemStack(Items.OAK_PLANKS));
-        station.pattern().setStackInSlot(4, new ItemStack(Items.OAK_PLANKS));
-        helper.assertTrue(station.saveFromPattern().isEmpty(), "the stick pattern should save");
-        return station;
+        helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        patterns.set(0, StationJobs.sticks());
+        return helper.getBlockEntity(STATION);
     }
 
     /** Warehouse, terminal, station and the ducts to the first CPU's spot; the CPU itself when {@code withCpu}. */
@@ -237,12 +240,8 @@ public final class CraftingCpuGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 1400)
     public static void twoLevelOrderRunsLeavesFirst(GameTestHelper helper) {
         setup(helper, true);
-        CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
-        for (int i = 0; i < CraftingStationBlockEntity.GRID; i++) {
-            station.pattern().setStackInSlot(i, ItemStack.EMPTY);
-        }
-        station.pattern().setStackInSlot(4, new ItemStack(Items.OAK_LOG));
-        helper.assertTrue(station.saveFromPattern().isEmpty(), "the planks pattern should save");
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        patterns.set(1, StationJobs.planks());
         CrateBlockEntity logs = crate(helper, CRATE_A, Items.OAK_LOG, 2);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {

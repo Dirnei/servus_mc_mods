@@ -95,9 +95,6 @@ public final class DataCableGameTests {
     private static CraftingStationBlockEntity sticksStation(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
         CraftingStationBlockEntity station = helper.getBlockEntity(pos);
-        station.pattern().setStackInSlot(1, new ItemStack(Items.OAK_PLANKS));
-        station.pattern().setStackInSlot(4, new ItemStack(Items.OAK_PLANKS));
-        helper.assertTrue(station.saveFromPattern().isEmpty(), "the stick pattern should save");
         return station;
     }
 

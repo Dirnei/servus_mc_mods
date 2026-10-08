@@ -114,9 +114,7 @@ public final class AccessPointGameTests {
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState()
                 .setValue(CraftingStationBlock.FACING, Direction.SOUTH));
         CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
-        station.pattern().setStackInSlot(1, new ItemStack(Items.OAK_PLANKS));
-        station.pattern().setStackInSlot(4, new ItemStack(Items.OAK_PLANKS));
-        helper.assertTrue(station.saveFromPattern().isEmpty(), "the stick pattern should save");
+        StationJobs.sticksJob(station, 64);
         for (int slot = 0; slot < station.outputs().getSlots(); slot++) {
             station.outputs().setStackInSlot(slot, new ItemStack(Items.STICK, 64));
         }

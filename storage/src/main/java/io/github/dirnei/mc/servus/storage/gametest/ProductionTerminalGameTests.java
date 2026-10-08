@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
+import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
@@ -55,6 +57,7 @@ public final class ProductionTerminalGameTests {
     private static final BlockPos STATION = new BlockPos(4, 1, 2);
     private static final BlockPos CPU = new BlockPos(6, 1, 1);
     private static final BlockPos TERMINAL = new BlockPos(5, 3, 2);
+    private static final BlockPos PATTERNS = new BlockPos(4, 3, 2);
     private static final BlockPos LONE = new BlockPos(10, 1, 10);
     private static final ItemKey STICK = ItemKey.of(new ItemStack(Items.STICK));
 
@@ -68,9 +71,9 @@ public final class ProductionTerminalGameTests {
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
         CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
-        station.pattern().setStackInSlot(1, new ItemStack(Items.OAK_PLANKS));
-        station.pattern().setStackInSlot(4, new ItemStack(Items.OAK_PLANKS));
-        helper.assertTrue(station.saveFromPattern().isEmpty(), "the stick pattern should save");
+        helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        patterns.set(0, StationJobs.sticks());
         for (BlockPos pos : List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), new BlockPos(5, 2, 2))) {
             TerminalWiring.dataDuct(helper, pos);
         }
@@ -127,19 +130,20 @@ public final class ProductionTerminalGameTests {
         });
     }
 
-    /** An idle Crafting Station is listed with its sticks recipe. */
+    /** An idle Crafting Station is listed as idle, crafting any pattern, without a recipe list. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
     public static void productionTerminalListsIdleStation(GameTestHelper helper) {
         setup(helper, false);
         TerminalWiring.when(helper, () -> !view(helper, TERMINAL).machines().isEmpty(), 40, () -> "the station should be listed", () -> {
             MachineRow machine = view(helper, TERMINAL).machines().get(0);
-            helper.assertTrue(machine.pos().equals(helper.absolutePos(STATION)) && machine.state().equals("idle"),
+            helper.assertTrue(machine.pos().equals(helper.absolutePos(STATION)) && machine.state().equals("station_idle"),
                     "the station should be idle, got " + machine.state());
-            helper.assertTrue(machine.recipes().size() == 1, "one recipe, got " + machine.recipes().size());
-            RecipeRow recipe = machine.recipes().get(0);
-            helper.assertTrue(recipe.outputs().get(0).is(Items.STICK) && recipe.outputs().get(0).getCount() == 4
-                            && recipe.inputs().get(0).is(Items.OAK_PLANKS) && recipe.inputs().get(0).getCount() == 2,
-                    "4 sticks from 2 planks, got " + recipe);
+            helper.assertTrue(machine.recipes().isEmpty(), "no recipe list, got " + machine.recipes().size());
+            CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
+            StationJobs.sticksJob(station, 2);
+            MachineRow working = view(helper, TERMINAL).machines().get(0);
+            helper.assertTrue(working.state().equals("station_crafting") && working.working().is(Items.STICK) && working.left() == 2,
+                    "crafting sticks, 2 left, got " + working.state() + " " + working.left());
             helper.succeed();
         });
     }

@@ -34,6 +34,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -71,10 +72,6 @@ public final class PatternGameTests {
         helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
-        station.pattern().setStackInSlot(1, new ItemStack(Items.OAK_PLANKS));
-        station.pattern().setStackInSlot(4, new ItemStack(Items.OAK_PLANKS));
-        helper.assertTrue(station.saveFromPattern().isEmpty(), "the stick recipe should save on the station");
         for (BlockPos pos : List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), DUCT)) {
             TerminalWiring.dataDuct(helper, pos);
         }
@@ -138,9 +135,7 @@ public final class PatternGameTests {
     }
 
     private static EncodedPattern sticksPattern() {
-        return new EncodedPattern(ResourceLocation.withDefaultNamespace("stick"),
-                List.of(ItemStack.EMPTY, new ItemStack(Items.OAK_PLANKS), ItemStack.EMPTY, ItemStack.EMPTY, new ItemStack(Items.OAK_PLANKS)),
-                new ItemStack(Items.STICK, 4));
+        return StationJobs.sticks();
     }
 
     /** A Pattern Storage on a data duct is a link member and has the configured slots. */
@@ -262,7 +257,7 @@ public final class PatternGameTests {
         });
     }
 
-    /** The CPU orders sticks from a pattern a station can run, and not when no producer can. */
+    /** The CPU orders sticks from a pattern any station can run, and not when no station is on the line. */
     @GameTest(template = EMPTY, timeoutTicks = 80)
     public static void patternCpuPlansWithStation(GameTestHelper helper) {
         setup(helper, true, false);
@@ -277,12 +272,14 @@ public final class PatternGameTests {
                     "one step on the station, got " + steps);
             CpuBlockEntity cpu = CpuBlock.master(helper.getLevel(), helper.absolutePos(CPU));
             cpu.book().cancel(placed.created().order().id());
-            CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
-            station.removeRecipe(0);
-            CpuOrders.Placed none = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
-            helper.assertTrue(!none.made() && none.refusal().equals("no_producer"),
-                    "without a producer the pattern makes nothing orderable, got " + none.refusal());
-            helper.succeed();
+            helper.setBlock(STATION, Blocks.STONE.defaultBlockState());
+            TerminalWiring.when(helper, () -> line(helper).dataMembers(DataRole.PRODUCER).isEmpty(), 20,
+                    () -> "the station should leave the line", () -> {
+                CpuOrders.Placed none = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
+                helper.assertTrue(!none.made() && none.refusal().equals("no_producer"),
+                        "without a station the pattern makes nothing orderable, got " + none.refusal());
+                helper.succeed();
+            });
         });
     }
 
