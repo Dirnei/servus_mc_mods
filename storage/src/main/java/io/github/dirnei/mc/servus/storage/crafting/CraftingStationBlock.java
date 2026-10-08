@@ -29,7 +29,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** A powerless crafter for configured vanilla recipes. Right click opens its GUI. */
+/** A powerless crafter that runs the pattern jobs of the Crafting CPU. Right click opens its GUI. */
 public class CraftingStationBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<CraftingStationBlock> CODEC = simpleCodec(CraftingStationBlock::new);
@@ -99,7 +99,7 @@ public class CraftingStationBlock extends BaseEntityBlock implements Wrenchable 
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    /** The carrot cycles the clicked side; sneaking dismantles and keeps recipes and sides on the item. */
+    /** The carrot cycles the clicked side; sneaking dismantles and keeps the sides on the item. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();

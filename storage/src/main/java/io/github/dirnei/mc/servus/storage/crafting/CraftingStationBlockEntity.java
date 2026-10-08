@@ -5,16 +5,14 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.craft.IngredientGatherer;
-import io.github.dirnei.mc.servus.foundation.craft.RoundRobin;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,8 +21,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -38,7 +34,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -49,86 +44,15 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
- * Storage's own producer: crafts the vanilla recipes the player configured
- * from a pattern grid, without power, and pushes results into neighbours.
+ * Storage's own producer and the hands of the Crafting CPU: crafts the
+ * pattern the CPU hands it as a job, without power, and pushes results into
+ * neighbours. Without a job it crafts nothing and automation inserts nothing.
  */
 public class CraftingStationBlockEntity extends BlockEntity implements MenuProvider, SidedBlockEntity {
 
     public static final int INPUT_SLOTS = 9;
     public static final int OUTPUT_SLOTS = 4;
-    public static final int GRID = 9;
     private static final int PUSH_INTERVAL = 8;
-
-    /** A configured vanilla crafting recipe with the grid items that stand for it. */
-    public record StationRecipe(ResourceLocation id, List<ItemStack> template) {
-
-        public StationRecipe {
-            template = List.copyOf(template);
-        }
-
-        /** Whether the stack is one of the template items. */
-        public boolean uses(ItemStack stack) {
-            for (ItemStack cell : template) {
-                if (!cell.isEmpty() && ItemStack.isSameItemSameComponents(cell, stack)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public Optional<RecipeHolder<CraftingRecipe>> resolve(Level level) {
-            return level.getRecipeManager().byKey(id)
-                    .filter(holder -> holder.value() instanceof CraftingRecipe)
-                    .map(holder -> {
-                        @SuppressWarnings("unchecked")
-                        RecipeHolder<CraftingRecipe> crafting = (RecipeHolder<CraftingRecipe>) holder;
-                        return crafting;
-                    });
-        }
-
-        /** The recipe's result for display and for the production view. */
-        public ItemStack result(Level level) {
-            return resolve(level).map(holder -> holder.value().getResultItem(level.registryAccess())).orElse(ItemStack.EMPTY);
-        }
-
-        /** Template counts per item, the inputs one craft consumes. */
-        public Map<ItemKey, Integer> required() {
-            Map<ItemKey, Integer> required = new HashMap<>();
-            for (ItemStack cell : template) {
-                if (!cell.isEmpty()) {
-                    required.merge(ItemKey.of(cell), cell.getCount(), Integer::sum);
-                }
-            }
-            return required;
-        }
-
-        public CompoundTag save(HolderLookup.Provider registries) {
-            CompoundTag tag = new CompoundTag();
-            tag.putString("Id", id.toString());
-            ListTag list = new ListTag();
-            for (ItemStack cell : template) {
-                list.add(cell.isEmpty() ? new CompoundTag() : cell.save(registries));
-            }
-            tag.put("Template", list);
-            return tag;
-        }
-
-        public static Optional<StationRecipe> load(CompoundTag tag, HolderLookup.Provider registries) {
-            ResourceLocation id = ResourceLocation.tryParse(tag.getString("Id"));
-            if (id == null) {
-                return Optional.empty();
-            }
-            List<ItemStack> template = new ArrayList<>();
-            for (Tag cell : tag.getList("Template", Tag.TAG_COMPOUND)) {
-                CompoundTag compound = (CompoundTag) cell;
-                template.add(compound.isEmpty() ? ItemStack.EMPTY : ItemStack.parseOptional(registries, compound));
-            }
-            while (template.size() < GRID) {
-                template.add(ItemStack.EMPTY);
-            }
-            return Optional.of(new StationRecipe(id, template));
-        }
-    }
 
     private record Plan(int[] take, ItemStack result, NonNullList<ItemStack> remainders) {
     }
@@ -145,21 +69,13 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
             setChanged();
         }
     };
-    private final ItemStackHandler pattern = new ItemStackHandler(GRID) {
-        @Override
-        protected void onContentsChanged(int slot) {
-            setChanged();
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return 1;
-        }
-    };
-    private final List<StationRecipe> recipes = new ArrayList<>();
+    /** The pattern the CPU handed this station, the crafts left and the step that owns it. Not saved. */
+    private EncodedPattern job;
+    private int jobLeft;
+    private Object jobOwner;
+    private ItemStack clientJobResult = ItemStack.EMPTY;
+    private int clientJobLeft;
     private int progress;
-    private int cursor;
-    private int active = -1;
     private int pushTimer;
 
     private final SideConfig sides = SideConfig.machine();
@@ -226,10 +142,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         return outputs;
     }
 
-    public ItemStackHandler pattern() {
-        return pattern;
-    }
-
     /** The handler a neighbour on that side sees, or the unrestricted view for a null side. */
     public IItemHandler handlerFor(Direction side) {
         if (side == null) {
@@ -262,14 +174,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         return mode;
     }
 
-    public List<StationRecipe> recipes() {
-        return Collections.unmodifiableList(recipes);
-    }
-
-    public int recipeSlots() {
-        return StorageStatsManager.INSTANCE.craftingStationRecipes();
-    }
-
     public int workTicks() {
         return StorageStatsManager.INSTANCE.craftingStationTicks();
     }
@@ -278,131 +182,60 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         return progress;
     }
 
-    public int activeIndex() {
-        return active;
-    }
-
-    /** Whether some configured recipe takes the item. */
+    /** Whether the current job uses the item, so automation may insert it. */
     public boolean uses(ItemStack stack) {
-        for (StationRecipe recipe : recipes) {
-            if (recipe.uses(stack)) {
-                return true;
-            }
-        }
-        return false;
+        return working() && job.required().containsKey(ItemKey.of(stack));
     }
 
-    // Configuration
+    // Job
+
+    /** The pattern of the current job, if any. */
+    public Optional<EncodedPattern> job() {
+        return Optional.ofNullable(job);
+    }
+
+    /** Crafts left on the current job. */
+    public int jobLeft() {
+        return job == null ? 0 : jobLeft;
+    }
+
+    /** Whether the station has a job with crafts left. */
+    public boolean working() {
+        return job != null && jobLeft > 0;
+    }
 
     /**
-     * Adds the recipe the pattern grid matches.
+     * Hands the station a job. Refused while another owner's job has crafts left.
      *
-     * @return an empty string on success, else {@code empty}, {@code no_match}, {@code duplicate} or {@code full}
+     * @return whether the station took the job
      */
-    public String saveFromPattern() {
-        return saveFromPattern(-1);
-    }
-
-    /**
-     * Adds the recipe the pattern grid matches, or replaces recipe {@code replace}
-     * with it when {@code replace} is a configured index.
-     *
-     * @return an empty string on success, else {@code empty}, {@code no_match}, {@code duplicate} or {@code full}
-     */
-    public String saveFromPattern(int replace) {
-        if (level == null) {
-            return "no_match";
+    public boolean assign(EncodedPattern pattern, int crafts, Object owner) {
+        if (working() && jobOwner != owner) {
+            return false;
         }
-        List<ItemStack> cells = new ArrayList<>();
-        boolean any = false;
-        for (int i = 0; i < GRID; i++) {
-            ItemStack cell = pattern.getStackInSlot(i);
-            cells.add(cell.isEmpty() ? ItemStack.EMPTY : cell.copyWithCount(1));
-            any |= !cell.isEmpty();
-        }
-        if (!any) {
-            return "empty";
-        }
-        Optional<RecipeHolder<CraftingRecipe>> match = match(level, cells);
-        if (match.isEmpty()) {
-            return "no_match";
-        }
-        ResourceLocation id = match.get().id();
-        boolean replacing = replace >= 0 && replace < recipes.size();
-        for (int i = 0; i < recipes.size(); i++) {
-            if (recipes.get(i).id().equals(id) && !(replacing && i == replace)) {
-                return "duplicate";
-            }
-        }
-        if (replacing) {
-            recipes.set(replace, new StationRecipe(id, cells));
-            active = -1;
+        boolean same = job != null && jobOwner == owner && job.equals(pattern);
+        job = pattern;
+        jobLeft = Math.max(0, crafts);
+        jobOwner = owner;
+        if (!same) {
             progress = 0;
-        } else {
-            if (recipes.size() >= recipeSlots()) {
-                return "full";
-            }
-            recipes.add(new StationRecipe(id, cells));
         }
-        recipesChanged();
-        return "";
+        jobChanged();
+        return true;
     }
 
-    /** The vanilla crafting recipe a 3 by 3 grid matches, for saving and for the editor's preview. */
-    public static Optional<RecipeHolder<CraftingRecipe>> match(Level level, List<ItemStack> cells) {
-        if (cells.stream().allMatch(ItemStack::isEmpty)) {
-            return Optional.empty();
-        }
-        return level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, cells), level);
-    }
-
-    /** Fills the pattern grid with a template, for editing a recipe. */
-    public void loadPattern(List<ItemStack> template) {
-        for (int i = 0; i < GRID; i++) {
-            pattern.setStackInSlot(i, i < template.size() ? template.get(i).copy() : ItemStack.EMPTY);
-        }
-    }
-
-    public void clearPattern() {
-        for (int i = 0; i < GRID; i++) {
-            pattern.setStackInSlot(i, ItemStack.EMPTY);
-        }
-    }
-
-    /** The template laid out by a vanilla crafting recipe, one ingredient item per cell, for the recipe viewer. */
-    public static Optional<List<ItemStack>> templateOf(Level level, ResourceLocation id) {
-        Optional<RecipeHolder<?>> holder = level.getRecipeManager().byKey(id);
-        if (holder.isEmpty() || !(holder.get().value() instanceof CraftingRecipe recipe)) {
-            return Optional.empty();
-        }
-        List<ItemStack> cells = new ArrayList<>(GRID);
-        for (int i = 0; i < GRID; i++) {
-            cells.add(ItemStack.EMPTY);
-        }
-        int width = recipe instanceof net.minecraft.world.item.crafting.ShapedRecipe shaped ? shaped.getWidth() : 3;
-        List<net.minecraft.world.item.crafting.Ingredient> ingredients = recipe.getIngredients();
-        for (int i = 0; i < ingredients.size() && i < GRID; i++) {
-            ItemStack[] items = ingredients.get(i).getItems();
-            if (items.length > 0) {
-                int cell = width == 3 ? i : (i / width) * 3 + i % width;
-                if (cell < GRID) {
-                    cells.set(cell, items[0].copyWithCount(1));
-                }
-            }
-        }
-        return Optional.of(cells);
-    }
-
-    public void removeRecipe(int index) {
-        if (index >= 0 && index < recipes.size()) {
-            recipes.remove(index);
-            active = -1;
+    /** Ends the job of that owner; a job of another owner stays. */
+    public void release(Object owner) {
+        if (job != null && jobOwner == owner) {
+            job = null;
+            jobLeft = 0;
+            jobOwner = null;
             progress = 0;
-            recipesChanged();
+            jobChanged();
         }
     }
 
-    private void recipesChanged() {
+    private void jobChanged() {
         setChanged();
         if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
@@ -410,35 +243,36 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
+    /** The job's result on the client, from the update tag. */
+    public ItemStack clientJobResult() {
+        return clientJobResult;
+    }
+
+    /** The job's crafts left on the client, from the update tag. */
+    public int clientJobLeft() {
+        return clientJobLeft;
+    }
+
     // Production view
 
+    /** No fixed recipes: the station crafts the patterns the CPU hands it, and reports the current one as active. */
     public ProductionProvider production() {
         return new ProductionProvider() {
             @Override
             public List<ProductionRecipe> recipes() {
-                List<ProductionRecipe> list = new ArrayList<>();
-                if (level == null) {
-                    return list;
-                }
-                for (StationRecipe recipe : recipes) {
-                    List<ItemStack> inputs = new ArrayList<>();
-                    recipe.required().forEach((key, count) -> inputs.add(key.stack(count)));
-                    ItemStack result = recipe.result(level);
-                    list.add(new ProductionRecipe(recipe.id(), inputs, result.isEmpty() ? List.of() : List.of(result), Math.max(1, workTicks())));
-                }
-                return list;
+                return List.of();
             }
 
             @Override
             public Optional<ResourceLocation> active() {
-                return active >= 0 && active < recipes.size() ? Optional.of(recipes.get(active).id()) : Optional.empty();
+                return working() ? Optional.of(job.recipe()) : Optional.empty();
             }
         };
     }
 
     // Crafting
 
-    private Optional<Plan> plan(StationRecipe recipe) {
+    private Optional<Plan> plan(EncodedPattern recipe) {
         if (level == null) {
             return Optional.empty();
         }
@@ -457,7 +291,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         if (take.isEmpty()) {
             return Optional.empty();
         }
-        Optional<RecipeHolder<CraftingRecipe>> holder = recipe.resolve(level);
+        Optional<RecipeHolder<CraftingRecipe>> holder = resolve(level, recipe.recipe());
         if (holder.isEmpty()) {
             return Optional.empty();
         }
@@ -492,15 +326,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
 
     /** @return whether the station is working */
     private boolean tick() {
-        if (recipes.isEmpty()) {
-            progress = 0;
-            active = -1;
-            return false;
-        }
-        if (active < 0 || active >= recipes.size() || plan(recipes.get(active)).isEmpty()) {
-            active = RoundRobin.next(recipes.size(), cursor, i -> plan(recipes.get(i)).isPresent());
-        }
-        if (active < 0) {
+        if (!working() || plan(job).isEmpty()) {
             progress = 0;
             return false;
         }
@@ -514,9 +340,8 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private void finish() {
-        Optional<Plan> plan = plan(recipes.get(active));
+        Optional<Plan> plan = plan(job);
         if (plan.isEmpty()) {
-            active = -1;
             return;
         }
         int[] take = plan.get().take();
@@ -531,8 +356,18 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
                 ItemHandlerHelper.insertItem(outputs, remainder.copy(), false);
             }
         }
-        cursor = active + 1;
-        active = -1;
+        jobLeft--;
+        jobChanged();
+    }
+
+    private static Optional<RecipeHolder<CraftingRecipe>> resolve(Level level, ResourceLocation id) {
+        return level.getRecipeManager().byKey(id)
+                .filter(holder -> holder.value() instanceof CraftingRecipe)
+                .map(holder -> {
+                    @SuppressWarnings("unchecked")
+                    RecipeHolder<CraftingRecipe> crafting = (RecipeHolder<CraftingRecipe>) holder;
+                    return crafting;
+                });
     }
 
     private void pushOutputs() {
@@ -567,7 +402,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
-    /** Takes one stack a configured recipe uses from the neighbour into the inputs. */
+    /** Takes one stack the job uses from the neighbour into the inputs. */
     private void pullFrom(IItemHandler neighbour) {
         for (int from = 0; from < neighbour.getSlots(); from++) {
             ItemStack offered = neighbour.extractItem(from, 64, true);
@@ -626,19 +461,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         super.saveAdditional(tag, registries);
         tag.put("Inputs", inputs.serializeNBT(registries));
         tag.put("Outputs", outputs.serializeNBT(registries));
-        tag.put("Pattern", pattern.serializeNBT(registries));
-        tag.putInt("Progress", progress);
-        tag.putInt("Cursor", cursor);
-        tag.put("Recipes", saveRecipes(registries));
         tag.putByteArray("Sides", sides.toBytes());
-    }
-
-    private ListTag saveRecipes(HolderLookup.Provider registries) {
-        ListTag list = new ListTag();
-        for (StationRecipe recipe : recipes) {
-            list.add(recipe.save(registries));
-        }
-        return list;
     }
 
     @Override
@@ -650,16 +473,11 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
         if (tag.contains("Outputs")) {
             outputs.deserializeNBT(registries, tag.getCompound("Outputs"));
         }
-        if (tag.contains("Pattern")) {
-            pattern.deserializeNBT(registries, tag.getCompound("Pattern"));
+        if (tag.contains("JobResult")) {
+            CompoundTag result = tag.getCompound("JobResult");
+            clientJobResult = result.isEmpty() ? ItemStack.EMPTY : ItemStack.parseOptional(registries, result);
+            clientJobLeft = tag.getInt("JobLeft");
         }
-        progress = tag.getInt("Progress");
-        cursor = tag.getInt("Cursor");
-        recipes.clear();
-        for (Tag entry : tag.getList("Recipes", Tag.TAG_COMPOUND)) {
-            StationRecipe.load((CompoundTag) entry, registries).ifPresent(recipes::add);
-        }
-        active = -1;
         if (tag.contains("Sides")) {
             sides.fromBytes(tag.getByteArray("Sides"));
         }
@@ -668,7 +486,9 @@ public class CraftingStationBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        tag.put("Recipes", saveRecipes(registries));
+        ItemStack result = working() ? job.result() : ItemStack.EMPTY;
+        tag.put("JobResult", result.isEmpty() ? new CompoundTag() : result.save(registries));
+        tag.putInt("JobLeft", jobLeft());
         tag.putByteArray("Sides", sides.toBytes());
         return tag;
     }
