@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
-import io.github.dirnei.mc.servus.storage.pattern.PatternItem;
 import io.github.dirnei.mc.servus.foundation.placement.AssistedBlockItem;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackItem;
@@ -37,12 +36,10 @@ public final class ServusStorageItems {
     public static final DeferredItem<BlockItem> CRAFTING_STATION = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.CRAFTING_STATION);
     public static final DeferredItem<BlockItem> CRAFTING_CPU = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.CRAFTING_CPU);
     public static final DeferredItem<Item> SHUTTLE = ITEMS.registerSimpleItem("shuttle", new Item.Properties().stacksTo(16));
-    public static final DeferredItem<Item> BLANK_PATTERN = ITEMS.registerSimpleItem("blank_pattern", new Item.Properties());
-    public static final DeferredItem<PatternItem> PATTERN = ITEMS.registerItem("pattern", PatternItem::new, new Item.Properties().stacksTo(1));
     public static final DeferredItem<ZoneLabelItem> ZONE_LABEL = ITEMS.registerItem("zone_label", ZoneLabelItem::new, new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, COUNTER_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, ACCESS_POINT, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, PATTERN_STORAGE, BLANK_PATTERN, PATTERN, SHUTTLE, ZONE_LABEL);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, COUNTER_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, ACCESS_POINT, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE, ZONE_LABEL);
 
     private ServusStorageItems() {
     }

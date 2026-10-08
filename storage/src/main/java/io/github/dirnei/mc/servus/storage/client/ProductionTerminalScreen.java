@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
-import io.github.dirnei.mc.servus.storage.pattern.PatternItem;
 import io.github.dirnei.mc.servus.storage.production.CancelProductionOrderPayload;
 import io.github.dirnei.mc.servus.storage.production.EditPatternPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
@@ -338,8 +337,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     }
 
     private Line patternLine(PatternRow row) {
-        Component text = Component.translatable("item.servus_storage.pattern.recipe", row.result().getCount(),
-                row.result().getHoverName(), PatternItem.stacks(row.inputs()));
+        Component text = Component.translatable("gui.servus_storage.production.pattern_recipe", row.result().getCount(),
+                row.result().getHoverName(), CraftingGrid.stacks(row.inputs()));
         Painter painter = (graphics, y, hovered) -> {
             if (hovered) {
                 graphics.fill(MARGIN, y, WIDTH - MARGIN, y + ORDER_ROW, 0x30000000);

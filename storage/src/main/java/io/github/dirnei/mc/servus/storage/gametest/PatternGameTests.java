@@ -16,7 +16,6 @@ import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
-import io.github.dirnei.mc.servus.storage.pattern.PatternItem;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
@@ -36,9 +35,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.GameType;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
+import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * Patterns, Pattern Storage and the Production Terminal's pattern editor.
@@ -107,16 +108,8 @@ public final class PatternGameTests {
         return new ProductionTerminalMenu(1, player.getInventory(), terminal);
     }
 
-    private static Player playerWithBlanks(GameTestHelper helper, int blanks) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        if (blanks > 0) {
-            player.getInventory().add(new ItemStack(ServusStorageItems.BLANK_PATTERN.get(), blanks));
-        }
-        return player;
-    }
-
-    private static int blanks(Player player) {
-        return player.getInventory().countItem(ServusStorageItems.BLANK_PATTERN.get());
+    private static Player player(GameTestHelper helper) {
+        return helper.makeMockPlayer(GameType.SURVIVAL);
     }
 
     /** Puts a plank above a plank into the editor grid. */
@@ -152,19 +145,51 @@ public final class PatternGameTests {
         });
     }
 
-    /** Pattern Storage slots take encoded Patterns only, one per slot. */
+    /** Pattern Storage keeps patterns as data by place and has no item handler. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
-    public static void patternStorageOnlyEncoded(GameTestHelper helper) {
+    public static void patternStorageKeepsData(GameTestHelper helper) {
         storage(helper, STORAGE_A);
         PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A);
-        ItemStackHandler slots = storage.patterns();
-        helper.assertTrue(slots.insertItem(0, new ItemStack(ServusStorageItems.BLANK_PATTERN.get()), false).getCount() == 1,
-                "a Blank Pattern is refused");
-        helper.assertTrue(slots.insertItem(0, new ItemStack(Items.STICK), false).getCount() == 1, "a stick is refused");
-        helper.assertTrue(slots.insertItem(0, new ItemStack(ServusStorageItems.PATTERN.get()), false).getCount() == 1,
-                "a Pattern that is not encoded is refused");
-        helper.assertTrue(slots.insertItem(0, PatternItem.of(sticksPattern()), false).isEmpty(), "an encoded Pattern is taken");
-        helper.assertTrue(storage.pattern(0).isPresent(), "slot 0 holds it");
+        helper.assertTrue(storage.firstFree() == 0 && storage.usedSlots().isEmpty(), "a new storage is empty");
+        storage.set(0, sticksPattern());
+        storage.set(2, StationJobs.planks());
+        helper.assertTrue(storage.usedSlots().equals(List.of(0, 2)) && storage.firstFree() == 1, "places 0 and 2 are used");
+        storage.clear(0);
+        helper.assertTrue(storage.pattern(0).isEmpty() && storage.firstFree() == 0, "place 0 is free again");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(STORAGE_A), Direction.UP) == null,
+                "no item handler");
+        helper.succeed();
+    }
+
+    /** Mining a Pattern Storage drops one item that carries its patterns; placing it restores them. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void patternStorageTravelsWithBlock(GameTestHelper helper) {
+        storage(helper, STORAGE_A);
+        PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A);
+        storage.set(0, sticksPattern());
+        storage.set(3, StationJobs.planks());
+        BlockPos at = helper.absolutePos(STORAGE_A);
+        List<ItemStack> drops = Block.getDrops(helper.getLevel().getBlockState(at), helper.getLevel(), at, storage, null,
+                new ItemStack(Items.DIAMOND_PICKAXE));
+        helper.assertTrue(drops.size() == 1 && drops.get(0).is(ServusStorageItems.PATTERN_STORAGE.get()),
+                "one Pattern Storage item drops, got " + drops);
+        ItemStack item = drops.get(0);
+        helper.assertTrue(item.has(ServusStorageComponents.PATTERNS.get()), "the item carries the patterns");
+        helper.setBlock(STORAGE_A, Blocks.AIR.defaultBlockState());
+        storage(helper, STORAGE_B);
+        PatternStorageBlockEntity placed = helper.getBlockEntity(STORAGE_B);
+        placed.applyComponentsFromItemStack(item);
+        helper.assertTrue(placed.usedSlots().equals(List.of(0, 3))
+                        && placed.pattern(0).map(p -> p.result().is(Items.STICK)).orElse(false)
+                        && placed.pattern(3).map(p -> p.result().is(Items.OAK_PLANKS)).orElse(false),
+                "the placed block holds sticks at 0 and planks at 3, got " + placed.usedSlots());
+        placed.clear(0);
+        placed.clear(3);
+        BlockPos other = helper.absolutePos(STORAGE_B);
+        List<ItemStack> plain = Block.getDrops(helper.getLevel().getBlockState(other), helper.getLevel(), other, placed, null,
+                new ItemStack(Items.DIAMOND_PICKAXE));
+        helper.assertTrue(plain.size() == 1 && !plain.get(0).has(ServusStorageComponents.PATTERNS.get()),
+                "an empty storage drops a plain item");
         helper.succeed();
     }
 
@@ -179,18 +204,18 @@ public final class PatternGameTests {
         });
     }
 
-    /** Saving a new pattern encodes a Blank Pattern and stores it in the first free slot. */
+    /** Saving a new pattern stores it in the first free place without any item. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void patternSaveUsesBlank(GameTestHelper helper) {
+    public static void patternSaveWithoutItems(GameTestHelper helper) {
         setup(helper, false, true);
-        Player player = playerWithBlanks(helper, 2);
+        Player player = player(helper);
         TerminalWiring.when(helper, () -> storagesOnLine(helper, 2), 40, () -> "the storages should join", () -> {
             ProductionTerminalMenu menu = menu(helper, player);
             menu.openNew();
             sticksGrid(menu);
             String result = menu.save();
             helper.assertTrue(result.isEmpty(), "the pattern should save, got " + result);
-            helper.assertTrue(blanks(player) == 1, "one Blank Pattern used, " + blanks(player) + " left");
+            helper.assertTrue(player.getInventory().isEmpty(), "the inventory is untouched");
             List<PatternLibrary.Entry> entries = PatternLibrary.entries(helper.getLevel(), line(helper));
             helper.assertTrue(entries.size() == 1 && entries.get(0).pattern().result().is(Items.STICK)
                     && entries.get(0).slot() == 0, "one sticks pattern in slot 0, got " + entries);
@@ -202,11 +227,11 @@ public final class PatternGameTests {
         });
     }
 
-    /** Saving refuses empty and unmatched grids, a missing blank, a duplicate and a full line. */
+    /** Saving refuses empty and unmatched grids, a duplicate and a full line. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
     public static void patternSaveRefusals(GameTestHelper helper) {
         setup(helper, false, false);
-        Player player = playerWithBlanks(helper, 0);
+        Player player = player(helper);
         TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
             ProductionTerminalMenu menu = menu(helper, player);
             menu.openNew();
@@ -215,10 +240,7 @@ public final class PatternGameTests {
             helper.assertTrue(menu.save().equals("no_match"), "a lone cobblestone matches nothing");
             menu.setGhost(0, ItemStack.EMPTY);
             sticksGrid(menu);
-            helper.assertTrue(menu.save().equals("no_blank"), "no Blank Pattern is refused");
-            helper.assertTrue(menu.isEditing(), "the editor stays open on a refusal");
-            player.getInventory().add(new ItemStack(ServusStorageItems.BLANK_PATTERN.get(), 3));
-            helper.assertTrue(menu.save().isEmpty(), "with a blank it saves");
+            helper.assertTrue(menu.save().isEmpty(), "an empty inventory saves");
             menu.openNew();
             sticksGrid(menu);
             helper.assertTrue(menu.save().equals("duplicate"), "the same pattern again is a duplicate");
@@ -228,16 +250,33 @@ public final class PatternGameTests {
             }
             torchGrid(menu);
             helper.assertTrue(menu.save().equals("full"), "a full line is refused");
-            helper.assertTrue(blanks(player) == 2, "a refused save keeps the blank, " + blanks(player) + " left");
+            helper.assertTrue(menu.isEditing(), "the editor stays open on a refusal");
             helper.succeed();
         });
     }
 
-    /** Editing rewrites a pattern in place without a blank; delete gives the blank back. */
+    /** Saving with no Pattern Storage on the line is refused. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void patternSaveNoStorage(GameTestHelper helper) {
+        setup(helper, false, false);
+        Player player = player(helper);
+        TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
+            helper.setBlock(STORAGE_A, Blocks.AIR.defaultBlockState());
+            TerminalWiring.when(helper, () -> storagesOnLine(helper, 0), 20, () -> "the storage should leave", () -> {
+                ProductionTerminalMenu menu = menu(helper, player);
+                menu.openNew();
+                sticksGrid(menu);
+                helper.assertTrue(menu.save().equals("no_storage"), "no Pattern Storage is refused");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Editing rewrites a pattern in place; delete removes it and gives nothing. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
     public static void patternEditAndDelete(GameTestHelper helper) {
         setup(helper, false, false);
-        Player player = playerWithBlanks(helper, 0);
+        Player player = player(helper);
         TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
             PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A);
             storage.set(0, sticksPattern());
@@ -247,12 +286,12 @@ public final class PatternGameTests {
                     "the grid shows the sticks layout");
             torchGrid(menu);
             String result = menu.save();
-            helper.assertTrue(result.isEmpty(), "editing saves without a blank, got " + result);
+            helper.assertTrue(result.isEmpty(), "editing saves, got " + result);
             helper.assertTrue(storage.pattern(0).map(p -> p.result().is(Items.TORCH)).orElse(false), "slot 0 now makes torches");
             helper.assertTrue(menu.openExisting(helper.absolutePos(STORAGE_A), 0), "the torch pattern should open");
             helper.assertTrue(menu.delete(), "delete should go through");
             helper.assertTrue(storage.pattern(0).isEmpty(), "the slot is empty");
-            helper.assertTrue(blanks(player) == 1, "the player gets a Blank Pattern back");
+            helper.assertTrue(player.getInventory().isEmpty(), "the player gets nothing");
             helper.succeed();
         });
     }

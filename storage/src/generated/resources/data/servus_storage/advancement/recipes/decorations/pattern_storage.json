@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_blank_pattern": {
+    "has_paper": {
       "conditions": {
         "items": [
           {
-            "items": "servus_storage:blank_pattern"
+            "items": "minecraft:paper"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_blank_pattern"
+      "has_paper"
     ]
   ],
   "rewards": {

@@ -19,7 +19,7 @@ final class ServusStorageBlockLoot extends BlockLootSubProvider {
             ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.ELEVATOR.get(),
             ServusStorageBlocks.INBOUND_STATION.get(), ServusStorageBlocks.ACCESS_POINT.get(), ServusStorageBlocks.SHUTTLE_GARAGE.get(), ServusStorageBlocks.OUTBOUND_STATION.get(),
             ServusStorageBlocks.CRAFTING_STATION.get(), ServusStorageBlocks.CRAFTING_CPU.get(),
-            ServusStorageBlocks.PRODUCTION_TERMINAL.get(), ServusStorageBlocks.PATTERN_STORAGE.get());
+            ServusStorageBlocks.PRODUCTION_TERMINAL.get());
 
     ServusStorageBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
@@ -32,12 +32,17 @@ final class ServusStorageBlockLoot extends BlockLootSubProvider {
         add(ServusStorageBlocks.HEAVY_RACK.get(), createSingleItemTable(ServusStorageBlocks.HEAVY_RACK.get())
                 .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
                         .include(ServusStorageComponents.RACK_WOOD.get())));
+        // Pattern Storage keeps its patterns.
+        add(ServusStorageBlocks.PATTERN_STORAGE.get(), createSingleItemTable(ServusStorageBlocks.PATTERN_STORAGE.get())
+                .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                        .include(ServusStorageComponents.PATTERNS.get())));
     }
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
         List<Block> known = new ArrayList<>(SELF_DROPPING);
         known.add(ServusStorageBlocks.HEAVY_RACK.get());
+        known.add(ServusStorageBlocks.PATTERN_STORAGE.get());
         return known;
     }
 }

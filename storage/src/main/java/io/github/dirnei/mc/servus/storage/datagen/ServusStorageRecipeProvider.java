@@ -85,14 +85,14 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.PATTERN_STORAGE.get())
-                .pattern("IBI")
+                .pattern("IPI")
                 .pattern("RCR")
-                .pattern("IBI")
+                .pattern("IPI")
                 .define('I', Items.IRON_INGOT)
-                .define('B', ServusStorageItems.BLANK_PATTERN.get())
+                .define('P', Items.PAPER)
                 .define('R', Items.REDSTONE)
                 .define('C', Items.CHEST)
-                .unlockedBy("has_blank_pattern", has(ServusStorageItems.BLANK_PATTERN.get()))
+                .unlockedBy("has_paper", has(Items.PAPER))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.CRAFTING_CPU.get(), 4)
@@ -188,18 +188,6 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .requires(Tags.Items.DYES)
                 .unlockedBy("has_paper", has(Items.PAPER))
                 .save(output);
-
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ServusStorageItems.BLANK_PATTERN.get())
-                .requires(Items.PAPER)
-                .requires(Items.REDSTONE)
-                .unlockedBy("has_paper", has(Items.PAPER))
-                .save(output);
-
-        // Any Pattern alone wipes back to a Blank Pattern; the ingredient ignores the encoded recipe.
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ServusStorageItems.BLANK_PATTERN.get())
-                .requires(ServusStorageItems.PATTERN.get())
-                .unlockedBy("has_pattern", has(ServusStorageItems.PATTERN.get()))
-                .save(output, ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "blank_pattern_from_pattern"));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.SHUTTLE.get())
                 .pattern("I I")

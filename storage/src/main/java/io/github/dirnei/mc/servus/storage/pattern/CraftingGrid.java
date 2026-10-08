@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.storage.pattern;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -27,6 +29,18 @@ public final class CraftingGrid {
             return Optional.empty();
         }
         return level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, cells), level);
+    }
+
+    /** "2 Oak Planks, 1 Coal" for a list of stacks with counts. */
+    public static MutableComponent stacks(List<ItemStack> stacks) {
+        MutableComponent text = Component.empty();
+        for (int i = 0; i < stacks.size(); i++) {
+            if (i > 0) {
+                text.append(", ");
+            }
+            text.append(stacks.get(i).getCount() + " ").append(stacks.get(i).getHoverName());
+        }
+        return text;
     }
 
     /** The template laid out by a vanilla crafting recipe, one ingredient item per cell, for the recipe viewer. */

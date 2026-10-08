@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
-import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
+import io.github.dirnei.mc.servus.storage.pattern.StoredPatterns;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
 import net.minecraft.core.component.DataComponentType;
@@ -26,11 +26,11 @@ public final class ServusStorageComponents {
                     .persistent(ResourceLocation.CODEC)
                     .networkSynchronized(ResourceLocation.STREAM_CODEC));
 
-    /** The crafting recipe an encoded Pattern holds. */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<EncodedPattern>> PATTERN =
-            COMPONENTS.registerComponentType("pattern", builder -> builder
-                    .persistent(EncodedPattern.CODEC)
-                    .networkSynchronized(EncodedPattern.STREAM_CODEC));
+    /** The patterns a Pattern Storage keeps, carried by its dropped item. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<StoredPatterns>> PATTERNS =
+            COMPONENTS.registerComponentType("patterns", builder -> builder
+                    .persistent(StoredPatterns.CODEC)
+                    .networkSynchronized(StoredPatterns.STREAM_CODEC));
 
     private ServusStorageComponents() {
     }

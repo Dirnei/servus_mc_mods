@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -23,7 +24,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** Right click opens the pattern slots. Sits on the data line; drops its patterns when broken. */
+/** Keeps patterns on the data line; an empty hand shows how many. The patterns travel with the dropped block. */
 public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<PatternStorageBlock> CODEC = simpleCodec(PatternStorageBlock::new);
@@ -71,23 +72,13 @@ public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof PatternStorageBlockEntity storage) {
-            player.openMenu(storage, buf -> {
-                buf.writeBlockPos(pos);
-                buf.writeVarInt(storage.capacity());
-            });
+            player.displayClientMessage(Component.translatable("message.servus_storage.pattern_storage.count",
+                    storage.usedSlots().size(), storage.capacity()), true);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof PatternStorageBlockEntity storage) {
-            storage.dropContents(level, pos);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    /** The carrot turns the block; sneaking dismantles it and drops its patterns. */
+    /** The carrot turns the block; sneaking dismantles it, the item carrying the patterns. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
@@ -95,7 +86,11 @@ public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
         Player player = context.getPlayer();
         if (!level.isClientSide()) {
             if (player != null && player.isShiftKeyDown()) {
-                Block.popResource(level, pos, new ItemStack(this));
+                ItemStack drop = new ItemStack(this);
+                if (level.getBlockEntity(pos) instanceof PatternStorageBlockEntity storage) {
+                    drop.applyComponents(storage.collectComponents());
+                }
+                Block.popResource(level, pos, drop);
                 level.removeBlock(pos, false);
             } else {
                 level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);

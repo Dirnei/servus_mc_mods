@@ -41,8 +41,6 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         machine(ServusStorageBlocks.CRAFTING_STATION.get(), "crafting_station");
         cpu(ServusStorageBlocks.CRAFTING_CPU.get(), "crafting_cpu");
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
-        itemModels().basicItem(ServusStorageItems.BLANK_PATTERN.get());
-        itemModels().basicItem(ServusStorageItems.PATTERN.get());
         itemModels().getBuilder("shuttle").parent(new ModelFile.UncheckedModelFile("block/block"))
                 .texture("particle", modLoc("item/shuttle")).texture("skin", modLoc("item/shuttle"))
                 .element().from(2, 0, 2).to(14, 3, 14)
