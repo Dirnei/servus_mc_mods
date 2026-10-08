@@ -39,6 +39,10 @@ Saving a new pattern in the Production Terminal's editor SHALL match the 3x3 gho
 - **WHEN** the player opens the editor with plus, puts a plank above a plank and presses Save
 - **THEN** a sticks pattern is in the first Pattern Storage with room and the Patterns tab lists it, and the player's inventory is unchanged
 
+#### Scenario: No blank
+- **WHEN** the player has an empty inventory and saves a matching grid
+- **THEN** the pattern is stored; no item is needed
+
 #### Scenario: No Pattern Storage
 - **WHEN** the terminal's line has no Pattern Storage and the player saves a matching grid
 - **THEN** nothing is stored and the action bar says there is no Pattern Storage on this data line
