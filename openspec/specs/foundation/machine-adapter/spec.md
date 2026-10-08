@@ -65,11 +65,11 @@ The adapter SHALL expose the upkeep capability for the machine's upkeep side (it
 - **THEN** the adapter keeps 8 charcoal in the machine from then on
 
 ### Requirement: Adapter is obtainable
-The adapter SHALL be crafted from copper ingots, a hopper, redstone and a Data Cable, mined with a pickaxe, drop itself and keep nothing when broken, and be dismantled by sneaking with the Configuration Carrot.
+The adapter SHALL be crafted from copper ingots, a hopper, redstone, a Data Cable and planks, recording the wood of the planks, mined with a pickaxe, drop itself with its wood and keep nothing else when broken, and be dismantled by sneaking with the Configuration Carrot.
 
 #### Scenario: Crafting
-- **WHEN** the player crafts copper ingots around a hopper with redstone and a Data Cable
-- **THEN** one Machine Adapter is the result
+- **WHEN** the player crafts copper ingots around a hopper with redstone and a Data Cable over a row of planks
+- **THEN** one Machine Adapter carrying the wood of the planks is the result
 
 ### Requirement: Opening the adapter GUI
 Right clicking a Machine Adapter SHALL open its GUI whatever the player holds, the Configuration Carrot included. A sneaking player holding an item SHALL use that item on the adapter instead, so blocks can be placed against it and the carrot dismantles it.

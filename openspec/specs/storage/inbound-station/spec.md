@@ -121,11 +121,11 @@ Right clicking the station SHALL open a GUI with the buffer slots and the player
 - **THEN** the GUI shows only the buffer and the inventory
 
 ### Requirement: Station is obtainable and dismantled
-The station SHALL be craftable from vanilla materials, SHALL drop itself when broken, and SHALL be dismantled by sneaking with the Configuration Carrot, dropping its buffer contents and keeping its side modes in the dropped item. The facing is set at placement; the carrot without sneaking configures sides and does not turn the station.
+The station SHALL be craftable from vanilla materials including planks, recording the wood of the planks, SHALL drop itself with its wood when broken, and SHALL be dismantled by sneaking with the Configuration Carrot, dropping its buffer contents and keeping its side modes and wood in the dropped item. The facing is set at placement; the carrot without sneaking configures sides and does not turn the station.
 
 #### Scenario: Crafting
-- **WHEN** the player places iron ingots, a chest and a hopper in the station pattern (for example a chest over a hopper framed by ingots)
-- **THEN** a Inbound Station is produced
+- **WHEN** the player places iron ingots, a chest, a hopper and planks in the station pattern (for example a chest framed by ingots over a hopper between planks)
+- **THEN** a Inbound Station carrying the wood of the planks is produced
 
 #### Scenario: Dismantle
 - **WHEN** the player sneaks and uses the Configuration Carrot on a station holding bread

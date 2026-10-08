@@ -64,11 +64,11 @@ The station SHALL expose the Lib production capability with no fixed recipes, an
 - **THEN** the sticks recipe is reported as active
 
 ### Requirement: Station is obtainable and dismantled
-The station SHALL be craftable from a crafting table, iron ingots and a chest, SHALL drop itself and its items when broken, and SHALL be dismantled by sneaking with the Configuration Carrot keeping its configuration. The carrot without sneaking SHALL cycle the mode of the clicked side, like on machines.
+The station SHALL be craftable from a crafting table, iron ingots, a chest and planks, recording the wood of the planks, SHALL drop itself with its wood and its items when broken, and SHALL be dismantled by sneaking with the Configuration Carrot keeping its configuration and wood. The carrot without sneaking SHALL cycle the mode of the clicked side, like on machines.
 
 #### Scenario: Crafting
-- **WHEN** the player places a crafting table over a chest framed by iron ingots
-- **THEN** a Crafting Station is produced
+- **WHEN** the player places a crafting table over a chest framed by iron ingots over a row of planks
+- **THEN** a Crafting Station carrying the wood of the planks is produced
 
 ### Requirement: Station GUI layout
 The station GUI SHALL show the nine inputs on the left, the job in the middle, and the four outputs with a progress arrow on the right, above the player inventory and beside the side panel. The job area SHALL show the result of the job's pattern with the number of crafts left, or "idle" without a job.

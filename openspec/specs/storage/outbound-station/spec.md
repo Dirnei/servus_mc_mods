@@ -97,8 +97,8 @@ Right clicking the station SHALL open a GUI with the keep row, the buffer row, s
 - **THEN** the ingots are in the buffer and are pushed out like delivered ones
 
 ### Requirement: Station is obtainable and dismantled
-The station SHALL be craftable from vanilla materials, SHALL drop itself when broken, and SHALL be dismantled by sneaking with the Configuration Carrot, dropping its buffer and keeping its configuration in the dropped item.
+The station SHALL be craftable from vanilla materials including planks, recording the wood of the planks, SHALL drop itself with its wood when broken, and SHALL be dismantled by sneaking with the Configuration Carrot, dropping its buffer and keeping its configuration and wood in the dropped item.
 
 #### Scenario: Crafting
-- **WHEN** the player places iron ingots, a chest, a hopper and a dropper in the station pattern (for example chest over dropper over hopper framed by ingots)
-- **THEN** an Outbound Station is produced
+- **WHEN** the player places iron ingots, a chest, a hopper, a dropper and planks in the station pattern (for example chest over dropper framed by ingots over a hopper between planks)
+- **THEN** an Outbound Station carrying the wood of the planks is produced
