@@ -1,1 +1,6 @@
 // Servus: Foundation. Shared configuration lives in the root build.gradle.
+
+dependencies {
+    // Machine profiles are parsed from plain Gson; Minecraft 1.21.1 ships this version.
+    testImplementation 'com.google.code.gson:gson:2.10.1'
+}

@@ -2,7 +2,7 @@
 
 ## 1. Pure profile logic
 
-- [ ] 1.1 Add `foundation/.../adapter/MachineProfile.java` (record, `Role`, Gson parsing) and `ProfileSides.java` (first side of a role, relative to absolute). Add `foundation/src/test/.../adapter/MachineProfileTest.java` (`parsesFurnaceProfile`, `missingSidesAreOff`, `upkeepIsOptional`) and `ProfileSidesTest.java` (`roleToAbsoluteForEachFacing`, `firstSideWinsInFixedOrder`, `missingRoleIsEmpty`). Verify with `gradlew :foundation:test`.
+- [x] 1.1 Add `foundation/.../adapter/MachineProfile.java` (record, `Role`, Gson parsing) and `ProfileSides.java` (first side of a role, relative to absolute). Add `foundation/src/test/.../adapter/MachineProfileTest.java` (`parsesFurnaceProfile`, `missingSidesAreOff`, `upkeepIsOptional`) and `ProfileSidesTest.java` (`roleToAbsoluteForEachFacing`, `firstSideWinsInFixedOrder`, `missingRoleIsEmpty`). Verify with `gradlew :foundation:test`.
 
 ## 2. Supplier capability
 
