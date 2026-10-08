@@ -5,9 +5,10 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
- * The adapter's item handler on every face. Slot 0 takes items: expected
- * upkeep goes to the machine's upkeep side, everything else to its ingredient
- * side. The slots after it mirror the machine's output side for extraction.
+ * The adapter's item handler on every face. Slot 0 takes items and always
+ * reads empty: expected upkeep goes to the machine's upkeep side, everything
+ * else to its ingredient side. The slots after it mirror the machine's output
+ * side for extraction.
  */
 public final class AdapterItemHandler implements IItemHandler {
 
@@ -30,8 +31,8 @@ public final class AdapterItemHandler implements IItemHandler {
     @Override
     public ItemStack getStackInSlot(int slot) {
         if (slot == 0) {
-            IItemHandler ingredients = adapter.machineHandler(MachineProfile.Role.INGREDIENTS);
-            return ingredients == null || ingredients.getSlots() == 0 ? ItemStack.EMPTY : ingredients.getStackInSlot(0);
+            // The input slot always reads empty, so stacking inserters (packets) offer it any item.
+            return ItemStack.EMPTY;
         }
         IItemHandler output = output();
         return output == null || slot - 1 >= output.getSlots() ? ItemStack.EMPTY : output.getStackInSlot(slot - 1);

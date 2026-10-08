@@ -69,6 +69,12 @@ public final class AdapterGameTests {
                 "8 cobblestone in the ingredient slot, got " + furnace(helper).getItem(0));
         Optional<ResourceLocation> active = adapter.production().active();
         helper.assertTrue(active.isPresent() && active.get().getPath().contains("stone"), "the cobblestone recipe is active, got " + active);
+        // Expected upkeep still finds its way while the ingredient slot is taken.
+        adapter.setUpkeepItem(new ItemStack(Items.COAL));
+        adapter.expect(3);
+        ItemStack coalLeft = ItemHandlerHelper.insertItemStacked(adapter.itemHandler(), new ItemStack(Items.COAL, 3), false);
+        helper.assertTrue(coalLeft.isEmpty() && furnace(helper).getItem(1).getCount() == 3,
+                "3 coal in the fuel slot beside the cobblestone, left " + coalLeft);
         helper.succeed();
     }
 
