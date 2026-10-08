@@ -1,11 +1,18 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
+import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
+import io.github.dirnei.mc.servus.storage.pattern.PatternItem;
 import io.github.dirnei.mc.servus.storage.production.CancelProductionOrderPayload;
+import io.github.dirnei.mc.servus.storage.production.EditPatternPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.OrderRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.RecipeRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.StepRow;
 import java.util.ArrayList;
@@ -19,12 +26,16 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * Tabs on the title row, a scrollable list below. Each tab turns the last
  * synced rows into lines; a line can draw itself, show a tooltip and react to
- * a click. More tabs are more entries in {@link #tabs}.
+ * a click. More tabs are more entries in {@link #tabs}. The Patterns tab opens
+ * the shared recipe editor popup over the panel, with the player inventory
+ * below it while it is open.
  */
 public class ProductionTerminalScreen extends AbstractContainerScreen<ProductionTerminalMenu> {
 
@@ -61,9 +72,11 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
 
     private final List<Tab> tabs = List.of(
             new Tab("orders", this::orderLines),
-            new Tab("machines", this::machineLines));
+            new Tab("machines", this::machineLines),
+            new Tab("patterns", this::patternLines));
     private final int[] scrolls = new int[tabs.size()];
     private final List<Line> lines = new ArrayList<>();
+    private final RecipeEditorPopup popup = new RecipeEditorPopup(ProductionTerminalMenu.POPUP_X, ProductionTerminalMenu.POPUP_Y, WIDTH, HEIGHT);
     private int selected;
     private int linesVersion = -1;
     private int linesTab = -1;
@@ -86,11 +99,52 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        if (menu.isEditing()) {
+            boolean existing = menu.editing() == ProductionTerminalMenu.EDIT_EXISTING;
+            Component title = Component.translatable(existing ? "gui.servus_storage.production.edit_pattern"
+                    : "gui.servus_storage.production.new_pattern_title");
+            popup.render(graphics, font, leftPos, topPos, mouseX, mouseY, title, existing, preview(),
+                    Component.translatable("gui.servus_storage.crafting_station.save"),
+                    Component.translatable("gui.servus_storage.crafting_station.delete"),
+                    Component.translatable("gui.servus_storage.crafting_station.cancel"));
+            for (int row = 0; row < 4; row++) {
+                int y = topPos + (row < 3 ? ProductionTerminalMenu.INVENTORY_Y + row * 18 : ProductionTerminalMenu.HOTBAR_Y) - 1;
+                for (int column = 0; column < 9; column++) {
+                    int x = leftPos + ProductionTerminalMenu.INVENTORY_X + column * 18 - 1;
+                    graphics.fill(x, y, x + 18, y + 18, 0xFF373737);
+                    graphics.fill(x + 1, y + 1, x + 17, y + 17, 0xFF8B8B8B);
+                }
+            }
+        }
+    }
+
+    /** The result the ghost grid matches on the client, empty when none. */
+    private ItemStack preview() {
+        Level level = minecraft == null ? null : minecraft.level;
+        if (level == null) {
+            return ItemStack.EMPTY;
+        }
+        return CraftingStationBlockEntity.match(level, menu.gridCells())
+                .map(holder -> holder.value().getResultItem(level.registryAccess()).copy())
+                .orElse(ItemStack.EMPTY);
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
+        if (menu.isEditing()) {
+            if (popup.previewHovered(leftPos, topPos, mouseX, mouseY)) {
+                ItemStack preview = preview();
+                if (preview.isEmpty()) {
+                    graphics.renderTooltip(font, Component.translatable("gui.servus_storage.crafting_station.no_match"), mouseX, mouseY);
+                } else {
+                    graphics.renderTooltip(font, preview, mouseX, mouseY);
+                }
+            } else {
+                renderTooltip(graphics, mouseX, mouseY);
+            }
+            return;
+        }
         Line hovered = lineAt(mouseX, mouseY);
         if (hovered != null && hovered.tooltip() != null) {
             List<Component> tooltip = hovered.tooltip().get();
@@ -102,6 +156,9 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        if (menu.isEditing()) {
+            return;
+        }
         graphics.drawString(font, title, titleLabelX, titleLabelY, COLOUR_TEXT, false);
         renderTabs(graphics);
         if (!ClientProduction.online()) {
@@ -247,6 +304,61 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         return order.requestId() < 0 ? "gui.servus_storage.production.origin.rule" : "gui.servus_storage.production.origin.manual";
     }
 
+    // Patterns tab
+
+    private List<Line> patternLines() {
+        List<Line> result = new ArrayList<>();
+        PatternsView patterns = ClientProduction.patterns();
+        if (patterns.total() == 0) {
+            result.add(text(Component.translatable("gui.servus_storage.production.no_pattern_storage"), COLOUR_DIM, 0));
+            return result;
+        }
+        Component capacity = Component.translatable("gui.servus_storage.production.patterns_capacity", patterns.used(), patterns.total());
+        int barWidth = 80;
+        result.add(new Line(14, (graphics, y, hovered) -> {
+            graphics.drawString(font, capacity, MARGIN, y + 3, COLOUR_HEAD, false);
+            int x = WIDTH - MARGIN - barWidth - 2;
+            graphics.fill(x, y + 3, x + barWidth, y + 10, 0xFF373737);
+            int filled = patterns.total() == 0 ? 0 : Math.min(barWidth - 2, patterns.used() * (barWidth - 2) / patterns.total());
+            int colour = patterns.used() >= patterns.total() ? 0xFFB03030 : 0xFF2E8B7A;
+            graphics.fill(x + 1, y + 4, x + 1 + filled, y + 9, colour);
+        }, null, null));
+        Component add = Component.translatable("gui.servus_storage.production.new_pattern");
+        result.add(new Line(16, (graphics, y, hovered) -> RecipeEditorPopup.drawButton(graphics, font, MARGIN, y + 1,
+                font.width(add) + 10, 13, add.getString(), hovered),
+                () -> List.of(Component.translatable("gui.servus_storage.production.new_pattern_hint")),
+                () -> press(RecipeEditorButtons.OPEN_NEW)));
+        if (patterns.rows().isEmpty()) {
+            result.add(text(Component.translatable("gui.servus_storage.production.no_patterns"), COLOUR_DIM, 0));
+        }
+        for (PatternRow row : patterns.rows()) {
+            result.add(patternLine(row));
+        }
+        return result;
+    }
+
+    private Line patternLine(PatternRow row) {
+        Component text = Component.translatable("item.servus_storage.pattern.recipe", row.result().getCount(),
+                row.result().getHoverName(), PatternItem.stacks(row.inputs()));
+        Painter painter = (graphics, y, hovered) -> {
+            if (hovered) {
+                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + ORDER_ROW, 0x30000000);
+            }
+            graphics.renderItem(row.result(), MARGIN + 4, y + 1);
+            graphics.drawString(font, text, MARGIN + 24, y + 5, COLOUR_TEXT, false);
+        };
+        Supplier<List<Component>> tooltip = () -> List.of(text,
+                Component.translatable("gui.servus_storage.production.pattern_storage_at", row.storage().toShortString(), row.slot() + 1),
+                Component.translatable("gui.servus_storage.production.pattern_edit_hint"));
+        return new Line(ORDER_ROW, painter, tooltip, () -> PacketDistributor.sendToServer(new EditPatternPayload(row.storage(), row.slot())));
+    }
+
+    private void press(int button) {
+        if (minecraft != null && minecraft.gameMode != null) {
+            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, button);
+        }
+    }
+
     // Machines tab
 
     private List<Line> machineLines() {
@@ -314,6 +426,25 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (menu.isEditing()) {
+            switch (popup.buttonAt(leftPos, topPos, mouseX, mouseY, menu.editing() == ProductionTerminalMenu.EDIT_EXISTING)) {
+                case SAVE -> {
+                    press(RecipeEditorButtons.SAVE);
+                    return true;
+                }
+                case DELETE -> {
+                    press(RecipeEditorButtons.DELETE);
+                    return true;
+                }
+                case CANCEL -> {
+                    press(RecipeEditorButtons.CANCEL);
+                    return true;
+                }
+                case NONE -> {
+                }
+            }
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
         int x = (int) mouseX - leftPos;
         int y = (int) mouseY - topPos;
         if (y >= TAB_Y && y < TAB_Y + TAB_HEIGHT) {
@@ -334,7 +465,19 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (menu.isEditing()) {
+            return true;
+        }
         scrolls[selected] = Math.max(0, Math.min(maxScroll(), scrolls[selected] - (int) (scrollY * ROW)));
         return true;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (menu.isEditing() && keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            press(RecipeEditorButtons.CANCEL);
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 }
