@@ -3,25 +3,16 @@ package io.github.dirnei.mc.servus.lib.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.lib.ServusLibIds;
-import io.github.dirnei.mc.servus.lib.placement.AssistedItem;
-import io.github.dirnei.mc.servus.lib.placement.PlacementAssist;
 import io.github.dirnei.mc.servus.lib.placement.PlacementAssists;
 import java.util.Optional;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -36,10 +27,10 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 @EventBusSubscriber(modid = ServusLibIds.MOD_ID, value = Dist.CLIENT)
 public final class PlacementAssistRenderer {
 
-    private static final int R = 90;
-    private static final int G = 200;
-    private static final int B = 255;
-    private static final int A = 220;
+    static final int R = 90;
+    static final int G = 200;
+    static final int B = 255;
+    static final int A = 220;
     private static final int GHOST_ALPHA = 120;
     private static final float SHAFT = 0.07F;
     private static final float HEAD = 0.22F;
@@ -55,27 +46,13 @@ public final class PlacementAssistRenderer {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
             return;
         }
+        Optional<PlacementAssistPreview.Preview> preview = PlacementAssistPreview.current();
+        if (preview.isEmpty()) {
+            return;
+        }
         Minecraft minecraft = Minecraft.getInstance();
-        LocalPlayer player = minecraft.player;
-        if (player == null || !player.isSecondaryUseActive()
-                || !(minecraft.hitResult instanceof BlockHitResult hit) || hit.getType() != HitResult.Type.BLOCK) {
-            return;
-        }
-        ItemStack stack = player.getMainHandItem();
-        if (!(stack.getItem() instanceof AssistedItem assisted) || !(stack.getItem() instanceof BlockItem blockItem)) {
-            return;
-        }
-        PlacementAssist assist = assisted.placementAssist();
-        BlockPlaceContext context = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, stack, hit);
-        if (!PlacementAssists.applies(context, assist)) {
-            return;
-        }
-        Optional<PlacementAssists.Target> found = PlacementAssists.target(context, assist);
-        if (found.isEmpty()) {
-            return;
-        }
-        PlacementAssists.Target target = found.get();
-        BlockState state = blockItem.getBlock().getStateForPlacement(target.context(context));
+        PlacementAssists.Target target = preview.get().target();
+        BlockState state = preview.get().state();
 
         Vec3 camera = event.getCamera().getPosition();
         PoseStack poseStack = event.getPoseStack();

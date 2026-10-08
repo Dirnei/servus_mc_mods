@@ -37,7 +37,7 @@
 
 ## 8. Crosshair indicator
 
-- [ ] 8.1 Move the preview computation in `lib/.../client/PlacementAssistRenderer.java` into a shared client helper, and add `lib/.../client/PlacementAssistHud.java`: a GUI layer above the crosshair that draws the screen space arrow (or a ring for straight ahead) and the distance, as in design.md. Verify with `gradlew build test` and in the play check.
+- [x] 8.1 Move the preview computation in `lib/.../client/PlacementAssistRenderer.java` into a shared client helper, and add `lib/.../client/PlacementAssistHud.java`: a GUI layer above the crosshair that draws the screen space arrow (or a ring for straight ahead) and the distance, as in design.md. Verify with `gradlew build test` and in the play check.
 
 ## 9. Play check
 
