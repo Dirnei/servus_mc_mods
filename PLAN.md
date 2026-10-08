@@ -113,13 +113,17 @@ First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), 
 Progression:
 1. **Crates** (early, no power). A crate has one, two or four compartments that split its capacity; each compartment holds one item type and shows it with its count on the front. The Heavy Duty Rack is the chest sized bay for mixed items: bays with the same facing and the same wood join side by side into sections of a few bays, and a section shares one GUI that shows the slots of every bay (each bay still stores its own part). Stacked racks stay separate. A shuttle serves a whole section from a rail in front of any of its bays; rails along a rack's side or back never reach it. The front shows the item types the bay holds the most of.
 2. **Warehouse Controller + Counter Terminal.** Search and request items while standing at the counter; deliveries land in the counter's output slots. Vanilla and modded inventories in the network are indexed too.
-3. **Shuttles on rails.** Requests and put-away are done by shuttles that travel along rails to a inbound station. Throughput depends on shuttle count, rails and layout. Stats screen shows pick rates per item for slotting optimization. Put-away rules ("all ores to aisle 3"): a Zone Label carries a name and an item filter and is stamped onto racks; stamped racks take matching items first, unzoned racks take everything and act as the overflow.
-4. **Wireless.** Wireless Terminal with range tiers. Orders queue real picks. Delivery through an outbound dock: teleport for FE per item and distance, or courier drone to a landing pad.
+3. **Shuttles on rails.** Requests and put-away are done by shuttles that travel along rails to a inbound station. Throughput depends on shuttle count, rails and layout. Put-away rules ("all ores to aisle 3"): a Zone Label carries a name and an item filter and is stamped onto racks; stamped racks take matching items first, unzoned racks take everything and act as the overflow.
+4. **Data cable and on-demand autocrafting.** The warehouse joins the data cable through Access Points, and the Counter Terminal, Crafting CPU and Pattern Storage live on the cable (see 2.4).
+5. **Wireless.** Wireless Terminal with range tiers and a Wireless Access Point that links remote places without a cable. Orders queue real picks. Delivery through an outbound dock: teleport for FE per item and distance, or courier drone to a landing pad.
+
+**Rails or cable (decided rule):** only storage touches rails, so shuttles can reach it: racks, crates, Shuttle Garages, Rail Elevators, Inbound and Outbound Stations and Access Points. Everything else sits on the data cable: terminals, Crafting CPU, Pattern Storage, Crafting Stations, machines and Machine Adapters. The Warehouse Controller sits on the rails and is connected to the cable.
 
 **Network topology (decided direction):**
 - Early: adjacency. The controller connects to touching crates and racks.
 - Mid: **rails are the wiring.** Any rack next to a rail joins the network. The same rails carry shuttles later. Decided: the Warehouse Rail is a flat rail, one block wide, that auto connects to neighbouring rails on the same level like ducts do. It stands on a floor or hangs without one on a rack front, an elevator segment or beside a standing rail; free rails between two hung rails bridge a gap of up to `rail_max_span` blocks (3 by default, in `warehouse.json`), and a gap that is wider or held on one side only collapses and drops its rails. No slopes, no ceiling rails. Rails hold nothing and never pull plain inventories in. Floors are linked by the Rail Elevator: a shaft of stacked segments, each taking rails on its sides, that shuttles will ride vertically.
-- Late: **Warehouse Relay** links remote depots wirelessly.
+- Beyond the rails: the **data cable** from Servus Lib links the warehouse, through its Access Points, to terminals, the Crafting CPU and machines far away.
+- Late: the **Wireless Access Point** links remote places without a cable (it takes the place of the Warehouse Relay idea).
 
 Shuttles are **simulated as data** on the warehouse network and only rendered moving on the client. No real entities. Decided: Shuttle items go into Shuttle Garages, a few per garage, and park on the rail touching their garage; more garages mean more shuttles. Heavy Duty Racks are served only by shuttles, so a rack warehouse needs a garage; crates and foreign inventories stay instant when no shuttle reaches them. Players request items at the Counter Terminal with an amount and collect the delivery from its output slots.
 
@@ -127,13 +131,27 @@ Decided: every elevator shaft has one simulated **lift car**. A shuttle that cha
 
 ### 2.4 Integration: Storage + Manufacturing (autocrafting)
 
-- **Work orders instead of patterns.** Requesting an item that is not in stock creates a work order.
+**USP: production on demand.** Nothing runs without an order. A classic pipe line (Outbound Station, pipe, chest, hopper, furnace, hopper, Inbound Station) produces until storage is full or the input runs out; a machine on the data cable produces exactly what was ordered and then waits.
+
+Built in M7, still valid:
+- **Work orders.** Requesting an item that is not in stock creates a work order.
 - **Bill of materials explosion**: the order is broken into sub-orders. Stock on hand is reserved, the rest is produced.
-- Recipes come from connected Manufacturing machines. Building an assembler for gears teaches the system to make gears.
-- Machines get an **Outbound Station** standing with its back to them and an **Inbound Station** beside them, next to the rails. Shuttles deliver ingredients to the outbound station and pick up results from the inbound station. Station fronts, like machine fronts, never move items.
 - **Min/max stock levels** per item create orders automatically ("keep 500 to 1,000 iron gears").
-- **Order board** shows open orders, which machine works on what, and what is blocked and why.
-- Standalone fallback: Storage alone gets a simple Crafting Station for vanilla recipes.
+- **Outbound Station** with its back to a machine and an **Inbound Station** beside it, next to the rails, for pipe lines and machines that do not speak Lib. Station fronts, like machine fronts, never move items.
+
+Decided for M8 (on-demand autocrafting):
+- **Data cable** (Servus Lib). Like redstone, not like a real network: place it and it works, no addresses, channels or priorities. It never pushes or pulls on its own; it only routes packets for an order. Members are found by the capabilities they expose. Items travel as packets with a size and a speed from datapack JSON, so long distances take time. A High-Speed Data Cable with bigger, faster packets comes later. Item pipes stay useful: they move items all the time and work with any mod.
+- **Access Point** (Storage). Sits on a rail and on the cable and is the warehouse's door: shuttles bring items to it and it sends them as packets, and packets coming back are handed to shuttles for put-away. A warehouse may have several; each adds packet throughput. The controller picks the Access Point with the shortest shuttle trip; on a tie any of them.
+- **Warehouse Controller** on the cable answers stock questions and assigns shuttles. It moves no items itself.
+- **Counter Terminal** on the cable: the player requests items, shuttles bring them to an Access Point, packets deliver them into the terminal's output slots.
+- **Crafting CPU** (Storage, 3x3x3 multiblock on the cable) owns work orders; this moves order handling from the controller to the CPU. Every CPU adds order slots, more CPUs run more orders in parallel.
+- **Patterns for crafting recipes only.** A pattern item is encoded with the recipe editor (with JEI transfer) and holds concrete items, so the planner never chooses between recipes or tag variants. Patterns live in **Pattern Storage** blocks on the cable, N per block (from datapack JSON); more blocks hold more patterns.
+- **Crafting Stations are the hands.** They lose their own recipe list and craft what the CPU assigns, fed by packets. More stations craft more in parallel.
+- **Machines say what they can do.** Servus machines expose the production capability and join the cable directly, no pattern needed. Building an assembler for gears teaches the system to make gears.
+- **Machine Adapter** (Servus Lib) for machines of other mods. It touches the machine, inserts the ingredients and pulls the results itself, which counts them for the order. Six virtual side roles relative to the machine's facing: Ingredients, Upkeep, Output, Off. The first version uses **profiles** only: datapack JSON that names the blocks, the recipe type and the side roles (vanilla furnace, smoker and blast furnace ship with it, packs can add more). Hand made patterns for adapters may follow after play testing.
+- **Upkeep is not part of a recipe.** Fuel, infuse items and the like are kept stocked in their slot at a level (an item and an amount set per machine), refilled always, independent of orders. A recipe stays "1 cobblestone to 1 stone". Native burner machines report their upkeep the same way. A machine whose upkeep is not in stock is blocked as out of fuel, the order is not.
+- **Production Terminal** on the cable with three tabs: Patterns (list, add and edit, a capacity bar that shows when to add Pattern Storage), Machines (recipes, state, upkeep) and Orders. It replaces the Order Board.
+- Storage alone crafts with patterns and can smelt through an adapter on a vanilla furnace; Manufacturing machines are the next step (power, speed, real chains).
 
 The bridge lives in Servus Lib as a small API (see section 3).
 
@@ -157,6 +175,8 @@ The bridge lives in Servus Lib as a small API (see section 3).
 - `ProductionProvider`: "this block can produce X from inputs Y at rate Z"
 - `StockProvider` / `StockSink`: "this inventory can supply or accept items"
 - `WorkOrder` model and a planner interface (implemented by Storage, fed by Manufacturing)
+- Data cable: Lib's first block and its network, members found by capability, packet transport with size and speed from datapack JSON
+- Machine Adapter with datapack profiles (blocks, recipe type, side roles) and upkeep (keep an item at a level in a slot), so machines of other mods join the data cable
 - Shared Configuration Carrot (the wrench role) and goggles
 - Placement assist: sneaking with a rail, duct or elevator item extends a straight run at its far end, with a ghost preview
 - Config helpers
@@ -228,7 +248,6 @@ Each milestone ends in something playable or testable.
 - Inbound station, Zone Labels with put-away filters, unzoned storage as overflow
 - Shuttle Garage, rack picks by shuttle, terminal requests
 - Sneak placement assist for rails, ducts and elevators
-- Pick rate stats screen
 
 ### M7: Autocrafting integration
 - Lib API for production and stock
@@ -238,8 +257,22 @@ Each milestone ends in something playable or testable.
 - Order board screen
 - Storage only Crafting Station fallback
 
-### M8: Wireless and scale
-- Warehouse Relay
+### M8: On-demand autocrafting
+One change per item:
+- `m8-data-cable`: Lib data cable block and network, members found by capability
+- `m8-cable-packets`: packet transport over the cable, size and speed from datapack JSON
+- `m8-access-point`: Access Point on rail and cable, Warehouse Controller on the cable, shortest shuttle trip wins
+- `m8-item-terminal-cable`: Counter Terminal on the cable, deliveries as packets
+- `m8-pattern-storage`: pattern items, Pattern Storage with N patterns per block, encoding with the editor and JEI transfer
+- `m8-crafting-cpu`: 3x3x3 multiblock, owns work orders (moved from the controller), more CPUs run more orders in parallel
+- `m8-station-hands`: Crafting Station takes jobs over the cable instead of its own recipe list
+- `m8-production-terminal`: Patterns, Machines and Orders tabs, replaces the Order Board
+- `m8-machine-adapter`: Lib Machine Adapter with side roles, upkeep and profiles for the vanilla furnace, smoker and blast furnace
+- `m8-native-machines`: Manufacturing machines on the cable, burner machines report upkeep
+- Later: High-Speed Data Cable
+
+### M9: Wireless and scale
+- Wireless Access Point (replaces the Warehouse Relay idea)
 - Wireless Terminal with range tiers
 - Outbound dock: teleport delivery and courier drone
 - Manufacturing Tier 2 (green pack, steel, circuits)
@@ -251,6 +284,8 @@ Each milestone ends in something playable or testable.
 - Tier 2 to 5 content details
 - Art style and texture direction (shared look across the family)
 - Final name for the storage mod (Servus: Storage vs Servus: Warehouse)
+- M8: how stock rules hand their orders to the Crafting CPU, and whether Pattern Storage gets tiers like the crate family or only more blocks
+- M8: whether the Order Board block goes away or stays as a read only view next to the Production Terminal
 
 ---
 
