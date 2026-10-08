@@ -68,7 +68,7 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         carY = Math.max(0, Math.min(floors.size() - 1, carY));
         TextureAtlasSprite frame = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(FRAME);
         TextureAtlasSprite rail = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(RAIL);
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(InventoryMenu.BLOCK_ATLAS));
+        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(InventoryMenu.BLOCK_ATLAS));
 
         for (int floor = 0; floor < floors.size(); floor++) {
             BlockState state = floors.get(floor);
@@ -78,7 +78,15 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
             int light = LevelRenderer.getLightColor(level, bottom.above(floor));
             poseStack.pushPose();
             poseStack.translate(0, floor, 0);
-            deck(poseStack, buffer, frame, rail, state, (float) Flaps.angle(carY, floor), light, packedOverlay);
+            float angle = (float) Flaps.angle(carY, floor);
+            if (floor == 0) {
+                // The floor below is the ground level's deck; the parked car brings its own rail.
+                if (angle < 90F) {
+                    groundRail(poseStack, buffer, rail, state, light, packedOverlay);
+                }
+            } else {
+                deck(poseStack, buffer, frame, rail, state, angle, light, packedOverlay);
+            }
             poseStack.popPose();
         }
 
@@ -235,6 +243,14 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         }
     }
 
+    /** The lowest segment's rail, lying on the floor block like an outside rail. */
+    private static void groundRail(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite rail, BlockState state,
+                                   int light, int overlay) {
+        for (float[] piece : railPieces(state)) {
+            box(poseStack, buffer, rail, piece[0], 0, piece[1], piece[2], 1, piece[3], light, overlay);
+        }
+    }
+
     /** A deck plate below the segment with the rail pieces over it at outside rail height. */
     private static void plate(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
                               List<float[]> pieces, float[] area, int light, int overlay) {
@@ -250,7 +266,7 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
     /** The car: a platform between the posts with a sleeve around each post, carrying the nearest floor's rail at outside rail height. */
     private static void car(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite frame, TextureAtlasSprite rail,
                             BlockState floor, int light, int overlay) {
-        box(poseStack, buffer, frame, 2, -2, 2, 14, 0, 14, light, overlay);
+        box(poseStack, buffer, frame, 2, -2, 2, 14, -0.1F, 14, light, overlay);
         float[][] sleeves = {{-0.25F, -0.25F}, {13, -0.25F}, {-0.25F, 13}, {13, 13}};
         for (float[] sleeve : sleeves) {
             box(poseStack, buffer, frame, sleeve[0], -3, sleeve[1], sleeve[0] + 3.25F, 2, sleeve[1] + 3.25F, light, overlay);
@@ -294,6 +310,10 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
     private static void box(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite sprite,
                             float x0, float y0, float z0, float x1, float y1, float z1, int light, int overlay) {
         PoseStack.Pose pose = poseStack.last();
+        // Side texture rows repeat every block, so parts below y 0 still map onto the sprite.
+        float shift = (float) Math.floor(y0 / 16F) * 16F;
+        float v0 = 16 - (y1 - shift);
+        float v1 = 16 - (y0 - shift);
         // Down and up
         face(buffer, pose, sprite, light, overlay, 0, -1, 0,
                 x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, x0, z0, x1, z1);
@@ -301,14 +321,14 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
                 x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, z0, x1, z1);
         // North and south
         face(buffer, pose, sprite, light, overlay, 0, 0, -1,
-                x0, y0, z0, x0, y1, z0, x1, y1, z0, x1, y0, z0, x0, 16 - y1, x1, 16 - y0);
+                x0, y0, z0, x0, y1, z0, x1, y1, z0, x1, y0, z0, x0, v0, x1, v1);
         face(buffer, pose, sprite, light, overlay, 0, 0, 1,
-                x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, x0, 16 - y1, x1, 16 - y0);
+                x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, x0, v0, x1, v1);
         // West and east
         face(buffer, pose, sprite, light, overlay, -1, 0, 0,
-                x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, z0, 16 - y1, z1, 16 - y0);
+                x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, z0, v0, z1, v1);
         face(buffer, pose, sprite, light, overlay, 1, 0, 0,
-                x1, y0, z0, x1, y1, z0, x1, y1, z1, x1, y0, z1, z0, 16 - y1, z1, 16 - y0);
+                x1, y0, z0, x1, y1, z0, x1, y1, z1, x1, y0, z1, z0, v0, z1, v1);
     }
 
     /** One quad; u0..v1 are pixel texture coordinates, clamped to the sprite. */

@@ -47,7 +47,7 @@ An elevator segment SHALL NOT block players or other entities. It SHALL still sh
 - **THEN** that segment and every segment above it drop as items
 
 ### Requirement: Rail floors are decks
-A segment with at least one rail beside it SHALL have a deck that covers the shaft floor. Its rail SHALL lie at the same height as the Warehouse Rail outside and join every connected rail; the deck plate under it SHALL sit just below the segment. The deck SHALL fold away only on edges without a rail, so a folded deck never stands in the way of a shuttle: two flaps on the two free opposite edges, one flap on a free edge when no opposite pair is free, and four quarter plates pulled into the corner posts when rails lie on all four sides.
+A segment with at least one rail beside it SHALL have a deck that covers the shaft floor. Its rail SHALL lie at the same height as the Warehouse Rail outside and join every connected rail; the deck plate under it SHALL sit just below the segment. The deck SHALL fold away only on edges without a rail, so a folded deck never stands in the way of a shuttle: two flaps on the two free opposite edges, one flap on a free edge when no opposite pair is free, and four quarter plates pulled into the corner posts when rails lie on all four sides. The lowest segment of a shaft SHALL have no deck: its rail lies on the floor below like an outside rail and is covered by the car while the car stands there.
 
 #### Scenario: Straight run
 - **WHEN** rails lie west and east of a segment
@@ -60,6 +60,10 @@ A segment with at least one rail beside it SHALL have a deck that covers the sha
 #### Scenario: Dead end entry
 - **WHEN** a single rail lies south of a segment
 - **THEN** the deck hangs on axles along the west and east edges and its rail runs from the south edge to the centre
+
+#### Scenario: Ground floor
+- **WHEN** rails lie west and east of the lowest segment of a shaft and the car is up
+- **THEN** a plain rail lies on the floor through the segment with no flaps and nothing flickers against the floor
 
 #### Scenario: Crossing
 - **WHEN** rails lie on all four sides of a segment and the car comes to that floor
