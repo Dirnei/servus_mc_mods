@@ -11,7 +11,7 @@
 ## 3. Shipments on the network
 
 - [x] 3.1 Add `Shipment` and `DataPackets` (`send`, `move`, `delivery`, `settleAll`), shipment ticking, re-routing, settling and absorb/dispose handling in `DataNetwork`, and the `ServerStoppingEvent` hook. Verify with `gradlew build`.
-- [ ] 3.2 Add `storage/src/main/java/.../storage/gametest/DataPacketGameTests.java`: `packetMoveControllerToStation`, `packetTravelTime`, `packetSendSplits`, `packetTargetFullRetries`, `packetSourceShortEndsDone`, `packetNoRouteKeepsItems`, `packetDetourArrives`, `packetBrokenRouteKeepsItems`. Verify with `:storage:runGameTestServer` and `:foundation:runGameTestServer` green.
+- [x] 3.2 Add `storage/src/main/java/.../storage/gametest/DataPacketGameTests.java`: `packetMoveControllerToStation`, `packetTravelTime`, `packetSendSplits`, `packetTargetFullRetries`, `packetSourceShortEndsDone`, `packetNoRouteKeepsItems`, `packetDetourArrives`, `packetBrokenRouteKeepsItems`. Verify with `:storage:runGameTestServer` and `:foundation:runGameTestServer` green.
 
 ## 4. Command
 
