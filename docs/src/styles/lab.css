@@ -607,3 +607,29 @@
 	padding: 0.15rem 0.5rem;
 	background: var(--sl-color-gray-6);
 }
+
+/* Item icons from the iconExport run, kept crisp when scaled. */
+
+.lab-icon {
+	image-rendering: pixelated;
+	vertical-align: middle;
+	flex: none;
+}
+
+.lab-item-body {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	min-width: 0;
+}
+
+.lab-item-body strong {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.lab-grid-cell .lab-icon {
+	display: block;
+	margin: 0 auto 0.1rem;
+}

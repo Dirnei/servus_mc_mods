@@ -15,6 +15,7 @@ import {
 } from '../../lib/recipegraph';
 import { name, num } from './format';
 import { Graph, type GraphEdge, type GraphNode } from './Graph';
+import { ItemIcon } from './icons';
 
 const MOD_NAMES: Record<string, string> = {
 	lib: 'Lib',
@@ -64,12 +65,17 @@ export default function RecipeGraph() {
 	const nodes: GraphNode[] = [
 		...graph.items.map((key) => ({
 			id: itemNode(key),
-			width: 150,
+			width: 170,
 			height: 34,
 			selected: key === current,
 			className: `lab-mod-${modOf(key)}${dim(itemNode(key))}`,
 			onSelect: () => select(key),
-			body: <strong title={key}>{label(key)}</strong>,
+			body: (
+				<span class="lab-item-body" title={key}>
+					<ItemIcon item={key} />
+					<strong>{label(key)}</strong>
+				</span>
+			),
 		})),
 		...[...graph.recipes.values()].map((recipe) => ({
 			id: recipeNode(recipe.id),
@@ -129,7 +135,9 @@ function ItemPanel({ item, graph, routes, setRoutes, onSelect }: {
 
 	return (
 		<aside class="lab-details lab-item-panel" aria-label={`${label(item)} details`}>
-			<h3>{label(item)}</h3>
+			<h3>
+				<ItemIcon item={item} size={32} /> {label(item)}
+			</h3>
 			<p class="lab-hint">
 				<span class={`lab-mod-tag lab-mod-${modOf(item)}`}>{MOD_NAMES[modOf(item)]}</span> <code>{item}</code>
 			</p>
@@ -152,7 +160,7 @@ function ItemPanel({ item, graph, routes, setRoutes, onSelect }: {
 							<li key={id}>
 								{outputs.length > 0 ? (
 									<button type="button" class="lab-link" onClick={() => onSelect(stackKey(outputs[0]))}>
-										{label(stackKey(outputs[0]))}
+										<ItemIcon item={stackKey(outputs[0])} size={16} /> {label(stackKey(outputs[0]))}
 									</button>
 								) : (
 									name(gameData, id)
@@ -185,7 +193,7 @@ function ItemPanel({ item, graph, routes, setRoutes, onSelect }: {
 								<tr key={key}>
 									<td>{num(amount, 3)}</td>
 									<td>
-										{label(key)}
+										<ItemIcon item={key} size={16} /> {label(key)}
 										{cost.noRecipe.has(key) && <span class="lab-flag"> no recipe</span>}
 									</td>
 								</tr>
@@ -217,6 +225,7 @@ function RecipeCard({ recipe, item }: { recipe: GraphRecipe; item: string }) {
 							const key = entry ? ('item' in entry ? entry.item : `#${entry.tag}`) : null;
 							return (
 								<span key={`${r}-${c}`} class={`lab-grid-cell${key ? ` lab-mod-${modOf(key)}` : ''}`} title={key ?? ''}>
+									{key && <ItemIcon item={key} size={20} />}
 									{key ? label(key) : ''}
 								</span>
 							);

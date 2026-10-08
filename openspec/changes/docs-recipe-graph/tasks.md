@@ -26,7 +26,7 @@
 
 - [x] 4.1 Add `IconExporter` to Manufacturing's client code (design D9), registered only when `servus.icons.output` is set; add the `iconExport` client run with all Servus mods and both properties to the root `build.gradle`; add `src/icons/minecraft/` to `docs/.gitignore`. Verify with `gradlew build` and that the normal client run writes no icons.
 - [x] 4.2 Run `gradlew iconExport`; check a few PNGs (shuttle, crate, power cable, assembler, redstone) look like the inventory icons on a transparent background; confirm `git status` lists only `servus_*` icons; commit them.
-- [ ] 4.3 Load icons in the site with `import.meta.glob` (design D9) and show them on item nodes, in the panel's grid cells and in the raw cost, with the name as fallback and `image-rendering: pixelated`. Verify in the browser with the vanilla icons present, and once with `docs/src/icons/minecraft/` moved away (no missing image requests); `npm test` and `npm run build` green.
+- [x] 4.3 Load icons in the site with `import.meta.glob` (design D9) and show them on item nodes, in the panel's grid cells and in the raw cost, with the name as fallback and `image-rendering: pixelated`. Verify in the browser with the vanilla icons present, and once with `docs/src/icons/minecraft/` moved away (no missing image requests); `npm test` and `npm run build` green.
 
 ## 5. Integration
 
