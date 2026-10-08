@@ -93,6 +93,10 @@ public final class ServusStorageEvents {
                     (rack, side) -> rack.items());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.ACCESS_POINT.get(),
+                    (point, side) -> point.handlerFor(side));
+            event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.ACCESS_POINT.get(),
+                    (point, side) -> point);
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.OUTBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.CRAFTING_STATION.get(),

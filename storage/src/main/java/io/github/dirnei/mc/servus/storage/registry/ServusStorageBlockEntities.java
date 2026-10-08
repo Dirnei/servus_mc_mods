@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardBlockEntity;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -41,6 +42,11 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<InboundStationBlockEntity>> INBOUND_STATION =
             BLOCK_ENTITIES.register("inbound_station", () -> BlockEntityType.Builder
                     .of(InboundStationBlockEntity::new, ServusStorageBlocks.INBOUND_STATION.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AccessPointBlockEntity>> ACCESS_POINT =
+            BLOCK_ENTITIES.register("access_point", () -> BlockEntityType.Builder
+                    .of(AccessPointBlockEntity::new, ServusStorageBlocks.ACCESS_POINT.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShuttleGarageBlockEntity>> SHUTTLE_GARAGE =

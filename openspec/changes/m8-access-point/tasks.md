@@ -10,7 +10,7 @@
 
 ## 3. Access Point block
 
-- [ ] 3.1 Add `storage/access/AccessPointBlock`, `AccessPointBlockEntity` (intake on all sides, outgoing buffer as `DeliveryTarget`, both dropped when broken, carrot dismantles), registries (block, block entity, item, creative tab), capabilities (item handler, `DATA_LINK`) in `ServusStorageEvents`. Verify with `gradlew build`.
+- [x] 3.1 Add `storage/access/AccessPointBlock`, `AccessPointBlockEntity` (intake on all sides, outgoing buffer as `DeliveryTarget`, both dropped when broken, carrot dismantles), registries (block, block entity, item, creative tab), capabilities (item handler, `DATA_LINK`) in `ServusStorageEvents`. Verify with `gradlew build`.
 - [ ] 3.2 Datagen: blockstate via the station helper, lang, loot, pickaxe tag, recipe; teal textures from the Inbound Station textures with a helper script in the session helpers. Run `:storage:runData` and `:manufacturing:runData`, check the files, `gradlew build`.
 
 ## 4. Shipping

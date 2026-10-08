@@ -14,6 +14,7 @@ import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
+import io.github.dirnei.mc.servus.storage.access.AccessPointBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -82,6 +83,14 @@ public final class ServusStorageBlocks {
             BLOCKS.registerBlock("inbound_station", InboundStationBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
+                            .strength(3.0F)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL));
+
+    public static final DeferredBlock<AccessPointBlock> ACCESS_POINT =
+            BLOCKS.registerBlock("access_point", AccessPointBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_CYAN)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
                             .sound(SoundType.METAL));
