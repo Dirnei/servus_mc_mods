@@ -16,7 +16,7 @@
 ## 4. Shipping
 
 - [x] 4.1 Shipments on `AccessPointBlockEntity` (FIFO, one running delivery, NBT), `WarehouseNetwork.ship` with the choice and planning, `ServusStorageShipping.ship`, and `/servus_warehouse ship`. Verify with `gradlew build`.
-- [ ] 4.2 GameTests in `storage/.../gametest/AccessPointGameTests.java`: `accessPointIsLinkMember`, `accessPointJoinsWarehouse`, `packetsArePutAway`, `shipFromCrate`, `shipFromRackByShuttle`, `nearerAccessPointWins`, `shipRefusedWithoutAccessPoint`, `brokenAccessPointDropsBuffers`. Verify with `:storage:runGameTestServer` all green, plus `:foundation:` and `:manufacturing:` GameTests.
+- [x] 4.2 GameTests in `storage/.../gametest/AccessPointGameTests.java`: `accessPointIsLinkMember`, `accessPointJoinsWarehouse`, `packetsArePutAway`, `shipFromCrate`, `shipFromRackByShuttle`, `nearerAccessPointWins`, `shipRefusedWithoutAccessPoint`, `brokenAccessPointDropsBuffers`. Verify with `:storage:runGameTestServer` all green, plus `:foundation:` and `:manufacturing:` GameTests.
 
 ## 5. Docs and integration
 
