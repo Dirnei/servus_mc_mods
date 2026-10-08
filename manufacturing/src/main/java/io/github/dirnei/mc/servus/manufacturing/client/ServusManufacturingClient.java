@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBloc
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingMenus;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -50,6 +51,12 @@ public final class ServusManufacturingClient {
     }
 
     /** The Sink fan is a standalone model drawn by its block entity renderer. */
+    /** Dev only icon export for the docs, when the iconExport run asks for it. */
+    @SubscribeEvent
+    public static void onClientSetup(FMLClientSetupEvent event) {
+        IconExporter.registerIfRequested();
+    }
+
     @SubscribeEvent
     public static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
         event.register(SinkRenderer.FAN_MODEL);
