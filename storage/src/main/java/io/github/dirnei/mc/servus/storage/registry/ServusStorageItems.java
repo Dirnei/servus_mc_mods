@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
-import io.github.dirnei.mc.servus.lib.placement.AssistedBlockItem;
+import io.github.dirnei.mc.servus.foundation.placement.AssistedBlockItem;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackItem;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorAssist;

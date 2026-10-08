@@ -36,8 +36,7 @@ jobs:
         with:
           name: servus-mods
           path: |
-            lib/build/libs/*.jar
+            foundation/build/libs/*.jar
             manufacturing/build/libs/*.jar
-            logistics/build/libs/*.jar
             storage/build/libs/*.jar
           if-no-files-found: error

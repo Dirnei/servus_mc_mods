@@ -6,7 +6,7 @@ Servus Lib already has everything a cable network needs except a block: `Network
 
 The production and stock capabilities exist in `lib/production` (`ServusLibCapabilities.PRODUCTION`, `STOCK_PROVIDER`, `STOCK_SINK`). Today they are exposed by the Assembler (Manufacturing), the Crafting Station and the Warehouse Controller (Storage). Lib registers items only; it has no block or block entity register yet.
 
-See proposal.md for why and specs/lib/data-cable/spec.md for the behavior.
+See proposal.md for why and specs/foundation/data-cable/spec.md for the behavior.
 
 ## Goals / Non-Goals
 

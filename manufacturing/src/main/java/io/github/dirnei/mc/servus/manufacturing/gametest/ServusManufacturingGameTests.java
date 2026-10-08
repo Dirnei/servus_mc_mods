@@ -1,13 +1,13 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
-import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
-import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
-import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
-import io.github.dirnei.mc.servus.logistics.duct.Line;
-import io.github.dirnei.mc.servus.logistics.duct.UtilityDuctBlockEntity;
-import io.github.dirnei.mc.servus.logistics.registry.ServusLogisticsBlocks;
+import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
@@ -16,7 +16,7 @@ import io.github.dirnei.mc.servus.manufacturing.machine.sink.ChimneyBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.menu.SinkMenu;
-import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -219,12 +219,12 @@ public final class ServusManufacturingGameTests {
         helper.setBlock(PR_ASSEMBLER, facing(ServusManufacturingBlocks.ASSEMBLER.get(), Direction.WEST));
         AssemblerBlockEntity assembler = helper.getBlockEntity(PR_ASSEMBLER);
         BlockPos absolute = helper.absolutePos(PR_ASSEMBLER);
-        ProductionProvider empty = helper.getLevel().getCapability(ServusLibCapabilities.PRODUCTION, absolute, null);
+        ProductionProvider empty = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, absolute, null);
         helper.assertTrue(empty != null, "the assembler should expose the production capability");
         helper.assertTrue(empty.recipes().isEmpty() && empty.active().isEmpty(), "nothing configured means no recipes");
 
         assembler.addRecipe(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "assembling/iron_gear"), null);
-        ProductionProvider provider = helper.getLevel().getCapability(ServusLibCapabilities.PRODUCTION, absolute, Direction.UP);
+        ProductionProvider provider = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, absolute, Direction.UP);
         helper.assertTrue(provider != null && provider.recipes().size() == 1, "one recipe should be reported");
         ProductionRecipe gear = provider.recipes().get(0);
         helper.assertTrue(gear.inputs().size() == 1 && gear.inputs().get(0).is(Items.IRON_INGOT) && gear.inputs().get(0).getCount() == 2,
@@ -617,7 +617,7 @@ public final class ServusManufacturingGameTests {
     private static void carrot(GameTestHelper helper, BlockPos pos, Direction face, boolean sneaking) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(sneaking);
-        useOn(helper, player, new ItemStack(ServusLibItems.CONFIGURATION_CARROT.get()), pos, face);
+        useOn(helper, player, new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get()), pos, face);
     }
 
     /** Builds the standard cube, forms it from the controller's front and stacks a column on the back right top block. */

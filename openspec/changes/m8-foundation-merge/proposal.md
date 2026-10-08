@@ -21,7 +21,7 @@ This change is a precondition for the M8 item `m8-data-cable`, which is reworked
 None.
 
 ### Modified Capabilities
-- `foundation/mod-family-loading` (moved from `lib/mod-family-loading`): three mods instead of four, Foundation is the only shared dependency.
+- `foundation/mod-family-loading` (moved from `lib/mod-family-loading`): three mods instead of four, Foundation is the only shared dependency; the independence rule is replaced by "Manufacturing and Storage are independent".
 - `foundation/config` (moved from `lib/config`): the config file name.
 - `foundation/production-api` (moved from `lib/production-api`): capability ids in the `servus_foundation` namespace.
 - `foundation/wrench` (moved from `lib/wrench`): the creative tab exists with Foundation; old item ids.

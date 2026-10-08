@@ -1,15 +1,15 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
-import io.github.dirnei.mc.servus.lib.block.RecipeEditorButtons;
-import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
-import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
-import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
-import io.github.dirnei.mc.servus.lib.production.StockProvider;
-import io.github.dirnei.mc.servus.lib.production.StockSink;
-import io.github.dirnei.mc.servus.lib.registry.ServusLibItems;
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
+import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.production.StockProvider;
+import io.github.dirnei.mc.servus.foundation.production.StockSink;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardBlock;
 import io.github.dirnei.mc.servus.storage.board.OrderBoardBlockEntity;
@@ -727,7 +727,7 @@ public final class ServusStorageGameTests {
         placeRackByHand(helper, player, NR_RACK);
         placeRackByHand(helper, player, NR_RACK.east());
         BlockPos absolute = helper.absolutePos(NR_RACK);
-        ItemStack carrot = new ItemStack(io.github.dirnei.mc.servus.lib.registry.ServusLibItems.CONFIGURATION_CARROT.get());
+        ItemStack carrot = new ItemStack(io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems.CONFIGURATION_CARROT.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
         carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
@@ -1113,7 +1113,7 @@ public final class ServusStorageGameTests {
                         "rail " + direction + " of the station should dock towards it");
             }
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-            ItemStack carrot = new ItemStack(ServusLibItems.CONFIGURATION_CARROT.get());
+            ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
             player.setShiftKeyDown(true);
             BlockPos absolute = helper.absolutePos(DK_STATION);
@@ -1246,7 +1246,7 @@ public final class ServusStorageGameTests {
         helper.assertTrue(garage.takeShuttle() && garage.takeShuttle(), "two shuttles can be taken back");
         helper.assertTrue(garage.shuttleCount() == capacity - 2, "count should drop by two");
 
-        ItemStack carrot = new ItemStack(ServusLibItems.CONFIGURATION_CARROT.get());
+        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
         player.setShiftKeyDown(true);
         BlockPos absolute = helper.absolutePos(GA_GARAGE);
@@ -1657,8 +1657,8 @@ public final class ServusStorageGameTests {
         full.insert(new ItemStack(Items.COBBLESTONE, 80), false);
         helper.runAfterDelay(10, () -> {
             BlockPos absolute = helper.absolutePos(CS_CONTROLLER);
-            StockProvider provider = helper.getLevel().getCapability(ServusLibCapabilities.STOCK_PROVIDER, absolute, Direction.UP);
-            StockSink sink = helper.getLevel().getCapability(ServusLibCapabilities.STOCK_SINK, absolute, null);
+            StockProvider provider = helper.getLevel().getCapability(ServusFoundationCapabilities.STOCK_PROVIDER, absolute, Direction.UP);
+            StockSink sink = helper.getLevel().getCapability(ServusFoundationCapabilities.STOCK_SINK, absolute, null);
             helper.assertTrue(provider != null && sink != null, "the controller should expose both stock capabilities");
             helper.assertTrue(provider.count(new ItemStack(Items.COBBLESTONE)) == 80, "count should be 80, was " + provider.count(new ItemStack(Items.COBBLESTONE)));
             ItemStack taken = provider.extract(new ItemStack(Items.COBBLESTONE), 20);
@@ -1939,7 +1939,7 @@ public final class ServusStorageGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void craftingStationReportsProduction(GameTestHelper helper) {
         CraftingStationBlockEntity station = craftingStationWithSticks(helper, CR_STATION);
-        ProductionProvider provider = helper.getLevel().getCapability(ServusLibCapabilities.PRODUCTION, helper.absolutePos(CR_STATION), null);
+        ProductionProvider provider = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(CR_STATION), null);
         helper.assertTrue(provider != null && provider.recipes().size() == 1, "one recipe should be reported");
         ProductionRecipe sticks = provider.recipes().get(0);
         helper.assertTrue(sticks.inputs().size() == 1 && sticks.inputs().get(0).is(Items.OAK_PLANKS) && sticks.inputs().get(0).getCount() == 2,

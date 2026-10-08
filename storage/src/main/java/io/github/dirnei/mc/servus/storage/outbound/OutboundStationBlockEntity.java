@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.storage.outbound;
 
-import io.github.dirnei.mc.servus.lib.block.SidedBlockEntity;
-import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
-import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideConfig;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
+import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideConfig;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
@@ -206,7 +206,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         if (level == null) {
             return null;
         }
-        return level.getCapability(ServusLibCapabilities.PRODUCTION, machinePos(), facing());
+        return level.getCapability(ServusFoundationCapabilities.PRODUCTION, machinePos(), facing());
     }
 
     // Restocking state, written by the warehouse

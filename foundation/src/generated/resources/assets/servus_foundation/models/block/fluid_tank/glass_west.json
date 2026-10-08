@@ -1,0 +1,29 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "west": {
+          "cullface": "west",
+          "texture": "#glass"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    }
+  ],
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "frame": "servus_foundation:block/fluid_tank_frame",
+    "glass": "servus_foundation:block/fluid_tank_glass",
+    "particle": "servus_foundation:block/fluid_tank_frame"
+  }
+}

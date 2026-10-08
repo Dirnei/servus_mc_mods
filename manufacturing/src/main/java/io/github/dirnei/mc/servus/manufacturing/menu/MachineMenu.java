@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.menu;
 
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -153,7 +153,7 @@ public abstract class MachineMenu extends AbstractContainerMenu {
     // Side configuration
 
     /** Button ids from this value on cycle the relative side with that offset. */
-    public static final int SIDE_BUTTON_FIRST = io.github.dirnei.mc.servus.lib.block.SideConfigMenus.BUTTON_FIRST;
+    public static final int SIDE_BUTTON_FIRST = io.github.dirnei.mc.servus.foundation.block.SideConfigMenus.BUTTON_FIRST;
 
     public SideMode sideMode(RelativeSide side) {
         return SideMode.byOrdinal(data.get(MachineBlockEntity.DATA_SIDE_FIRST + side.ordinal()));

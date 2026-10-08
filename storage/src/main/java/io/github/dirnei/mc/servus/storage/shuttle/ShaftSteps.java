@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.shuttle;
 
-import io.github.dirnei.mc.servus.lib.graph.NodePos;
+import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.storage.shuttle.Shafts.Shaft;
 import java.util.List;
 import java.util.function.Function;

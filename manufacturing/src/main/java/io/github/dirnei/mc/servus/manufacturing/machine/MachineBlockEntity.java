@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.manufacturing.machine;
 
-import io.github.dirnei.mc.servus.lib.network.Conversions;
-import io.github.dirnei.mc.servus.lib.block.SidedBlockEntity;
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideConfig;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
+import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideConfig;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;

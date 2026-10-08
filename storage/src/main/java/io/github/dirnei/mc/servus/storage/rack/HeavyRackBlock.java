@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.rack;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
-import io.github.dirnei.mc.servus.lib.item.Wrenchable;
+import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;

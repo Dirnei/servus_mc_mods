@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.storage.network;
 
-import io.github.dirnei.mc.servus.lib.graph.NodePos;
-import io.github.dirnei.mc.servus.lib.graph.Side;
-import io.github.dirnei.mc.servus.lib.network.Conversions;
-import io.github.dirnei.mc.servus.lib.network.NetworkType;
-import io.github.dirnei.mc.servus.lib.network.core.NetworkSet;
-import io.github.dirnei.mc.servus.lib.network.core.ServusNetwork;
+import io.github.dirnei.mc.servus.foundation.graph.NodePos;
+import io.github.dirnei.mc.servus.foundation.graph.Side;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
+import io.github.dirnei.mc.servus.foundation.network.NetworkType;
+import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
+import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
@@ -26,8 +26,8 @@ import io.github.dirnei.mc.servus.storage.shuttle.Shafts;
 import io.github.dirnei.mc.servus.storage.shuttle.Shafts.Shaft;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
-import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
-import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
@@ -82,7 +82,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public enum Status { ONLINE, NO_CONTROLLER, MULTIPLE_CONTROLLERS }
 
     /** A stock node may limit which of its sides take a rail; the rail side is asked from the stock node's view. */
-    private static boolean railSideAccepted(StorageNodeBlockEntity from, io.github.dirnei.mc.servus.lib.graph.Side side,
+    private static boolean railSideAccepted(StorageNodeBlockEntity from, io.github.dirnei.mc.servus.foundation.graph.Side side,
                                             StorageNodeBlockEntity to) {
         boolean fromRail = from.kind() == WarehouseConnectionRule.NodeKind.RAIL;
         boolean toRail = to.kind() == WarehouseConnectionRule.NodeKind.RAIL;
@@ -95,14 +95,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return !to.docksRail() || to.acceptsRail(opposite(side));
     }
 
-    private static io.github.dirnei.mc.servus.lib.graph.Side opposite(io.github.dirnei.mc.servus.lib.graph.Side side) {
+    private static io.github.dirnei.mc.servus.foundation.graph.Side opposite(io.github.dirnei.mc.servus.foundation.graph.Side side) {
         return switch (side) {
-            case UP -> io.github.dirnei.mc.servus.lib.graph.Side.DOWN;
-            case DOWN -> io.github.dirnei.mc.servus.lib.graph.Side.UP;
-            case NORTH -> io.github.dirnei.mc.servus.lib.graph.Side.SOUTH;
-            case SOUTH -> io.github.dirnei.mc.servus.lib.graph.Side.NORTH;
-            case WEST -> io.github.dirnei.mc.servus.lib.graph.Side.EAST;
-            case EAST -> io.github.dirnei.mc.servus.lib.graph.Side.WEST;
+            case UP -> io.github.dirnei.mc.servus.foundation.graph.Side.DOWN;
+            case DOWN -> io.github.dirnei.mc.servus.foundation.graph.Side.UP;
+            case NORTH -> io.github.dirnei.mc.servus.foundation.graph.Side.SOUTH;
+            case SOUTH -> io.github.dirnei.mc.servus.foundation.graph.Side.NORTH;
+            case WEST -> io.github.dirnei.mc.servus.foundation.graph.Side.EAST;
+            case EAST -> io.github.dirnei.mc.servus.foundation.graph.Side.WEST;
         };
     }
 

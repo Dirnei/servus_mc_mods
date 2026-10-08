@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
-import io.github.dirnei.mc.servus.lib.client.SideConfigPanel;
+import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.outbound.KeepSlotPayload;
@@ -24,7 +24,7 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
     private static final int COLOUR_TEXT = 0x404040;
     private static final int COLOUR_ALERT = 0xB03030;
 
-    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == io.github.dirnei.mc.servus.lib.side.RelativeSide.FRONT, side -> {
+    private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == io.github.dirnei.mc.servus.foundation.side.RelativeSide.FRONT, side -> {
         if (minecraft != null && minecraft.gameMode != null) {
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(side));
         }

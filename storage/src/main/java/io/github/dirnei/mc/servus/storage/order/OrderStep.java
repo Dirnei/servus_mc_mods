@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.order;
 
-import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.HashMap;
 import java.util.LinkedHashMap;

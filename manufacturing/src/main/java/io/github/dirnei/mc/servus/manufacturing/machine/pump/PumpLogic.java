@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.pump;
 
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideConfig;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideConfig;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;

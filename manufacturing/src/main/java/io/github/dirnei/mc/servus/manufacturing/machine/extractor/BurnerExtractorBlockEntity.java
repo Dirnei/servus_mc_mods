@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.extractor;
 
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositDefinition;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;

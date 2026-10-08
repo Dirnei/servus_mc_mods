@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.index;
 
-import io.github.dirnei.mc.servus.lib.graph.NodePos;
-import io.github.dirnei.mc.servus.lib.graph.Side;
+import io.github.dirnei.mc.servus.foundation.graph.NodePos;
+import io.github.dirnei.mc.servus.foundation.graph.Side;
 import java.util.LinkedHashSet;
 import java.util.Set;
 

@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.network;
 
-import io.github.dirnei.mc.servus.lib.graph.Side;
+import io.github.dirnei.mc.servus.foundation.graph.Side;
 
 /**
  * Which warehouse nodes link up when they touch. Stock holding blocks,

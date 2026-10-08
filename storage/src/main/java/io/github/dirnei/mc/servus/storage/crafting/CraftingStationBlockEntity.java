@@ -1,13 +1,13 @@
 package io.github.dirnei.mc.servus.storage.crafting;
 
-import io.github.dirnei.mc.servus.lib.block.SidedBlockEntity;
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
-import io.github.dirnei.mc.servus.lib.side.SideConfig;
-import io.github.dirnei.mc.servus.lib.side.SideMode;
-import io.github.dirnei.mc.servus.lib.craft.IngredientGatherer;
-import io.github.dirnei.mc.servus.lib.craft.RoundRobin;
-import io.github.dirnei.mc.servus.lib.production.ProductionProvider;
-import io.github.dirnei.mc.servus.lib.production.ProductionRecipe;
+import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideConfig;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.craft.IngredientGatherer;
+import io.github.dirnei.mc.servus.foundation.craft.RoundRobin;
+import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;

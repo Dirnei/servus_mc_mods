@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.sink;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
-import io.github.dirnei.mc.servus.lib.item.Wrenchable;
+import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

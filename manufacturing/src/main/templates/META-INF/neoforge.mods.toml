@@ -28,15 +28,9 @@ ${mod_description}
     side="BOTH"
 
 [[dependencies.${mod_id}]]
-    modId="servus_lib"
+    modId="servus_foundation"
     type="required"
-    versionRange="${lib_version_range}"
+    versionRange="${foundation_version_range}"
     ordering="AFTER"
     side="BOTH"
 
-[[dependencies.${mod_id}]]
-    modId="servus_logistics"
-    type="required"
-    versionRange="${logistics_version_range}"
-    ordering="AFTER"
-    side="BOTH"

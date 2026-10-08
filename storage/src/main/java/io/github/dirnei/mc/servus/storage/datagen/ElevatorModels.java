@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
-import io.github.dirnei.mc.servus.lib.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;

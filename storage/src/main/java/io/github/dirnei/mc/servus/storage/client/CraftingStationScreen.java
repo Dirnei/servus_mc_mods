@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.storage.client;
 
-import io.github.dirnei.mc.servus.lib.block.RecipeEditorButtons;
-import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
-import io.github.dirnei.mc.servus.lib.client.RecipeEditorPopup;
-import io.github.dirnei.mc.servus.lib.client.SideConfigPanel;
-import io.github.dirnei.mc.servus.lib.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
+import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
+import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;

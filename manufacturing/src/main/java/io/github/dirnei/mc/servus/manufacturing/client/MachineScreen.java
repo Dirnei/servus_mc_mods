@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import io.github.dirnei.mc.servus.lib.block.SideConfigMenus;
-import io.github.dirnei.mc.servus.lib.client.FluidGauge;
-import io.github.dirnei.mc.servus.lib.client.SideConfigPanel;
+import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
+import io.github.dirnei.mc.servus.foundation.client.FluidGauge;
+import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpMachine;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.menu.MachineMenu;

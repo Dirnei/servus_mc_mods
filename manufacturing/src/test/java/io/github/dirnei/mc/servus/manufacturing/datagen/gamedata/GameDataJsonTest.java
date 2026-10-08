@@ -36,12 +36,12 @@ class GameDataJsonTest {
                 new Crafting("servus_storage:zone_label", "minecraft:crafting_shapeless", false, null, null,
                         List.of(Stack.tag("c:dyes", 1), Stack.item("minecraft:paper", 1)),
                         List.of(Stack.item("servus_storage:zone_label", 1))),
-                new Crafting("servus_logistics:power_cable", "minecraft:crafting_shaped", false,
+                new Crafting("servus_foundation:power_cable", "minecraft:crafting_shaped", false,
                         List.of("CCC", "RGR", "CCC"),
                         Map.of("R", Stack.item("minecraft:redstone", 1), "C", Stack.item("minecraft:copper_ingot", 1)),
                         List.of(Stack.item("minecraft:copper_ingot", 6)),
-                        List.of(Stack.item("servus_logistics:power_cable", 8))),
-                new Crafting("servus_logistics:facade", "servus_logistics:facade", true, null, null, List.of(), List.of()));
+                        List.of(Stack.item("servus_foundation:power_cable", 8))),
+                new Crafting("servus_foundation:facade", "servus_foundation:facade", true, null, null, List.of(), List.of()));
         Map<String, String> names = new LinkedHashMap<>();
         names.put("minecraft:iron_ingot", "Iron Ingot");
         names.put("minecraft:coal", "Coal \"black\"");
@@ -94,9 +94,9 @@ class GameDataJsonTest {
     @Test
     void craftingWritesPatternAndSpecialOnlyWhenSet() {
         String json = GameDataJson.write(sample(false));
-        String facade = json.substring(json.indexOf("\"servus_logistics:facade\": {"),
-                json.indexOf("\"servus_logistics:power_cable\": {"));
-        String cable = json.substring(json.indexOf("\"servus_logistics:power_cable\": {"),
+        String facade = json.substring(json.indexOf("\"servus_foundation:facade\": {"),
+                json.indexOf("\"servus_foundation:power_cable\": {"));
+        String cable = json.substring(json.indexOf("\"servus_foundation:power_cable\": {"),
                 json.indexOf("\"servus_storage:zone_label\": {"));
         String label = json.substring(json.indexOf("\"servus_storage:zone_label\": {"), json.indexOf("\"deposits\""));
 

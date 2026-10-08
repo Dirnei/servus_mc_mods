@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage;
 
-import io.github.dirnei.mc.servus.lib.production.ServusLibCapabilities;
-import io.github.dirnei.mc.servus.lib.registry.ServusLibCreativeTabs;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
@@ -75,7 +75,7 @@ public final class ServusStorageEvents {
 
         @SubscribeEvent
         public static void onBuildCreativeTab(BuildCreativeModeTabContentsEvent event) {
-            if (event.getTabKey().equals(ServusLibCreativeTabs.SERVUS_KEY)) {
+            if (event.getTabKey().equals(ServusFoundationCreativeTabs.SERVUS_KEY)) {
                 ServusStorageItems.CREATIVE_TAB_ORDER.forEach(event::accept);
             }
         }
@@ -97,11 +97,11 @@ public final class ServusStorageEvents {
                     (station, side) -> station.handlerFor(side));
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.CRAFTING_STATION.get(),
                     (station, side) -> station.handlerFor(side));
-            event.registerBlockEntity(ServusLibCapabilities.PRODUCTION, ServusStorageBlockEntities.CRAFTING_STATION.get(),
+            event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusStorageBlockEntities.CRAFTING_STATION.get(),
                     (station, side) -> station.production());
-            event.registerBlockEntity(ServusLibCapabilities.STOCK_PROVIDER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
+            event.registerBlockEntity(ServusFoundationCapabilities.STOCK_PROVIDER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
                     (controller, side) -> controller.stock());
-            event.registerBlockEntity(ServusLibCapabilities.STOCK_SINK, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
+            event.registerBlockEntity(ServusFoundationCapabilities.STOCK_SINK, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
                     (controller, side) -> controller.sink());
         }
     }

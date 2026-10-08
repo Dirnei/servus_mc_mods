@@ -21,19 +21,19 @@ class CraftingRecipeReaderTest {
 
     @Test
     void shapedRecipeSumsItsGrid() {
-        Crafting cable = read("servus_logistics:power_cable", """
+        Crafting cable = read("servus_foundation:power_cable", """
                 {"type": "minecraft:crafting_shaped", "category": "redstone",
                  "key": {"C": {"item": "minecraft:copper_ingot"}, "G": {"item": "minecraft:glass"},
                          "R": {"item": "minecraft:redstone"}},
                  "pattern": ["CCC", "RGR", "CCC"],
-                 "result": {"count": 8, "id": "servus_logistics:power_cable"}}
+                 "result": {"count": 8, "id": "servus_foundation:power_cable"}}
                 """);
 
         assertFalse(cable.special());
         assertEquals(List.of("CCC", "RGR", "CCC"), cable.pattern());
         assertEquals(List.of(Stack.item("minecraft:copper_ingot", 6), Stack.item("minecraft:glass", 1),
                 Stack.item("minecraft:redstone", 2)), cable.inputs());
-        assertEquals(List.of(Stack.item("servus_logistics:power_cable", 8)), cable.outputs());
+        assertEquals(List.of(Stack.item("servus_foundation:power_cable", 8)), cable.outputs());
     }
 
     @Test
@@ -67,8 +67,8 @@ class CraftingRecipeReaderTest {
 
     @Test
     void recipeWithoutIngredientsIsSpecial() {
-        Crafting facade = read("servus_logistics:facade", """
-                {"type": "servus_logistics:facade", "category": "misc"}
+        Crafting facade = read("servus_foundation:facade", """
+                {"type": "servus_foundation:facade", "category": "misc"}
                 """);
 
         assertTrue(facade.special());
@@ -78,7 +78,7 @@ class CraftingRecipeReaderTest {
 
     @Test
     void listIngredientKeepsItsFirstEntryAndCountDefaultsToOne() {
-        Crafting crafting = read("servus_lib:sample", """
+        Crafting crafting = read("servus_foundation:sample", """
                 {"type": "minecraft:crafting_shapeless",
                  "ingredients": [[{"item": "minecraft:coal"}, {"item": "minecraft:charcoal"}], {"item": "minecraft:stick"}],
                  "result": {"id": "minecraft:torch"}}

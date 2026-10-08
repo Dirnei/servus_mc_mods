@@ -6,7 +6,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
-import io.github.dirnei.mc.servus.lib.client.SideMarkerRenderer;
+import io.github.dirnei.mc.servus.foundation.client.SideMarkerRenderer;
 import java.util.Map;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;

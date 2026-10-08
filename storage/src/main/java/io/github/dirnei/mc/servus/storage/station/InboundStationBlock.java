@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.storage.station;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.lib.block.SideConfigWrench;
-import io.github.dirnei.mc.servus.lib.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.block.SideConfigWrench;
+import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import io.github.dirnei.mc.servus.lib.item.Wrenchable;
+import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import net.minecraft.core.BlockPos;
