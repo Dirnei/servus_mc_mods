@@ -8,7 +8,7 @@
 ## 2. Resources and datagen
 
 - [x] 2.1 Move `assets/servus_lib`, `assets/servus_logistics` and `data/servus_logistics` into `foundation/src/main/resources/{assets,data}/servus_foundation`; switch every `servus_lib` and `servus_logistics` string in code (ids, lang keys such as `gui.servus_lib.side.*`, `message.servus_lib.*`, texture and model paths, datapack loader namespaces) in all three projects to `servus_foundation`. Verify with `gradlew build` and a grep that finds no `servus_lib` or `servus_logistics` under `foundation/src/main`, `manufacturing/src/main` and `storage/src/main` (generated resources excepted).
-- [ ] 2.2 Replace `ServusFoundationDataGen` and the Logistics datagen subscriber with one subscriber registering one provider per kind (language, block states, item models, block tags, recipes, loot tables), each provider calling the API part and the Logistics part. Delete both old `src/generated/resources` trees, run `:foundation:runData`, `:storage:runData` and `:manufacturing:runData`, verify the duct, tank, carrot, goggles and Data Cable assets, recipes, loot tables and tags exist under `servus_foundation`, then `gradlew build`.
+- [x] 2.2 Replace `ServusFoundationDataGen` and the Logistics datagen subscriber with one subscriber registering one provider per kind (language, block states, item models, block tags, recipes, loot tables), each provider calling the API part and the Logistics part. Delete both old `src/generated/resources` trees, run `:foundation:runData`, `:storage:runData` and `:manufacturing:runData`, verify the duct, tank, carrot, goggles and Data Cable assets, recipes, loot tables and tags exist under `servus_foundation`, then `gradlew build`.
 
 ## 3. Tests
 

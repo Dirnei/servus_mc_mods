@@ -1,5 +1,7 @@
 {
   "values": [
-    "servus_lib:data_cable"
+    "servus_foundation:data_cable",
+    "servus_foundation:utility_duct",
+    "servus_foundation:fluid_tank"
   ]
 }

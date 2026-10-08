@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationBlocks;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -19,5 +20,6 @@ final class ServusFoundationBlockTagsProvider extends BlockTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider provider) {
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ServusFoundationBlocks.DATA_CABLE.get());
+        LogisticsDataParts.pickaxeBlocks().forEach(block -> tag(BlockTags.MINEABLE_WITH_PICKAXE).add(block));
     }
 }

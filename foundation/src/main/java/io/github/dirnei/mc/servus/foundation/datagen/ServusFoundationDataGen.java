@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.logistics.datagen.ServusLogisticsBlockLoot;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -32,7 +33,8 @@ public final class ServusFoundationDataGen {
         generator.addProvider(event.includeServer(), new ServusFoundationBlockTagsProvider(output, lookup, existingFileHelper));
         generator.addProvider(event.includeServer(), new ServusFoundationRecipeProvider(output, lookup));
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
-                List.of(new LootTableProvider.SubProviderEntry(ServusFoundationBlockLoot::new, LootContextParamSets.BLOCK)),
+                List.of(new LootTableProvider.SubProviderEntry(ServusFoundationBlockLoot::new, LootContextParamSets.BLOCK),
+                        new LootTableProvider.SubProviderEntry(ServusLogisticsBlockLoot::new, LootContextParamSets.BLOCK)),
                 lookup));
     }
 }

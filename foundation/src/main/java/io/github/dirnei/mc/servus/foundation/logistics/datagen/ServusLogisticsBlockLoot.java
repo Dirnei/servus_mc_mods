@@ -18,11 +18,11 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
  * The duct drops its line items from code, so the block itself drops nothing.
  * The Fluid Tank drops itself carrying the fluid of its share.
  */
-final class ServusLogisticsBlockLoot extends BlockLootSubProvider {
+public final class ServusLogisticsBlockLoot extends BlockLootSubProvider {
 
     private static final List<Block> KNOWN = List.of(ServusLogisticsBlocks.UTILITY_DUCT.get(), ServusLogisticsBlocks.FLUID_TANK.get());
 
-    ServusLogisticsBlockLoot(HolderLookup.Provider registries) {
+    public ServusLogisticsBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
     }
 

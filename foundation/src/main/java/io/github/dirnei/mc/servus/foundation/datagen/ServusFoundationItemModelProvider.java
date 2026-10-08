@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
@@ -16,5 +17,6 @@ final class ServusFoundationItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         basicItem(ServusFoundationItems.CONFIGURATION_CARROT.get());
         basicItem(ServusFoundationItems.GOGGLES.get());
+        LogisticsDataParts.itemModels(this);
     }
 }

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -43,5 +44,7 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .define('R', Items.REDSTONE)
                 .unlockedBy("has_copper", has(Items.COPPER_INGOT))
                 .save(output);
+
+        LogisticsDataParts.recipes(output, RecipeProvider::has);
     }
 }

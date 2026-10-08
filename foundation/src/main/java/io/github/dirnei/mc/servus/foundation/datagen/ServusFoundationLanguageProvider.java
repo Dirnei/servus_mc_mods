@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationBlocks;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import net.minecraft.data.PackOutput;
@@ -37,5 +38,6 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add("gui.servus_foundation.side_line", "%s: %s");
         add("gui.servus_foundation.side_fixed", "(fixed)");
         add("gui.servus_foundation.fluid_gauge.empty", "Empty");
+        LogisticsDataParts.language(this);
     }
 }
