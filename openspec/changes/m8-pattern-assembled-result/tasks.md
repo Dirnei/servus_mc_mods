@@ -12,4 +12,4 @@
 
 ## 3. Integration
 
-- [ ] 3.1 Full `gradlew build test`, Foundation, Manufacturing and Storage GameTests green, `openspec validate --strict`.
+- [x] 3.1 Full `gradlew build test`, Foundation, Manufacturing and Storage GameTests green, `openspec validate --strict`.
