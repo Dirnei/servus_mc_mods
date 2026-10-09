@@ -6,7 +6,7 @@
 
 ## 2. Instant deliveries and gates (Foundation)
 
-- [ ] 2.1 Add pure `foundation.data.packet.RateBudget` and JUnit `RateBudgetTest` (`eightPerSecondOverTwentyTicks`, `fractionalCarry`, `capAtOneSecond`, `directionsIndependent`). Verify with `gradlew :foundation:test`.
+- [x] 2.1 Add pure `foundation.data.packet.RateBudget` and JUnit `RateBudgetTest` (`eightPerSecondOverTwentyTicks`, `fractionalCarry`, `capAtOneSecond`, `directionsIndependent`). Verify with `gradlew :foundation:test`.
 - [ ] 2.2 Add the `servus_foundation:transfer_gate` capability (`TransferGate`, `Flow`) to `ServusFoundationCapabilities`; make `Shipment` move items per tick without travel, bounded by source, target and gate allowances; remove `PacketFlight` and the travel part of `PacketRoutes`; shrink `PacketLimits`/`PacketLimitsManager` and `packets.json` to `retry_interval`; update `DataPackets` docs and the `/servus_foundation data move` command. JUnit for the per tick amount. Verify with `gradlew build test` and `:foundation:runGameTestServer`, `:storage:runGameTestServer` (rewrite packet tests that waited fixed ticks).
 
 ## 3. Packing Station
