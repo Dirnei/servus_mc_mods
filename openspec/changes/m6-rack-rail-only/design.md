@@ -14,7 +14,7 @@ The warehouse graph links nodes by `WarehouseConnectionRule.accepts(kind, side, 
 `docksRail` and `holdsStock` include RACK, so racks dock rails and stay indexed sources.
 
 ### Section links
-The graph asks both nodes. For RACK to RACK the network's connection lambda additionally asks `HeavyRackBlockEntity.joinedTowards(side)`: true when the side is the rack's left or right and that join flag is set and the neighbour is a rack of the same facing. The flags only change on placement (mirror) and removal, so after `onPlace` mirrors a join onto the neighbour, both racks refresh their links (`StorageNodeBlockEntity.refreshLinks`, a public wrapper around `refreshNetworkConnections`).
+The graph asks both nodes. For RACK to RACK the network's connection lambda additionally asks `HeavyRackBlockEntity.linksTowards(side, neighbour)`: true when the side is the rack's left or right and that join flag is set and the neighbour is a rack of the same facing. The flags only change on placement (mirror) and removal, so after `onPlace` mirrors a join onto the neighbour, both racks refresh their links (`StorageNodeBlockEntity.refreshLinks`, a public wrapper around `refreshNetworkConnections`).
 
 ### No pulling around racks
 A new `pullsNeighbours()` (STOCK only) gates `addCandidatesAround`, and rack positions count as connectors for `CandidateNeighbours.compute`. `addSource(pos, false)` skips positions holding a `StorageNodeBlockEntity`, so a crate never indexes an unlinked rack (or any other storage block) as a foreign inventory.

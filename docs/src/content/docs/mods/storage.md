@@ -11,7 +11,7 @@ Numbers below are the current defaults. They live in datapack JSON under `data/<
 
 - **Crate, Double Crate, Quad Crate**: bulk storage with one, two or four compartments that split a capacity of 4096 items. Each compartment holds one item type and shows it with its count on the front. Right click to insert, double right click to insert all, left click to take a stack.
 - **Iron and wood**: the controller, terminals, stations, Access Point, Shuttle Garage, Crafting Station, Crafting CPU and Pattern Storage have a dark riveted iron frame with wooden panels, like the racks. Every one of their recipes takes planks, and the block shows the wood of those planks (the kind used most; oak when it has none). The block keeps its wood when mined and placed again, and the item tooltip names it.
-- **Heavy Duty Rack**: a chest sized bay (27 slots) for mixed items with a GUI. Racks in a row join into sections of up to three bays and show the items they hold the most of on their shelves. The sides climb like a ladder. Racks are only served by shuttles.
+- **Heavy Duty Rack**: a chest sized bay (27 slots) for mixed items with a GUI. Racks in a row join into sections of up to three bays and show the items they hold the most of on their shelves. The sides climb like a ladder. Racks are only served by shuttles, so a rack section joins the warehouse only through a rail in front of one of its bays; touching the controller, a crate or another section does not connect it.
 
 ## Warehouse blocks
 
