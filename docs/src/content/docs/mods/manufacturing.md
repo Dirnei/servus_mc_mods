@@ -24,14 +24,14 @@ Salt, Sulfur and Mercury are fluids. They flow through the Fluid Pipe, wait in F
 
 ## Machines
 
-- **Calciner**: burns one item into its principles, for example one cobblestone into 100 mB Salt and 10 mB Mercury in 4 seconds. It takes common matter: cobblestone, stone, dirt, sand, gravel, logs, planks, leaves, saplings, crops, seeds, coal, raw ores, redstone and bones. It holds 4,000 mB of each principle and pushes them out through its Auto and Push sides. 20 FE per tick while working. Bricks, iron, a furnace and a cauldron.
-- **Coagulator**: makes the recipe you pick in its GUI from a fixed amount of each principle, for example a Salt Crystal from 250 mB Salt in 2 seconds. Each principle goes only into its own tank. 20 FE per tick while working. Iron, glass, a cauldron and redstone.
+- **Calciner**: burns one item into its principles, for example one cobblestone into 100 mB Salt and 10 mB Mercury in 4 seconds. It takes common matter: cobblestone, stone, dirt, sand, gravel, logs, planks, leaves, saplings, crops, seeds, coal, raw ores, redstone and bones. It holds 4,000 mB of each principle and pushes them out through its Auto and Push sides. Calcination is fire: the Calciner burns any furnace fuel in its fuel slot, one coal for 10 items, and needs no FE. On the data line it asks for coal to keep its fuel stocked. Bricks, iron, a furnace and a cauldron.
+- **Coagulator**: makes the recipe you pick in its GUI from a fixed amount of each principle, for example a Salt Crystal from 250 mB Salt in 2 seconds. Each principle goes only into its own tank. It needs no power: the joined principles only take the recipe's time to set. Iron, glass, a cauldron and redstone.
 
 - **Athanor**: the alchemist's furnace and the heart of the lab. Lay an item on it, feed it principles by bucket or pipe, and it burns them into the craft of that item, for example gunpowder and 200 mB Sulfur into Blaze Powder. It needs no FE. The blocks built around it set its stage, shown by its flame: alone it is Nigredo (black); a ring of eight Salt Crystal Blocks on its level makes it Albedo (white), which some crafts need. Bricks, a blast furnace and a cauldron.
 - **Salt Crystal Block**: nine Salt Crystals, and back.
 - **Gnome Hollow**: grows an ore vein, see [Gnomes](#gnomes). Made on an Albedo Athanor from cracked stone bricks, 500 mB Salt and 250 mB Mercury.
 
-Power, water, voiding surplus and chunk loading come from [Servus: Foundation](/servus_mc_mods/mods/foundation/#machines): the Coal Generator, the Burner and Electric Pump, the Sink and the Chunk Loader.
+Nigredo runs on fire and time, no FE needed. Power for later machines, water, voiding surplus and chunk loading come from [Servus: Foundation](/servus_mc_mods/mods/foundation/#machines): the Coal Generator, the Burner and Electric Pump, the Sink and the Chunk Loader.
 
 All machines face the player on placement, open a GUI on right click, push output into adjacent inventories and drop their contents when broken. Powered machines only draw energy on ticks they work and keep their progress when power runs out.
 

@@ -29,7 +29,7 @@ Every field is optional. A field the file leaves out, or a missing file, falls b
 | `fluid_per_cycle` | int | 0 | mB of water a pump adds to its buffer per work cycle. |
 | `fluid_capacity` | int | 0 | Size of a pump's water buffer, or of each principle tank of the Calciner and Coagulator, in mB. |
 | `min_source_neighbours` | int | 0 | How many of the four horizontal neighbours of the water source below a pump must be water sources too. |
-| `upkeep_item` | item id | per machine | The item a machine keeps stocked in its fuel slot from the data line. `minecraft:coal` for the Burner Pump and the Coal Generator, empty for the others. |
+| `upkeep_item` | item id | per machine | The item a machine keeps stocked in its fuel slot from the data line. `minecraft:coal` for the Burner Pump, the Coal Generator and the Calciner, empty for the others. |
 | `upkeep_level` | int | per machine | How many of the upkeep item the fuel slot is kept at. 16 for the Burner Pump and the Coal Generator, 0 for the others. 0 switches upkeep off. |
 
 ## Example
@@ -59,15 +59,16 @@ These are the defaults built into the code, used for any field a file leaves out
 
 | Machine | Kind | Runs | `work_ticks` | `energy_per_tick` | `energy_capacity` | `fuel_divisor` | `fluid_capacity` |
 |---|---|---|---|---|---|---|---|
-| `calciner` | powered | `servus_manufacturing:calcination` | 1 | 20 | 8000 | 1 | 4000 |
-| `coagulator` | powered | `servus_manufacturing:coagulation` | 1 | 20 | 8000 | 1 | 4000 |
-| `research_lab` | powered | research packs | 1 | 10 | 4000 | 1 | 0 |
+| `calciner` | burner | `servus_manufacturing:calcination` | 1 | 0 | 0 | 2 | 4000 |
+| `coagulator` | crafter | `servus_manufacturing:coagulation` | 1 | 0 | 0 | 1 | 4000 |
+| `athanor` | crafter | `servus_manufacturing:athanor` | 1 | 0 | 0 | 1 | 4000 |
+| `gnome_hollow` | crafter | vein yield | 1 | 0 | 0 | 1 | 4000 |
 | `servus_foundation:coal_generator` | generator | burns fuel | 1 | 40 | 16000 | 4 | 0 |
 | `servus_foundation:chunk_loader` | powered | nothing, upkeep only | 1 | 10 | 4000 | 1 | 0 |
 | `servus_foundation:burner_pump` | burner | water | 20 | 0 | 0 | 1 | 4000 |
 | `servus_foundation:electric_pump` | powered | water | 20 | 20 | 8000 | 1 | 4000 |
 
-`items_per_tick` is 0 for every machine. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump) and `min_source_neighbours` 2; these are 0 for every other machine. `upkeep_item` is `minecraft:coal` and `upkeep_level` 16 for the Burner Pump and Coal Generator; every other machine keeps no upkeep.
+`items_per_tick` is 0 for every machine. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump) and `min_source_neighbours` 2; these are 0 for every other machine. `upkeep_item` is `minecraft:coal` and `upkeep_level` 16 for the Burner Pump, the Coal Generator and the Calciner; every other machine keeps no upkeep.
 
 The shipped stats files repeat these defaults.
 
