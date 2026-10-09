@@ -495,7 +495,7 @@ public final class AlchemyGameTests {
     /** A carrot set to Fluids cycles the clicked face's Fluids side and leaves its Items side alone. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void fluidCarrotCyclesTheFluidsLayer(GameTestHelper helper) {
-        CalcinerBlockEntity calciner = calciner(helper);
+        CoagulatorBlockEntity coagulator = coagulator(helper, null);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
         carrot.set(ServusFoundationComponents.CARROT_LAYER.get(), SideLayer.FLUIDS.name());
@@ -503,9 +503,9 @@ public final class AlchemyGameTests {
         BlockPos pos = helper.absolutePos(MACHINE);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos).add(0.5, 0, 0), Direction.EAST, pos, false);
         carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
-        helper.assertTrue(calciner.fluidSides().value(RelativeSide.LEFT) == FluidSides.TANK_FIRST,
-                "the left Fluids side should move from All to Salt, got " + calciner.fluidSides().value(RelativeSide.LEFT));
-        helper.assertTrue(calciner.sideConfig().mode(RelativeSide.LEFT) == SideMode.AUTO, "the Items side stays Auto");
+        helper.assertTrue(coagulator.fluidSides().value(RelativeSide.LEFT) == FluidSides.TANK_FIRST,
+                "the left Fluids side should move from All to Salt, got " + coagulator.fluidSides().value(RelativeSide.LEFT));
+        helper.assertTrue(coagulator.sideConfig().mode(RelativeSide.LEFT) == SideMode.AUTO, "the Items side stays Auto");
         helper.succeed();
     }
 

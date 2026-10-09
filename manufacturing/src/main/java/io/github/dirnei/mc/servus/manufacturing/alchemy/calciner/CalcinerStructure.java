@@ -9,7 +9,12 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Placement;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -111,6 +116,36 @@ public final class CalcinerStructure {
             return true;
         }
         return cell.role() == Role.BRICK || !state.getValue(CalcinerPartBlock.FORMED);
+    }
+
+    /**
+     * The Journal's click on the Calciner: forms the structure when it is complete and makes the
+     * player its owner, otherwise names the first block that is missing.
+     */
+    public static boolean tryForm(Level level, BlockPos controller, Player player) {
+        if (level.getBlockState(controller).getValue(CalcinerBlock.FORMED)) {
+            return true;
+        }
+        Check check = check(level, controller);
+        if (!check.complete()) {
+            Cell wrong = check.firstWrong().orElseThrow();
+            player.displayClientMessage(Component.translatable("message.servus_manufacturing.calciner.missing",
+                    expected(wrong.role()).getName(), where(wrong)), false);
+            return false;
+        }
+        form(level, controller, check.facing());
+        if (level.getBlockEntity(controller) instanceof CalcinerBlockEntity calciner) {
+            calciner.setOwner(player.getUUID());
+        }
+        player.displayClientMessage(Component.translatable("message.servus_manufacturing.calciner.formed"), true);
+        return true;
+    }
+
+    /** "right of the Alembic", for the message when forming fails. */
+    private static Component where(Cell cell) {
+        Placement placement = CalcinerLayout.placement(cell);
+        return Component.translatable("message.servus_manufacturing.calciner." + placement.relation().name().toLowerCase(Locale.ROOT),
+                expected(placement.anchor()).getName());
     }
 
     /** Forms the checked structure: bricks become shells, parts and the Calciner turn formed and face {@code facing}. */

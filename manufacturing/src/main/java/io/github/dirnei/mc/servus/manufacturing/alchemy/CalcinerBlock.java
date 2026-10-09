@@ -4,6 +4,14 @@ import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
+import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.BlockHitResult;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -39,6 +47,49 @@ public class CalcinerBlock extends MachineBlock {
     @Override
     protected BlockEntityType<? extends MachineBlockEntity> blockEntityType() {
         return ServusManufacturingBlockEntities.CALCINER.get();
+    }
+
+    /**
+     * The Journal forms the structure; a formed Calciner takes calcinable matter by hand.
+     * There is no GUI.
+     */
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                              Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (stack.getItem() instanceof ParacelsusJournalItem) {
+            if (!level.isClientSide()) {
+                CalcinerStructure.tryForm(level, pos, player);
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        }
+        if (state.getValue(FORMED) && level.getBlockEntity(pos) instanceof CalcinerBlockEntity calciner && calciner.calcinable(stack)) {
+            if (!level.isClientSide()) {
+                player.setItemInHand(hand, calciner.insertInput(stack));
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        }
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    /** Sneaking with an empty hand takes the matter back out of a formed Calciner. */
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!player.isShiftKeyDown() || !state.getValue(FORMED)) {
+            return InteractionResult.PASS;
+        }
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof CalcinerBlockEntity calciner) {
+            ItemStack taken = calciner.takeInput();
+            if (!taken.isEmpty() && !player.addItem(taken)) {
+                player.drop(taken, false);
+            }
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    /** The carrot never turns, configures or dismantles the Calciner. */
+    @Override
+    public InteractionResult onWrench(UseOnContext context, BlockState state) {
+        return InteractionResult.PASS;
     }
 
     @Override

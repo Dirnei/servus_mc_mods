@@ -1,6 +1,9 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.PushReaction;
@@ -15,7 +18,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
  * A brick of a formed Calciner. Forming puts it in place of vanilla Bricks so the brick can
  * carry the facing and its cell; unforming puts the Bricks back. It has no item of its own.
  */
-public class CalcinerShellBlock extends Block {
+public class CalcinerShellBlock extends Block implements Wrenchable {
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     /** The brick cell of {@link CalcinerLayout}, 1 to 6. */
@@ -24,6 +27,12 @@ public class CalcinerShellBlock extends Block {
     public CalcinerShellBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(CELL, 1));
+    }
+
+    /** The carrot never turns a brick of the Calciner. */
+    @Override
+    public InteractionResult onWrench(UseOnContext context, BlockState state) {
+        return InteractionResult.PASS;
     }
 
     @Override

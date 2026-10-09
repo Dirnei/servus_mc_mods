@@ -30,6 +30,13 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.RECEIVER.get(), "Receiver");
         add(ServusManufacturingBlocks.SULFUR_HOOD.get(), "Sulfur Hood");
         add(ServusManufacturingBlocks.CALCINER_SHELL.get(), "Calciner Bricks");
+        add("message.servus_manufacturing.calciner.formed", "The Calciner is ready.");
+        add("message.servus_manufacturing.calciner.missing",
+                "The Calciner is not complete: %s needed %s. The Calciner page of Paracelsus' Journal shows the build.");
+        add("message.servus_manufacturing.calciner.left_of", "left of the %s");
+        add("message.servus_manufacturing.calciner.right_of", "right of the %s");
+        add("message.servus_manufacturing.calciner.above", "above the %s");
+        add("message.servus_manufacturing.calciner.below", "below the %s");
         add(ServusManufacturingBlocks.COAGULATOR.get(), "Coagulator");
         add("gui.servus_manufacturing.coagulator.needs", "%s mB %s");
         add("gui.servus_manufacturing.coagulator.select", "Select recipe");

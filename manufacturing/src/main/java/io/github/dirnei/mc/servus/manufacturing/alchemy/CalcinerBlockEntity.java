@@ -118,11 +118,33 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
 
     @Override
     protected boolean acceptsInput(int slot, ItemStack stack) {
-        if (level == null) {
+        return calcinable(stack);
+    }
+
+    /** True when a calcination recipe takes {@code stack}. */
+    public boolean calcinable(ItemStack stack) {
+        if (level == null || stack.isEmpty()) {
             return false;
         }
         return level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.CALCINATION.get()).stream()
                 .anyMatch(holder -> holder.value().accepts(stack));
+    }
+
+    /** Puts calcinable matter into the input, returning what did not fit. */
+    public ItemStack insertInput(ItemStack stack) {
+        return calcinable(stack) ? inventory.insertItem(SLOT_INPUT, stack, false) : stack;
+    }
+
+    /** Puts furnace fuel into the fuel slot, returning what did not fit. */
+    public ItemStack insertFuel(ItemStack stack) {
+        return stack.getBurnTime(null) > 0 ? inventory.insertItem(SLOT_FUEL, stack, false) : stack;
+    }
+
+    /** Takes the whole input out. */
+    public ItemStack takeInput() {
+        ItemStack taken = inventory.getStackInSlot(SLOT_INPUT).copy();
+        inventory.setStackInSlot(SLOT_INPUT, ItemStack.EMPTY);
+        return taken;
     }
 
     @Override

@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.gametest.AlchemyGameTests;
+import io.github.dirnei.mc.servus.manufacturing.gametest.CalcinerGameTests;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
@@ -45,6 +46,7 @@ public final class ServusManufacturingEvents {
         @SubscribeEvent
         public static void onRegisterGameTests(RegisterGameTestsEvent event) {
             event.register(AlchemyGameTests.class);
+            event.register(CalcinerGameTests.class);
         }
 
         @SubscribeEvent
