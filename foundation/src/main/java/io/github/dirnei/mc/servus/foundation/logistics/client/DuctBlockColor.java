@@ -21,7 +21,7 @@ public final class DuctBlockColor implements BlockColor {
 
     private static final int WHITE = 0xFFFFFF;
     /** The base Data Cable's ring colour, used when the tier item is unknown. */
-    private static final int DATA_RING = 0x40DCC8;
+    private static final int DATA_RING = 0xF4F4F4;
 
     @Override
     public int getColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos, int tintIndex) {

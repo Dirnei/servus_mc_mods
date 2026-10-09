@@ -375,6 +375,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         if (facade != null) {
             builder.with(DuctModelData.FACADE, facade);
         }
+        if (has(Line.DATA) && lineItem(Line.DATA) instanceof DataCableItem cable && !cable.skin().isEmpty()) {
+            builder.with(DuctModelData.DATA_SKIN, cable.skin());
+        }
         return builder.build();
     }
 

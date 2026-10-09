@@ -22,11 +22,11 @@ public final class ServusLogisticsItems {
     public static final DeferredItem<LineItem> FLUID_PIPE = ITEMS.registerItem("fluid_pipe",
             properties -> new LineItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), Line.FLUID, properties));
     public static final DeferredItem<DataCableItem> DATA_CABLE = ITEMS.registerItem("data_cable",
-            properties -> new DataCableItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), 0x40DCC8, properties));
+            properties -> new DataCableItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), 0xF4F4F4, "", properties));
     public static final DeferredItem<DataCableItem> DUPLEX_DATA_CABLE = ITEMS.registerItem("duplex_data_cable",
-            properties -> new DataCableItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), 0x5A8CFF, properties));
+            properties -> new DataCableItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), 0x8C8E92, "duplex", properties));
     public static final DeferredItem<DataCableItem> FAST_DATA_CABLE = ITEMS.registerItem("fast_data_cable",
-            properties -> new DataCableItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), 0xFFC83C, properties));
+            properties -> new DataCableItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), 0x3C3E44, "fast", properties));
 
     public static final DeferredItem<FluidTankItem> FLUID_TANK = ITEMS.registerItem("fluid_tank",
             properties -> new FluidTankItem(ServusLogisticsBlocks.FLUID_TANK.get(), properties));

@@ -27,7 +27,11 @@
 
 - [x] 6.1 Foundation and Storage docs pages (tiers, simplex and duplex, replacement, upgrades, load), `:manufacturing:runData` for gamedata, PLAN.md M8 list item and section 3. Verify with `npm test` in `docs/`.
 
-## 7. Integration
+## 7. Line colours
 
-- [ ] 7.1 Full `gradlew build` and `gradlew test` green, Foundation, Manufacturing and Storage GameTests green, and the game launches with all three mods.
+- [x] 7.1 Line colours on every duct texture and cable item (item orange, power red, fluid blue, data white, gray, black by tier) from one generator with tier variants of every data containing texture; `DataCableItem.skin`, `DuctModelData.DATA_SKIN` set by `UtilityDuctBlockEntity`, sprite swap with UV remap in `UtilityDuctModel`; ring tints per tier; docs icons, docs page and PLAN.md colour notes. Verify with build, Foundation and Storage GameTests and a visual check of the generated PNGs.
+
+## 8. Integration
+
+- [ ] 8.1 Full `gradlew build` and `gradlew test` green, Foundation, Manufacturing and Storage GameTests green, and the game launches with all three mods.
   - Done in the worktree: build and JUnit green (Foundation 203, Manufacturing 62, Storage 213), GameTests green (Foundation 39, Manufacturing 46, Storage 249). Owed by the user: the client launch from the main checkout and the play check (tiers and in-world upgrade, goggles colours, summary, Packing Station upgrade row, Machines tab).

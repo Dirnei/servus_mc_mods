@@ -11,6 +11,7 @@ Foundation loads on its own, and each content mod loads with only Foundation ins
 
 - **Configuration Carrot**: the wrench of the family. A carrot with a metal bar and a red tip instead of leaves. Use it on a face to cycle that side's mode, sneak use it to dismantle a block and keep its configuration. On blocks with a facing and no own handling it rotates the block.
 - **Engineer Goggles**: worn in the head slot like a helmet without armor. While worn, or while a Configuration Carrot is held, hidden things show up, such as side mode markers and ducts behind facades.
+- Every line has its own colour on the duct and on its item: Item Pipe orange, Power Cable red, Fluid Pipe blue, and the data line white, gray or black by tier.
 - **Item Pipe**: places a duct with an item line, or adds the item line to a duct that lacks it. Eight from iron ingots, glass and a chest.
 - **Power Cable**: places a duct with an energy line, or adds it to a duct. Eight from copper ingots, redstone and glass.
 - **Fluid Pipe**: places a duct with a fluid line, or adds it to a duct. Eight from iron ingots, glass and a bucket.
@@ -53,7 +54,7 @@ The data line is the wiring for on-demand autocrafting. It never moves anything 
 - A block is a member when it can make items (a Crafting Station, an Assembler), holds stock (a Warehouse Controller) or is a link on the line without either (a Packing Station, through the `servus_foundation:data_link` capability). Other mods join by exposing the same Foundation capabilities. Chests and other plain inventories are not members.
 - There are no channels, filters or priorities. In the endpoint GUI the data tab only switches a side on or off; an off side reaches no member and does not link to the next duct.
 - Right click a duct with the data line with an empty hand to see how many ducts, producers and stock members its network has, and how many items per second passed this duct during the last second out of its bandwidth ("24 of 32 items/s").
-- The data line's ring at a member shows its tier: teal for the Data Cable, blue for the Duplex Data Cable, gold for the Fast Data Cable.
+- The data line shows its tier on the duct and on the cable item: white for the Data Cable, gray for the Duplex Data Cable, black for the Fast Data Cable. The duct body and the data line's ring at a member both take that colour.
 
 ### Cable tiers and bandwidth
 

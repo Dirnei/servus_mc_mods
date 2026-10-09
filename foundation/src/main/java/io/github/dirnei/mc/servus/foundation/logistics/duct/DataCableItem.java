@@ -19,16 +19,24 @@ import net.minecraft.world.level.block.Block;
 /**
  * A tier of the data line: places or adds the data line like any line item
  * and sets the duct's tier to this item. Its stats (bandwidth, simplex or
- * duplex) come from {@code cable_tiers.json} keyed by this item's id; the ring
- * colour shows the tier on the duct. Other mods may register more tiers.
+ * duplex) come from {@code cable_tiers.json} keyed by this item's id; the duct
+ * body skin and the ring colour show the tier on the duct (Data Cable white,
+ * Duplex gray, Fast black). Other mods may register more tiers.
  */
 public class DataCableItem extends LineItem {
 
     private final int ringColour;
+    private final String skin;
 
-    public DataCableItem(Block block, int ringColour, Properties properties) {
+    /**
+     * @param ringColour the RGB tint of the data line's rings
+     * @param skin the suffix of the duct body textures of this tier ({@code duct_data_<skin>}),
+     *             empty for the plain {@code duct_data} textures
+     */
+    public DataCableItem(Block block, int ringColour, String skin, Properties properties) {
         super(block, Line.DATA, properties);
         this.ringColour = ringColour;
+        this.skin = skin;
     }
 
     /** The tier id: this item's registry id. */
@@ -65,6 +73,11 @@ public class DataCableItem extends LineItem {
             return InteractionResult.sidedSuccess(level.isClientSide());
         }
         return super.useOn(context);
+    }
+
+    /** The texture suffix of the duct body in this tier, empty for the base textures. */
+    public String skin() {
+        return skin;
     }
 
     /** Whether this tier carries more than the given one. */

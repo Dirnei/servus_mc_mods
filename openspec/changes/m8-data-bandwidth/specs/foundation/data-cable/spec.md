@@ -20,6 +20,13 @@ Each duct SHALL let at most its tier's bandwidth of items pass per second. A sim
 - **WHEN** the same two deliveries cross a duplex duct of bandwidth 32
 - **THEN** each moves about 32 items per second
 
+### Requirement: Tier visible by colour
+Every line SHALL have its own colour on the duct body and on its line item (examples: Item Pipe orange, Power Cable red, Fluid Pipe blue). The data line SHALL show its tier by colour on the duct body, on its bands of a multi line duct, on its ring at a member and on the cable item (examples: Data Cable white, Duplex Data Cable gray, Fast Data Cable black). Replacing a tier in place SHALL change the duct's colour without breaking the duct.
+
+#### Scenario: Fast duct looks black
+- **WHEN** a player uses a Fast Data Cable on a duct carrying a Data Cable data line and an Item Pipe line
+- **THEN** the duct's data band turns from white to black while the item band stays orange
+
 ### Requirement: Upgrade a cable in the world
 Using a data cable item of a higher tier on a duct whose data line has a lower tier SHALL replace the line in place, keep its sides and connections, consume one item and drop the old tier's item. Using a lower or equal tier on such a duct SHALL not change it and SHALL behave like any line item on a duct that already carries the line. Sneaking SHALL keep the placement assist behaviour.
 
