@@ -15,6 +15,9 @@
   "gui.servus_manufacturing.research.researching": "Researching %s / %s",
   "gui.servus_manufacturing.tech_tree": "Tech Tree",
   "item.servus_manufacturing.mercury_bucket": "Mercury Bucket",
+  "item.servus_manufacturing.quicksilver": "Quicksilver",
   "item.servus_manufacturing.salt_bucket": "Salt Bucket",
+  "item.servus_manufacturing.salt_crystal": "Salt Crystal",
+  "item.servus_manufacturing.sulfur": "Sulfur",
   "item.servus_manufacturing.sulfur_bucket": "Sulfur Bucket"
 }

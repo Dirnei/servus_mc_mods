@@ -1,0 +1,11 @@
+{
+  "type": "servus_manufacturing:coagulation",
+  "input": {
+    "mercury": 100,
+    "sulfur": 100
+  },
+  "result": {
+    "count": 1,
+    "id": "minecraft:glowstone_dust"
+  }
+}

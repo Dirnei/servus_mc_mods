@@ -1,0 +1,11 @@
+{
+  "type": "servus_manufacturing:coagulation",
+  "input": {
+    "salt": 50,
+    "sulfur": 150
+  },
+  "result": {
+    "count": 1,
+    "id": "minecraft:gunpowder"
+  }
+}

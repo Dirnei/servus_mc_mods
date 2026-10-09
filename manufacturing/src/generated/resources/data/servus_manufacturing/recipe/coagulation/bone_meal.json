@@ -1,0 +1,11 @@
+{
+  "type": "servus_manufacturing:coagulation",
+  "input": {
+    "salt": 60,
+    "sulfur": 20
+  },
+  "result": {
+    "count": 1,
+    "id": "minecraft:bone_meal"
+  }
+}

@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -17,6 +18,9 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         add(ServusManufacturingBlocks.RESEARCH_LAB.get(), "Research Lab");
         add(ServusManufacturingBlocks.CALCINER.get(), "Calciner");
+        add(ServusManufacturingItems.SALT_CRYSTAL.get(), "Salt Crystal");
+        add(ServusManufacturingItems.SULFUR.get(), "Sulfur");
+        add(ServusManufacturingItems.QUICKSILVER.get(), "Quicksilver");
         for (Principle principle : Principle.values()) {
             String name = switch (principle) {
                 case SALT -> "Salt";

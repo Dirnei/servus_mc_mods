@@ -2,6 +2,9 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
+import java.util.Optional;
+import net.minecraft.world.item.ItemStack;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.resources.ResourceLocation;
@@ -28,6 +31,27 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     protected void buildRecipes(RecipeOutput output) {
         crafting(output);
         calcination(output);
+        coagulation(output);
+    }
+
+    /** What the Coagulator makes from the principles; no metal in Nigredo. The numbers are datapack examples. */
+    private void coagulation(RecipeOutput output) {
+        coagulate(output, "salt_crystal", 250, 0, 0, new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get()));
+        coagulate(output, "sulfur", 0, 250, 0, new ItemStack(ServusManufacturingItems.SULFUR.get()));
+        coagulate(output, "quicksilver", 0, 0, 250, new ItemStack(ServusManufacturingItems.QUICKSILVER.get()));
+        coagulate(output, "clay_ball", 100, 0, 50, new ItemStack(Items.CLAY_BALL));
+        coagulate(output, "flint", 150, 0, 0, new ItemStack(Items.FLINT));
+        coagulate(output, "gunpowder", 50, 150, 0, new ItemStack(Items.GUNPOWDER));
+        coagulate(output, "redstone", 50, 0, 150, new ItemStack(Items.REDSTONE));
+        coagulate(output, "glowstone_dust", 0, 100, 100, new ItemStack(Items.GLOWSTONE_DUST));
+        coagulate(output, "bone_meal", 60, 20, 0, new ItemStack(Items.BONE_MEAL));
+        coagulate(output, "slime_ball", 0, 50, 150, new ItemStack(Items.SLIME_BALL));
+    }
+
+    private static void coagulate(RecipeOutput output, String name, int salt, int sulfur, int mercury, ItemStack result) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + name);
+        output.accept(id, new CoagulationRecipe(new Principles(salt, sulfur, mercury), Optional.empty(), result,
+                CoagulationRecipe.DEFAULT_TIME), null);
     }
 
     /** What the Calciner burns common matter into; the numbers are datapack examples. */

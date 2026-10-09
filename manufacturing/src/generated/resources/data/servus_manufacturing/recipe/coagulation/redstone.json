@@ -1,0 +1,11 @@
+{
+  "type": "servus_manufacturing:coagulation",
+  "input": {
+    "mercury": 150,
+    "salt": 50
+  },
+  "result": {
+    "count": 1,
+    "id": "minecraft:redstone"
+  }
+}
