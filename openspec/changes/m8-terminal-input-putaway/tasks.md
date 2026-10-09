@@ -7,7 +7,7 @@
 
 ## 2. Tests and docs
 
-- [ ] 2.1 GameTests in `storage/.../gametest/StorageTerminalRowsGameTests.java`: `inputReachesRack` (rack-only warehouse, Access Point, garage), `inputWaitsWithoutAccessPoint`, `gridPushGoesThroughInput`, `clearGoesThroughInput`; update existing terminal tests that expected an instant push to wait for the put-away. Verify with `gradlew test` and `:storage:runGameTestServer`, all green.
+- [x] 2.1 GameTests in `storage/.../gametest/StorageTerminalRowsGameTests.java`: `inputReachesRack` (rack-only warehouse, Access Point, garage), `inputWaitsWithoutAccessPoint`, `gridPushGoesThroughInput`, `clearGoesThroughInput`; update existing terminal tests that expected an instant push to wait for the put-away. Verify with `gradlew test` and `:storage:runGameTestServer`, all green.
 - [ ] 2.2 `docs/src/content/docs/mods/storage.md`: input goes through an Access Point, arrows. Verify with `npx vitest run` in `docs/`.
 
 ## 3. Integration
