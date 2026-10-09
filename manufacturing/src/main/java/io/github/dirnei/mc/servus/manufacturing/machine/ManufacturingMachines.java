@@ -22,6 +22,13 @@ public final class ManufacturingMachines {
         }
         registered = true;
         add("research_lab", "powered", List.of(RESEARCH), MachineStats.powered(1, 10, 4000));
+        add("calciner", "powered", List.of("servus_manufacturing:calcination"), alchemy(20, 8000, 4000));
+        add("coagulator", "powered", List.of("servus_manufacturing:coagulation"), alchemy(20, 8000, 4000));
+    }
+
+    /** A powered alchemy machine: recipe time decides the cycle, one principle tank of {@code tank} mB each. */
+    private static MachineStats alchemy(int energyPerTick, int energyCapacity, int tank) {
+        return new MachineStats(1, energyPerTick, energyCapacity, 1, 0, 1, 0, 0, tank, 0, "", 0);
     }
 
     private static void add(String path, String kind, List<String> recipeTypes, MachineStats stats) {

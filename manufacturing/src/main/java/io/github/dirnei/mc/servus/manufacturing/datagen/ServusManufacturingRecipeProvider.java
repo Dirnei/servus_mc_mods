@@ -66,5 +66,16 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .define('B', Items.BOOK)
                 .unlockedBy("has_book", has(Items.BOOK))
                 .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.CALCINER.get())
+                .pattern("BIB")
+                .pattern("IFI")
+                .pattern("BCB")
+                .define('B', Items.BRICKS)
+                .define('I', Items.IRON_INGOT)
+                .define('F', Items.FURNACE)
+                .define('C', Items.CAULDRON)
+                .unlockedBy("has_furnace", has(Items.FURNACE))
+                .save(output);
     }
 }

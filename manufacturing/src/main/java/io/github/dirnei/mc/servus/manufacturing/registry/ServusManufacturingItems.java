@@ -12,9 +12,10 @@ public final class ServusManufacturingItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ServusManufacturingIds.MOD_ID);
 
     public static final DeferredItem<BlockItem> RESEARCH_LAB = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.RESEARCH_LAB);
+    public static final DeferredItem<BlockItem> CALCINER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.CALCINER);
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(RESEARCH_LAB);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CALCINER, RESEARCH_LAB);
 
     private ServusManufacturingItems() {
     }

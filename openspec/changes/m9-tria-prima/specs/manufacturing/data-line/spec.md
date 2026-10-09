@@ -2,12 +2,12 @@
 
 ## ADDED Requirements
 
-### Requirement: Calciner is a producer
-The Calciner SHALL expose the production capability: one recipe per calcination recipe, with one of the first matching item of its ingredient in and no item out (the principles go to its tanks, not to storage), and the recipe time as ticks; the recipe of the item in its input slot SHALL be reported as active.
+### Requirement: Calciner is no producer
+The Calciner SHALL NOT expose the production capability: it makes no item a Crafting CPU could order. It is fed by pipes, hoppers or by hand.
 
-#### Scenario: Recipes listed
-- **WHEN** the production capability of a Calciner is queried
-- **THEN** it reports one recipe per calcination recipe with the recipe time
+#### Scenario: Not on the order list
+- **WHEN** a duct with the data line touches a Calciner
+- **THEN** the Calciner is no producer member of the data network
 
 ### Requirement: Coagulator is a producer
 The Coagulator SHALL expose the production capability with exactly its selected recipe: the item ingredient (if any) in, the result out and the recipe time as ticks. Principles are not part of the reported inputs; they reach the Coagulator by pipe.

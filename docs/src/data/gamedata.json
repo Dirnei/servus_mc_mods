@@ -62,6 +62,36 @@
       "min_source_neighbours": 2,
       "upkeep_level": 0
     },
+    "servus_manufacturing:calciner": {
+      "kind": "powered",
+      "recipe_types": ["servus_manufacturing:calcination"],
+      "work_ticks": 1,
+      "energy_per_tick": 20,
+      "energy_capacity": 8000,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 4000,
+      "min_source_neighbours": 0,
+      "upkeep_level": 0
+    },
+    "servus_manufacturing:coagulator": {
+      "kind": "powered",
+      "recipe_types": ["servus_manufacturing:coagulation"],
+      "work_ticks": 1,
+      "energy_per_tick": 20,
+      "energy_capacity": 8000,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 4000,
+      "min_source_neighbours": 0,
+      "upkeep_level": 0
+    },
     "servus_manufacturing:research_lab": {
       "kind": "powered",
       "recipe_types": ["servus:research"],
@@ -322,6 +352,25 @@
       ],
       "outputs": [
         {"item": "servus_foundation:sink", "count": 8}
+      ]
+    },
+    "servus_manufacturing:calciner": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["BIB", "IFI", "BCB"],
+      "key": {
+        "B": {"item": "minecraft:bricks"},
+        "C": {"item": "minecraft:cauldron"},
+        "F": {"item": "minecraft:furnace"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bricks", "count": 4},
+        {"item": "minecraft:cauldron", "count": 1},
+        {"item": "minecraft:furnace", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 3}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:calciner", "count": 1}
       ]
     },
     "servus_manufacturing:research_lab": {
@@ -669,6 +718,9 @@
     "minecraft:carrot": {
       "name": "Carrot"
     },
+    "minecraft:cauldron": {
+      "name": "Cauldron"
+    },
     "minecraft:charcoal": {
       "name": "Charcoal"
     },
@@ -767,6 +819,12 @@
     },
     "servus_foundation:sink": {
       "name": "Sink"
+    },
+    "servus_manufacturing:calciner": {
+      "name": "Calciner"
+    },
+    "servus_manufacturing:coagulator": {
+      "name": "Coagulator"
     },
     "servus_manufacturing:research_lab": {
       "name": "Research Lab"

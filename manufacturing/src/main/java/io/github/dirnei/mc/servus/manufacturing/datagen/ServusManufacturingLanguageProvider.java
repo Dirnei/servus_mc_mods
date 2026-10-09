@@ -16,6 +16,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
     @Override
     protected void addTranslations() {
         add(ServusManufacturingBlocks.RESEARCH_LAB.get(), "Research Lab");
+        add(ServusManufacturingBlocks.CALCINER.get(), "Calciner");
         for (Principle principle : Principle.values()) {
             String name = switch (principle) {
                 case SALT -> "Salt";

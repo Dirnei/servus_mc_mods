@@ -45,7 +45,7 @@ Alternative: the item in the ingredient slot picks the recipe. Rejected: most Ni
 
 ### D6: Production capability without fluids
 
-Both machines implement `ProductionProvider`. The Calciner reports one recipe per calcination recipe with the first item of its ingredient in and nothing out, so the CPU can feed it but never waits for an output. The Coagulator reports only its selected recipe with its item ingredient (if any) and its result; principles are expected by pipe. The data cable only moves items, so fluids cannot be ordered.
+Only the Coagulator implements `ProductionProvider`. The Calciner makes no item, so a recipe without output would mean nothing to the CPU and could trip code that expects an output; it stays off the order list and is fed by pipes, hoppers or hand. The Coagulator reports only its selected recipe with its item ingredient (if any) and its result; principles are expected by pipe. The data cable only moves items, so fluids cannot be ordered.
 
 ### D7: Removal
 

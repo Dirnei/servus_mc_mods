@@ -24,6 +24,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         machine(ServusManufacturingBlocks.RESEARCH_LAB.get(), "research_lab");
+        machine(ServusManufacturingBlocks.CALCINER.get(), "calciner");
         // Liquid blocks are drawn by the fluid renderer; the model only gives the particle.
         for (Principle principle : Principle.values()) {
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);

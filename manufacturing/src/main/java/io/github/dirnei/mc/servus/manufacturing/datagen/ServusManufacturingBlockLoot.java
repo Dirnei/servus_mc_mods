@@ -11,7 +11,8 @@ import net.minecraft.world.level.block.Block;
 final class ServusManufacturingBlockLoot extends BlockLootSubProvider {
 
     private static final List<Block> SELF_DROPPING = List.of(
-            ServusManufacturingBlocks.RESEARCH_LAB.get());
+            ServusManufacturingBlocks.RESEARCH_LAB.get(),
+            ServusManufacturingBlocks.CALCINER.get());
 
     ServusManufacturingBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

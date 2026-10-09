@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ResearchLabMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -15,6 +16,9 @@ public final class ServusManufacturingMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<ResearchLabMenu>> RESEARCH_LAB =
             MENUS.register("research_lab", () -> IMenuTypeExtension.create(ResearchLabMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<CalcinerMenu>> CALCINER =
+            MENUS.register("calciner", () -> IMenuTypeExtension.create(CalcinerMenu::fromNetwork));
 
     private ServusManufacturingMenus() {
     }
