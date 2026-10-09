@@ -17,6 +17,9 @@ import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
+import io.github.dirnei.mc.servus.storage.order.WorkOrder;
+import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.pattern.PatternRunners;
@@ -257,8 +260,13 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
                 return;
             }
             Optional<BlockPos> target = Optional.empty();
+            WorkOrder order = step.ref() == null ? null : book.order(step.ref().order());
             for (ItemKey key : outputs(step)) {
                 int toMove = extractable(server, producer, key) - step.inFlight(key);
+                if (toMove <= 0) {
+                    continue;
+                }
+                toMove -= sendDirect(server, step, order, key, toMove);
                 if (toMove <= 0) {
                     continue;
                 }
@@ -316,6 +324,44 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         public long gameTime() {
             return level == null ? 0 : level.getGameTime();
         }
+    }
+
+    /**
+     * Sends the part of a request's item that the request still needs straight
+     * from the producer to its terminal, booked like any collection.
+     *
+     * @return how many were sent
+     */
+    private int sendDirect(ServerLevel server, OrderStep step, WorkOrder order, ItemKey key, int toMove) {
+        if (order == null || order.deliverTo() == null || !order.key().equals(key) || !server.isLoaded(order.deliverTo())
+                || !(server.getBlockEntity(order.deliverTo()) instanceof CounterTerminalBlockEntity terminal)) {
+            return 0;
+        }
+        int budget = Math.min(order.amount() - order.directSent(), TerminalRequests.need(terminal, order.requestId()));
+        int direct = Math.min(toMove, budget);
+        if (direct <= 0) {
+            return 0;
+        }
+        Optional<Delivery> delivery = DataPackets.move(server, step.producer(), order.deliverTo(), key.stack(1), direct);
+        if (delivery.isEmpty()) {
+            return 0;
+        }
+        ProductionLedger ledger = ProductionLedger.get(server);
+        ProductionLedger.Transfer transfer = ledger.open(direct);
+        step.collecting(key, transfer.id(), direct);
+        order.sentDirect(direct);
+        TerminalRequests.expectDirect(terminal, order.requestId(), direct);
+        BlockPos terminalPos = order.deliverTo();
+        int requestId = order.requestId();
+        delivery.get().onEnd(ended -> {
+            ledger.delivered(transfer, ended.delivered());
+            ledger.end(transfer);
+            if (ended.delivered() < direct && server.getBlockEntity(terminalPos) instanceof CounterTerminalBlockEntity target) {
+                TerminalRequests.directShort(target, requestId, direct - ended.delivered());
+            }
+        });
+        setChanged();
+        return direct;
     }
 
     /** The pattern of the CPU's data line that the step was planned from: same recipe id, same inputs per batch. */

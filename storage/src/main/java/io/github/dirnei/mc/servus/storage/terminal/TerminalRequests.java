@@ -65,6 +65,7 @@ public final class TerminalRequests {
             CpuOrders.Placed placed = CpuOrders.create(level, terminal.getBlockPos(), key, remaining, request.id);
             if (placed.made()) {
                 request.orderCpu = placed.cpu();
+                placed.created().order().deliverTo(terminal.getBlockPos());
             } else if (request.shipments.isEmpty()) {
                 terminal.removeRequest(request.id);
                 return refusal[0].isEmpty() ? "out_of_stock" : refusal[0];
@@ -100,6 +101,7 @@ public final class TerminalRequests {
             return placed.refusal();
         }
         request.orderCpu = placed.cpu();
+        placed.created().order().deliverTo(terminal.getBlockPos());
         return "";
     }
 
@@ -154,11 +156,40 @@ public final class TerminalRequests {
         done.forEach(terminal::removeRequest);
     }
 
+    /** Whether a work order for the request is still open; its results come straight to the terminal. */
+    private static boolean producing(ServerLevel level, Request request) {
+        return CpuOrders.cpuAt(level, request.orderCpu).filter(cpu -> cpu.book().hasOpenOrderFor(request.id)).isPresent();
+    }
+
+    /** How many of the request's item may still be sent straight to the terminal: what it misses. */
+    public static int need(CounterTerminalBlockEntity terminal, int requestId) {
+        Request request = terminal.request(requestId);
+        return request == null ? 0 : Math.max(0, request.missing);
+    }
+
+    /** Items are on their way straight from a producer: they no longer count as missing. */
+    public static void expectDirect(CounterTerminalBlockEntity terminal, int requestId, int count) {
+        Request request = terminal.request(requestId);
+        if (request != null) {
+            request.missing = Math.max(0, request.missing - count);
+            terminal.setChanged();
+        }
+    }
+
+    /** Items sent straight from a producer did not all arrive: the rest is missing again. */
+    public static void directShort(CounterTerminalBlockEntity terminal, int requestId, int count) {
+        Request request = terminal.request(requestId);
+        if (request != null && count > 0) {
+            request.missing += count;
+            terminal.setChanged();
+        }
+    }
+
     /** Ships the missing part of idle requests again; stock may have arrived meanwhile. */
     private static void retry(ServerLevel level, CounterTerminalBlockEntity terminal) {
         List<WarehouseNetwork> warehouses = null;
         for (Request request : terminal.requests()) {
-            if (request.missing <= 0 || !request.shipments.isEmpty()) {
+            if (request.missing <= 0 || !request.shipments.isEmpty() || producing(level, request)) {
                 continue;
             }
             if (warehouses == null) {

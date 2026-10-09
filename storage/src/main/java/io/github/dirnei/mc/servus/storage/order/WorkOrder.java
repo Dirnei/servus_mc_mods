@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.order;
 
+import net.minecraft.core.BlockPos;
+
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,6 +28,10 @@ public final class WorkOrder {
     private State state = State.RUNNING;
     private String reason = "";
     private long doneAt = -1;
+    /** The Counter Terminal whose request this order serves, null when the results go to storage. */
+    private BlockPos deliverTo;
+    /** How many of the order's item were sent straight to {@link #deliverTo}. */
+    private int directSent;
 
     public WorkOrder(int id, ItemKey key, int amount, int requestId, List<OrderStep> steps,
                      Map<ItemKey, Integer> reserved, Map<ItemKey, Integer> missing) {
@@ -53,6 +59,22 @@ public final class WorkOrder {
     /** The terminal request this order serves, 0 for a manual order. */
     public int requestId() {
         return requestId;
+    }
+
+    public BlockPos deliverTo() {
+        return deliverTo;
+    }
+
+    public void deliverTo(BlockPos terminal) {
+        this.deliverTo = terminal;
+    }
+
+    public int directSent() {
+        return directSent;
+    }
+
+    public void sentDirect(int count) {
+        directSent += count;
     }
 
     public List<OrderStep> steps() {
@@ -132,6 +154,10 @@ public final class WorkOrder {
         tag.putString("State", state.name());
         tag.putString("Reason", reason);
         tag.putLong("DoneAt", doneAt);
+        if (deliverTo != null) {
+            tag.putLong("DeliverTo", deliverTo.asLong());
+        }
+        tag.putInt("Direct", directSent);
         tag.put("Reserved", Saving.counts(reserved, registries));
         tag.put("Missing", Saving.counts(missing, registries));
         ListTag list = new ListTag();
@@ -158,6 +184,10 @@ public final class WorkOrder {
         order.state = Saving.state(State.class, tag.getString("State"), State.RUNNING);
         order.reason = tag.getString("Reason");
         order.doneAt = tag.getLong("DoneAt");
+        if (tag.contains("DeliverTo")) {
+            order.deliverTo = BlockPos.of(tag.getLong("DeliverTo"));
+        }
+        order.directSent = tag.getInt("Direct");
         return order;
     }
 }

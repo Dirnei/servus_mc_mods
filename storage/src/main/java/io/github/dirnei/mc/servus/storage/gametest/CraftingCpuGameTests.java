@@ -216,7 +216,9 @@ public final class CraftingCpuGameTests {
             helper.assertTrue(orders.get(0).reserved().getOrDefault(PLANKS, 0) == 4, "four planks should be reserved");
             List<RequestRow> rows = menu.stock().requests();
             helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("PRODUCING"), "the request should be producing, got " + rows);
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 900,
+            // The sticks land straight in the terminal; the order is booked done on a following tick.
+            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8
+                            && cpu.book().orders().stream().noneMatch(WorkOrder::open), 900,
                     () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK) + " orders " + cpu.book().orders()
                             + " steps " + cpu.book().orders().get(0).steps().stream().map(st -> st.state() + "/" + st.reason()).toList(), () -> {
                         helper.assertTrue(planks.count() == 6, "four planks should have been used, crate has " + planks.count());
