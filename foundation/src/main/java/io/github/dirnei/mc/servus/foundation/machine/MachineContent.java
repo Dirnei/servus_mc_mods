@@ -6,6 +6,10 @@ import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBloc
 import io.github.dirnei.mc.servus.foundation.machine.menu.BurnerPumpMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.ElectricPumpMenu;
+import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
+import io.github.dirnei.mc.servus.foundation.machine.sink.ChimneyBlock;
+import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlock;
+import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlock;
@@ -65,12 +69,32 @@ public final class MachineContent {
     public static final DeferredHolder<MenuType<?>, MenuType<ElectricPumpMenu>> ELECTRIC_PUMP_MENU =
             MENUS.register("electric_pump", () -> IMenuTypeExtension.create(ElectricPumpMenu::fromNetwork));
 
+    public static final DeferredBlock<SinkBlock> SINK = BLOCKS.registerBlock("sink", SinkBlock::new, brick().noOcclusion());
+    public static final DeferredItem<BlockItem> SINK_ITEM = ITEMS.registerSimpleBlockItem(SINK);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SinkBlockEntity>> SINK_ENTITY =
+            BLOCK_ENTITIES.register("sink", () -> BlockEntityType.Builder
+                    .of(SinkBlockEntity::new, SINK.get())
+                    .build(null));
+    public static final DeferredHolder<MenuType<?>, MenuType<SinkMenu>> SINK_MENU =
+            MENUS.register("sink", () -> IMenuTypeExtension.create(SinkMenu::fromNetwork));
+    public static final DeferredBlock<ChimneyBlock> CHIMNEY = BLOCKS.registerBlock("chimney", ChimneyBlock::new, brick().noOcclusion());
+    public static final DeferredItem<BlockItem> CHIMNEY_ITEM = ITEMS.registerSimpleBlockItem(CHIMNEY);
+
     private MachineContent() {
     }
 
     /** Creative tab order of Foundation's machines. */
     public static List<DeferredItem<? extends Item>> creativeTabOrder() {
-        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM);
+        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM, SINK_ITEM, CHIMNEY_ITEM);
+    }
+
+    /** Brick blocks of the Sink family: like vanilla bricks. */
+    private static BlockBehaviour.Properties brick() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_RED)
+                .strength(2.0F, 6.0F)
+                .requiresCorrectToolForDrops()
+                .sound(SoundType.STONE);
     }
 
     /** Block properties every Servus machine shares: metal, lit front glows. */

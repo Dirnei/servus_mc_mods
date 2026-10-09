@@ -19,9 +19,9 @@
 
 ## 4. Sink and Chimney
 
-- [ ] 4.1 Move `machine/sink` (`SinkBlock`, `SinkBlockEntity`, `SinkHandlers`, `SinkLayout`, `SinkRates`, `SinkStats`, `SinkStatsManager`, `VoidBudget`, `ChimneyBlock`), `SinkMenu`, `SinkScreen` and `SinkRenderer` to Foundation; register `SinkStatsManager` in Foundation; register blocks, items, menu, capabilities, screen and renderer; move `sink/sink.json` to `data/servus_foundation/sink/`, textures and GUI. Remove all of it from Manufacturing. Verify: `gradlew build`.
-- [ ] 4.2 Foundation datagen for the Sink parts, fan, Chimney top, loot, tags, lang and the existing shaped recipes. Verify: both data runs.
-- [ ] 4.3 Move `SinkLayoutTest`, `SinkRatesTest` and `VoidBudgetTest` to Foundation and the Sink GameTests from `ServusManufacturingGameTests` to the Foundation machine GameTest class. Verify: `gradlew test` and Foundation GameTests green.
+- [x] 4.1 Move `machine/sink` (`SinkBlock`, `SinkBlockEntity`, `SinkHandlers`, `SinkLayout`, `SinkRates`, `SinkStats`, `SinkStatsManager`, `VoidBudget`, `ChimneyBlock`), `SinkMenu`, `SinkScreen` and `SinkRenderer` to Foundation; register `SinkStatsManager` in Foundation; register blocks, items, menu, capabilities, screen and renderer; move `sink/sink.json` to `data/servus_foundation/sink/`, textures and GUI. Remove all of it from Manufacturing. Verify: `gradlew build`.
+- [x] 4.2 Foundation datagen for the Sink parts, fan, Chimney top, loot, tags, lang and the existing shaped recipes. Verify: both data runs.
+- [x] 4.3 Move `SinkLayoutTest`, `SinkRatesTest` and `VoidBudgetTest` to Foundation and the Sink GameTests from `ServusManufacturingGameTests` to the Foundation machine GameTest class. Verify: `gradlew test` and Foundation GameTests green.
 
 ## 5. Chunk Loader
 

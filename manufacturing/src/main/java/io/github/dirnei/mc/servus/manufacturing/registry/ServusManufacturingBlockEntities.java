@@ -7,7 +7,6 @@ import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEnti
 import io.github.dirnei.mc.servus.manufacturing.machine.loader.ChunkLoaderBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtractorBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -57,10 +56,6 @@ public final class ServusManufacturingBlockEntities {
 
 
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SinkBlockEntity>> SINK =
-            BLOCK_ENTITIES.register("sink", () -> BlockEntityType.Builder
-                    .of(SinkBlockEntity::new, ServusManufacturingBlocks.SINK.get())
-                    .build(null));
 
     private ServusManufacturingBlockEntities() {
     }

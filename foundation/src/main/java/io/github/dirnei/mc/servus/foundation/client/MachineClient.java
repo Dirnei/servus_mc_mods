@@ -10,6 +10,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 /** Client hooks of the machines Foundation owns: screens and side marker renderers. */
@@ -35,6 +36,13 @@ public final class MachineClient {
                 (MachineMenu menu, Inventory inventory, Component title) -> new MachineScreen(menu, inventory, title, BURNER_PUMP));
         event.register(MachineContent.ELECTRIC_PUMP_MENU.get(),
                 (MachineMenu menu, Inventory inventory, Component title) -> new MachineScreen(menu, inventory, title, ELECTRIC_PUMP));
+        event.register(MachineContent.SINK_MENU.get(), SinkScreen::new);
+    }
+
+    /** The Sink fan is a standalone model drawn by its block entity renderer. */
+    @SubscribeEvent
+    public static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
+        event.register(SinkRenderer.FAN_MODEL);
     }
 
     /** Every machine draws its side modes on the block. */
@@ -43,5 +51,6 @@ public final class MachineClient {
         event.registerBlockEntityRenderer(MachineContent.COAL_GENERATOR_ENTITY.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.BURNER_PUMP_ENTITY.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.ELECTRIC_PUMP_ENTITY.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(MachineContent.SINK_ENTITY.get(), SinkRenderer::new);
     }
 }

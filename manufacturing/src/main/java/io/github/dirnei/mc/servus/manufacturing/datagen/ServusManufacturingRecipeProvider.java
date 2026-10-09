@@ -24,7 +24,6 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     @Override
     protected void buildRecipes(RecipeOutput output) {
         crafting(output);
-        sinkRecipes(output);
         assemblingRecipes(output);
         crushingRecipes(output);
         smeltingRecipes(output);
@@ -73,27 +72,6 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .define('R', Items.REDSTONE)
                 .define('T', Items.CRAFTING_TABLE)
                 .unlockedBy("has_redstone", has(Items.REDSTONE))
-                .save(output);
-    }
-
-    /** The Sink and its Chimney: hand crafted from bricks and iron, no research. */
-    private void sinkRecipes(RecipeOutput output) {
-        // Eight Sink blocks build one 2x2x2 Sink.
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.SINK.get(), 8)
-                .pattern("BBB")
-                .pattern("BRB")
-                .pattern("BBB")
-                .define('B', Items.BRICKS)
-                .define('R', Items.IRON_BARS)
-                .unlockedBy("has_bricks", has(Items.BRICKS))
-                .save(output);
-
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.CHIMNEY.get(), 2)
-                .pattern("B B")
-                .pattern("B B")
-                .pattern("B B")
-                .define('B', Items.BRICK)
-                .unlockedBy("has_brick", has(Items.BRICK))
                 .save(output);
     }
 

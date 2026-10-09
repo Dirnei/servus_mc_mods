@@ -8,7 +8,6 @@ import io.github.dirnei.mc.servus.manufacturing.menu.ChunkLoaderMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.CrusherMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ElectricExtractorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ResearchLabMenu;
-import io.github.dirnei.mc.servus.manufacturing.menu.SinkMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -44,8 +43,6 @@ public final class ServusManufacturingMenus {
 
 
 
-    public static final DeferredHolder<MenuType<?>, MenuType<SinkMenu>> SINK =
-            MENUS.register("sink", () -> IMenuTypeExtension.create(SinkMenu::fromNetwork));
 
     private ServusManufacturingMenus() {
     }

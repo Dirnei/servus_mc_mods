@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "top=false": {
+      "model": "servus_foundation:block/chimney"
+    },
+    "top=true": {
+      "model": "servus_foundation:block/chimney_top"
+    }
+  }
+}

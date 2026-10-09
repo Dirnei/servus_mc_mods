@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.foundation.machine;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpGameTests;
+import io.github.dirnei.mc.servus.foundation.machine.sink.SinkGameTests;
+import io.github.dirnei.mc.servus.foundation.machine.sink.SinkStatsManager;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -23,6 +25,7 @@ public final class MachineEvents {
     @SubscribeEvent
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(MachineStatsManager.INSTANCE);
+        event.addListener(SinkStatsManager.INSTANCE);
     }
 
     /** Mod bus hooks. */
@@ -43,6 +46,7 @@ public final class MachineEvents {
         public static void onRegisterGameTests(RegisterGameTestsEvent event) {
             event.register(MachineGameTests.class);
             event.register(PumpGameTests.class);
+            event.register(SinkGameTests.class);
         }
 
         @SubscribeEvent
@@ -65,6 +69,13 @@ public final class MachineEvents {
                     (machine, side) -> side == null || PumpBlock.givesWater(machine.getBlockState(), side) ? machine.energyStorage() : null);
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, MachineContent.ELECTRIC_PUMP_ENTITY.get(),
                     (machine, side) -> machine.fluidHandler(side));
+            // Every formed Sink block hands out its controller's handlers, except on the front faces; casings offer none.
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, MachineContent.SINK_ENTITY.get(),
+                    (sink, side) -> sink.itemHandler(side));
+            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, MachineContent.SINK_ENTITY.get(),
+                    (sink, side) -> sink.fluidHandler(side));
+            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, MachineContent.SINK_ENTITY.get(),
+                    (sink, side) -> sink.energyStorage(side));
         }
     }
 }

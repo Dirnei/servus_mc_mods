@@ -34,11 +34,15 @@ final class MachineDataParts {
         machine(provider, MachineContent.COAL_GENERATOR.get(), "coal_generator");
         pump(provider, MachineContent.BURNER_PUMP.get(), "burner_pump");
         pump(provider, MachineContent.ELECTRIC_PUMP.get(), "electric_pump");
+        SinkModels.sink(provider);
+        SinkModels.chimney(provider);
+        SinkModels.sinkFan(provider);
     }
 
     /** Blocks that drop themselves and are mined with a pickaxe. */
     static List<Block> selfDropping() {
-        return List.of(MachineContent.COAL_GENERATOR.get(), MachineContent.BURNER_PUMP.get(), MachineContent.ELECTRIC_PUMP.get());
+        return List.of(MachineContent.COAL_GENERATOR.get(), MachineContent.BURNER_PUMP.get(), MachineContent.ELECTRIC_PUMP.get(),
+                MachineContent.SINK.get(), MachineContent.CHIMNEY.get());
     }
 
     static void lang(LanguageProvider provider) {
@@ -47,6 +51,22 @@ final class MachineDataParts {
         provider.add(MachineContent.ELECTRIC_PUMP.get(), "Electric Pump");
         provider.add("gui.servus_foundation.pump.source_ok", "Infinite water source below");
         provider.add("gui.servus_foundation.pump.source_missing", "Needs an infinite water source below");
+        provider.add(MachineContent.SINK.get(), "Sink");
+        provider.add(MachineContent.CHIMNEY.get(), "Chimney");
+        provider.add("gui.servus_foundation.sink.height", "Chimney height: %s");
+        provider.add("gui.servus_foundation.sink.items", "Items: %s");
+        provider.add("gui.servus_foundation.sink.fluid", "Fluid: %s");
+        provider.add("gui.servus_foundation.sink.energy", "Energy: %s");
+        provider.add("gui.servus_foundation.sink.unit.items", "%s per second");
+        provider.add("gui.servus_foundation.sink.unit.fluid", "%s mB per tick");
+        provider.add("gui.servus_foundation.sink.unit.energy", "%s FE per tick");
+        provider.add("gui.servus_foundation.sink.unlimited", "Unlimited");
+        provider.add("gui.servus_foundation.sink.hint", "Taller chimney, faster Sink");
+        provider.add("gui.servus_foundation.sink.trash", "Anything put here is destroyed");
+        provider.add("message.servus_foundation.sink.casing",
+                "Build a 2x2x2 cube of Sink blocks and click its front with the Configuration Carrot");
+        provider.add("message.servus_foundation.sink.incomplete", "A Sink needs a full 2x2x2 cube of Sink blocks behind this face");
+        provider.add("message.servus_foundation.sink.side_face", "Click a side of the cube: that side becomes the front");
     }
 
     static void recipes(RecipeOutput output, Function<ItemLike, Criterion<InventoryChangeTrigger.TriggerInstance>> has) {
@@ -81,6 +101,24 @@ final class MachineDataParts {
                 .define('I', Items.IRON_INGOT)
                 .define('P', MachineContent.BURNER_PUMP_ITEM.get())
                 .unlockedBy("has_burner_pump", has.apply(MachineContent.BURNER_PUMP_ITEM.get()))
+                .save(output);
+
+        // Eight Sink blocks build one 2x2x2 Sink.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MachineContent.SINK_ITEM.get(), 8)
+                .pattern("BBB")
+                .pattern("BRB")
+                .pattern("BBB")
+                .define('B', Items.BRICKS)
+                .define('R', Items.IRON_BARS)
+                .unlockedBy("has_bricks", has.apply(Items.BRICKS))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MachineContent.CHIMNEY_ITEM.get(), 2)
+                .pattern("B B")
+                .pattern("B B")
+                .pattern("B B")
+                .define('B', Items.BRICK)
+                .unlockedBy("has_brick", has.apply(Items.BRICK))
                 .save(output);
     }
 

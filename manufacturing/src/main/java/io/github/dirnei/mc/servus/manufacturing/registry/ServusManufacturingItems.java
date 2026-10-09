@@ -23,8 +23,6 @@ public final class ServusManufacturingItems {
     public static final DeferredItem<BlockItem> CRUSHER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.CRUSHER);
     public static final DeferredItem<BlockItem> CHUNK_LOADER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.CHUNK_LOADER);
     public static final DeferredItem<BlockItem> RESEARCH_LAB = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.RESEARCH_LAB);
-    public static final DeferredItem<BlockItem> SINK = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.SINK);
-    public static final DeferredItem<BlockItem> CHIMNEY = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.CHIMNEY);
 
     public static final DeferredItem<Item> IRON_GEAR = ITEMS.registerSimpleItem("iron_gear");
     public static final DeferredItem<Item> COPPER_WIRE = ITEMS.registerSimpleItem("copper_wire");
@@ -35,7 +33,7 @@ public final class ServusManufacturingItems {
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(
             BURNER_EXTRACTOR, BURNER_SMELTER, ELECTRIC_EXTRACTOR, CRUSHER, ASSEMBLER,
-            RESEARCH_LAB, CHUNK_LOADER, SINK, CHIMNEY,
+            RESEARCH_LAB, CHUNK_LOADER,
             IRON_GEAR, COPPER_WIRE, RED_PACK, IRON_GRIT, COPPER_GRIT,
             IRON_DEPOSIT, COPPER_DEPOSIT, COAL_DEPOSIT, STONE_DEPOSIT);
 

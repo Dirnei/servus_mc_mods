@@ -270,18 +270,6 @@
       ],
       "time": 200
     },
-    "servus_manufacturing:assembling/electric_pump": {
-      "type": "servus_manufacturing:assembling",
-      "inputs": [
-        {"item": "servus_manufacturing:burner_pump", "count": 1},
-        {"item": "servus_manufacturing:iron_gear", "count": 4},
-        {"item": "servus_manufacturing:copper_wire", "count": 4}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:electric_pump", "count": 1}
-      ],
-      "time": 200
-    },
     "servus_manufacturing:assembling/glass": {
       "type": "servus_manufacturing:assembling",
       "inputs": [
@@ -432,6 +420,19 @@
       ],
       "outputs": [
         {"item": "servus_foundation:burner_pump", "count": 1}
+      ]
+    },
+    "servus_foundation:chimney": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["B B", "B B", "B B"],
+      "key": {
+        "B": {"item": "minecraft:brick"}
+      },
+      "inputs": [
+        {"item": "minecraft:brick", "count": 6}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:chimney", "count": 2}
       ]
     },
     "servus_foundation:coal_generator": {
@@ -612,6 +613,21 @@
         {"item": "servus_foundation:power_cable", "count": 8}
       ]
     },
+    "servus_foundation:sink": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["BBB", "BRB", "BBB"],
+      "key": {
+        "B": {"item": "minecraft:bricks"},
+        "R": {"item": "minecraft:iron_bars"}
+      },
+      "inputs": [
+        {"item": "minecraft:bricks", "count": 8},
+        {"item": "minecraft:iron_bars", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:sink", "count": 8}
+      ]
+    },
     "servus_manufacturing:assembler": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["ICI", "RTR", "III"],
@@ -646,25 +662,6 @@
       ],
       "outputs": [
         {"item": "servus_manufacturing:burner_extractor", "count": 1}
-      ]
-    },
-    "servus_manufacturing:burner_pump": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["IBI", "IFI", "CCC"],
-      "key": {
-        "B": {"item": "minecraft:bucket"},
-        "C": {"item": "minecraft:cobblestone"},
-        "F": {"item": "minecraft:furnace"},
-        "I": {"item": "minecraft:iron_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:bucket", "count": 1},
-        {"item": "minecraft:cobblestone", "count": 3},
-        {"item": "minecraft:furnace", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 4}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:burner_pump", "count": 1}
       ]
     },
     "servus_manufacturing:burner_smelter": {
@@ -1191,6 +1188,9 @@
     "servus_foundation:burner_pump": {
       "name": "Burner Pump"
     },
+    "servus_foundation:chimney": {
+      "name": "Chimney"
+    },
     "servus_foundation:coal_generator": {
       "name": "Coal Generator"
     },
@@ -1221,14 +1221,14 @@
     "servus_foundation:power_cable": {
       "name": "Power Cable"
     },
+    "servus_foundation:sink": {
+      "name": "Sink"
+    },
     "servus_manufacturing:assembler": {
       "name": "Assembler Mk1"
     },
     "servus_manufacturing:burner_extractor": {
       "name": "Burner Extractor"
-    },
-    "servus_manufacturing:burner_pump": {
-      "name": "Burner Pump"
     },
     "servus_manufacturing:burner_smelter": {
       "name": "Burner Smelter"
@@ -1250,9 +1250,6 @@
     },
     "servus_manufacturing:electric_extractor": {
       "name": "Electric Extractor"
-    },
-    "servus_manufacturing:electric_pump": {
-      "name": "Electric Pump"
     },
     "servus_manufacturing:iron_gear": {
       "name": "Iron Gear"

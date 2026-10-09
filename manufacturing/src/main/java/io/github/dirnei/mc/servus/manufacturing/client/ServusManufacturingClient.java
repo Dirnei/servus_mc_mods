@@ -29,7 +29,6 @@ public final class ServusManufacturingClient {
         event.register(ServusManufacturingMenus.ELECTRIC_EXTRACTOR.get(), MachineScreens::electric);
         event.register(ServusManufacturingMenus.CRUSHER.get(), MachineScreens::crusher);
         event.register(ServusManufacturingMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
-        event.register(ServusManufacturingMenus.SINK.get(), SinkScreen::new);
     }
 
     /** Every machine draws its side modes on the block. */
@@ -42,18 +41,11 @@ public final class ServusManufacturingClient {
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CRUSHER.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CHUNK_LOADER.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.RESEARCH_LAB.get(), SideMarkerRenderer::new);
-        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.SINK.get(), SinkRenderer::new);
     }
 
-    /** The Sink fan is a standalone model drawn by its block entity renderer. */
     /** Dev only icon export for the docs, when the iconExport run asks for it. */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         IconExporter.registerIfRequested();
-    }
-
-    @SubscribeEvent
-    public static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
-        event.register(SinkRenderer.FAN_MODEL);
     }
 }

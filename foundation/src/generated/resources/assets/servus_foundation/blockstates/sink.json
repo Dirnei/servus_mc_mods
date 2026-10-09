@@ -1,0 +1,500 @@
+{
+  "variants": {
+    "active=false,facing=east,formed=false,part=0": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=east,formed=false,part=1": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=east,formed=false,part=2": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=east,formed=false,part=3": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=east,formed=false,part=4": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=east,formed=false,part=5": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=east,formed=false,part=6": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=east,formed=false,part=7": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=east,formed=true,part=0": {
+      "model": "servus_foundation:block/sink_part_0",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=false,facing=east,formed=true,part=1": {
+      "model": "servus_foundation:block/sink_part_1",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=false,facing=east,formed=true,part=2": {
+      "model": "servus_foundation:block/sink_part_2",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=false,facing=east,formed=true,part=3": {
+      "model": "servus_foundation:block/sink_part_3",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=false,facing=east,formed=true,part=4": {
+      "model": "servus_foundation:block/sink_part_4",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=false,facing=east,formed=true,part=5": {
+      "model": "servus_foundation:block/sink_part_5",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=false,facing=east,formed=true,part=6": {
+      "model": "servus_foundation:block/sink_part_6",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=false,facing=east,formed=true,part=7": {
+      "model": "servus_foundation:block/sink_part_7",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=false,facing=north,formed=false,part=0": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=north,formed=false,part=1": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=north,formed=false,part=2": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=north,formed=false,part=3": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=north,formed=false,part=4": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=north,formed=false,part=5": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=north,formed=false,part=6": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=north,formed=false,part=7": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=north,formed=true,part=0": {
+      "model": "servus_foundation:block/sink_part_0",
+      "uvlock": true
+    },
+    "active=false,facing=north,formed=true,part=1": {
+      "model": "servus_foundation:block/sink_part_1",
+      "uvlock": true
+    },
+    "active=false,facing=north,formed=true,part=2": {
+      "model": "servus_foundation:block/sink_part_2",
+      "uvlock": true
+    },
+    "active=false,facing=north,formed=true,part=3": {
+      "model": "servus_foundation:block/sink_part_3",
+      "uvlock": true
+    },
+    "active=false,facing=north,formed=true,part=4": {
+      "model": "servus_foundation:block/sink_part_4",
+      "uvlock": true
+    },
+    "active=false,facing=north,formed=true,part=5": {
+      "model": "servus_foundation:block/sink_part_5",
+      "uvlock": true
+    },
+    "active=false,facing=north,formed=true,part=6": {
+      "model": "servus_foundation:block/sink_part_6",
+      "uvlock": true
+    },
+    "active=false,facing=north,formed=true,part=7": {
+      "model": "servus_foundation:block/sink_part_7",
+      "uvlock": true
+    },
+    "active=false,facing=south,formed=false,part=0": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=south,formed=false,part=1": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=south,formed=false,part=2": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=south,formed=false,part=3": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=south,formed=false,part=4": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=south,formed=false,part=5": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=south,formed=false,part=6": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=south,formed=false,part=7": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=south,formed=true,part=0": {
+      "model": "servus_foundation:block/sink_part_0",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=false,facing=south,formed=true,part=1": {
+      "model": "servus_foundation:block/sink_part_1",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=false,facing=south,formed=true,part=2": {
+      "model": "servus_foundation:block/sink_part_2",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=false,facing=south,formed=true,part=3": {
+      "model": "servus_foundation:block/sink_part_3",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=false,facing=south,formed=true,part=4": {
+      "model": "servus_foundation:block/sink_part_4",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=false,facing=south,formed=true,part=5": {
+      "model": "servus_foundation:block/sink_part_5",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=false,facing=south,formed=true,part=6": {
+      "model": "servus_foundation:block/sink_part_6",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=false,facing=south,formed=true,part=7": {
+      "model": "servus_foundation:block/sink_part_7",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=false,facing=west,formed=false,part=0": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=west,formed=false,part=1": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=west,formed=false,part=2": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=west,formed=false,part=3": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=west,formed=false,part=4": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=west,formed=false,part=5": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=west,formed=false,part=6": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=west,formed=false,part=7": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=false,facing=west,formed=true,part=0": {
+      "model": "servus_foundation:block/sink_part_0",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=false,facing=west,formed=true,part=1": {
+      "model": "servus_foundation:block/sink_part_1",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=false,facing=west,formed=true,part=2": {
+      "model": "servus_foundation:block/sink_part_2",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=false,facing=west,formed=true,part=3": {
+      "model": "servus_foundation:block/sink_part_3",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=false,facing=west,formed=true,part=4": {
+      "model": "servus_foundation:block/sink_part_4",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=false,facing=west,formed=true,part=5": {
+      "model": "servus_foundation:block/sink_part_5",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=false,facing=west,formed=true,part=6": {
+      "model": "servus_foundation:block/sink_part_6",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=false,facing=west,formed=true,part=7": {
+      "model": "servus_foundation:block/sink_part_7",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=true,facing=east,formed=false,part=0": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=east,formed=false,part=1": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=east,formed=false,part=2": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=east,formed=false,part=3": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=east,formed=false,part=4": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=east,formed=false,part=5": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=east,formed=false,part=6": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=east,formed=false,part=7": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=east,formed=true,part=0": {
+      "model": "servus_foundation:block/sink_part_0",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=true,facing=east,formed=true,part=1": {
+      "model": "servus_foundation:block/sink_part_1",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=true,facing=east,formed=true,part=2": {
+      "model": "servus_foundation:block/sink_part_2",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=true,facing=east,formed=true,part=3": {
+      "model": "servus_foundation:block/sink_part_3",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=true,facing=east,formed=true,part=4": {
+      "model": "servus_foundation:block/sink_part_4",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=true,facing=east,formed=true,part=5": {
+      "model": "servus_foundation:block/sink_part_5",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=true,facing=east,formed=true,part=6": {
+      "model": "servus_foundation:block/sink_part_6",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=true,facing=east,formed=true,part=7": {
+      "model": "servus_foundation:block/sink_part_7",
+      "uvlock": true,
+      "y": 90
+    },
+    "active=true,facing=north,formed=false,part=0": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=north,formed=false,part=1": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=north,formed=false,part=2": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=north,formed=false,part=3": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=north,formed=false,part=4": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=north,formed=false,part=5": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=north,formed=false,part=6": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=north,formed=false,part=7": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=north,formed=true,part=0": {
+      "model": "servus_foundation:block/sink_part_0",
+      "uvlock": true
+    },
+    "active=true,facing=north,formed=true,part=1": {
+      "model": "servus_foundation:block/sink_part_1",
+      "uvlock": true
+    },
+    "active=true,facing=north,formed=true,part=2": {
+      "model": "servus_foundation:block/sink_part_2",
+      "uvlock": true
+    },
+    "active=true,facing=north,formed=true,part=3": {
+      "model": "servus_foundation:block/sink_part_3",
+      "uvlock": true
+    },
+    "active=true,facing=north,formed=true,part=4": {
+      "model": "servus_foundation:block/sink_part_4",
+      "uvlock": true
+    },
+    "active=true,facing=north,formed=true,part=5": {
+      "model": "servus_foundation:block/sink_part_5",
+      "uvlock": true
+    },
+    "active=true,facing=north,formed=true,part=6": {
+      "model": "servus_foundation:block/sink_part_6",
+      "uvlock": true
+    },
+    "active=true,facing=north,formed=true,part=7": {
+      "model": "servus_foundation:block/sink_part_7",
+      "uvlock": true
+    },
+    "active=true,facing=south,formed=false,part=0": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=south,formed=false,part=1": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=south,formed=false,part=2": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=south,formed=false,part=3": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=south,formed=false,part=4": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=south,formed=false,part=5": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=south,formed=false,part=6": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=south,formed=false,part=7": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=south,formed=true,part=0": {
+      "model": "servus_foundation:block/sink_part_0",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=true,facing=south,formed=true,part=1": {
+      "model": "servus_foundation:block/sink_part_1",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=true,facing=south,formed=true,part=2": {
+      "model": "servus_foundation:block/sink_part_2",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=true,facing=south,formed=true,part=3": {
+      "model": "servus_foundation:block/sink_part_3",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=true,facing=south,formed=true,part=4": {
+      "model": "servus_foundation:block/sink_part_4",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=true,facing=south,formed=true,part=5": {
+      "model": "servus_foundation:block/sink_part_5",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=true,facing=south,formed=true,part=6": {
+      "model": "servus_foundation:block/sink_part_6",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=true,facing=south,formed=true,part=7": {
+      "model": "servus_foundation:block/sink_part_7",
+      "uvlock": true,
+      "y": 180
+    },
+    "active=true,facing=west,formed=false,part=0": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=west,formed=false,part=1": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=west,formed=false,part=2": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=west,formed=false,part=3": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=west,formed=false,part=4": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=west,formed=false,part=5": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=west,formed=false,part=6": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=west,formed=false,part=7": {
+      "model": "servus_foundation:block/sink_casing"
+    },
+    "active=true,facing=west,formed=true,part=0": {
+      "model": "servus_foundation:block/sink_part_0",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=true,facing=west,formed=true,part=1": {
+      "model": "servus_foundation:block/sink_part_1",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=true,facing=west,formed=true,part=2": {
+      "model": "servus_foundation:block/sink_part_2",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=true,facing=west,formed=true,part=3": {
+      "model": "servus_foundation:block/sink_part_3",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=true,facing=west,formed=true,part=4": {
+      "model": "servus_foundation:block/sink_part_4",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=true,facing=west,formed=true,part=5": {
+      "model": "servus_foundation:block/sink_part_5",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=true,facing=west,formed=true,part=6": {
+      "model": "servus_foundation:block/sink_part_6",
+      "uvlock": true,
+      "y": 270
+    },
+    "active=true,facing=west,formed=true,part=7": {
+      "model": "servus_foundation:block/sink_part_7",
+      "uvlock": true,
+      "y": 270
+    }
+  }
+}

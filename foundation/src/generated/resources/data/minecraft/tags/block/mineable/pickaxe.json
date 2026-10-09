@@ -5,6 +5,8 @@
     "servus_foundation:machine_adapter",
     "servus_foundation:coal_generator",
     "servus_foundation:burner_pump",
-    "servus_foundation:electric_pump"
+    "servus_foundation:electric_pump",
+    "servus_foundation:sink",
+    "servus_foundation:chimney"
   ]
 }
