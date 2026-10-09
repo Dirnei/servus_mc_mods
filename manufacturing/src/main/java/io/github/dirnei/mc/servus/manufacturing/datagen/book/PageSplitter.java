@@ -12,9 +12,9 @@ import java.util.List;
 public final class PageSplitter {
 
     /** Characters that fit on a page with a title, counting a paragraph break as one blank line. */
-    public static final int TITLED_BUDGET = 220;
+    public static final int TITLED_BUDGET = 200;
     /** Characters that fit on a continuation page without a title. */
-    public static final int PLAIN_BUDGET = 260;
+    public static final int PLAIN_BUDGET = 240;
     /** What a paragraph break costs: one empty line of the page. */
     static final int BREAK_COST = 20;
 

@@ -18,7 +18,7 @@
 ## 4. The book
 
 - [x] 4.1 `JournalBookProvider` with Modonomicon's datagen: book, category, an entry per chapter with story, tasks and unlock pages, advancement conditions on later chapters; the book recipe (book + coal) and the first login gift. Verify: data run writes `data/servus_manufacturing/modonomicon/books/journal/...` and the recipe; GameTest that the recipe gives a stack with `modonomicon:book_id` set to the journal.
-- [x] 4.3 Play check follow-up: journal text is split over pages by a pure `PageSplitter` (`datagen/book`) so Modonomicon never shrinks a page's font, and the book gets an inner text margin (offset x 4, y 2, width -8, height -4) in `JournalBook`. JUnit: `PageSplitterTest`. Verify: Manufacturing tests and data run green.
+- [x] 4.3 Play check follow-up: journal text is split over pages by a pure `PageSplitter` (`datagen/book`) so Modonomicon never shrinks a page's font, and the book gets an inner text margin (offset x 7, y 4, width -14, height -8, widened after the play check) in `JournalBook`. JUnit: `PageSplitterTest`. Verify: Manufacturing tests and data run green.
 
 ## 5. Docs and integration
 
