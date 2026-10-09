@@ -14,4 +14,4 @@
 
 ## 4. Docs
 
-- [ ] 4.1 Storage docs page describes the Storage Terminal with input, output and the crafting popup. Verify with docs tests.
+- [x] 4.1 Storage docs page describes the Storage Terminal with input, output and the crafting popup. Verify with docs tests.
