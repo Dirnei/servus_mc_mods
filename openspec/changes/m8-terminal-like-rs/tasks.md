@@ -2,7 +2,7 @@
 
 ## 1. Pure helpers
 
-- [ ] 1.1 Add `storage/.../terminal/AmountSteps.java`, `TerminalSort.java` and `TerminalSettings.java` (no Minecraft imports) with JUnit tests `AmountStepsTest` (plus stack 1 -> 64, 64 -> 128, 70 -> 128, 0 -> 64; minus stack 70 -> 64, 128 -> 64, 64 -> 1, 10 -> 1; add clamps to 1..99999), `TerminalSortTest` (name, amount, mod, both directions, ties) and `TerminalSettingsTest` (round trip, unknown values fall back to defaults). Verify with `gradlew :storage:test`.
+- [x] 1.1 Add `storage/.../terminal/AmountSteps.java`, `TerminalSort.java` and `TerminalSettings.java` (no Minecraft imports) with JUnit tests `AmountStepsTest` (plus stack 1 -> 64, 64 -> 128, 70 -> 128, 0 -> 64; minus stack 70 -> 64, 128 -> 64, 64 -> 1, 10 -> 1; add clamps to 1..99999), `TerminalSortTest` (name, amount, mod, both directions, ties) and `TerminalSettingsTest` (round trip, unknown values fall back to defaults). Verify with `gradlew :storage:test`.
 
 ## 2. Layout
 
