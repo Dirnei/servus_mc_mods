@@ -2,7 +2,7 @@
 
 ## 1. Pure layer model
 
-- [ ] 1.1 Add `SideLayer` and `FluidSides` to `foundation/.../side` (Off, All, tank index; default All; fixed sides Off; cycle Off, All, tanks, Off; `toBytes`/`fromBytes`). JUnit `FluidSidesTest`: default is All, cycle order with three tanks, fixed side ignores cycle and set, encoding round trip, decoding with a different tank count falls back to All. Verify: `gradlew :foundation:test` green.
+- [x] 1.1 Add `SideLayer` and `FluidSides` to `foundation/.../side` (Off, All, tank index; default All; fixed sides Off; cycle Off, All, tanks, Off; `toBytes`/`fromBytes`). JUnit `FluidSidesTest`: default is All, cycle order with three tanks, fixed side ignores cycle and set, encoding round trip, decoding with a different tank count falls back to All. Verify: `gradlew :foundation:test` green.
 
 ## 2. Block entity, sync and carrot
 
