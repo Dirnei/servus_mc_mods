@@ -35,6 +35,8 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
     private static final float FLOOR = 1.0F / 16.0F;
     /** Lifts the floor off the frame's bottom faces so they do not flicker. */
     private static final float FLOOR_LIFT = 0.001F;
+    /** Gap between the floor's top and the fluid's bottom, so the two surfaces never fight. */
+    private static final float FLUID_GAP = 0.005F;
 
     public FluidTankRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -45,8 +47,13 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
         BlockState tankState = tank.getBlockState();
         if (tankState.getBlock() instanceof FluidTankBlock && !joined(tankState, Direction.DOWN)) {
             poseStack.pushPose();
-            poseStack.translate(0, FLOOR_LIFT, 0);
-            poseStack.scale(1, FLOOR, 1);
+            // Inset on sides that are not joined, so the floor's edges stay off the glass and frame planes.
+            float fx0 = joined(tankState, Direction.WEST) ? 0 : INSET;
+            float fx1 = joined(tankState, Direction.EAST) ? 1 : 1 - INSET;
+            float fz0 = joined(tankState, Direction.NORTH) ? 0 : INSET;
+            float fz1 = joined(tankState, Direction.SOUTH) ? 1 : 1 - INSET;
+            poseStack.translate(fx0, FLOOR_LIFT, fz0);
+            poseStack.scale(fx1 - fx0, FLOOR, fz1 - fz0);
             Minecraft.getInstance().getBlockRenderer().renderSingleBlock(tank.floor().defaultBlockState(), poseStack, buffers,
                     packedLight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
             poseStack.popPose();
@@ -80,7 +87,7 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
         float x1 = joined(state, Direction.EAST) ? 1 : 1 - INSET;
         float z0 = joined(state, Direction.NORTH) ? 0 : INSET;
         float z1 = joined(state, Direction.SOUTH) ? 1 : 1 - INSET;
-        float y0 = down ? 0 : FLOOR + FLOOR_LIFT;
+        float y0 = down ? 0 : FLOOR + FLOOR_LIFT + FLUID_GAP;
         float yMax = up ? 1 : 1 - INSET;
         float y1 = y0 + (yMax - y0) * fill;
 
