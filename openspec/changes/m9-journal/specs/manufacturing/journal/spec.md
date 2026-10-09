@@ -57,7 +57,11 @@ Manufacturing SHALL ship a Modonomicon book `servus_manufacturing:journal`, "Par
 - **THEN** the Schwaz entry of their journal unlocks
 
 ### Requirement: Getting the journal
-Every player SHALL receive the journal once at their first login, and SHALL be able to craft it from a book and a piece of coal.
+The journal SHALL be Manufacturing's own item `servus_manufacturing:paracelsus_journal`, named "Paracelsus' Journal", shown as a Servus: Manufacturing item and opening the journal book. Every player SHALL receive it once at their first login, and SHALL be able to craft it from a book and a piece of coal.
+
+#### Scenario: Own item
+- **WHEN** a player hovers the journal in an inventory
+- **THEN** it reads "Paracelsus' Journal" from Servus: Manufacturing, and using it opens the journal
 
 #### Scenario: First login
 - **WHEN** a player joins a world for the first time
@@ -69,3 +73,25 @@ Every player SHALL receive the journal once at their first login, and SHALL be a
 #### Scenario: Progress
 - **WHEN** a player runs the command after calcining 40 items
 - **THEN** it shows Villach with "calcine: 40 / 100"
+
+### Requirement: Workshop tutorial
+The journal SHALL have a Workshop category beside the story with an entry per alchemy machine and topic: the Principles, the Calciner, the Coagulator, the Athanor, pipes and fluid sides, and for Albedo the Salt Crystal Block, the Elixir of Sight and the Gnome Hollow. A machine entry SHALL show the machine, its crafting recipe and how to use it. Nigredo entries SHALL be open from the start; Albedo entries SHALL unlock with the Schwaz chapter.
+
+#### Scenario: Calciner entry
+- **WHEN** a new player opens the Workshop category
+- **THEN** the Calciner entry shows the Calciner, its crafting recipe and how to fuel and empty it
+
+#### Scenario: Albedo entries locked
+- **WHEN** a player has not finished Villach
+- **THEN** the Salt Crystal Block, Elixir of Sight and Gnome Hollow entries are locked
+
+### Requirement: Recipe lists from the shipped recipes
+The Workshop entries of the Calciner, Coagulator and Athanor SHALL list every calcination, coagulation and Athanor recipe Manufacturing ships, one line per recipe in the form "Cobblestone: 100 Salt, 10 Mercury", generated from the same data that generates the recipes, so the book always matches the shipped recipes. Formatting the lines SHALL be pure Java covered by JUnit.
+
+#### Scenario: Calcination list
+- **WHEN** the player reads the Calciner entry
+- **THEN** a page lists "Cobblestone: 100 Salt, 10 Mercury" among the other calcination recipes
+
+#### Scenario: Principles omitted when zero
+- **WHEN** a recipe uses only Salt
+- **THEN** its line names only Salt

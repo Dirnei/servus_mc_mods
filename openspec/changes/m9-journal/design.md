@@ -55,7 +55,11 @@ Alternative: Modonomicon's own entry read or unlock conditions. Rejected: they a
 
 ### D6: The book item
 
-The journal is `modonomicon:modonomicon` with component `modonomicon:book_id = servus_manufacturing:journal`. Datagen writes a shapeless recipe (book + coal) with that `ItemStack` result through `ShapelessRecipeBuilder.shapeless(RecipeCategory, ItemStack)` (verified in the NeoForge 21.1.255 patched sources). First login: a `PlayerLoggedInEvent` handler checks a flag in the player's persistent data and gives the stack once.
+The journal is Manufacturing's own item `servus_manufacturing:paracelsus_journal`, a subclass of Modonomicon's `ModonomiconCustomItemBase(bookId, properties)` (verified in the Modonomicon 1.120.7 jar: it sets `modonomicon:book_id` on the stack when missing and opens that book), so tooltips and JEI name Servus: Manufacturing instead of Modonomicon. The book sets `withGenerateBookItem(false)` and `withCustomBookItem(servus_manufacturing:paracelsus_journal)`. Changed after the play check; the first version used `modonomicon:modonomicon` with a book id component. Datagen writes a shapeless recipe (book + coal). First login: a `PlayerLoggedInEvent` handler checks a flag in the player's persistent data and gives the item once.
+
+### D10: Workshop category and recipe lists
+
+A second category "Workshop" holds tutorial entries next to the story. Machine entries use Modonomicon's `BookSpotlightPageModel` (the machine), `BookCraftingRecipePageModel` (the real recipe id, for example `servus_manufacturing:calciner`) and text pages through the `PageSplitter`. The shipped calcination, coagulation and Athanor recipes move into one datagen table, `AlchemyRecipeTable`, read by both the recipe provider and the book provider, so the lists in the book cannot drift from the recipes. Each row carries an English label for its input or result. The pure `PrincipleText` formats "Cobblestone: 100 Salt, 10 Mercury" and is unit tested. Albedo entries carry the same advancement condition as the Schwaz chapter. Recipes of other kinds (Athanor crafts of the elixir and the Hollow) are written as text lines, since Modonomicon has no page for custom recipe types.
 
 ### D7: Events from machines
 
