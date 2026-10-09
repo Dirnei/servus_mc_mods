@@ -7,6 +7,8 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingMenu
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import io.github.dirnei.mc.servus.manufacturing.client.sight.HollowRevealRenderer;
+import io.github.dirnei.mc.servus.manufacturing.client.sight.RevealRenderers;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -38,5 +40,6 @@ public final class ServusManufacturingClient {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         IconExporter.registerIfRequested();
+        RevealRenderers.add(new HollowRevealRenderer());
     }
 }
