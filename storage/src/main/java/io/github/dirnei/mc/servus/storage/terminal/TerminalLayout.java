@@ -44,10 +44,13 @@ public final class TerminalLayout {
     private TerminalLayout() {
     }
 
-    /** The Counter Terminal: stock on the left, requests and output on the right, player inventory below the stock. */
+    /**
+     * The Counter Terminal: stock on the left with the player inventory below
+     * it, requests, output and the crafting grid on the right.
+     */
     public static final class Counter {
         public static final int WIDTH = 290;
-        public static final int HEIGHT = 222;
+        public static final int HEIGHT = 260;
         public static final int COLUMNS = 9;
         public static final int ROWS = 5;
         public static final int OUTPUT_COLUMNS = 3;
@@ -66,6 +69,11 @@ public final class TerminalLayout {
         public static final Rect MESSAGE = new Rect(190, 104, 92, 10);
         public static final Rect OUTPUT_LABEL = new Rect(190, 117, 92, 9);
         public static final Rect OUTPUT = new Rect(209, 129, OUTPUT_COLUMNS * CELL, 3 * CELL);
+        public static final Rect CRAFT_LABEL = new Rect(190, 188, 78, 9);
+        public static final Rect CLEAR = new Rect(270, 186, 12, 12);
+        public static final Rect CRAFT_GRID = new Rect(190, 200, 3 * CELL, 3 * CELL);
+        public static final Rect CRAFT_ARROW = new Rect(245, 219, 16, 10);
+        public static final Rect CRAFT_RESULT = new Rect(264, 218, CELL, CELL);
         /** The amount prompt and the craft dialog cover the grid and the requests while open. */
         public static final Rect DIALOG = new Rect(8, 30, 274, 94);
 
@@ -77,7 +85,17 @@ public final class TerminalLayout {
                     new Area("grid", GRID), new Area("scrollbar", SCROLLBAR), new Area("inventory label", INVENTORY_LABEL),
                     new Area("inventory", INVENTORY), new Area("hotbar", HOTBAR), new Area("requests label", REQUESTS_LABEL),
                     new Area("requests", REQUESTS), new Area("message", MESSAGE), new Area("output label", OUTPUT_LABEL),
-                    new Area("output", OUTPUT));
+                new Area("output", OUTPUT), new Area("craft label", CRAFT_LABEL), new Area("clear", CLEAR),
+                new Area("craft grid", CRAFT_GRID), new Area("craft arrow", CRAFT_ARROW), new Area("craft result", CRAFT_RESULT));
+        }
+
+        /** Item origin of a crafting grid slot. */
+        public static int craftX(int slot) {
+            return CRAFT_GRID.x() + (slot % 3) * CELL;
+        }
+
+        public static int craftY(int slot) {
+            return CRAFT_GRID.y() + (slot / 3) * CELL;
         }
 
         /** Item origin of an output slot. */

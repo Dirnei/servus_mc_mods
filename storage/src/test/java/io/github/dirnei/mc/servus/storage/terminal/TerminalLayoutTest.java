@@ -47,6 +47,8 @@ class TerminalLayoutTest {
         assertTrue(Counter.DIALOG.inside(Counter.WIDTH, Counter.HEIGHT), "the dialog leaves the panel");
         assertFalse(Counter.DIALOG.overlaps(Counter.INVENTORY_LABEL), "the dialog covers the inventory label");
         assertTrue(Counter.outputY(8) + TerminalLayout.CELL <= Counter.OUTPUT.bottom(), "nine output slots fit");
+        assertTrue(Counter.craftX(8) + TerminalLayout.CELL <= Counter.CRAFT_GRID.right()
+                && Counter.craftY(8) + TerminalLayout.CELL <= Counter.CRAFT_GRID.bottom(), "nine grid slots fit");
     }
 
     @Test

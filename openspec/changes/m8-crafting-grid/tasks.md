@@ -2,7 +2,7 @@
 
 ## 1. Layout
 
-- [ ] 1.1 Extend `terminal/TerminalLayout.Counter` (height 260, `CRAFT_LABEL`, `CLEAR`, `CRAFT_GRID`, `CRAFT_RESULT` in `areas()`); `TerminalLayoutTest` stays green. Verify with `gradlew :storage:test`.
+- [x] 1.1 Extend `terminal/TerminalLayout.Counter` (height 260, `CRAFT_LABEL`, `CLEAR`, `CRAFT_GRID`, `CRAFT_RESULT` in `areas()`); `TerminalLayoutTest` stays green. Verify with `gradlew :storage:test`.
 
 ## 2. Menu and payloads
 
