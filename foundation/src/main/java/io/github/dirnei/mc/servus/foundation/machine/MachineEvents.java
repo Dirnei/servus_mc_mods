@@ -45,6 +45,7 @@ public final class MachineEvents {
         @SubscribeEvent
         public static void onRegisterGameTests(RegisterGameTestsEvent event) {
             event.register(MachineGameTests.class);
+            event.register(MachineBaseGameTests.class);
             event.register(PumpGameTests.class);
             event.register(SinkGameTests.class);
         }

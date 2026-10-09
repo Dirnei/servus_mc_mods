@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/orientable",
-  "textures": {
-    "front": "servus_manufacturing:block/burner_smelter_front",
-    "side": "servus_foundation:block/machine_side",
-    "top": "servus_foundation:block/machine_top"
-  }
-}

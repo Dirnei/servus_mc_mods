@@ -1,7 +1,0 @@
-{
-  "block": "servus_manufacturing:stone_deposit",
-  "yield": {
-    "id": "minecraft:cobblestone",
-    "count": 1
-  }
-}

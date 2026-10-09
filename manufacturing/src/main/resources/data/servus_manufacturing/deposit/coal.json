@@ -1,7 +1,0 @@
-{
-  "block": "servus_manufacturing:coal_deposit",
-  "yield": {
-    "id": "minecraft:coal",
-    "count": 1
-  }
-}

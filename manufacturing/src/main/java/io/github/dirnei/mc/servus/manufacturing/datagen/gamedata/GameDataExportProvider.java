@@ -16,11 +16,8 @@ import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Ma
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Recipe;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Stack;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Tech;
-import io.github.dirnei.mc.servus.manufacturing.deposit.DepositDefinition;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.manufacturing.recipe.AssemblingRecipeSerializer;
-import io.github.dirnei.mc.servus.manufacturing.recipe.CrushingRecipeSerializer;
 import io.github.dirnei.mc.servus.manufacturing.research.TechDefinition;
 import java.io.File;
 import java.io.IOException;
@@ -186,14 +183,9 @@ public final class GameDataExportProvider implements DataProvider {
             JsonObject json = readJson(file).getAsJsonObject();
             String type = json.get("type").getAsString();
             switch (type) {
-                case NS + ":assembling" -> recipes.add(new Recipe(id, type,
-                        sizedIngredients(json.getAsJsonArray("ingredients")),
-                        List.of(result(json.get("result"))),
-                        intOr(json, "time", AssemblingRecipeSerializer.DEFAULT_TIME)));
-                case NS + ":crushing" -> recipes.add(new Recipe(id, type,
-                        List.of(sizedIngredient(json.get("input"))),
-                        List.of(result(json.get("result"))),
-                        intOr(json, "time", CrushingRecipeSerializer.DEFAULT_TIME)));
+                // Alchemy recipes join the export with the Balance lab rebuild (M9 item 7).
+                case NS + ":calcination", NS + ":coagulation" -> {
+                }
                 case SMELTING, BLASTING -> recipes.add(cooking(id, type, json));
                 default -> crafting.add(CraftingRecipeReader.read(id, json));
             }
@@ -266,14 +258,9 @@ public final class GameDataExportProvider implements DataProvider {
 
     // Deposits and techs
 
-    private static List<Deposit> deposits(Path dir) throws IOException {
-        List<Deposit> deposits = new ArrayList<>();
-        for (Path file : jsonFiles(dir)) {
-            DepositDefinition definition = decode(DepositDefinition.CODEC, readJson(file), file);
-            deposits.add(new Deposit(NS + ":" + relativeId(dir, file),
-                    BuiltInRegistries.BLOCK.getKey(definition.block()).toString(), stack(definition.yield())));
-        }
-        return deposits;
+    /** Deposits are gone since the alchemy rethink; the section stays empty for the docs schema. */
+    private static List<Deposit> deposits(Path dir) {
+        return List.of();
     }
 
     private static List<Tech> techs(Path dir) throws IOException {

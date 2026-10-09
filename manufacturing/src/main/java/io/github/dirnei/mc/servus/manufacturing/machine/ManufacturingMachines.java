@@ -7,8 +7,6 @@ import java.util.List;
 /** Manufacturing's machines in the shared {@link MachineDefaults} table. */
 public final class ManufacturingMachines {
 
-    /** Pseudo recipe type of extractors: a deposit's yield, no inputs. */
-    public static final String EXTRACTION = "servus:extraction";
     /** Pseudo recipe type of the research lab: one pack per {@code ticks_per_pack}. */
     public static final String RESEARCH = "servus:research";
 
@@ -23,12 +21,6 @@ public final class ManufacturingMachines {
             return;
         }
         registered = true;
-        add("burner_extractor", "burner", List.of(EXTRACTION), MachineStats.burner(80, 4));
-        add("burner_smelter", "burner", List.of("minecraft:smelting"), MachineStats.burner(80));
-        add("electric_extractor", "powered", List.of(EXTRACTION), MachineStats.powered(40, 20, 8000));
-        add("crusher", "powered", List.of("servus_manufacturing:crushing"), MachineStats.powered(60, 20, 8000));
-        add("assembler", "crafter", List.of("servus_manufacturing:assembling", "minecraft:crafting"),
-                MachineStats.crafter(20, 20, 8000, 2));
         add("research_lab", "powered", List.of(RESEARCH), MachineStats.powered(1, 10, 4000));
     }
 

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import raw from '../data/gamedata.json';
+// Tier 1 data from before the alchemy rethink, until the lab is rebuilt on alchemy data.
+import raw from './fixtures/tier1-gamedata.json';
 import { type GameData, parseGameData } from './gamedata';
 import { ancestors, buildRecipeGraph, edgeId, itemNode, modOf, rawCost, recipeKind, recipeNode } from './recipegraph';
 

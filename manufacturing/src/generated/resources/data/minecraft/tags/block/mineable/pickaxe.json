@@ -1,10 +1,5 @@
 {
   "values": [
-    "servus_manufacturing:burner_extractor",
-    "servus_manufacturing:burner_smelter",
-    "servus_manufacturing:assembler",
-    "servus_manufacturing:research_lab",
-    "servus_manufacturing:electric_extractor",
-    "servus_manufacturing:crusher"
+    "servus_manufacturing:research_lab"
   ]
 }
