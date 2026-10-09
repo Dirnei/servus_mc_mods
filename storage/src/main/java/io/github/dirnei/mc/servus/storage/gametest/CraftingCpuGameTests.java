@@ -61,16 +61,16 @@ import net.minecraft.world.level.block.state.BlockState;
 public final class CraftingCpuGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
-    private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
-    private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
-    private static final BlockPos CRATE_A = new BlockPos(1, 1, 2);
-    private static final BlockPos CRATE_B = new BlockPos(1, 1, 3);
-    private static final BlockPos STATION = new BlockPos(4, 1, 2);
-    private static final BlockPos PATTERNS = new BlockPos(4, 3, 2);
-    private static final BlockPos CPU_A = new BlockPos(6, 1, 1);
+    static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
+    static final BlockPos ACCESS = new BlockPos(2, 1, 3);
+    static final BlockPos CRATE_A = new BlockPos(1, 1, 2);
+    static final BlockPos CRATE_B = new BlockPos(1, 1, 3);
+    static final BlockPos STATION = new BlockPos(4, 1, 2);
+    static final BlockPos PATTERNS = new BlockPos(4, 3, 2);
+    static final BlockPos CPU_A = new BlockPos(6, 1, 1);
     private static final BlockPos CPU_B = new BlockPos(6, 1, 5);
-    private static final ItemKey STICK = ItemKey.of(new ItemStack(Items.STICK));
-    private static final ItemKey PLANKS = ItemKey.of(new ItemStack(Items.OAK_PLANKS));
+    static final ItemKey STICK = ItemKey.of(new ItemStack(Items.STICK));
+    static final ItemKey PLANKS = ItemKey.of(new ItemStack(Items.OAK_PLANKS));
 
     private CraftingCpuGameTests() {
     }
@@ -91,7 +91,7 @@ public final class CraftingCpuGameTests {
         return ServusStorageBlocks.CRAFTING_CPU.get().tryForm(helper.getLevel(), helper.absolutePos(at));
     }
 
-    private static CpuBlockEntity cpu(GameTestHelper helper, BlockPos origin) {
+    static CpuBlockEntity cpu(GameTestHelper helper, BlockPos origin) {
         CpuBlockEntity cpu = CpuBlock.master(helper.getLevel(), helper.absolutePos(origin));
         if (cpu == null) {
             throw new AssertionError("no formed CPU at " + origin);
@@ -109,7 +109,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** Warehouse, terminal, station and the ducts to the first CPU's spot; the CPU itself when {@code withCpu}. */
-    private static void setup(GameTestHelper helper, boolean withCpu) {
+    static void setup(GameTestHelper helper, boolean withCpu) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         for (BlockPos pos : List.of(CRATE_A, CRATE_B)) {
@@ -126,16 +126,16 @@ public final class CraftingCpuGameTests {
         }
     }
 
-    private static WarehouseNetwork warehouse(GameTestHelper helper) {
+    static WarehouseNetwork warehouse(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER);
         return controller.network().orElseThrow();
     }
 
-    private static DataNetwork line(GameTestHelper helper) {
+    static DataNetwork line(GameTestHelper helper) {
         return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2))).orElseThrow();
     }
 
-    private static CrateBlockEntity crate(GameTestHelper helper, BlockPos pos, Item item, int count) {
+    static CrateBlockEntity crate(GameTestHelper helper, BlockPos pos, Item item, int count) {
         CrateBlockEntity crate = helper.getBlockEntity(pos);
         if (count > 0) {
             crate.insert(new ItemStack(item, count), false);

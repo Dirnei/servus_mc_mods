@@ -8,7 +8,7 @@
 
 - [x] 2.1 `OrderStep`: mutable producer, collecting with an optional target (saved), transient hold time, the first in-flight handoff for wording. `OrderBook`: move waiting steps to a free producer with the same recipe; `feed` ignores missing inputs an earlier unfinished step makes. `CpuBlockEntity.collect`: terminal first, then handoffs via `Handoff`, then hold or Access Point; `handoff_wait_ticks` in `storage/cpu.json` via `StorageStatsManager`. Verify with `gradlew build` and `:storage:runGameTestServer` (existing tests green).
 - [x] 2.2 Production Terminal wording: `JobStatus.Step` sending fields, `JobStatus.of` status `sending`, `ProductionView` fills them, lang `gui.servus_storage.production.job.sending`; extend `JobStatusTest` with `sendingNamesTarget`. Verify with `gradlew :storage:test` and the data run.
-- [ ] 2.3 Add `storage/.../gametest/ChainHandoffGameTests.java`: `planksHandedToSecondStation`, `stoneHandedFromFurnaceToStation`, `busyNextProducerFallsBack`, `reloadMidHandoffCompletes`. Verify with `:storage:runGameTestServer`, all green.
+- [x] 2.3 Add `storage/.../gametest/ChainHandoffGameTests.java`: `planksHandedToSecondStation`, `stoneHandedFromFurnaceToStation`, `busyNextProducerFallsBack`, `reloadMidHandoffCompletes`. Verify with `:storage:runGameTestServer`, all green.
 
 ## 3. Docs
 
