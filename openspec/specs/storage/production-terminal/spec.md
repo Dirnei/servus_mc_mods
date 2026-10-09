@@ -146,3 +146,10 @@ The Production Terminal screen SHALL show its terminal's last known content when
 #### Scenario: Back from the recipe viewer
 - **WHEN** the player opens the recipe viewer from the Production Terminal, transfers a recipe into the pattern editor and saves the pattern
 - **THEN** every tab shows content, and the Patterns tab lists the new pattern without reopening the terminal
+
+### Requirement: Crafting tab names handoffs
+While the first unfinished step of a job sends outputs straight to the next step's producer, its row SHALL say so in plain words with the step's machine, the item and the receiving machine.
+
+#### Scenario: Stone to the station
+- **WHEN** a furnace adapter step sends stone to a Crafting Station
+- **THEN** the job row reads "Furnace (adapter): sending Stone to Crafting Station"
