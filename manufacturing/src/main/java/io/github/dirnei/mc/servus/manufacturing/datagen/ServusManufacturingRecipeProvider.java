@@ -80,16 +80,6 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     }
 
     private void crafting(RecipeOutput output) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.RESEARCH_LAB.get())
-                .pattern("IGI")
-                .pattern("RBR")
-                .pattern("III")
-                .define('I', Items.IRON_INGOT)
-                .define('G', Items.GLASS)
-                .define('R', Items.REDSTONE)
-                .define('B', Items.BOOK)
-                .unlockedBy("has_book", has(Items.BOOK))
-                .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.CALCINER.get())
                 .pattern("BIB")

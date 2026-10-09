@@ -8,7 +8,6 @@ import java.util.List;
 public final class ManufacturingMachines {
 
     /** Pseudo recipe type of the research lab: one pack per {@code ticks_per_pack}. */
-    public static final String RESEARCH = "servus:research";
 
     private static boolean registered;
 
@@ -21,7 +20,6 @@ public final class ManufacturingMachines {
             return;
         }
         registered = true;
-        add("research_lab", "powered", List.of(RESEARCH), MachineStats.powered(1, 10, 4000));
         add("calciner", "powered", List.of("servus_manufacturing:calcination"), alchemy(20, 8000, 4000));
         add("coagulator", "powered", List.of("servus_manufacturing:coagulation"), alchemy(20, 8000, 4000));
     }

@@ -8,7 +8,6 @@ import net.minecraft.resources.ResourceLocation;
 /** Screen layouts of Manufacturing's machines on the shared {@link MachineScreen}. */
 public final class MachineScreens {
 
-    public static final Layout LAB = new Layout(false, true, true, gui("research_lab"));
 
     private MachineScreens() {
     }

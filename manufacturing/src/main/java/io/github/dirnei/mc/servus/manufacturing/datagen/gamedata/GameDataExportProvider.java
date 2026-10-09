@@ -18,7 +18,6 @@ import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.St
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Tech;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.manufacturing.research.TechDefinition;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -263,17 +262,9 @@ public final class GameDataExportProvider implements DataProvider {
         return List.of();
     }
 
-    private static List<Tech> techs(Path dir) throws IOException {
-        List<Tech> techs = new ArrayList<>();
-        for (Path file : jsonFiles(dir)) {
-            TechDefinition definition = decode(TechDefinition.CODEC, readJson(file), file);
-            techs.add(new Tech(NS + ":" + relativeId(dir, file),
-                    definition.parents().stream().map(ResourceLocation::toString).toList(),
-                    definition.cost().stream().map(GameDataExportProvider::stack).toList(),
-                    definition.ticksPerPack(),
-                    definition.unlocks().stream().map(ResourceLocation::toString).toList()));
-        }
-        return techs;
+    /** Techs are gone since Paracelsus' journal replaced research; the section stays empty for the docs schema. */
+    private static List<Tech> techs(Path dir) {
+        return List.of();
     }
 
     // Fuels and names

@@ -11,7 +11,6 @@ public final class ServusManufacturingItems {
 
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ServusManufacturingIds.MOD_ID);
 
-    public static final DeferredItem<BlockItem> RESEARCH_LAB = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.RESEARCH_LAB);
     public static final DeferredItem<BlockItem> CALCINER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.CALCINER);
     public static final DeferredItem<BlockItem> COAGULATOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.COAGULATOR);
 
@@ -20,7 +19,7 @@ public final class ServusManufacturingItems {
     public static final DeferredItem<Item> QUICKSILVER = ITEMS.registerSimpleItem("quicksilver");
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CALCINER, COAGULATOR, RESEARCH_LAB,
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CALCINER, COAGULATOR,
             SALT_CRYSTAL, SULFUR, QUICKSILVER);
 
     private ServusManufacturingItems() {

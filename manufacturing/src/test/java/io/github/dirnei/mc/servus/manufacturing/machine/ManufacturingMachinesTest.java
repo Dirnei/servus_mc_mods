@@ -18,10 +18,11 @@ class ManufacturingMachinesTest {
     }
 
     @Test
-    void researchLabIsRegistered() {
-        MachineDefaults.MachineInfo info = MachineDefaults.info("servus_manufacturing:research_lab");
+    void alchemyMachinesAreRegistered() {
+        MachineDefaults.MachineInfo info = MachineDefaults.info("servus_manufacturing:calciner");
         assertEquals("powered", info.kind());
-        assertEquals(10, info.stats().energyPerTick());
+        assertEquals(20, info.stats().energyPerTick());
+        assertEquals(4000, MachineDefaults.stats("servus_manufacturing:coagulator").fluidCapacity());
     }
 
     @Test

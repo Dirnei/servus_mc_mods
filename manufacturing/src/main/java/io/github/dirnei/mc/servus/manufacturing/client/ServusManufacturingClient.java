@@ -20,7 +20,6 @@ public final class ServusManufacturingClient {
 
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
-        event.register(ServusManufacturingMenus.RESEARCH_LAB.get(), ResearchLabScreen::new);
         event.register(ServusManufacturingMenus.CALCINER.get(), CalcinerScreen::new);
         event.register(ServusManufacturingMenus.COAGULATOR.get(), CoagulatorScreen::new);
     }
@@ -28,7 +27,6 @@ public final class ServusManufacturingClient {
     /** Every machine draws its side modes on the block. */
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.RESEARCH_LAB.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CALCINER.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.COAGULATOR.get(), SideMarkerRenderer::new);
     }
