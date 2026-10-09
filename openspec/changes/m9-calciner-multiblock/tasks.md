@@ -27,5 +27,5 @@
 
 ## 6. Plan and integration
 
-- [ ] 6.1 Update `PLAN.md` M9: items 6b `m9-calciner-multiblock`, 6c `m9-coagulator-multiblock`, 6d `m9-athanor-multiblock`, the Tria Prima paragraph (Calciner is a structure with ports, no side configuration) and the Calciner row of the machine table; check no em dashes were added
+- [x] 6.1 Update `PLAN.md` M9: items 6b `m9-calciner-multiblock`, 6c `m9-coagulator-multiblock`, 6d `m9-athanor-multiblock`, the Tria Prima paragraph (Calciner is a structure with ports, no side configuration) and the Calciner row of the machine table; check no em dashes were added
 - [ ] 6.2 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks the build from the Journal schematic to a working Calciner
