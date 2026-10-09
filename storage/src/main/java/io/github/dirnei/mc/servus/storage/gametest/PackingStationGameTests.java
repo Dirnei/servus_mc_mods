@@ -281,4 +281,91 @@ public final class PackingStationGameTests {
             helper.succeed();
         });
     }
+
+    /** Most items a station at 8 per second can convert in {@code ticks}: one second of saved up budget plus the rate. */
+    private static int atMost(int ticks) {
+        return 8 + ticks * 8 / 20 + 1;
+    }
+
+    /** Fewest items expected in {@code ticks}: the rate minus one push interval of start up. */
+    private static int atLeast(int ticks) {
+        return (ticks - 10) * 8 / 20;
+    }
+
+    /** Loads a station's To network buffer with planks and opens a shipment of them to the Crafting Station. */
+    private static PackingStationBlockEntity.Shipment preload(GameTestHelper helper, BlockPos pos, int planks) {
+        PackingStationBlockEntity point = helper.getBlockEntity(pos);
+        point.outgoing().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, planks));
+        return point.addShipment(helper.absolutePos(STATION), io.github.dirnei.mc.servus.storage.network.ItemKey.of(
+                new ItemStack(Items.OAK_PLANKS)), planks);
+    }
+
+    /** How many of the preloaded planks have left a station's To network buffer. */
+    private static int sent(GameTestHelper helper, BlockPos pos, int preloaded) {
+        PackingStationBlockEntity point = helper.getBlockEntity(pos);
+        return preloaded - count(point.outgoing(), Items.OAK_PLANKS);
+    }
+
+    /** A shipment of 64 planks leaves the Packing Station at about 8 per second. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void drainsAtEightPerSecond(GameTestHelper helper) {
+        Setup setup = setup(helper, 64, 0, true, false);
+        helper.runAfterDelay(10, () -> {
+            long start = helper.getTick();
+            WarehouseNetwork.Shipping shipping = ship(helper, 64);
+            helper.assertTrue(shipping.shipped(), "shipping should start, refused " + shipping.refusal());
+            PackingStationBlockEntity point = helper.getBlockEntity(FAR);
+            helper.assertTrue(count(point.outgoing(), Items.OAK_PLANKS) == 64, "the picks wait in the To network buffer");
+            helper.runAfterDelay(80, () -> {
+                int arrived = count(setup.station().inputs(), Items.OAK_PLANKS);
+                helper.assertTrue(arrived >= atLeast(80) && arrived <= atMost(80),
+                        "about 32 planks should have left after 4 seconds, got " + arrived);
+                helper.assertTrue(count(point.outgoing(), Items.OAK_PLANKS) == 64 - arrived, "the rest waits in the To network buffer");
+            });
+            helper.succeedWhen(() -> {
+                helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 64, "all 64 planks should arrive");
+                long took = helper.getTick() - start;
+                helper.assertTrue(took >= 130, "64 planks at 8 per second take about 8 seconds, took " + took + " ticks");
+            });
+        });
+    }
+
+    /** Two Packing Stations each add their own rate. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void twoStationsDoubleThroughput(GameTestHelper helper) {
+        setup(helper, 0, 0, true, true);
+        helper.runAfterDelay(10, () -> {
+            preload(helper, FAR, 64);
+            preload(helper, NEAR, 64);
+            helper.runAfterDelay(80, () -> {
+                int fromFar = sent(helper, FAR, 64);
+                int fromNear = sent(helper, NEAR, 64);
+                helper.assertTrue(fromFar >= atLeast(80) && fromNear >= atLeast(80),
+                        "both stations should send about 32 planks in 4 seconds, got " + fromFar + " and " + fromNear);
+                helper.assertTrue(fromFar + fromNear > atMost(80),
+                        "together they should send more than one station can, got " + (fromFar + fromNear));
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Items into storage and items out of storage each move at the full rate. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void bothDirectionsAtOnce(GameTestHelper helper) {
+        setup(helper, 0, 0, true, false);
+        helper.runAfterDelay(10, () -> {
+            preload(helper, FAR, 64);
+            io.github.dirnei.mc.servus.foundation.data.packet.Delivery in = DataPackets.send(helper.getLevel(),
+                    helper.absolutePos(STATION), helper.absolutePos(FAR), new ItemStack(Items.COBBLESTONE, 64))
+                    .orElseThrow(() -> new AssertionError("the send should start"));
+            helper.runAfterDelay(80, () -> {
+                int sent = sent(helper, FAR, 64);
+                helper.assertTrue(sent >= atLeast(80) && sent <= atMost(80),
+                        "about 32 planks should go out in 4 seconds, got " + sent);
+                helper.assertTrue(in.delivered() >= atLeast(80) && in.delivered() <= atMost(80),
+                        "about 32 cobblestone should come in in 4 seconds, got " + in.delivered());
+                helper.succeed();
+            });
+        });
+    }
 }

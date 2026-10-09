@@ -35,6 +35,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_CPU_ORDER_SLOTS = 2;
     public static final int DEFAULT_HANDOFF_WAIT_TICKS = 100;
     public static final int DEFAULT_PATTERNS_PER_BLOCK = 9;
+    public static final double DEFAULT_PACKING_ITEMS_PER_SECOND = 8.0;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
@@ -42,6 +43,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private static final ResourceLocation RACK = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack");
     private static final ResourceLocation CRAFTING_STATION = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crafting_station");
     private static final ResourceLocation CPU = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "cpu");
+    private static final ResourceLocation PACKING_STATION = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "packing_station");
     private static final ResourceLocation PATTERN_STORAGE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
 
     public static final StorageStatsManager INSTANCE = new StorageStatsManager();
@@ -65,6 +67,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int cpuOrderSlots = DEFAULT_CPU_ORDER_SLOTS;
     private volatile int handoffWaitTicks = DEFAULT_HANDOFF_WAIT_TICKS;
     private volatile int patternsPerBlock = DEFAULT_PATTERNS_PER_BLOCK;
+    private volatile double packingItemsPerSecond = DEFAULT_PACKING_ITEMS_PER_SECOND;
 
     private StorageStatsManager() {
         super(GSON, DIRECTORY);
@@ -91,6 +94,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         cpuOrderSlots = intField(files.get(CPU), "order_slots", DEFAULT_CPU_ORDER_SLOTS);
         handoffWaitTicks = intField(files.get(CPU), "handoff_wait_ticks", DEFAULT_HANDOFF_WAIT_TICKS);
         patternsPerBlock = intField(files.get(PATTERN_STORAGE), "patterns_per_block", DEFAULT_PATTERNS_PER_BLOCK);
+        packingItemsPerSecond = doubleField(files.get(PACKING_STATION), "items_per_second", DEFAULT_PACKING_ITEMS_PER_SECOND);
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
 
@@ -158,6 +162,16 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     /** Encoded Patterns one Pattern Storage holds. */
     public int patternsPerBlock() {
         return patternsPerBlock;
+    }
+
+    /** Items a Packing Station converts per second in each direction. */
+    public double packingItemsPerSecond() {
+        return packingItemsPerSecond;
+    }
+
+    /** For tests: sets the Packing Station rate as if a datapack had been loaded. */
+    public void setPackingItemsPerSecond(double itemsPerSecond) {
+        packingItemsPerSecond = itemsPerSecond;
     }
 
     public double shuttleSpeed() {

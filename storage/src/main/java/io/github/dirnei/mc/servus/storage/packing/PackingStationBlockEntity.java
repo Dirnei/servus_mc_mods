@@ -2,7 +2,9 @@ package io.github.dirnei.mc.servus.storage.packing;
 
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
+import io.github.dirnei.mc.servus.foundation.data.packet.RateBudget;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
+import io.github.dirnei.mc.servus.foundation.production.TransferGate;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
@@ -32,12 +34,14 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
- * The warehouse's door to the data line. Packets that arrive land in the
- * inherited intake buffer and are put away like at an Inbound Station; the
- * outgoing buffer receives shuttle and instant picks for shipments and sends
- * them as packets, one delivery at a time.
+ * The warehouse's door to the data line and its only throughput limit. Items
+ * that arrive over the line land in the inherited intake buffer (To storage)
+ * and are put away like at an Inbound Station; the outgoing buffer (To
+ * network) receives shuttle and instant picks for shipments and sends them on,
+ * one delivery at a time. As a {@link TransferGate} it converts at most
+ * {@code items_per_second} per direction, the two directions independent.
  */
-public class PackingStationBlockEntity extends InboundStationBlockEntity implements DeliveryTarget, DataLink {
+public class PackingStationBlockEntity extends InboundStationBlockEntity implements DeliveryTarget, DataLink, TransferGate {
 
     /**
      * Items on their way to one data member. Its progress is a transfer in the
@@ -103,6 +107,8 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     private Shipment runningFor;
     private int sendTimer;
     private final IItemHandler[] faces = new IItemHandler[6];
+    private final RateBudget toStorage = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
+    private final RateBudget toNetwork = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
 
     public PackingStationBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.PACKING_STATION.get(), pos, state);
@@ -180,6 +186,42 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
     }
 
+    // Transfer gate
+
+    @Override
+    public int allowance(Flow flow) {
+        return budget(flow).allowance();
+    }
+
+    @Override
+    public void consume(Flow flow, int items) {
+        budget(flow).consume(items);
+    }
+
+    private RateBudget budget(Flow flow) {
+        return flow == Flow.IN ? toStorage : toNetwork;
+    }
+
+    /** Refills both budgets by one tick, following the rate from data after a reload. */
+    private void tickBudgets() {
+        double rate = StorageStatsManager.INSTANCE.packingItemsPerSecond();
+        if (toStorage.rate() != rate) {
+            toStorage.setRate(rate);
+            toNetwork.setRate(rate);
+        }
+        toStorage.tick();
+        toNetwork.tick();
+    }
+
+    /** How many of up to {@code max} items like the key the To network buffer has room for. */
+    public int outgoingRoom(ItemKey key, int max) {
+        if (max <= 0) {
+            return 0;
+        }
+        ItemStack probe = key.stack(max);
+        return max - ItemHandlerHelper.insertItemStacked(outgoing, probe, true).getCount();
+    }
+
     /** Open shipments, oldest first. */
     public List<Shipment> shipments() {
         return List.copyOf(shipments);
@@ -243,6 +285,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, PackingStationBlockEntity point) {
         InboundStationBlockEntity.serverTick(level, pos, state, point);
+        point.tickBudgets();
         if (level instanceof ServerLevel server && ++point.sendTimer >= StorageStatsManager.INSTANCE.pushInterval()) {
             point.sendTimer = 0;
             point.ship(server);
@@ -259,22 +302,21 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
         shipments.removeIf(Shipment::ended);
         for (Shipment shipment : shipments) {
-            ItemStack stack = takeOutgoing(shipment.key, shipment.missing());
-            if (stack.isEmpty()) {
+            int count = Math.min(shipment.missing(), outgoingCount(shipment.key));
+            if (count <= 0) {
                 continue;
             }
-            int count = stack.getCount();
-            Optional<Delivery> started = DataPackets.send(server, worldPosition, shipment.target, stack);
+            // The items stay in the To network buffer until the move takes them at the station's rate.
+            Optional<Delivery> started = DataPackets.move(server, worldPosition, shipment.target, shipment.key.stack(1), count, outgoing);
             if (started.isEmpty() || started.get().ended() && started.get().state() == Delivery.State.FAILED) {
-                // Refused at once: the stack is still ours, and this shipment cannot be served.
-                ItemHandlerHelper.insertItemStacked(outgoing, stack, false);
+                // Refused at once: this shipment cannot be served.
                 ledger().end(shipment.transfer);
                 continue;
             }
             running = started.get();
             runningFor = shipment;
             shippingLevel = server;
-            running.onEnd(delivery -> finished(shipment, delivery, count));
+            running.onEnd(delivery -> finished(shipment, delivery));
             setActivity(true);
             return;
         }
@@ -282,7 +324,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         setActivity(false);
     }
 
-    private void finished(Shipment shipment, Delivery delivery, int sent) {
+    private void finished(Shipment shipment, Delivery delivery) {
         ProductionLedger ledger = ProductionLedger.get(shippingLevel);
         ledger.delivered(shipment.transfer, delivery.delivered());
         if (delivery.state() == Delivery.State.FAILED || shipment.missing() == 0) {
@@ -314,23 +356,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             }
         }
         return false;
-    }
-
-    private ItemStack takeOutgoing(ItemKey key, int max) {
-        ItemStack taken = ItemStack.EMPTY;
-        for (int slot = 0; slot < outgoing.getSlots() && taken.getCount() < max; slot++) {
-            ItemStack stack = outgoing.getStackInSlot(slot);
-            if (stack.isEmpty() || !ItemKey.of(stack).equals(key)) {
-                continue;
-            }
-            ItemStack got = outgoing.extractItem(slot, max - taken.getCount(), false);
-            if (taken.isEmpty()) {
-                taken = got;
-            } else {
-                taken.grow(got.getCount());
-            }
-        }
-        return taken;
     }
 
     /**

@@ -207,6 +207,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             fleet.releaseGarage(blockPos);
         }
         held.remove(blockPos);
+        deferred.remove(blockPos);
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers--;
             if (blockPos.equals(controllerPos)) {
@@ -237,6 +238,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         pendingStations.addAll(that.stations);
         garages.addAll(that.garages);
         that.held.forEach((pos, loads) -> held.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(loads));
+        that.deferred.forEach((pos, picks) -> deferred.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(picks));
+        that.deferred.clear();
         zoneOf.putAll(that.zoneOf);
         that.sources.forEach((pos, source) -> {
             if (!sources.containsKey(pos) || source.node()) {
@@ -536,6 +539,22 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private record HeldLoad(PickJob job, ItemStack stack) {
     }
 
+    /**
+     * Instant picks for a Packing Station that wait in their source until the
+     * station's To network buffer has room, per station, oldest first.
+     */
+    private final Map<BlockPos, List<DeferredPick>> deferred = new HashMap<>();
+
+    private static final class DeferredPick {
+        private final PickJob job;
+        private int left;
+
+        private DeferredPick(PickJob job) {
+            this.job = job;
+            this.left = job.amount();
+        }
+    }
+
     /** Whether some garage shuttle can drive to a rail beside the position. */
     public boolean canReach(BlockPos pos) {
         return fleet.canReach(pos);
@@ -820,10 +839,17 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     private void startJobs(RequestPlan.Plan<BlockPos> plan, int requestId, ItemKey key, BlockPos destination) {
+        startPicks(plan, requestId, key, destination);
+        releaseDeferred(destination);
+    }
+
+    private void startPicks(RequestPlan.Plan<BlockPos> plan, int requestId, ItemKey key, BlockPos destination) {
         for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
             PickJob pick = new PickJob(requestId, key, job.count(), job.source(), destination);
             if (job.byShuttle()) {
                 fleet.requestPick(pick);
+            } else if (loaded(destination) instanceof PackingStationBlockEntity) {
+                deferred.computeIfAbsent(destination, pos -> new ArrayList<>()).add(new DeferredPick(pick));
             } else {
                 ItemStack taken = extractFrom(job.source(), key, job.count());
                 pickLoaded(pick, taken.getCount());
@@ -867,6 +893,51 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
+    /**
+     * Picks for a Packing Station from crates and foreign inventories as far as
+     * its To network buffer has room; the rest stays in its source until the
+     * buffer drains. A source that holds less than planned cuts the shipment.
+     */
+    private void releaseDeferred(BlockPos stationPos) {
+        List<DeferredPick> picks = deferred.get(stationPos);
+        if (picks == null || level == null) {
+            return;
+        }
+        if (!(loaded(stationPos) instanceof PackingStationBlockEntity station)) {
+            return;
+        }
+        while (!picks.isEmpty()) {
+            DeferredPick pick = picks.get(0);
+            int room = station.outgoingRoom(pick.job.key(), pick.left);
+            if (room <= 0) {
+                break;
+            }
+            ItemStack taken = extractFrom(pick.job.source(), pick.job.key(), room);
+            int got = taken.getCount();
+            if (got < room) {
+                station.shortfall(pick.job.key(), room - got);
+            }
+            deliverInstant(pick.job, taken);
+            pick.left -= room;
+            if (pick.left <= 0) {
+                picks.remove(0);
+            }
+        }
+        if (picks.isEmpty()) {
+            deferred.remove(stationPos);
+        }
+    }
+
+    /** Ends what deferred picks still owe as shortfalls, when this network goes away without handing them on. */
+    private void dropDeferred() {
+        deferred.forEach((pos, picks) -> {
+            if (level != null && level.isLoaded(pos) && level.getBlockEntity(pos) instanceof PackingStationBlockEntity station) {
+                picks.forEach(pick -> station.shortfall(pick.job.key(), pick.left));
+            }
+        });
+        deferred.clear();
+    }
+
     /** Retries the held loads of a destination after its delivery buffer changed. */
     private void retryHeld(BlockPos terminalPos) {
         List<HeldLoad> loads = held.get(terminalPos);
@@ -897,6 +968,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         stations.clear();
         garages.clear();
         held.clear();
+        dropDeferred();
         pendingStations.clear();
         blockedStations.clear();
         zoneOf.clear();
@@ -1013,6 +1085,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         } else if (event instanceof WarehouseEvent.OutputChanged output) {
             retryHeld(output.pos());
+            releaseDeferred(output.pos());
         } else if (event instanceof WarehouseEvent.Intake intake) {
             if (stations.contains(intake.pos())) {
                 pendingStations.add(intake.pos());

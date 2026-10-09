@@ -98,6 +98,8 @@ public final class ServusStorageEvents {
                     (point, side) -> point.handlerFor(side));
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point);
+            event.registerBlockEntity(ServusFoundationCapabilities.TRANSFER_GATE, ServusStorageBlockEntities.PACKING_STATION.get(),
+                    (point, side) -> point);
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.CRAFTING_CPU.get(),
                     (cpu, side) -> cpu.dataLink());
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PRODUCTION_TERMINAL.get(),
