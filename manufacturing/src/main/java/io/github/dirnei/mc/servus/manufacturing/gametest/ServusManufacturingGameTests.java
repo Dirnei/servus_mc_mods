@@ -213,6 +213,25 @@ public final class ServusManufacturingGameTests {
 
     private static final BlockPos PR_ASSEMBLER = new BlockPos(9, 2, 10);
 
+    /** A configured crafting recipe whose result takes the wood of its planks is reported with that wood. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void assemblerReportsWoodResult(GameTestHelper helper) {
+        helper.setBlock(PR_ASSEMBLER, facing(ServusManufacturingBlocks.ASSEMBLER.get(), Direction.WEST));
+        AssemblerBlockEntity assembler = helper.getBlockEntity(PR_ASSEMBLER);
+        // Configured by id, the template takes the first planks of the tag: oak.
+        assembler.addRecipe(ResourceLocation.fromNamespaceAndPath("servus_foundation", "machine_adapter"), null);
+        helper.assertTrue(assembler.recipes().size() == 1, "the machine adapter recipe should be configured");
+        ItemStack planks = assembler.recipes().get(0).template().get(6);
+        ProductionProvider provider = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION,
+                helper.absolutePos(PR_ASSEMBLER), Direction.UP);
+        helper.assertTrue(provider != null && provider.recipes().size() == 1, "one recipe should be reported");
+        ItemStack out = provider.recipes().get(0).outputs().get(0);
+        ResourceLocation wood = out.get(io.github.dirnei.mc.servus.foundation.wood.WoodContent.WOOD.get());
+        helper.assertTrue(wood != null && wood.equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(planks.getItem())),
+                "the reported adapter should carry the wood of " + planks + ", got " + out.getComponents());
+        helper.succeed();
+    }
+
     /** The assembler reports its configured recipes through the Lib production capability. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void assemblerReportsItsRecipes(GameTestHelper helper) {

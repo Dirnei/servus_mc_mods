@@ -6,7 +6,7 @@
 
 ## 2. Assembler reports what it crafts
 
-- [ ] 2.1 Add `ConfiguredRecipe.producedResult(Level)` and report it in `AssemblerBlockEntity.production()` (`manufacturing/.../machine/assembler/`); Manufacturing GameTest `assemblerReportsWoodResult`. Verify with `gradlew build test` and `:manufacturing:runGameTestServer`.
+- [x] 2.1 Add `ConfiguredRecipe.producedResult(Level)` and report it in `AssemblerBlockEntity.production()` (`manufacturing/.../machine/assembler/`); Manufacturing GameTest `assemblerReportsWoodResult`. Verify with `gradlew build test` and `:manufacturing:runGameTestServer`.
 
 ## 3. Integration
 

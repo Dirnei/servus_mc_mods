@@ -11,6 +11,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -73,6 +74,26 @@ public final class ConfiguredRecipe {
     /** Result shown in the GUI, independent of inputs. */
     public ItemStack displayResult(Level level) {
         return resolve(level).map(holder -> holder.value().getResultItem(level.registryAccess())).orElse(ItemStack.EMPTY);
+    }
+
+    /**
+     * What this recipe really crafts from its template, as the assembler makes
+     * it: a crafting recipe is assembled from the 3 by 3 template, so results
+     * that take components from their ingredients (the wood of planks) carry
+     * them. Assembling recipes always give their plain result.
+     */
+    public ItemStack producedResult(Level level) {
+        Optional<CraftingRecipe> crafting = crafting(level);
+        if (crafting.isPresent()) {
+            CraftingInput input = CraftingInput.of(3, 3, template.size() >= GRID ? template.subList(0, GRID) : template);
+            if (template.size() >= GRID && crafting.get().matches(input, level)) {
+                ItemStack result = crafting.get().assemble(input, level.registryAccess());
+                if (!result.isEmpty()) {
+                    return result;
+                }
+            }
+        }
+        return displayResult(level);
     }
 
     /** Whether the stack is one of the template items. */

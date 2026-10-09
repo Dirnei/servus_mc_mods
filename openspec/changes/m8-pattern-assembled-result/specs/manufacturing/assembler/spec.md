@@ -14,5 +14,5 @@ The Assembler SHALL expose the Lib production capability on every side. Its reci
 - **THEN** the capability reports no recipes and no active recipe
 
 #### Scenario: Wood from the template
-- **WHEN** a crafting recipe whose result takes the wood of its planks is configured with birch planks
-- **THEN** the reported output carries the birch wood, like the item the Assembler crafts
+- **WHEN** a crafting recipe whose result takes the wood of its planks is configured with oak planks in its template
+- **THEN** the reported output carries the oak wood, like the item the Assembler crafts

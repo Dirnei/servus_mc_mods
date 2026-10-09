@@ -118,7 +118,7 @@ public class AssemblerBlockEntity extends PoweredMachineBlockEntity {
                             inputs.add(cell.copy());
                         }
                     }
-                    ItemStack result = recipe.displayResult(level);
+                    ItemStack result = recipe.producedResult(level);
                     int ticks = recipe.assembling(level).map(AssemblingRecipe::time).orElse(stats().workTicks());
                     list.add(new ProductionRecipe(recipe.id(), inputs, result.isEmpty() ? List.of() : List.of(result), Math.max(1, ticks)));
                 }
