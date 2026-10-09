@@ -25,3 +25,5 @@
 ## 6. Integration
 
 - [ ] 6.1 Full `gradlew build` and `gradlew test` green, Foundation, Manufacturing and Storage GameTests green, and the game launches with all three mods.
+  - Verified in the worktree on 2026-10-09: `gradlew clean build test` green (469 JUnit tests), GameTests green per project (Foundation 31, Manufacturing 46, Storage 239), and `runGameTestServerAll` loads all three mods together (316 tests, the only 3 failures are `countersendsonopen`, `terminalsendsonopen` and `productionsendsonopen`, where the FTB Ultimine dev mod sends its own payload to the GameTest fake player; they pass in the per project runs).
+  - Owed by the user: launch the client from the main checkout and play check the Packing Station (GUI rows, tooltips, status line, 8 per second in both directions, the terminal Input row draining). This item stays unchecked until then.
