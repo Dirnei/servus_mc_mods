@@ -1,0 +1,92 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#board"
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#board"
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#board"
+        },
+        "south": {
+          "cullface": "south",
+          "texture": "#board"
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#board"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#board"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#down"
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#east"
+        },
+        "north": {
+          "cullface": "north",
+          "texture": "#north"
+        },
+        "south": {
+          "cullface": "south",
+          "texture": "#south"
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#up"
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#west"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    }
+  ],
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "board": "servus_foundation:block/wood_board",
+    "down": "servus_storage:block/pattern_storage_top",
+    "east": "servus_storage:block/pattern_storage_side",
+    "north": "servus_storage:block/pattern_storage_front_7_online",
+    "particle": "servus_storage:block/pattern_storage_front_7_online",
+    "south": "servus_storage:block/pattern_storage_side",
+    "up": "servus_storage:block/pattern_storage_top",
+    "west": "servus_storage:block/pattern_storage_side"
+  }
+}

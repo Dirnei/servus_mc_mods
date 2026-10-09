@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.pattern;
 
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.production.ProductionView;
+
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
@@ -9,6 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
@@ -96,6 +101,21 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
             patterns[slot] = null;
             setChanged();
             updateLights();
+        }
+    }
+
+    /** How often the online lamp is refreshed. */
+    private static final int LAMP_TICKS = 20;
+    private int lampTimer;
+
+    public static void serverTick(Level level, BlockPos pos, BlockState state, PatternStorageBlockEntity storage) {
+        if (++storage.lampTimer < LAMP_TICKS || !state.hasProperty(StorageNodeBlocks.ONLINE)) {
+            return;
+        }
+        storage.lampTimer = 0;
+        boolean online = ProductionView.online((ServerLevel) level, pos);
+        if (state.getValue(StorageNodeBlocks.ONLINE) != online) {
+            level.setBlock(pos, state.setValue(StorageNodeBlocks.ONLINE, online), Block.UPDATE_CLIENTS);
         }
     }
 

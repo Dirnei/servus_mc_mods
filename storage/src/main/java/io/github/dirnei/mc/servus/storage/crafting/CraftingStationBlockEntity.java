@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.crafting;
 
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.production.ProductionView;
+
 import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
@@ -92,6 +95,9 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     private int clientJobLeft;
     private int progress;
     private int ownerCheck;
+    private int lampTimer;
+    /** How often the online lamp is refreshed. */
+    private static final int LAMP_TICKS = 20;
     private int pushTimer;
 
     private final SideConfig sides = SideConfig.machine();
@@ -445,8 +451,16 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         }
         boolean working = station.tick();
         station.pushOutputs();
-        if (state.hasProperty(CraftingStationBlock.LIT) && state.getValue(CraftingStationBlock.LIT) != working) {
-            level.setBlock(pos, state.setValue(CraftingStationBlock.LIT, working), Block.UPDATE_CLIENTS);
+        BlockState next = state;
+        if (next.hasProperty(CraftingStationBlock.LIT) && next.getValue(CraftingStationBlock.LIT) != working) {
+            next = next.setValue(CraftingStationBlock.LIT, working);
+        }
+        if (++station.lampTimer >= LAMP_TICKS && next.hasProperty(StorageNodeBlocks.ONLINE)) {
+            station.lampTimer = 0;
+            next = next.setValue(StorageNodeBlocks.ONLINE, ProductionView.online((ServerLevel) level, pos));
+        }
+        if (next != state) {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
         }
     }
 

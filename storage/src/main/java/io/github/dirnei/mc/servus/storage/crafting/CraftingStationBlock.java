@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.crafting;
 
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigWrench;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
@@ -38,7 +40,8 @@ public class CraftingStationBlock extends BaseEntityBlock implements Wrenchable 
 
     public CraftingStationBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false)
+                .setValue(StorageNodeBlocks.ONLINE, false));
     }
 
     @Override
@@ -48,7 +51,7 @@ public class CraftingStationBlock extends BaseEntityBlock implements Wrenchable 
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, LIT);
+        builder.add(FACING, LIT, StorageNodeBlocks.ONLINE);
     }
 
     @Override

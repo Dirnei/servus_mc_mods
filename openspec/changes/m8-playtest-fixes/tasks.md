@@ -11,7 +11,7 @@
 ## 3. Lamps, animation and CPU margin
 
 - [x] 3.1 `gen_block_style.py`: CPU lights keep a 1 px glass margin; Crafting Station fronts with online lamp, still and animated working faces (`.mcmeta`); Pattern Storage fronts for lights 0 to 9 with lamp off and on. Regenerate the textures. Verify the generator reports no light touching the glass edge.
-- [ ] 3.2 Crafting Station and Pattern Storage get `StorageNodeBlocks.ONLINE`, refreshed every 20 ticks from `ProductionView.online`; blockstate datagen for both; `:storage:runData`. Add GameTests that both lamps light on a line with a formed CPU and stay dark alone. Verify with `gradlew build` and `:storage:runGameTestServer`.
+- [x] 3.2 Crafting Station and Pattern Storage get `StorageNodeBlocks.ONLINE`, refreshed every 20 ticks from `ProductionView.online`; blockstate datagen for both; `:storage:runData`. Add GameTests that both lamps light on a line with a formed CPU and stay dark alone. Verify with `gradlew build` and `:storage:runGameTestServer`.
 
 ## 4. Docs and integration
 

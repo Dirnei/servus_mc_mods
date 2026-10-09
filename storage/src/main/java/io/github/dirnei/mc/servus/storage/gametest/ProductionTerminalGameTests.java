@@ -271,4 +271,26 @@ public final class ProductionTerminalGameTests {
             helper.succeed();
         });
     }
+
+    /** A Crafting Station and a Pattern Storage on a line with a CPU light their online lamps. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void stationAndPatternStorageLampsLight(GameTestHelper helper) {
+        setup(helper, true);
+        TerminalWiring.when(helper, () -> lit(helper, STATION) && lit(helper, PATTERNS), 60,
+                () -> "station and pattern storage lamps should light", helper::succeed);
+    }
+
+    /** Alone, a Crafting Station and a Pattern Storage keep their lamps dark. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void stationAndPatternStorageAloneDark(GameTestHelper helper) {
+        BlockPos station = LONE;
+        BlockPos patterns = LONE.east(1).south(0).west(2);
+        helper.setBlock(station, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        helper.setBlock(patterns, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
+        helper.runAfterDelay(25, () -> {
+            helper.assertTrue(!lit(helper, station), "the station lamp should stay dark");
+            helper.assertTrue(!lit(helper, patterns), "the pattern storage lamp should stay dark");
+            helper.succeed();
+        });
+    }
 }

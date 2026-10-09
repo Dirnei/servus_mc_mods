@@ -1,6 +1,10 @@
 package io.github.dirnei.mc.servus.storage.pattern;
 
 import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import net.minecraft.core.BlockPos;
@@ -37,7 +41,8 @@ public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
 
     public PatternStorageBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIGHTS, 0));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIGHTS, 0)
+                .setValue(StorageNodeBlocks.ONLINE, false));
     }
 
     @Override
@@ -47,7 +52,7 @@ public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, LIGHTS);
+        builder.add(FACING, LIGHTS, StorageNodeBlocks.ONLINE);
     }
 
     /** A placed item may carry patterns: the lights follow them. */
@@ -72,6 +77,12 @@ public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new PatternStorageBlockEntity(pos, state);
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide() ? null
+                : createTickerHelper(type, ServusStorageBlockEntities.PATTERN_STORAGE.get(), PatternStorageBlockEntity::serverTick);
     }
 
     @Override

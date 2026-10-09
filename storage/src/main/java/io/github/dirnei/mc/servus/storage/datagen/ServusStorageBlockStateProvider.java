@@ -46,7 +46,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         station(ServusStorageBlocks.ACCESS_POINT.get(), "access_point");
         garage(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "shuttle_garage");
         station(ServusStorageBlocks.OUTBOUND_STATION.get(), "outbound_station");
-        machine(ServusStorageBlocks.CRAFTING_STATION.get(), "crafting_station");
+        craftingStation(ServusStorageBlocks.CRAFTING_STATION.get(), "crafting_station");
         cpu(ServusStorageBlocks.CRAFTING_CPU.get(), "crafting_cpu");
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
         itemModels().getBuilder("shuttle").parent(new ModelFile.UncheckedModelFile("block/block"))
@@ -90,31 +90,39 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         return faces;
     }
 
-    /** Pattern Storage: the front shows one lit light per stored pattern. */
+    /** Pattern Storage: the front shows one lit light per stored pattern and the online lamp. */
     private void patternStorage(Block block, String name) {
-        ModelFile[] models = new ModelFile[PatternLights.LIGHTS + 1];
-        for (int lit = 0; lit <= PatternLights.LIGHTS; lit++) {
-            models[lit] = LayeredModels.orientable(this, name + "_" + lit, modLoc("block/" + name + "_side"),
-                    modLoc("block/" + name + "_front_" + lit), modLoc("block/" + name + "_top"));
+        ModelFile[][] models = new ModelFile[2][PatternLights.LIGHTS + 1];
+        for (int online = 0; online < 2; online++) {
+            for (int lit = 0; lit <= PatternLights.LIGHTS; lit++) {
+                String suffix = "_" + lit + (online == 1 ? "_online" : "");
+                models[online][lit] = LayeredModels.orientable(this, name + suffix, modLoc("block/" + name + "_side"),
+                        modLoc("block/" + name + "_front" + suffix), modLoc("block/" + name + "_top"));
+            }
         }
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(models[state.getValue(PatternStorageBlock.LIGHTS)])
+                .modelFile(models[state.getValue(StorageNodeBlocks.ONLINE) ? 1 : 0][state.getValue(PatternStorageBlock.LIGHTS)])
                 .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
                 .build());
-        simpleBlockItem(block, models[0]);
+        simpleBlockItem(block, models[0][0]);
     }
 
-    /** Horizontal block with a lit front while it works. */
-    private void machine(Block block, String name) {
-        ModelFile dark = LayeredModels.orientable(this, name, modLoc("block/" + name + "_side"),
-                modLoc("block/" + name + "_front"), modLoc("block/" + name + "_top"));
-        ModelFile lit = LayeredModels.orientable(this, name + "_lit", modLoc("block/" + name + "_side"),
-                modLoc("block/" + name + "_front_lit"), modLoc("block/" + name + "_top"));
+    /** The Crafting Station: online lamp, and an animated front while it crafts. */
+    private void craftingStation(Block block, String name) {
+        ModelFile[][] models = new ModelFile[2][2];
+        for (int online = 0; online < 2; online++) {
+            for (int lit = 0; lit < 2; lit++) {
+                String suffix = (lit == 1 ? "_lit" : "") + (online == 1 ? "_online" : "");
+                models[online][lit] = LayeredModels.orientable(this, name + suffix, modLoc("block/" + name + "_side"),
+                        modLoc("block/" + name + "_front" + suffix), modLoc("block/" + name + "_top"));
+            }
+        }
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? lit : dark)
+                .modelFile(models[state.getValue(StorageNodeBlocks.ONLINE) ? 1 : 0]
+                        [state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? 1 : 0])
                 .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
                 .build());
-        simpleBlockItem(block, dark);
+        simpleBlockItem(block, models[0][0]);
     }
 
     /** Like {@link #oriented} with an activity lamp: idle, working and blocked fronts while online. */
