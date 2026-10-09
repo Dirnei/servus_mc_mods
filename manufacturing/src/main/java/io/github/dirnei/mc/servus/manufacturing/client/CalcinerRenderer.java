@@ -20,13 +20,16 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import com.mojang.math.Axis;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
- * Draws what a formed Calciner holds: the Salt heap in the Ash Pan, the Mercury in the Receiver's
+ * Draws what a formed Calciner holds: the matter in the crucible, the Salt heap in the Ash Pan, the Mercury in the Receiver's
  * flask and the Sulfur crust creeping up the Hood, each by how full its tank is. The rest of the
  * structure is chunk baked from block models.
  */
@@ -77,6 +80,23 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
             drawBox(consumer, poseStack.last(), box[0], y0, box[1], box[2], y1, box[3], sprite, color, packedLight);
             poseStack.popPose();
         }
+        renderInput(calciner, facing, poseStack, buffers, packedLight);
+    }
+
+    /** The matter being calcined, standing in the crucible of the mouth. */
+    private static void renderInput(CalcinerBlockEntity calciner, Direction facing, PoseStack poseStack, MultiBufferSource buffers, int light) {
+        ItemStack input = calciner.shownInput();
+        if (input.isEmpty()) {
+            return;
+        }
+        float[] spot = rotate(8 / 16F, 5 / 16F, 8 / 16F, 5 / 16F, facing);
+        poseStack.pushPose();
+        poseStack.translate(spot[0], 10 / 16F, spot[1]);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
+        poseStack.scale(0.4F, 0.4F, 0.4F);
+        Minecraft.getInstance().getItemRenderer().renderStatic(input, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
+                poseStack, buffers, calciner.getLevel(), (int) calciner.getBlockPos().asLong());
+        poseStack.popPose();
     }
 
     /**

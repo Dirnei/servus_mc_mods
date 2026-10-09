@@ -75,6 +75,13 @@ A `CalcinerJadePlugin` (`@WailaPlugin`) registers an `IServerDataProvider<BlockA
 ### Pure vs Minecraft
 Pure and JUnit tested: `CalcinerLayout`. GameTests in `AlchemyGameTests`: forming in all four facings, a missing Receiver reported, breaking a shell unforms and drops Bricks, a calcine cycle on a formed Calciner, Salt only at the Ash Pan, the carrot does nothing, unformed does nothing. Manual: model, fire, smoke, fill levels, Visualize in the book, Jade.
 
+### Play check changes (2026-10-10)
+- **Tank columns and the Sulfur Duct.** The structure grows to 5 wide: a column of three Foundation Fluid Tanks on each side. The Receiver moves out to stand on the Mercury column; the Alembic's spout crosses an air cell to it, so that cell must be air (`Role.AIR`). A new part, the Sulfur Duct (`CalcinerDuctBlock`, placed three times, `PIECE` 0 to 2 picks its formed piece), runs from the Hood across and down into the Sulfur column. The Hood no longer exposes Sulfur; the lowest duct piece does, and pushes down into the tank. Pipes then take Mercury and Sulfur from the tanks at ground level instead of from blocks in mid air. The tanks stay Foundation blocks and keep their fluid when the Calciner unforms.
+- **Unforming from outside.** Fluid Tanks are Foundation blocks without our removal hook, and the air cell has no block at all. Every formed part and shell checks the tank and air cells in `neighborChanged`, which a removed tank or a placed block triggers on its neighbours (bricks touch the tanks, the Alembic, Receiver and a brick touch the air cell, Receiver and duct touch the tank tops). Only these seven known cells are read, on a neighbour change only.
+- **Schematic on the ground.** Modonomicon's Visualize anchors the `0` center on the clicked block. The center is therefore a display only ground row under the Ash Pan, and the Calciner is `C` in the schematic. Forming does not use Modonomicon's check, so the center can be anywhere.
+- **Matter in the crucible.** The update tag also carries the input item (count 1), sent when the item changes; `CalcinerRenderer` draws it at 40 % in the crucible with the fixed display transform.
+- **No coplanar faces.** Brick bodies stop where the stone cornice and plinth start, the coals sit behind the grate, and the mouth is 9 deep so the crucible shows.
+
 ### PLAN.md
 M9 gets items 6b `m9-calciner-multiblock`, 6c `m9-coagulator-multiblock`, 6d `m9-athanor-multiblock`; the Tria Prima paragraph says the Calciner is a structure with ports and no side configuration; the machine table row of the Calciner names the build.
 

@@ -32,6 +32,10 @@ final class CalcinerModels {
     private static final String COAL = "block/coal_block";
     private static final String EMBERS = "block/magma";
 
+    /** Where the stone cornice starts and the stone plinth ends, in sixteenths. */
+    private static final int CORNICE = 14;
+    private static final int PLINTH = 2;
+
     private final BlockStateProvider states;
 
     CalcinerModels(BlockStateProvider states) {
@@ -112,7 +116,8 @@ final class CalcinerModels {
 
     private BlockModelBuilder bricks(String name, boolean cornice, boolean plinth) {
         BlockModelBuilder model = builder(name).texture("bricks", states.mcLoc(BRICKS)).texture("particle", states.mcLoc(BRICKS));
-        box(model, 0, 0, 0, 16, 16, 16, "#bricks");
+        // The body stops where a stone band starts, so no two faces lie in one plane and flicker.
+        box(model, 0, plinth ? PLINTH : 0, 0, 16, cornice ? CORNICE : 16, 16, "#bricks");
         trim(model, cornice, plinth);
         return model;
     }
@@ -124,22 +129,27 @@ final class CalcinerModels {
         }
         model.texture("stone", states.mcLoc(STONE));
         if (cornice) {
-            box(model, 0, 14, -1, 16, 16, 17, "#stone");
+            box(model, 0, CORNICE, -1, 16, 16, 17, "#stone");
         }
         if (plinth) {
-            box(model, 0, 0, -1, 16, 2, 17, "#stone");
+            box(model, 0, 0, -1, 16, PLINTH, 17, "#stone");
         }
     }
 
     /** A brick block with an opening in the front: frame, back wall and sides. */
     private BlockModelBuilder brickFrame(String name, int openingBottom, int openingTop) {
+        return brickFrame(name, openingBottom, openingTop, 0, 16, 3);
+    }
+
+    /** A brick frame between {@code bottom} and {@code top}, leaving room for a stone band above or below. */
+    private BlockModelBuilder brickFrame(String name, int openingBottom, int openingTop, int bottom, int top, int depth) {
         BlockModelBuilder model = builder(name).texture("bricks", states.mcLoc(BRICKS)).texture("particle", states.mcLoc(BRICKS));
-        box(model, 0, 0, 3, 16, 16, 16, "#bricks");
-        box(model, 0, 0, 0, 3, 16, 3, "#bricks");
-        box(model, 13, 0, 0, 16, 16, 3, "#bricks");
-        box(model, 3, openingTop, 0, 13, 16, 3, "#bricks");
-        if (openingBottom > 0) {
-            box(model, 3, 0, 0, 13, openingBottom, 3, "#bricks");
+        box(model, 0, bottom, depth, 16, top, 16, "#bricks");
+        box(model, 0, bottom, 0, 3, top, depth, "#bricks");
+        box(model, 13, bottom, 0, 16, top, depth, "#bricks");
+        box(model, 3, openingTop, 0, 13, top, depth, "#bricks");
+        if (openingBottom > bottom) {
+            box(model, 3, bottom, 0, 13, openingBottom, depth, "#bricks");
         }
         return model;
     }
@@ -150,14 +160,15 @@ final class CalcinerModels {
                 .texture("coals", states.mcLoc(coals))
                 .texture("bars", states.mcLoc(IRON_BARS))
                 .renderType("cutout");
-        box(model, 3, 2, 1, 13, 5, 3, "#coals");
+        // Behind the grate, never in its plane.
+        box(model, 3, 2, 1.5F, 13, 5, 3, "#coals");
         plane(model, 3, 2, 13, 12, 1, "#bars");
         return model;
     }
 
     /** A low drawer with an iron tray, where the Salt gathers. */
     private ModelFile ashPan(String name, boolean formed) {
-        BlockModelBuilder model = brickFrame(name, 2, 8).texture("iron", states.mcLoc(IRON));
+        BlockModelBuilder model = brickFrame(name, 2, 8, formed ? PLINTH : 0, 16, 3).texture("iron", states.mcLoc(IRON));
         box(model, 3, 2, 1, 13, 3, 3, "#iron");
         box(model, 3, 3, 1, 4, 5, 3, "#iron");
         box(model, 12, 3, 1, 13, 5, 3, "#iron");
@@ -167,12 +178,12 @@ final class CalcinerModels {
 
     /** The formed mouth: an arch over the crucible, embers below it, a copper collar up into the Alembic. */
     private ModelFile mouth(String name, String embers) {
-        BlockModelBuilder model = brickFrame(name, 2, 13)
+        BlockModelBuilder model = brickFrame(name, 2, 13, 0, CORNICE, 9)
                 .texture("crucible", states.mcLoc(CAULDRON))
                 .texture("embers", states.mcLoc(embers))
                 .texture("cut", states.mcLoc(CUT_COPPER));
-        box(model, 3, 2, 2, 13, 3, 3, "#embers");
-        box(model, 5, 3, 5, 11, 9, 11, "#crucible");
+        box(model, 3, 2, 1, 13, 3, 9, "#embers");
+        box(model, 5, 3, 2, 11, 9, 8, "#crucible");
         box(model, 6, 15, 6, 10, 20, 10, "#cut");
         trim(model, true, false);
         return model;

@@ -50,6 +50,10 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     private boolean partsLit;
     /** The fill of each principle in sixteenths, -1 for empty, as last sent to the clients that draw it. */
     private final int[] drawnFill = {-1, -1, -1};
+    /** The input item as last sent to the clients, null before the first send. */
+    private net.minecraft.world.item.Item sentInput;
+    /** On the client: the matter shown in the crucible. */
+    private ItemStack shownInput = ItemStack.EMPTY;
 
     public CalcinerBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.CALCINER.get(), pos, state, 2);
@@ -213,9 +217,16 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         return currentRecipe().map(recipe -> Math.max(1, recipe.time())).orElse(Integer.MAX_VALUE);
     }
 
-    /** Sends the tanks to the clients when a drawn fill level changed by a sixteenth. */
+    /** On the client: the matter drawn in the crucible of the formed Calciner. */
+    public ItemStack shownInput() {
+        return shownInput;
+    }
+
+    /** Sends the tanks and the matter to the clients when a drawn fill level changed by a sixteenth or the matter changed. */
     private void syncFill() {
-        boolean changed = false;
+        net.minecraft.world.item.Item input = inventory.getStackInSlot(SLOT_INPUT).getItem();
+        boolean changed = input != sentInput;
+        sentInput = input;
         for (Principle principle : Principle.values()) {
             int amount = tanks.amount(principle);
             int fill = amount == 0 ? -1 : amount * 16 / Math.max(1, tanks.capacity());
@@ -234,6 +245,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         tag.put("Principles", tanks.save(registries));
+        tag.put("ShownInput", inventory.getStackInSlot(SLOT_INPUT).copyWithCount(1).saveOptional(registries));
         return tag;
     }
 
@@ -249,6 +261,9 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         super.loadAdditional(tag, registries);
         tanks.load(tag.getCompound("Principles"));
         ownership.load(tag);
+        if (tag.contains("ShownInput")) {
+            shownInput = ItemStack.parseOptional(registries, tag.getCompound("ShownInput"));
+        }
     }
 
     /** The Calciner has no GUI. */

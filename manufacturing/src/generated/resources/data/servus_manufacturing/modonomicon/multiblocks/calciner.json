@@ -3,15 +3,11 @@
   "mapping": {
     "*": {
       "type": "modonomicon:display",
-      "display": "minecraft:basalt"
-    },
-    "+": {
-      "type": "modonomicon:display",
-      "display": "minecraft:stone"
+      "display": "minecraft:smooth_stone"
     },
     "0": {
-      "type": "modonomicon:block",
-      "block": "servus_manufacturing:calciner"
+      "type": "modonomicon:display",
+      "display": "minecraft:smooth_stone"
     },
     "A": {
       "type": "modonomicon:block",
@@ -20,6 +16,10 @@
     "B": {
       "type": "modonomicon:block",
       "block": "minecraft:bricks"
+    },
+    "C": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:calciner"
     },
     "F": {
       "type": "modonomicon:block",
@@ -40,34 +40,22 @@
   },
   "pattern": [
     [
-      "_____",
-      "__H__",
-      "_____"
+      "_H_"
     ],
     [
-      "_____",
-      "__LR_",
-      "_____"
+      "_LR"
     ],
     [
-      "_____",
-      "_B0B_",
-      "_____"
+      "BCB"
     ],
     [
-      "_____",
-      "_BFB_",
-      "_____"
+      "BFB"
     ],
     [
-      "_____",
-      "_BAB_",
-      "_____"
+      "BAB"
     ],
     [
-      "*+*+*",
-      "+*+*+",
-      "*+*+*"
+      "*0*"
     ]
   ]
 }

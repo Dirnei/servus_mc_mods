@@ -28,4 +28,14 @@
 ## 6. Plan and integration
 
 - [x] 6.1 Update `PLAN.md` M9: items 6b `m9-calciner-multiblock`, 6c `m9-coagulator-multiblock`, 6d `m9-athanor-multiblock`, the Tria Prima paragraph (Calciner is a structure with ports, no side configuration) and the Calciner row of the machine table; check no em dashes were added
-- [ ] 6.2 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks the build from the Journal schematic to a working Calciner
+
+## 7. Play check changes
+
+- [x] 7.1 Play check fixes: no coplanar faces in `CalcinerModels` (bands, grate, deeper mouth), the schematic anchored on a ground row in `ServusManufacturingMultiblockProvider`, the input item synced in `CalcinerBlockEntity` and drawn in the crucible by `CalcinerRenderer`; `gradlew build` and `:manufacturing:runGameTestServer` green
+- [ ] 7.2 Layout 5 wide in `CalcinerLayout`: Receiver at (2,1), `Role.TANK` columns at right -2 and 2, `Role.DUCT` at (-1,2), (-2,2), (-2,1), `Role.AIR` at (1,1); `placement` looks toward the center past air; JUnit `CalcinerLayoutTest` updated (pattern, cells, placement, round trips); `gradlew :manufacturing:test` green
+- [ ] 7.3 `CalcinerDuctBlock` (`FACING`, `FORMED`, `PIECE`) registered with item, recipe, loot, tag, lang, unformed and formed models (straight, elbow, down pipe with flange); `CalcinerStructure` checks tanks and air, forms and unforms the duct, unforms on `neighborChanged` when a tank or the air cell changes; the Alembic spout reaches the Receiver; Sulfur pushes from the lowest duct piece, the Hood has no fluid port; the BER drops the Hood crust; Jade and the schematic include the new blocks; `gradlew :manufacturing:runData` and `gradlew build` green
+- [ ] 7.4 GameTests in `CalcinerGameTests`: `build` places tanks and ducts and leaves the air cell, the tank columns receive Sulfur and Mercury, a block in the air cell prevents forming and unforms, breaking a tank unforms, the schematic accepts the build; `:manufacturing:runGameTestServer` green
+
+## 8. Integration
+
+- [ ] 8.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks the build from the Journal schematic to a working Calciner
