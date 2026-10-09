@@ -57,7 +57,7 @@ Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.se
 
 Decided in the alchemy rethink (replaces the Factorio style design of M2 and M3, which nothing released depends on):
 - **Two audiences, one path.** Nothing forces a factory, everything rewards one. A casual player does alchemy with a handful of blocks and buckets; a planner pipes the principles, balances the ratios and lets the Crafting CPU order. Both reach the same chapters. No task ever asks for a sustained throughput.
-- **Tria Prima.** The Calciner splits matter into Salt, Sulfur and Mercury, three fluids that travel through the Fluid Pipe and wait in Fluid Tanks. The Coagulator makes products from a fixed ratio of the three. Every input and every product has its own ratio, so surplus of one principle is normal and goes to the Sink or to a later converter. In Nigredo the Calciner takes almost anything (cobble, wood, dirt, ore), so the early game needs no ore source but the pickaxe. Machines with several tanks assign a tank per side in the Fluids tab of the side panel, so each pipe arm and its channel carry one principle.
+- **Tria Prima.** The Calciner splits matter into Salt, Sulfur and Mercury, three fluids that travel through the Fluid Pipe and wait in Fluid Tanks. Salt leaves the fire as Ash, as in the lore, and the Purifier leaches the Ash with water into liquid Salt. The Coagulator makes products from a fixed ratio of the three. Every input and every product has its own ratio, so surplus of one principle is normal and goes to the Sink or to a later converter. In Nigredo the Calciner takes almost anything (cobble, wood, dirt, ore), so the early game needs no ore source but the pickaxe. Machines with several tanks assign a tank per side in the Fluids tab of the side panel, so each pipe arm and its channel carry one principle.
 - **Machines are built, not placed.** The alchemy machines become multiblocks of vanilla blocks and custom parts with fixed ports by position instead of side configuration and GUIs. The player forms one by using Paracelsus' Journal on its controller (never the carrot); the journal shows each build as a schematic with Visualize, generated from the same layout that forming checks, and the formed build is drawn as one model. The Calciner comes first: a brick furnace with an Alembic, whose Ash Pan gives Salt, Receiver Mercury and Hood Sulfur.
 - **No world generation.** Modded packs have ores enough. The deposit worldgen of M2 goes away.
 - **Gnomes grow the veins.** A Gnome Hollow is seeded with a sample of an ore, matched by tag (`c:ores/iron`, `c:ores/osmium`, ...), so ores of other mods can be grown too. The vein ripens over time while it is fed principles (mostly Salt, the body of metals). A bound gnome then works the mature vein at a fixed rate forever. In Paracelsus' time miners believed metals grow in the earth like plants; this is that belief made real. Seeds are gated by stage (iron and copper early, gold and diamond late).
@@ -91,6 +91,7 @@ Historical claims in the journal text are checked again when it is written.
 | Block | Does | Power |
 |---|---|---|
 | Calciner (multiblock: Bricks, mouth, Firebox, Ash Pan, Alembic, Receiver, Sulfur Hood) | splits one input into its principles, example 1 item per 4 s | burns furnace fuel in the Firebox |
+| Purifier | leaches Ash with water into liquid Salt, example 1 Ash and 100 mB water into 100 mB Salt in 2 s | none |
 | Coagulator | makes a product from a principle ratio | none, it takes time to set |
 | Athanor (Nigredo tier) | slow altar crafts that draw principles | none, burns principles |
 | Coal Generator (Foundation) | 40 FE/t, 1 coal per 20 s | burns coal |
@@ -306,7 +307,8 @@ One change per item, in this order. Nothing is released, so the old content is r
 4. `m9-athanor`: the Athanor with its altar crafts drawing principles and its structure tiers as the stage gate (Nigredo and Albedo first).
 5. `m9-elixir-of-sight`: the Elixir of Sight and the Elemental Sight effect, with the client render hook that shows hidden things only under it.
 6. `m9-gnome-hollow`: vein seeds by ore tag, ripening fed by principles, binding a gnome, a fixed rate forever, the vein drawn only under Elemental Sight, production capability for the Crafting CPU.
-6b. `m9-calciner-multiblock`: the Calciner as a one block deep brick furnace with Firebox, Ash Pan, Alembic, Receiver and Sulfur Hood, formed with the Journal, fixed ports, no GUI or side configuration, one formed model, a schematic page with Visualize and a Jade tooltip.
+6b. `m9-calciner-multiblock`: the Calciner as a one block deep brick furnace with Firebox, Ash Pan, Alembic, Receiver and Sulfur Hood, a Fluid Tank column each for Mercury and Sulfur joined by spout and Sulfur Duct, formed with the Journal, fixed ports, no GUI or side configuration, one formed model, a schematic page with Visualize and a Jade tooltip.
+6b2. `m9-salt-leaching`: the Ash Pan gives Ash instead of liquid Salt, and the Purifier leaches Ash with water into liquid Salt; Villach asks to purify once.
 6c. `m9-coagulator-multiblock`: the Coagulator as a build in the same way, one vat per principle as its input ports.
 6d. `m9-athanor-multiblock`: the Athanor's structure tiers as journal schematics, formed with the Journal.
 7. Balance pass and the docs Balance lab on the new data.
