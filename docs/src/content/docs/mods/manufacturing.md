@@ -10,7 +10,7 @@ It requires Servus: Foundation, whose Utility Duct is its pipe and cable. JEI is
 Numbers below are the current defaults. Machine stats and recipes live in datapack JSON and modpacks can change them (see the [datapack reference](/servus_mc_mods/reference/datapack/machines/)).
 
 :::note
-Manufacturing is being rebuilt as alchemy (milestone M9). The Elixir of Sight and the gnome grown ore veins follow in the next changes.
+Manufacturing is being rebuilt as alchemy (milestone M9). The gnome grown ore veins follow in the next change.
 :::
 
 ## Paracelsus' Journal
@@ -20,7 +20,7 @@ The journal is the tech tree. Every player gets it at their first login, and it 
 Each chapter of the journal tells part of Paracelsus' life and lists tasks: do something a number of times, or make something for the first time. Your team shares the tasks. When all tasks of a chapter are done, the chapter is finished for the whole team, each member gets its advancement, and the next chapter opens in the book. `/servus_manufacturing journal` shows the progress.
 
 - **Villach** (Nigredo): calcine 100 things, gather 1,000 mB of Salt, coagulate your first Salt Crystal.
-- **Schwaz** (Albedo): opens after Villach; finish one craft on an Albedo Athanor.
+- **Schwaz** (Albedo): opens after Villach; finish one craft on an Albedo Athanor and drink the Elixir of Sight.
 
 ## The three principles
 
@@ -37,6 +37,10 @@ Salt, Sulfur and Mercury are fluids. They flow through the Fluid Pipe, wait in F
 Power, water, voiding surplus and chunk loading come from [Servus: Foundation](/servus_mc_mods/mods/foundation/#machines): the Coal Generator, the Burner and Electric Pump, the Sink and the Chunk Loader.
 
 All machines face the player on placement, open a GUI on right click, push output into adjacent inventories and drop their contents when broken. Powered machines only draw energy on ticks they work and keep their progress when power runs out.
+
+## Elemental Sight
+
+Paracelsus' elementals live inside their element the way we live in air, and common eyes do not see them. The **Elixir of Sight**, made on an Albedo Athanor from Quicksilver with 100 mB Salt, 100 mB Sulfur and 250 mB Mercury, is drunk like a potion and gives **Elemental Sight** for three minutes. While it lasts you see what is hidden from others, such as the gnomes at work in the rock.
 
 ## Coagulator products
 

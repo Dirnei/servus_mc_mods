@@ -333,8 +333,13 @@ public final class AlchemyGameTests {
         saltRing(helper);
         athanor.tanks().insert(new Principles(50, 0, 100));
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GLASS_BOTTLE));
-        helper.succeedWhen(() -> helper.assertTrue(Journal.isFinished(level.getServer(), team, "servus_manufacturing:schwaz"),
-                "Schwaz should be finished by the Albedo craft"));
+        helper.succeedWhen(() -> {
+            JournalLedger.TeamJournal journal = Journal.journalOf(level.getServer(), team);
+            helper.assertTrue(journal.count("servus_manufacturing:schwaz", "albedo_craft") == 1, "the Albedo craft should count");
+            Journal.recordEvent(level, team, "sight", 1);
+            helper.assertTrue(Journal.isFinished(level.getServer(), team, "servus_manufacturing:schwaz"),
+                    "Schwaz should be finished by the Albedo craft and the sight");
+        });
     }
 
     /** Drinking the Elixir of Sight gives Elemental Sight and leaves a glass bottle. */

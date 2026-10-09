@@ -142,7 +142,9 @@ final class JournalEntries {
             text("tasks", "The Work",
                     "Salt is the body of all things. Press nine Salt Crystals into a block, eight such blocks into a ring around your Athanor, "
                             + "and its flame turns white: Albedo.\n\n"
-                            + "To go on: finish one craft on an Albedo Athanor.");
+                            + "The spirits of the earth live in the rock as we live in air, and common eyes do not see them. "
+                            + "On a white Athanor, Quicksilver and the three principles give the Elixir of Sight.\n\n"
+                            + "To go on: finish one craft on an Albedo Athanor, and drink the Elixir of Sight.");
         }
 
         @Override

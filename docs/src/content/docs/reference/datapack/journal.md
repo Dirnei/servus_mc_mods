@@ -28,7 +28,7 @@ Each task:
 | Field | Type | Default | Meaning |
 |---|---|---|---|
 | `id` | string | required | Unique within the chapter, shown in `/servus_manufacturing journal`. |
-| `event` | string | required | `calcine` (items calcined), `principle` (mB of a principle made), `coagulate` (items coagulated) or `athanor` (Athanor crafts). |
+| `event` | string | required | `calcine` (items calcined), `principle` (mB of a principle made), `coagulate` (items coagulated), `athanor` (Athanor crafts) or `sight` (Elixirs of Sight drunk). |
 | `filter` | string | any | An item id or `#tag` for item events, a principle (`salt`, `sulfur`, `mercury`) for `principle`, or `tier:<name>` for `athanor`. |
 | `count` | int | 1 | How much the task needs. 1 makes it a first time task. |
 
@@ -43,7 +43,7 @@ A finished chapter grants the advancement `<namespace>:journal/<chapter>`. The j
 | Chapter | Parent | Tasks |
 |---|---|---|
 | `villach` | none | `calcine` 100, `principle` salt 1,000, `coagulate` `servus_manufacturing:salt_crystal` 1 |
-| `schwaz` | `villach` | `athanor` `tier:albedo` 1 |
+| `schwaz` | `villach` | `athanor` `tier:albedo` 1, `sight` 1 |
 
 ## Locked recipes
 

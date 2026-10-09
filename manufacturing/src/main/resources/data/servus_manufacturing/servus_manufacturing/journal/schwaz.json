@@ -2,6 +2,7 @@
   "parent": "servus_manufacturing:villach",
   "order": 1,
   "tasks": [
-    {"id": "albedo_craft", "event": "athanor", "filter": "tier:albedo", "count": 1}
+    {"id": "albedo_craft", "event": "athanor", "filter": "tier:albedo", "count": 1},
+    {"id": "sight", "event": "sight", "count": 1}
   ]
 }
