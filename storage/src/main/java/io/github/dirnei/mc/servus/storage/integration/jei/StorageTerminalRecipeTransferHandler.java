@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.integration.jei;
 
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.terminal.GridFillPayload;
 import java.util.ArrayList;
@@ -21,21 +21,21 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * JEI plus button on crafting recipes while a Counter Terminal is open: asks
+ * JEI plus button on crafting recipes while a Storage Terminal is open: asks
  * the server to fill the crafting grid, from the warehouse first and the
  * player inventory second. JEI's crafting view lists its nine input slots in
  * grid order, so slot view i becomes grid slot i.
  */
-public final class CounterTerminalRecipeTransferHandler implements IRecipeTransferHandler<CounterTerminalMenu, RecipeHolder<CraftingRecipe>> {
+public final class StorageTerminalRecipeTransferHandler implements IRecipeTransferHandler<StorageTerminalMenu, RecipeHolder<CraftingRecipe>> {
 
     @Override
-    public Class<? extends CounterTerminalMenu> getContainerClass() {
-        return CounterTerminalMenu.class;
+    public Class<? extends StorageTerminalMenu> getContainerClass() {
+        return StorageTerminalMenu.class;
     }
 
     @Override
-    public Optional<MenuType<CounterTerminalMenu>> getMenuType() {
-        return Optional.of(ServusStorageMenus.COUNTER_TERMINAL.get());
+    public Optional<MenuType<StorageTerminalMenu>> getMenuType() {
+        return Optional.of(ServusStorageMenus.STORAGE_TERMINAL.get());
     }
 
     @Override
@@ -44,7 +44,7 @@ public final class CounterTerminalRecipeTransferHandler implements IRecipeTransf
     }
 
     @Override
-    public IRecipeTransferError transferRecipe(CounterTerminalMenu menu, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView slots,
+    public IRecipeTransferError transferRecipe(StorageTerminalMenu menu, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView slots,
                                                Player player, boolean maxTransfer, boolean doTransfer) {
         if (doTransfer) {
             List<List<ItemStack>> grid = new ArrayList<>();

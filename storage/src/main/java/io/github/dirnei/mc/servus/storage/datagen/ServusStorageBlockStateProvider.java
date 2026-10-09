@@ -36,7 +36,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         oriented(ServusStorageBlocks.DOUBLE_CRATE.get(), "double_crate", "crate");
         oriented(ServusStorageBlocks.QUAD_CRATE.get(), "quad_crate", "crate");
         woodOriented(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "warehouse_controller");
-        woodOriented(ServusStorageBlocks.COUNTER_TERMINAL.get(), "counter_terminal");
+        woodOriented(ServusStorageBlocks.STORAGE_TERMINAL.get(), "storage_terminal");
         woodOriented(ServusStorageBlocks.PRODUCTION_TERMINAL.get(), "production_terminal");
         patternStorage(ServusStorageBlocks.PATTERN_STORAGE.get(), "pattern_storage");
         RailModels.rail(this, ServusStorageBlocks.RAIL.get(), "rail");

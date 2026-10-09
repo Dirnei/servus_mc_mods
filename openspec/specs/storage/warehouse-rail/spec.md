@@ -132,7 +132,7 @@ Every rail SHALL be a node of the warehouse network. Crates, shelving racks, war
 
 #### Scenario: Two aisles one controller
 - **WHEN** a controller touches a rail, the rail runs ten blocks, and racks stand beside the rail at both ends
-- **THEN** all racks and the controller form one online warehouse and a counter terminal on the data line lists their contents
+- **THEN** all racks and the controller form one online warehouse and a storage terminal on the data line lists their contents
 
 #### Scenario: Rail removed
 - **WHEN** a rail in the middle of that run is broken

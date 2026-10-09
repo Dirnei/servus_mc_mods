@@ -21,7 +21,7 @@ import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
@@ -29,7 +29,7 @@ import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.StockRule;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import java.util.List;
@@ -52,7 +52,7 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * Crafting CPUs on the data line. The warehouse is a controller at (2,1,2)
  * with crates west of it and an Access Point at (2,1,3), a data duct on the
- * Access Point and the Counter Terminal on top. Data ducts run along y 2
+ * Access Point and the Storage Terminal on top. Data ducts run along y 2
  * from the Access Point east to a Crafting Station at (4,1,2) and on to the
  * CPU cube at x 6 to 8, z 1 to 3; a second cube can stand at z 5 to 7.
  */
@@ -204,8 +204,8 @@ public final class CraftingCpuGameTests {
         CrateBlockEntity planks = crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request should be accepted, got " + menu.stock().message());
             CpuBlockEntity cpu = cpu(helper, CPU_A);
@@ -234,8 +234,8 @@ public final class CraftingCpuGameTests {
         setup(helper, true);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 5);
             helper.assertTrue(menu.stock().message().equals("out_of_stock"), "bread cannot be made: " + menu.stock().message());
             helper.assertTrue(allOrders(helper).isEmpty() && menu.stock().requests().isEmpty(), "no order and no request");
@@ -253,8 +253,8 @@ public final class CraftingCpuGameTests {
         CrateBlockEntity logs = crate(helper, CRATE_A, Items.OAK_LOG, 2);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request should be accepted, got " + menu.stock().message());
             CpuBlockEntity cpu = cpu(helper, CPU_A);
@@ -367,8 +367,8 @@ public final class CraftingCpuGameTests {
         crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request for the three sticks in stock is accepted: " + menu.stock().message());
             TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 3
@@ -543,8 +543,8 @@ public final class CraftingCpuGameTests {
             }
         });
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             CpuBlockEntity cpu = cpu(helper, CPU_A);
             WorkOrder order = cpu.book().orders().get(0);
@@ -568,8 +568,8 @@ public final class CraftingCpuGameTests {
         crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 2);
             CpuBlockEntity cpu = cpu(helper, CPU_A);
             TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 2 && warehouse(helper).available(STICK) == 2
@@ -600,8 +600,8 @@ public final class CraftingCpuGameTests {
             }
         });
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             CpuBlockEntity cpu = cpu(helper, CPU_A);
             TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 1300,
@@ -621,8 +621,8 @@ public final class CraftingCpuGameTests {
         crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-            new CounterTerminalMenu(1, player.getInventory(), terminal).request(STICK, 8);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            new StorageTerminalMenu(1, player.getInventory(), terminal).request(STICK, 8);
             CpuBlockEntity cpu = cpu(helper, CPU_A);
             int id = cpu.book().orders().get(0).id();
             CpuBlockEntity loaded = PersistGameTests.reload(helper, cpu.getBlockPos().subtract(helper.absolutePos(BlockPos.ZERO)));

@@ -14,12 +14,12 @@ import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlock;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -103,14 +103,14 @@ public final class TerminalSpeedGameTests {
                 .orElse(false);
     }
 
-    /** Opening the Counter Terminal the way the game does sends its content in the same tick. */
+    /** Opening the Storage Terminal the way the game does sends its content in the same tick. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void counterSendsOnOpen(GameTestHelper helper) {
         setup(helper);
         TerminalWiring.when(helper, () -> ready(helper), 120, () -> "the adapter and CPU should join the line", () -> {
             ServerPlayer player = helper.makeMockServerPlayerInLevel();
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             long now = helper.getLevel().getGameTime();
             try {
                 menu.setSynchronizer(QUIET);

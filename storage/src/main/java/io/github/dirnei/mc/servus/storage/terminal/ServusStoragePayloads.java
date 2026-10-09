@@ -8,7 +8,7 @@ import io.github.dirnei.mc.servus.storage.production.EditPatternPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.client.ClientStock;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.outbound.KeepSlotPayload;
@@ -94,14 +94,14 @@ public final class ServusStoragePayloads {
         registrar.playToServer(RequestItemPayload.TYPE, RequestItemPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                            && player.containerMenu instanceof StorageTerminalMenu menu) {
                         menu.request(ItemKey.of(payload.item()), payload.amount());
                     }
                 });
         registrar.playToServer(CraftPreviewRequestPayload.TYPE, CraftPreviewRequestPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                            && player.containerMenu instanceof StorageTerminalMenu menu) {
                         PacketDistributor.sendToPlayer(player, menu.preview(ItemKey.of(payload.item()), payload.amount()));
                     }
                 });
@@ -110,49 +110,49 @@ public final class ServusStoragePayloads {
         registrar.playToServer(CraftStartPayload.TYPE, CraftStartPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                            && player.containerMenu instanceof StorageTerminalMenu menu) {
                         menu.craft(ItemKey.of(payload.item()), payload.amount());
                     }
                 });
         registrar.playToServer(SetStockRulePayload.TYPE, SetStockRulePayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                            && player.containerMenu instanceof StorageTerminalMenu menu) {
                         menu.setRule(ItemKey.of(payload.item()), payload.min(), payload.max());
                     }
                 });
         registrar.playToServer(CancelRequestPayload.TYPE, CancelRequestPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                            && player.containerMenu instanceof StorageTerminalMenu menu) {
                         menu.cancel(payload.id());
                     }
                 });
         registrar.playToServer(PushCarriedPayload.TYPE, PushCarriedPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                            && player.containerMenu instanceof StorageTerminalMenu menu) {
                         menu.pushCarried();
                     }
                 });
         registrar.playToServer(GridPullPayload.TYPE, GridPullPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof CounterTerminalMenu menu && !payload.item().isEmpty()) {
+                            && player.containerMenu instanceof StorageTerminalMenu menu && !payload.item().isEmpty()) {
                         menu.pullToCursor(ItemKey.of(payload.item()));
                     }
                 });
         registrar.playToServer(GridClearPayload.TYPE, GridClearPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                            && player.containerMenu instanceof StorageTerminalMenu menu) {
                         menu.clearGrid();
                     }
                 });
         registrar.playToServer(GridFillPayload.TYPE, GridFillPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                            && player.containerMenu instanceof StorageTerminalMenu menu) {
                         menu.fillGrid(payload.slots(), payload.max());
                     }
                 });

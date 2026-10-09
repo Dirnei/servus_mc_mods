@@ -20,7 +20,7 @@ import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
@@ -39,8 +39,8 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan;
@@ -122,8 +122,8 @@ public final class ServusStorageGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, RAIL_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, RAIL_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "warehouse should be online through the rails");
             helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 40, "stock should list 40 cobblestone from the crate");
             helper.assertTrue(stockOf(menu, Items.BREAD) == 0, "bread beside a rail must not be indexed");
@@ -131,7 +131,7 @@ public final class ServusStorageGameTests {
 
             helper.setBlock(RAIL_A, Blocks.AIR.defaultBlockState());
             helper.runAfterDelay(10, () -> {
-                CounterTerminalMenu after = new CounterTerminalMenu(1, player.getInventory(), terminal);
+                StorageTerminalMenu after = new StorageTerminalMenu(1, player.getInventory(), terminal);
                 helper.assertTrue(after.stock().online(), "controller side stays online");
                 helper.assertTrue(stockOf(after, Items.COBBLESTONE) == 0, "crate stock should leave the index after the rail is broken");
                 helper.assertTrue(!lit(helper, RAIL_CRATE), "crate lamp should go dark once cut off");
@@ -180,8 +180,8 @@ public final class ServusStorageGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, LIFT_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, LIFT_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "warehouse should be online through the shaft");
             helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 30, "stock should list 30 cobblestone from the ground floor crate");
             helper.assertTrue(stockOf(menu, Items.BREAD) == 0, "bread beside the shaft must not be indexed");
@@ -191,7 +191,7 @@ public final class ServusStorageGameTests {
 
             helper.setBlock(LIFT_MIDDLE, Blocks.AIR.defaultBlockState());
             helper.runAfterDelay(10, () -> {
-                CounterTerminalMenu after = new CounterTerminalMenu(1, player.getInventory(), terminal);
+                StorageTerminalMenu after = new StorageTerminalMenu(1, player.getInventory(), terminal);
                 helper.assertTrue(after.stock().online(), "controller side stays online");
                 helper.assertTrue(stockOf(after, Items.COBBLESTONE) == 0, "crate stock should leave the index after the shaft is cut");
                 helper.assertTrue(!lit(helper, LIFT_CRATE), "crate lamp should go dark once the shaft is cut");
@@ -265,8 +265,8 @@ public final class ServusStorageGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, QUAD_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, QUAD_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "warehouse should be online");
             helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 45, "terminal lists 45 cobblestone");
             helper.assertTrue(stockOf(menu, Items.DIRT) == 12, "terminal lists 12 dirt");
@@ -294,8 +294,8 @@ public final class ServusStorageGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, RACK_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, RACK_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "warehouse should be online");
             helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 64 && stockOf(menu, Items.APPLE) == 1, "terminal lists the rack contents");
             List<ItemStack> sample = rack.displayed();
@@ -341,8 +341,8 @@ public final class ServusStorageGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, SH_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, SH_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "warehouse should be online");
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
             helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "cobblestone must not arrive at once");
@@ -385,8 +385,8 @@ public final class ServusStorageGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity sideTerminal = TerminalWiring.at(helper, FR_SIDE_TERMINAL);
-            CounterTerminalMenu sideMenu = new CounterTerminalMenu(1, player.getInventory(), sideTerminal);
+            StorageTerminalBlockEntity sideTerminal = TerminalWiring.at(helper, FR_SIDE_TERMINAL);
+            StorageTerminalMenu sideMenu = new StorageTerminalMenu(1, player.getInventory(), sideTerminal);
             helper.assertTrue(sideMenu.stock().online(), "side warehouse is online");
             helper.assertTrue(stockOf(sideMenu, Items.SAND) == 0, "a rail at the rack's side must not link it");
             helper.assertTrue(!helper.getBlockState(FR_SIDE_RAIL).getValue(RailBlock.DOCK_WEST), "no dock onto the rack's side");
@@ -397,8 +397,8 @@ public final class ServusStorageGameTests {
                     .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
             TerminalWiring.place(helper, FR_FRONT_TERMINAL);
             helper.runAfterDelay(10, () -> {
-                CounterTerminalBlockEntity frontTerminal = TerminalWiring.at(helper, FR_FRONT_TERMINAL);
-                CounterTerminalMenu frontMenu = new CounterTerminalMenu(1, player.getInventory(), frontTerminal);
+                StorageTerminalBlockEntity frontTerminal = TerminalWiring.at(helper, FR_FRONT_TERMINAL);
+                StorageTerminalMenu frontMenu = new StorageTerminalMenu(1, player.getInventory(), frontTerminal);
                 helper.assertTrue(frontMenu.stock().online(), "front warehouse is online");
                 helper.assertTrue(stockOf(frontMenu, Items.SAND) == 20, "a rail at the rack's front links it");
                 helper.assertTrue(helper.getBlockState(FR_FRONT_RAIL).getValue(RailBlock.DOCK_SOUTH), "dock onto the rack's front");
@@ -790,7 +790,7 @@ public final class ServusStorageGameTests {
         return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);
     }
 
-    private static long stockOf(CounterTerminalMenu menu, Item item) {
+    private static long stockOf(StorageTerminalMenu menu, Item item) {
         long total = 0;
         for (StockEntry entry : menu.stock().entries()) {
             if (entry.stack().is(item)) {
@@ -812,8 +812,8 @@ public final class ServusStorageGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "warehouse should be online with one controller");
             helper.assertTrue(menu.stock().entries().size() == 1 && menu.stock().entries().get(0).count() == 50,
                     "stock should list 50 cobblestone");
@@ -1323,8 +1323,8 @@ public final class ServusStorageGameTests {
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = controller.network().orElseThrow();
             helper.assertTrue(network.summary().getString().contains("2 garages, 2 shuttles"), "summary should count both garages: " + network.summary().getString());
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, TG_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, TG_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
             helper.runAfterDelay(6, () -> {
                 List<ShuttleView> a = network.shuttleViews(helper.absolutePos(TG_GARAGE_A));
@@ -1362,8 +1362,8 @@ public final class ServusStorageGameTests {
             helper.assertTrue(network.extract(ItemKey.of(new ItemStack(Items.BREAD)), 64).isEmpty(), "instant extract must skip the rack");
             helper.assertTrue(network.insert(new ItemStack(Items.COBBLESTONE, 20)).getCount() == 20, "instant insert must skip the rack");
 
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, RS_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, RS_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             player.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE, 20));
             menu.quickMoveStack(player, 27);
             helper.assertTrue(player.getInventory().getItem(0).getCount() == 20, "a terminal push must not fill the rack");
@@ -1436,8 +1436,8 @@ public final class ServusStorageGameTests {
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, RP_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, RP_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "online");
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
             helper.assertTrue(menu.stock().message().equals("needs_shuttle"), "a rack request without a garage is refused, got " + menu.stock().message());
@@ -1500,8 +1500,8 @@ public final class ServusStorageGameTests {
         HeavyRackBlockEntity right = helper.getBlockEntity(new BlockPos(2, 1, SR_Z));
         right.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, SR_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, SR_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "online");
             helper.assertTrue(stockOf(menu, Items.BREAD) == 30, "the terminal lists the right bay's bread");
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
@@ -1525,8 +1525,8 @@ public final class ServusStorageGameTests {
         HeavyRackBlockEntity lone = helper.getBlockEntity(lonePos);
         lone.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, SR_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, SR_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(stockOf(menu, Items.BREAD) == 30, "the terminal lists the lone rack's bread");
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
             helper.assertTrue(menu.stock().message().equals("needs_shuttle"), "the lone rack is out of reach, got " + menu.stock().message());
@@ -1559,8 +1559,8 @@ public final class ServusStorageGameTests {
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, SS_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, SS_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "online");
             helper.assertTrue(stockOf(menu, Items.BREAD) == 30, "the terminal lists the rack's bread");
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
@@ -1575,7 +1575,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos RQ_GARAGE = new BlockPos(3, 1, 2);
     private static final BlockPos RQ_CRATE = new BlockPos(6, 1, 2);
 
-    private static CounterTerminalMenu requestSetup(GameTestHelper helper, Player player, int cobblestone) {
+    private static StorageTerminalMenu requestSetup(GameTestHelper helper, Player player, int cobblestone) {
         helper.setBlock(RQ_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         for (int x = 2; x <= 6; x++) {
@@ -1589,16 +1589,16 @@ public final class ServusStorageGameTests {
         garage.addShuttle();
         CrateBlockEntity crate = helper.getBlockEntity(RQ_CRATE);
         crate.insert(new ItemStack(Items.COBBLESTONE, cobblestone), false);
-        CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, RQ_TERMINAL);
-        return new CounterTerminalMenu(1, player.getInventory(), terminal);
+        StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, RQ_TERMINAL);
+        return new StorageTerminalMenu(1, player.getInventory(), terminal);
     }
 
     /** A request over a stack splits into two loads and shows its progress until both arrived. */
     @GameTest(template = EMPTY, timeoutTicks = 400)
     public static void requestSplitsAndDelivers(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        CounterTerminalMenu menu = requestSetup(helper, player, 200);
-        CounterTerminalBlockEntity terminal = menu.terminal();
+        StorageTerminalMenu menu = requestSetup(helper, player, 200);
+        StorageTerminalBlockEntity terminal = menu.terminal();
         helper.runAfterDelay(10, () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 100);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request should go through");
@@ -1617,8 +1617,8 @@ public final class ServusStorageGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 400)
     public static void outputFullShuttleWaits(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        CounterTerminalMenu menu = requestSetup(helper, player, 64);
-        CounterTerminalBlockEntity terminal = menu.terminal();
+        StorageTerminalMenu menu = requestSetup(helper, player, 64);
+        StorageTerminalBlockEntity terminal = menu.terminal();
         for (int i = 0; i < terminal.output().getSlots(); i++) {
             terminal.output().setStackInSlot(i, new ItemStack(Items.DIRT, 64));
         }
@@ -2009,8 +2009,8 @@ public final class ServusStorageGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = controller.network().orElseThrow();
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, RC_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, RC_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 30);
             helper.runAfterDelay(8, () -> {
                 BlockPos garagePos = helper.absolutePos(RC_GARAGE);
@@ -2040,8 +2040,8 @@ public final class ServusStorageGameTests {
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = controller.network().orElseThrow();
             helper.assertTrue(network.garageSummary(helper.absolutePos(PG_GARAGE_B)).getString().contains("paused"), "the summary says paused");
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, RC_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, RC_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 30);
             helper.runAfterDelay(8, () -> {
                 helper.assertTrue(network.garageOut(helper.absolutePos(PG_GARAGE_B)) == 0, "the paused garage, though nearer, sends nothing");
@@ -2060,8 +2060,8 @@ public final class ServusStorageGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = controller.network().orElseThrow();
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, RC_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, RC_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 30);
             helper.runAfterDelay(8, () -> {
                 BlockPos garagePos = helper.absolutePos(RC_GARAGE);
@@ -2148,8 +2148,8 @@ public final class ServusStorageGameTests {
             WarehouseNetwork network = liftNetwork(helper);
             helper.assertTrue(network.lift(bottom) != null, "the shaft has a car");
             helper.assertTrue(network.lift(bottom).y() == bottom.getY(), "the car starts at the lowest segment");
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, LC_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, LC_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "online");
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 20);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request goes through, got " + menu.stock().message());
@@ -2172,8 +2172,8 @@ public final class ServusStorageGameTests {
         HeavyRackBlockEntity middle = liftRack(helper, new BlockPos(5, 2, 3), Items.APPLE, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, LC_TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, LC_TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 10);
             menu.request(ItemKey.of(new ItemStack(Items.APPLE)), 10);
             helper.runAfterDelay(40, () -> {
@@ -2208,8 +2208,8 @@ public final class ServusStorageGameTests {
             helper.runAfterDelay(40, () -> {
                 network.lift(bottom).remove(-1);
                 helper.assertTrue(network.lift(bottom).y() == bottom.getY() + 2, "the car is parked at the top");
-                CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, LC_TERMINAL);
-                CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+                StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, LC_TERMINAL);
+                StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
                 menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 16);
                 helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "the crate behind the shaft is served by the shuttle");
                 helper.runAfterDelay(60, () -> {
@@ -2231,11 +2231,11 @@ public final class ServusStorageGameTests {
         BlockPos bottom = helper.absolutePos(LC_BOTTOM);
         BlockPos garagePos = helper.absolutePos(LC_GARAGE);
         long[] brokeAt = {-1};
-        CounterTerminalMenu[] menu = {null};
+        StorageTerminalMenu[] menu = {null};
         // One top level tick hook: scheduling from inside a scheduled task is not safe.
         helper.onEachTick(() -> {
             if (helper.getTick() == 10) {
-                menu[0] = new CounterTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, LC_TERMINAL));
+                menu[0] = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, LC_TERMINAL));
                 menu[0].request(ItemKey.of(new ItemStack(Items.BREAD)), 20);
             }
             if (menu[0] == null) {
@@ -2250,7 +2250,7 @@ public final class ServusStorageGameTests {
                     helper.setBlock(LC_MIDDLE, Blocks.AIR.defaultBlockState());
                 }
             } else if (helper.getTick() == brokeAt[0] + 40) {
-                CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, LC_TERMINAL);
+                StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, LC_TERMINAL);
                 List<RequestRow> rows = menu[0].stock().requests();
                 helper.assertItemEntityPresent(Items.BREAD, LC_GARAGE, 3.0);
                 helper.assertTrue(rows.size() == 1 && rows.get(0).missing() == 20, "the request shows the bread missing, got " + rows);

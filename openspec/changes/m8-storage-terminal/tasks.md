@@ -2,7 +2,7 @@
 
 ## 1. Rename
 
-- [ ] 1.1 Rename Counter Terminal to Storage Terminal with a script and `git mv` (classes, ids, lang keys, textures, docs icon, specs text, PLAN.md, README, docs pages), move `openspec/specs/storage/counter-terminal` to `storage/storage-terminal`, `TerminalLayout.Counter` to `Storage`; regenerate data (`:storage:runData`, `:manufacturing:runData`). Verify with `gradlew build test`, `:storage:runGameTestServer` and a grep that finds no `counter_terminal` or `CounterTerminal` outside archives.
+- [x] 1.1 Rename Counter Terminal to Storage Terminal with a script and `git mv` (classes, ids, lang keys, textures, docs icon, specs text, PLAN.md, README, docs pages), move `openspec/specs/storage/counter-terminal` to `storage/storage-terminal`, `TerminalLayout.Counter` to `Storage`; regenerate data (`:storage:runData`, `:manufacturing:runData`). Verify with `gradlew build test`, `:storage:runGameTestServer` and a grep that finds no `counter_terminal` or `CounterTerminal` outside archives.
 
 ## 2. Input and output rows
 

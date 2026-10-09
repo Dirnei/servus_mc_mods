@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
@@ -24,7 +24,7 @@ import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-/** The Counter Terminal's crafting grid: crafting, refill from instant stock, pull, clear, close and JEI fill. */
+/** The Storage Terminal's crafting grid: crafting, refill from instant stock, pull, clear, close and JEI fill. */
 @GameTestHolder(ServusStorageIds.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class CraftingGridGameTests {
@@ -50,26 +50,26 @@ public final class CraftingGridGameTests {
         }
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, TERMINAL));
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, TERMINAL));
             helper.assertTrue(menu.stock().online(), "warehouse should be online");
             test.accept(new Fixture(menu, crate, player));
         });
     }
 
-    private record Fixture(CounterTerminalMenu menu, CrateBlockEntity crate, Player player) {
+    private record Fixture(StorageTerminalMenu menu, CrateBlockEntity crate, Player player) {
     }
 
     /** A plank above a plank in the grid. */
-    private static void sticksPattern(CounterTerminalMenu menu, int count) {
+    private static void sticksPattern(StorageTerminalMenu menu, int count) {
         menu.craftSlots().setItem(1, new ItemStack(Items.OAK_PLANKS, count));
         menu.craftSlots().setItem(4, new ItemStack(Items.OAK_PLANKS, count));
     }
 
-    private static ItemStack result(CounterTerminalMenu menu) {
+    private static ItemStack result(StorageTerminalMenu menu) {
         return menu.getSlot(menu.resultIndex()).getItem();
     }
 
-    private static boolean gridEmpty(CounterTerminalMenu menu) {
+    private static boolean gridEmpty(StorageTerminalMenu menu) {
         for (int slot = 0; slot < 9; slot++) {
             if (!menu.craftSlots().getItem(slot).isEmpty()) {
                 return false;

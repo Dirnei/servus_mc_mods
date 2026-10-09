@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Where everything sits on the Counter Terminal and Production Terminal
+ * Where everything sits on the Storage Terminal and Production Terminal
  * screens, relative to the panel's top left corner. Menus place their slots
  * and screens draw and hit test from these rectangles; a unit test keeps the
  * areas of a screen apart and inside its panel. Pure, no Minecraft imports.
@@ -46,14 +46,14 @@ public final class TerminalLayout {
     }
 
     /**
-     * The Counter Terminal, Refined Storage style: view buttons in a column
+     * The Storage Terminal, Refined Storage style: view buttons in a column
      * left of the panel, title and search, the item grid with its scrollbar,
      * a message line, the crafting grid left of the output, then the player
      * inventory. Everything from the message line down sits at fixed offsets
      * from the panel's base top, so slots never move; extra grid rows grow the
      * panel upwards, to negative y.
      */
-    public static final class Counter {
+    public static final class Storage {
         public static final int WIDTH = 190;
         /** Panel height with {@link #BASE_ROWS} grid rows. */
         public static final int BASE_HEIGHT = 256;
@@ -75,7 +75,7 @@ public final class TerminalLayout {
         public static final Rect INVENTORY = new Rect(8, 173, 9 * CELL, 3 * CELL);
         public static final Rect HOTBAR = new Rect(8, 231, 9 * CELL, CELL);
 
-        private Counter() {
+        private Storage() {
         }
 
         /** The parts that move with the number of grid rows. */

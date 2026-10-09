@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
@@ -19,8 +19,8 @@ public final class ServusStorageMenus {
 
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, ServusStorageIds.MOD_ID);
 
-    public static final DeferredHolder<MenuType<?>, MenuType<CounterTerminalMenu>> COUNTER_TERMINAL =
-            MENUS.register("counter_terminal", () -> IMenuTypeExtension.create(CounterTerminalMenu::fromNetwork));
+    public static final DeferredHolder<MenuType<?>, MenuType<StorageTerminalMenu>> STORAGE_TERMINAL =
+            MENUS.register("storage_terminal", () -> IMenuTypeExtension.create(StorageTerminalMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ProductionTerminalMenu>> PRODUCTION_TERMINAL =
             MENUS.register("production_terminal", () -> IMenuTypeExtension.create(ProductionTerminalMenu::fromNetwork));

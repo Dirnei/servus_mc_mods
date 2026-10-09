@@ -134,7 +134,7 @@ On every face of a formed CPU the lights SHALL sit inside the dark glass with at
 - **THEN** the lights nearest the corner are surrounded by glass and do not touch the frame
 
 ### Requirement: Results go straight to the requesting terminal
-A work order made for a Counter Terminal request SHALL remember that terminal. When the CPU collects the outputs of a step that makes the order's item, it SHALL send up to the amount the request still needs (and at most the order's amount) directly from the producer to the terminal as packets; the rest, and every output of a step that makes another item, SHALL go to an Access Point and be put away. Outputs SHALL count for the step wherever they land. When the terminal cannot be reached from the producer's data line the outputs SHALL go to the Access Point. The link and the amount already sent SHALL be saved with the order.
+A work order made for a Storage Terminal request SHALL remember that terminal. When the CPU collects the outputs of a step that makes the order's item, it SHALL send up to the amount the request still needs (and at most the order's amount) directly from the producer to the terminal as packets; the rest, and every output of a step that makes another item, SHALL go to an Access Point and be put away. Outputs SHALL count for the step wherever they land. When the terminal cannot be reached from the producer's data line the outputs SHALL go to the Access Point. The link and the amount already sent SHALL be saved with the order.
 
 #### Scenario: Sticks for a request
 - **WHEN** a request for 8 sticks makes an order and the station crafts 8 sticks

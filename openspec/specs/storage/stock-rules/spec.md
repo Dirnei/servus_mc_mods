@@ -41,7 +41,7 @@ Every `stock_rule_interval` ticks (example 100, from `warehouse.json`) the wareh
 - **THEN** no order is created and the rule shows no CPU
 
 ### Requirement: Rule editing in the terminal
-The Counter Terminal's amount prompt SHALL offer a Rule mode with minimum and maximum fields, Save and Remove. Save SHALL set the rule for the clicked item; Remove SHALL delete it. Items with a rule SHALL be marked in the stock grid and their tooltip SHALL show the rule and its state.
+The Storage Terminal's amount prompt SHALL offer a Rule mode with minimum and maximum fields, Save and Remove. Save SHALL set the rule for the clicked item; Remove SHALL delete it. Items with a rule SHALL be marked in the stock grid and their tooltip SHALL show the rule and its state.
 
 #### Scenario: Set a rule
 - **WHEN** the player clicks sticks, switches to Rule, enters 8 and 16 and presses Save

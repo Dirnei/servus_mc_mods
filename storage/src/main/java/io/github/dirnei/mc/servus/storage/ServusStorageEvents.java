@@ -104,9 +104,9 @@ public final class ServusStorageEvents {
                     (terminal, side) -> terminal);
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PATTERN_STORAGE.get(),
                     (storage, side) -> storage);
-            event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.COUNTER_TERMINAL.get(),
+            event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.STORAGE_TERMINAL.get(),
                     (terminal, side) -> terminal);
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.COUNTER_TERMINAL.get(),
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.STORAGE_TERMINAL.get(),
                     (terminal, side) -> terminal.packetHandler());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.OUTBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));

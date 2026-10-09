@@ -41,7 +41,7 @@ Each shuttle SHALL park on the home rail of its garage, the rail touching that g
 - **THEN** a request for an item that only sits in the rack is refused with the reason that it needs a shuttle
 
 ### Requirement: Pick jobs
-A request at the counter terminal, or a shipment to a data member, SHALL be split into pick jobs of up to one stack each, one per source block and stack. A job SHALL ride a shuttle when the source touches a rail or segment some garage's home rail reaches and the warehouse has a shuttle; a job for a crate or foreign inventory no shuttle can reach SHALL be served instantly; a job for a rack SHALL only ever ride a shuttle. The free shuttle with the shortest way SHALL take a job, drive to the source rail, take the stack, drive to the rail of the Access Point that ships the request and deliver. Pick jobs and put-away jobs SHALL share one queue and SHALL be taken in the order they were made.
+A request at the storage terminal, or a shipment to a data member, SHALL be split into pick jobs of up to one stack each, one per source block and stack. A job SHALL ride a shuttle when the source touches a rail or segment some garage's home rail reaches and the warehouse has a shuttle; a job for a crate or foreign inventory no shuttle can reach SHALL be served instantly; a job for a rack SHALL only ever ride a shuttle. The free shuttle with the shortest way SHALL take a job, drive to the source rail, take the stack, drive to the rail of the Access Point that ships the request and deliver. Pick jobs and put-away jobs SHALL share one queue and SHALL be taken in the order they were made.
 
 #### Scenario: Pick by shuttle
 - **WHEN** a player requests a stack of cobblestone and the only crate holding it stands beside a rail five blocks from a garage

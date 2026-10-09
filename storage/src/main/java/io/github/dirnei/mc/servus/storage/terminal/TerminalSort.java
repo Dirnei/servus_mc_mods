@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.Locale;
 
 /**
- * Orders the stock entries of the Counter Terminal by the player's sort and
+ * Orders the stock entries of the Storage Terminal by the player's sort and
  * direction. Ties fall back to the name, then the mod. Pure, no Minecraft imports.
  */
 public final class TerminalSort {

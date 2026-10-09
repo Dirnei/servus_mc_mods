@@ -5,13 +5,13 @@ import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables;
-import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Counter;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Storage;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import java.util.ArrayList;
@@ -47,12 +47,12 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * with its result and the warehouses the terminal reaches over its data
  * line. Slot order: outputs, player inventory, grid, result.
  */
-public class CounterTerminalMenu extends AbstractContainerMenu {
+public class StorageTerminalMenu extends AbstractContainerMenu {
 
     private static final int SYNC_INTERVAL = 10;
     private static final int MAX_ENTRIES = 4096;
 
-    private final CounterTerminalBlockEntity terminal;
+    private final StorageTerminalBlockEntity terminal;
     private final ContainerLevelAccess access;
     private final Player player;
     private final int outputSlots;
@@ -66,14 +66,14 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
     private long lastSignature = Long.MIN_VALUE;
     private long firstSyncTick = -1;
 
-    public CounterTerminalMenu(int containerId, Inventory playerInventory, CounterTerminalBlockEntity terminal) {
-        super(ServusStorageMenus.COUNTER_TERMINAL.get(), containerId);
+    public StorageTerminalMenu(int containerId, Inventory playerInventory, StorageTerminalBlockEntity terminal) {
+        super(ServusStorageMenus.STORAGE_TERMINAL.get(), containerId);
         this.terminal = terminal;
         this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(terminal.getLevel(), terminal.getBlockPos());
         this.outputSlots = terminal.output().getSlots();
         for (int slot = 0; slot < outputSlots; slot++) {
-            addSlot(new SlotItemHandler(terminal.output(), slot, Counter.outputX(slot), Counter.outputY(slot)) {
+            addSlot(new SlotItemHandler(terminal.output(), slot, Storage.outputX(slot), Storage.outputY(slot)) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return false;
@@ -83,30 +83,30 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         inventoryStart = slots.size();
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInventory, column + row * 9 + 9, Counter.INVENTORY.x() + column * 18,
-                        Counter.INVENTORY.y() + row * 18));
+                addSlot(new Slot(playerInventory, column + row * 9 + 9, Storage.INVENTORY.x() + column * 18,
+                        Storage.INVENTORY.y() + row * 18));
             }
         }
         for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInventory, column, Counter.HOTBAR.x() + column * 18, Counter.HOTBAR.y()));
+            addSlot(new Slot(playerInventory, column, Storage.HOTBAR.x() + column * 18, Storage.HOTBAR.y()));
         }
         gridStart = slots.size();
         for (int slot = 0; slot < 9; slot++) {
-            addSlot(new Slot(craftSlots, slot, Counter.craftX(slot), Counter.craftY(slot)));
+            addSlot(new Slot(craftSlots, slot, Storage.craftX(slot), Storage.craftY(slot)));
         }
         resultIndex = slots.size();
-        addSlot(new GridResultSlot(player, craftSlots, resultSlots, Counter.CRAFT_RESULT.x(), Counter.CRAFT_RESULT.y()));
+        addSlot(new GridResultSlot(player, craftSlots, resultSlots, Storage.CRAFT_RESULT.x(), Storage.CRAFT_RESULT.y()));
     }
 
-    public static CounterTerminalMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+    public static StorageTerminalMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         BlockPos pos = buf.readBlockPos();
-        if (playerInventory.player.level().getBlockEntity(pos) instanceof CounterTerminalBlockEntity terminal) {
-            return new CounterTerminalMenu(containerId, playerInventory, terminal);
+        if (playerInventory.player.level().getBlockEntity(pos) instanceof StorageTerminalBlockEntity terminal) {
+            return new StorageTerminalMenu(containerId, playerInventory, terminal);
         }
-        throw new IllegalStateException("No counter terminal at " + pos);
+        throw new IllegalStateException("No storage terminal at " + pos);
     }
 
-    public CounterTerminalBlockEntity terminal() {
+    public StorageTerminalBlockEntity terminal() {
         return terminal;
     }
 
@@ -469,7 +469,7 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ServusStorageBlocks.COUNTER_TERMINAL.get());
+        return stillValid(access, player, ServusStorageBlocks.STORAGE_TERMINAL.get());
     }
 
     // Stock sync

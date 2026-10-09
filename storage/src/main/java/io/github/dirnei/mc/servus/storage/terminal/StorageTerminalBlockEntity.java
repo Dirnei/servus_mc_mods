@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.terminal;
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
@@ -46,7 +46,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
  * requests made here. Requests are saved with the terminal; their ids come
  * from the {@link ProductionLedger}, so they never repeat.
  */
-public class CounterTerminalBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, DataLink {
+public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, DataLink {
 
     /** Carries the data network to touching data nodes, like a piece of cable. */
     private final DataCarrier carrier = new DataCarrier(this);
@@ -95,8 +95,8 @@ public class CounterTerminalBlockEntity extends BlockEntity implements WoodHolde
     private int ticks;
     private boolean idsSeen;
 
-    public CounterTerminalBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusStorageBlockEntities.COUNTER_TERMINAL.get(), pos, state);
+    public StorageTerminalBlockEntity(BlockPos pos, BlockState state) {
+        super(ServusStorageBlockEntities.STORAGE_TERMINAL.get(), pos, state);
     }
 
     /** The slots deliveries land in. */
@@ -178,7 +178,7 @@ public class CounterTerminalBlockEntity extends BlockEntity implements WoodHolde
 
     // Ticking
 
-    public static void serverTick(Level level, BlockPos pos, BlockState state, CounterTerminalBlockEntity terminal) {
+    public static void serverTick(Level level, BlockPos pos, BlockState state, StorageTerminalBlockEntity terminal) {
         if (level instanceof ServerLevel server) {
             TerminalRequests.tick(server, terminal, ++terminal.ticks);
         }
@@ -212,7 +212,7 @@ public class CounterTerminalBlockEntity extends BlockEntity implements WoodHolde
 
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new CounterTerminalMenu(containerId, playerInventory, this);
+        return new StorageTerminalMenu(containerId, playerInventory, this);
     }
 
     // Persistence

@@ -94,7 +94,7 @@ A pattern's result SHALL be the stack its recipe produces when crafted from the 
 
 #### Scenario: Requested racks arrive
 - **WHEN** a player requests 2 Heavy Duty Racks that a CPU crafts from that pattern
-- **THEN** the station's racks are collected and both arrive in the Counter Terminal
+- **THEN** the station's racks are collected and both arrive in the Storage Terminal
 
 #### Scenario: Old pattern refreshed
 - **WHEN** a Pattern Storage holding a rack pattern with a result without wood is loaded and its patterns are read

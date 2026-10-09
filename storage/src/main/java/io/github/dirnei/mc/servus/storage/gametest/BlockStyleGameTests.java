@@ -69,14 +69,14 @@ public final class BlockStyleGameTests {
         return list;
     }
 
-    /** The Counter Terminal crafted with birch planks carries birch. */
+    /** The Storage Terminal crafted with birch planks carries birch. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void woodRecipeRecordsBirch(GameTestHelper helper) {
-        ItemStack result = craft(helper, "counter_terminal", 3, 3, grid(
+        ItemStack result = craft(helper, "storage_terminal", 3, 3, grid(
                 Items.GLASS, Items.GLASS, Items.GLASS,
                 Items.IRON_INGOT, Items.CHEST, Items.IRON_INGOT,
                 Items.BIRCH_PLANKS, Items.BIRCH_PLANKS, Items.BIRCH_PLANKS));
-        helper.assertTrue(result.is(ServusStorageItems.COUNTER_TERMINAL.get()), "a Counter Terminal");
+        helper.assertTrue(result.is(ServusStorageItems.STORAGE_TERMINAL.get()), "a Storage Terminal");
         helper.assertTrue(BIRCH.equals(result.get(WoodContent.WOOD.get())), "birch planks give birch, got " + result.get(WoodContent.WOOD.get()));
         helper.succeed();
     }

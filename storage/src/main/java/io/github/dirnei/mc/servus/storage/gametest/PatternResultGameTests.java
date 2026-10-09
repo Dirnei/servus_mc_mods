@@ -7,7 +7,7 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
@@ -16,7 +16,7 @@ import io.github.dirnei.mc.servus.storage.pattern.StoredPatterns;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -78,8 +78,8 @@ public final class PatternResultGameTests {
                 .orElse(false);
     }
 
-    private static CounterTerminalMenu menu(GameTestHelper helper, Player player) {
-        return new CounterTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, ACCESS));
+    private static StorageTerminalMenu menu(GameTestHelper helper, Player player) {
+        return new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, ACCESS));
     }
 
     private static boolean stocked(GameTestHelper helper, Player player, net.minecraft.world.item.Item item) {
@@ -131,7 +131,7 @@ public final class PatternResultGameTests {
         ItemKey rack = ItemKey.of(patterns.pattern(1).orElseThrow().result());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         TerminalWiring.when(helper, () -> stocked(helper, player, Items.IRON_INGOT), 160, () -> "stations, CPU and stock should be ready", () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             menu(helper, player).craft(rack, 2);
             TerminalWiring.when(helper, () -> terminal.outputCount(ServusStorageItems.HEAVY_RACK.get()) >= 2, 1400,
                     () -> "2 racks should land in the output slots, got " + terminal.outputCount(ServusStorageItems.HEAVY_RACK.get()),
@@ -156,7 +156,7 @@ public final class PatternResultGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         TerminalWiring.when(helper, () -> stocked(helper, player, Items.BIRCH_PLANKS) && stocked(helper, player, Items.CHEST)
                 && stocked(helper, player, Items.PAPER) && stocked(helper, player, Items.REDSTONE), 160, () -> "stations, CPU and stock should be ready", () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             var preview = io.github.dirnei.mc.servus.storage.terminal.TerminalCraftables.preview(helper.getLevel(),
                     terminal.getBlockPos(), ItemKey.of(expected), 1);
             helper.assertTrue(preview.refusal().isEmpty() && preview.missing().isEmpty(),

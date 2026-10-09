@@ -11,13 +11,13 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -56,7 +56,7 @@ public final class AdjacentDataGameTests {
     }
 
     private static void terminal(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState().setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        helper.setBlock(pos, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState().setValue(StorageTerminalBlock.FACING, Direction.NORTH));
     }
 
     private static void station(GameTestHelper helper, BlockPos pos) {
@@ -123,8 +123,8 @@ public final class AdjacentDataGameTests {
                         .map(net -> CpuOrders.cpus(helper.getLevel(), net).size() == 1 && member(net, helper, ACCESS, DataRole.LINK))
                         .orElse(false), 60,
                 () -> "the CPU and the Access Point should be on the terminal's network", () -> {
-            CounterTerminalBlockEntity terminal = helper.getBlockEntity(TERMINAL);
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalBlockEntity terminal = helper.getBlockEntity(TERMINAL);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request should be accepted, got " + menu.stock().message());
             TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 900,

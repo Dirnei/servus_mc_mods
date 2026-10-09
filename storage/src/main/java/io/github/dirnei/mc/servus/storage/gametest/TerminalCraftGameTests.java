@@ -6,11 +6,11 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import java.util.List;
@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-/** Crafting from the Counter Terminal: craftable items, previews, starting a craft, instant content, Access Point GUI. */
+/** Crafting from the Storage Terminal: craftable items, previews, starting a craft, instant content, Access Point GUI. */
 @GameTestHolder(ServusStorageIds.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class TerminalCraftGameTests {
@@ -53,9 +53,9 @@ public final class TerminalCraftGameTests {
         return ready(helper) && menu(helper, player).stock().entries().stream().anyMatch(entry -> entry.stack().is(Items.OAK_PLANKS));
     }
 
-    private static CounterTerminalMenu menu(GameTestHelper helper, Player player) {
-        CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-        return new CounterTerminalMenu(1, player.getInventory(), terminal);
+    private static StorageTerminalMenu menu(GameTestHelper helper, Player player) {
+        StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+        return new StorageTerminalMenu(1, player.getInventory(), terminal);
     }
 
     private static int count(List<StockEntry> rows, net.minecraft.world.item.Item item) {
@@ -98,7 +98,7 @@ public final class TerminalCraftGameTests {
             CraftPreviewPayload preview = menu(helper, player).preview(STICK, 8);
             helper.assertTrue(count(preview.missing(), Items.OAK_PLANKS) > 0, "planks should be missing, got " + preview.missing());
             helper.assertFalse(preview.startable(), "a preview with missing material cannot start");
-            CounterTerminalMenu menu = menu(helper, player);
+            StorageTerminalMenu menu = menu(helper, player);
             menu.craft(STICK, 8);
             helper.assertTrue(TerminalWiring.at(helper, ACCESS).requests().isEmpty(), "no request is made while planks are missing");
             helper.succeed();
@@ -130,7 +130,7 @@ public final class TerminalCraftGameTests {
         helper.setBlock(new BlockPos(2, 1, 1), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         TerminalWiring.when(helper, () -> stocked(helper, player), 160, () -> "stations and CPU should join the line", () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             menu(helper, player).craft(STICK, 8);
             helper.assertTrue(terminal.requests().size() == 1, "one request should be listed");
             TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) >= 8, 1200,
@@ -144,7 +144,7 @@ public final class TerminalCraftGameTests {
         StationHandsGameTests.setup(helper, 16);
         TerminalWiring.when(helper, () -> ready(helper), 100, () -> "stations and CPU should join the line", () -> {
             ServerPlayer player = helper.makeMockServerPlayerInLevel();
-            CounterTerminalMenu menu = menu(helper, player);
+            StorageTerminalMenu menu = menu(helper, player);
             long now = helper.getLevel().getGameTime();
             try {
                 menu.setSynchronizer(TerminalSpeedGameTests.QUIET);

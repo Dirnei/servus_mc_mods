@@ -21,7 +21,7 @@ import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.StepRef;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
@@ -351,7 +351,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
      */
     private int sendDirect(ServerLevel server, OrderStep step, WorkOrder order, ItemKey key, int toMove) {
         if (order == null || order.deliverTo() == null || !order.key().equals(key) || !server.isLoaded(order.deliverTo())
-                || !(server.getBlockEntity(order.deliverTo()) instanceof CounterTerminalBlockEntity terminal)) {
+                || !(server.getBlockEntity(order.deliverTo()) instanceof StorageTerminalBlockEntity terminal)) {
             return 0;
         }
         int budget = Math.min(order.amount() - order.directSent(), TerminalRequests.need(terminal, order.requestId()));
@@ -373,7 +373,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         delivery.get().onEnd(ended -> {
             ledger.delivered(transfer, ended.delivered());
             ledger.end(transfer);
-            if (ended.delivered() < direct && server.getBlockEntity(terminalPos) instanceof CounterTerminalBlockEntity target) {
+            if (ended.delivered() < direct && server.getBlockEntity(terminalPos) instanceof StorageTerminalBlockEntity target) {
                 TerminalRequests.directShort(target, requestId, direct - ended.delivered());
             }
         });

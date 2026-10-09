@@ -6,10 +6,10 @@ The wood material lets Servus blocks show the wood they were crafted from, so a 
 ## Requirements
 
 ### Requirement: Wood from the recipe
-The recipes of the wood blocks (Crafting CPU, Access Point, Inbound Station, Outbound Station, Counter Terminal, Production Terminal, Pattern Storage, Crafting Station, Warehouse Controller, Shuttle Garage, Machine Adapter) SHALL accept any planks and SHALL record on the result the wood of the planks in the grid: the planks block that appears most often, and on a tie the middle one in reading order.
+The recipes of the wood blocks (Crafting CPU, Access Point, Inbound Station, Outbound Station, Storage Terminal, Production Terminal, Pattern Storage, Crafting Station, Warehouse Controller, Shuttle Garage, Machine Adapter) SHALL accept any planks and SHALL record on the result the wood of the planks in the grid: the planks block that appears most often, and on a tie the middle one in reading order.
 
 #### Scenario: Birch
-- **WHEN** the player crafts a Counter Terminal with birch planks
+- **WHEN** the player crafts a Storage Terminal with birch planks
 - **THEN** the result carries birch
 
 #### Scenario: Mixed planks

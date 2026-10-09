@@ -19,7 +19,7 @@ final class ServusStorageBlockLoot extends BlockLootSubProvider {
 
     /** Blocks that keep the wood of their recipe. */
     private static final List<Block> WOODEN = List.of(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(),
-            ServusStorageBlocks.COUNTER_TERMINAL.get(), ServusStorageBlocks.INBOUND_STATION.get(), ServusStorageBlocks.ACCESS_POINT.get(),
+            ServusStorageBlocks.STORAGE_TERMINAL.get(), ServusStorageBlocks.INBOUND_STATION.get(), ServusStorageBlocks.ACCESS_POINT.get(),
             ServusStorageBlocks.SHUTTLE_GARAGE.get(), ServusStorageBlocks.OUTBOUND_STATION.get(), ServusStorageBlocks.CRAFTING_STATION.get(),
             ServusStorageBlocks.CRAFTING_CPU.get(), ServusStorageBlocks.PRODUCTION_TERMINAL.get());
 

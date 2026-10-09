@@ -1,13 +1,13 @@
-# storage/counter-terminal Specification
+# storage/storage-terminal Specification
 
 ## Purpose
 
-The counter is where the player meets the warehouse: see everything, find it, take it, hand things in.
+The Storage Terminal is where the player meets the warehouse: see everything, find it, take it, hand things in.
 
 ## Requirements
 
 ### Requirement: Stock view with search
-The Counter Terminal GUI SHALL list every indexed item of the warehouses it reaches over its data line with its total in a scrollable grid, sorted by the player's sort setting (name, amount or mod, ascending or descending; amount descending by default). A search box SHALL filter the list by item name, case insensitive, as the player types.
+The Storage Terminal GUI SHALL list every indexed item of the warehouses it reaches over its data line with its total in a scrollable grid, sorted by the player's sort setting (name, amount or mod, ascending or descending; amount descending by default). A search box SHALL filter the list by item name, case insensitive, as the player types.
 
 #### Scenario: Search
 - **WHEN** the warehouse holds cobblestone, iron ingots and bread and the player types "iron"
@@ -59,11 +59,11 @@ When no warehouse is reachable the GUI SHALL show the reason instead of the stoc
 - **THEN** the player can still take the delivery out
 
 ### Requirement: Crafting
-The Counter Terminal SHALL be crafted from glass, iron ingots, a chest and planks.
+The Storage Terminal SHALL be crafted from glass, iron ingots, a chest and planks.
 
 #### Scenario: Recipe
 - **WHEN** the player crafts with the pattern
-- **THEN** a Counter Terminal is produced
+- **THEN** a Storage Terminal is produced
 
 ### Requirement: Request items
 Clicking an entry SHALL open an amount prompt defaulting to one stack, with buttons for -stack, -10, -1, +1, +10 and +stack and a text field, and confirming SHALL create a request for that amount. +stack SHALL raise the amount to the next full stack above it and -stack SHALL lower it to the full stack below it; the amount SHALL stay between 1 and 99999. Shift clicking an entry SHALL request one stack at once. A request SHALL be shipped through the Access Point with the shortest shuttle trip that shares the terminal's data line: picks land in that Access Point (instantly for stock no shuttle can reach in crates and foreign inventories, by shuttle for stock a shuttle can reach, never instantly from a rack) and travel on as packets into the output slots. A request SHALL be refused with the reason when no Access Point shares the line, when its stock sits only in racks no shuttle can reach, or when it needs a shuttle while the Access Point touches no rail. When stock falls short and a producer can make the item, the shortfall SHALL become a work order linked to the request.
@@ -150,7 +150,7 @@ The amount prompt SHALL have a Rule mode with minimum and maximum fields, Save a
 - **THEN** the marker and tooltip line are gone
 
 ### Requirement: Terminal sits on the data line
-The Counter Terminal SHALL be a member of a data line with the link role, and SHALL NOT join a warehouse network by touching rails, crates, racks or controllers. A warehouse SHALL be reachable from the terminal when its controller or one of its Access Points is a member of the terminal's data network and the warehouse is online. The terminal's lamp SHALL be lit while at least one warehouse is reachable.
+The Storage Terminal SHALL be a member of a data line with the link role, and SHALL NOT join a warehouse network by touching rails, crates, racks or controllers. A warehouse SHALL be reachable from the terminal when its controller or one of its Access Points is a member of the terminal's data network and the warehouse is online. The terminal's lamp SHALL be lit while at least one warehouse is reachable.
 
 #### Scenario: Reached over the data line
 - **WHEN** a terminal and an Access Point of an online warehouse are linked by data ducts
@@ -213,7 +213,7 @@ Start SHALL create a work order for the full amount on a Crafting CPU of the lin
 - **THEN** a request for 8 sticks is listed as producing, and 8 sticks land in the output slots once crafted
 
 ### Requirement: Screen layout
-The Counter Terminal screen SHALL have a column of view buttons left of the panel, the title with the search box on its right, the item grid nine wide with its scrollbar, a message line, a row with the crafting grid, its arrow, result slot and clear button on the left and the output slots on the right, and the player inventory with the hotbar. Each SHALL have its own area that no other element overlaps. The grid SHALL show as many rows as the height setting asks for, small, medium, tall or auto (as many as fit the screen), but never more than fit the screen, and the panel SHALL fit a 1080p screen at GUI scales 2, 3 and 4.
+The Storage Terminal screen SHALL have a column of view buttons left of the panel, the title with the search box on its right, the item grid nine wide with its scrollbar, a message line, a row with the crafting grid, its arrow, result slot and clear button on the left and the output slots on the right, and the player inventory with the hotbar. Each SHALL have its own area that no other element overlaps. The grid SHALL show as many rows as the height setting asks for, small, medium, tall or auto (as many as fit the screen), but never more than fit the screen, and the panel SHALL fit a 1080p screen at GUI scales 2, 3 and 4.
 
 #### Scenario: Nothing overlaps
 - **WHEN** the screen is open with requests in the grid and a message shown
@@ -228,7 +228,7 @@ The Counter Terminal screen SHALL have a column of view buttons left of the pane
 - **THEN** the grid shows only as many rows as fit and the panel stays on the screen
 
 ### Requirement: Requests survive a reload
-The open requests of a Counter Terminal SHALL be saved with the terminal and SHALL be there again after the world is reloaded or the terminal's chunk loads again: item, requested, delivered and missing amounts, their shipments and the CPU holding their work order. Request ids SHALL stay unique across terminals and reloads. After a reload a request SHALL go on as before: shipments that still run are booked when they end, a missing part is shipped again, and a request whose work order no longer exists is retried as missing stock.
+The open requests of a Storage Terminal SHALL be saved with the terminal and SHALL be there again after the world is reloaded or the terminal's chunk loads again: item, requested, delivered and missing amounts, their shipments and the CPU holding their work order. Request ids SHALL stay unique across terminals and reloads. After a reload a request SHALL go on as before: shipments that still run are booked when they end, a missing part is shipped again, and a request whose work order no longer exists is retried as missing stock.
 
 #### Scenario: Restart with a producing request
 - **WHEN** a request for 8 sticks is producing on a CPU and the server restarts
@@ -239,10 +239,10 @@ The open requests of a Counter Terminal SHALL be saved with the terminal and SHA
 - **THEN** the new request gets an id above every id used before
 
 ### Requirement: Content shows when the screen returns
-The Counter Terminal screen SHALL show its terminal's last known content whenever it is shown, including when the same screen comes back after another screen was in front of it, and SHALL NOT fall back to "Loading..." while content for that terminal exists in the session.
+The Storage Terminal screen SHALL show its terminal's last known content whenever it is shown, including when the same screen comes back after another screen was in front of it, and SHALL NOT fall back to "Loading..." while content for that terminal exists in the session.
 
 #### Scenario: Back from the recipe viewer
-- **WHEN** the player looks up a recipe in the recipe viewer from the Counter Terminal and returns
+- **WHEN** the player looks up a recipe in the recipe viewer from the Storage Terminal and returns
 - **THEN** the stock and requests are shown at once
 
 ### Requirement: Right click clears the search
@@ -264,7 +264,7 @@ While a request's work order is open, the terminal SHALL NOT ship the request's 
 - **THEN** the terminal ships the 2 sticks from stock
 
 ### Requirement: Crafting grid
-The Counter Terminal screen SHALL have a 3x3 crafting grid with a result slot. The result SHALL show the vanilla crafting recipe the grid matches, and taking it SHALL craft like a crafting table, using up one of each ingredient and leaving remainders such as empty buckets in the grid or the player inventory as vanilla does.
+The Storage Terminal screen SHALL have a 3x3 crafting grid with a result slot. The result SHALL show the vanilla crafting recipe the grid matches, and taking it SHALL craft like a crafting table, using up one of each ingredient and leaving remainders such as empty buckets in the grid or the player inventory as vanilla does.
 
 #### Scenario: Sticks by hand
 - **WHEN** the player puts a plank above a plank into the grid and takes the result
@@ -303,17 +303,17 @@ When the terminal screen closes, the grid contents SHALL go into the warehouse, 
 - **THEN** the plank is in the warehouse
 
 ### Requirement: JEI fills the grid
-With JEI installed, the transfer button on a vanilla crafting recipe while the Counter Terminal is open SHALL move the grid contents back to the warehouse and fill the grid with the recipe's ingredients, taking each from instant warehouse stock first and from the player inventory second. Ingredients found in neither SHALL leave their grid slot empty. With max transfer the grid SHALL be filled for as many crafts as fit in a stack.
+With JEI installed, the transfer button on a vanilla crafting recipe while the Storage Terminal is open SHALL move the grid contents back to the warehouse and fill the grid with the recipe's ingredients, taking each from instant warehouse stock first and from the player inventory second. Ingredients found in neither SHALL leave their grid slot empty. With max transfer the grid SHALL be filled for as many crafts as fit in a stack.
 
 #### Scenario: Transfer sticks
 - **WHEN** a crate holds planks and the player presses JEI's transfer button on the stick recipe
 - **THEN** the grid holds a plank above a plank taken from the crate and the result shows four sticks
 
 ### Requirement: View settings
-The side column SHALL have buttons, each with an icon and a tooltip naming its current value, for the sort (name, amount, mod), the direction (ascending, descending), the view (all, stock, craftable), the search mode (normal, JEI synced, JEI two way) and the height (small, medium, tall, auto). The settings SHALL be saved per player on the client, SHALL be the same for every Counter Terminal and SHALL be kept across restarts.
+The side column SHALL have buttons, each with an icon and a tooltip naming its current value, for the sort (name, amount, mod), the direction (ascending, descending), the view (all, stock, craftable), the search mode (normal, JEI synced, JEI two way) and the height (small, medium, tall, auto). The settings SHALL be saved per player on the client, SHALL be the same for every Storage Terminal and SHALL be kept across restarts.
 
 #### Scenario: Settings kept
-- **WHEN** the player sets the sort to mod and the height to tall, closes the game and opens another Counter Terminal later
+- **WHEN** the player sets the sort to mod and the height to tall, closes the game and opens another Storage Terminal later
 - **THEN** that terminal sorts by mod and is tall
 
 ### Requirement: JEI search sync

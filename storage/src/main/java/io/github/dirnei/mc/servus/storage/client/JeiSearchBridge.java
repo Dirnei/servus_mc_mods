@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * JEI's search box as seen by the Counter Terminal. The JEI plugin connects
+ * JEI's search box as seen by the Storage Terminal. The JEI plugin connects
  * it when JEI's runtime is available; without JEI it stays empty and the
  * terminal keeps its search to itself. Client only.
  */

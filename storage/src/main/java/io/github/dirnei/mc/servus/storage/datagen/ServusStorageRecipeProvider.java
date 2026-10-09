@@ -62,7 +62,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_redstone", has(Items.REDSTONE))
                 .save(WoodRecipes.output(output));
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.COUNTER_TERMINAL.get())
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.STORAGE_TERMINAL.get())
                 .pattern("GGG")
                 .pattern("ICI")
                 .pattern("PPP")

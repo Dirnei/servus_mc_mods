@@ -4,7 +4,7 @@ import java.util.Locale;
 import java.util.Properties;
 
 /**
- * The player's view settings of the Counter Terminal: sort, direction, view,
+ * The player's view settings of the Storage Terminal: sort, direction, view,
  * search mode and height. Stored as properties; unknown or missing values
  * fall back to the defaults. Pure, no Minecraft imports.
  */

@@ -29,12 +29,12 @@ import net.minecraft.world.phys.BlockHitResult;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
 /** Right click opens the stock GUI. Sits on the data line, never on a rail. */
-public class CounterTerminalBlock extends BaseEntityBlock implements Wrenchable {
+public class StorageTerminalBlock extends BaseEntityBlock implements Wrenchable {
 
-    public static final MapCodec<CounterTerminalBlock> CODEC = simpleCodec(CounterTerminalBlock::new);
+    public static final MapCodec<StorageTerminalBlock> CODEC = simpleCodec(StorageTerminalBlock::new);
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
-    public CounterTerminalBlock(Properties properties) {
+    public StorageTerminalBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(StorageNodeBlocks.ONLINE, false));
     }
@@ -61,7 +61,7 @@ public class CounterTerminalBlock extends BaseEntityBlock implements Wrenchable 
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new CounterTerminalBlockEntity(pos, state);
+        return new StorageTerminalBlockEntity(pos, state);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class CounterTerminalBlock extends BaseEntityBlock implements Wrenchable 
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof CounterTerminalBlockEntity terminal) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof StorageTerminalBlockEntity terminal) {
             player.openMenu(terminal, pos);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
@@ -83,7 +83,7 @@ public class CounterTerminalBlock extends BaseEntityBlock implements Wrenchable 
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof CounterTerminalBlockEntity terminal) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof StorageTerminalBlockEntity terminal) {
             terminal.dropOutput(level, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
@@ -92,7 +92,7 @@ public class CounterTerminalBlock extends BaseEntityBlock implements Wrenchable 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide() ? null
-                : createTickerHelper(type, ServusStorageBlockEntities.COUNTER_TERMINAL.get(), CounterTerminalBlockEntity::serverTick);
+                : createTickerHelper(type, ServusStorageBlockEntities.STORAGE_TERMINAL.get(), StorageTerminalBlockEntity::serverTick);
     }
 
     @Override

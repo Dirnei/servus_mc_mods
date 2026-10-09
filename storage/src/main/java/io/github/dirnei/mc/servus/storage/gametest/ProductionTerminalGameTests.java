@@ -45,7 +45,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 /**
  * The Production Terminal on the data line. Same layout as the CPU tests: the
  * warehouse controller at (2,1,2) with crates west, an Access Point at (2,1,3)
- * with a data duct and Counter Terminal above, data ducts along y 2 to a
+ * with a data duct and Storage Terminal above, data ducts along y 2 to a
  * Crafting Station at (4,1,2) and the CPU cube at x 6 to 8, z 1 to 3. The
  * Production Terminal stands on the duct at (5,2,2).
  */

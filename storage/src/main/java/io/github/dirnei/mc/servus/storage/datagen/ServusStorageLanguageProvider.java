@@ -18,7 +18,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.DOUBLE_CRATE.get(), "Double Crate");
         add(ServusStorageBlocks.QUAD_CRATE.get(), "Quad Crate");
         add(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "Warehouse Controller");
-        add(ServusStorageBlocks.COUNTER_TERMINAL.get(), "Counter Terminal");
+        add(ServusStorageBlocks.STORAGE_TERMINAL.get(), "Storage Terminal");
         add(ServusStorageBlocks.RAIL.get(), "Warehouse Rail");
         add(ServusStorageBlocks.ELEVATOR.get(), "Rail Elevator");
         add(ServusStorageBlocks.HEAVY_RACK.get(), "Heavy Duty Rack");

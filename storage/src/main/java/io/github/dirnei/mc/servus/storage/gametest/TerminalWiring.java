@@ -4,8 +4,8 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Places a Counter Terminal on the data line the way the older tests had it
+ * Places a Storage Terminal on the data line the way the older tests had it
  * beside the warehouse: an Access Point takes the terminal's old spot (so it
  * joins the same warehouse and is the shuttle destination), a data duct sits
  * on top of it and the terminal on top of the duct.
@@ -29,8 +29,8 @@ public final class TerminalWiring {
     public static void place(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
         dataDuct(helper, pos.above());
-        helper.setBlock(terminalPos(pos), ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
-                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+        helper.setBlock(terminalPos(pos), ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
+                .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
     }
 
     /** Where {@link #place} put the terminal. */
@@ -38,7 +38,7 @@ public final class TerminalWiring {
         return pos.above(2);
     }
 
-    public static CounterTerminalBlockEntity at(GameTestHelper helper, BlockPos pos) {
+    public static StorageTerminalBlockEntity at(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockEntity(terminalPos(pos));
     }
 

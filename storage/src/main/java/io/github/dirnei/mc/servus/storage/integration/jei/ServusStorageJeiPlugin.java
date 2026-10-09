@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.integration.jei;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.client.CounterTerminalScreen;
+import io.github.dirnei.mc.servus.storage.client.StorageTerminalScreen;
 import io.github.dirnei.mc.servus.storage.client.JeiSearchBridge;
 import java.util.List;
 import mezz.jei.api.IModPlugin;
@@ -17,8 +17,8 @@ import net.minecraft.resources.ResourceLocation;
 
 /**
  * JEI integration, loaded only when JEI is present: the transfer button opens
- * the Production Terminal's pattern editor and fills the Counter Terminal's
- * crafting grid, the Counter Terminal's search can follow JEI's search, and
+ * the Production Terminal's pattern editor and fills the Storage Terminal's
+ * crafting grid, the Storage Terminal's search can follow JEI's search, and
  * JEI keeps the terminal's side column and upper rows free.
  */
 @JeiPlugin
@@ -34,14 +34,14 @@ public final class ServusStorageJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
         registration.addRecipeTransferHandler(new ProductionTerminalRecipeTransferHandler(), RecipeTypes.CRAFTING);
-        registration.addRecipeTransferHandler(new CounterTerminalRecipeTransferHandler(), RecipeTypes.CRAFTING);
+        registration.addRecipeTransferHandler(new StorageTerminalRecipeTransferHandler(), RecipeTypes.CRAFTING);
     }
 
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-        registration.addGuiContainerHandler(CounterTerminalScreen.class, new IGuiContainerHandler<CounterTerminalScreen>() {
+        registration.addGuiContainerHandler(StorageTerminalScreen.class, new IGuiContainerHandler<StorageTerminalScreen>() {
             @Override
-            public List<Rect2i> getGuiExtraAreas(CounterTerminalScreen screen) {
+            public List<Rect2i> getGuiExtraAreas(StorageTerminalScreen screen) {
                 return screen.extraAreas();
             }
         });

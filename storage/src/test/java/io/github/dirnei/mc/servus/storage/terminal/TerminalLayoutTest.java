@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Area;
-import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Counter;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Storage;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Production;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Rect;
 import java.util.List;
@@ -44,7 +44,7 @@ class TerminalLayoutTest {
     void counterAreasDoNotOverlap() {
         for (TerminalSettings.Height height : TerminalSettings.Height.values()) {
             for (int screen : SCREEN_HEIGHTS) {
-                assertDisjoint(Counter.layout(Counter.rowsFor(height, screen)).areas());
+                assertDisjoint(Storage.layout(Storage.rowsFor(height, screen)).areas());
             }
         }
     }
@@ -53,38 +53,38 @@ class TerminalLayoutTest {
     void counterAreasInsidePanel() {
         for (TerminalSettings.Height height : TerminalSettings.Height.values()) {
             for (int screen : SCREEN_HEIGHTS) {
-                Counter.Layout layout = Counter.layout(Counter.rowsFor(height, screen));
+                Storage.Layout layout = Storage.layout(Storage.rowsFor(height, screen));
                 String at = height + " at " + screen + ": ";
                 for (Area area : layout.areas()) {
                     Rect rect = framed(area);
                     if (area.name().startsWith("side")) {
-                        assertTrue(rect.right() <= 0 && rect.x() >= Counter.SIDE_X, at + area.name() + " is not left of the panel");
-                        assertTrue(rect.y() >= layout.top() && rect.bottom() <= Counter.BASE_HEIGHT, at + area.name() + " leaves the panel height");
+                        assertTrue(rect.right() <= 0 && rect.x() >= Storage.SIDE_X, at + area.name() + " is not left of the panel");
+                        assertTrue(rect.y() >= layout.top() && rect.bottom() <= Storage.BASE_HEIGHT, at + area.name() + " leaves the panel height");
                     } else {
-                        assertTrue(rect.x() >= 0 && rect.right() <= Counter.WIDTH && rect.y() >= layout.top()
-                                && rect.bottom() <= Counter.BASE_HEIGHT, at + area.name() + " leaves the panel");
+                        assertTrue(rect.x() >= 0 && rect.right() <= Storage.WIDTH && rect.y() >= layout.top()
+                                && rect.bottom() <= Storage.BASE_HEIGHT, at + area.name() + " leaves the panel");
                     }
                 }
                 Rect dialog = layout.dialog();
-                assertTrue(dialog.y() >= layout.top() && dialog.bottom() <= Counter.CRAFT_GRID.bottom(), at + "the dialog leaves its area");
-                assertFalse(dialog.overlaps(Counter.INVENTORY_LABEL), at + "the dialog covers the inventory label");
+                assertTrue(dialog.y() >= layout.top() && dialog.bottom() <= Storage.CRAFT_GRID.bottom(), at + "the dialog leaves its area");
+                assertFalse(dialog.overlaps(Storage.INVENTORY_LABEL), at + "the dialog covers the inventory label");
                 assertTrue(layout.height() <= screen - 4, at + "the panel does not fit the screen");
             }
         }
-        assertTrue(Counter.outputY(8) + TerminalLayout.CELL <= Counter.OUTPUT.bottom(), "nine output slots fit");
-        assertTrue(Counter.craftX(8) + TerminalLayout.CELL <= Counter.CRAFT_GRID.right()
-                && Counter.craftY(8) + TerminalLayout.CELL <= Counter.CRAFT_GRID.bottom(), "nine grid slots fit");
-        assertTrue(Counter.CRAFT_GRID.right() < Counter.OUTPUT.x(), "the crafting grid sits left of the output");
+        assertTrue(Storage.outputY(8) + TerminalLayout.CELL <= Storage.OUTPUT.bottom(), "nine output slots fit");
+        assertTrue(Storage.craftX(8) + TerminalLayout.CELL <= Storage.CRAFT_GRID.right()
+                && Storage.craftY(8) + TerminalLayout.CELL <= Storage.CRAFT_GRID.bottom(), "nine grid slots fit");
+        assertTrue(Storage.CRAFT_GRID.right() < Storage.OUTPUT.x(), "the crafting grid sits left of the output");
     }
 
     @Test
     void counterRowsFollowTheHeight() {
-        assertEquals(4, Counter.rowsFor(TerminalSettings.Height.TALL, 270), "scale 4 fits only the base rows");
-        assertEquals(9, Counter.rowsFor(TerminalSettings.Height.TALL, 540));
-        assertEquals(6, Counter.rowsFor(TerminalSettings.Height.MEDIUM, 540));
-        assertEquals(4, Counter.rowsFor(TerminalSettings.Height.SMALL, 540));
-        assertEquals(9, Counter.rowsFor(TerminalSettings.Height.AUTO, 360));
-        assertEquals(19, Counter.rowsFor(TerminalSettings.Height.AUTO, 540));
+        assertEquals(4, Storage.rowsFor(TerminalSettings.Height.TALL, 270), "scale 4 fits only the base rows");
+        assertEquals(9, Storage.rowsFor(TerminalSettings.Height.TALL, 540));
+        assertEquals(6, Storage.rowsFor(TerminalSettings.Height.MEDIUM, 540));
+        assertEquals(4, Storage.rowsFor(TerminalSettings.Height.SMALL, 540));
+        assertEquals(9, Storage.rowsFor(TerminalSettings.Height.AUTO, 360));
+        assertEquals(19, Storage.rowsFor(TerminalSettings.Height.AUTO, 540));
     }
 
     @Test
@@ -114,8 +114,8 @@ class TerminalLayoutTest {
 
     @Test
     void panelsFit1080p() {
-        assertTrue(Counter.BASE_HEIGHT <= TerminalLayout.MAX_HEIGHT, "counter panel too tall");
+        assertTrue(Storage.BASE_HEIGHT <= TerminalLayout.MAX_HEIGHT, "counter panel too tall");
         assertTrue(Production.HEIGHT <= TerminalLayout.MAX_HEIGHT, "production panel too tall");
-        assertTrue(Counter.WIDTH <= 480 && Production.WIDTH <= 480, "panels too wide for 1080p at scale 4");
+        assertTrue(Storage.WIDTH <= 480 && Production.WIDTH <= 480, "panels too wide for 1080p at scale 4");
     }
 }

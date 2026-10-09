@@ -28,7 +28,7 @@ public final class WorkOrder {
     private State state = State.RUNNING;
     private String reason = "";
     private long doneAt = -1;
-    /** The Counter Terminal whose request this order serves, null when the results go to storage. */
+    /** The Storage Terminal whose request this order serves, null when the results go to storage. */
     private BlockPos deliverTo;
     /** How many of the order's item were sent straight to {@link #deliverTo}. */
     private int directSent;

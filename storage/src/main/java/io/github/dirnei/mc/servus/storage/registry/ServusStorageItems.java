@@ -24,8 +24,8 @@ public final class ServusStorageItems {
             properties -> new HeavyRackItem(ServusStorageBlocks.HEAVY_RACK.get(), properties));
     public static final DeferredItem<WoodBlockItem> WAREHOUSE_CONTROLLER = ITEMS.registerItem("warehouse_controller",
             properties -> new WoodBlockItem(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), properties));
-    public static final DeferredItem<WoodBlockItem> COUNTER_TERMINAL = ITEMS.registerItem("counter_terminal",
-            properties -> new WoodBlockItem(ServusStorageBlocks.COUNTER_TERMINAL.get(), properties));
+    public static final DeferredItem<WoodBlockItem> STORAGE_TERMINAL = ITEMS.registerItem("storage_terminal",
+            properties -> new WoodBlockItem(ServusStorageBlocks.STORAGE_TERMINAL.get(), properties));
     public static final DeferredItem<WoodBlockItem> PRODUCTION_TERMINAL = ITEMS.registerItem("production_terminal",
             properties -> new WoodBlockItem(ServusStorageBlocks.PRODUCTION_TERMINAL.get(), properties));
     public static final DeferredItem<WoodBlockItem> PATTERN_STORAGE = ITEMS.registerItem("pattern_storage",
@@ -50,7 +50,7 @@ public final class ServusStorageItems {
     public static final DeferredItem<ZoneLabelItem> ZONE_LABEL = ITEMS.registerItem("zone_label", ZoneLabelItem::new, new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, COUNTER_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, ACCESS_POINT, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE, ZONE_LABEL);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, ACCESS_POINT, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE, ZONE_LABEL);
 
     private ServusStorageItems() {
     }

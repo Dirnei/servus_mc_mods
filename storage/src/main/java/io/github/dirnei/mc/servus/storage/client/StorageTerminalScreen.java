@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.terminal.AmountSteps;
 import io.github.dirnei.mc.servus.storage.terminal.CancelRequestPayload;
 import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewPayload;
@@ -16,7 +16,7 @@ import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import io.github.dirnei.mc.servus.storage.terminal.SetStockRulePayload;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout;
-import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Counter;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Storage;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Rect;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalSettings;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalSort;
@@ -44,15 +44,15 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Refined Storage style Counter Terminal: view buttons left of the panel,
+ * Refined Storage style Storage Terminal: view buttons left of the panel,
  * search, the item grid with open requests first, a message line, the crafting
  * grid left of the output, the player inventory; an amount prompt for requests
  * and rules and a craft dialog with a server preview. Everything sits where
  * {@link Counter} says; extra grid rows grow the panel upwards.
  */
-public class CounterTerminalScreen extends AbstractContainerScreen<CounterTerminalMenu> {
+public class StorageTerminalScreen extends AbstractContainerScreen<StorageTerminalMenu> {
 
-    private static final int COLUMNS = Counter.COLUMNS;
+    private static final int COLUMNS = Storage.COLUMNS;
     private static final int CELL = TerminalLayout.CELL;
     private static final int COLOUR_TEXT = 0x404040;
     private static final int COLOUR_DIM = 0x707070;
@@ -70,7 +70,7 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
 
     private enum Dialog { NONE, REQUEST, RULE, CRAFT }
 
-    private Counter.Layout layout = Counter.layout(Counter.BASE_ROWS);
+    private Storage.Layout layout = Storage.layout(Storage.BASE_ROWS);
     private EditBox search;
     private String searchText = "";
     private String lastSynced = null;
@@ -92,10 +92,10 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
     private Button removeRuleButton;
     private Button cancelButton;
 
-    public CounterTerminalScreen(CounterTerminalMenu menu, Inventory playerInventory, Component title) {
+    public StorageTerminalScreen(StorageTerminalMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        this.imageWidth = Counter.WIDTH;
-        this.imageHeight = Counter.BASE_HEIGHT;
+        this.imageWidth = Storage.WIDTH;
+        this.imageHeight = Storage.BASE_HEIGHT;
     }
 
     private TerminalSettings settings() {
@@ -125,7 +125,7 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
     public List<Rect2i> extraAreas() {
         List<Rect2i> areas = new ArrayList<>();
         int top = topPos + layout.top();
-        areas.add(new Rect2i(leftPos + Counter.SIDE_X, top, -Counter.SIDE_X, layout.height()));
+        areas.add(new Rect2i(leftPos + Storage.SIDE_X, top, -Storage.SIDE_X, layout.height()));
         if (layout.top() < 0) {
             areas.add(new Rect2i(leftPos, top, imageWidth, -layout.top()));
         }
@@ -134,7 +134,7 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
 
     @Override
     protected void init() {
-        layout = Counter.layout(Counter.rowsFor(settings().height(), height));
+        layout = Storage.layout(Storage.rowsFor(settings().height(), height));
         imageHeight = layout.height();
         super.init();
         // The panel is centred as a whole; the base top sits below the extra rows.
@@ -143,8 +143,8 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
         ClientStock.open(menu.terminal().getBlockPos());
         titleLabelX = layout.title().x();
         titleLabelY = layout.title().y();
-        inventoryLabelX = Counter.INVENTORY_LABEL.x();
-        inventoryLabelY = Counter.INVENTORY_LABEL.y();
+        inventoryLabelX = Storage.INVENTORY_LABEL.x();
+        inventoryLabelY = Storage.INVENTORY_LABEL.y();
 
         Rect searchRect = layout.search();
         search = new EditBox(font, leftPos + searchRect.x(), topPos + searchRect.y(), searchRect.w(), searchRect.h(),
@@ -174,7 +174,7 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
         refreshSideButtons();
 
         addRenderableWidget(Button.builder(Component.literal("x"), b -> PacketDistributor.sendToServer(GridClearPayload.INSTANCE))
-                .bounds(leftPos + Counter.CLEAR.x(), topPos + Counter.CLEAR.y(), Counter.CLEAR.w(), Counter.CLEAR.h())
+                .bounds(leftPos + Storage.CLEAR.x(), topPos + Storage.CLEAR.y(), Storage.CLEAR.w(), Storage.CLEAR.h())
                 .tooltip(Tooltip.create(Component.translatable("gui.servus_storage.terminal.clear_grid"))).build());
 
         amount = new EditBox(font, dx() + 40, dy() + 20, 50, 12, Component.translatable("gui.servus_storage.terminal.amount"));
@@ -519,12 +519,12 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
         Rect grid = layout.grid();
         PanelPainter.slots(graphics, leftPos, topPos, grid, COLUMNS, COLUMNS * layout.rows());
         PanelPainter.inset(graphics, leftPos, topPos, layout.scrollbar());
-        PanelPainter.slots(graphics, leftPos, topPos, Counter.OUTPUT, Counter.OUTPUT_COLUMNS, menu.inventoryStart());
-        PanelPainter.slots(graphics, leftPos, topPos, Counter.INVENTORY, 9, 27);
-        PanelPainter.slots(graphics, leftPos, topPos, Counter.HOTBAR, 9, 9);
-        PanelPainter.slots(graphics, leftPos, topPos, Counter.CRAFT_GRID, 3, 9);
-        PanelPainter.slots(graphics, leftPos, topPos, Counter.CRAFT_RESULT, 1, 1);
-        arrow(graphics, leftPos + Counter.CRAFT_ARROW.x(), topPos + Counter.CRAFT_ARROW.y());
+        PanelPainter.slots(graphics, leftPos, topPos, Storage.OUTPUT, Storage.OUTPUT_COLUMNS, menu.inventoryStart());
+        PanelPainter.slots(graphics, leftPos, topPos, Storage.INVENTORY, 9, 27);
+        PanelPainter.slots(graphics, leftPos, topPos, Storage.HOTBAR, 9, 9);
+        PanelPainter.slots(graphics, leftPos, topPos, Storage.CRAFT_GRID, 3, 9);
+        PanelPainter.slots(graphics, leftPos, topPos, Storage.CRAFT_RESULT, 1, 1);
+        arrow(graphics, leftPos + Storage.CRAFT_ARROW.x(), topPos + Storage.CRAFT_ARROW.y());
         int max = maxScrollRow();
         Rect bar = layout.scrollbar();
         int track = bar.h() - 15;
@@ -671,8 +671,8 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
     private void renderMessage(GuiGraphics graphics) {
         if (!ClientStock.message().isEmpty()) {
             Component text = Component.translatable("gui.servus_storage.terminal.message." + ClientStock.message());
-            graphics.drawString(font, font.plainSubstrByWidth(text.getString(), Counter.MESSAGE.w()),
-                    leftPos + Counter.MESSAGE.x(), topPos + Counter.MESSAGE.y() + 1, COLOUR_ALERT, false);
+            graphics.drawString(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
+                    leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, COLOUR_ALERT, false);
         }
     }
 
@@ -768,8 +768,8 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
     protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) {
         int x = (int) mouseX - left;
         int y = (int) mouseY - top;
-        boolean panel = x >= 0 && x < imageWidth && y >= layout.top() && y < Counter.BASE_HEIGHT;
-        boolean side = x >= Counter.SIDE_X && x < 0 && y >= layout.top() && y < Counter.BASE_HEIGHT;
+        boolean panel = x >= 0 && x < imageWidth && y >= layout.top() && y < Storage.BASE_HEIGHT;
+        boolean side = x >= Storage.SIDE_X && x < 0 && y >= layout.top() && y < Storage.BASE_HEIGHT;
         return !panel && !side;
     }
 

@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * The last stock, craftables, requests, message and craft preview the server
- * sent, kept per Counter Terminal for the session, so a terminal opened again
+ * sent, kept per Storage Terminal for the session, so a terminal opened again
  * shows its last content at once while the fresh one is on its way.
  * Client main thread only.
  */
@@ -27,7 +27,7 @@ public final class ClientStock {
     private ClientStock() {
     }
 
-    /** A Counter Terminal screen opens: show what was last seen of it, if anything. */
+    /** A Storage Terminal screen opens: show what was last seen of it, if anything. */
     public static void open(BlockPos terminal) {
         if (STORE.open(key(terminal))) {
             preview = null;

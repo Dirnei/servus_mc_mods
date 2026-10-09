@@ -14,7 +14,7 @@ import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.order.StepRef;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import net.minecraft.core.BlockPos;
@@ -83,17 +83,17 @@ public final class PersistGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void terminalRequestsSurviveReload(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
-        CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
-        CounterTerminalBlockEntity.Request request = terminal.newRequest(helper.getLevel(), STICK, 12);
+        StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+        StorageTerminalBlockEntity.Request request = terminal.newRequest(helper.getLevel(), STICK, 12);
         request.delivered = 4;
         request.missing = 8;
         int savedId = request.id;
-        CounterTerminalBlockEntity loaded = reload(helper, TerminalWiring.terminalPos(ACCESS));
-        CounterTerminalBlockEntity.Request back = loaded.request(savedId);
+        StorageTerminalBlockEntity loaded = reload(helper, TerminalWiring.terminalPos(ACCESS));
+        StorageTerminalBlockEntity.Request back = loaded.request(savedId);
         helper.assertTrue(back != null, "the request should be there after the reload");
         helper.assertTrue(back.key.equals(STICK) && back.requested == 12 && back.delivered == 4 && back.missing == 8,
                 "item and amounts should be kept, got " + back.requested + "/" + back.delivered + "/" + back.missing);
-        CounterTerminalBlockEntity.Request next = loaded.newRequest(helper.getLevel(), STICK, 1);
+        StorageTerminalBlockEntity.Request next = loaded.newRequest(helper.getLevel(), STICK, 1);
         helper.assertTrue(next.id > savedId, "a new id should be above " + savedId + ", got " + next.id);
         helper.succeed();
     }
@@ -111,7 +111,7 @@ public final class PersistGameTests {
                 .setValue(CrateBlock.FACING, Direction.NORTH));
         TerminalWiring.when(helper, () -> ready(helper) && planksIndexed(helper), 100,
                 () -> "stations, CPU and the planks should be on the line", () -> {
-            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
             String refusal = TerminalRequests.craft(helper.getLevel(), terminal, STICK, 4);
             helper.assertTrue(refusal.isEmpty(), "the craft should start, refused " + refusal);
             int orderId = cpu(helper).book().orders().get(0).id();

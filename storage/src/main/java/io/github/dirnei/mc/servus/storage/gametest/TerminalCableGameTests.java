@@ -4,12 +4,12 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
-import io.github.dirnei.mc.servus.storage.menu.CounterTerminalMenu;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -25,7 +25,7 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-/** The Counter Terminal on the data line: packets, reach, several warehouses, cancel and closed output. */
+/** The Storage Terminal on the data line: packets, reach, several warehouses, cancel and closed output. */
 @GameTestHolder(ServusStorageIds.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class TerminalCableGameTests {
@@ -49,13 +49,13 @@ public final class TerminalCableGameTests {
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
     }
 
-    private static CounterTerminalBlockEntity terminal(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.COUNTER_TERMINAL.get().defaultBlockState()
-                .setValue(CounterTerminalBlock.FACING, Direction.NORTH));
+    private static StorageTerminalBlockEntity terminal(GameTestHelper helper, BlockPos pos) {
+        helper.setBlock(pos, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
+                .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
         return helper.getBlockEntity(pos);
     }
 
-    private static long stockOf(CounterTerminalMenu menu, Item item) {
+    private static long stockOf(StorageTerminalMenu menu, Item item) {
         for (StockEntry entry : menu.stock().entries()) {
             if (entry.stack().is(item)) {
                 return entry.count();
@@ -74,9 +74,9 @@ public final class TerminalCableGameTests {
             TerminalWiring.dataDuct(helper, new BlockPos(x, 1, 3));
         }
         BlockPos terminalPos = new BlockPos(7, 1, 3);
-        CounterTerminalBlockEntity terminal = terminal(helper, terminalPos);
+        StorageTerminalBlockEntity terminal = terminal(helper, terminalPos);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+        StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
         TerminalWiring.when(helper, () -> helper.getBlockState(terminalPos).getValue(StorageNodeBlocks.ONLINE), 60,
                 () -> "the terminal lamp should light once a warehouse is reachable", () -> {
             helper.assertTrue(stockOf(menu, Items.OAK_PLANKS) == 20, "the terminal lists 20 planks");
@@ -102,10 +102,10 @@ public final class TerminalCableGameTests {
         crate(helper, new BlockPos(1, 1, 3), Items.COBBLESTONE, 10);
         controller(helper, new BlockPos(2, 1, 3));
         BlockPos terminalPos = new BlockPos(3, 1, 3);
-        CounterTerminalBlockEntity terminal = terminal(helper, terminalPos);
+        StorageTerminalBlockEntity terminal = terminal(helper, terminalPos);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(45, () -> {
-            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(!menu.stock().online() && menu.stock().reason().equals("no_warehouse"),
                     "the terminal should say no warehouse is reachable, got " + menu.stock().reason());
             helper.assertTrue(!helper.getBlockState(terminalPos).getValue(StorageNodeBlocks.ONLINE), "the lamp stays dark");
@@ -127,9 +127,9 @@ public final class TerminalCableGameTests {
         for (int z = 1; z <= 8; z++) {
             TerminalWiring.dataDuct(helper, new BlockPos(4, 1, z));
         }
-        CounterTerminalBlockEntity terminal = terminal(helper, new BlockPos(5, 1, 4));
+        StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(5, 1, 4));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+        StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
         TerminalWiring.when(helper, () -> stockOf(menu, Items.COBBLESTONE) == 50, 60,
                 () -> "the terminal should list 50 cobblestone from both warehouses, had " + stockOf(menu, Items.COBBLESTONE), () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 40);
@@ -149,9 +149,9 @@ public final class TerminalCableGameTests {
         controller(helper, new BlockPos(2, 1, 3));
         helper.setBlock(new BlockPos(3, 1, 3), ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
         TerminalWiring.dataDuct(helper, new BlockPos(4, 1, 3));
-        CounterTerminalBlockEntity terminal = terminal(helper, new BlockPos(5, 1, 3));
+        StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(5, 1, 3));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+        StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
         TerminalWiring.when(helper, () -> stockOf(menu, Items.COBBLESTONE) == 64, 60, () -> "the warehouse should be reachable", () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64);
             helper.assertTrue(crate.isEmpty(), "the crate is picked at once");
@@ -171,7 +171,7 @@ public final class TerminalCableGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void hopperCannotTakeTerminalOutput(GameTestHelper helper) {
         helper.setBlock(new BlockPos(3, 1, 3), Blocks.HOPPER.defaultBlockState());
-        CounterTerminalBlockEntity terminal = terminal(helper, new BlockPos(3, 2, 3));
+        StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(3, 2, 3));
         terminal.output().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 10));
         helper.runAfterDelay(40, () -> {
             HopperBlockEntity hopper = helper.getBlockEntity(new BlockPos(3, 1, 3));
@@ -187,9 +187,9 @@ public final class TerminalCableGameTests {
         crate(helper, new BlockPos(1, 1, 3), Items.COBBLESTONE, 10);
         controller(helper, new BlockPos(2, 1, 3));
         TerminalWiring.dataDuct(helper, new BlockPos(3, 1, 3));
-        CounterTerminalBlockEntity terminal = terminal(helper, new BlockPos(4, 1, 3));
+        StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(4, 1, 3));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+        StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
         TerminalWiring.when(helper, () -> stockOf(menu, Items.COBBLESTONE) == 10, 60,
                 () -> "the controller on the line should make the stock visible", () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 5);

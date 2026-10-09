@@ -14,7 +14,7 @@ import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlock;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.storage.access.AccessPointBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -53,8 +53,8 @@ public final class ServusStorageBlocks {
                             .requiresCorrectToolForDrops()
                             .sound(SoundType.METAL));
 
-    public static final DeferredBlock<CounterTerminalBlock> COUNTER_TERMINAL =
-            BLOCKS.registerBlock("counter_terminal", CounterTerminalBlock::new,
+    public static final DeferredBlock<StorageTerminalBlock> STORAGE_TERMINAL =
+            BLOCKS.registerBlock("storage_terminal", StorageTerminalBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.WOOD)
                             .strength(2.5F)

@@ -11,7 +11,7 @@ import java.util.Properties;
 import net.neoforged.fml.loading.FMLPaths;
 
 /**
- * The player's Counter Terminal view settings, shared by every terminal and
+ * The player's Storage Terminal view settings, shared by every terminal and
  * kept in {@code config/servus_storage-terminal.properties}. Client only.
  */
 public final class ClientTerminalSettings {
@@ -58,7 +58,7 @@ public final class ClientTerminalSettings {
         try {
             Files.createDirectories(path.getParent());
             try (Writer writer = Files.newBufferedWriter(path)) {
-                value.toProperties().store(writer, "Servus: Storage Counter Terminal view settings");
+                value.toProperties().store(writer, "Servus: Storage Storage Terminal view settings");
             }
         } catch (IOException e) {
             ServusStorage.LOGGER.warn("Could not write {}: {}", path, e.getMessage());

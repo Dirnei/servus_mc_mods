@@ -714,25 +714,6 @@
         {"item": "servus_storage:access_point", "count": 1}
       ]
     },
-    "servus_storage:counter_terminal": {
-      "type": "servus_foundation:wood_shaped",
-      "pattern": ["GGG", "ICI", "PPP"],
-      "key": {
-        "C": {"item": "minecraft:chest"},
-        "G": {"item": "minecraft:glass"},
-        "I": {"item": "minecraft:iron_ingot"},
-        "P": {"tag": "minecraft:planks"}
-      },
-      "inputs": [
-        {"tag": "minecraft:planks", "count": 3},
-        {"item": "minecraft:chest", "count": 1},
-        {"item": "minecraft:glass", "count": 3},
-        {"item": "minecraft:iron_ingot", "count": 2}
-      ],
-      "outputs": [
-        {"item": "servus_storage:counter_terminal", "count": 1}
-      ]
-    },
     "servus_storage:crafting_cpu": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "RCR", "PPP"],
@@ -965,6 +946,25 @@
       ],
       "outputs": [
         {"item": "servus_storage:shuttle_garage", "count": 1}
+      ]
+    },
+    "servus_storage:storage_terminal": {
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["GGG", "ICI", "PPP"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:glass", "count": 3},
+        {"item": "minecraft:iron_ingot", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_storage:storage_terminal", "count": 1}
       ]
     },
     "servus_storage:warehouse_controller": {
@@ -1228,9 +1228,6 @@
     "servus_storage:access_point": {
       "name": "Access Point"
     },
-    "servus_storage:counter_terminal": {
-      "name": "Counter Terminal"
-    },
     "servus_storage:crafting_cpu": {
       "name": "Crafting CPU"
     },
@@ -1272,6 +1269,9 @@
     },
     "servus_storage:shuttle_garage": {
       "name": "Shuttle Garage"
+    },
+    "servus_storage:storage_terminal": {
+      "name": "Storage Terminal"
     },
     "servus_storage:warehouse_controller": {
       "name": "Warehouse Controller"

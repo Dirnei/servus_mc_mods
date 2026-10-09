@@ -6,9 +6,9 @@ import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.Request;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.RequestState;
-import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity.Tracked;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity.Request;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity.RequestState;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity.Tracked;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -19,7 +19,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
- * Requests of a Counter Terminal on the data line: shipped by the reachable
+ * Requests of a Storage Terminal on the data line: shipped by the reachable
  * warehouses through their Access Points, booked as shipments end, retried
  * while stock is missing. Server thread only.
  */
@@ -32,7 +32,7 @@ public final class TerminalRequests {
     }
 
     /** Called every server tick by the terminal. */
-    static void tick(ServerLevel level, CounterTerminalBlockEntity terminal, int ticks) {
+    static void tick(ServerLevel level, StorageTerminalBlockEntity terminal, int ticks) {
         terminal.seeIds(level);
         book(level, terminal);
         if (ticks % LAMP_TICKS == 0) {
@@ -52,7 +52,7 @@ public final class TerminalRequests {
      * @return an empty string when the request was made, else the refusal key:
      *         {@code offline}, {@code no_access_point}, {@code needs_shuttle}, {@code no_rail} or {@code out_of_stock}
      */
-    public static String request(ServerLevel level, CounterTerminalBlockEntity terminal, ItemKey key, int amount) {
+    public static String request(ServerLevel level, StorageTerminalBlockEntity terminal, ItemKey key, int amount) {
         List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(level, terminal.getBlockPos());
         if (warehouses.isEmpty()) {
             return "offline";
@@ -81,7 +81,7 @@ public final class TerminalRequests {
      * @return an empty string when the order was made, else the refusal key:
      *         {@code offline}, {@code no_cpu}, {@code no_producer} or {@code missing}
      */
-    public static String craft(ServerLevel level, CounterTerminalBlockEntity terminal, ItemKey key, int amount) {
+    public static String craft(ServerLevel level, StorageTerminalBlockEntity terminal, ItemKey key, int amount) {
         if (TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty()) {
             return "offline";
         }
@@ -106,7 +106,7 @@ public final class TerminalRequests {
     }
 
     /** Ships up to {@code amount} from the warehouses holding the most first; returns what is still missing. */
-    private static int ship(CounterTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses,
+    private static int ship(StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses,
                             int amount, String[] refusal) {
         List<WarehouseNetwork> byStock = new ArrayList<>(warehouses);
         byStock.sort(Comparator.comparingLong((WarehouseNetwork warehouse) -> warehouse.available(request.key)).reversed());
@@ -134,7 +134,7 @@ public final class TerminalRequests {
     }
 
     /** Books ended shipments: what they did not bring is missing again. Drops requests that are done. */
-    private static void book(ServerLevel level, CounterTerminalBlockEntity terminal) {
+    private static void book(ServerLevel level, StorageTerminalBlockEntity terminal) {
         List<Integer> done = new ArrayList<>();
         ProductionLedger ledger = ProductionLedger.get(level);
         for (Request request : terminal.requests()) {
@@ -162,13 +162,13 @@ public final class TerminalRequests {
     }
 
     /** How many of the request's item may still be sent straight to the terminal: what it misses. */
-    public static int need(CounterTerminalBlockEntity terminal, int requestId) {
+    public static int need(StorageTerminalBlockEntity terminal, int requestId) {
         Request request = terminal.request(requestId);
         return request == null ? 0 : Math.max(0, request.missing);
     }
 
     /** Items are on their way straight from a producer: they no longer count as missing. */
-    public static void expectDirect(CounterTerminalBlockEntity terminal, int requestId, int count) {
+    public static void expectDirect(StorageTerminalBlockEntity terminal, int requestId, int count) {
         Request request = terminal.request(requestId);
         if (request != null) {
             request.missing = Math.max(0, request.missing - count);
@@ -177,7 +177,7 @@ public final class TerminalRequests {
     }
 
     /** Items sent straight from a producer did not all arrive: the rest is missing again. */
-    public static void directShort(CounterTerminalBlockEntity terminal, int requestId, int count) {
+    public static void directShort(StorageTerminalBlockEntity terminal, int requestId, int count) {
         Request request = terminal.request(requestId);
         if (request != null && count > 0) {
             request.missing += count;
@@ -186,7 +186,7 @@ public final class TerminalRequests {
     }
 
     /** Ships the missing part of idle requests again; stock may have arrived meanwhile. */
-    private static void retry(ServerLevel level, CounterTerminalBlockEntity terminal) {
+    private static void retry(ServerLevel level, StorageTerminalBlockEntity terminal) {
         List<WarehouseNetwork> warehouses = null;
         for (Request request : terminal.requests()) {
             if (request.missing <= 0 || !request.shipments.isEmpty() || producing(level, request)) {
@@ -203,7 +203,7 @@ public final class TerminalRequests {
     }
 
     /** Cancels a request: queued picks and its work order go, shipments end and their items go back into storage. */
-    public static void cancel(ServerLevel level, CounterTerminalBlockEntity terminal, int requestId) {
+    public static void cancel(ServerLevel level, StorageTerminalBlockEntity terminal, int requestId) {
         Request request = terminal.request(requestId);
         if (request == null) {
             return;
@@ -221,7 +221,7 @@ public final class TerminalRequests {
     }
 
     /** The open requests as the GUI lists them. */
-    public static List<RequestRow> rows(ServerLevel level, CounterTerminalBlockEntity terminal, List<WarehouseNetwork> warehouses) {
+    public static List<RequestRow> rows(ServerLevel level, StorageTerminalBlockEntity terminal, List<WarehouseNetwork> warehouses) {
         List<RequestRow> rows = new ArrayList<>();
         for (Request request : terminal.requests()) {
             rows.add(new RequestRow(request.id, request.key.stack(1), request.requested, request.delivered, request.missing,
@@ -230,7 +230,7 @@ public final class TerminalRequests {
         return rows;
     }
 
-    static RequestState state(ServerLevel level, CounterTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
+    static RequestState state(ServerLevel level, StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
         for (Tracked tracked : request.shipments) {
             if (level.getBlockEntity(tracked.accessPoint()) instanceof AccessPointBlockEntity point && point.isSending(tracked.shipmentId())) {
                 // Packets that find no room wait at the terminal.
