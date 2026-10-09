@@ -35,5 +35,5 @@
 
 ## 7. Integration
 
-- [ ] 7.1 Search the repo for leftover `servus_manufacturing:` ids of the moved blocks and for `manufacturing.machine.(pump|sink|loader|generator)` imports. Verify: no matches outside the archived changes.
-- [ ] 7.2 Full `gradlew build`, `gradlew test`, all GameTests of the three mods green, and the client launches with all three mods: craft each of the six blocks at a crafting table, form a Sink, run a Burner Pump into a Fluid Tank, power a Chunk Loader from a Coal Generator.
+- [x] 7.1 Search the repo for leftover `servus_manufacturing:` ids of the moved blocks and for `manufacturing.machine.(pump|sink|loader|generator)` imports. Verify: no matches outside the archived changes.
+- [ ] 7.2 Full `gradlew build`, `gradlew test`, all GameTests of the three mods green, and the client launches with all three mods: craft each of the six blocks at a crafting table, form a Sink, run a Burner Pump into a Fluid Tank, power a Chunk Loader from a Coal Generator. (Build, unit tests and GameTests green in the worktree: Foundation 65, Manufacturing 16, Storage 233. The client part is owed to the play check from main.)
