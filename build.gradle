@@ -34,6 +34,13 @@ allprojects {
             }
         }
         maven {
+            name = 'KliKli'
+            url = 'https://dl.cloudsmith.io/public/klikli-dev/mods/maven/'
+            content {
+                includeGroup 'com.klikli_dev'
+            }
+        }
+        maven {
             name = 'FTB'
             url = 'https://maven.ftb.dev/releases'
             content {
@@ -218,6 +225,8 @@ tasks.register('iconExport') {
 
 // The combined runs carry the same dev only mods as the Manufacturing runs.
 dependencies {
+    // Manufacturing's journal is a Modonomicon book; the combined runs need the mod.
+    runtimeOnly "com.klikli_dev:modonomicon-${minecraft_version}-neoforge:${modonomicon_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
     runtimeOnly "maven.modrinth:jade:${jade_version}"
     runtimeOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"

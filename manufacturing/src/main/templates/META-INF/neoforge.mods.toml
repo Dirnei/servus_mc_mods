@@ -28,6 +28,13 @@ ${mod_description}
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="modonomicon"
+    type="required"
+    versionRange="[1.120.0,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
     modId="servus_foundation"
     type="required"
     versionRange="${foundation_version_range}"

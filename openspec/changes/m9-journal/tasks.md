@@ -2,7 +2,7 @@
 
 ## 1. Dependency and removal
 
-- [ ] 1.1 Add the KliKli Maven repository and `modonomicon_version` to `build.gradle` and `gradle.properties`, `implementation` in `manufacturing/build.gradle`, `runtimeOnly` for the combined runs, and a required `modonomicon` dependency in `manufacturing/src/main/templates/META-INF/neoforge.mods.toml`. Verify: build green, Modonomicon loads in the Manufacturing GameTest server.
+- [x] 1.1 Add the KliKli Maven repository and `modonomicon_version` to `build.gradle` and `gradle.properties`, `implementation` in `manufacturing/build.gradle`, `runtimeOnly` for the combined runs, and a required `modonomicon` dependency in `manufacturing/src/main/templates/META-INF/neoforge.mods.toml`. Verify: build green, Modonomicon loads in the Manufacturing GameTest server.
 - [ ] 1.2 Remove `research/*`, `machine/lab/*`, `ResearchLabMenu`, `ResearchLabScreen`, `TechTreeScreen`, the research payloads and their registration, the techs registry, the lab's registry entries, datagen, stats file, textures and lang, `ManufacturingMachines.RESEARCH` and `ResearchStateTest`. Verify: build, data run, GameTests and docs tests green.
 
 ## 2. Ledger and chapters

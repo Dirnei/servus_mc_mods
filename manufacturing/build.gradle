@@ -10,6 +10,9 @@ dependencies {
     // The game data reader is plain Gson; Minecraft 1.21.1 ships this version.
     testImplementation 'com.google.code.gson:gson:2.10.1'
 
+    // Paracelsus' journal is a Modonomicon book: a required dependency.
+    implementation "com.klikli_dev:modonomicon-${minecraft_version}-neoforge:${modonomicon_version}"
+
     // JEI: API at compile time, full mod only in dev runs (soft dependency).
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
