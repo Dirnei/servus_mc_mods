@@ -18,4 +18,4 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build` and `gradlew test` green, Storage GameTests green.
+- [x] 5.1 Full `gradlew build` and `gradlew test` green, Storage GameTests green.
