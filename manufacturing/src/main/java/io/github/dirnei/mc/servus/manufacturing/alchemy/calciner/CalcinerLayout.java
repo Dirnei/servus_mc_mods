@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,39 +39,8 @@ public final class CalcinerLayout {
         }
     }
 
-    /** The side the front of the structure faces, with its x and z step. */
-    public enum Facing {
-        NORTH(0, -1), EAST(1, 0), SOUTH(0, 1), WEST(-1, 0);
-
-        private final int dx;
-        private final int dz;
-
-        Facing(int dx, int dz) {
-            this.dx = dx;
-            this.dz = dz;
-        }
-
-        /** The x step to the player's right when they look at a front facing this way. */
-        public int rightX() {
-            return dz;
-        }
-
-        /** The z step to the player's right when they look at a front facing this way. */
-        public int rightZ() {
-            return -dx;
-        }
-    }
-
     /** One position of the structure: {@code right} and {@code up} from the Calciner in the front plane. */
     public record Cell(int index, Role role, int right, int up) {
-    }
-
-    /** A world offset in blocks. */
-    public record Offset(int x, int y, int z) {
-
-        public Offset negate() {
-            return new Offset(-x, -y, -z);
-        }
     }
 
     /** The character of a free position in the schematic pattern. */

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
@@ -8,7 +9,6 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Offset;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import net.minecraft.client.Minecraft;

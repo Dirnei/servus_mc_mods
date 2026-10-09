@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
@@ -178,7 +179,7 @@ public final class CalcinerGameTests {
                 // Foundation's tanks keep their own carrot rules; the air cell has nothing to click.
                 continue;
             }
-            BlockPos pos = helper.absolutePos(CalcinerStructure.pos(CALCINER, cell, CalcinerLayout.Facing.NORTH));
+            BlockPos pos = helper.absolutePos(CalcinerStructure.pos(CALCINER, cell, Facing.NORTH));
             for (boolean sneaking : new boolean[] {false, true}) {
                 player.setShiftKeyDown(sneaking);
                 ItemStack carrot = player.getItemInHand(InteractionHand.MAIN_HAND);
@@ -194,12 +195,12 @@ public final class CalcinerGameTests {
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
     public static void breakingABrickUnforms(GameTestHelper helper) {
         formed(helper, CALCINER, Direction.NORTH);
-        BlockPos brick = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(3), CalcinerLayout.Facing.NORTH);
+        BlockPos brick = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(3), Facing.NORTH);
         helper.getLevel().destroyBlock(helper.absolutePos(brick), true);
         helper.assertItemEntityPresent(Items.BRICKS, brick, 2.0);
         helper.assertBlockPresent(Blocks.AIR, brick);
         for (Cell cell : CalcinerLayout.cells()) {
-            BlockPos pos = CalcinerStructure.pos(CALCINER, cell, CalcinerLayout.Facing.NORTH);
+            BlockPos pos = CalcinerStructure.pos(CALCINER, cell, Facing.NORTH);
             if (pos.equals(brick)) {
                 continue;
             }
@@ -226,7 +227,7 @@ public final class CalcinerGameTests {
         helper.assertItemEntityPresent(ServusManufacturingItems.CALCINER.get(), CALCINER, 2.0);
         helper.assertItemEntityPresent(Items.COBBLESTONE, CALCINER, 2.0);
         helper.assertItemEntityPresent(Items.COAL, CALCINER, 2.0);
-        helper.assertBlockPresent(Blocks.BRICKS, CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(1), CalcinerLayout.Facing.NORTH));
+        helper.assertBlockPresent(Blocks.BRICKS, CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(1), Facing.NORTH));
         helper.assertBlockProperty(cellPos(CALCINER, Role.ALEMBIC, Direction.NORTH), CalcinerPartBlock.FORMED, false);
         helper.succeed();
     }
@@ -295,8 +296,8 @@ public final class CalcinerGameTests {
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 100)
     public static void eachPortGivesItsPrinciple(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
-        BlockPos sulfurTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(12), CalcinerLayout.Facing.NORTH);
-        BlockPos mercuryTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(15), CalcinerLayout.Facing.NORTH);
+        BlockPos sulfurTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(12), Facing.NORTH);
+        BlockPos mercuryTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(15), Facing.NORTH);
         calciner.tanks().insert(new Principles(500, 400, 300));
         IFluidHandler receiver = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
                 helper.absolutePos(cellPos(CALCINER, Role.RECEIVER, Direction.NORTH)), Direction.NORTH);
@@ -339,7 +340,7 @@ public final class CalcinerGameTests {
     public static void fireboxTakesFuelAndUpkeep(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         for (Cell cell : CalcinerLayout.cells()) {
-            BlockPos pos = helper.absolutePos(CalcinerStructure.pos(CALCINER, cell, CalcinerLayout.Facing.NORTH));
+            BlockPos pos = helper.absolutePos(CalcinerStructure.pos(CALCINER, cell, Facing.NORTH));
             for (Direction side : Direction.values()) {
                 helper.assertTrue(helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, pos, side) == null, "no energy at " + cell.role());
             }
@@ -389,7 +390,7 @@ public final class CalcinerGameTests {
     }
 
     static BlockPos spout(BlockPos controller) {
-        return CalcinerStructure.pos(controller, CalcinerLayout.cells(Role.AIR).getFirst(), CalcinerLayout.Facing.NORTH);
+        return CalcinerStructure.pos(controller, CalcinerLayout.cells(Role.AIR).getFirst(), Facing.NORTH);
     }
 
     /** A block under the Alembic's spout keeps the Calciner from forming, and placed later it unforms it. */
@@ -410,7 +411,7 @@ public final class CalcinerGameTests {
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
     public static void breakingATankUnforms(GameTestHelper helper) {
         formed(helper, CALCINER, Direction.NORTH);
-        BlockPos tank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(16), CalcinerLayout.Facing.NORTH);
+        BlockPos tank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(16), Facing.NORTH);
         helper.getLevel().destroyBlock(helper.absolutePos(tank), true);
         assertFormed(helper, CALCINER, Direction.NORTH, false);
         helper.succeed();

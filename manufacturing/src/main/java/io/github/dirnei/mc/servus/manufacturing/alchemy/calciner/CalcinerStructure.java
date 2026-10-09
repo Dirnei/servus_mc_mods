@@ -1,10 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Cell;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Facing;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Offset;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import java.util.ArrayList;
@@ -44,21 +45,11 @@ public final class CalcinerStructure {
     }
 
     public static Facing facing(Direction direction) {
-        return switch (direction) {
-            case EAST -> Facing.EAST;
-            case SOUTH -> Facing.SOUTH;
-            case WEST -> Facing.WEST;
-            default -> Facing.NORTH;
-        };
+        return Structures.facing(direction);
     }
 
     public static Direction direction(Facing facing) {
-        return switch (facing) {
-            case NORTH -> Direction.NORTH;
-            case EAST -> Direction.EAST;
-            case SOUTH -> Direction.SOUTH;
-            case WEST -> Direction.WEST;
-        };
+        return Structures.direction(facing);
     }
 
     /** The world position of {@code cell} of the Calciner at {@code controller}. */

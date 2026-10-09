@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import net.minecraft.core.registries.BuiltInRegistries;
 import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
@@ -108,7 +109,7 @@ public final class AlchemyGameTests {
             // The Mercury runs on from the Receiver into the Mercury tank of the structure.
             BlockPos mercuryTank = CalcinerStructure.pos(CalcinerGameTests.CALCINER,
                     CalcinerLayout.cell(15),
-                    CalcinerLayout.Facing.NORTH);
+                    Facing.NORTH);
             int mercury = held.mercury() + CalcinerGameTests.tankAt(helper, mercuryTank).getFluidInTank(0).getAmount();
             helper.assertTrue(held.salt() == 100 && held.sulfur() == 0 && mercury == 10,
                     "expected 100 Salt and 10 Mercury, got " + held + " and " + mercury + " Mercury in all");
