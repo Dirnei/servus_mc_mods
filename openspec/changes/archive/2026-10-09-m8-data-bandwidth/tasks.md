@@ -33,5 +33,5 @@
 
 ## 8. Integration
 
-- [ ] 8.1 Full `gradlew build` and `gradlew test` green, Foundation, Manufacturing and Storage GameTests green, and the game launches with all three mods.
+- [x] 8.1 Full `gradlew build` and `gradlew test` green, Foundation, Manufacturing and Storage GameTests green, and the game launches with all three mods.
   - Done in the worktree: build and JUnit green (Foundation 203, Manufacturing 62, Storage 213), GameTests green (Foundation 39, Manufacturing 46, Storage 249). Owed by the user: the client launch from the main checkout and the play check (tiers and in-world upgrade, goggles colours, summary, Packing Station upgrade row, Machines tab).
