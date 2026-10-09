@@ -1,0 +1,8 @@
+{
+  "order": 0,
+  "tasks": [
+    {"id": "calcine", "event": "calcine", "count": 100},
+    {"id": "salt", "event": "principle", "filter": "salt", "count": 1000},
+    {"id": "salt_crystal", "event": "coagulate", "filter": "servus_manufacturing:salt_crystal", "count": 1}
+  ]
+}

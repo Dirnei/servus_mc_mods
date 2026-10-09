@@ -8,7 +8,7 @@
 ## 2. Ledger and chapters
 
 - [x] 2.1 Pure `JournalLedger`, `ChapterDef`, `TaskDef`, `TeamJournal` in `manufacturing/.../journal` with JUnit `JournalLedgerTest` (first chapter open, parent gating, counting with a matcher, cap at count, chapter finishes once, finished chapters ignore events, state round trip of counts). Verify: `gradlew test`.
-- [ ] 2.2 `JournalChapters` reload listener with the chapter codec, `JournalSavedData`, `Journal.record(...)` resolving filters (item id, `#tag`, principle) and awarding advancements on finish and at login; shipped `villach.json` and `schwaz.json`. Verify: build, `/reload` logs the chapter count.
+- [x] 2.2 `JournalChapters` reload listener with the chapter codec, `JournalSavedData`, `Journal.record(...)` resolving filters (item id, `#tag`, principle) and awarding advancements on finish and at login; shipped `villach.json` and `schwaz.json`. Verify: build, `/reload` logs the chapter count.
 
 ## 3. Machines, recipes and advancements
 
