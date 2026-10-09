@@ -135,5 +135,26 @@ public final class ServusStoragePayloads {
                         menu.pushCarried();
                     }
                 });
+        registrar.playToServer(GridPullPayload.TYPE, GridPullPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof CounterTerminalMenu menu && !payload.item().isEmpty()) {
+                        menu.pullToCursor(ItemKey.of(payload.item()));
+                    }
+                });
+        registrar.playToServer(GridClearPayload.TYPE, GridClearPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                        menu.clearGrid();
+                    }
+                });
+        registrar.playToServer(GridFillPayload.TYPE, GridFillPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof CounterTerminalMenu menu) {
+                        menu.fillGrid(payload.slots(), payload.max());
+                    }
+                });
     }
 }

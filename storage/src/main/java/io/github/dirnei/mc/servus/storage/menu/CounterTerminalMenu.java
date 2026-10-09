@@ -19,19 +19,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.inventory.ResultSlot;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** The terminal's output slots, the player inventory and the warehouses the terminal reaches over its data line. */
+/**
+ * The terminal's output slots, the player inventory, a 3x3 crafting grid
+ * with its result and the warehouses the terminal reaches over its data
+ * line. Slot order: outputs, player inventory, grid, result.
+ */
 public class CounterTerminalMenu extends AbstractContainerMenu {
 
     private static final int SYNC_INTERVAL = 10;
@@ -42,6 +57,10 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
     private final Player player;
     private final int outputSlots;
     private final int inventoryStart;
+    private final int gridStart;
+    private final int resultIndex;
+    private final CraftingContainer craftSlots = new TransientCraftingContainer(this, 3, 3);
+    private final ResultContainer resultSlots = new ResultContainer();
     private String message = "";
     private int syncTimer;
     private long lastSignature = Long.MIN_VALUE;
@@ -71,6 +90,12 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         for (int column = 0; column < 9; column++) {
             addSlot(new Slot(playerInventory, column, Counter.HOTBAR.x() + column * 18, Counter.HOTBAR.y()));
         }
+        gridStart = slots.size();
+        for (int slot = 0; slot < 9; slot++) {
+            addSlot(new Slot(craftSlots, slot, Counter.craftX(slot), Counter.craftY(slot)));
+        }
+        resultIndex = slots.size();
+        addSlot(new GridResultSlot(player, craftSlots, resultSlots, Counter.CRAFT_RESULT.x() + 1, Counter.CRAFT_RESULT.y() + 1));
     }
 
     public static CounterTerminalMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -88,6 +113,221 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
     /** Index of the first player inventory slot. */
     public int inventoryStart() {
         return inventoryStart;
+    }
+
+    /** Index of the first crafting grid slot. */
+    public int gridStart() {
+        return gridStart;
+    }
+
+    /** Index of the crafting result slot. */
+    public int resultIndex() {
+        return resultIndex;
+    }
+
+    public CraftingContainer craftSlots() {
+        return craftSlots;
+    }
+
+    // Crafting grid (server side)
+
+    /** The grid changed: work out the result like a crafting table does. */
+    @Override
+    public void slotsChanged(Container container) {
+        if (container == craftSlots) {
+            access.execute((level, pos) -> updateResult(level));
+        }
+    }
+
+    /** Vanilla CraftingMenu.slotChangedCraftingGrid, written out for this menu's result slot index. */
+    private void updateResult(Level level) {
+        if (level.isClientSide) {
+            return;
+        }
+        CraftingInput input = craftSlots.asCraftInput();
+        ItemStack result = ItemStack.EMPTY;
+        Optional<RecipeHolder<CraftingRecipe>> recipe = level.getServer().getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, input, level, (RecipeHolder<CraftingRecipe>) null);
+        // Players that are not ServerPlayers (GameTest mock players) skip the limited crafting check.
+        if (recipe.isPresent() && (!(player instanceof ServerPlayer serverPlayer) || resultSlots.setRecipeUsed(level, serverPlayer, recipe.get()))) {
+            ItemStack assembled = recipe.get().value().assemble(input, level.registryAccess());
+            if (assembled.isItemEnabled(level.enabledFeatures())) {
+                result = assembled;
+            }
+        }
+        resultSlots.setItem(0, result);
+        setRemoteSlot(resultIndex, result);
+        if (player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(containerId, incrementStateId(), resultIndex, result));
+        }
+    }
+
+    /** The warehouses the terminal reaches now, empty on the client. */
+    private List<WarehouseNetwork> warehouses() {
+        return terminal.getLevel() instanceof ServerLevel server
+                ? TerminalWarehouses.reachable(server, terminal.getBlockPos()) : List.of();
+    }
+
+    /** Takes up to the amount of the key from instant warehouse stock (crates and foreign inventories, never racks). */
+    private ItemStack takeInstant(ItemKey key, int amount) {
+        ItemStack result = ItemStack.EMPTY;
+        for (WarehouseNetwork network : warehouses()) {
+            int wanted = amount - result.getCount();
+            if (wanted <= 0) {
+                break;
+            }
+            ItemStack taken = network.extract(key, wanted);
+            if (taken.isEmpty()) {
+                continue;
+            }
+            if (result.isEmpty()) {
+                result = taken;
+            } else {
+                result.grow(taken.getCount());
+            }
+        }
+        return result;
+    }
+
+    /** Stores a stack in the reachable warehouses; returns what did not fit. */
+    private ItemStack store(ItemStack stack) {
+        ItemStack rest = stack;
+        for (WarehouseNetwork network : warehouses()) {
+            if (rest.isEmpty()) {
+                break;
+            }
+            rest = network.insert(rest);
+        }
+        return rest;
+    }
+
+    /** After a craft, every grid slot that lost an ingredient gets one more of it from instant stock. */
+    private void refill(ItemStack[] before) {
+        if (player.level().isClientSide) {
+            return;
+        }
+        for (int slot = 0; slot < before.length; slot++) {
+            ItemStack old = before[slot];
+            if (old.isEmpty()) {
+                continue;
+            }
+            ItemStack now = craftSlots.getItem(slot);
+            int lost = now.isEmpty() ? old.getCount() : ItemStack.isSameItemSameComponents(now, old) ? old.getCount() - now.getCount() : 0;
+            if (lost <= 0) {
+                continue;
+            }
+            ItemStack got = takeInstant(ItemKey.of(old), lost);
+            if (got.isEmpty()) {
+                continue;
+            }
+            if (now.isEmpty()) {
+                craftSlots.setItem(slot, got);
+            } else {
+                now.grow(got.getCount());
+                craftSlots.setItem(slot, now);
+            }
+        }
+    }
+
+    /** Alt click on a stock entry: up to one stack from instant stock onto the empty cursor. */
+    public void pullToCursor(ItemKey key) {
+        if (!getCarried().isEmpty()) {
+            return;
+        }
+        setCarried(takeInstant(key, key.stack(1).getMaxStackSize()));
+        forceSync();
+    }
+
+    /** Moves every grid stack into the warehouse; the rest goes to the player. */
+    public void clearGrid() {
+        if (player.level().isClientSide) {
+            return;
+        }
+        for (int slot = 0; slot < craftSlots.getContainerSize(); slot++) {
+            ItemStack stack = craftSlots.removeItemNoUpdate(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            ItemStack rest = store(stack);
+            if (!rest.isEmpty()) {
+                player.getInventory().placeItemBackInInventory(rest);
+            }
+        }
+        slotsChanged(craftSlots);
+        forceSync();
+    }
+
+    /**
+     * JEI transfer: clears the grid, then fills each slot with the first
+     * acceptable stack found in instant stock, else in the player inventory.
+     * With max, a slot takes up to a stack instead of one item.
+     */
+    public void fillGrid(List<List<ItemStack>> options, boolean max) {
+        if (player.level().isClientSide) {
+            return;
+        }
+        clearGrid();
+        for (int slot = 0; slot < Math.min(options.size(), craftSlots.getContainerSize()); slot++) {
+            for (ItemStack option : options.get(slot)) {
+                if (option.isEmpty()) {
+                    continue;
+                }
+                int count = max ? option.getMaxStackSize() : 1;
+                ItemStack got = takeInstant(ItemKey.of(option), count);
+                if (got.isEmpty()) {
+                    got = takeFromInventory(option, count);
+                }
+                if (!got.isEmpty()) {
+                    craftSlots.setItem(slot, got);
+                    break;
+                }
+            }
+        }
+        slotsChanged(craftSlots);
+        forceSync();
+    }
+
+    private ItemStack takeFromInventory(ItemStack like, int count) {
+        Inventory inventory = player.getInventory();
+        ItemStack result = ItemStack.EMPTY;
+        for (int i = 0; i < inventory.items.size() && result.getCount() < count; i++) {
+            ItemStack stack = inventory.items.get(i);
+            if (!ItemStack.isSameItemSameComponents(stack, like)) {
+                continue;
+            }
+            ItemStack taken = stack.split(count - result.getCount());
+            if (result.isEmpty()) {
+                result = taken;
+            } else {
+                result.grow(taken.getCount());
+            }
+        }
+        return result;
+    }
+
+    /** Closing the terminal empties the grid into the warehouse, the rest into the player inventory. */
+    @Override
+    public void removed(Player player) {
+        super.removed(player);
+        clearGrid();
+    }
+
+    /** Takes the crafted result like a crafting table and refills the grid from the warehouse afterwards. */
+    private final class GridResultSlot extends ResultSlot {
+
+        GridResultSlot(Player player, CraftingContainer grid, Container result, int x, int y) {
+            super(player, grid, result, 0, x, y);
+        }
+
+        @Override
+        public void onTake(Player taker, ItemStack stack) {
+            ItemStack[] before = new ItemStack[craftSlots.getContainerSize()];
+            for (int slot = 0; slot < before.length; slot++) {
+                before[slot] = craftSlots.getItem(slot).copy();
+            }
+            super.onTake(taker, stack);
+            refill(before);
+        }
     }
 
     /** The first reachable warehouse, for rules and pushes. */
@@ -173,9 +413,40 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
+        if (index == resultIndex) {
+            ItemStack original = stack.copy();
+            access.execute((level, pos) -> stack.getItem().onCraftedBy(stack, level, player));
+            if (!moveItemStackTo(stack, inventoryStart, gridStart, true)) {
+                return ItemStack.EMPTY;
+            }
+            slot.onQuickCraft(stack, original);
+            if (stack.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+            if (stack.getCount() == original.getCount()) {
+                return ItemStack.EMPTY;
+            }
+            slot.onTake(player, stack);
+            player.drop(stack, false);
+            return original;
+        }
+        if (index >= gridStart) {
+            ItemStack original = stack.copy();
+            if (!moveItemStackTo(stack, inventoryStart, gridStart, false)) {
+                return ItemStack.EMPTY;
+            }
+            if (stack.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+            return original;
+        }
         if (index < outputSlots) {
             ItemStack original = stack.copy();
-            if (!moveItemStackTo(stack, inventoryStart, slots.size(), true)) {
+            if (!moveItemStackTo(stack, inventoryStart, gridStart, true)) {
                 return ItemStack.EMPTY;
             }
             if (stack.isEmpty()) {
