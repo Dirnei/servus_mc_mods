@@ -59,3 +59,16 @@ Settles the throughput model left open since `m8-cable-packets` ("items travel a
 - [Gates shared in creation order can starve a late delivery] -> acceptable for one station; more stations add throughput; `m8-data-bandwidth` revisits fairness with segment budgets.
 - [Removing travel removes the "long distance takes time" feel] -> intended by the user; distance may matter again for wireless (M9).
 - [Rename churn across many files and tests] -> scripted rename plus a grep that finds no `access_point`, `AccessPoint` or "Access Point" outside archives.
+
+## Decisions made during apply
+
+- `PacketRoutes` stays: the shortest route still tells whether source and target are linked and which faces touch the line. Only `PacketFlight` (with its test) and `DataNetwork.packetRouteFrom` went away. A removed data node makes every running delivery look up its route again on its next tick.
+- `DataPackets.move` got an overload with a source `IItemHandler` view. The Packing Station ships with a move from its To network buffer (instead of handing a stack over with `send`), so items stay visible in the buffer until the gate lets them out; the Storage Terminal moves from a one slot view of its Input row that gives nothing once the terminal is removed.
+- A move asks the target how much it takes (simulated insert) before it takes items from the source; what a stock sink refuses goes back to the source, and only if the source refuses it too is it held and offered again. A target that takes nothing is asked again every `retry_interval` ticks.
+- Handed over stacks that cannot continue are settled back into the source first, then the target, then dropped, as the spec says (before, the target came first).
+- Gates limit only deliveries over the data line. Hoppers, ducts and producers that push into a Packing Station through a face are not rate limited.
+- `RateBudget` caps at one second's worth but at least one item, so a rate below one per second still moves items.
+- Instant picks for a Packing Station wait in `WarehouseNetwork` as deferred picks and are released as the To network buffer has room (on every buffer change). They are not saved: after a reload or a network split the Packing Station's shipment ends short for what never arrived and its owner ships again, the existing shortfall path.
+- A Packing Station shipment's ledger progress is booked when its move ends, as before; GameTests measure the buffers instead of the ledger while a move runs.
+- The GUI is painted with `PanelPainter` (no texture file). The server writes both buffer sizes into the open packet, so a client with other defaults still builds matching slots. The status line priority is: no rail, warehouse offline, no data line, sending (item and target block name), put-away blocked (the Inbound Station texts), To storage full, waiting for a shuttle, idle.
+- No docs icon existed for the old block name, so there was none to rename.

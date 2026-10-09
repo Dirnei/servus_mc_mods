@@ -56,9 +56,11 @@ The data line is the wiring for on-demand autocrafting. It never moves anything 
 
 When a Servus block asks for a delivery, the data line carries the items as packets. Nothing else ever sends them.
 
-- A delivery is split into packets of `packet_size` items. One packet of a delivery travels at a time, along the shortest route of data ducts, at `packet_speed` blocks per second. Throughput is packet size times speed over distance.
-- An arriving packet goes into the target's inventory on the side that touches the duct. What does not fit waits at the target and is offered again every `retry_interval` ticks.
-- When a duct on the way is broken, the packet takes another route. If there is none, its items go into the target, back to the source, or onto the ground. They are never lost.
+- The data line is instant: items do not travel and distance does not matter. Each tick a delivery moves as many items as the source has, the target takes and the transfer gates on both ends allow.
+- A transfer gate is a member that limits how fast items enter or leave it, through the `servus_foundation:transfer_gate` capability. The Packing Station is one: it is the border between the warehouse and the data line and converts 8 items per second in each direction. Machine to machine, machine to terminal and controller to member deliveries pass no gate and are limited only by what the target takes.
+- Items wait at their source, never on the line: a move takes items out of the source only as far as the target accepts them. A stack a block hands over that does not fit is offered again every `retry_interval` ticks.
+- Items go into the target's inventory on the side that touches the duct.
+- When a duct is broken and no route is left, the delivery fails and what it has not moved stays at the source. A handed over stack goes back to the source, else into the target, else onto the ground. Items are never lost.
 - Ops can test it with `/servus_foundation data move <from> <to> <item> <count>`.
 
 ## Machine Adapter
@@ -117,7 +119,7 @@ Sides are relative (front, back, left, right, top, bottom), so a configuration s
 
 ## Datapack values
 
-Transfer rates live in `data/servus_foundation/duct/utility_duct.json`, the tank size in `data/servus_foundation/tank/fluid_tank.json` and the packet limits in `data/servus_foundation/data/packets.json`. Current values, which modpacks can change:
+Transfer rates live in `data/servus_foundation/duct/utility_duct.json`, the tank size in `data/servus_foundation/tank/fluid_tank.json` and the retry interval of deliveries in `data/servus_foundation/data/packets.json`. Current values, which modpacks can change:
 
 ```json
 {
@@ -136,8 +138,6 @@ Transfer rates live in `data/servus_foundation/duct/utility_duct.json`, the tank
 
 ```json
 {
-  "packet_size": 8,
-  "packet_speed": 4.0,
   "retry_interval": 20
 }
 ```

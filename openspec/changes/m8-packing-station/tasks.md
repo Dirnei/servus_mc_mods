@@ -20,7 +20,7 @@
 
 ## 5. Docs and plan
 
-- [ ] 5.1 Update the Storage and Foundation docs pages (Packing Station, instant network, rates), PLAN.md 2.4 data line text and M8 list (add this item, replace "Later: High-Speed Data Cable" with `m8-data-bandwidth`). Verify with `npm test` in `docs/` and a read of PLAN.md.
+- [x] 5.1 Update the Storage and Foundation docs pages (Packing Station, instant network, rates), PLAN.md 2.4 data line text and M8 list (add this item, replace "Later: High-Speed Data Cable" with `m8-data-bandwidth`). Verify with `npm test` in `docs/` and a read of PLAN.md.
 
 ## 6. Integration
 
