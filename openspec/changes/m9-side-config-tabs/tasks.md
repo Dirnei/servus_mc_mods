@@ -6,7 +6,7 @@
 
 ## 2. Block entity, sync and carrot
 
-- [ ] 2.1 `SidedBlockEntity`: `fluidSides()`, `sideTanks()`, `cycleFluidSide`; `SideTank` record; `MachineBlockEntity` saves and loads the Fluids layer, keeps it on dismantle, reserves `DATA_FLUID_SIDE_FIRST` (six values) and shifts `DATA_COUNT`; `SideConfigMenus` and `MachineMenu` route buttons `1006..1011`. Verify: `gradlew build`, all GameTests green (nothing moved).
+- [x] 2.1 `SidedBlockEntity`: `fluidSides()`, `sideTanks()`, `cycleFluidSide`; `SideTank` record; `MachineBlockEntity` saves and loads the Fluids layer, keeps it on dismantle, reserves `DATA_FLUID_SIDE_FIRST` (six values) and shifts `DATA_COUNT`; `SideConfigMenus` and `MachineMenu` route buttons `1006..1011`. Verify: `gradlew build`, all GameTests green (nothing moved).
 - [ ] 2.2 Carrot layer: data component `servus_foundation:carrot_layer`, `use` on the air switches the layer with an action bar message, tooltip line; `SideConfigWrench` cycles the Fluids side for a carrot set to Fluids on blocks that have one; lang. GameTest: a carrot set to Fluids cycles a Calciner's Fluids side and leaves its Items side unchanged. Verify: Foundation and Manufacturing GameTests green.
 
 ## 3. Calciner and Coagulator

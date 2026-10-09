@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine.menu;
 
+import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
@@ -159,13 +160,23 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         return SideMode.byOrdinal(data.get(MachineBlockEntity.DATA_SIDE_FIRST + side.ordinal()));
     }
 
+    /** The Fluids layer value of a side as synced to the client. */
+    public int fluidSide(RelativeSide side) {
+        return data.get(MachineBlockEntity.DATA_FLUID_SIDE_FIRST + side.ordinal());
+    }
+
     // Vanilla contract
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        int offset = id - SIDE_BUTTON_FIRST;
-        if (offset >= 0 && offset < RelativeSide.values().length) {
-            machine.cycleSide(RelativeSide.byOrdinal(offset));
+        RelativeSide side = SideConfigMenus.sideOf(id);
+        if (side != null) {
+            machine.cycleSide(side);
+            return true;
+        }
+        RelativeSide fluidSide = SideConfigMenus.fluidSideOf(id);
+        if (fluidSide != null && machine.fluidSides() != null) {
+            machine.cycleFluidSide(fluidSide);
             return true;
         }
         return false;
