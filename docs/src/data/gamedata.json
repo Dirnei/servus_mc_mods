@@ -225,6 +225,21 @@
         {"item": "servus_foundation:data_cable", "count": 4}
       ]
     },
+    "servus_foundation:duplex_data_cable": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["DQD"],
+      "key": {
+        "D": {"item": "servus_foundation:data_cable"},
+        "Q": {"item": "minecraft:quartz"}
+      },
+      "inputs": [
+        {"item": "minecraft:quartz", "count": 1},
+        {"item": "servus_foundation:data_cable", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:duplex_data_cable", "count": 2}
+      ]
+    },
     "servus_foundation:electric_pump": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["CRC", "IPI", "CRC"],
@@ -266,6 +281,23 @@
       "special": true,
       "inputs": [],
       "outputs": []
+    },
+    "servus_foundation:fast_data_cable": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": [" G ", "DQD", " G "],
+      "key": {
+        "D": {"item": "servus_foundation:duplex_data_cable"},
+        "G": {"item": "minecraft:gold_ingot"},
+        "Q": {"item": "minecraft:quartz"}
+      },
+      "inputs": [
+        {"item": "minecraft:gold_ingot", "count": 2},
+        {"item": "minecraft:quartz", "count": 1},
+        {"item": "servus_foundation:duplex_data_cable", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:fast_data_cable", "count": 2}
+      ]
     },
     "servus_foundation:fluid_pipe": {
       "type": "minecraft:crafting_shaped",
@@ -367,6 +399,23 @@
       ],
       "outputs": [
         {"item": "servus_foundation:sink", "count": 8}
+      ]
+    },
+    "servus_foundation:speed_upgrade": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["RGR", "GCG", "RGR"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "G": {"item": "minecraft:gold_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 1},
+        {"item": "minecraft:gold_ingot", "count": 4},
+        {"item": "minecraft:redstone", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:speed_upgrade", "count": 1}
       ]
     },
     "servus_manufacturing:athanor": {
@@ -478,27 +527,6 @@
       ],
       "outputs": [
         {"item": "servus_manufacturing:salt_crystal", "count": 9}
-      ]
-    },
-    "servus_storage:access_point": {
-      "type": "servus_foundation:wood_shaped",
-      "pattern": ["IRI", "OCO", "PPP"],
-      "key": {
-        "C": {"item": "minecraft:chest"},
-        "I": {"item": "minecraft:iron_ingot"},
-        "O": {"item": "minecraft:copper_ingot"},
-        "P": {"tag": "minecraft:planks"},
-        "R": {"item": "minecraft:redstone"}
-      },
-      "inputs": [
-        {"tag": "minecraft:planks", "count": 3},
-        {"item": "minecraft:chest", "count": 1},
-        {"item": "minecraft:copper_ingot", "count": 2},
-        {"item": "minecraft:iron_ingot", "count": 2},
-        {"item": "minecraft:redstone", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_storage:access_point", "count": 1}
       ]
     },
     "servus_storage:crafting_cpu": {
@@ -632,6 +660,27 @@
       ],
       "outputs": [
         {"item": "servus_storage:outbound_station", "count": 1}
+      ]
+    },
+    "servus_storage:packing_station": {
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["IRI", "OCO", "PPP"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "O": {"item": "minecraft:copper_ingot"},
+        "P": {"tag": "minecraft:planks"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 2},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:packing_station", "count": 1}
       ]
     },
     "servus_storage:pattern_storage": {
@@ -848,6 +897,9 @@
     "minecraft:glass_pane": {
       "name": "Glass Pane"
     },
+    "minecraft:gold_ingot": {
+      "name": "Gold Ingot"
+    },
     "minecraft:hopper": {
       "name": "Hopper"
     },
@@ -862,6 +914,9 @@
     },
     "minecraft:paper": {
       "name": "Paper"
+    },
+    "minecraft:quartz": {
+      "name": "Nether Quartz"
     },
     "minecraft:redstone": {
       "name": "Redstone Dust"
@@ -890,11 +945,17 @@
     "servus_foundation:data_cable": {
       "name": "Data Cable"
     },
+    "servus_foundation:duplex_data_cable": {
+      "name": "Duplex Data Cable"
+    },
     "servus_foundation:electric_pump": {
       "name": "Electric Pump"
     },
     "servus_foundation:engineer_goggles": {
       "name": "Engineer Goggles"
+    },
+    "servus_foundation:fast_data_cable": {
+      "name": "Fast Data Cable"
     },
     "servus_foundation:fluid_pipe": {
       "name": "Fluid Pipe"
@@ -914,6 +975,9 @@
     "servus_foundation:sink": {
       "name": "Sink"
     },
+    "servus_foundation:speed_upgrade": {
+      "name": "Speed Upgrade"
+    },
     "servus_manufacturing:athanor": {
       "name": "Athanor"
     },
@@ -931,9 +995,6 @@
     },
     "servus_manufacturing:salt_crystal_block": {
       "name": "Salt Crystal Block"
-    },
-    "servus_storage:access_point": {
-      "name": "Access Point"
     },
     "servus_storage:crafting_cpu": {
       "name": "Crafting CPU"
@@ -958,6 +1019,9 @@
     },
     "servus_storage:outbound_station": {
       "name": "Outbound Station"
+    },
+    "servus_storage:packing_station": {
+      "name": "Packing Station"
     },
     "servus_storage:pattern_storage": {
       "name": "Pattern Storage"
