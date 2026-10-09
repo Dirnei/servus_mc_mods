@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.neoforge.fluids.FluidActionResult;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 
@@ -95,10 +96,32 @@ public class FluidTankBlock extends BaseEntityBlock {
         if (FluidUtil.getFluidHandler(stack).isEmpty()) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
-        if (!level.isClientSide()) {
+        if (!level.isClientSide() && !fillInCreative(stack, level, pos, player, hitResult.getDirection())) {
             FluidUtil.interactWithFluidHandler(player, hand, level, pos, hitResult.getDirection());
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    /**
+     * Creative players get what vanilla buckets give them: the empty container stays in the hand
+     * and a filled one goes into the inventory unless it holds one already. NeoForge's helper
+     * would drain the tank and hand out nothing.
+     */
+    private static boolean fillInCreative(ItemStack stack, Level level, BlockPos pos, Player player, Direction side) {
+        if (!player.getAbilities().instabuild) {
+            return false;
+        }
+        return FluidUtil.getFluidHandler(level, pos, side).map(handler -> {
+            FluidActionResult filled = FluidUtil.tryFillContainer(stack.copyWithCount(1), handler, Integer.MAX_VALUE, player, true);
+            if (!filled.isSuccess()) {
+                return false;
+            }
+            ItemStack result = filled.getResult();
+            if (!player.getInventory().contains(result)) {
+                player.getInventory().add(result);
+            }
+            return true;
+        }).orElse(false);
     }
 
     /** An empty hand reads the tank: fluid, amount and capacity. */

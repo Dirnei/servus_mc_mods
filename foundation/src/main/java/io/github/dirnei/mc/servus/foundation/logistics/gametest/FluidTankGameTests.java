@@ -495,4 +495,28 @@ public final class FluidTankGameTests {
                 })
                 .thenSucceed();
     }
+
+    /** A creative player scooping with an empty bucket keeps it and gets a filled bucket, like with vanilla water. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void creativeBucketGetsFilled(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 3);
+        tank(helper, pos);
+        Player player = helper.makeMockPlayer(GameType.CREATIVE);
+        // The mock player does not get the creative abilities from its game type.
+        player.getAbilities().instabuild = true;
+        helper.startSequence()
+                .thenIdle(2)
+                .thenExecute(() -> {
+                    handler(helper, pos).fill(water(cap()), FluidAction.EXECUTE);
+                    ItemStack bucket = new ItemStack(Items.BUCKET);
+                    player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
+                    BlockPos absolute = helper.absolutePos(pos);
+                    BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false);
+                    helper.getLevel().getBlockState(absolute).useItemOn(bucket, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+                    helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.BUCKET), "the empty bucket should stay in the hand");
+                    helper.assertTrue(player.getInventory().contains(new ItemStack(Items.WATER_BUCKET)), "a water bucket should be in the inventory");
+                    assertAmount(helper, pos, cap() - 1000);
+                })
+                .thenSucceed();
+    }
 }

@@ -50,3 +50,18 @@ A broken tank block SHALL drop as a tank item carrying the fluid that was in tha
 #### Scenario: Floor travels with the item
 - **WHEN** a tank block with a stone brick floor is broken and placed elsewhere
 - **THEN** the new block shows a stone brick floor
+
+### Requirement: Buckets
+Using a filled bucket on a tank SHALL empty it into the tank when the tank has room and holds that fluid or nothing. Using an empty bucket SHALL fill it from the tank when the tank holds at least one bucket's worth; a player in creative mode SHALL keep the empty bucket and get the filled bucket into the inventory unless it holds one already, like vanilla buckets. Using an empty hand SHALL tell the player the fluid, the amount and the capacity.
+
+#### Scenario: Water bucket
+- **WHEN** a player uses a water bucket on an empty tank
+- **THEN** the tank holds 1,000 mB of water and the player holds an empty bucket
+
+#### Scenario: Creative scoop
+- **WHEN** a creative player uses an empty bucket on a tank holding Salt
+- **THEN** the tank loses 1,000 mB, the player still holds the empty bucket and a Salt bucket is in the inventory
+
+#### Scenario: Read the tank
+- **WHEN** a player right clicks a tank with an empty hand
+- **THEN** the player sees the fluid name and the amount and capacity in mB
