@@ -33,7 +33,7 @@ Forming walks `CalcinerLayout` over the four facings and compares blocks; it kee
 - Every part finds the Calciner from its own position, role (or `CELL`) and `FACING` via `CalcinerLayout.controllerOffset`. Parts have no block entity.
 
 ### Unforming
-`onRemove` of any formed block (shell, part or Calciner) where the new state is not the same block calls `CalcinerStructure.unform(level, controllerPos, facing, brokenPos)`: shells become Bricks, parts and the Calciner get `FORMED=false`, the broken position is skipped. Explosions and pistons go through `onRemove` too (formed blocks also get `PushReaction.BLOCK`). The block entity stores `formed` and `facing` as well, so a lost state is repaired on load. Server thread only.
+`onRemove` of any formed block (shell, part or Calciner) where the new state is not the same block calls `CalcinerStructure.unform(level, controllerPos, facing, brokenPos)`: shells become Bricks, parts and the Calciner get `FORMED=false`, the broken position is skipped. Explosions and pistons go through `onRemove` too (formed blocks also get `PushReaction.BLOCK`). Whether the Calciner is formed and which way it faces live only in the block states (`FORMED`, `FACING`), which the chunk saves; the block entity reads them from its own state instead of keeping a copy that could disagree. Server thread only.
 
 ### Interaction
 `CalcinerBlock.useItemOn`:
@@ -81,7 +81,7 @@ M9 gets items 6b `m9-calciner-multiblock`, 6c `m9-coagulator-multiblock`, 6d `m9
 ## Risks / Trade-offs
 
 - [Model pieces seam or look like separate blocks] → Pieces overhang into neighbours and share textures; play check before archive, art pass later in Blockbench.
-- [Shell replacement loses a block if the server stops between steps] → Forming and unforming run in one server tick; the Calciner block entity keeps `formed` and `facing` and re-checks its shells on load.
+- [Shell replacement loses a block if the server stops between steps] → Forming and unforming run in one call on the server thread, so a save never sees half a structure.
 - [A player builds into another player's Calciner] → Forming makes the clicking player the owner and there is no build protection, like the Sink and the Athanor; acceptable on a cooperative server.
 - [Fill level sync spams packets] → Send only when the drawn level changes by a step (sixteenths).
 - [Jade API changes] → `compileOnly` on the version in `gradle.properties`, plugin kept tiny.

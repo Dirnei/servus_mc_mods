@@ -1,7 +1,10 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -33,6 +36,20 @@ public class CalcinerPartBlock extends Block {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, FORMED, LIT);
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock())) {
+            CalcinerStructure.broken(level, state, pos);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    /** A formed part holds the structure together and cannot be pushed. */
+    @Override
+    public PushReaction getPistonPushReaction(BlockState state) {
+        return state.getValue(FORMED) ? PushReaction.BLOCK : null;
     }
 
     @Override
