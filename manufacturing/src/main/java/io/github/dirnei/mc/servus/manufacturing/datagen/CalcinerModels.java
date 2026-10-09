@@ -61,6 +61,27 @@ final class CalcinerModels {
         part(ServusManufacturingBlocks.SULFUR_HOOD.get(), hood, hood, hood, hood);
         shell();
         duct();
+        purifier();
+    }
+
+    /** The Purifier: an oak vat with two iron bands, open at the top for the brine. */
+    private void purifier() {
+        BlockModelBuilder model = builder("purifier")
+                .texture("planks", states.mcLoc("block/oak_planks")).texture("iron", states.mcLoc(IRON))
+                .texture("particle", states.mcLoc("block/oak_planks"));
+        box(model, 1, 0, 1, 15, 2, 15, "#planks");
+        box(model, 1, 0, 1, 15, 14, 3, "#planks");
+        box(model, 1, 0, 13, 15, 14, 15, "#planks");
+        box(model, 1, 0, 3, 3, 14, 13, "#planks");
+        box(model, 13, 0, 3, 15, 14, 13, "#planks");
+        for (int y : new int[] {3, 10}) {
+            box(model, 0.75F, y, 0.75F, 15.25F, y + 1, 1, "#iron");
+            box(model, 0.75F, y, 15, 15.25F, y + 1, 15.25F, "#iron");
+            box(model, 0.75F, y, 1, 1, y + 1, 15, "#iron");
+            box(model, 15, y, 1, 15.25F, y + 1, 15, "#iron");
+        }
+        states.simpleBlock(ServusManufacturingBlocks.PURIFIER.get(), model);
+        states.simpleBlockItem(ServusManufacturingBlocks.PURIFIER.get(), model);
     }
 
     /** The Sulfur Duct: a straight copper pipe while unformed, its piece of the run from Hood to tank when formed. */

@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.manufacturing.gametest.AlchemyGameTests;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.gametest.CalcinerGameTests;
+import io.github.dirnei.mc.servus.manufacturing.gametest.PurifierGameTests;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
@@ -49,10 +50,15 @@ public final class ServusManufacturingEvents {
         public static void onRegisterGameTests(RegisterGameTestsEvent event) {
             event.register(AlchemyGameTests.class);
             event.register(CalcinerGameTests.class);
+            event.register(PurifierGameTests.class);
         }
 
         @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.PURIFIER.get(),
+                    (purifier, side) -> purifier.itemPort());
+            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.PURIFIER.get(),
+                    (purifier, side) -> purifier.fluidPort());
             // The Calciner structure has fixed ports by position instead of sides.
             event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.items(level, pos, state),
                     ServusManufacturingBlocks.CALCINER.get(), ServusManufacturingBlocks.FIREBOX.get(), ServusManufacturingBlocks.ASH_PAN.get());

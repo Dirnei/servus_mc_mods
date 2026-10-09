@@ -250,6 +250,7 @@ public final class AlchemyGameTests {
         ServerLevel level = helper.getLevel();
         Journal.recordItem(level, team, "calcine", new ItemStack(Items.COBBLESTONE), 100);
         Journal.recordPrinciple(level, team, Principle.SALT, 1000);
+        Journal.recordEvent(level, team, "purify", 100);
         Journal.recordItem(level, team, "coagulate", new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get()), 1);
         helper.assertTrue(Journal.isFinished(level.getServer(), team, VILLACH), "Villach should be finished");
         helper.assertTrue(coagulator.unlocked(locked), "the recipe opens with its chapter");
@@ -343,6 +344,7 @@ public final class AlchemyGameTests {
         ServerLevel level = helper.getLevel();
         Journal.recordItem(level, team, "calcine", new ItemStack(Items.COBBLESTONE), 100);
         Journal.recordPrinciple(level, team, Principle.SALT, 1000);
+        Journal.recordEvent(level, team, "purify", 100);
         Journal.recordItem(level, team, "coagulate", new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get()), 1);
         AthanorBlockEntity athanor = athanor(helper);
         athanor.setTeam(team);

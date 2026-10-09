@@ -11,7 +11,7 @@
 
 ## 3. Purifier
 
-- [ ] 3.1 `alchemy/purifier/PurifierBlock`, `PurifierBlockEntity` (slot, water and Salt tanks, cycle, push, owner, `purify` event), machine stats `machine/purifier.json`, registrations, capabilities, hand use, crafting recipe, loot, tag, lang, vat model; GameTests `PurifierGameTests`: leaching three Ash, no water no work, Salt refused and water accepted by the handler, water bucket in and Salt bucket out, journal event counted; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
+- [x] 3.1 `alchemy/purifier/PurifierBlock`, `PurifierBlockEntity` (slot, water and Salt tanks, cycle, push, owner, `purify` event), machine stats `machine/purifier.json`, registrations, capabilities, hand use, crafting recipe, loot, tag, lang, vat model; GameTests `PurifierGameTests`: leaching three Ash, no water no work, Salt refused and water accepted by the handler, water bucket in and Salt bucket out, journal event counted; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
 - [ ] 3.2 `PurifierRenderer` with brine level synced by sixteenths; Jade plugin renamed `ServusManufacturingJadePlugin` with a Purifier provider; JEI `PurificationRecipeCategory`; `gradlew build` green and the client launches without model or plugin errors
 
 ## 4. Journal and plan

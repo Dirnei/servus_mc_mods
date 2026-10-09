@@ -21,6 +21,7 @@ public final class ManufacturingMachines {
         add("calciner", "burner", List.of("servus_manufacturing:calcination"), calciner(2, 4000));
         add("coagulator", "crafter", List.of("servus_manufacturing:coagulation"), alchemy(0, 0, 4000));
         add("athanor", "crafter", List.of("servus_manufacturing:athanor"), alchemy(0, 0, 4000));
+        add("purifier", "crafter", List.of("servus_manufacturing:purification"), alchemy(0, 0, 4000));
         add("gnome_hollow", "crafter", List.of(), alchemy(0, 0, 4000));
     }
 

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.registry;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
@@ -34,6 +35,11 @@ public final class ServusManufacturingBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GnomeHollowBlockEntity>> GNOME_HOLLOW =
             BLOCK_ENTITIES.register("gnome_hollow", () -> BlockEntityType.Builder
                     .of(GnomeHollowBlockEntity::new, ServusManufacturingBlocks.GNOME_HOLLOW.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PurifierBlockEntity>> PURIFIER =
+            BLOCK_ENTITIES.register("purifier", () -> BlockEntityType.Builder
+                    .of(PurifierBlockEntity::new, ServusManufacturingBlocks.PURIFIER.get())
                     .build(null));
 
     private ServusManufacturingBlockEntities() {

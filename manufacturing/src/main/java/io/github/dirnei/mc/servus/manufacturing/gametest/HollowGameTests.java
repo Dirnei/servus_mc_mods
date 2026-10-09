@@ -52,6 +52,7 @@ public final class HollowGameTests {
     static void finishVillach(ServerLevel level, UUID team) {
         Journal.recordItem(level, team, "calcine", new ItemStack(Items.COBBLESTONE), 100);
         Journal.recordPrinciple(level, team, Principle.SALT, 1000);
+        Journal.recordEvent(level, team, "purify", 100);
         Journal.recordItem(level, team, "coagulate", new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get()), 1);
     }
 

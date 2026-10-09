@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
@@ -38,6 +39,10 @@ public final class ServusManufacturingBlocks {
     /** A brick of a formed Calciner; mined like Bricks and dropping them. */
     public static final DeferredBlock<CalcinerShellBlock> CALCINER_SHELL = BLOCKS.registerBlock("calciner_shell",
             CalcinerShellBlock::new, bricks());
+
+    /** The Purifier, a wooden vat that leaches Ash into liquid Salt. */
+    public static final DeferredBlock<PurifierBlock> PURIFIER = BLOCKS.registerBlock("purifier", PurifierBlock::new,
+            BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion());
 
     public static final DeferredBlock<CoagulatorBlock> COAGULATOR =
             BLOCKS.registerBlock("coagulator", CoagulatorBlock::new, MachineContent.machine());
