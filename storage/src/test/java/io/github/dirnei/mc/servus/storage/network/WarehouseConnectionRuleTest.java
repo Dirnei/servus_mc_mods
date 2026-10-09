@@ -95,4 +95,23 @@ class WarehouseConnectionRuleTest {
             }
         }
     }
+
+    @Test
+    void racksLinkOnlyToRailsAndRacks() {
+        for (Side side : Side.ALL) {
+            assertTrue(WarehouseConnectionRule.accepts(NodeKind.RACK, side, NodeKind.RACK));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.RACK, side, NodeKind.STOCK));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, NodeKind.RACK));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.RACK));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.RACK));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.ELEVATOR, side, NodeKind.RACK));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.RACK, side, NodeKind.ELEVATOR));
+        }
+    }
+
+    @Test
+    void railsTakeRacks() {
+        assertTrue(WarehouseConnectionRule.accepts(NodeKind.RAIL, Side.NORTH, NodeKind.RACK));
+        assertTrue(WarehouseConnectionRule.accepts(NodeKind.RACK, Side.SOUTH, NodeKind.RAIL));
+    }
 }

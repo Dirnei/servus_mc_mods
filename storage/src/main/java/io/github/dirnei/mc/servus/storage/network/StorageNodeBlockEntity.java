@@ -121,7 +121,7 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     /** Whether rails dock onto this node: stock blocks, inbound stations and garages. */
     public final boolean docksRail() {
         NodeKind kind = kind();
-        return kind == NodeKind.STOCK || kind == NodeKind.STATION || kind == NodeKind.GARAGE;
+        return kind == NodeKind.STOCK || kind == NodeKind.STATION || kind == NodeKind.GARAGE || kind == NodeKind.RACK;
     }
 
     /**
@@ -137,7 +137,25 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
      * inventories into the warehouse. Connector nodes such as rails do not.
      */
     public final boolean holdsStock() {
+        return kind() == NodeKind.STOCK || kind() == NodeKind.RACK;
+    }
+
+    /** Whether this node pulls the inventories touching it into the warehouse. Racks do not. */
+    public final boolean pullsNeighbours() {
         return kind() == NodeKind.STOCK;
+    }
+
+    /**
+     * Whether this node links to the warehouse node on that side beyond the
+     * kind rules. Racks use it to link only to bays of their own section.
+     */
+    public boolean linksTowards(Side side, StorageNodeBlockEntity neighbour) {
+        return true;
+    }
+
+    /** Re-evaluates this node's links after a change the graph cannot see, such as a section join. */
+    public void refreshLinks() {
+        refreshNetworkConnections();
     }
 
     /** The warehouse network this node belongs to, when loaded on the server. */

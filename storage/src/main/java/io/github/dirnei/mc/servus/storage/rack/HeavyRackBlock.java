@@ -186,6 +186,12 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
         Direction facing = state.getValue(FACING);
         mirror(level, pos.relative(facing.getCounterClockWise()), RIGHT, state.getValue(LEFT), state);
         mirror(level, pos.relative(facing.getClockWise()), LEFT, state.getValue(RIGHT), state);
+        // Section links follow the join flags, which the graph cannot see change.
+        for (BlockPos bay : List.of(pos, pos.relative(facing.getCounterClockWise()), pos.relative(facing.getClockWise()))) {
+            if (level.getBlockEntity(bay) instanceof StorageNodeBlockEntity node) {
+                node.refreshLinks();
+            }
+        }
     }
 
     private static void mirror(Level level, BlockPos neighbourPos, BooleanProperty flag, boolean joined, BlockState placed) {

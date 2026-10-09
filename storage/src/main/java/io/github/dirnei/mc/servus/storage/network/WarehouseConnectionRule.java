@@ -12,7 +12,7 @@ import io.github.dirnei.mc.servus.foundation.graph.Side;
 public final class WarehouseConnectionRule {
 
     /** What a node is, as far as linking is concerned. */
-    public enum NodeKind { STOCK, RAIL, ELEVATOR, STATION, GARAGE }
+    public enum NodeKind { STOCK, RAIL, ELEVATOR, STATION, GARAGE, RACK }
 
     private WarehouseConnectionRule() {
     }
@@ -25,10 +25,12 @@ public final class WarehouseConnectionRule {
     public static boolean accepts(NodeKind from, Side side, NodeKind to) {
         boolean vertical = side == Side.UP || side == Side.DOWN;
         return switch (from) {
-            case STOCK, STATION, GARAGE -> to != NodeKind.ELEVATOR;
-            case RAIL -> to == NodeKind.STOCK || to == NodeKind.STATION || to == NodeKind.GARAGE || !vertical;
+            case STOCK, STATION, GARAGE -> to != NodeKind.ELEVATOR && to != NodeKind.RACK;
+            // A rack links only to rails (its front, checked by the network) and to bays of its own section.
+            case RACK -> to == NodeKind.RAIL || to == NodeKind.RACK;
+            case RAIL -> to == NodeKind.STOCK || to == NodeKind.STATION || to == NodeKind.GARAGE || to == NodeKind.RACK || !vertical;
             case ELEVATOR -> switch (to) {
-                case STOCK, STATION, GARAGE -> false;
+                case STOCK, STATION, GARAGE, RACK -> false;
                 case RAIL -> !vertical;
                 case ELEVATOR -> vertical;
             };

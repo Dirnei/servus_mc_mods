@@ -278,12 +278,17 @@ public final class ServusStorageGameTests {
     private static final BlockPos RACK_CONTROLLER = new BlockPos(9, 1, 2);
     private static final BlockPos RACK_TERMINAL = new BlockPos(10, 1, 2);
 
-    /** A rack is indexed, lit, and shows the item types it holds the most of. */
+    /** A rack with a front rail of the warehouse is indexed and shows the item types it holds the most of. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void heavyRackIndexesAndDisplays(GameTestHelper helper) {
         helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         helper.setBlock(RACK_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        // The rack joins only through the rail in front of it, which runs on to the controller.
+        for (BlockPos rail : List.of(RACK.north(), RACK_CONTROLLER.north())) {
+            helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
+            placeRail(helper, rail);
+        }
         TerminalWiring.place(helper, RACK_TERMINAL);
         HeavyRackBlockEntity rack = helper.getBlockEntity(RACK);
         rack.items().insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
@@ -1354,6 +1359,11 @@ public final class ServusStorageGameTests {
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, RS_TERMINAL);
         helper.setBlock(RS_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        // A rail from the rack's front round to the controller joins the rack; there is no garage.
+        for (BlockPos rail : List.of(RS_RACK.north(), RS_RACK.north().east(), RS_RACK.east(), RS_CONTROLLER.east())) {
+            helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
+            placeRail(helper, rail);
+        }
         HeavyRackBlockEntity rack = helper.getBlockEntity(RS_RACK);
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 40), false);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(RS_CONTROLLER);
@@ -1516,7 +1526,7 @@ public final class ServusStorageGameTests {
         });
     }
 
-    /** A lone rack beside a section with a front rail, but without one of its own, needs a shuttle. */
+    /** A lone rack beside a section with a front rail, but without one of its own, is not part of the warehouse. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void rackBesideSectionNotServed(GameTestHelper helper) {
         Player player = sectionRailSetup(helper);
@@ -1529,10 +1539,59 @@ public final class ServusStorageGameTests {
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, SR_TERMINAL);
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
-            helper.assertTrue(stockOf(menu, Items.BREAD) == 30, "the terminal lists the lone rack's bread");
-            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
-            helper.assertTrue(menu.stock().message().equals("needs_shuttle"), "the lone rack is out of reach, got " + menu.stock().message());
-            helper.assertTrue(menu.stock().requests().isEmpty(), "no request is created");
+            helper.assertTrue(stockOf(menu, Items.BREAD) == 0, "the lone rack's bread is not listed");
+            helper.succeed();
+        });
+    }
+
+    /** A section joins through the rail in front of one bay and leaves when that rail is broken. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void frontRailConnectsSection(GameTestHelper helper) {
+        Player player = sectionRailSetup(helper);
+        HeavyRackBlockEntity left = helper.getBlockEntity(new BlockPos(2, 1, SR_Z));
+        left.items().insertItem(0, new ItemStack(Items.BREAD, 12), false);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, SR_TERMINAL);
+            helper.assertTrue(stockOf(new StorageTerminalMenu(1, player.getInventory(), terminal), Items.BREAD) == 12,
+                    "the far bay's bread is listed through the one front rail");
+            helper.setBlock(new BlockPos(4, 1, 6), Blocks.AIR.defaultBlockState());
+            helper.runAfterDelay(10, () -> {
+                helper.assertTrue(stockOf(new StorageTerminalMenu(2, player.getInventory(), terminal), Items.BREAD) == 0,
+                        "breaking the front rail takes the section out");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A rack touching the controller without a front rail is not part of the warehouse. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rackTouchingControllerNotListed(GameTestHelper helper) {
+        helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        helper.setBlock(RACK_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        TerminalWiring.place(helper, RACK_TERMINAL);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK);
+        rack.items().insertItem(0, new ItemStack(Items.BREAD, 9), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, RACK_TERMINAL));
+            helper.assertTrue(menu.stock().online(), "online");
+            helper.assertTrue(stockOf(menu, Items.BREAD) == 0, "a rack without a front rail is not listed");
+            helper.succeed();
+        });
+    }
+
+    /** A crate touching only the back of a connected rack is not linked through it. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void crateBehindRackNotLinked(GameTestHelper helper) {
+        Player player = sectionRailSetup(helper);
+        BlockPos cratePos = new BlockPos(3, 1, SR_Z - 1);
+        helper.setBlock(cratePos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity crate = helper.getBlockEntity(cratePos);
+        crate.insert(new ItemStack(Items.APPLE, 7), false);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, SR_TERMINAL));
+            helper.assertTrue(stockOf(menu, Items.APPLE) == 0, "the crate behind the rack is not listed");
             helper.succeed();
         });
     }
@@ -1542,7 +1601,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos SS_TERMINAL = new BlockPos(9, 1, 4);
     private static final BlockPos SS_GARAGE = new BlockPos(3, 1, 3);
 
-    /** A rack touching the controller with a member rail only along its side is refused as needing a shuttle. */
+    /** A rack touching the controller with a member rail only along its side is not part of the warehouse. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void rackSideRailDoesNotReach(GameTestHelper helper) {
         for (int x = 2; x <= 8; x++) {
@@ -1564,10 +1623,7 @@ public final class ServusStorageGameTests {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, SS_TERMINAL);
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.stock().online(), "online");
-            helper.assertTrue(stockOf(menu, Items.BREAD) == 30, "the terminal lists the rack's bread");
-            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
-            helper.assertTrue(menu.stock().message().equals("needs_shuttle"), "a side rail must not reach the rack, got " + menu.stock().message());
-            helper.assertTrue(menu.stock().requests().isEmpty(), "no request is created");
+            helper.assertTrue(stockOf(menu, Items.BREAD) == 0, "a side rail must not join the rack");
             helper.succeed();
         });
     }

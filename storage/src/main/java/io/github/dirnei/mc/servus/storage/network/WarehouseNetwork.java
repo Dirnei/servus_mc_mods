@@ -75,7 +75,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public static final NetworkType<StorageNodeBlockEntity, WarehouseEvent, WarehouseNetwork> TYPE =
             new NetworkType<>(ID, (from, fromNode, side, to, toNode) ->
                     WarehouseConnectionRule.accepts(fromNode.kind(), side, toNode.kind())
-                            && railSideAccepted(fromNode, side, toNode), WarehouseNetwork::new);
+                            && railSideAccepted(fromNode, side, toNode)
+                            && fromNode.linksTowards(side, toNode), WarehouseNetwork::new);
 
     public enum Status { ONLINE, NO_CONTROLLER, MULTIPLE_CONTROLLERS }
 
@@ -903,6 +904,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     private void addSource(BlockPos pos, boolean node) {
+        // Storage blocks join as members or not at all, never as foreign inventories (a rack without a front rail).
+        if (!node && level != null && level.getBlockEntity(pos) instanceof StorageNodeBlockEntity) {
+            return;
+        }
         Source existing = sources.get(pos);
         if (existing != null && existing.node() == node) {
             markDirty(pos);
@@ -922,7 +927,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     private void addCandidatesAround(BlockPos nodePos) {
-        if (connectors.contains(nodePos)) {
+        if (connectors.contains(nodePos) || !pullsAround(nodePos)) {
             return;
         }
         for (Direction direction : Direction.values()) {
@@ -938,6 +943,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
+    /** Whether the member at that position pulls the inventories touching it in; racks do not. */
+    private boolean pullsAround(BlockPos pos) {
+        return level == null || !(level.getBlockEntity(pos) instanceof StorageNodeBlockEntity node) || node.pullsNeighbours();
+    }
+
     /** Candidates are the neighbours of the remaining stock holding members that are not members. */
     private void rebuildCandidates() {
         Set<NodePos> memberPositions = new HashSet<>(members());
@@ -950,6 +960,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         for (BlockPos garage : garages) {
             connectorPositions.add(Conversions.toNodePos(garage));
+        }
+        for (NodePos member : memberPositions) {
+            if (!pullsAround(Conversions.toBlockPos(member))) {
+                connectorPositions.add(member);
+            }
         }
         Set<BlockPos> wanted = new LinkedHashSet<>();
         for (NodePos pos : CandidateNeighbours.compute(memberPositions, connectorPositions)) {

@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -72,6 +74,35 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     @Override
     public boolean zonable() {
         return true;
+    }
+
+    /** A rack is its own node kind: it links only to rails on its front and to its own section. */
+    @Override
+    public WarehouseConnectionRule.NodeKind kind() {
+        return WarehouseConnectionRule.NodeKind.RACK;
+    }
+
+    /** Another rack is linked only when this bay joins towards it and both face the same way. */
+    @Override
+    public boolean linksTowards(Side side, StorageNodeBlockEntity neighbour) {
+        if (!(neighbour instanceof HeavyRackBlockEntity)) {
+            return true;
+        }
+        BlockState state = getBlockState();
+        BlockState other = neighbour.getBlockState();
+        if (!(state.getBlock() instanceof HeavyRackBlock) || !(other.getBlock() instanceof HeavyRackBlock)
+                || state.getValue(HeavyRackBlock.FACING) != other.getValue(HeavyRackBlock.FACING)) {
+            return false;
+        }
+        Direction facing = state.getValue(HeavyRackBlock.FACING);
+        Direction towards = Conversions.toDirection(side);
+        if (towards == facing.getCounterClockWise()) {
+            return state.getValue(HeavyRackBlock.LEFT);
+        }
+        if (towards == facing.getClockWise()) {
+            return state.getValue(HeavyRackBlock.RIGHT);
+        }
+        return false;
     }
 
     /** Rails link and dock only on the front. */
