@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.machine;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;

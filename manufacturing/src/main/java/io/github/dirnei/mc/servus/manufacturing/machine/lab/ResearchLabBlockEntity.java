@@ -2,9 +2,9 @@ package io.github.dirnei.mc.servus.manufacturing.machine.lab;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
-import io.github.dirnei.mc.servus.manufacturing.machine.OwnedMachine;
-import io.github.dirnei.mc.servus.manufacturing.machine.PoweredMachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
+import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
+import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.menu.ResearchLabMenu;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.research.ResearchManager;

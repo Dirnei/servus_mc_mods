@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.manufacturing.machine;
+package io.github.dirnei.mc.servus.foundation.machine;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

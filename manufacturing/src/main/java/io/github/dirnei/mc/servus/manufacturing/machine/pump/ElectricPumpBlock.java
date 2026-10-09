@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.machine.pump;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;

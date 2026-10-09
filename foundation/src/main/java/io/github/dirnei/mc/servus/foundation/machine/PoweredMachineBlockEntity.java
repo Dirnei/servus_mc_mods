@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.manufacturing.machine;
+package io.github.dirnei.mc.servus.foundation.machine;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;

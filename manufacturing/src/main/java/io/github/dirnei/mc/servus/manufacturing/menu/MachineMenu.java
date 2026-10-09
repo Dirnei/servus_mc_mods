@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.menu;
 
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;

@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.crusher.CrusherBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlock;

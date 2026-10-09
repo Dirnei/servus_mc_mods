@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.menu;
 
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.ConfiguredRecipe;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingMenus;

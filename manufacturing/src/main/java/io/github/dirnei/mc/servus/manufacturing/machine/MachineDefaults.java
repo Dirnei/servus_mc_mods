@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.machine;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;

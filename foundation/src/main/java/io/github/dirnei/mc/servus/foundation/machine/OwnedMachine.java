@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.manufacturing.machine;
+package io.github.dirnei.mc.servus.foundation.machine;
 
 import java.util.Optional;
 import java.util.UUID;

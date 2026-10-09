@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.machine.pump;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineStats;
+import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

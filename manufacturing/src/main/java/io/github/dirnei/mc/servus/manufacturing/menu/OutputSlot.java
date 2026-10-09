@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.menu;
 
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 

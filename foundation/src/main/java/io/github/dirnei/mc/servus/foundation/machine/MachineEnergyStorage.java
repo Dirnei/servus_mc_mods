@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.manufacturing.machine;
+package io.github.dirnei.mc.servus.foundation.machine;
 
 import net.neoforged.neoforge.energy.EnergyStorage;
 

@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineBlock;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
 import java.util.EnumSet;
 import java.util.Map;

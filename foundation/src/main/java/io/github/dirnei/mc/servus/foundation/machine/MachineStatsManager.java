@@ -1,10 +1,10 @@
-package io.github.dirnei.mc.servus.manufacturing.machine;
+package io.github.dirnei.mc.servus.foundation.machine;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
-import io.github.dirnei.mc.servus.manufacturing.ServusManufacturing;
+import io.github.dirnei.mc.servus.foundation.ServusFoundation;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,10 +32,10 @@ public final class MachineStatsManager extends SimpleJsonResourceReloadListener 
     protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
         Map<ResourceLocation, MachineStats.Partial> result = new HashMap<>();
         files.forEach((id, json) -> MachineStats.Partial.CODEC.parse(JsonOps.INSTANCE, json)
-                .resultOrPartial(error -> ServusManufacturing.LOGGER.error("Invalid machine stats {}: {}", id, error))
+                .resultOrPartial(error -> ServusFoundation.LOGGER.error("Invalid machine stats {}: {}", id, error))
                 .ifPresent(partial -> result.put(id, partial)));
         loaded = Collections.unmodifiableMap(result);
-        ServusManufacturing.LOGGER.info("Loaded stats for {} machines", result.size());
+        ServusFoundation.LOGGER.info("Loaded stats for {} machines", result.size());
     }
 
     /** Stats for a machine, with data from the pack merged over the code defaults. */
