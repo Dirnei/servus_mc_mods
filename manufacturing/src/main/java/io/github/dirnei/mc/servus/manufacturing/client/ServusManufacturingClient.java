@@ -22,7 +22,6 @@ public final class ServusManufacturingClient {
 
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
-        event.register(ServusManufacturingMenus.CALCINER.get(), CalcinerScreen::new);
         event.register(ServusManufacturingMenus.COAGULATOR.get(), CoagulatorScreen::new);
         event.register(ServusManufacturingMenus.ATHANOR.get(), AthanorScreen::new);
         event.register(ServusManufacturingMenus.GNOME_HOLLOW.get(), GnomeHollowScreen::new);

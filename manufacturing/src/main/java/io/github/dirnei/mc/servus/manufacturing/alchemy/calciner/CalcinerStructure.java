@@ -163,6 +163,8 @@ public final class CalcinerStructure {
                     default -> state.setValue(CalcinerPartBlock.FACING, direction).setValue(CalcinerPartBlock.FORMED, true);
                 };
                 level.setBlock(pos, formed, Block.UPDATE_ALL);
+                // The ports are capabilities by block state; a changed property alone keeps stale caches.
+                level.invalidateCapabilities(pos);
             }
         } finally {
             changing = false;
@@ -200,6 +202,7 @@ public final class CalcinerStructure {
                 }
                 if (unformed != null) {
                     level.setBlock(pos, unformed, Block.UPDATE_ALL);
+                    level.invalidateCapabilities(pos);
                 }
             }
         } finally {

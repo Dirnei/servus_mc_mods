@@ -10,6 +10,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -47,25 +50,27 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
         builder.add(FACING, FORMED, LIT);
     }
 
-    /** The Calciner block entity of the formed structure this part belongs to, or null. */
-    public static CalcinerBlockEntity calciner(Level level, BlockState state, BlockPos pos) {
-        return CalcinerStructure.controllerOf(state, pos)
-                .map(controller -> level.getBlockEntity(controller) instanceof CalcinerBlockEntity calciner ? calciner : null)
-                .orElse(null);
-    }
-
     /** The Firebox takes fuel by hand. */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (role == Role.FIREBOX && state.getValue(FORMED) && stack.getBurnTime(null) > 0) {
-            CalcinerBlockEntity calciner = calciner(level, state, pos);
+            CalcinerBlockEntity calciner = CalcinerPorts.calciner(level, pos, state);
             if (calciner != null) {
                 if (!level.isClientSide()) {
                     player.setItemInHand(hand, calciner.insertFuel(stack));
                 }
                 return ItemInteractionResult.sidedSuccess(level.isClientSide());
             }
+        }
+        if (CalcinerPorts.principle(role) != null && state.getValue(FORMED)
+                && stack.getCapability(Capabilities.FluidHandler.ITEM) != null) {
+            // Empty containers fill with the port's principle; filled ones do nothing here.
+            IFluidHandler port = CalcinerPorts.fluid(level, pos, state);
+            if (port != null && !level.isClientSide()) {
+                FluidUtil.interactWithFluidHandler(player, hand, port);
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }

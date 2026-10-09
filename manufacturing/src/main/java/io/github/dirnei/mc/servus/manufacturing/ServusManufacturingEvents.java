@@ -5,7 +5,9 @@ import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTa
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.manufacturing.gametest.AlchemyGameTests;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.gametest.CalcinerGameTests;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
@@ -51,12 +53,13 @@ public final class ServusManufacturingEvents {
 
         @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.CALCINER.get(),
-                    (machine, side) -> machine.sideHandler(side));
-            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.CALCINER.get(),
-                    (machine, side) -> machine.upkeep());
-            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.CALCINER.get(),
-                    (machine, side) -> machine.fluidHandler(side));
+            // The Calciner structure has fixed ports by position instead of sides.
+            event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.items(level, pos, state),
+                    ServusManufacturingBlocks.CALCINER.get(), ServusManufacturingBlocks.FIREBOX.get());
+            event.registerBlock(ServusFoundationCapabilities.UPKEEP, (level, pos, state, entity, side) -> CalcinerPorts.upkeep(level, pos, state),
+                    ServusManufacturingBlocks.FIREBOX.get());
+            event.registerBlock(Capabilities.FluidHandler.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.fluid(level, pos, state),
+                    ServusManufacturingBlocks.ASH_PAN.get(), ServusManufacturingBlocks.RECEIVER.get(), ServusManufacturingBlocks.SULFUR_HOOD.get());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),

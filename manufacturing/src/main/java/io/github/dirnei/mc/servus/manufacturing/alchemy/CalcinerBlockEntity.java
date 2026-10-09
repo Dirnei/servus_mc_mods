@@ -9,25 +9,29 @@ import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import net.minecraft.server.level.ServerLevel;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
-import io.github.dirnei.mc.servus.foundation.side.SideTank;
-import java.util.List;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
-/** Burns its input into Salt, Sulfur and Mercury over a fuel fire and pushes them out through its sides. */
+/**
+ * The controller of the Calciner structure: burns its input into Salt, Sulfur and Mercury over the
+ * Firebox's fire while formed, and pushes each principle out of its own port. It has no GUI.
+ */
 public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements OwnedMachine {
 
     public static final int SLOT_INPUT = 0;
@@ -38,10 +42,32 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), true, this::setChanged);
     private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
+    private final IItemHandler inputPort = new CalcinerPorts.InsertOnly(inventory, SLOT_INPUT, this::calcinable);
+    private final IItemHandler fuelPort = new CalcinerPorts.InsertOnly(inventory, SLOT_FUEL, stack -> stack.getBurnTime(null) > 0);
     private int pushCooldown;
 
     public CalcinerBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.CALCINER.get(), pos, state, 2);
+        // Items enter only through the ports of the structure, never through a side of this block.
+        for (RelativeSide side : RelativeSide.values()) {
+            sideConfig().lock(side, SideMode.DISABLED);
+        }
+    }
+
+    /** Whether the structure around this Calciner is formed; only then it works. */
+    public boolean formed() {
+        BlockState state = getBlockState();
+        return state.getBlock() instanceof CalcinerBlock && state.getValue(CalcinerBlock.FORMED);
+    }
+
+    /** The mouth: takes calcinable matter, gives nothing back. */
+    public IItemHandler inputPort() {
+        return inputPort;
+    }
+
+    /** The Firebox: takes furnace fuel, gives nothing back. */
+    public IItemHandler fuelPort() {
+        return fuelPort;
     }
 
     // Owner
@@ -67,19 +93,6 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
 
     public PrincipleTanks tanks() {
         return tanks;
-    }
-
-    /** What a neighbour sees on {@code side}: by the Fluids layer, all three tanks, one of them, or nothing. */
-    public IFluidHandler fluidHandler(Direction side) {
-        return AlchemyMachines.sideHandler(this, tanks, side);
-    }
-
-    private static final List<SideTank> SIDE_TANKS = PrincipleTanks.sideTanks(false);
-
-    /** Salt, Sulfur and Mercury, all three given out. */
-    @Override
-    public List<SideTank> sideTanks() {
-        return SIDE_TANKS;
     }
 
     private Optional<CalcinationRecipe> currentRecipe() {
@@ -150,7 +163,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     @Override
     protected boolean canWork() {
         tanks.setCapacity(stats().fluidCapacity());
-        return currentRecipe().map(recipe -> tanks.contents().fits(recipe.output(), tanks.capacity())).orElse(false);
+        return formed() && currentRecipe().map(recipe -> tanks.contents().fits(recipe.output(), tanks.capacity())).orElse(false);
     }
 
     @Override
@@ -172,7 +185,9 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         boolean working = super.tick();
         if (level != null && ++pushCooldown >= PUSH_INTERVAL) {
             pushCooldown = 0;
-            AlchemyMachines.push(level, worldPosition, tanks, this);
+            if (formed()) {
+                CalcinerPorts.push(level, worldPosition, getBlockState().getValue(MachineBlock.FACING), tanks);
+            }
         }
         return working;
     }
@@ -180,20 +195,6 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     @Override
     protected int workTicks() {
         return currentRecipe().map(recipe -> Math.max(1, recipe.time())).orElse(Integer.MAX_VALUE);
-    }
-
-    @Override
-    protected int dataCount() {
-        return AlchemyMachines.DATA_COUNT;
-    }
-
-    @Override
-    protected int getData(int index) {
-        if (index == DATA_WORK_TICKS) {
-            return currentRecipe().map(CalcinationRecipe::time).orElse(0);
-        }
-        int tank = AlchemyMachines.tankData(tanks, index);
-        return tank >= 0 ? tank : super.getData(index);
     }
 
     @Override
@@ -210,8 +211,9 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         ownership.load(tag);
     }
 
+    /** The Calciner has no GUI. */
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new CalcinerMenu(containerId, playerInventory, this);
+        return null;
     }
 }
