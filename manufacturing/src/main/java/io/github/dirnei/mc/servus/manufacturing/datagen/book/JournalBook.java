@@ -26,7 +26,12 @@ public final class JournalBook extends SingleBookSubProvider {
 
     @Override
     protected BookModel additionalSetup(BookModel book) {
+        // An inner margin so text keeps clear of the page edges.
         return book.withGenerateBookItem(true)
+                .withBookTextOffsetX(4)
+                .withBookTextOffsetY(2)
+                .withBookTextOffsetWidth(-8)
+                .withBookTextOffsetHeight(-4)
                 .withModel(ResourceLocation.fromNamespaceAndPath("modonomicon", "modonomicon_red"))
                 .withCreativeTab(ResourceLocation.fromNamespaceAndPath("servus_foundation", "servus"));
     }

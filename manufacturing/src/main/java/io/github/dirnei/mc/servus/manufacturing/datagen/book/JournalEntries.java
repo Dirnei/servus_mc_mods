@@ -6,6 +6,7 @@ import com.klikli_dev.modonomicon.api.datagen.EntryProvider;
 import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
 import com.mojang.datafixers.util.Pair;
+import java.util.List;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
@@ -23,12 +24,21 @@ final class JournalEntries {
             super(parent);
         }
 
+        /** A titled text, split over as many pages as it needs to stay at full font size. */
         void text(String page, String title, String body) {
-            page(page, () -> BookTextPageModel.create()
-                    .withTitle(context().pageTitle())
-                    .withText(context().pageText()));
-            pageTitle(title);
-            pageText(body);
+            List<String> parts = PageSplitter.split(body);
+            for (int i = 0; i < parts.size(); i++) {
+                if (i == 0) {
+                    page(page, () -> BookTextPageModel.create()
+                            .withTitle(context().pageTitle())
+                            .withText(context().pageText()));
+                    pageTitle(title);
+                } else {
+                    page(page + "_" + (i + 1), () -> BookTextPageModel.create()
+                            .withText(context().pageText()));
+                }
+                pageText(parts.get(i));
+            }
         }
 
         abstract ItemLike icon();

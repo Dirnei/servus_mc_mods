@@ -19,6 +19,17 @@
       "text": "book.servus_manufacturing.journal.opus.preface.intro.text",
       "title": "book.servus_manufacturing.journal.opus.preface.intro.title",
       "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.opus.preface.intro_2.text",
+      "title": "",
+      "use_markdown_in_title": false
     }
   ],
   "show_when_any_parent_unlocked": false,
