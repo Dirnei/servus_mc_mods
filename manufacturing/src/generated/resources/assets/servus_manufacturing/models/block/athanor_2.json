@@ -2,7 +2,7 @@
   "parent": "minecraft:block/orientable",
   "textures": {
     "front": "servus_manufacturing:block/athanor_front_2",
-    "side": "servus_manufacturing:block/athanor_side",
-    "top": "servus_manufacturing:block/athanor_top"
+    "side": "minecraft:block/stone_bricks",
+    "top": "minecraft:block/chiseled_stone_bricks"
   }
 }

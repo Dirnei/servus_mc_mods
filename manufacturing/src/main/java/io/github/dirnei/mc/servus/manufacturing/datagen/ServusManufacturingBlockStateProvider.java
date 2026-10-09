@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
@@ -24,8 +23,9 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        machine(ServusManufacturingBlocks.CALCINER.get(), "calciner");
-        machine(ServusManufacturingBlocks.COAGULATOR.get(), "coagulator");
+        // Alchemy is masonry: vanilla stone on the sides and top, our own fronts.
+        machine(ServusManufacturingBlocks.CALCINER.get(), "calciner", mcLoc("block/stone_bricks"), mcLoc("block/smooth_stone"));
+        machine(ServusManufacturingBlocks.COAGULATOR.get(), "coagulator", mcLoc("block/cobblestone"), mcLoc("block/smooth_stone"));
         simpleBlockWithItem(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), cubeAll(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get()));
         athanor();
         gnomeHollow();
@@ -37,10 +37,10 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         }
     }
 
-    /** The Athanor: brick sides, a front per tier, lit or not, turned by facing. */
+    /** The Athanor: stone brick sides, a chiseled top, a front per tier, lit or not, turned by facing. */
     private void athanor() {
-        ResourceLocation side = modLoc("block/athanor_side");
-        ResourceLocation top = modLoc("block/athanor_top");
+        ResourceLocation side = mcLoc("block/stone_bricks");
+        ResourceLocation top = mcLoc("block/chiseled_stone_bricks");
         ModelFile[][] models = new ModelFile[4][2];
         for (int tier = 0; tier < 4; tier++) {
             models[tier][0] = models().orientable("athanor_" + tier, side, modLoc("block/athanor_front_" + tier), top);
@@ -61,9 +61,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     }
 
     /** Orientable machine with a lit and an unlit front, rotated by facing. */
-    private void machine(Block block, String name) {
-        ResourceLocation side = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_side");
-        ResourceLocation top = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_top");
+    private void machine(Block block, String name, ResourceLocation side, ResourceLocation top) {
         ModelFile unlit = models().orientable(name, side, modLoc("block/" + name + "_front"), top);
         ModelFile lit = models().orientable(name + "_lit", side, modLoc("block/" + name + "_front_lit"), top);
         getVariantBuilder(block).forAllStates(state -> {
