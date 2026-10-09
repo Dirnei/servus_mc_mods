@@ -7,7 +7,7 @@
 
 ## 2. Gnome Hollow
 
-- [ ] 2.1 `GnomeHollowBlock`, `GnomeHollowBlockEntity`, `GnomeHollowMenu`, `GnomeHollowScreen`, registration, capabilities (item, fluid, production), stats JSON, model, lang, loot, tag, the Athanor craft, binding with the journal `bind` event. GameTests: seeding refused before Villach and accepted after; a ripening step takes the principles; binding needs Elemental Sight; a bound ripe Hollow yields raw iron into a chest; production reports the yield. Verify: build, data run, GameTests green.
+- [x] 2.1 `GnomeHollowBlock`, `GnomeHollowBlockEntity`, `GnomeHollowMenu`, `GnomeHollowScreen`, registration, capabilities (item, fluid, production), stats JSON, model, lang, loot, tag, the Athanor craft, binding with the journal `bind` event. GameTests: seeding refused before Villach and accepted after; a ripening step takes the principles; binding needs Elemental Sight; a bound ripe Hollow yields raw iron into a chest; production reports the yield. Verify: build, data run, GameTests green.
 - [ ] 2.2 Client `HollowTracker` and `HollowRevealRenderer` registered with `RevealRenderers`, update tag sync. Verify: build.
 
 ## 3. Journal and docs

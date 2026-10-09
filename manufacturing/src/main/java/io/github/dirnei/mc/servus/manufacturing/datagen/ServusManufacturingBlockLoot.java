@@ -14,7 +14,8 @@ final class ServusManufacturingBlockLoot extends BlockLootSubProvider {
             ServusManufacturingBlocks.CALCINER.get(),
             ServusManufacturingBlocks.COAGULATOR.get(),
             ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(),
-            ServusManufacturingBlocks.ATHANOR.get());
+            ServusManufacturingBlocks.ATHANOR.get(),
+            ServusManufacturingBlocks.GNOME_HOLLOW.get());
 
     ServusManufacturingBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

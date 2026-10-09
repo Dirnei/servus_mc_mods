@@ -43,6 +43,15 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingItems.SALT_CRYSTAL.get(), "Salt Crystal");
         add(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block");
         add(ServusManufacturingBlocks.ATHANOR.get(), "Athanor");
+        add(ServusManufacturingBlocks.GNOME_HOLLOW.get(), "Gnome Hollow");
+        add("gui.servus_manufacturing.gnome_hollow.empty", "No vein");
+        add("gui.servus_manufacturing.gnome_hollow.ripeness", "Ripeness %s / %s");
+        add("gui.servus_manufacturing.gnome_hollow.gnome", "A gnome is at work");
+        add("message.servus_manufacturing.gnome_hollow.bound", "A gnome takes your offering and sets to work.");
+        add("message.servus_manufacturing.gnome_hollow.no_vein", "Nothing grows here yet. Seed the hollow with a sample of ore.");
+        add("message.servus_manufacturing.gnome_hollow.not_ripe", "The vein is not ripe yet.");
+        add("message.servus_manufacturing.gnome_hollow.already_bound", "A gnome already works this vein.");
+        add("message.servus_manufacturing.gnome_hollow.no_sight", "You cannot see the spirits of the earth.");
         add(ElementalSight.ELIXIR.get(), "Elixir of Sight");
         add(ElementalSight.EFFECT.get(), "Elemental Sight");
         add("gui.servus_manufacturing.athanor.stage.nigredo", "Nigredo");

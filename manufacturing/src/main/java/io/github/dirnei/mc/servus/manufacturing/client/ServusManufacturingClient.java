@@ -23,6 +23,7 @@ public final class ServusManufacturingClient {
         event.register(ServusManufacturingMenus.CALCINER.get(), CalcinerScreen::new);
         event.register(ServusManufacturingMenus.COAGULATOR.get(), CoagulatorScreen::new);
         event.register(ServusManufacturingMenus.ATHANOR.get(), AthanorScreen::new);
+        event.register(ServusManufacturingMenus.GNOME_HOLLOW.get(), GnomeHollowScreen::new);
     }
 
     /** Every machine draws its side modes on the block. */

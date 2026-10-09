@@ -4,6 +4,7 @@
   "block.servus_manufacturing.athanor": "Athanor",
   "block.servus_manufacturing.calciner": "Calciner",
   "block.servus_manufacturing.coagulator": "Coagulator",
+  "block.servus_manufacturing.gnome_hollow": "Gnome Hollow",
   "block.servus_manufacturing.mercury": "Mercury",
   "block.servus_manufacturing.salt": "Salt",
   "block.servus_manufacturing.salt_crystal_block": "Salt Crystal Block",
@@ -46,6 +47,9 @@
   "gui.servus_manufacturing.athanor.stage.rubedo": "Rubedo",
   "gui.servus_manufacturing.coagulator.chapter": "Needs the journal chapter %s",
   "gui.servus_manufacturing.coagulator.needs": "%s mB %s",
+  "gui.servus_manufacturing.gnome_hollow.empty": "No vein",
+  "gui.servus_manufacturing.gnome_hollow.gnome": "A gnome is at work",
+  "gui.servus_manufacturing.gnome_hollow.ripeness": "Ripeness %s / %s",
   "gui.servus_manufacturing.jei.athanor": "Athanor",
   "gui.servus_manufacturing.jei.athanor.tier": "Stage: %s",
   "gui.servus_manufacturing.jei.calcination": "Calcination",
@@ -60,5 +64,10 @@
   "journal.servus_manufacturing.schwaz": "Schwaz",
   "journal.servus_manufacturing.schwaz.finished": "Finished the Schwaz chapter of the journal",
   "journal.servus_manufacturing.villach": "Villach",
-  "journal.servus_manufacturing.villach.finished": "Finished the Villach chapter of the journal"
+  "journal.servus_manufacturing.villach.finished": "Finished the Villach chapter of the journal",
+  "message.servus_manufacturing.gnome_hollow.already_bound": "A gnome already works this vein.",
+  "message.servus_manufacturing.gnome_hollow.bound": "A gnome takes your offering and sets to work.",
+  "message.servus_manufacturing.gnome_hollow.no_sight": "You cannot see the spirits of the earth.",
+  "message.servus_manufacturing.gnome_hollow.no_vein": "Nothing grows here yet. Seed the hollow with a sample of ore.",
+  "message.servus_manufacturing.gnome_hollow.not_ripe": "The vein is not ripe yet."
 }

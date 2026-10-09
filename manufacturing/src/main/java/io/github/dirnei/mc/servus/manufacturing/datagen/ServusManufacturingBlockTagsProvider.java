@@ -22,6 +22,7 @@ final class ServusManufacturingBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusManufacturingBlocks.CALCINER.get())
                 .add(ServusManufacturingBlocks.COAGULATOR.get())
                 .add(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get())
-                .add(ServusManufacturingBlocks.ATHANOR.get());
+                .add(ServusManufacturingBlocks.ATHANOR.get())
+                .add(ServusManufacturingBlocks.GNOME_HOLLOW.get());
     }
 }

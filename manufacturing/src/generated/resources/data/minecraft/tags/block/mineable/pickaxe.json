@@ -3,6 +3,7 @@
     "servus_manufacturing:calciner",
     "servus_manufacturing:coagulator",
     "servus_manufacturing:salt_crystal_block",
-    "servus_manufacturing:athanor"
+    "servus_manufacturing:athanor",
+    "servus_manufacturing:gnome_hollow"
   ]
 }

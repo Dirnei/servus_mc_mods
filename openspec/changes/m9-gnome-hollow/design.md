@@ -29,7 +29,7 @@ The vein of a sample is the first vein (by id) whose sample tags contain the ite
 
 ### D3: The Hollow block entity
 
-`GnomeHollowBlockEntity extends AlchemyMachineBlockEntity` with 0 FE use (its stats have no energy), slots: sample 0 (input), output 1. It stores the vein id, ripeness, bound flag and timers. `acceptsInput` for the sample slot asks `VeinData` and `Journal.isFinished` for the owner's team; on the first tick with a sample it seeds and clears the slot. Its `tick()` runs `VeinGrowth` and, on `RIPENED`, takes the principles; on `YIELD` inserts the yield. It overrides `tick()` of the powered base without spending energy (energy per tick 0 always succeeds), so the shared push and lit state keep working.
+`GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedMachine`, like the Athanor: no energy at all, slots: sample 0 (input), output 1. It stores the vein id, ripeness, bound flag and timers. `acceptsInput` for the sample slot asks `VeinData` and `Journal.isFinished` for the owner's team; on the first tick with a sample it seeds and clears the slot. Its `tick()` runs `VeinGrowth` and, on `RIPENED`, takes the principles; on `YIELD` inserts the yield. The shared machine tick keeps the output push and the lit state. A sample stack larger than one seeds with one item; the rest stays in the slot for the player to take back.
 
 ### D4: Binding
 
@@ -37,7 +37,7 @@ The vein of a sample is the first vein (by id) whose sample tags contain the ite
 
 ### D5: Client tracking and drawing
 
-Client: `HollowTracker` keeps the loaded Hollow block entities (added in `onLoad` on the client, removed in `setRemoved`), like Foundation's `DuctTracker`. The update tag carries vein yield item, ripeness, steps and bound. `HollowRevealRenderer` is registered with `RevealRenderers` from the client setup; for each Hollow within 32 blocks it draws the yield item small at up to eight bud positions around the block (count and size from ripeness) and, when bound, a red mushroom as the gnome's cap bobbing in front, drawn with `ItemRenderer.renderStatic` at full light.
+`HollowTracker` (common package, no client imports, like Foundation's `DuctTracker`) keeps the Hollow block entities loaded on the client (added in `onLoad` on the client, removed in `setRemoved` and `onChunkUnloaded`). The update tag carries vein yield item, ripeness, steps and bound. `HollowRevealRenderer` is registered with `RevealRenderers` from the client setup; for each Hollow within 32 blocks it draws the yield item small at up to eight bud positions around the block (count and size from ripeness) and, when bound, a red mushroom as the gnome's cap bobbing in front, drawn with `ItemRenderer.renderStatic` at full light.
 
 ### D6: Recipe and data
 

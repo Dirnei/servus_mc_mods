@@ -28,6 +28,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         machine(ServusManufacturingBlocks.COAGULATOR.get(), "coagulator");
         simpleBlockWithItem(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), cubeAll(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get()));
         athanor();
+        gnomeHollow();
         // Liquid blocks are drawn by the fluid renderer; the model only gives the particle.
         for (Principle principle : Principle.values()) {
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);
@@ -50,6 +51,13 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
                 .rotationY(((int) state.getValue(MachineBlock.FACING).toYRot() + 180) % 360)
                 .build());
         simpleBlockItem(ServusManufacturingBlocks.ATHANOR.get(), models[0][0]);
+    }
+
+    /** Plain stone to the common eye: the vein and its gnome are drawn only under Elemental Sight. */
+    private void gnomeHollow() {
+        ModelFile model = models().cubeAll("gnome_hollow", mcLoc("block/stone"));
+        getVariantBuilder(ServusManufacturingBlocks.GNOME_HOLLOW.get()).forAllStates(state -> ConfiguredModel.builder().modelFile(model).build());
+        simpleBlockItem(ServusManufacturingBlocks.GNOME_HOLLOW.get(), model);
     }
 
     /** Orientable machine with a lit and an unlit front, rotated by facing. */

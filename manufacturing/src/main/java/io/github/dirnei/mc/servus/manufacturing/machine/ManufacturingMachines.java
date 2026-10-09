@@ -7,8 +7,6 @@ import java.util.List;
 /** Manufacturing's machines in the shared {@link MachineDefaults} table. */
 public final class ManufacturingMachines {
 
-    /** Pseudo recipe type of the research lab: one pack per {@code ticks_per_pack}. */
-
     private static boolean registered;
 
     private ManufacturingMachines() {
@@ -23,6 +21,7 @@ public final class ManufacturingMachines {
         add("calciner", "powered", List.of("servus_manufacturing:calcination"), alchemy(20, 8000, 4000));
         add("coagulator", "powered", List.of("servus_manufacturing:coagulation"), alchemy(20, 8000, 4000));
         add("athanor", "crafter", List.of("servus_manufacturing:athanor"), alchemy(0, 0, 4000));
+        add("gnome_hollow", "crafter", List.of(), alchemy(0, 0, 4000));
     }
 
     /** A powered alchemy machine: recipe time decides the cycle, one principle tank of {@code tank} mB each. */

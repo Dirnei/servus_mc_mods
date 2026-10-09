@@ -1,0 +1,17 @@
+{
+  "type": "servus_manufacturing:athanor",
+  "input": {
+    "count": 1,
+    "item": "minecraft:cracked_stone_bricks"
+  },
+  "principles": {
+    "mercury": 250,
+    "salt": 500
+  },
+  "result": {
+    "count": 1,
+    "id": "servus_manufacturing:gnome_hollow"
+  },
+  "tier": 1,
+  "time": 200
+}

@@ -69,6 +69,12 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.fluidHandler(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.ATHANOR.get(),
                     (machine, side) -> machine.production());
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.GNOME_HOLLOW.get(),
+                    (machine, side) -> machine.sideHandler(side));
+            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.GNOME_HOLLOW.get(),
+                    (machine, side) -> machine.fluidHandler(side));
+            event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.GNOME_HOLLOW.get(),
+                    (machine, side) -> machine.production());
         }
     }
 }

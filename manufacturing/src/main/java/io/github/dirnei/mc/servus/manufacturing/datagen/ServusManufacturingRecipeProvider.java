@@ -48,6 +48,9 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
         output.accept(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/elixir_of_sight"),
                 new AthanorRecipe(new SizedIngredient(Ingredient.of(ServusManufacturingItems.QUICKSILVER.get()), 1),
                         new Principles(100, 100, 250), 1, new ItemStack(ElementalSight.ELIXIR.get()), 200), null);
+        output.accept(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/gnome_hollow"),
+                new AthanorRecipe(new SizedIngredient(Ingredient.of(Items.CRACKED_STONE_BRICKS), 1),
+                        new Principles(500, 0, 250), 1, new ItemStack(ServusManufacturingItems.GNOME_HOLLOW.get()), 200), null);
     }
 
     static void athanorCraft(RecipeOutput output, String name, Ingredient input, Principles principles, int tier, ItemStack result) {
