@@ -184,6 +184,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");
         add("gui.servus_storage.terminal.message.no_rail", "The Access Point has no rail for shuttle deliveries");
         add("gui.servus_storage.terminal.message.no_access_point", "No Access Point of the warehouse on this data line");
+        add("gui.servus_storage.terminal.message.input_no_access_point", "No Access Point on this data line");
         add("gui.servus_storage.terminal.message.out_of_stock", "Nothing of that in stock");
         add("gui.servus_storage.terminal.message.missing", "Raw materials are missing");
         add("gui.servus_storage.terminal.message.no_cpu", "No Crafting CPU on this data line");

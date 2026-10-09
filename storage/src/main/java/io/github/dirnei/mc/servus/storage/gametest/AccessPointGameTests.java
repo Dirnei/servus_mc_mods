@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
+
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
+
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
@@ -179,6 +183,25 @@ public final class AccessPointGameTests {
             helper.succeedWhen(() -> {
                 helper.assertTrue(setup.crate().count(0) == 48, "48 planks should be in the crate, got " + setup.crate().count(0));
                 helper.assertTrue(point.isEmpty(), "the intake should be empty again");
+            });
+        });
+    }
+
+    /** Bread put into a Storage Terminal's input travels to the Access Point and a shuttle puts it into the rack. */
+    @GameTest(template = EMPTY, timeoutTicks = 600)
+    public static void inputReachesRack(GameTestHelper helper) {
+        Setup setup = setup(helper, 0, 0, false, true);
+        setup.crate().insert(new ItemStack(Items.COBBLESTONE, setup.crate().capacity()), false);
+        BlockPos terminalPos = new BlockPos(4, 1, 9);
+        helper.setBlock(terminalPos, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
+                .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalBlockEntity terminal = helper.getBlockEntity(terminalPos);
+            terminal.input().setStackInSlot(0, new ItemStack(Items.BREAD, 10));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(terminal.input().getStackInSlot(0).isEmpty(), "the input should be empty");
+                helper.assertTrue(count(setup.rack().items(), Items.BREAD) == 10,
+                        "the rack should hold 10 bread, got " + count(setup.rack().items(), Items.BREAD));
             });
         });
     }

@@ -1,6 +1,12 @@
 package io.github.dirnei.mc.servus.storage.terminal;
 
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
+import io.github.dirnei.mc.servus.foundation.data.DataMember;
+import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
+import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
+import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
+import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
@@ -12,6 +18,7 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -31,6 +38,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
@@ -106,6 +114,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     private final IItemHandler packets = new RoutingHandler();
     private boolean storeSoon;
     private boolean storing;
+    private String inputRefusal;
     private final List<Request> requests = new ArrayList<>();
     private int ticks;
     private boolean idsSeen;
@@ -217,7 +226,11 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         }
     }
 
-    /** Stores the input slots into the reachable warehouses; what does not fit stays for the next try. */
+    /**
+     * Sends the input slots as packets to the nearest Access Point on the
+     * data line, which puts them away. A stack leaves its slot only when a
+     * delivery takes it; a send that fails at once puts it back.
+     */
     public void storeInput(ServerLevel server) {
         storeSoon = false;
         boolean any = false;
@@ -225,30 +238,76 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             any = !input.getStackInSlot(i).isEmpty();
         }
         if (!any) {
+            inputRefusal = null;
             return;
         }
-        List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(server, worldPosition);
+        Optional<BlockPos> point = nearestAccessPoint(server);
+        if (point.isEmpty()) {
+            inputRefusal = "input_no_access_point";
+            return;
+        }
+        inputRefusal = null;
         storing = true;
         try {
             for (int i = 0; i < input.getSlots(); i++) {
-                ItemStack rest = input.getStackInSlot(i);
-                if (rest.isEmpty()) {
+                ItemStack stack = input.getStackInSlot(i);
+                if (stack.isEmpty()) {
                     continue;
                 }
-                int before = rest.getCount();
-                for (WarehouseNetwork network : warehouses) {
-                    if (rest.isEmpty()) {
-                        break;
-                    }
-                    rest = network.insert(rest.copy());
-                }
-                if (rest.getCount() != before) {
-                    input.setStackInSlot(i, rest);
+                ItemStack sent = stack.copy();
+                input.setStackInSlot(i, ItemStack.EMPTY);
+                Optional<Delivery> delivery = DataPackets.send(server, worldPosition, point.get(), sent);
+                if (delivery.isEmpty() || delivery.get().state() == Delivery.State.FAILED) {
+                    input.setStackInSlot(i, stack);
                 }
             }
         } finally {
             storing = false;
         }
+    }
+
+    /** Puts a stack into the input row, which stores it; returns what does not fit. */
+    public ItemStack queueInput(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return stack;
+        }
+        ItemStack rest = ItemHandlerHelper.insertItemStacked(input, stack.copy(), false);
+        storeSoon = true;
+        return rest;
+    }
+
+    /** Why the input waits, a message key without its prefix, or null. */
+    public String inputRefusal() {
+        return inputRefusal;
+    }
+
+    /** The Access Point of an online warehouse on this data line nearest to the terminal. */
+    private Optional<BlockPos> nearestAccessPoint(ServerLevel server) {
+        Optional<DataNetwork> line = DataNetworks.networkAt(server, worldPosition);
+        if (line.isEmpty()) {
+            return Optional.empty();
+        }
+        BlockPos best = null;
+        for (DataMember member : line.get().dataMembers()) {
+            BlockPos pos = member.pos();
+            if (!server.isLoaded(pos) || !(server.getBlockEntity(pos) instanceof AccessPointBlockEntity accessPoint)) {
+                continue;
+            }
+            boolean online = accessPoint.network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).isPresent();
+            if (!online) {
+                continue;
+            }
+            if (best == null || closer(pos, best)) {
+                best = pos;
+            }
+        }
+        return Optional.ofNullable(best);
+    }
+
+    private boolean closer(BlockPos candidate, BlockPos best) {
+        double a = candidate.distSqr(worldPosition);
+        double b = best.distSqr(worldPosition);
+        return a < b || (a == b && candidate.asLong() < best.asLong());
     }
 
     /** Lights or darkens the lamp. */

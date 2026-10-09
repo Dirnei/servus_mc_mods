@@ -126,27 +126,27 @@ public final class CraftingGridGameTests {
     }
 
     /** The clear button moves the grid into the warehouse. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void gridClearStores(GameTestHelper helper) {
         setup(helper, 4, f -> {
             sticksPattern(f.menu(), 1);
             f.menu().clearGrid();
             helper.assertTrue(gridEmpty(f.menu()), "the grid is empty");
-            helper.assertTrue(f.crate().count(0) == 6, "the crate got the two planks back, holds " + f.crate().count(0));
             helper.assertTrue(result(f.menu()).isEmpty(), "no result without ingredients");
-            helper.succeed();
+            TerminalWiring.when(helper, () -> f.crate().count(0) == 6, 200,
+                    () -> "the crate should get the two planks back through the input, holds " + f.crate().count(0), helper::succeed);
         });
     }
 
     /** Closing the terminal moves the grid into the warehouse. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void gridCloseStores(GameTestHelper helper) {
         setup(helper, 4, f -> {
             f.menu().craftSlots().setItem(0, new ItemStack(Items.OAK_PLANKS, 3));
             f.menu().removed(f.player());
-            helper.assertTrue(f.crate().count(0) == 7, "the crate got three planks back, holds " + f.crate().count(0));
             helper.assertTrue(f.player().getInventory().countItem(Items.OAK_PLANKS) == 0, "nothing went to the player");
-            helper.succeed();
+            TerminalWiring.when(helper, () -> f.crate().count(0) == 7, 200,
+                    () -> "the crate should get three planks back through the input, holds " + f.crate().count(0), helper::succeed);
         });
     }
 

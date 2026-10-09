@@ -222,16 +222,9 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         return result;
     }
 
-    /** Stores a stack in the reachable warehouses; returns what did not fit. */
+    /** Hands a stack to the input row, which stores it through an Access Point; returns what did not fit. */
     private ItemStack store(ItemStack stack) {
-        ItemStack rest = stack;
-        for (WarehouseNetwork network : warehouses()) {
-            if (rest.isEmpty()) {
-                break;
-            }
-            rest = network.insert(rest);
-        }
-        return rest;
+        return terminal.queueInput(stack);
     }
 
     /** After a craft, every grid slot that lost an ingredient gets one more of it from instant stock. */
@@ -425,13 +418,12 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         forceSync();
     }
 
-    /** Stores the carried stack. */
+    /** Stores the carried stack through the input row. */
     public void pushCarried() {
-        Optional<WarehouseNetwork> network = online();
-        if (network.isEmpty() || getCarried().isEmpty()) {
+        if (getCarried().isEmpty()) {
             return;
         }
-        setCarried(network.get().insert(getCarried()));
+        setCarried(terminal.queueInput(getCarried()));
         forceSync();
     }
 
@@ -568,15 +560,16 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     /** The current stock, requests and message as the client should see them. */
     public StockSyncPayload stock() {
+        String shown = message.isEmpty() && terminal.inputRefusal() != null ? terminal.inputRefusal() : message;
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
-            return new StockSyncPayload(terminal.getBlockPos(), false, "no_warehouse", List.of(), List.of(), message, List.of(), List.of());
+            return new StockSyncPayload(terminal.getBlockPos(), false, "no_warehouse", List.of(), List.of(), shown, List.of(), List.of());
         }
         List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(server, terminal.getBlockPos());
         List<RequestRow> requests = TerminalRequests.rows(server, terminal, warehouses);
         if (warehouses.isEmpty()) {
-            return new StockSyncPayload(terminal.getBlockPos(), false, "no_warehouse", List.of(), requests, message, List.of(), List.of());
+            return new StockSyncPayload(terminal.getBlockPos(), false, "no_warehouse", List.of(), requests, shown, List.of(), List.of());
         }
-        return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(TerminalWarehouses.stock(warehouses)), requests, message,
+        return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(TerminalWarehouses.stock(warehouses)), requests, shown,
                 warehouses.get(0).ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES));
     }
 

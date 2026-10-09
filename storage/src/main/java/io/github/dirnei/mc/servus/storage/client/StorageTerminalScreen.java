@@ -583,8 +583,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         PanelPainter.inset(graphics, leftPos, topPos, layout.scrollbar());
         PanelPainter.slots(graphics, leftPos, topPos, Storage.INPUT, Storage.ROW_SLOTS, Storage.ROW_SLOTS);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.OUTPUT, Storage.ROW_SLOTS, menu.outputSlots());
-        tag(graphics, Storage.INPUT_TAG, false);
-        tag(graphics, Storage.OUTPUT_TAG, true);
+        tag(graphics, Storage.INPUT_TAG, true, 0xFF4C9A5A);
+        tag(graphics, Storage.OUTPUT_TAG, false, 0xFF4C7FB0);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.INVENTORY, 9, 27);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.HOTBAR, 9, 9);
         if (popupOpen && !dialogOpen()) {
@@ -605,9 +605,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         graphics.fill(thumbX, thumb, thumbX + bar.w(), thumb + 15, max == 0 ? 0xFF9A9A9A : 0xFFE0E0E0);
     }
 
-    /** A small arrow beside a row: down into the warehouse for the input, up out of it for the output. */
-    private void tag(GuiGraphics graphics, Rect rect, boolean up) {
-        int colour = up ? 0xFF4C7FB0 : 0xFF4C9A5A;
+    /** A small arrow beside a row: up into the warehouse for the input, down to the player for the output. */
+    private void tag(GuiGraphics graphics, Rect rect, boolean up, int colour) {
         int cx = leftPos + rect.x() + rect.w() / 2;
         int top = topPos + rect.y() + 4;
         graphics.fill(cx - 1, top, cx + 1, top + 10, colour);

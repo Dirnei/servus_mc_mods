@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Storage;
 import net.minecraft.core.BlockPos;
@@ -77,16 +78,34 @@ public final class StorageTerminalRowsGameTests {
         });
     }
 
-    /** Without room the stack stays in the input slot. */
+    /** Without an Access Point on the data line the stack stays in the input slot and the message says why. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void inputKeepsLeftover(GameTestHelper helper) {
-        setup(helper, false, fixture -> {
-            fixture.terminal().input().setStackInSlot(0, new ItemStack(Items.BREAD, 5));
+    public static void inputWaitsWithoutAccessPoint(GameTestHelper helper) {
+        BlockPos lone = new BlockPos(9, 1, 9);
+        helper.setBlock(lone, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
+                .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
+        helper.runAfterDelay(5, () -> {
+            StorageTerminalBlockEntity terminal = helper.getBlockEntity(lone);
+            terminal.input().setStackInSlot(0, new ItemStack(Items.BREAD, 5));
             helper.runAfterDelay(30, () -> {
-                ItemStack left = fixture.terminal().input().getStackInSlot(0);
+                ItemStack left = terminal.input().getStackInSlot(0);
                 helper.assertTrue(left.is(Items.BREAD) && left.getCount() == 5, "the bread should stay in the input, got " + left);
+                helper.assertTrue("input_no_access_point".equals(terminal.inputRefusal()),
+                        "the input should wait for an Access Point, got " + terminal.inputRefusal());
                 helper.succeed();
             });
+        });
+    }
+
+    /** Clicking the grid with a carried stack moves it into the input row, which stores it. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void gridPushGoesThroughInput(GameTestHelper helper) {
+        setup(helper, true, fixture -> {
+            fixture.menu().setCarried(new ItemStack(Items.COBBLESTONE, 20));
+            fixture.menu().pushCarried();
+            helper.assertTrue(fixture.menu().getCarried().isEmpty(), "the carried stack should go into the input");
+            TerminalWiring.when(helper, () -> cobble(helper) == 20, 150,
+                    () -> "the cobblestone should end in the crate, crate holds " + cobble(helper), helper::succeed);
         });
     }
 
