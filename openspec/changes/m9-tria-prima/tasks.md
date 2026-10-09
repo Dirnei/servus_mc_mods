@@ -23,6 +23,6 @@
 
 ## 5. Integration
 
-- [ ] 5.1 JEI Calcination and Coagulation categories in `integration/jei` with the machines as catalysts. Verify: build.
+- [x] 5.1 JEI Calcination and Coagulation categories in `integration/jei` with the machines as catalysts. Verify: build.
 - [ ] 5.2 Update `docs/src/content/docs/mods/manufacturing.md` (Calciner, Coagulator, principles, no deposits, research note) and the datapack reference pages (machine table, new recipe types, deposits and assembling sections removed); regenerate `gamedata.json` and icons of new items by copying placeholder textures. Verify: docs tests and docs build pass.
 - [ ] 5.3 Full `gradlew build`, `gradlew test`, GameTests of all three mods green, and the client launches with all three mods: calcine cobblestone, pipe Salt into a Coagulator and make a Salt Crystal, check JEI categories.
