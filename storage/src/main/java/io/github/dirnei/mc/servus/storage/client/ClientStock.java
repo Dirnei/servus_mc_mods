@@ -5,9 +5,7 @@ import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -21,48 +19,39 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class ClientStock {
 
-    private static final Map<GlobalPos, StockSyncPayload> CACHE = new HashMap<>();
+    private static final TerminalStore<GlobalPos, StockSyncPayload> STORE = new TerminalStore<>();
 
-    private static GlobalPos open;
     private static StockSyncPayload shown;
     private static CraftPreviewPayload preview;
-    private static int version;
 
     private ClientStock() {
     }
 
     /** A Counter Terminal screen opens: show what was last seen of it, if anything. */
     public static void open(BlockPos terminal) {
-        open = key(terminal);
-        shown = open == null ? null : CACHE.get(open);
-        preview = null;
-        version++;
+        if (STORE.open(key(terminal))) {
+            preview = null;
+        }
+        shown = STORE.shown();
     }
 
     /** The screen closed; its content stays cached. */
     public static void close() {
-        open = null;
+        STORE.close();
         shown = null;
         preview = null;
-        version++;
     }
 
     /** Forget every terminal, when leaving the world. */
     public static void forgetAll() {
-        CACHE.clear();
-        close();
+        STORE.forgetAll();
+        shown = null;
+        preview = null;
     }
 
     public static void update(StockSyncPayload payload) {
-        GlobalPos key = key(payload.terminal());
-        if (key == null) {
-            return;
-        }
-        CACHE.put(key, payload);
-        if (key.equals(open)) {
-            shown = payload;
-            version++;
-        }
+        STORE.update(key(payload.terminal()), payload);
+        shown = STORE.shown();
     }
 
     private static GlobalPos key(BlockPos pos) {
@@ -138,6 +127,6 @@ public final class ClientStock {
 
     /** Bumps whenever the shown content changes so screens can refilter lazily. */
     public static int version() {
-        return version;
+        return STORE.version();
     }
 }

@@ -87,7 +87,6 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
         super(menu, playerInventory, title);
         this.imageWidth = Counter.WIDTH;
         this.imageHeight = Counter.HEIGHT;
-        ClientStock.open(menu.terminal().getBlockPos());
     }
 
     private int dx() {
@@ -101,6 +100,8 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
     @Override
     protected void init() {
         super.init();
+        // Every show, also after another screen was in front, registers the terminal again.
+        ClientStock.open(menu.terminal().getBlockPos());
         titleLabelX = Counter.TITLE.x();
         titleLabelY = Counter.TITLE.y();
         inventoryLabelX = Counter.INVENTORY_LABEL.x();

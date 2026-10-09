@@ -2,7 +2,7 @@
 
 ## 1. Terminal content after a round trip
 
-- [ ] 1.1 Add pure `storage/.../client/TerminalStore` and `storage/src/test/.../client/TerminalStoreTest` (openShowsCached, updateWhileClosedShownOnOpen, roundTripShowsNewest, otherTerminalNotShown, forgetClears); make `ClientStock` and `ClientProduction` delegate to it; both screens call `open(pos)` in `init()`. Verify with `gradlew build` and `gradlew test`.
+- [x] 1.1 Add pure `storage/.../client/TerminalStore` and `storage/src/test/.../client/TerminalStoreTest` (openShowsCached, updateWhileClosedShownOnOpen, roundTripShowsNewest, otherTerminalNotShown, forgetClears); make `ClientStock` and `ClientProduction` delegate to it; both screens call `open(pos)` in `init()`. Verify with `gradlew build` and `gradlew test`.
 
 ## 2. Search clear
 

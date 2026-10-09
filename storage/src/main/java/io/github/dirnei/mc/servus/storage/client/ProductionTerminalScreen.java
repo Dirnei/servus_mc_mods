@@ -90,7 +90,6 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         super(menu, playerInventory, title);
         this.imageWidth = WIDTH;
         this.imageHeight = HEIGHT;
-        ClientProduction.open(menu.terminal().getBlockPos());
     }
 
     @Override
@@ -102,6 +101,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     @Override
     protected void init() {
         super.init();
+        // Every show, also after another screen was in front, registers the terminal again.
+        ClientProduction.open(menu.terminal().getBlockPos());
         this.inventoryLabelY = Integer.MIN_VALUE;
     }
 

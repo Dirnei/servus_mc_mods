@@ -5,9 +5,7 @@ import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -19,45 +17,34 @@ import net.minecraft.core.GlobalPos;
  */
 public final class ClientProduction {
 
-    private static final Map<GlobalPos, ProductionPayload> CACHE = new HashMap<>();
+    private static final TerminalStore<GlobalPos, ProductionPayload> STORE = new TerminalStore<>();
 
-    private static GlobalPos open;
     private static ProductionPayload shown;
-    private static int version;
 
     private ClientProduction() {
     }
 
     /** A Production Terminal screen opens: show what was last seen of it, if anything. */
     public static void open(BlockPos terminal) {
-        open = key(terminal);
-        shown = open == null ? null : CACHE.get(open);
-        version++;
+        STORE.open(key(terminal));
+        shown = STORE.shown();
     }
 
     /** The screen closed; its content stays cached. */
     public static void close() {
-        open = null;
+        STORE.close();
         shown = null;
-        version++;
     }
 
     /** Forget every terminal, when leaving the world. */
     public static void forgetAll() {
-        CACHE.clear();
-        close();
+        STORE.forgetAll();
+        shown = null;
     }
 
     public static void update(ProductionPayload payload) {
-        GlobalPos key = key(payload.terminal());
-        if (key == null) {
-            return;
-        }
-        CACHE.put(key, payload);
-        if (key.equals(open)) {
-            shown = payload;
-            version++;
-        }
+        STORE.update(key(payload.terminal()), payload);
+        shown = STORE.shown();
     }
 
     private static GlobalPos key(BlockPos pos) {
@@ -95,6 +82,6 @@ public final class ClientProduction {
     }
 
     public static int version() {
-        return version;
+        return STORE.version();
     }
 }
