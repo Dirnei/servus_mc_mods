@@ -318,13 +318,15 @@
     },
     "servus_foundation:fluid_tank": {
       "type": "minecraft:crafting_shaped",
-      "pattern": ["IGI", "G G", "IGI"],
+      "pattern": ["IGI", "G G", "ICI"],
       "key": {
+        "C": {"item": "minecraft:copper_ingot"},
         "G": {"item": "minecraft:glass"},
         "I": {"item": "minecraft:iron_ingot"}
       },
       "inputs": [
-        {"item": "minecraft:glass", "count": 4},
+        {"item": "minecraft:copper_ingot", "count": 1},
+        {"item": "minecraft:glass", "count": 3},
         {"item": "minecraft:iron_ingot", "count": 4}
       ],
       "outputs": [

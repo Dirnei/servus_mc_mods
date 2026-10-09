@@ -77,9 +77,10 @@ public final class LogisticsDataParts {
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusLogisticsItems.FLUID_TANK.get())
                 .pattern("IGI")
                 .pattern("G G")
-                .pattern("IGI")
+                .pattern("ICI")
                 .define('I', Items.IRON_INGOT)
                 .define('G', Items.GLASS)
+                .define('C', Items.COPPER_INGOT)
                 .unlockedBy("has_glass", has.apply(Items.GLASS))
                 .save(output);
 

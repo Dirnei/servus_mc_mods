@@ -5,7 +5,10 @@
       "faces": {
         "down": {
           "cullface": "down",
-          "texture": "#glass"
+          "texture": "#floor"
+        },
+        "up": {
+          "texture": "#floor"
         }
       },
       "from": [
@@ -15,7 +18,7 @@
       ],
       "to": [
         16,
-        16,
+        1,
         16
       ]
     },
@@ -496,6 +499,7 @@
   ],
   "render_type": "minecraft:cutout",
   "textures": {
+    "floor": "minecraft:block/copper_block",
     "frame": "servus_foundation:block/fluid_tank_frame",
     "glass": "servus_foundation:block/fluid_tank_glass",
     "particle": "servus_foundation:block/fluid_tank_frame"

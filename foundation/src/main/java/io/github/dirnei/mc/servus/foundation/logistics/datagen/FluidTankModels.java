@@ -15,7 +15,8 @@ import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder
  * The Fluid Tank's connected look: a multipart block state of six glass
  * faces, each shown while its side is not joined, and twelve frame edge bars,
  * each shown while neither of its two sides is joined. That draws a frame
- * only around the outside of a formed tank.
+ * only around the outside of a formed tank. The bottom is a copper plate
+ * instead of glass, so a tank never shows the ground through its floor.
  */
 final class FluidTankModels {
 
@@ -55,8 +56,13 @@ final class FluidTankModels {
 
         for (Direction side : Direction.values()) {
             BlockModelBuilder model = base(provider, "block/fluid_tank/glass_" + side.getSerializedName(), glass, frame);
-            glassFace(model, side);
-            glassFace(whole, side);
+            if (side == Direction.DOWN) {
+                floorPlate(model);
+                floorPlate(whole);
+            } else {
+                glassFace(model, side);
+                glassFace(whole, side);
+            }
             multipart.part().modelFile(model).addModel()
                     .condition(FluidTankBlock.property(side), false).end();
         }
@@ -78,7 +84,16 @@ final class FluidTankModels {
                 .renderType("cutout")
                 .texture("particle", frame)
                 .texture("glass", glass)
-                .texture("frame", frame);
+                .texture("frame", frame)
+                .texture("floor", provider.mcLoc("block/copper_block"));
+    }
+
+    /** A one pixel copper plate on the bottom, seen from below and from inside. */
+    private static void floorPlate(BlockModelBuilder model) {
+        model.element().from(0, 0, 0).to(16, 1, 16)
+                .face(Direction.DOWN).texture("#floor").cullface(Direction.DOWN).end()
+                .face(Direction.UP).texture("#floor").end()
+                .end();
     }
 
     /** A full size element with only the face toward {@code side}. */

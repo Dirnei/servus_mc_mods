@@ -2,6 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
     "G": {
       "item": "minecraft:glass"
     },
@@ -12,7 +15,7 @@
   "pattern": [
     "IGI",
     "G G",
-    "IGI"
+    "ICI"
   ],
   "result": {
     "count": 1,
