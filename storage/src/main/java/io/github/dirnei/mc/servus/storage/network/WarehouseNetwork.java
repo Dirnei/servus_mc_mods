@@ -284,7 +284,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Whether the source is a Heavy Duty Rack, which only shuttles serve. */
     @Override
     public boolean isRack(BlockPos pos) {
-        return level != null && level.getBlockEntity(pos) instanceof HeavyRackBlockEntity;
+        return loaded(pos) instanceof HeavyRackBlockEntity;
     }
 
     // Zones
@@ -370,7 +370,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 continue;
             }
             if (source.node()) {
-                if (level.getBlockEntity(pos) instanceof CrateBlockEntity crate && crate.isEmpty()) {
+                if (loaded(pos) instanceof CrateBlockEntity crate && crate.isEmpty()) {
                     emptyCrates.add(pos);
                 } else {
                     otherNodes.add(pos);
@@ -456,6 +456,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     public Set<NodePos> dockRails(NodePos storage) {
         Set<NodePos> result = new HashSet<>();
         BlockPos pos = Conversions.toBlockPos(storage);
+        if (level == null || !level.isLoaded(pos)) {
+            return result;
+        }
         BlockState state = level.getBlockState(pos);
         if (state.getBlock() instanceof HeavyRackBlock) {
             for (BlockPos bay : HeavyRackBlock.section(level, pos)) {
@@ -568,7 +571,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         List<AccessPointBlockEntity> candidates = new ArrayList<>();
         for (BlockPos pos : stations) {
-            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof AccessPointBlockEntity point
+            if (loaded(pos) instanceof AccessPointBlockEntity point
                     && DataNetworks.networkAt(level, pos).filter(network -> network.reaches(target)).isPresent()) {
                 candidates.add(point);
             }
@@ -607,7 +610,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return points;
         }
         for (BlockPos pos : stations) {
-            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof AccessPointBlockEntity) {
+            if (loaded(pos) instanceof AccessPointBlockEntity) {
                 points.add(pos);
             }
         }
@@ -651,7 +654,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return;
         }
         for (BlockPos pos : new ArrayList<>(stations)) {
-            if (!level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station)) {
+            if (!level.isLoaded(pos) || !(loaded(pos) instanceof OutboundStationBlockEntity station)) {
                 continue;
             }
             ItemStack shortStack = ItemStack.EMPTY;
@@ -703,7 +706,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (controllerPos == null || level == null || !level.isLoaded(controllerPos)) {
             return Optional.empty();
         }
-        return level.getBlockEntity(controllerPos) instanceof WarehouseControllerBlockEntity controller
+        return loaded(controllerPos) instanceof WarehouseControllerBlockEntity controller
                 ? Optional.of(controller.rules()) : Optional.empty();
     }
 
@@ -831,14 +834,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     @Override
     public void pickLoaded(PickJob job, int loaded) {
-        if (loaded < job.amount() && level != null && level.getBlockEntity(job.terminal()) instanceof AccessPointBlockEntity point) {
+        if (loaded < job.amount() && loaded(job.terminal()) instanceof AccessPointBlockEntity point) {
             point.shortfall(job.key(), job.amount() - loaded);
         }
     }
 
     @Override
     public void pickDropped(PickJob job, int count) {
-        if (level != null && level.getBlockEntity(job.terminal()) instanceof AccessPointBlockEntity point) {
+        if (loaded(job.terminal()) instanceof AccessPointBlockEntity point) {
             point.shortfall(job.key(), count);
         }
     }
@@ -848,7 +851,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (stack.isEmpty()) {
             return stack;
         }
-        BlockEntity destination = level == null ? null : level.getBlockEntity(job.terminal());
+        BlockEntity destination = loaded(job.terminal());
         if (!(destination instanceof DeliveryTarget target)) {
             Block.popResource(level, job.terminal(), stack);
             return ItemStack.EMPTY;
@@ -905,7 +908,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     private void addSource(BlockPos pos, boolean node) {
         // Storage blocks join as members or not at all, never as foreign inventories (a rack without a front rail).
-        if (!node && level != null && level.getBlockEntity(pos) instanceof StorageNodeBlockEntity) {
+        if (!node && loaded(pos) instanceof StorageNodeBlockEntity) {
             return;
         }
         Source existing = sources.get(pos);
@@ -945,7 +948,20 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /** Whether the member at that position pulls the inventories touching it in; racks do not. */
     private boolean pullsAround(BlockPos pos) {
-        return level == null || !(level.getBlockEntity(pos) instanceof StorageNodeBlockEntity node) || node.pullsNeighbours();
+        Optional<StorageNodeBlockEntity> member = owner().graph().node(Conversions.toNodePos(pos));
+        if (member.isPresent()) {
+            return member.get().pullsNeighbours();
+        }
+        return !(loaded(pos) instanceof StorageNodeBlockEntity node) || node.pullsNeighbours();
+    }
+
+    /**
+     * The block entity at a position whose chunk is loaded, else null. Never
+     * loads a chunk: a load from a membership hook while chunks unload brings
+     * the chunk back and the server never finishes stopping.
+     */
+    private BlockEntity loaded(BlockPos pos) {
+        return level != null && level.isLoaded(pos) ? level.getBlockEntity(pos) : null;
     }
 
     /** Candidates are the neighbours of the remaining stock holding members that are not members. */
@@ -1002,7 +1018,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 pendingStations.add(intake.pos());
             }
         } else if (event instanceof WarehouseEvent.ZoneChanged zoned) {
-            if (level != null && level.getBlockEntity(zoned.pos()) instanceof StorageNodeBlockEntity node && node.holdsStock()) {
+            if (loaded(zoned.pos()) instanceof StorageNodeBlockEntity node && node.holdsStock()) {
                 rememberZone(zoned.pos(), node);
                 zonesDirty = true;
             }
@@ -1083,7 +1099,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         for (BlockPos pos : new ArrayList<>(pendingStations)) {
             pendingStations.remove(pos);
-            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof InboundStationBlockEntity station) {
+            if (loaded(pos) instanceof InboundStationBlockEntity station) {
                 drain(pos, station);
             }
         }
@@ -1214,7 +1230,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return;
         }
         ItemStack left = stack;
-        if (level.getBlockEntity(pos) instanceof InboundStationBlockEntity station) {
+        if (loaded(pos) instanceof InboundStationBlockEntity station) {
             left = ItemHandlerHelper.insertItem(station.buffer(), stack, false);
         }
         if (!left.isEmpty()) {
@@ -1224,7 +1240,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     @Override
     public void releaseClaim(BlockPos station, int slot) {
-        if (level != null && level.getBlockEntity(station) instanceof InboundStationBlockEntity be) {
+        if (loaded(station) instanceof InboundStationBlockEntity be) {
             be.release(slot);
             pendingStations.add(station);
         }
@@ -1233,7 +1249,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Takes up to amount of the key out of a station's buffer and frees the slot's claim. */
     @Override
     public ItemStack takeFromStation(BlockPos pos, int slot, ItemKey key, int amount) {
-        if (!(level.getBlockEntity(pos) instanceof InboundStationBlockEntity station)) {
+        if (!(loaded(pos) instanceof InboundStationBlockEntity station)) {
             return ItemStack.EMPTY;
         }
         station.release(slot);
@@ -1276,6 +1292,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     private void poll(BlockPos pos) {
         Source source = sources.get(pos);
+        if (!source.node() && loaded(pos) instanceof StorageNodeBlockEntity) {
+            // Added while its chunk was not loaded: storage blocks join as members or not at all.
+            dropSource(pos);
+            return;
+        }
         IItemHandler handler = source.cache().getCapability();
         long before = total(index.snapshot(pos));
         if (handler == null) {
