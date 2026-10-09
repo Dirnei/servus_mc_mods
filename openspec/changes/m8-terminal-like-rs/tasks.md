@@ -6,7 +6,7 @@
 
 ## 2. Layout
 
-- [ ] 2.1 Rework `terminal/TerminalLayout.Counter`: base slot constants for the menu, `layout(rows)` returning all rectangles with the upward extension, `rowsFor(height setting, screen height)`; update `menu/CounterTerminalMenu` slot positions; extend `TerminalLayoutTest` for every height at 1080p GUI scales 2, 3 and 4 (no overlaps, inside the panel, panel on the screen, side column left of the panel). Verify with `gradlew :storage:test` and `gradlew build`.
+- [x] 2.1 Rework `terminal/TerminalLayout.Counter`: base slot constants for the menu, `layout(rows)` returning all rectangles with the upward extension, `rowsFor(height setting, screen height)`; update `menu/CounterTerminalMenu` slot positions; extend `TerminalLayoutTest` for every height at 1080p GUI scales 2, 3 and 4 (no overlaps, inside the panel, panel on the screen, side column left of the panel). Verify with `gradlew :storage:test` and `gradlew build`.
 
 ## 3. Screen
 

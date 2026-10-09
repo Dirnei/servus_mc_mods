@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.terminal;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,48 +46,80 @@ public final class TerminalLayout {
     }
 
     /**
-     * The Counter Terminal: stock on the left with the player inventory below
-     * it, requests, output and the crafting grid on the right.
+     * The Counter Terminal, Refined Storage style: view buttons in a column
+     * left of the panel, title and search, the item grid with its scrollbar,
+     * a message line, the crafting grid left of the output, then the player
+     * inventory. Everything from the message line down sits at fixed offsets
+     * from the panel's base top, so slots never move; extra grid rows grow the
+     * panel upwards, to negative y.
      */
     public static final class Counter {
-        public static final int WIDTH = 290;
-        public static final int HEIGHT = 260;
+        public static final int WIDTH = 190;
+        /** Panel height with {@link #BASE_ROWS} grid rows. */
+        public static final int BASE_HEIGHT = 256;
         public static final int COLUMNS = 9;
-        public static final int ROWS = 5;
+        public static final int BASE_ROWS = 4;
         public static final int OUTPUT_COLUMNS = 3;
-        public static final int REQUEST_ROW = 12;
+        public static final int SIDE_BUTTONS = 5;
+        public static final int SIDE_X = -22;
+        public static final int SIDE_SIZE = 18;
+        public static final int SIDE_STEP = 20;
 
-        public static final Rect TITLE = new Rect(8, 6, 274, 9);
-        public static final Rect SEARCH = new Rect(8, 18, 112, 12);
-        public static final Rect FILTER = new Rect(124, 18, 46, 12);
-        public static final Rect GRID = new Rect(8, 34, COLUMNS * CELL, ROWS * CELL);
-        public static final Rect SCROLLBAR = new Rect(174, 34, 8, ROWS * CELL);
-        public static final Rect INVENTORY_LABEL = new Rect(8, 127, 162, 9);
-        public static final Rect INVENTORY = new Rect(8, 139, 9 * CELL, 3 * CELL);
-        public static final Rect HOTBAR = new Rect(8, 197, 9 * CELL, CELL);
-        public static final Rect REQUESTS_LABEL = new Rect(190, 18, 92, 9);
-        public static final Rect REQUESTS = new Rect(190, 30, 92, 6 * REQUEST_ROW);
-        public static final Rect MESSAGE = new Rect(190, 104, 92, 10);
-        public static final Rect OUTPUT_LABEL = new Rect(190, 117, 92, 9);
-        public static final Rect OUTPUT = new Rect(209, 129, OUTPUT_COLUMNS * CELL, 3 * CELL);
-        public static final Rect CRAFT_LABEL = new Rect(190, 188, 78, 9);
-        public static final Rect CLEAR = new Rect(270, 186, 12, 12);
-        public static final Rect CRAFT_GRID = new Rect(190, 200, 3 * CELL, 3 * CELL);
-        public static final Rect CRAFT_ARROW = new Rect(245, 219, 16, 10);
-        public static final Rect CRAFT_RESULT = new Rect(264, 218, CELL, CELL);
-        /** The amount prompt and the craft dialog cover the grid and the requests while open. */
-        public static final Rect DIALOG = new Rect(8, 30, 274, 94);
+        public static final Rect MESSAGE = new Rect(8, 92, 174, 9);
+        public static final Rect CRAFT_GRID = new Rect(8, 104, 3 * CELL, 3 * CELL);
+        public static final Rect CLEAR = new Rect(89, 106, 12, 12);
+        public static final Rect CRAFT_ARROW = new Rect(66, 123, 16, 10);
+        public static final Rect CRAFT_RESULT = new Rect(86, 122, CELL, CELL);
+        public static final Rect OUTPUT = new Rect(128, 104, OUTPUT_COLUMNS * CELL, 3 * CELL);
+        public static final Rect INVENTORY_LABEL = new Rect(8, 162, 162, 9);
+        public static final Rect INVENTORY = new Rect(8, 173, 9 * CELL, 3 * CELL);
+        public static final Rect HOTBAR = new Rect(8, 231, 9 * CELL, CELL);
 
         private Counter() {
         }
 
-        public static List<Area> areas() {
-            return List.of(new Area("title", TITLE), new Area("search", SEARCH), new Area("filter", FILTER),
-                    new Area("grid", GRID), new Area("scrollbar", SCROLLBAR), new Area("inventory label", INVENTORY_LABEL),
-                    new Area("inventory", INVENTORY), new Area("hotbar", HOTBAR), new Area("requests label", REQUESTS_LABEL),
-                    new Area("requests", REQUESTS), new Area("message", MESSAGE), new Area("output label", OUTPUT_LABEL),
-                new Area("output", OUTPUT), new Area("craft label", CRAFT_LABEL), new Area("clear", CLEAR),
-                new Area("craft grid", CRAFT_GRID), new Area("craft arrow", CRAFT_ARROW), new Area("craft result", CRAFT_RESULT));
+        /** The parts that move with the number of grid rows. */
+        public record Layout(int rows, int top, Rect title, Rect search, Rect grid, Rect scrollbar, Rect dialog, List<Rect> side) {
+
+            /** Panel height including the rows above the base top. */
+            public int height() {
+                return BASE_HEIGHT - top;
+            }
+
+            public List<Area> areas() {
+                List<Area> areas = new ArrayList<>(List.of(new Area("title", title), new Area("search", search),
+                        new Area("grid", grid), new Area("scrollbar", scrollbar), new Area("message", MESSAGE),
+                        new Area("craft grid", CRAFT_GRID), new Area("clear", CLEAR), new Area("craft arrow", CRAFT_ARROW),
+                        new Area("craft result", CRAFT_RESULT), new Area("output", OUTPUT),
+                        new Area("inventory label", INVENTORY_LABEL), new Area("inventory", INVENTORY), new Area("hotbar", HOTBAR)));
+                for (int i = 0; i < side.size(); i++) {
+                    areas.add(new Area("side " + i, side.get(i)));
+                }
+                return areas;
+            }
+        }
+
+        /** The layout for a number of grid rows, at least {@link #BASE_ROWS}. */
+        public static Layout layout(int rows) {
+            int shown = Math.max(BASE_ROWS, rows);
+            int top = -(shown - BASE_ROWS) * CELL;
+            List<Rect> side = new ArrayList<>();
+            for (int i = 0; i < SIDE_BUTTONS; i++) {
+                side.add(new Rect(SIDE_X, top + 4 + i * SIDE_STEP, SIDE_SIZE, SIDE_SIZE));
+            }
+            return new Layout(shown, top, new Rect(8, top + 6, 84, 9), new Rect(96, top + 4, 86, 12),
+                    new Rect(8, top + 18, COLUMNS * CELL, shown * CELL), new Rect(174, top + 18, 8, shown * CELL),
+                    new Rect(8, top + 18, 174, CRAFT_GRID.bottom() - 1 - (top + 18)), List.copyOf(side));
+        }
+
+        /**
+         * Grid rows for a height setting on a screen this many GUI pixels
+         * high: what the setting asks for, but no more than fit and never
+         * fewer than {@link #BASE_ROWS}.
+         */
+        public static int rowsFor(TerminalSettings.Height height, int screenHeight) {
+            int fit = BASE_ROWS + Math.max(0, (screenHeight - 4 - BASE_HEIGHT) / CELL);
+            return Math.max(BASE_ROWS, Math.min(height.rows(), fit));
         }
 
         /** Item origin of a crafting grid slot. */
