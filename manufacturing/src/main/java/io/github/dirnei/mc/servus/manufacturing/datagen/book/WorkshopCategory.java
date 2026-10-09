@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleText;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.datagen.AlchemyRecipeTable;
+import io.github.dirnei.mc.servus.manufacturing.datagen.ServusManufacturingMultiblockProvider;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.world.item.Items;
@@ -70,18 +71,33 @@ final class WorkshopCategory extends CategoryProvider {
     }
 
     private WorkshopEntry calciner() {
+        String mod = ServusManufacturingIds.MOD_ID + ":";
         return new WorkshopEntry(this, "calciner", "The Calciner", "Burn matter into its principles",
                 ServusManufacturingItems.CALCINER.get(), e -> {
             e.spotlight("machine", ServusManufacturingItems.CALCINER.get(), "The Calciner",
                     "My furnace for the first work. It burns a thing until only its three principles are left.");
-            e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":calciner", "Bricks, iron, a furnace and a cauldron.");
+            e.multiblock("build", ServusManufacturingMultiblockProvider.CALCINER, "The Calciner",
+                    "A wall of bricks one block deep. Press Visualize to see it where you stand.");
+            e.text("parts", "The Parts",
+                    "The furnace is bricks around three parts stacked in the middle: the Ash Pan at the bottom, the Firebox above it "
+                            + "and the Calciner, the mouth, above that.\n\n"
+                            + "On top of the mouth sits the Alembic, the copper still. Right of it stands the Receiver, a flask that catches "
+                            + "what drips from the still. The Sulfur Hood crowns the Alembic.");
+            e.crafting("recipe", mod + "calciner", mod + "calciner_firebox", "The mouth with its cauldron, and the Firebox.");
+            e.crafting("recipe_pan", mod + "calciner_ash_pan", mod + "alembic", "The Ash Pan and the Alembic.");
+            e.crafting("recipe_receiver", mod + "receiver", mod + "sulfur_hood", "The Receiver and the Sulfur Hood.");
+            e.text("waking", "Waking It",
+                    "When every block stands, use this journal on the Calciner. The bricks join and the furnace becomes one thing. "
+                            + "If something is missing, the journal tells you what and where.\n\n"
+                            + "Break any block and the furnace falls apart into its bricks and parts again.");
             e.text("firing", "Firing It",
-                    "Put the matter in the upper slot and fuel in the lower slot, as in a furnace. One coal burns for several items.\n\n"
-                            + "The principles gather in three tanks, the gauges on the left. When a tank is full, the Calciner waits.");
+                    "Hand the matter to the mouth, or let a hopper or a pipe feed it. Coal and other fuel go into the Firebox below; "
+                            + "one coal burns for several items. Sneak with an empty hand at the mouth to take the matter back.\n\n"
+                            + "When a principle has no room left, the Calciner waits.");
             e.text("emptying", "Taking Them Out",
-                    "Hold an empty bucket on the cursor and click a gauge: the bucket fills with that principle.\n\n"
-                            + "Pipes take them by themselves. In the Fluids tab of the side panel, give each side one principle; "
-                            + "a pipe on that side then carries only that one.");
+                    "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan, Mercury drips into the Receiver "
+                            + "and Sulfur rises into the Hood.\n\n"
+                            + "Hold an empty bucket against one of them to fill it, or set a pipe or a tank there: each gives only its own principle.");
             e.list("burns", "What Burns", AlchemyRecipeTable.calcination().stream()
                     .map(row -> PrincipleText.line(row.label(), row.output())).toList());
         });
@@ -129,7 +145,8 @@ final class WorkshopCategory extends CategoryProvider {
             e.text("sides", "Sides",
                     "A machine side has two settings. The Items tab says what items do there. The Fluids tab says which principle "
                             + "goes in or out: Off, All, or one principle.\n\n"
-                            + "The carrot works on one of them; use it on the air to switch between Items and Fluids.");
+                            + "The carrot works on one of them; use it on the air to switch between Items and Fluids.\n\n"
+                            + "The Calciner has no sides to set: each principle leaves through its own part.");
         });
     }
 

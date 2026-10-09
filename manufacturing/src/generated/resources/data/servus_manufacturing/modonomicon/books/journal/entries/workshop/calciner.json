@@ -23,15 +23,95 @@
       "title": "book.servus_manufacturing.journal.workshop.calciner.machine.title"
     },
     {
+      "type": "modonomicon:multiblock",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "multiblock_id": "calciner",
+      "multiblock_name": "book.servus_manufacturing.journal.workshop.calciner.build.title",
+      "show_visualize_button": true,
+      "text": "book.servus_manufacturing.journal.workshop.calciner.build.text"
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.calciner.parts.text",
+      "title": "book.servus_manufacturing.journal.workshop.calciner.parts.title",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.calciner.parts_2.text",
+      "title": "",
+      "use_markdown_in_title": false
+    },
+    {
       "type": "modonomicon:crafting_recipe",
       "anchor": "",
       "condition": {
         "type": "modonomicon:none"
       },
       "recipe_id_1": "servus_manufacturing:calciner",
+      "recipe_id_2": "servus_manufacturing:calciner_firebox",
       "text": "book.servus_manufacturing.journal.workshop.calciner.recipe.text",
       "title1": "",
       "title2": ""
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "recipe_id_1": "servus_manufacturing:calciner_ash_pan",
+      "recipe_id_2": "servus_manufacturing:alembic",
+      "text": "book.servus_manufacturing.journal.workshop.calciner.recipe_pan.text",
+      "title1": "",
+      "title2": ""
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "recipe_id_1": "servus_manufacturing:receiver",
+      "recipe_id_2": "servus_manufacturing:sulfur_hood",
+      "text": "book.servus_manufacturing.journal.workshop.calciner.recipe_receiver.text",
+      "title1": "",
+      "title2": ""
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.calciner.waking.text",
+      "title": "book.servus_manufacturing.journal.workshop.calciner.waking.title",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.calciner.waking_2.text",
+      "title": "",
+      "use_markdown_in_title": false
     },
     {
       "type": "modonomicon:text",

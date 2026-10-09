@@ -1,0 +1,73 @@
+{
+  "type": "modonomicon:dense",
+  "mapping": {
+    "*": {
+      "type": "modonomicon:display",
+      "display": "minecraft:basalt"
+    },
+    "+": {
+      "type": "modonomicon:display",
+      "display": "minecraft:stone"
+    },
+    "0": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:calciner"
+    },
+    "A": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:calciner_ash_pan"
+    },
+    "B": {
+      "type": "modonomicon:block",
+      "block": "minecraft:bricks"
+    },
+    "F": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:calciner_firebox"
+    },
+    "H": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:sulfur_hood"
+    },
+    "L": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:alembic"
+    },
+    "R": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:receiver"
+    }
+  },
+  "pattern": [
+    [
+      "_____",
+      "__H__",
+      "_____"
+    ],
+    [
+      "_____",
+      "__LR_",
+      "_____"
+    ],
+    [
+      "_____",
+      "_B0B_",
+      "_____"
+    ],
+    [
+      "_____",
+      "_BFB_",
+      "_____"
+    ],
+    [
+      "_____",
+      "_BAB_",
+      "_____"
+    ],
+    [
+      "*+*+*",
+      "+*+*+",
+      "*+*+*"
+    ]
+  ]
+}

@@ -5,6 +5,8 @@ import com.klikli_dev.modonomicon.api.datagen.EntryBackground;
 import com.klikli_dev.modonomicon.api.datagen.EntryProvider;
 import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookCraftingRecipePageModel;
+import com.klikli_dev.modonomicon.api.datagen.book.page.BookMultiblockPageModel;
+import net.minecraft.resources.ResourceLocation;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookSpotlightPageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
 import com.mojang.datafixers.util.Pair;
@@ -62,6 +64,26 @@ final class JournalEntries {
             page(page, () -> BookCraftingRecipePageModel.create()
                     .withRecipeId1(recipeId)
                     .withText(context().pageText()));
+            pageText(body);
+        }
+
+        /** Two crafting recipes on one page, with a short text under them. */
+        void crafting(String page, String recipeId1, String recipeId2, String body) {
+            page(page, () -> BookCraftingRecipePageModel.create()
+                    .withRecipeId1(recipeId1)
+                    .withRecipeId2(recipeId2)
+                    .withText(context().pageText()));
+            pageText(body);
+        }
+
+        /** A multiblock schematic the reader can turn and project into the world with Visualize. */
+        void multiblock(String page, ResourceLocation multiblock, String title, String body) {
+            page(page, () -> BookMultiblockPageModel.create()
+                    .withMultiblockId(multiblock)
+                    .withMultiblockName(context().pageTitle())
+                    .withText(context().pageText())
+                    .withVisualizeButton(true));
+            pageTitle(title);
             pageText(body);
         }
 

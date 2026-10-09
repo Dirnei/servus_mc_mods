@@ -41,6 +41,7 @@ public final class ServusManufacturingDataGen {
 
         generator.addProvider(event.includeServer(), new ServusManufacturingBlockTagsProvider(output, lookup, existingFileHelper));
         generator.addProvider(event.includeServer(), new ServusManufacturingRecipeProvider(output, lookup));
+        generator.addProvider(event.includeServer(), new ServusManufacturingMultiblockProvider(output));
         generator.addProvider(event.includeServer(), new AdvancementProvider(output, lookup, existingFileHelper,
                 List.of(new JournalAdvancements())));
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),

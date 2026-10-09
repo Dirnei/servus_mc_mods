@@ -12,7 +12,10 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlo
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
+import com.klikli_dev.modonomicon.api.ModonomiconAPI;
+import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -348,6 +351,22 @@ public final class CalcinerGameTests {
                 "no item port while unformed");
         helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
                 helper.absolutePos(cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH)), Direction.NORTH) == null, "no fluid port while unformed");
+        helper.succeed();
+    }
+
+    /** The journal's schematic, as Modonomicon loads it on the server, accepts the structure that forming accepts. */
+    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    public static void schematicMatchesTheBuild(GameTestHelper helper) {
+        Multiblock schematic = ModonomiconAPI.get().getMultiblock(
+                ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner"));
+        helper.assertTrue(schematic != null, "the Calciner schematic should be loaded on the server");
+        build(helper, CALCINER, Direction.NORTH);
+        helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(CALCINER)) != null,
+                "the schematic should accept a complete build");
+        helper.assertTrue(CalcinerStructure.check(helper.getLevel(), helper.absolutePos(CALCINER)).complete(), "and so does forming");
+        helper.setBlock(cellPos(CALCINER, Role.HOOD, Direction.NORTH), Blocks.AIR);
+        helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(CALCINER)) == null,
+                "the schematic should refuse a build without the Hood");
         helper.succeed();
     }
 }
