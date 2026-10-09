@@ -281,9 +281,63 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
+    /** An Athanor on its hearth at {@link #MACHINE}, formed with the Journal. */
     static AthanorBlockEntity athanor(GameTestHelper helper) {
+        AthanorBlockEntity athanor = unformedAthanor(helper);
+        CalcinerGameTests.use(helper, CalcinerGameTests.player(helper, new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get())), MACHINE);
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
+        return athanor;
+    }
+
+    /** An Athanor on a complete hearth that nobody formed. */
+    static AthanorBlockEntity unformedAthanor(GameTestHelper helper) {
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                helper.setBlock(MACHINE.offset(dx, -1, dz), Blocks.BRICKS);
+            }
+        }
         helper.setBlock(MACHINE, ServusManufacturingBlocks.ATHANOR.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
         return helper.getBlockEntity(MACHINE);
+    }
+
+    /** Without its hearth the Journal forms nothing; on a complete one it does, and a missing corner brick unforms it at the next check. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorFormsOnItsHearth(GameTestHelper helper) {
+        unformedAthanor(helper);
+        helper.setBlock(MACHINE.offset(1, -1, 1), Blocks.STONE);
+        Player player = CalcinerGameTests.player(helper, new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get()));
+        CalcinerGameTests.use(helper, player, MACHINE);
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.setBlock(MACHINE.offset(1, -1, 1), Blocks.BRICKS);
+        CalcinerGameTests.use(helper, player, MACHINE);
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
+        AthanorBlockEntity athanor = helper.getBlockEntity(MACHINE);
+        helper.assertTrue(athanor.owner().filter(player.getUUID()::equals).isPresent(), "the forming player owns the Athanor");
+        helper.setBlock(MACHINE.offset(-1, -1, -1), Blocks.AIR);
+        athanor.checkTier();
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.succeed();
+    }
+
+    /** Breaking the brick right under a formed Athanor unforms it at once. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorUnformsWithoutTheBrickBelow(GameTestHelper helper) {
+        athanor(helper);
+        helper.getLevel().destroyBlock(helper.absolutePos(MACHINE.below()), true);
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.succeed();
+    }
+
+    /** An Athanor nobody formed crafts nothing. */
+    @GameTest(template = EMPTY, timeoutTicks = 140)
+    public static void unformedAthanorCraftsNothing(GameTestHelper helper) {
+        AthanorBlockEntity athanor = unformedAthanor(helper);
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GUNPOWDER));
+        athanor.tanks().insert(new Principles(0, 500, 0));
+        helper.runAfterDelay(120, () -> {
+            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no Blaze Powder unformed");
+            helper.succeed();
+        });
     }
 
     static void saltRing(GameTestHelper helper) {

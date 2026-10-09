@@ -201,6 +201,8 @@
   "journal.servus_manufacturing.schwaz.finished": "Finished the Schwaz chapter of the journal",
   "journal.servus_manufacturing.villach": "Villach",
   "journal.servus_manufacturing.villach.finished": "Finished the Villach chapter of the journal",
+  "message.servus_manufacturing.athanor.formed": "The Athanor is ready.",
+  "message.servus_manufacturing.athanor.missing": "The Athanor needs a hearth: 3 by 3 Bricks right below it. The Athanor page of Paracelsus' Journal shows it.",
   "message.servus_manufacturing.calciner.above": "above the %s",
   "message.servus_manufacturing.calciner.below": "below the %s",
   "message.servus_manufacturing.calciner.formed": "The Calciner is ready.",

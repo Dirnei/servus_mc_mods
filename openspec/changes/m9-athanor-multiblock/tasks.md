@@ -6,7 +6,7 @@
 
 ## 2. Forming
 
-- [ ] 2.1 `FORMED` on `AthanorBlock`; Journal forms or names the missing brick (lang); `neighborChanged` unforms on the brick below; `checkTier` checks the hearth and unforms; `canCraft` needs `formed()`; the forming player owns it; blockstate datagen keeps the models for every `FORMED`; GameTests (forming, missing brick, not formed no craft, corner brick unforms) and existing Athanor GameTests build and form first; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
+- [x] 2.1 `FORMED` on `AthanorBlock`; Journal forms or names the missing brick (lang); `neighborChanged` unforms on the brick below; `checkTier` checks the hearth and unforms; `canCraft` needs `formed()`; the forming player owns it; blockstate datagen keeps the models for every `FORMED`; GameTests (forming, missing brick, not formed no craft, corner brick unforms) and existing Athanor GameTests build and form first; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
 
 ## 3. Schematics and journal
 

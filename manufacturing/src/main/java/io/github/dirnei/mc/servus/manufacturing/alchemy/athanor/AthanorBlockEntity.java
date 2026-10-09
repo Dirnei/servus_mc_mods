@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.Blocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
@@ -110,6 +112,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
             return BuiltInRegistries.BLOCK.getKey(around.getBlock()).toString();
         });
         tierCooldown = 0;
+        checkHearth();
         if (found != tier) {
             tier = found;
             setChanged();
@@ -117,6 +120,58 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         BlockState state = level.getBlockState(worldPosition);
         if (state.hasProperty(AthanorBlock.TIER) && state.getValue(AthanorBlock.TIER) != Math.min(found, 3)) {
             level.setBlock(worldPosition, state.setValue(AthanorBlock.TIER, Math.min(found, 3)), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    // Hearth
+
+    /** Whether the Athanor stands formed on its hearth. */
+    public boolean formed() {
+        BlockState state = getBlockState();
+        return state.getBlock() instanceof AthanorBlock && state.getValue(AthanorBlock.FORMED);
+    }
+
+    /** The first hearth position that is not Bricks, or null when the hearth is complete. Nine block reads. */
+    private BlockPos missingHearthBrick() {
+        for (AthanorTiers.BlockAt brick : AthanorLayout.hearth()) {
+            BlockPos at = worldPosition.offset(brick.dx(), brick.dy(), brick.dz());
+            if (!level.getBlockState(at).is(Blocks.BRICKS)) {
+                return at;
+            }
+        }
+        return null;
+    }
+
+    /** The Journal's click: forms the Athanor on a complete hearth and makes the player its owner, else says what is missing. */
+    public void tryForm(Player player) {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        if (formed()) {
+            player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.formed"), true);
+            return;
+        }
+        if (missingHearthBrick() != null) {
+            player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.missing"), false);
+            return;
+        }
+        setFormed(true);
+        setOwner(player.getUUID());
+        checkTier();
+        player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.formed"), true);
+    }
+
+    /** Unforms a formed Athanor whose hearth lost a brick. */
+    public void checkHearth() {
+        if (level != null && !level.isClientSide() && formed() && missingHearthBrick() != null) {
+            setFormed(false);
+        }
+    }
+
+    private void setFormed(boolean formed) {
+        BlockState state = level.getBlockState(worldPosition);
+        if (state.getBlock() instanceof AthanorBlock && state.getValue(AthanorBlock.FORMED) != formed) {
+            level.setBlock(worldPosition, state.setValue(AthanorBlock.FORMED, formed), Block.UPDATE_ALL);
         }
     }
 
@@ -135,7 +190,8 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
     }
 
     private boolean canCraft(AthanorRecipe recipe) {
-        return recipe.tier() <= tier
+        return formed()
+                && recipe.tier() <= tier
                 && tanks.contents().covers(recipe.principles())
                 && canInsertOutput(SLOT_OUTPUT, recipe.result());
     }
