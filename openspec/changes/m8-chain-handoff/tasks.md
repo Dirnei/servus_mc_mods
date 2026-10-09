@@ -12,7 +12,7 @@
 
 ## 3. Docs
 
-- [ ] 3.1 Storage docs page: intermediates go machine to machine. Verify with `npx vitest run` in `docs/`.
+- [x] 3.1 Storage docs page: intermediates go machine to machine. Verify with `npx vitest run` in `docs/`.
 
 ## 4. Integration
 
