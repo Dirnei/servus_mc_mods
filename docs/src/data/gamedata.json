@@ -584,6 +584,19 @@
         {"item": "servus_manufacturing:salt_crystal", "count": 9}
       ]
     },
+    "servus_manufacturing:sulfur_duct": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["CCC"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 3}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:sulfur_duct", "count": 3}
+      ]
+    },
     "servus_manufacturing:sulfur_hood": {
       "type": "minecraft:crafting_shaped",
       "pattern": [" C ", "CBC"],
@@ -1077,6 +1090,9 @@
     },
     "servus_manufacturing:salt_crystal_block": {
       "name": "Salt Crystal Block"
+    },
+    "servus_manufacturing:sulfur_duct": {
+      "name": "Sulfur Duct"
     },
     "servus_manufacturing:sulfur_hood": {
       "name": "Sulfur Hood"

@@ -30,12 +30,12 @@ public final class CalcinerPorts {
     private CalcinerPorts() {
     }
 
-    /** The principle a part gives out, or null for parts without a fluid port. */
-    public static Principle principle(Role role) {
-        return switch (role) {
+    /** The principle a cell gives out, or null for cells without a fluid port. */
+    public static Principle principle(Cell cell) {
+        return switch (cell.role()) {
             case ASH_PAN -> Principle.SALT;
             case RECEIVER -> Principle.MERCURY;
-            case HOOD -> Principle.SULFUR;
+            case DUCT -> cell.index() == CalcinerLayout.SULFUR_OUTLET ? Principle.SULFUR : null;
             default -> null;
         };
     }
@@ -70,12 +70,17 @@ public final class CalcinerPorts {
         return calciner == null ? null : calciner.upkeep();
     }
 
-    /** The drain only tank of the port's principle on the Ash Pan, Receiver or Hood of a formed Calciner. */
+    /** The drain only tank of the port's principle on the Ash Pan, the Receiver or the lowest Sulfur Duct of a formed Calciner. */
     public static IFluidHandler fluid(Level level, BlockPos pos, BlockState state) {
-        if (!(state.getBlock() instanceof CalcinerPartBlock part)) {
+        Cell cell;
+        if (state.getBlock() instanceof CalcinerPartBlock part) {
+            cell = CalcinerLayout.part(part.role());
+        } else if (state.getBlock() instanceof CalcinerDuctBlock && state.getValue(CalcinerDuctBlock.FORMED)) {
+            cell = CalcinerDuctBlock.cell(state);
+        } else {
             return null;
         }
-        Principle principle = principle(part.role());
+        Principle principle = principle(cell);
         if (principle == null) {
             return null;
         }
@@ -87,7 +92,7 @@ public final class CalcinerPorts {
     public static void push(Level level, BlockPos controller, Direction direction, PrincipleTanks tanks) {
         Facing facing = CalcinerStructure.facing(direction);
         for (Cell cell : CalcinerLayout.cells()) {
-            Principle principle = principle(cell.role());
+            Principle principle = principle(cell);
             if (principle == null) {
                 continue;
             }

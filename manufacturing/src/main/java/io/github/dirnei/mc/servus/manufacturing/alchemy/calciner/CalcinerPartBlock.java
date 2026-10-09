@@ -67,7 +67,7 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
                 return ItemInteractionResult.sidedSuccess(level.isClientSide());
             }
         }
-        if (CalcinerPorts.principle(role) != null && state.getValue(FORMED)
+        if (CalcinerPorts.principle(CalcinerLayout.part(role)) != null && state.getValue(FORMED)
                 && stack.getCapability(Capabilities.FluidHandler.ITEM) != null) {
             // Empty containers fill with the port's principle; filled ones do nothing here.
             IFluidHandler port = CalcinerPorts.fluid(level, pos, state);
@@ -106,6 +106,12 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         return InteractionResult.PASS;
+    }
+
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+        CalcinerStructure.neighbourChanged(level, state, pos);
     }
 
     @Override

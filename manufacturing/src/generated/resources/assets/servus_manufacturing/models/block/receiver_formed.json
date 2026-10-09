@@ -1,0 +1,139 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        1,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#glass"
+        },
+        "east": {
+          "texture": "#glass"
+        },
+        "north": {
+          "texture": "#glass"
+        },
+        "south": {
+          "texture": "#glass"
+        },
+        "up": {
+          "texture": "#glass"
+        },
+        "west": {
+          "texture": "#glass"
+        }
+      },
+      "from": [
+        4,
+        1,
+        4
+      ],
+      "to": [
+        12,
+        9,
+        12
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#glass"
+        },
+        "east": {
+          "texture": "#glass"
+        },
+        "north": {
+          "texture": "#glass"
+        },
+        "south": {
+          "texture": "#glass"
+        },
+        "up": {
+          "texture": "#glass"
+        },
+        "west": {
+          "texture": "#glass"
+        }
+      },
+      "from": [
+        6,
+        9,
+        6
+      ],
+      "to": [
+        10,
+        14,
+        10
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        10,
+        8,
+        7
+      ],
+      "to": [
+        16,
+        10,
+        9
+      ]
+    }
+  ],
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "cut": "minecraft:block/cut_copper",
+    "glass": "minecraft:block/glass",
+    "particle": "minecraft:block/glass"
+  }
+}

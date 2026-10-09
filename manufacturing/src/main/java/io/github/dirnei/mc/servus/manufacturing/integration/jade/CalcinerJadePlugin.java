@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
@@ -32,7 +33,8 @@ import snownee.jade.api.config.IPluginConfig;
 @WailaPlugin(ServusManufacturingIds.MOD_ID)
 public final class CalcinerJadePlugin implements IWailaPlugin {
 
-    private static final List<Class<? extends Block>> BLOCKS = List.of(CalcinerBlock.class, CalcinerPartBlock.class, CalcinerShellBlock.class);
+    private static final List<Class<? extends Block>> BLOCKS = List.of(CalcinerBlock.class, CalcinerPartBlock.class, CalcinerShellBlock.class,
+            CalcinerDuctBlock.class);
 
     @Override
     public void register(IWailaCommonRegistration registration) {

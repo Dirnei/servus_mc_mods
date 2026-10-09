@@ -30,7 +30,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * Draws what a formed Calciner holds: the matter in the crucible, the Salt heap in the Ash Pan, the Mercury in the Receiver's
- * flask and the Sulfur crust creeping up the Hood, each by how full its tank is. The rest of the
+ * flask, each by how full its buffer is. The Sulfur and Mercury tanks show their own level. The rest of the
  * structure is chunk baked from block models.
  */
 public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlockEntity> {
@@ -42,7 +42,6 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
     private static final Fill[] FILLS = {
             new Fill(Role.ASH_PAN, Principle.SALT, 4, 3, 0.5F, 12, 4, 3),
             new Fill(Role.RECEIVER, Principle.MERCURY, 4.5F, 1.25F, 4.5F, 11.5F, 7.5F, 11.5F),
-            new Fill(Role.HOOD, Principle.SULFUR, 4.75F, 6, 4.75F, 11.25F, 8, 11.25F),
     };
 
     public CalcinerRenderer(BlockEntityRendererProvider.Context context) {

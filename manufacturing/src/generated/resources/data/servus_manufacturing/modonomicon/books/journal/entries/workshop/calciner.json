@@ -56,6 +56,17 @@
       "use_markdown_in_title": false
     },
     {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.calciner.parts_3.text",
+      "title": "",
+      "use_markdown_in_title": false
+    },
+    {
       "type": "modonomicon:crafting_recipe",
       "anchor": "",
       "condition": {
@@ -88,6 +99,17 @@
       "recipe_id_1": "servus_manufacturing:receiver",
       "recipe_id_2": "servus_manufacturing:sulfur_hood",
       "text": "book.servus_manufacturing.journal.workshop.calciner.recipe_receiver.text",
+      "title1": "",
+      "title2": ""
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "recipe_id_1": "servus_manufacturing:sulfur_duct",
+      "text": "book.servus_manufacturing.journal.workshop.calciner.recipe_duct.text",
       "title1": "",
       "title2": ""
     },
@@ -154,6 +176,17 @@
       },
       "show_title_separator": true,
       "text": "book.servus_manufacturing.journal.workshop.calciner.emptying_2.text",
+      "title": "",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.calciner.emptying_3.text",
       "title": "",
       "use_markdown_in_title": false
     },

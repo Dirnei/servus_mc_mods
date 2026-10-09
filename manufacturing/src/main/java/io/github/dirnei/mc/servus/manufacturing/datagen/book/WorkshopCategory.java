@@ -77,15 +77,17 @@ final class WorkshopCategory extends CategoryProvider {
             e.spotlight("machine", ServusManufacturingItems.CALCINER.get(), "The Calciner",
                     "My furnace for the first work. It burns a thing until only its three principles are left.");
             e.multiblock("build", ServusManufacturingMultiblockProvider.CALCINER, "The Calciner",
-                    "A wall of bricks one block deep. Press Visualize to see it where you stand.");
+                    "A wall one block deep with a tank on each side. Press Visualize, then click the ground where it shall stand.");
             e.text("parts", "The Parts",
                     "The furnace is bricks around three parts stacked in the middle: the Ash Pan at the bottom, the Firebox above it "
                             + "and the Calciner, the mouth, above that.\n\n"
-                            + "On top of the mouth sits the Alembic, the copper still. Right of it stands the Receiver, a flask that catches "
-                            + "what drips from the still. The Sulfur Hood crowns the Alembic.");
+                            + "On top of the mouth sits the Alembic, the copper still, and the Sulfur Hood crowns it. Beside the furnace stand two "
+                            + "columns of three Fluid Tanks. The Receiver sits on the right column and catches what drips from the still's spout; "
+                            + "keep the gap under the spout free. The Sulfur Duct leads from the Hood down into the left column.");
             e.crafting("recipe", mod + "calciner", mod + "calciner_firebox", "The mouth with its cauldron, and the Firebox.");
             e.crafting("recipe_pan", mod + "calciner_ash_pan", mod + "alembic", "The Ash Pan and the Alembic.");
             e.crafting("recipe_receiver", mod + "receiver", mod + "sulfur_hood", "The Receiver and the Sulfur Hood.");
+            e.crafting("recipe_duct", mod + "sulfur_duct", "The Sulfur Duct, three at once.");
             e.text("waking", "Waking It",
                     "When every block stands, use this journal on the Calciner. The bricks join and the furnace becomes one thing. "
                             + "If something is missing, the journal tells you what and where.\n\n"
@@ -95,9 +97,9 @@ final class WorkshopCategory extends CategoryProvider {
                             + "one coal burns for several items. Sneak with an empty hand at the mouth to take the matter back.\n\n"
                             + "When a principle has no room left, the Calciner waits.");
             e.text("emptying", "Taking Them Out",
-                    "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan, Mercury drips into the Receiver "
-                            + "and Sulfur rises into the Hood.\n\n"
-                            + "Hold an empty bucket against one of them to fill it, or set a pipe or a tank there: each gives only its own principle.");
+                    "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan. Mercury drips through the Receiver "
+                            + "into the right tank, and Sulfur rises into the Hood and runs down the duct into the left tank.\n\n"
+                            + "Take them from the tanks with a pipe or a bucket. The Salt waits in the Ash Pan for a bucket, a pipe or a tank.");
             e.list("burns", "What Burns", AlchemyRecipeTable.calcination().stream()
                     .map(row -> PrincipleText.line(row.label(), row.output())).toList());
         });

@@ -1,0 +1,94 @@
+{
+  "variants": {
+    "facing=east,formed=false,piece=0": {
+      "model": "servus_manufacturing:block/sulfur_duct",
+      "y": 90
+    },
+    "facing=east,formed=false,piece=1": {
+      "model": "servus_manufacturing:block/sulfur_duct",
+      "y": 90
+    },
+    "facing=east,formed=false,piece=2": {
+      "model": "servus_manufacturing:block/sulfur_duct",
+      "y": 90
+    },
+    "facing=east,formed=true,piece=0": {
+      "model": "servus_manufacturing:block/sulfur_duct_across",
+      "y": 90
+    },
+    "facing=east,formed=true,piece=1": {
+      "model": "servus_manufacturing:block/sulfur_duct_elbow",
+      "y": 90
+    },
+    "facing=east,formed=true,piece=2": {
+      "model": "servus_manufacturing:block/sulfur_duct_down",
+      "y": 90
+    },
+    "facing=north,formed=false,piece=0": {
+      "model": "servus_manufacturing:block/sulfur_duct"
+    },
+    "facing=north,formed=false,piece=1": {
+      "model": "servus_manufacturing:block/sulfur_duct"
+    },
+    "facing=north,formed=false,piece=2": {
+      "model": "servus_manufacturing:block/sulfur_duct"
+    },
+    "facing=north,formed=true,piece=0": {
+      "model": "servus_manufacturing:block/sulfur_duct_across"
+    },
+    "facing=north,formed=true,piece=1": {
+      "model": "servus_manufacturing:block/sulfur_duct_elbow"
+    },
+    "facing=north,formed=true,piece=2": {
+      "model": "servus_manufacturing:block/sulfur_duct_down"
+    },
+    "facing=south,formed=false,piece=0": {
+      "model": "servus_manufacturing:block/sulfur_duct",
+      "y": 180
+    },
+    "facing=south,formed=false,piece=1": {
+      "model": "servus_manufacturing:block/sulfur_duct",
+      "y": 180
+    },
+    "facing=south,formed=false,piece=2": {
+      "model": "servus_manufacturing:block/sulfur_duct",
+      "y": 180
+    },
+    "facing=south,formed=true,piece=0": {
+      "model": "servus_manufacturing:block/sulfur_duct_across",
+      "y": 180
+    },
+    "facing=south,formed=true,piece=1": {
+      "model": "servus_manufacturing:block/sulfur_duct_elbow",
+      "y": 180
+    },
+    "facing=south,formed=true,piece=2": {
+      "model": "servus_manufacturing:block/sulfur_duct_down",
+      "y": 180
+    },
+    "facing=west,formed=false,piece=0": {
+      "model": "servus_manufacturing:block/sulfur_duct",
+      "y": 270
+    },
+    "facing=west,formed=false,piece=1": {
+      "model": "servus_manufacturing:block/sulfur_duct",
+      "y": 270
+    },
+    "facing=west,formed=false,piece=2": {
+      "model": "servus_manufacturing:block/sulfur_duct",
+      "y": 270
+    },
+    "facing=west,formed=true,piece=0": {
+      "model": "servus_manufacturing:block/sulfur_duct_across",
+      "y": 270
+    },
+    "facing=west,formed=true,piece=1": {
+      "model": "servus_manufacturing:block/sulfur_duct_elbow",
+      "y": 270
+    },
+    "facing=west,formed=true,piece=2": {
+      "model": "servus_manufacturing:block/sulfur_duct_down",
+      "y": 270
+    }
+  }
+}

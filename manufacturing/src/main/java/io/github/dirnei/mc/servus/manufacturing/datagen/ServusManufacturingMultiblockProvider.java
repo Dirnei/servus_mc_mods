@@ -35,8 +35,12 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
         for (String row : CalcinerLayout.patternRows()) {
             calciner.layer(row.replace(Role.CALCINER.symbol(), CALCINER_SYMBOL));
         }
-        calciner.layer(GROUND + "0" + GROUND);
+        calciner.layer(GROUND.repeat(2) + "0" + GROUND.repeat(2));
         for (Role role : Role.values()) {
+            if (role == Role.AIR) {
+                // A space is air in Modonomicon's pattern already.
+                continue;
+            }
             calciner.block(role == Role.CALCINER ? CALCINER_SYMBOL : role.symbol(), () -> CalcinerStructure.expected(role));
         }
         calciner.display('0', () -> Blocks.SMOOTH_STONE);

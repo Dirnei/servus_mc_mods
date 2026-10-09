@@ -36,6 +36,12 @@ public class CalcinerShellBlock extends Block implements Wrenchable {
     }
 
     @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+        CalcinerStructure.neighbourChanged(level, state, pos);
+    }
+
+    @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock())) {
             CalcinerStructure.broken(level, state, pos);

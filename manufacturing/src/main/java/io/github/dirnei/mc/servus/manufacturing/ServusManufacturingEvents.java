@@ -59,7 +59,7 @@ public final class ServusManufacturingEvents {
             event.registerBlock(ServusFoundationCapabilities.UPKEEP, (level, pos, state, entity, side) -> CalcinerPorts.upkeep(level, pos, state),
                     ServusManufacturingBlocks.FIREBOX.get());
             event.registerBlock(Capabilities.FluidHandler.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.fluid(level, pos, state),
-                    ServusManufacturingBlocks.ASH_PAN.get(), ServusManufacturingBlocks.RECEIVER.get(), ServusManufacturingBlocks.SULFUR_HOOD.get());
+                    ServusManufacturingBlocks.ASH_PAN.get(), ServusManufacturingBlocks.RECEIVER.get(), ServusManufacturingBlocks.SULFUR_DUCT.get());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),

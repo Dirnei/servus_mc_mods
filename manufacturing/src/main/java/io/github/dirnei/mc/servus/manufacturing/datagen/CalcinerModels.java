@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
@@ -53,11 +54,53 @@ final class CalcinerModels {
         ModelFile alembic = alembic("alembic", false);
         ModelFile alembicFormed = alembic("alembic_formed", true);
         part(ServusManufacturingBlocks.ALEMBIC.get(), alembic, alembic, alembicFormed, alembicFormed);
-        ModelFile receiver = receiver("receiver");
-        part(ServusManufacturingBlocks.RECEIVER.get(), receiver, receiver, receiver, receiver);
+        ModelFile receiver = receiver("receiver", false);
+        ModelFile receiverFormed = receiver("receiver_formed", true);
+        part(ServusManufacturingBlocks.RECEIVER.get(), receiver, receiver, receiverFormed, receiverFormed);
         ModelFile hood = hood("sulfur_hood");
         part(ServusManufacturingBlocks.SULFUR_HOOD.get(), hood, hood, hood, hood);
         shell();
+        duct();
+    }
+
+    /** The Sulfur Duct: a straight copper pipe while unformed, its piece of the run from Hood to tank when formed. */
+    private void duct() {
+        ModelFile straight = ductModel("sulfur_duct", -1);
+        ModelFile[] pieces = {ductModel("sulfur_duct_across", 0), ductModel("sulfur_duct_elbow", 1), ductModel("sulfur_duct_down", 2)};
+        Block block = ServusManufacturingBlocks.SULFUR_DUCT.get();
+        states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(CalcinerDuctBlock.FORMED) ? pieces[state.getValue(CalcinerDuctBlock.PIECE)] : straight)
+                .rotationY(rotation(state.getValue(CalcinerDuctBlock.FACING)))
+                .build());
+        states.simpleBlockItem(block, straight);
+    }
+
+    /**
+     * One piece of the duct. The Hood lies toward -x (the player's right), the Sulfur tank below
+     * the last piece. Piece 0 runs across and into the Hood's pipe, 1 turns down, 2 drops into the tank.
+     */
+    private ModelFile ductModel(String name, int piece) {
+        BlockModelBuilder model = builder(name)
+                .texture("copper", states.mcLoc(COPPER)).texture("cut", states.mcLoc(CUT_COPPER))
+                .texture("particle", states.mcLoc(COPPER));
+        switch (piece) {
+            case 0 -> box(model, -5, 6, 6, 16, 10, 10, "#copper");
+            case 1 -> {
+                box(model, 0, 6, 6, 10, 10, 10, "#copper");
+                box(model, 6, 0, 6, 10, 6, 10, "#copper");
+                box(model, 5, 5, 5, 11, 11, 11, "#cut");
+            }
+            case 2 -> {
+                box(model, 6, 2, 6, 10, 16, 10, "#copper");
+                box(model, 4, 0, 4, 12, 2, 12, "#cut");
+            }
+            default -> {
+                box(model, 0, 6, 6, 16, 10, 10, "#copper");
+                box(model, 0, 5, 5, 2, 11, 11, "#cut");
+                box(model, 14, 5, 5, 16, 11, 11, "#cut");
+            }
+        }
+        return model;
     }
 
     private static int rotation(Direction facing) {
@@ -198,12 +241,13 @@ final class CalcinerModels {
         box(model, 4, 3, 4, 12, 10, 12, "#copper");
         box(model, 6, 10, 6, 10, 13, 10, "#copper");
         box(model, 5, 13, 5, 11, 15, 11, "#cut");
-        box(model, formed ? -8 : 0, 8, 7, 4, 10, 9, "#cut");
+        // Formed, the spout crosses the air cell to the Receiver beyond it.
+        box(model, formed ? -16 : 0, 8, 7, 4, 10, 9, "#cut");
         return model;
     }
 
     /** A glass flask on a copper stand, where the Mercury drips in. */
-    private ModelFile receiver(String name) {
+    private ModelFile receiver(String name, boolean formed) {
         BlockModelBuilder model = builder(name)
                 .texture("glass", states.mcLoc(GLASS)).texture("cut", states.mcLoc(CUT_COPPER))
                 .texture("particle", states.mcLoc(GLASS))
@@ -211,6 +255,10 @@ final class CalcinerModels {
         box(model, 3, 0, 3, 13, 1, 13, "#cut");
         box(model, 4, 1, 4, 12, 9, 12, "#glass");
         box(model, 6, 9, 6, 10, 14, 10, "#glass");
+        if (formed) {
+            // The end of the Alembic's spout, dipping into the flask's neck.
+            box(model, 10, 8, 7, 16, 10, 9, "#cut");
+        }
         return model;
     }
 

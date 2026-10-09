@@ -21,6 +21,10 @@
       "type": "modonomicon:block",
       "block": "servus_manufacturing:calciner"
     },
+    "D": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:sulfur_duct"
+    },
     "F": {
       "type": "modonomicon:block",
       "block": "servus_manufacturing:calciner_firebox"
@@ -36,26 +40,30 @@
     "R": {
       "type": "modonomicon:block",
       "block": "servus_manufacturing:receiver"
+    },
+    "T": {
+      "type": "modonomicon:block",
+      "block": "servus_foundation:fluid_tank"
     }
   },
   "pattern": [
     [
-      "_H_"
+      "DDH__"
     ],
     [
-      "_LR"
+      "D_L_R"
     ],
     [
-      "BCB"
+      "TBCBT"
     ],
     [
-      "BFB"
+      "TBFBT"
     ],
     [
-      "BAB"
+      "TBABT"
     ],
     [
-      "*0*"
+      "**0**"
     ]
   ]
 }

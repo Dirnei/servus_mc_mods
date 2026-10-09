@@ -29,6 +29,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.ALEMBIC.get(), "Alembic");
         add(ServusManufacturingBlocks.RECEIVER.get(), "Receiver");
         add(ServusManufacturingBlocks.SULFUR_HOOD.get(), "Sulfur Hood");
+        add(ServusManufacturingBlocks.SULFUR_DUCT.get(), "Sulfur Duct");
         add(ServusManufacturingBlocks.CALCINER_SHELL.get(), "Calciner Bricks");
         add("message.servus_manufacturing.calciner.formed", "The Calciner is ready.");
         add("jade.servus_manufacturing.calciner.input", "Matter: %s");

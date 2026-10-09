@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
@@ -59,6 +60,9 @@ public final class CalcinerGameTests {
     static void build(GameTestHelper helper, BlockPos controller, Direction facing) {
         for (Cell cell : CalcinerLayout.cells()) {
             BlockPos pos = CalcinerStructure.pos(controller, cell, CalcinerStructure.facing(facing));
+            if (cell.role() == Role.AIR) {
+                continue;
+            }
             BlockState state = CalcinerStructure.expected(cell.role()).defaultBlockState();
             if (cell.role() == Role.CALCINER) {
                 state = state.setValue(MachineBlock.FACING, Direction.NORTH);
@@ -114,6 +118,10 @@ public final class CalcinerGameTests {
                 }
                 case BRICK -> helper.assertTrue(formed ? state.getBlock() instanceof CalcinerShellBlock : state.is(Blocks.BRICKS),
                         "brick cell " + cell.index() + " should be " + (formed ? "a shell" : "Bricks") + ", is " + state);
+                case TANK -> helper.assertTrue(state.is(ServusLogisticsBlocks.FLUID_TANK.get()), "the tanks stay tanks");
+                case AIR -> {
+                }
+                case DUCT -> helper.assertTrue(state.getValue(CalcinerDuctBlock.FORMED) == formed, "duct formed should be " + formed);
                 default -> helper.assertTrue(state.getValue(CalcinerPartBlock.FORMED) == formed,
                         cell.role() + " formed should be " + formed);
             }
@@ -166,6 +174,10 @@ public final class CalcinerGameTests {
         formed(helper, CALCINER, Direction.NORTH);
         Player player = player(helper, new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get()));
         for (Cell cell : CalcinerLayout.cells()) {
+            if (cell.role() == Role.TANK || cell.role() == Role.AIR) {
+                // Foundation's tanks keep their own carrot rules; the air cell has nothing to click.
+                continue;
+            }
             BlockPos pos = helper.absolutePos(CalcinerStructure.pos(CALCINER, cell, CalcinerLayout.Facing.NORTH));
             for (boolean sneaking : new boolean[] {false, true}) {
                 player.setShiftKeyDown(sneaking);
@@ -195,6 +207,9 @@ public final class CalcinerGameTests {
             helper.assertTrue(switch (cell.role()) {
                 case CALCINER -> !state.getValue(CalcinerBlock.FORMED);
                 case BRICK -> state.is(Blocks.BRICKS);
+                case TANK -> state.is(ServusLogisticsBlocks.FLUID_TANK.get());
+                case AIR -> true;
+                case DUCT -> !state.getValue(CalcinerDuctBlock.FORMED);
                 default -> !state.getValue(CalcinerPartBlock.FORMED);
             }, "cell " + cell.index() + " should be unformed, is " + state);
         }
@@ -281,9 +296,9 @@ public final class CalcinerGameTests {
     public static void eachPortGivesItsPrinciple(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         BlockPos saltTank = cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH).north();
-        BlockPos sulfurTank = cellPos(CALCINER, Role.HOOD, Direction.NORTH).above();
+        BlockPos sulfurTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(12), CalcinerLayout.Facing.NORTH);
+        BlockPos mercuryTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(15), CalcinerLayout.Facing.NORTH);
         helper.setBlock(saltTank, ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
-        helper.setBlock(sulfurTank, ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
         calciner.tanks().insert(new Principles(500, 400, 300));
         IFluidHandler receiver = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
                 helper.absolutePos(cellPos(CALCINER, Role.RECEIVER, Direction.NORTH)), Direction.NORTH);
@@ -293,13 +308,17 @@ public final class CalcinerGameTests {
                 "a port never takes fluid");
         helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(CALCINER), Direction.NORTH) == null,
                 "the mouth has no fluid port");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
+                helper.absolutePos(cellPos(CALCINER, Role.HOOD, Direction.NORTH)), Direction.UP) == null, "the Hood has no fluid port");
         helper.succeedWhen(() -> {
             FluidStack salt = tankAt(helper, saltTank).getFluidInTank(0);
             FluidStack sulfur = tankAt(helper, sulfurTank).getFluidInTank(0);
+            FluidStack mercury = tankAt(helper, mercuryTank).getFluidInTank(0);
             helper.assertTrue(salt.getFluid().isSame(PrincipleFluids.fluid(Principle.SALT)) && salt.getAmount() == 500, "500 Salt at the Ash Pan, got " + salt);
             helper.assertTrue(sulfur.getFluid().isSame(PrincipleFluids.fluid(Principle.SULFUR)) && sulfur.getAmount() == 400,
-                    "400 Sulfur at the Hood, got " + sulfur);
-            helper.assertTrue(calciner.tanks().amount(Principle.MERCURY) == 300, "the Mercury stays without a neighbour at the Receiver");
+                    "400 Sulfur in the Sulfur tank, got " + sulfur);
+            helper.assertTrue(mercury.getFluid().isSame(PrincipleFluids.fluid(Principle.MERCURY)) && mercury.getAmount() == 300,
+                    "300 Mercury in the Mercury tank, got " + mercury);
         });
     }
 
@@ -367,6 +386,34 @@ public final class CalcinerGameTests {
         helper.setBlock(cellPos(CALCINER, Role.HOOD, Direction.NORTH), Blocks.AIR);
         helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(CALCINER.below(3))) == null,
                 "the schematic should refuse a build without the Hood");
+        helper.succeed();
+    }
+
+    static BlockPos spout(BlockPos controller) {
+        return CalcinerStructure.pos(controller, CalcinerLayout.cells(Role.AIR).getFirst(), CalcinerLayout.Facing.NORTH);
+    }
+
+    /** A block under the Alembic's spout keeps the Calciner from forming, and placed later it unforms it. */
+    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    public static void blockUnderTheSpoutUnforms(GameTestHelper helper) {
+        build(helper, CALCINER, Direction.NORTH);
+        helper.setBlock(spout(CALCINER), Blocks.STONE);
+        use(helper, player(helper, new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get())), CALCINER);
+        assertFormed(helper, CALCINER, Direction.NORTH, false);
+        helper.setBlock(spout(CALCINER), Blocks.AIR);
+        formed(helper, CALCINER, Direction.NORTH);
+        helper.setBlock(spout(CALCINER), Blocks.STONE);
+        assertFormed(helper, CALCINER, Direction.NORTH, false);
+        helper.succeed();
+    }
+
+    /** Breaking a Fluid Tank of a column unforms the Calciner; the other tanks stay. */
+    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    public static void breakingATankUnforms(GameTestHelper helper) {
+        formed(helper, CALCINER, Direction.NORTH);
+        BlockPos tank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(16), CalcinerLayout.Facing.NORTH);
+        helper.getLevel().destroyBlock(helper.absolutePos(tank), true);
+        assertFormed(helper, CALCINER, Direction.NORTH, false);
         helper.succeed();
     }
 }

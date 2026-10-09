@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The fixed layout of the Calciner structure: a wall one block deep, 3 wide and 5 tall,
- * described from its front with the Calciner (the furnace mouth) in the middle row.
+ * The fixed layout of the Calciner structure: a wall one block deep, 5 wide and 5 tall,
+ * described from its front with the Calciner (the furnace mouth) in the middle.
  *
  * <pre>
- *  _ H _     H Sulfur Hood
- *  _ L R     L Alembic, R Receiver
- *  B 0 B     0 Calciner, B Bricks
- *  B F B     F Firebox
- *  B A B     A Ash Pan, _ any block
+ *  D D H _ _     H Sulfur Hood, D Sulfur Duct
+ *  D _ L   R     L Alembic, R Receiver, the gap is air for the spout
+ *  T B 0 B T     0 Calciner, B Bricks, T Fluid Tank
+ *  T B F B T     F Firebox
+ *  T B A B T     A Ash Pan, _ any block
  * </pre>
  *
  * Right is the player's right when looking at the front. Pure Java: forming, the part
@@ -22,7 +22,8 @@ public final class CalcinerLayout {
 
     /** What stands at a cell. */
     public enum Role {
-        CALCINER('0'), BRICK('B'), FIREBOX('F'), ASH_PAN('A'), ALEMBIC('L'), RECEIVER('R'), HOOD('H');
+        CALCINER('0'), BRICK('B'), FIREBOX('F'), ASH_PAN('A'), ALEMBIC('L'), RECEIVER('R'), HOOD('H'),
+        TANK('T'), DUCT('D'), AIR(' ');
 
         private final char symbol;
 
@@ -85,11 +86,29 @@ public final class CalcinerLayout {
             new Cell(7, Role.FIREBOX, 0, -1),
             new Cell(8, Role.ASH_PAN, 0, -2),
             new Cell(9, Role.ALEMBIC, 0, 1),
-            new Cell(10, Role.RECEIVER, 1, 1),
-            new Cell(11, Role.HOOD, 0, 2));
+            new Cell(10, Role.RECEIVER, 2, 1),
+            new Cell(11, Role.HOOD, 0, 2),
+            // The Sulfur tank on the left, the Mercury tank on the right, each three Fluid Tanks.
+            new Cell(12, Role.TANK, -2, 0),
+            new Cell(13, Role.TANK, -2, -1),
+            new Cell(14, Role.TANK, -2, -2),
+            new Cell(15, Role.TANK, 2, 0),
+            new Cell(16, Role.TANK, 2, -1),
+            new Cell(17, Role.TANK, 2, -2),
+            // The Sulfur Duct from the Hood across and down into the Sulfur tank.
+            new Cell(18, Role.DUCT, -1, 2),
+            new Cell(19, Role.DUCT, -2, 2),
+            new Cell(20, Role.DUCT, -2, 1),
+            // The Alembic's spout crosses this cell to the Receiver.
+            new Cell(21, Role.AIR, 1, 1));
 
-    private static final int MIN_RIGHT = -1;
-    private static final int MAX_RIGHT = 1;
+    /** The first duct cell; a duct block's piece is its cell index minus this. */
+    public static final int FIRST_DUCT = 18;
+    /** The lowest duct piece, which pours the Sulfur into its tank. */
+    public static final int SULFUR_OUTLET = 20;
+
+    private static final int MIN_RIGHT = -2;
+    private static final int MAX_RIGHT = 2;
     private static final int MIN_UP = -2;
     private static final int MAX_UP = 2;
 
@@ -106,12 +125,18 @@ public final class CalcinerLayout {
         return CELLS.get(index);
     }
 
-    /** The one cell of a part role; bricks have six cells, use {@link #cell(int)} for them. */
+    /** The one cell of a part role; bricks, tanks and ducts have several cells, use {@link #cells(Role)} for them. */
     public static Cell part(Role role) {
-        if (role == Role.BRICK) {
-            throw new IllegalArgumentException("bricks have several cells");
+        List<Cell> cells = cells(role);
+        if (cells.size() != 1) {
+            throw new IllegalArgumentException(role + " has " + cells.size() + " cells");
         }
-        return CELLS.stream().filter(cell -> cell.role() == role).findFirst().orElseThrow();
+        return cells.getFirst();
+    }
+
+    /** Every cell of {@code role}, in index order. */
+    public static List<Cell> cells(Role role) {
+        return CELLS.stream().filter(cell -> cell.role() == role).toList();
     }
 
     /** Where {@code cell} lies from the Calciner when the front faces {@code facing}. */
@@ -159,10 +184,17 @@ public final class CalcinerLayout {
             return new Placement(Relation.ABOVE, Role.FIREBOX);
         }
         if (cell.right() != 0) {
-            Role anchor = CELLS.stream()
-                    .filter(other -> other.right() == 0 && other.up() == cell.up())
-                    .findFirst().orElseThrow().role();
-            return new Placement(cell.right() < 0 ? Relation.LEFT_OF : Relation.RIGHT_OF, anchor);
+            // Toward the middle, past air and free corners, to the first part.
+            int step = cell.right() < 0 ? 1 : -1;
+            for (int right = cell.right() + step; ; right += step) {
+                int at = right;
+                Optional<Cell> anchor = CELLS.stream()
+                        .filter(other -> other.right() == at && other.up() == cell.up() && other.role() != Role.AIR)
+                        .findFirst();
+                if (anchor.isPresent()) {
+                    return new Placement(cell.right() < 0 ? Relation.LEFT_OF : Relation.RIGHT_OF, anchor.get().role());
+                }
+            }
         }
         int towardsCalciner = cell.up() > 0 ? -1 : 1;
         Role anchor = CELLS.stream()
