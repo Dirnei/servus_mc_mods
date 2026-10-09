@@ -7,7 +7,7 @@
 ## 2. Tiers and replacement
 
 - [x] 2.1 Tier line items (Duplex Data Cable, Fast Data Cable) in Foundation registries, tier id saved on the duct block entity, `cable_tiers.json` with a reload listener, tint per tier in `DuctBlockColor`, recipes, lang, item models via datagen, drops by tier. Verify with build, `:foundation:runData` and Foundation GameTests.
-- [ ] 2.2 Replacement in `LineItem.useOn`: higher tier replaces in place and drops the old item, lower or equal unchanged, sneak unchanged. GameTests `upgradeCableDropsOld`, `noDowngrade`. Verify with build and Foundation GameTests.
+- [x] 2.2 Replacement in `LineItem.useOn`: higher tier replaces in place and drops the old item, lower or equal unchanged, sneak unchanged. GameTests `upgradeCableDropsOld`, `noDowngrade`. Verify with build and Foundation GameTests.
 
 ## 3. Bandwidth
 
