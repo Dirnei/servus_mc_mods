@@ -3,7 +3,7 @@
 ## 1. Sight
 
 - [x] 1.1 `ElementalSightEffect`, `ElementalSight`, `ElixirOfSightItem` in `manufacturing/.../alchemy/sight`, registration, lang, item model, placeholder item texture and effect icon, the Athanor craft `athanor/elixir_of_sight`. GameTests: drinking adds the effect and leaves a glass bottle; the Athanor makes the elixir at Albedo, not at Nigredo. Verify: build, data run, GameTests green.
-- [ ] 1.2 Client `RevealRenderers`, `RevealRenderer` and `RevealEvents` (render only under the sight). Verify: build.
+- [x] 1.2 Client `RevealRenderers` with its `RevealRenderer` interface and render event handler (render only under the sight). Verify: build.
 
 ## 2. Journal and docs
 
