@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 Add `storage/.../rail/ShaftFooting` and `rail/ShaftTop` (no Minecraft imports) with JUnit `ShaftFootingTest` (`standsWhenAbove`, `descendingPasses`, `insidePasses`) and `ShaftTopTest` (`firstFreeAboveColumn`, `heightLimitStops`, `noSegmentNoWalk`). Verify with `gradlew :storage:test`.
+- [x] 1.1 Add `storage/.../rail/ShaftFooting` and `rail/ShaftTop` (no Minecraft imports) with JUnit `ShaftFootingTest` (`standsWhenAbove`, `descendingPasses`, `insidePasses`) and `ShaftTopTest` (`firstFreeAboveColumn`, `heightLimitStops`, `noSegmentNoWalk`). Verify with `gradlew :storage:test`.
 
 ## 2. Standing and sneaking down
 
