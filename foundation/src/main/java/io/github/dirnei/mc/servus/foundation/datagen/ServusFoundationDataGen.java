@@ -30,7 +30,10 @@ public final class ServusFoundationDataGen {
         CompletableFuture<HolderLookup.Provider> lookup = event.getLookupProvider();
         generator.addProvider(event.includeClient(), new ServusFoundationBlockStateProvider(output, existingFileHelper));
         generator.addProvider(event.includeClient(), new ServusFoundationItemModelProvider(output, existingFileHelper));
-        generator.addProvider(event.includeServer(), new ServusFoundationBlockTagsProvider(output, lookup, existingFileHelper));
+        ServusFoundationBlockTagsProvider blockTags = generator.addProvider(event.includeServer(),
+                new ServusFoundationBlockTagsProvider(output, lookup, existingFileHelper));
+        generator.addProvider(event.includeServer(), new ServusFoundationItemTagsProvider(output, lookup,
+                blockTags.contentsGetter(), existingFileHelper));
         generator.addProvider(event.includeServer(), new ServusFoundationRecipeProvider(output, lookup));
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(ServusLogisticsBlockLoot::new, LootContextParamSets.BLOCK),

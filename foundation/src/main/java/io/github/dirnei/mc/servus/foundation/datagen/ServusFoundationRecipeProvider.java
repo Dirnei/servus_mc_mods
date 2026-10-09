@@ -32,6 +32,16 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_carrot", has(Items.CARROT))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusFoundationItems.SPEED_UPGRADE.get())
+                .pattern("RGR")
+                .pattern("GCG")
+                .pattern("RGR")
+                .define('R', Items.REDSTONE)
+                .define('G', Items.GOLD_INGOT)
+                .define('C', Items.COPPER_INGOT)
+                .unlockedBy("has_gold", has(Items.GOLD_INGOT))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusFoundationItems.GOGGLES.get())
                 .pattern("LIL")
                 .pattern("G G")

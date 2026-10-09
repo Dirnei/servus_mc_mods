@@ -71,6 +71,7 @@
   "item.servus_foundation.fluid_pipe": "Fluid Pipe",
   "item.servus_foundation.item_pipe": "Item Pipe",
   "item.servus_foundation.power_cable": "Power Cable",
+  "item.servus_foundation.speed_upgrade": "Speed Upgrade",
   "itemGroup.servus": "Servus",
   "message.servus_foundation.data_cable.summary": "Data network: %s cables, %s producers, %s stock",
   "message.servus_foundation.data_cable.summary_load": "Data network: %s cables, %s producers, %s stock; this duct %s of %s items/s",
@@ -83,5 +84,6 @@
   "tooltip.servus_foundation.data_cable.simplex": "%s items/s, shared by both directions",
   "tooltip.servus_foundation.fluid_tank.empty": "Empty",
   "tooltip.servus_foundation.fluid_tank.fluid": "%s: %s mB",
+  "tooltip.servus_foundation.upgrade.speed": "Speed x%s in upgrade slots",
   "tooltip.servus_foundation.wood": "Wood: %s"
 }

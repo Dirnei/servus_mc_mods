@@ -17,6 +17,7 @@ final class ServusFoundationItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         basicItem(ServusFoundationItems.CONFIGURATION_CARROT.get());
         basicItem(ServusFoundationItems.GOGGLES.get());
+        basicItem(ServusFoundationItems.SPEED_UPGRADE.get());
         LogisticsDataParts.itemModels(this);
     }
 }
