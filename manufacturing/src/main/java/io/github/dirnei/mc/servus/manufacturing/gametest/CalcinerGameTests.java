@@ -373,18 +373,18 @@ public final class CalcinerGameTests {
         helper.succeed();
     }
 
-    /** The journal's schematic, anchored on the ground under the Ash Pan, accepts the structure that forming accepts. */
+    /** The journal's schematic, anchored on the Ash Pan, accepts the structure that forming accepts. */
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
     public static void schematicMatchesTheBuild(GameTestHelper helper) {
         Multiblock schematic = ModonomiconAPI.get().getMultiblock(
                 ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner"));
         helper.assertTrue(schematic != null, "the Calciner schematic should be loaded on the server");
         build(helper, CALCINER, Direction.NORTH);
-        helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(CALCINER.below(3))) != null,
+        helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(CALCINER.below(2))) != null,
                 "the schematic should accept a complete build");
         helper.assertTrue(CalcinerStructure.check(helper.getLevel(), helper.absolutePos(CALCINER)).complete(), "and so does forming");
         helper.setBlock(cellPos(CALCINER, Role.HOOD, Direction.NORTH), Blocks.AIR);
-        helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(CALCINER.below(3))) == null,
+        helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(CALCINER.below(2))) == null,
                 "the schematic should refuse a build without the Hood");
         helper.succeed();
     }

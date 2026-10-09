@@ -1,15 +1,7 @@
 {
   "type": "modonomicon:dense",
   "mapping": {
-    "*": {
-      "type": "modonomicon:display",
-      "display": "minecraft:smooth_stone"
-    },
     "0": {
-      "type": "modonomicon:display",
-      "display": "minecraft:smooth_stone"
-    },
-    "A": {
       "type": "modonomicon:block",
       "block": "servus_manufacturing:calciner_ash_pan"
     },
@@ -60,10 +52,7 @@
       "TBFBT"
     ],
     [
-      "TBABT"
-    ],
-    [
-      "**0**"
+      "TB0BT"
     ]
   ]
 }

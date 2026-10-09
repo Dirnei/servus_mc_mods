@@ -7,7 +7,6 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.Blocks;
 
 /**
  * The multiblocks the journal draws, written from the same layout that forming checks, so the
@@ -18,9 +17,8 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
     /** The id of the Calciner schematic, used by the journal's multiblock page. */
     public static final ResourceLocation CALCINER = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
 
-    /** The Calciner in the schematic; {@code 0} is the anchor on the ground. */
+    /** The Calciner in the schematic; {@code 0}, the anchor, is the Ash Pan on the ground. */
     private static final char CALCINER_SYMBOL = 'C';
-    private static final String GROUND = "*";
 
     ServusManufacturingMultiblockProvider(PackOutput output) {
         super(output, ServusManufacturingIds.MOD_ID);
@@ -29,22 +27,24 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
     @Override
     public void buildMultiblocks() {
         // The wall is one block deep: each layer, top to bottom, is a single row. Visualize anchors the
-        // center on the block the player clicks, so the center is a ground row under the Ash Pan and the
-        // build stands on that ground instead of sinking into it. Forming checks with CalcinerLayout itself.
+        // center one block above the block the player clicks, so the Ash Pan at the bottom is the center
+        // and the build stands on the clicked ground. Forming checks with CalcinerLayout itself.
         DenseMultiblockBuilder calciner = new DenseMultiblockBuilder();
         for (String row : CalcinerLayout.patternRows()) {
-            calciner.layer(row.replace(Role.CALCINER.symbol(), CALCINER_SYMBOL));
+            calciner.layer(row.replace(Role.CALCINER.symbol(), CALCINER_SYMBOL).replace(Role.ASH_PAN.symbol(), '0'));
         }
-        calciner.layer(GROUND.repeat(2) + "0" + GROUND.repeat(2));
         for (Role role : Role.values()) {
             if (role == Role.AIR) {
                 // A space is air in Modonomicon's pattern already.
                 continue;
             }
-            calciner.block(role == Role.CALCINER ? CALCINER_SYMBOL : role.symbol(), () -> CalcinerStructure.expected(role));
+            char symbol = switch (role) {
+                case CALCINER -> CALCINER_SYMBOL;
+                case ASH_PAN -> '0';
+                default -> role.symbol();
+            };
+            calciner.block(symbol, () -> CalcinerStructure.expected(role));
         }
-        calciner.display('0', () -> Blocks.SMOOTH_STONE);
-        calciner.display(GROUND.charAt(0), () -> Blocks.SMOOTH_STONE);
         add(CALCINER, calciner.build(false, 1));
     }
 }
