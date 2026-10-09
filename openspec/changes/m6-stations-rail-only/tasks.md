@@ -7,7 +7,7 @@
 
 ## 2. GameTests
 
-- [ ] 2.1 Add `storage/src/main/java/.../storage/gametest/StationRailGameTests.java` (station touching controller offline and keeps buffer, rail placed later connects and puts away, breaking the rail disconnects, crate touching only the station not linked, Access Point touching controller without rail is dark, garage touching controller without back rail is dark) and wire existing GameTests that relied on station adjacency with rails. Verify with `gradlew build` and the Storage GameTests, all green.
+- [x] 2.1 Add `storage/src/main/java/.../storage/gametest/StationRailGameTests.java` (station touching controller offline and keeps buffer, rail placed later connects and puts away, breaking the rail disconnects, crate touching only the station not linked, Access Point touching controller without rail is dark, garage touching controller without back rail is dark) and wire existing GameTests that relied on station adjacency with rails. Verify with `gradlew build` and the Storage GameTests, all green.
 
 ## 3. Docs
 
