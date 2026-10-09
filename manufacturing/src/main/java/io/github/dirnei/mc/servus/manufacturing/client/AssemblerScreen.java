@@ -1,10 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
+import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
 import io.github.dirnei.mc.servus.foundation.client.RecipeEditorPopup;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.ConfiguredRecipe;
 import io.github.dirnei.mc.servus.manufacturing.menu.AssemblerMenu;
-import io.github.dirnei.mc.servus.manufacturing.menu.MachineMenu;
+import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +36,7 @@ public class AssemblerScreen extends MachineScreen {
             new RecipeEditorPopup(AssemblerMenu.POPUP_X, AssemblerMenu.POPUP_Y, 256, MACHINE_AREA_HEIGHT);
 
     public AssemblerScreen(MachineMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title, Layout.ASSEMBLER);
+        super(menu, playerInventory, title, MachineScreens.ASSEMBLER);
         this.imageWidth = 256;
     }
 

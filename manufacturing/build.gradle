@@ -45,6 +45,8 @@ neoForge {
             systemProperty 'servus.gamedata.generated', ['foundation', 'manufacturing', 'storage']
                     .collect { rootProject.file("${it}/src/generated/resources").absolutePath }
                     .join(File.pathSeparator)
+            // Machine models use the shared machine textures that Foundation ships.
+            programArguments.addAll '--existing', rootProject.file('foundation/src/main/resources').absolutePath
         }
     }
 }

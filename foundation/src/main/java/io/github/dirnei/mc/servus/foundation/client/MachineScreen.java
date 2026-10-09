@@ -1,11 +1,10 @@
-package io.github.dirnei.mc.servus.manufacturing.client;
+package io.github.dirnei.mc.servus.foundation.client;
 
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.client.FluidGauge;
 import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
-import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpMachine;
-import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.menu.MachineMenu;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -15,25 +14,18 @@ import net.minecraft.world.entity.player.Inventory;
 /** Screen shared by all machines. The layout says which indicators to draw and on which background. */
 public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
-    /** Which indicators a machine screen shows and its background texture. */
-    public record Layout(boolean flame, boolean arrow, boolean energy, boolean fluid, ResourceLocation texture) {
-        public static final Layout BURNER = new Layout(true, true, false, gui("burner_machine"));
-        public static final Layout GENERATOR = new Layout(true, false, true, gui("coal_generator"));
-        public static final Layout ASSEMBLER = new Layout(false, false, true, gui("assembler"));
-        public static final Layout LAB = new Layout(false, true, true, gui("research_lab"));
-        public static final Layout ELECTRIC = new Layout(false, true, true, gui("electric_extractor"));
-        public static final Layout CRUSHER = new Layout(false, true, true, gui("crusher"));
-        public static final Layout LOADER = new Layout(false, false, true, gui("chunk_loader"));
-        /** Pumps: a fluid gauge and the water source status line. */
-        public static final Layout BURNER_PUMP = new Layout(true, true, false, true, gui("burner_pump"));
-        public static final Layout ELECTRIC_PUMP = new Layout(false, true, true, true, gui("electric_pump"));
+    /** Which indicators a machine screen shows, whether it has the side panel, and its background texture. */
+    public record Layout(boolean flame, boolean arrow, boolean energy, boolean fluid, boolean sidePanel, ResourceLocation texture) {
+        /** The shared burner background: fuel, input, arrow and output. */
+        public static final Layout BURNER = new Layout(true, true, false, gui(ServusFoundationIds.MOD_ID, "burner_machine"));
 
         public Layout(boolean flame, boolean arrow, boolean energy, ResourceLocation texture) {
-            this(flame, arrow, energy, false, texture);
+            this(flame, arrow, energy, false, true, texture);
         }
 
-        private static ResourceLocation gui(String name) {
-            return ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "textures/gui/" + name + ".png");
+        /** A GUI background at {@code <namespace>:textures/gui/<name>.png}. */
+        public static ResourceLocation gui(String namespace, String name) {
+            return ResourceLocation.fromNamespaceAndPath(namespace, "textures/gui/" + name + ".png");
         }
     }
 
@@ -68,9 +60,9 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     protected final Layout layout;
 
-    /** Pumps have no side settings, so they show no side panel. */
+    /** Machines without side settings, like pumps, show no side panel. */
     protected boolean showsSidePanel() {
-        return !(menu.machine() instanceof PumpMachine);
+        return layout.sidePanel();
     }
 
     public MachineScreen(MachineMenu menu, Inventory playerInventory, Component title, Layout layout) {
@@ -82,26 +74,6 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     public static MachineScreen burner(MachineMenu menu, Inventory playerInventory, Component title) {
         return new MachineScreen(menu, playerInventory, title, Layout.BURNER);
-    }
-
-    public static MachineScreen electric(MachineMenu menu, Inventory playerInventory, Component title) {
-        return new MachineScreen(menu, playerInventory, title, Layout.ELECTRIC);
-    }
-
-    public static MachineScreen crusher(MachineMenu menu, Inventory playerInventory, Component title) {
-        return new MachineScreen(menu, playerInventory, title, Layout.CRUSHER);
-    }
-
-    public static MachineScreen burnerPump(MachineMenu menu, Inventory playerInventory, Component title) {
-        return new MachineScreen(menu, playerInventory, title, Layout.BURNER_PUMP);
-    }
-
-    public static MachineScreen electricPump(MachineMenu menu, Inventory playerInventory, Component title) {
-        return new MachineScreen(menu, playerInventory, title, Layout.ELECTRIC_PUMP);
-    }
-
-    public static MachineScreen generator(MachineMenu menu, Inventory playerInventory, Component title) {
-        return new MachineScreen(menu, playerInventory, title, Layout.GENERATOR);
     }
 
     @Override

@@ -2,7 +2,7 @@
   "parent": "minecraft:block/orientable",
   "textures": {
     "front": "servus_manufacturing:block/assembler_front_lit",
-    "side": "servus_manufacturing:block/machine_side",
-    "top": "servus_manufacturing:block/machine_top"
+    "side": "servus_foundation:block/machine_side",
+    "top": "servus_foundation:block/machine_top"
   }
 }

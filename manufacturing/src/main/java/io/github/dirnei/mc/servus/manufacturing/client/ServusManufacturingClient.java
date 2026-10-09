@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
+import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.foundation.client.SideMarkerRenderer;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
@@ -23,14 +24,14 @@ public final class ServusManufacturingClient {
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ServusManufacturingMenus.BURNER_EXTRACTOR.get(), MachineScreen::burner);
         event.register(ServusManufacturingMenus.BURNER_SMELTER.get(), MachineScreen::burner);
-        event.register(ServusManufacturingMenus.COAL_GENERATOR.get(), MachineScreen::generator);
+        event.register(ServusManufacturingMenus.COAL_GENERATOR.get(), MachineScreens::generator);
         event.register(ServusManufacturingMenus.ASSEMBLER.get(), AssemblerScreen::new);
         event.register(ServusManufacturingMenus.RESEARCH_LAB.get(), ResearchLabScreen::new);
-        event.register(ServusManufacturingMenus.ELECTRIC_EXTRACTOR.get(), MachineScreen::electric);
-        event.register(ServusManufacturingMenus.CRUSHER.get(), MachineScreen::crusher);
+        event.register(ServusManufacturingMenus.ELECTRIC_EXTRACTOR.get(), MachineScreens::electric);
+        event.register(ServusManufacturingMenus.CRUSHER.get(), MachineScreens::crusher);
         event.register(ServusManufacturingMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
-        event.register(ServusManufacturingMenus.BURNER_PUMP.get(), MachineScreen::burnerPump);
-        event.register(ServusManufacturingMenus.ELECTRIC_PUMP.get(), MachineScreen::electricPump);
+        event.register(ServusManufacturingMenus.BURNER_PUMP.get(), MachineScreens::burnerPump);
+        event.register(ServusManufacturingMenus.ELECTRIC_PUMP.get(), MachineScreens::electricPump);
         event.register(ServusManufacturingMenus.SINK.get(), SinkScreen::new);
     }
 

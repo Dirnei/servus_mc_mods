@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import io.github.dirnei.mc.servus.manufacturing.menu.MachineMenu;
+import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
+import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import io.github.dirnei.mc.servus.manufacturing.research.ClientResearch;
 import io.github.dirnei.mc.servus.manufacturing.research.Techs;
 import net.minecraft.client.gui.GuiGraphics;
@@ -12,7 +13,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class ResearchLabScreen extends MachineScreen {
 
     public ResearchLabScreen(MachineMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title, Layout.LAB);
+        super(menu, playerInventory, title, MachineScreens.LAB);
     }
 
     @Override

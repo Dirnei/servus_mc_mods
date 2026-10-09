@@ -113,8 +113,8 @@
   ],
   "textures": {
     "front": "servus_manufacturing:block/electric_pump_front_lit",
-    "particle": "servus_manufacturing:block/machine_side",
-    "side": "servus_manufacturing:block/machine_side",
-    "top": "servus_manufacturing:block/machine_top"
+    "particle": "servus_foundation:block/machine_side",
+    "side": "servus_foundation:block/machine_side",
+    "top": "servus_foundation:block/machine_top"
   }
 }

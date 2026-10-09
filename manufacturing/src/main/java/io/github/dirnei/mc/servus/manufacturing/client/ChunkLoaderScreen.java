@@ -1,7 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
+import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
 import io.github.dirnei.mc.servus.manufacturing.menu.ChunkLoaderMenu;
-import io.github.dirnei.mc.servus.manufacturing.menu.MachineMenu;
+import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -12,7 +13,7 @@ public class ChunkLoaderScreen extends MachineScreen {
     private static final String[] STATUS_KEYS = {"no_power", "active", "team_limit", "ftb_chunks", "no_owner"};
 
     public ChunkLoaderScreen(MachineMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title, Layout.LOADER);
+        super(menu, playerInventory, title, MachineScreens.LOADER);
     }
 
     @Override

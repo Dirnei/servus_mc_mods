@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
@@ -266,9 +267,9 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     /** A short pipe from the pump body to the block edge, as thick as a duct arm with {@code size} lines; shared by both pumps. */
     private ModelFile pumpStub(Direction direction, int size) {
         BlockModelBuilder model = models().withExistingParent("pump_stub_" + direction.getSerializedName() + "_" + size, mcLoc("block/block"))
-                .texture("particle", modLoc("block/machine_side"))
-                .texture("side", modLoc("block/machine_side"))
-                .texture("top", modLoc("block/machine_top"));
+                .texture("particle", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_side"))
+                .texture("side", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_side"))
+                .texture("top", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_top"));
         int[] box = PumpBlock.stubBox(direction, size);
         int lo = 8 - PumpBlock.stubRadius(size);
         int hi = 8 + PumpBlock.stubRadius(size);
@@ -281,9 +282,9 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
 
     private ModelFile pumpModel(String name, ResourceLocation front) {
         BlockModelBuilder model = models().withExistingParent(name, mcLoc("block/block"))
-                .texture("particle", modLoc("block/machine_side"))
-                .texture("side", modLoc("block/machine_side"))
-                .texture("top", modLoc("block/machine_top"))
+                .texture("particle", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_side"))
+                .texture("side", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_side"))
+                .texture("top", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_top"))
                 .texture("front", front);
         model.element().from(1, 0, 1).to(15, 2, 15)
                 .allFaces((direction, face) -> face.texture(direction.getAxis() == Direction.Axis.Y ? "#top" : "#side")
@@ -305,8 +306,8 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
 
     /** Orientable machine with a lit and an unlit front, rotated by facing. */
     private void machine(Block block, String name) {
-        ResourceLocation side = modLoc("block/machine_side");
-        ResourceLocation top = modLoc("block/machine_top");
+        ResourceLocation side = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_side");
+        ResourceLocation top = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_top");
         ModelFile unlit = models().orientable(name, side, modLoc("block/" + name + "_front"), top);
         ModelFile lit = models().orientable(name + "_lit", side, modLoc("block/" + name + "_front_lit"), top);
         getVariantBuilder(block).forAllStates(state -> {

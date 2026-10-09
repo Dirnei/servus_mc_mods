@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.manufacturing.menu;
+package io.github.dirnei.mc.servus.foundation.machine.menu;
 
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
