@@ -6,13 +6,14 @@ A NeoForge 1.21.1 server in Docker with the Servus mods and the same helper mods
 ## Host
 
 ```powershell
-.\server\pack.ps1                      # build, fill server\mods, write server\dist\*.mrpack
+.\server\pack.ps1                      # build, fill server\mods, write the packs to server\dist
 copy server\.env.example server\.env   # once: set OPS and WHITELIST
 cd server; docker compose up -d
 docker compose logs -f                 # wait for "Done"
 ```
 
-After a code change: run `pack.ps1` again, then `docker compose restart`. The world lives in
+After a code change: run `pack.ps1` again, then `docker compose restart` so the server loads the
+same jars as the new pack. Players need the new pack too, or they cannot join. The world lives in
 `server\data` and survives restarts. Console: `docker attach servus-playtest`, leave with Ctrl+P Ctrl+Q.
 
 ## Players
@@ -27,15 +28,21 @@ After a code change: run `pack.ps1` again, then `docker compose restart`. The wo
 
 **Prism Launcher:** Add Instance, Import, pick the `.mrpack`.
 
-**FTB App:** Create Instance, Curse Import, pick the `-curseforge.zip`. If the import fails
-(the FTB App has known bugs with NeoForge packs), make the instance by hand instead: Create
-Instance, Vanilla, Minecraft 1.21.1 with NeoForge 21.1.255. Then open the instance folder and
-unpack the jars from `-mods.zip` into its `mods` folder.
+**FTB App:** Create Instance, Curse Import, pick the `-curseforge.zip`. This import has open bug
+reports, some of them for NeoForge packs ([#1170](https://github.com/FTBTeam/FTB-App/issues/1170),
+[#1219](https://github.com/FTBTeam/FTB-App/issues/1219),
+[#1285](https://github.com/FTBTeam/FTB-App/issues/1285)). If it fails, make the instance by hand:
+
+1. Create Instance, Vanilla, Minecraft 1.21.1 with NeoForge 21.1.255.
+2. Open the instance folder and unpack the jars from `-mods.zip` into its `mods` folder.
+
+The hand made instance always works.
 
 Give the instance 4 GB of memory, start it, Multiplayer, add the server.
 
-For a new pack version, delete the old instance (or empty its `mods` folder and unpack the new
-`-mods.zip`). Worlds are only on the server, so nothing is lost.
+For a new pack version, the quickest update is to empty the instance's `mods` folder and unpack
+the new `-mods.zip`. Deleting the instance and importing the new pack works as well. Worlds are
+only on the server, so nothing is lost.
 
 ## Address
 
