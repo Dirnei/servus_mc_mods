@@ -2,7 +2,7 @@
 
 ## 1. Ash
 
-- [ ] 1.1 Pure `alchemy/AshCount` (whole Ash from mB and a Salt per Ash, mB taken for n Ash) with JUnit `AshCountTest` (exact, remainder, zero, never negative); `gradlew :manufacturing:test` green
+- [x] 1.1 Pure `alchemy/AshCount` (whole Ash from mB and a Salt per Ash, mB taken for n Ash) with JUnit `AshCountTest` (exact, remainder, zero, never negative); `gradlew :manufacturing:test` green
 - [ ] 1.2 Ash item with a generated grey texture, item model, lang; `PurificationRecipe` with type and serializer in `ServusManufacturingRecipes`, datagen of `purification/ash.json` (1 Ash, 100 mB water, 100 mB Salt, 40 ticks); `gradlew :manufacturing:runData` and `gradlew build` green
 
 ## 2. Ash Pan gives Ash
