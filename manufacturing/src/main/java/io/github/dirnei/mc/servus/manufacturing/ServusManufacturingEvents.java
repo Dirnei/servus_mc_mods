@@ -55,11 +55,11 @@ public final class ServusManufacturingEvents {
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             // The Calciner structure has fixed ports by position instead of sides.
             event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.items(level, pos, state),
-                    ServusManufacturingBlocks.CALCINER.get(), ServusManufacturingBlocks.FIREBOX.get());
+                    ServusManufacturingBlocks.CALCINER.get(), ServusManufacturingBlocks.FIREBOX.get(), ServusManufacturingBlocks.ASH_PAN.get());
             event.registerBlock(ServusFoundationCapabilities.UPKEEP, (level, pos, state, entity, side) -> CalcinerPorts.upkeep(level, pos, state),
                     ServusManufacturingBlocks.FIREBOX.get());
             event.registerBlock(Capabilities.FluidHandler.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.fluid(level, pos, state),
-                    ServusManufacturingBlocks.ASH_PAN.get(), ServusManufacturingBlocks.RECEIVER.get(), ServusManufacturingBlocks.SULFUR_DUCT.get());
+                    ServusManufacturingBlocks.RECEIVER.get(), ServusManufacturingBlocks.SULFUR_DUCT.get());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),

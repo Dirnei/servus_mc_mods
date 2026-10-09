@@ -20,10 +20,11 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 
 /**
  * The ports of a formed Calciner, fixed by position: matter in at the mouth, fuel and upkeep at
- * the Firebox, Salt out of the Ash Pan, Mercury out of the Receiver and Sulfur out of the Hood.
+ * the Firebox, Ash out of the Ash Pan, Mercury out of the Receiver and Sulfur out of the lowest duct.
  */
 public final class CalcinerPorts {
 
@@ -33,7 +34,6 @@ public final class CalcinerPorts {
     /** The principle a cell gives out, or null for cells without a fluid port. */
     public static Principle principle(Cell cell) {
         return switch (cell.role()) {
-            case ASH_PAN -> Principle.SALT;
             case RECEIVER -> Principle.MERCURY;
             case DUCT -> cell.index() == CalcinerLayout.SULFUR_OUTLET ? Principle.SULFUR : null;
             default -> null;
@@ -57,6 +57,9 @@ public final class CalcinerPorts {
         }
         if (state.getBlock() instanceof CalcinerPartBlock part && part.role() == Role.FIREBOX) {
             return calciner.fuelPort();
+        }
+        if (state.getBlock() instanceof CalcinerPartBlock part && part.role() == Role.ASH_PAN) {
+            return calciner.ashPort();
         }
         return null;
     }
@@ -118,6 +121,48 @@ public final class CalcinerPorts {
                     break;
                 }
             }
+        }
+    }
+
+    /** The Ash Pan: the Calciner's Salt as whole Ash, at most a stack at a time, taken out only. */
+    public static final class AshPort implements IItemHandler {
+
+        private final CalcinerBlockEntity calciner;
+
+        public AshPort(CalcinerBlockEntity calciner) {
+            this.calciner = calciner;
+        }
+
+        @Override
+        public int getSlots() {
+            return 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int index) {
+            int ash = Math.min(calciner.ashCount(), getSlotLimit(0));
+            return ash <= 0 ? ItemStack.EMPTY : new ItemStack(ServusManufacturingItems.ASH.get(), ash);
+        }
+
+        @Override
+        public ItemStack insertItem(int index, ItemStack stack, boolean simulate) {
+            return stack;
+        }
+
+        @Override
+        public ItemStack extractItem(int index, int amount, boolean simulate) {
+            int taken = calciner.takeAsh(Math.min(amount, getSlotLimit(0)), simulate);
+            return taken <= 0 ? ItemStack.EMPTY : new ItemStack(ServusManufacturingItems.ASH.get(), taken);
+        }
+
+        @Override
+        public int getSlotLimit(int index) {
+            return 64;
+        }
+
+        @Override
+        public boolean isItemValid(int index, ItemStack stack) {
+            return false;
         }
     }
 

@@ -23,6 +23,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -40,10 +43,15 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final int PUSH_INTERVAL = 10;
+    /** Salt per Ash when no purification recipe takes Ash. */
+    private static final int FALLBACK_SALT_PER_ASH = 100;
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), true, this::setChanged);
     private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
     private final IItemHandler inputPort = new CalcinerPorts.InsertOnly(inventory, SLOT_INPUT, this::calcinable);
+    private final IItemHandler ashPort = new CalcinerPorts.AshPort(this);
+    private int saltPerAsh = FALLBACK_SALT_PER_ASH;
+    private RecipeManager saltPerAshFrom;
     private final IItemHandler fuelPort = new CalcinerPorts.InsertOnly(inventory, SLOT_FUEL, stack -> stack.getBurnTime(null) > 0);
     private int pushCooldown;
     /** The lit state last given to the Firebox and the Hood. */
@@ -160,6 +168,45 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     /** Puts furnace fuel into the fuel slot, returning what did not fit. */
     public ItemStack insertFuel(ItemStack stack) {
         return stack.getBurnTime(null) > 0 ? inventory.insertItem(SLOT_FUEL, stack, false) : stack;
+    }
+
+    /** The Ash Pan: gives the Salt as whole Ash, takes nothing. */
+    public IItemHandler ashPort() {
+        return ashPort;
+    }
+
+    /** The Salt one Ash is worth: what the first purification recipe that takes Ash makes from one. */
+    public int saltPerAsh() {
+        if (level == null) {
+            return FALLBACK_SALT_PER_ASH;
+        }
+        RecipeManager recipes = level.getRecipeManager();
+        if (recipes != saltPerAshFrom) {
+            ItemStack ash = new ItemStack(ServusManufacturingItems.ASH.get());
+            saltPerAsh = recipes.getAllRecipesFor(ServusManufacturingRecipes.PURIFICATION.get()).stream()
+                    .map(RecipeHolder::value)
+                    .filter(recipe -> recipe.accepts(ash))
+                    .map(PurificationRecipe::saltPerItem)
+                    .filter(salt -> salt > 0)
+                    .findFirst().orElse(FALLBACK_SALT_PER_ASH);
+            saltPerAshFrom = recipes;
+        }
+        return saltPerAsh;
+    }
+
+    /** Whole Ash in the Ash Pan. */
+    public int ashCount() {
+        return AshCount.ash(tanks.amount(Principle.SALT), saltPerAsh());
+    }
+
+    /** Takes up to {@code count} Ash out of the Ash Pan and returns how many were taken. */
+    public int takeAsh(int count, boolean simulate) {
+        int per = saltPerAsh();
+        int salt = AshCount.saltFor(count, tanks.amount(Principle.SALT), per);
+        if (!simulate && salt > 0) {
+            tanks.tank(Principle.SALT).drain(salt, net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+        }
+        return salt / Math.max(1, per);
     }
 
     /** How far the current cycle is, 0 to 100. */

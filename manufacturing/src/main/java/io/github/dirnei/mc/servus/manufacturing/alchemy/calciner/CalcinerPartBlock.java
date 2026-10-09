@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.BlockHitResult;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -76,7 +77,35 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
+        if (role == Role.ASH_PAN && state.getValue(FORMED)) {
+            // Only an empty hand takes the Ash; anything held keeps its own use.
+            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    /** An empty hand on the Ash Pan of a formed Calciner takes all its Ash. */
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (role != Role.ASH_PAN || !state.getValue(FORMED)) {
+            return InteractionResult.PASS;
+        }
+        CalcinerBlockEntity calciner = CalcinerPorts.calciner(level, pos, state);
+        if (calciner == null) {
+            return InteractionResult.PASS;
+        }
+        if (!level.isClientSide()) {
+            int ash = calciner.takeAsh(calciner.ashCount(), false);
+            while (ash > 0) {
+                int count = Math.min(ash, 64);
+                ItemStack stack = new ItemStack(ServusManufacturingItems.ASH.get(), count);
+                if (!player.addItem(stack)) {
+                    player.drop(stack, false);
+                }
+                ash -= count;
+            }
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     /** Flames at the grate of a burning Firebox, smoke over a working Hood. */

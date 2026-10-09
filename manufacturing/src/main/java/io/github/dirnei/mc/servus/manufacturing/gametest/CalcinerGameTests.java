@@ -291,14 +291,12 @@ public final class CalcinerGameTests {
         });
     }
 
-    /** Each port gives only its own principle: Salt at the Ash Pan, Sulfur at the Hood, Mercury at the Receiver. */
+    /** Each port gives only its own principle: Sulfur and Mercury into their tanks, the Salt stays as Ash. */
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 100)
     public static void eachPortGivesItsPrinciple(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
-        BlockPos saltTank = cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH).north();
         BlockPos sulfurTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(12), CalcinerLayout.Facing.NORTH);
         BlockPos mercuryTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(15), CalcinerLayout.Facing.NORTH);
-        helper.setBlock(saltTank, ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
         calciner.tanks().insert(new Principles(500, 400, 300));
         IFluidHandler receiver = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
                 helper.absolutePos(cellPos(CALCINER, Role.RECEIVER, Direction.NORTH)), Direction.NORTH);
@@ -309,12 +307,13 @@ public final class CalcinerGameTests {
         helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(CALCINER), Direction.NORTH) == null,
                 "the mouth has no fluid port");
         helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
+                helper.absolutePos(cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH)), Direction.NORTH) == null, "the Ash Pan has no fluid port");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
                 helper.absolutePos(cellPos(CALCINER, Role.HOOD, Direction.NORTH)), Direction.UP) == null, "the Hood has no fluid port");
         helper.succeedWhen(() -> {
-            FluidStack salt = tankAt(helper, saltTank).getFluidInTank(0);
             FluidStack sulfur = tankAt(helper, sulfurTank).getFluidInTank(0);
             FluidStack mercury = tankAt(helper, mercuryTank).getFluidInTank(0);
-            helper.assertTrue(salt.getFluid().isSame(PrincipleFluids.fluid(Principle.SALT)) && salt.getAmount() == 500, "500 Salt at the Ash Pan, got " + salt);
+            helper.assertTrue(calciner.tanks().amount(Principle.SALT) == 500, "the Salt stays in the Ash Pan as Ash");
             helper.assertTrue(sulfur.getFluid().isSame(PrincipleFluids.fluid(Principle.SULFUR)) && sulfur.getAmount() == 400,
                     "400 Sulfur in the Sulfur tank, got " + sulfur);
             helper.assertTrue(mercury.getFluid().isSame(PrincipleFluids.fluid(Principle.MERCURY)) && mercury.getAmount() == 300,
@@ -414,6 +413,38 @@ public final class CalcinerGameTests {
         BlockPos tank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(16), CalcinerLayout.Facing.NORTH);
         helper.getLevel().destroyBlock(helper.absolutePos(tank), true);
         assertFormed(helper, CALCINER, Direction.NORTH, false);
+        helper.succeed();
+    }
+
+    /** A hopper under the Ash Pan takes the Salt as whole Ash; the remainder stays. */
+    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 100)
+    public static void hopperTakesAshFromTheAshPan(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
+        calciner.tanks().insert(new Principles(350, 0, 0));
+        BlockPos hopper = cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH).below();
+        helper.setBlock(hopper, Blocks.HOPPER.defaultBlockState());
+        HopperBlockEntity hopperEntity = helper.getBlockEntity(hopper);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(hopperEntity.countItem(ServusManufacturingItems.ASH.get()) == 3, "the hopper should hold 3 Ash, holds "
+                    + hopperEntity.countItem(ServusManufacturingItems.ASH.get()));
+            helper.assertTrue(calciner.tanks().amount(Principle.SALT) == 50, "50 mB Salt stay behind");
+        });
+    }
+
+    /** An empty hand takes all Ash out of the Ash Pan; a bucket takes nothing there. */
+    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    public static void handTakesAshFromTheAshPan(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
+        calciner.tanks().insert(new Principles(500, 0, 0));
+        BlockPos ashPan = cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH);
+        Player player = player(helper, new ItemStack(Items.BUCKET));
+        use(helper, player, ashPan);
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.BUCKET), "the bucket stays empty");
+        helper.assertTrue(calciner.tanks().amount(Principle.SALT) == 500, "a bucket takes no Salt");
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        use(helper, player, ashPan);
+        helper.assertTrue(player.getInventory().countItem(ServusManufacturingItems.ASH.get()) == 5, "the player gets 5 Ash");
+        helper.assertTrue(calciner.tanks().amount(Principle.SALT) == 0, "the Ash Pan is empty");
         helper.succeed();
     }
 }

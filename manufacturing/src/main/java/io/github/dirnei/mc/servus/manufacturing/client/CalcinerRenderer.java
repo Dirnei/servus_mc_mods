@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
@@ -29,19 +30,22 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
- * Draws what a formed Calciner holds: the matter in the crucible, the Salt heap in the Ash Pan, the Mercury in the Receiver's
+ * Draws what a formed Calciner holds: the matter in the crucible, the ash heap in the Ash Pan, the Mercury in the Receiver's
  * flask, each by how full its buffer is. The Sulfur and Mercury tanks show their own level. The rest of the
  * structure is chunk baked from block models.
  */
 public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlockEntity> {
 
     /** A box in a cell's model space (sixteenths, front facing north) and the height its fill rises by. */
-    private record Fill(Role role, Principle principle, float x0, float y0, float z0, float x1, float rise, float z1) {
+    private record Fill(Role role, Principle principle, float x0, float y0, float z0, float x1, float rise, float z1, ResourceLocation sprite) {
     }
 
+    /** The Salt lies in the Ash Pan as ash, drawn with the Ash texture. */
+    private static final ResourceLocation ASH = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "item/ash");
+
     private static final Fill[] FILLS = {
-            new Fill(Role.ASH_PAN, Principle.SALT, 4, 3, 0.5F, 12, 4, 3),
-            new Fill(Role.RECEIVER, Principle.MERCURY, 4.5F, 1.25F, 4.5F, 11.5F, 7.5F, 11.5F),
+            new Fill(Role.ASH_PAN, Principle.SALT, 4, 3, 0.5F, 12, 4, 3, ASH),
+            new Fill(Role.RECEIVER, Principle.MERCURY, 4.5F, 1.25F, 4.5F, 11.5F, 7.5F, 11.5F, null),
     };
 
     public CalcinerRenderer(BlockEntityRendererProvider.Context context) {
@@ -64,12 +68,12 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
             float share = Math.min(1.0F, amount / (float) capacity);
             FluidStack fluid = new FluidStack(PrincipleFluids.fluid(fill.principle()), amount);
             IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
-            ResourceLocation still = extensions.getStillTexture(fluid);
+            ResourceLocation still = fill.sprite() != null ? fill.sprite() : extensions.getStillTexture(fluid);
             if (still == null) {
                 continue;
             }
             TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(still);
-            int color = extensions.getTintColor(fluid);
+            int color = fill.sprite() != null ? 0xFFFFFFFF : extensions.getTintColor(fluid);
             Offset offset = CalcinerLayout.worldOffset(CalcinerLayout.part(fill.role()), CalcinerStructure.facing(facing));
             float[] box = rotate(fill.x0() / 16, fill.z0() / 16, fill.x1() / 16, fill.z1() / 16, facing);
             float y0 = fill.y0() / 16;

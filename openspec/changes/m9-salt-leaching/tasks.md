@@ -7,7 +7,7 @@
 
 ## 2. Ash Pan gives Ash
 
-- [ ] 2.1 `CalcinerBlockEntity`: Salt per Ash from the purification recipes (cached), `takeAsh(n)`, `ashCount()`; `CalcinerPorts.AshPort` extract only on the Ash Pan, the Salt fluid view and push removed; empty hand on the Ash Pan gives the Ash; bucket on the Ash Pan does nothing; `CalcinerRenderer` draws an ash heap; capability registration updated; GameTests in `CalcinerGameTests`: hopper under the Ash Pan receives Ash, hand takes Ash, no fluid handler at the Ash Pan, existing tests adjusted (Salt through the Ash Pan); `:manufacturing:runGameTestServer` green
+- [x] 2.1 `CalcinerBlockEntity`: Salt per Ash from the purification recipes (cached), `takeAsh(n)`, `ashCount()`; `CalcinerPorts.AshPort` extract only on the Ash Pan, the Salt fluid view and push removed; empty hand on the Ash Pan gives the Ash; bucket on the Ash Pan does nothing; `CalcinerRenderer` draws an ash heap; capability registration updated; GameTests in `CalcinerGameTests`: hopper under the Ash Pan receives Ash, hand takes Ash, no fluid handler at the Ash Pan, existing tests adjusted (Salt through the Ash Pan); `:manufacturing:runGameTestServer` green
 
 ## 3. Purifier
 
