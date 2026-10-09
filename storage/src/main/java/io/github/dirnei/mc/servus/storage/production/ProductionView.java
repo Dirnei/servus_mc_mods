@@ -16,7 +16,12 @@ import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.DuctRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.PackingRow;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
+import io.github.dirnei.mc.servus.foundation.production.TransferGate;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
@@ -82,7 +87,31 @@ public final class ProductionView {
                 .thenComparingLong(job -> job.cpu().asLong()).thenComparingInt(JobRow::id));
         List<MachineRow> machines = machines(level, line.get(), blocked);
         boolean online = !cpus.isEmpty() || !TerminalWarehouses.reachable(level, pos).isEmpty();
-        return new ProductionPayload(pos, online, online ? "" : "nothing", cpus, jobs, machines, patterns(level, line.get()));
+        return new ProductionPayload(pos, online, online ? "" : "nothing", cpus, jobs, machines, patterns(level, line.get()),
+                packing(level, line.get()), busiest(level, line.get()));
+    }
+
+    /** Every loaded Packing Station of the line with its rate use per direction, by position. */
+    public static List<PackingRow> packing(ServerLevel level, DataNetwork line) {
+        List<PackingRow> rows = new ArrayList<>();
+        for (DataMember member : line.dataMembers(DataRole.LINK)) {
+            if (level.isLoaded(member.pos()) && level.getBlockEntity(member.pos()) instanceof PackingStationBlockEntity station) {
+                rows.add(new PackingRow(member.pos(), station.used(TransferGate.Flow.IN), station.used(TransferGate.Flow.OUT),
+                        (int) Math.round(station.rate())));
+            }
+        }
+        rows.sort(Comparator.comparingLong(row -> row.pos().asLong()));
+        return rows;
+    }
+
+    /** The data duct of the line with the highest share of its bandwidth used during the last second, if any carried items. */
+    public static List<DuctRow> busiest(ServerLevel level, DataNetwork line) {
+        return line.busiest().map(load -> {
+            String name = level.isLoaded(load.pos()) && level.getBlockEntity(load.pos()) instanceof UtilityDuctBlockEntity duct
+                    ? new ItemStack(duct.lineItem(io.github.dirnei.mc.servus.foundation.logistics.duct.Line.DATA)).getHoverName().getString()
+                    : name(level, load.pos());
+            return List.of(new DuctRow(load.pos(), name, load.load(), (int) Math.round(load.bandwidth())));
+        }).orElse(List.of());
     }
 
     /** The patterns of the line with their storage and the line's capacity. */

@@ -3,7 +3,9 @@ package io.github.dirnei.mc.servus.storage.production;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.DuctRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.PackingRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -23,10 +25,18 @@ import net.minecraft.resources.ResourceLocation;
  * @param jobs     every job of those CPUs, open first, then oldest first
  * @param machines every producer and upkeep member of the line, problems first
  * @param patterns the patterns of the line and their capacity
+ * @param packing  every Packing Station of the line with its rate use
+ * @param busiest  the busiest data duct of the line, empty when the line is idle
  */
 public record ProductionPayload(BlockPos terminal, boolean online, String reason, List<CpuRow> cpus, List<JobRow> jobs, List<MachineRow> machines,
-                                PatternsView patterns)
+                                PatternsView patterns, List<PackingRow> packing, List<DuctRow> busiest)
         implements CustomPacketPayload {
+
+    /** A view without Packing Stations and line load. */
+    public ProductionPayload(BlockPos terminal, boolean online, String reason, List<CpuRow> cpus, List<JobRow> jobs,
+                             List<MachineRow> machines, PatternsView patterns) {
+        this(terminal, online, reason, cpus, jobs, machines, patterns, List.of(), List.of());
+    }
 
     public static final Type<ProductionPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "production"));
@@ -40,11 +50,15 @@ public record ProductionPayload(BlockPos terminal, boolean online, String reason
                 JobRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, payload.jobs());
                 MachineRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, payload.machines());
                 PatternsView.STREAM_CODEC.encode(buf, payload.patterns());
+                PackingRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, payload.packing());
+                DuctRow.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, payload.busiest());
             },
             buf -> new ProductionPayload(BlockPos.STREAM_CODEC.decode(buf), ByteBufCodecs.BOOL.decode(buf),
                     ByteBufCodecs.STRING_UTF8.decode(buf), CpuRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
                     JobRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
-                    MachineRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf), PatternsView.STREAM_CODEC.decode(buf)));
+                    MachineRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf), PatternsView.STREAM_CODEC.decode(buf),
+                    PackingRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf),
+                    DuctRow.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf)));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

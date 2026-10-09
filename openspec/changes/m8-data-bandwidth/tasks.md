@@ -21,7 +21,7 @@
 
 ## 5. Production Terminal
 
-- [ ] 5.1 `ProductionView`/`ProductionRows` Packing Station rows with use per direction and the busiest duct; Machines tab drawing; lang. GameTests `stationRowShowsUse`, `busiestDuctNamed`. Verify with build, JUnit and Storage GameTests.
+- [x] 5.1 `ProductionView`/`ProductionRows` Packing Station rows with use per direction and the busiest duct; Machines tab drawing; lang. GameTests `stationRowShowsUse`, `busiestDuctNamed`. Verify with build, JUnit and Storage GameTests.
 
 ## 6. Docs and plan
 

@@ -202,4 +202,23 @@ public final class DataBandwidthGameTests {
             helper.succeed();
         });
     }
+
+    /** The Production Terminal view names the slow Data Cable duct as the busiest with its load out of 32. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void busiestDuctNamed(GameTestHelper helper) {
+        setup(helper, x -> x == 5 ? ServusLogisticsItems.DATA_CABLE.get() : ServusLogisticsItems.FAST_DATA_CABLE.get());
+        BlockPos slow = new BlockPos(5, 1, 3);
+        helper.runAfterDelay(2, () -> move(helper, CONTROLLER, STATION, Items.OAK_PLANKS, 500));
+        helper.runAfterDelay(2 + WARM_UP + MEASURE, () -> {
+            UtilityDuctBlockEntity duct = helper.getBlockEntity(slow);
+            DataNetwork network = duct.dataNetwork().orElseThrow(() -> new AssertionError("the duct has a data network"));
+            var rows = io.github.dirnei.mc.servus.storage.production.ProductionView.busiest(helper.getLevel(), network);
+            helper.assertTrue(rows.size() == 1, "one busiest duct, got " + rows);
+            var row = rows.get(0);
+            helper.assertTrue(row.pos().equals(helper.absolutePos(slow)), "the Data Cable duct is the busiest, got " + row);
+            helper.assertTrue(row.name().equals("Data Cable") && row.bandwidth() == 32 && Math.abs(row.load() - 32) <= SLACK,
+                    "named Data Cable with about 32 of 32 items/s, got " + row);
+            helper.succeed();
+        });
+    }
 }

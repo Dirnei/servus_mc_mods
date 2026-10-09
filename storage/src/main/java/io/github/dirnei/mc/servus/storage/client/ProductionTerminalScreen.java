@@ -9,7 +9,10 @@ import io.github.dirnei.mc.servus.storage.production.CancelProductionOrderPayloa
 import io.github.dirnei.mc.servus.storage.production.EditPatternPayload;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.DuctRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.PackingRow;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import java.util.ArrayList;
@@ -443,12 +446,65 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         List<MachineRow> machines = ClientProduction.machines();
         if (machines.isEmpty()) {
             result.add(text(Component.translatable("gui.servus_storage.production.no_machines"), COLOUR_DIM, 0));
-            return result;
         }
         for (MachineRow machine : machines) {
             result.add(machineLine(machine));
         }
+        List<PackingRow> stations = ClientProduction.packing();
+        List<DuctRow> busiest = ClientProduction.busiest();
+        if (stations.isEmpty() && busiest.isEmpty()) {
+            return result;
+        }
+        result.add(text(Component.translatable("gui.servus_storage.production.data_line"), COLOUR_TEXT, 0));
+        if (busiest.isEmpty()) {
+            result.add(text(Component.translatable("gui.servus_storage.production.line_idle"), COLOUR_DIM, 0));
+        } else {
+            result.add(ductLine(busiest.get(0)));
+        }
+        for (PackingRow station : stations) {
+            result.add(packingLine(station));
+        }
         return result;
+    }
+
+    /** "Busiest duct: Data Cable, 30 of 32 items/s" with its position in the tooltip. */
+    private Line ductLine(DuctRow duct) {
+        Component line = Component.translatable("gui.servus_storage.production.busiest_duct", duct.name(), duct.load(), duct.bandwidth());
+        int colour = PackingRow.busy(duct.load(), duct.bandwidth()) ? COLOUR_ALERT : COLOUR_DIM;
+        Painter painter = (graphics, y, hovered) -> graphics.drawString(font,
+                font.plainSubstrByWidth(line.getString(), WIDTH - 2 * MARGIN), MARGIN, y + 1, colour, false);
+        Supplier<List<Component>> tooltip = () -> List.of(line,
+                Component.translatable("gui.servus_storage.production.machine.at", duct.pos().toShortString()));
+        return new Line(ROW, painter, tooltip, null);
+    }
+
+    private static Component packingUse(String direction, int used, int rate) {
+        String key = "gui.servus_storage.production.packing." + direction + (PackingRow.busy(used, rate) ? "_busy" : "");
+        return Component.translatable(key, used, rate);
+    }
+
+    /** A Packing Station as a machine row: its use of the rate to network and to storage, busy directions marked. */
+    private Line packingLine(PackingRow station) {
+        ItemStack icon = new ItemStack(ServusStorageBlocks.PACKING_STATION.get());
+        Component toNetwork = packingUse("to_network", station.toNetwork(), station.rate());
+        Component toStorage = packingUse("to_storage", station.toStorage(), station.rate());
+        Component state = Component.translatable("gui.servus_storage.production.packing.use", toNetwork, toStorage);
+        Painter painter = (graphics, y, hovered) -> {
+            if (hovered) {
+                graphics.fill(MARGIN, y, WIDTH - MARGIN, y + Production.MACHINE_HEIGHT, 0x20000000);
+            }
+            graphics.renderItem(icon, MARGIN + Production.MACHINE_ICON.x(), y + Production.MACHINE_ICON.y());
+            graphics.drawString(font, font.plainSubstrByWidth(icon.getHoverName().getString(), Production.MACHINE_NAME.w()),
+                    MARGIN + Production.MACHINE_NAME.x(), y + Production.MACHINE_NAME.y(), COLOUR_TEXT, false);
+            boolean busy = station.busyToNetwork() || station.busyToStorage();
+            boolean working = station.toNetwork() > 0 || station.toStorage() > 0;
+            int colour = busy ? COLOUR_ALERT : working ? COLOUR_GOOD : COLOUR_DIM;
+            graphics.drawString(font, font.plainSubstrByWidth(state.getString(), Production.MACHINE_STATE.w()),
+                    MARGIN + Production.MACHINE_STATE.x(), y + Production.MACHINE_STATE.y(), colour, false);
+        };
+        Supplier<List<Component>> tooltip = () -> List.of(icon.getHoverName(), toNetwork, toStorage,
+                Component.translatable("gui.servus_storage.production.machine.at", station.pos().toShortString()));
+        return new Line(Production.MACHINE_HEIGHT, painter, tooltip, null);
     }
 
     private Component machineState(MachineRow machine) {

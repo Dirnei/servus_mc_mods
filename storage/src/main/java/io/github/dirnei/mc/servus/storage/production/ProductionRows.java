@@ -154,4 +154,52 @@ public final class ProductionRows {
                     ItemStack.OPTIONAL_STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readVarInt(), buf.readInt());
         }
     }
+
+    /**
+     * One Packing Station of the line and how much of its rate it used during
+     * the last second in each direction.
+     *
+     * @param pos       where it stands
+     * @param toStorage items per second that came in over the line
+     * @param toNetwork items per second that went out over the line
+     * @param rate      items per second it converts in each direction, upgrades included
+     */
+    public record PackingRow(BlockPos pos, int toStorage, int toNetwork, int rate) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, PackingRow> STREAM_CODEC = StreamCodec.composite(
+                BlockPos.STREAM_CODEC, PackingRow::pos,
+                ByteBufCodecs.VAR_INT, PackingRow::toStorage,
+                ByteBufCodecs.VAR_INT, PackingRow::toNetwork,
+                ByteBufCodecs.VAR_INT, PackingRow::rate,
+                PackingRow::new);
+
+        /** Whether a direction uses its full rate; one item of slack for fractions. */
+        public static boolean busy(int used, int rate) {
+            return rate > 0 && used >= rate - 1;
+        }
+
+        public boolean busyToStorage() {
+            return busy(toStorage, rate);
+        }
+
+        public boolean busyToNetwork() {
+            return busy(toNetwork, rate);
+        }
+    }
+
+    /**
+     * The busiest data duct of the line.
+     *
+     * @param pos       where it is
+     * @param name      the name of its data cable tier
+     * @param load      items per second that passed it during the last second
+     * @param bandwidth items per second it lets through
+     */
+    public record DuctRow(BlockPos pos, String name, int load, int bandwidth) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, DuctRow> STREAM_CODEC = StreamCodec.composite(
+                BlockPos.STREAM_CODEC, DuctRow::pos,
+                ByteBufCodecs.STRING_UTF8, DuctRow::name,
+                ByteBufCodecs.VAR_INT, DuctRow::load,
+                ByteBufCodecs.VAR_INT, DuctRow::bandwidth,
+                DuctRow::new);
+    }
 }

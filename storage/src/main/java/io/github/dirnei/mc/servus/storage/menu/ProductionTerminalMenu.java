@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternEditing;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
 import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.CpuRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.JobRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.MachineRow;
@@ -395,6 +396,14 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
             hash = hash * 31 + Long.hashCode(job.doneAt());
             hash = hash * 31 + job.status().hashCode();
             hash = hash * 31 + job.args().hashCode();
+        }
+        for (ProductionRows.PackingRow station : payload.packing()) {
+            hash = hash * 31 + station.pos().hashCode();
+            hash = hash * 31 + station.toStorage() * 7 + station.toNetwork() * 3 + station.rate();
+        }
+        for (ProductionRows.DuctRow duct : payload.busiest()) {
+            hash = hash * 31 + duct.pos().hashCode() + duct.name().hashCode();
+            hash = hash * 31 + duct.load() * 7 + duct.bandwidth();
         }
         PatternsView patterns = payload.patterns();
         hash = hash * 31 + patterns.used() * 7 + patterns.total();

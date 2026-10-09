@@ -447,4 +447,26 @@ public final class PackingStationGameTests {
             helper.succeed();
         });
     }
+
+    /** A station sending at its full rate shows 8 of 8 to network marked busy and 0 of 8 to storage. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void stationRowShowsUse(GameTestHelper helper) {
+        setup(helper, 0, 0, true, false);
+        helper.runAfterDelay(10, () -> {
+            preload(helper, FAR, 128);
+            helper.runAfterDelay(60, () -> {
+                io.github.dirnei.mc.servus.foundation.data.DataNetwork line = io.github.dirnei.mc.servus.foundation.data.DataNetworks
+                        .networkAt(helper.getLevel(), helper.absolutePos(DUCT)).orElseThrow(() -> new AssertionError("a data line"));
+                List<io.github.dirnei.mc.servus.storage.production.ProductionRows.PackingRow> rows =
+                        io.github.dirnei.mc.servus.storage.production.ProductionView.packing(helper.getLevel(), line);
+                helper.assertTrue(rows.size() == 1 && rows.get(0).pos().equals(helper.absolutePos(FAR)), "one Packing Station row, got " + rows);
+                var row = rows.get(0);
+                helper.assertTrue(row.rate() == 8, "rate 8, got " + row.rate());
+                helper.assertTrue(row.toNetwork() >= 7 && row.toNetwork() <= 9 && row.busyToNetwork(),
+                        "about 8 of 8 to network and busy, got " + row);
+                helper.assertTrue(row.toStorage() == 0 && !row.busyToStorage(), "0 of 8 to storage, got " + row);
+                helper.succeed();
+            });
+        });
+    }
 }

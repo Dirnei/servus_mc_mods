@@ -77,6 +77,14 @@ public final class ClientProduction {
         return shown == null ? List.of() : shown.machines();
     }
 
+    public static List<io.github.dirnei.mc.servus.storage.production.ProductionRows.PackingRow> packing() {
+        return shown == null ? List.of() : shown.packing();
+    }
+
+    public static List<io.github.dirnei.mc.servus.storage.production.ProductionRows.DuctRow> busiest() {
+        return shown == null ? List.of() : shown.busiest();
+    }
+
     public static PatternsView patterns() {
         return shown == null ? PatternsView.EMPTY : shown.patterns();
     }

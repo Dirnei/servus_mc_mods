@@ -212,6 +212,14 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
                 "Items that arrived over the data line and wait to be put away into the warehouse");
         add("gui.servus_storage.packing_station.to_network.tooltip",
                 "Items picked from the warehouse that wait to be sent over the data line");
+        add("gui.servus_storage.production.data_line", "Data line");
+        add("gui.servus_storage.production.line_idle", "No duct carried items in the last second");
+        add("gui.servus_storage.production.busiest_duct", "Busiest duct: %s, %s of %s items/s");
+        add("gui.servus_storage.production.packing.use", "%s, %s");
+        add("gui.servus_storage.production.packing.to_network", "to network %s of %s/s");
+        add("gui.servus_storage.production.packing.to_network_busy", "to network %s of %s/s (busy)");
+        add("gui.servus_storage.production.packing.to_storage", "to storage %s of %s/s");
+        add("gui.servus_storage.production.packing.to_storage_busy", "to storage %s of %s/s (busy)");
         add("gui.servus_storage.packing_station.upgrades", "Upgrades");
         add("gui.servus_storage.packing_station.upgrades.tooltip",
                 "Speed Upgrades multiply how many items per second the station converts in each direction");
