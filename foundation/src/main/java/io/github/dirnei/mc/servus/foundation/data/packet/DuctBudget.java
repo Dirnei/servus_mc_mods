@@ -91,6 +91,27 @@ public final class DuctBudget {
         return used(true) == 0 && used(false) == 0;
     }
 
+    /** The highest load level, a duct at or near its full bandwidth. */
+    public static final int FULL = 4;
+
+    /**
+     * A load bucketed for display: 0 idle, 1 up to a quarter, 2 up to half,
+     * 3 below 90 percent, {@link #FULL} from 90 percent of the bandwidth.
+     */
+    public static int level(int load, double bandwidth) {
+        if (load <= 0) {
+            return 0;
+        }
+        double share = bandwidth <= 0 ? 1 : load / bandwidth;
+        if (share >= 0.9) {
+            return FULL;
+        }
+        if (share >= 0.5) {
+            return 3;
+        }
+        return share >= 0.25 ? 2 : 1;
+    }
+
     private RateBudget budget(boolean forwards) {
         return duplex && !forwards ? backward : forward;
     }

@@ -25,6 +25,7 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add("gui.servus_foundation.machine_adapter.count", "%s of %s in the machine");
         add("gui.servus_foundation.machine_adapter.no_upkeep", "No upkeep");
         add("message.servus_foundation.data_cable.summary", "Data network: %s cables, %s producers, %s stock");
+        add("message.servus_foundation.data_cable.summary_load", "Data network: %s cables, %s producers, %s stock; this duct %s of %s items/s");
         add("commands.servus_foundation.data.move.started", "Delivery %s started: %s %s");
         add("commands.servus_foundation.data.move.failed", "Delivery %s failed: %s");
         add("commands.servus_foundation.data.move.invalid", "Nothing to move");

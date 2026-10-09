@@ -73,6 +73,7 @@
   "item.servus_foundation.power_cable": "Power Cable",
   "itemGroup.servus": "Servus",
   "message.servus_foundation.data_cable.summary": "Data network: %s cables, %s producers, %s stock",
+  "message.servus_foundation.data_cable.summary_load": "Data network: %s cables, %s producers, %s stock; this duct %s of %s items/s",
   "message.servus_foundation.fluid_tank.content": "%s: %s / %s mB",
   "message.servus_foundation.fluid_tank.empty": "Empty, capacity %s mB",
   "message.servus_foundation.fluid_tank.mixed": "The tanks hold different fluids",

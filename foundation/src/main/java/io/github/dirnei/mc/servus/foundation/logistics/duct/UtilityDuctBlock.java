@@ -178,7 +178,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
             return InteractionResult.PASS;
         }
         if (level instanceof ServerLevel) {
-            duct.dataNetwork().ifPresent(network -> player.displayClientMessage(DataSummary.of(network), true));
+            duct.dataNetwork().ifPresent(network -> player.displayClientMessage(DataSummary.of(network, pos, duct.dataTier()), true));
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }

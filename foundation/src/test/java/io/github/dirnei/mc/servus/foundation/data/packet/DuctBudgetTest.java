@@ -59,6 +59,16 @@ class DuctBudgetTest {
     }
 
     @Test
+    void loadLevels() {
+        assertEquals(0, DuctBudget.level(0, 32));
+        assertEquals(1, DuctBudget.level(4, 32));
+        assertEquals(2, DuctBudget.level(8, 32));
+        assertEquals(3, DuctBudget.level(24, 32));
+        assertEquals(DuctBudget.FULL, DuctBudget.level(30, 32));
+        assertEquals(DuctBudget.FULL, DuctBudget.level(40, 32));
+    }
+
+    @Test
     void loadWindow() {
         DuctBudget budget = new DuctBudget(32, true);
         assertTrue(budget.idle());
