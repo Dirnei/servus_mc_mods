@@ -12,7 +12,8 @@ final class ServusManufacturingBlockLoot extends BlockLootSubProvider {
 
     private static final List<Block> SELF_DROPPING = List.of(
             ServusManufacturingBlocks.CALCINER.get(),
-            ServusManufacturingBlocks.COAGULATOR.get());
+            ServusManufacturingBlocks.COAGULATOR.get(),
+            ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get());
 
     ServusManufacturingBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

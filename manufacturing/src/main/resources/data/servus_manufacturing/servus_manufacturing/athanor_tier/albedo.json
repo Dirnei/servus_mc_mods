@@ -1,0 +1,70 @@
+{
+  "tier": 1,
+  "color": "#F2F0EA",
+  "blocks": [
+    {
+      "offset": [
+        -1,
+        0,
+        -1
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        -1,
+        0,
+        0
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        -1,
+        0,
+        1
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        0,
+        0,
+        -1
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        0,
+        0,
+        1
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        1,
+        0,
+        -1
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        1,
+        0,
+        0
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        1,
+        0,
+        1
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    }
+  ]
+}

@@ -25,6 +25,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     protected void registerStatesAndModels() {
         machine(ServusManufacturingBlocks.CALCINER.get(), "calciner");
         machine(ServusManufacturingBlocks.COAGULATOR.get(), "coagulator");
+        simpleBlockWithItem(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), cubeAll(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get()));
         // Liquid blocks are drawn by the fluid renderer; the model only gives the particle.
         for (Principle principle : Principle.values()) {
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);

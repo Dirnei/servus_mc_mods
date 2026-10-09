@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "servus_manufacturing:salt_crystal_block"
+    }
+  ],
+  "result": {
+    "count": 9,
+    "id": "servus_manufacturing:salt_crystal"
+  }
+}

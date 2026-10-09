@@ -387,6 +387,28 @@
         {"item": "modonomicon:modonomicon", "count": 1}
       ]
     },
+    "servus_manufacturing:salt_crystal_block": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["SSS", "SSS", "SSS"],
+      "key": {
+        "S": {"item": "servus_manufacturing:salt_crystal"}
+      },
+      "inputs": [
+        {"item": "servus_manufacturing:salt_crystal", "count": 9}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:salt_crystal_block", "count": 1}
+      ]
+    },
+    "servus_manufacturing:salt_crystal_from_block": {
+      "type": "minecraft:crafting_shapeless",
+      "inputs": [
+        {"item": "servus_manufacturing:salt_crystal_block", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:salt_crystal", "count": 9}
+      ]
+    },
     "servus_storage:access_point": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "OCO", "PPP"],
@@ -823,6 +845,12 @@
     },
     "servus_manufacturing:coagulator": {
       "name": "Coagulator"
+    },
+    "servus_manufacturing:salt_crystal": {
+      "name": "Salt Crystal"
+    },
+    "servus_manufacturing:salt_crystal_block": {
+      "name": "Salt Crystal Block"
     },
     "servus_storage:access_point": {
       "name": "Access Point"

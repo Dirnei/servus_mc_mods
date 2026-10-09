@@ -40,6 +40,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("gui.servus_manufacturing.jei.calcination", "Calcination");
         add("gui.servus_manufacturing.jei.coagulation", "Coagulation");
         add(ServusManufacturingItems.SALT_CRYSTAL.get(), "Salt Crystal");
+        add(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block");
         add(ServusManufacturingItems.SULFUR.get(), "Sulfur");
         add(ServusManufacturingItems.QUICKSILVER.get(), "Quicksilver");
         for (Principle principle : Principle.values()) {

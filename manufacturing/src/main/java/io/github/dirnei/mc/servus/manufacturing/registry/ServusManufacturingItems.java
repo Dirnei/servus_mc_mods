@@ -15,12 +15,13 @@ public final class ServusManufacturingItems {
     public static final DeferredItem<BlockItem> COAGULATOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.COAGULATOR);
 
     public static final DeferredItem<Item> SALT_CRYSTAL = ITEMS.registerSimpleItem("salt_crystal");
+    public static final DeferredItem<BlockItem> SALT_CRYSTAL_BLOCK = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK);
     public static final DeferredItem<Item> SULFUR = ITEMS.registerSimpleItem("sulfur");
     public static final DeferredItem<Item> QUICKSILVER = ITEMS.registerSimpleItem("quicksilver");
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CALCINER, COAGULATOR,
-            SALT_CRYSTAL, SULFUR, QUICKSILVER);
+            SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER);
 
     private ServusManufacturingItems() {
     }
