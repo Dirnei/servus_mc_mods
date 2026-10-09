@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.storage.gametest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
@@ -12,41 +14,62 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Places a Storage Terminal on the data line the way the older tests had it
- * beside the warehouse: a rail on stone takes the terminal's old spot (so it
- * joins the same warehouse), the Access Point stands on the rail (stations
- * join only through rails and shuttles serve it from that rail), a data duct
- * sits on top of it and the terminal on top of the duct.
+ * beside the warehouse: an Access Point takes the terminal's old spot, a data
+ * duct sits on top of it and the terminal on top of the duct. Stations join
+ * only through rails, so unless a rail already touches the Access Point a rail
+ * is laid under it and under every storage block beside it.
  */
 public final class TerminalWiring {
 
     private TerminalWiring() {
     }
 
-    /** Rail at {@code pos}, Access Point above, data duct above that, terminal three blocks up. */
+    /** Access Point at {@code pos}, data duct above, terminal two blocks up, linked to the warehouse by rail. */
     public static void place(GameTestHelper helper, BlockPos pos) {
-        if (helper.getBlockState(pos.below()).isAir()) {
-            helper.setBlock(pos.below(), Blocks.STONE.defaultBlockState());
-        }
-        rail(helper, pos);
-        helper.setBlock(accessPointPos(pos), ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
-        dataDuct(helper, pos.above(2));
+        helper.setBlock(pos, ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        dataDuct(helper, pos.above());
         helper.setBlock(terminalPos(pos), ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
                 .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
+        railUnder(helper, pos);
+        // Some tests place the controller after the terminal; link again once they did.
+        helper.runAfterDelay(1, () -> railUnder(helper, pos));
+    }
+
+    /**
+     * Unless a rail already touches the station at {@code pos}, lays a rail under it and under
+     * every storage block beside it, so the station joins their warehouse the only way it can.
+     */
+    public static void railUnder(GameTestHelper helper, BlockPos pos) {
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            if (helper.getBlockState(pos.relative(side)).is(ServusStorageBlocks.RAIL.get())) {
+                return;
+            }
+        }
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            BlockPos beside = pos.relative(side);
+            if (helper.getLevel().getBlockEntity(helper.absolutePos(beside)) instanceof StorageNodeBlockEntity node
+                    && node.kind() == WarehouseConnectionRule.NodeKind.STOCK
+                    && !helper.getBlockState(beside.below()).is(ServusStorageBlocks.RAIL.get())) {
+                rail(helper, beside.below());
+            }
+        }
+        if (!helper.getBlockState(pos.below()).is(ServusStorageBlocks.RAIL.get())) {
+            rail(helper, pos.below());
+        }
     }
 
     /** Where {@link #place} put the terminal. */
     public static BlockPos terminalPos(BlockPos pos) {
-        return pos.above(3);
+        return pos.above(2);
     }
 
     /** Where {@link #place} put the Access Point. */
     public static BlockPos accessPointPos(BlockPos pos) {
-        return pos.above();
+        return pos;
     }
 
     /** A warehouse rail shaped by its neighbours. */

@@ -168,6 +168,11 @@ public final class ServusStorageGameTests {
         helper.setBlock(LIFT_RAIL_HIGH, ServusStorageBlocks.RAIL.get().defaultBlockState());
         helper.setBlock(LIFT_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        // The Access Point joins only through a rail: two rails south of the controller and the Access Point.
+        for (BlockPos rail : List.of(LIFT_CONTROLLER.south(), LIFT_TERMINAL.south())) {
+            helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
+            placeRail(helper, rail);
+        }
         TerminalWiring.place(helper, LIFT_TERMINAL);
         helper.setBlock(LIFT_CHEST, Blocks.CHEST.defaultBlockState());
         helper.setBlock(LIFT_SIDE_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
@@ -1035,6 +1040,7 @@ public final class ServusStorageGameTests {
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         helper.setBlock(ST_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
+        TerminalWiring.railUnder(helper, ST_STATION);
         return helper.getBlockEntity(ST_STATION);
     }
 
@@ -1734,6 +1740,7 @@ public final class ServusStorageGameTests {
         // Facing west: the station's back, and so its machine, is the block east of it.
         helper.setBlock(OS_STATION, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
         helper.setBlock(OS_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        TerminalWiring.railUnder(helper, OS_STATION);
         return helper.getBlockEntity(OS_STATION);
     }
 
@@ -2013,6 +2020,9 @@ public final class ServusStorageGameTests {
         helper.setBlock(DS_CRATE_B, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(DS_OUTBOUND, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
         helper.setBlock(DS_INBOUND, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.SOUTH));
+        // Stations join only through rails: rails under the stations, the controller and the second crate.
+        TerminalWiring.railUnder(helper, DS_OUTBOUND);
+        TerminalWiring.railUnder(helper, DS_INBOUND);
         CraftingStationBlockEntity station = plainStation(helper, DS_STATION);
         Object owner = StationJobs.sticksJob(station, 2);
         OutboundStationBlockEntity outbound = helper.getBlockEntity(DS_OUTBOUND);
@@ -2132,7 +2142,9 @@ public final class ServusStorageGameTests {
                     helper.assertTrue(garage.shuttleCount() == 1, "the garage still holds its shuttle");
                     helper.assertTrue(after.garageOut(garagePos) == 0, "without a home the shuttle is recalled, out is " + after.garageOut(garagePos));
                     helper.assertTrue(after.shuttleViews(garagePos).isEmpty(), "nothing is drawn on the rails");
-                    helper.assertTrue(after.garageSummary(garagePos).getString().contains("no rail"), "the summary says no rail: " + after.garageSummary(garagePos).getString());
+                    // Garages join only through their back rail, so without it the garage has left the warehouse.
+                    helper.assertTrue(after.garageSummary(garagePos).getString().contains("not in a warehouse"),
+                            "the summary says the garage left: " + after.garageSummary(garagePos).getString());
                     helper.succeed();
                 });
             });

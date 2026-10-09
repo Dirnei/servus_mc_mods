@@ -70,6 +70,7 @@ public final class TerminalCableGameTests {
         CrateBlockEntity crate = crate(helper, new BlockPos(1, 1, 3), Items.OAK_PLANKS, 20);
         controller(helper, new BlockPos(2, 1, 3));
         helper.setBlock(new BlockPos(3, 1, 3), ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        TerminalWiring.railUnder(helper, new BlockPos(3, 1, 3));
         for (int x = 4; x <= 6; x++) {
             TerminalWiring.dataDuct(helper, new BlockPos(x, 1, 3));
         }
@@ -121,9 +122,11 @@ public final class TerminalCableGameTests {
         CrateBlockEntity first = crate(helper, new BlockPos(1, 1, 1), Items.COBBLESTONE, 30);
         controller(helper, new BlockPos(2, 1, 1));
         helper.setBlock(new BlockPos(3, 1, 1), ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        TerminalWiring.railUnder(helper, new BlockPos(3, 1, 1));
         CrateBlockEntity second = crate(helper, new BlockPos(1, 1, 8), Items.COBBLESTONE, 20);
         controller(helper, new BlockPos(2, 1, 8));
         helper.setBlock(new BlockPos(3, 1, 8), ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        TerminalWiring.railUnder(helper, new BlockPos(3, 1, 8));
         for (int z = 1; z <= 8; z++) {
             TerminalWiring.dataDuct(helper, new BlockPos(4, 1, z));
         }
@@ -148,6 +151,7 @@ public final class TerminalCableGameTests {
         CrateBlockEntity crate = crate(helper, new BlockPos(1, 1, 3), Items.COBBLESTONE, 64);
         controller(helper, new BlockPos(2, 1, 3));
         helper.setBlock(new BlockPos(3, 1, 3), ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        TerminalWiring.railUnder(helper, new BlockPos(3, 1, 3));
         TerminalWiring.dataDuct(helper, new BlockPos(4, 1, 3));
         StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(5, 1, 3));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);

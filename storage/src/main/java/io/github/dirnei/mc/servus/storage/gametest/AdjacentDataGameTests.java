@@ -112,6 +112,7 @@ public final class AdjacentDataGameTests {
         planks.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
         helper.setBlock(new BlockPos(1, 1, 3), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(ACCESS, ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        TerminalWiring.railUnder(helper, ACCESS);
         TerminalWiring.dataDuct(helper, DUCT);
         row(helper);
         PatternStorageBlockEntity storage = helper.getBlockEntity(PATTERNS);
