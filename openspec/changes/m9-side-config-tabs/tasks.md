@@ -23,4 +23,4 @@
 
 ## 6. Integration
 
-- [ ] 6.1 Full `gradlew build`, `gradlew test`, GameTests of all three mods green, and the client launches from main with all three mods: set a Calciner's sides to Salt and Mercury in the Fluids tab and with the carrot, pipe each to its own tank on its own channel, and see the fluid markers.
+- [ ] 6.1 Full `gradlew build`, `gradlew test`, GameTests of all three mods green, and the client launches from main with all three mods: set a Calciner's sides to Salt and Mercury in the Fluids tab and with the carrot, pipe each to its own tank on its own channel, and see the fluid markers. (Build, 505 unit tests, docs tests and docs build, and GameTests green in the worktree: Foundation 80, Manufacturing 33, Storage 249. The client part is owed to the play check from main.)
