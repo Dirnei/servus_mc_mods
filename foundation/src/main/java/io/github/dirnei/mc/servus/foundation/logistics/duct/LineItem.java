@@ -53,7 +53,7 @@ public class LineItem extends BlockItem implements AssistedItem {
         // A duct that already carries this line places a new duct against the clicked face; a sneak click walks the run.
         if (!sneaking && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && !duct.has(line)) {
             if (!level.isClientSide()) {
-                if (!duct.addLine(line)) {
+                if (!addTo(duct)) {
                     return InteractionResult.FAIL;
                 }
                 if (player == null || !player.getAbilities().instabuild) {
@@ -72,9 +72,14 @@ public class LineItem extends BlockItem implements AssistedItem {
         }
         Level level = context.getLevel();
         if (!level.isClientSide() && level.getBlockEntity(context.getClickedPos()) instanceof UtilityDuctBlockEntity duct) {
-            duct.addLine(line);
+            addTo(duct);
         }
         return true;
+    }
+
+    /** Adds this item's line to the duct. */
+    protected boolean addTo(UtilityDuctBlockEntity duct) {
+        return duct.addLine(line);
     }
 
     /** Each line item has its own name instead of the shared block name. */

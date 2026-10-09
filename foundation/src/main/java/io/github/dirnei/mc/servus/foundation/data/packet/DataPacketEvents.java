@@ -18,6 +18,7 @@ public final class DataPacketEvents {
     @SubscribeEvent
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(PacketLimitsManager.INSTANCE);
+        event.addListener(io.github.dirnei.mc.servus.foundation.data.CableTiersManager.INSTANCE);
     }
 
     /** Packets are not saved: settle them while every chunk is still loaded, before the worlds save. */

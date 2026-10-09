@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
+import io.github.dirnei.mc.servus.foundation.logistics.duct.DataCableItem;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctParts;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
@@ -19,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 public final class DuctBlockColor implements BlockColor {
 
     private static final int WHITE = 0xFFFFFF;
-    /** The data line has no channels; its ring is always teal. */
+    /** The base Data Cable's ring colour, used when the tier item is unknown. */
     private static final int DATA_RING = 0x40DCC8;
 
     @Override
@@ -36,7 +37,8 @@ public final class DuctBlockColor implements BlockColor {
             return WHITE;
         }
         if (line == Line.DATA) {
-            return DATA_RING;
+            // The data line has no channels; its ring shows the tier.
+            return duct.lineItem(Line.DATA) instanceof DataCableItem cable ? cable.ringColour() & WHITE : DATA_RING;
         }
         return DuctChannels.color(duct.channel(line, DuctParts.ringSide(tintIndex))) & WHITE;
     }

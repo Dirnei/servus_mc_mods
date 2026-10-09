@@ -27,4 +27,12 @@ public interface DataNode {
     default boolean dataCable() {
         return true;
     }
+
+    /**
+     * The tier of this node's data line, which sets how many items pass it per
+     * second; null for a node without a bandwidth limit, such as a carrier.
+     */
+    default CableTier dataTier() {
+        return null;
+    }
 }

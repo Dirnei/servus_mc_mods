@@ -144,8 +144,8 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         }
         if (id >= BUTTON_REMOVE_LINE && id < BUTTON_REMOVE_LINE + Line.VALUES.length) {
             Line line = Line.byOrdinal(id - BUTTON_REMOVE_LINE);
+            ItemStack drop = new ItemStack(duct.lineItem(line));
             if (!player.level().isClientSide() && duct.removeLine(line)) {
-                ItemStack drop = new ItemStack(ServusLogisticsItems.lineItem(line));
                 if (!player.getInventory().add(drop)) {
                     player.drop(drop, false);
                 }

@@ -1,0 +1,5 @@
+{
+  "servus_foundation:data_cable": { "items_per_second": 32, "duplex": false },
+  "servus_foundation:duplex_data_cable": { "items_per_second": 32, "duplex": true },
+  "servus_foundation:fast_data_cable": { "items_per_second": 128, "duplex": true }
+}

@@ -294,6 +294,11 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         post(new DataEvent.SidesChanged(pos));
     }
 
+    /** A duct's data line changed its tier in place: running deliveries pick their path again. */
+    public void tierChanged(NodePos pos) {
+        shipments.forEach(shipment -> shipment.nodeRemoved(pos));
+    }
+
     @Override
     protected void onNodeRemoved(NodePos pos, DataNode node) {
         probes.remove(pos);

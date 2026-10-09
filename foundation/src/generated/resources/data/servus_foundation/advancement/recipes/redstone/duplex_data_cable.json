@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_data_cable": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_foundation:data_cable"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_foundation:duplex_data_cable"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_data_cable"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_foundation:duplex_data_cable"
+    ]
+  }
+}

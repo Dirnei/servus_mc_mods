@@ -151,7 +151,7 @@ public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> 
             graphics.fill(x, y, x + width, y + TAB_HEIGHT, PANEL_DARK);
             graphics.fill(x + 1, y + 1, x + width, y + TAB_HEIGHT - 1, selected ? PANEL : 0xFF9A9A9A);
             graphics.fill(x + 1, y + 1, x + width, y + 2, PANEL_LIGHT);
-            graphics.renderFakeItem(new ItemStack(ServusLogisticsItems.lineItem(line)), x + 6, y + 5);
+            graphics.renderFakeItem(new ItemStack(menu.duct().lineItem(line)), x + 6, y + 5);
         }
     }
 

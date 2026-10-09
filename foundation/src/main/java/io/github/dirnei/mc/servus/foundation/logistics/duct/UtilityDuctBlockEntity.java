@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import io.github.dirnei.mc.servus.foundation.data.CableTier;
+import io.github.dirnei.mc.servus.foundation.data.CableTiersManager;
 import io.github.dirnei.mc.servus.foundation.data.DataMembership;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNode;
@@ -16,6 +18,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.network.EnergyChannelNetw
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.network.ItemChannelNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlockEntities;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -36,11 +39,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -83,6 +88,8 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     private final Map<Direction, DuctItemHandler> itemHandlers = new EnumMap<>(Direction.class);
     private final Map<Direction, DuctFluidHandler> fluidHandlers = new EnumMap<>(Direction.class);
     private BlockState facade;
+    /** The data line's tier: the id of the data cable item that placed it. */
+    private ResourceLocation dataTier = CableTiersManager.BASE_TIER;
 
     public UtilityDuctBlockEntity(BlockPos pos, BlockState state) {
         super(ServusLogisticsBlockEntities.UTILITY_DUCT.get(), pos, state);
@@ -120,6 +127,47 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         join(line);
         changed();
         return true;
+    }
+
+    /** Adds the data line in the tier of the given cable item; see {@link #addLine(Line)}. */
+    public boolean addDataLine(ResourceLocation tier) {
+        if (has(Line.DATA)) {
+            return false;
+        }
+        dataTier = tier == null ? CableTiersManager.BASE_TIER : tier;
+        return addLine(Line.DATA);
+    }
+
+    /** The data line's tier id (the cable item id), the base Data Cable when unset. */
+    public ResourceLocation dataTierId() {
+        return dataTier;
+    }
+
+    /**
+     * Changes the data line's tier in place: sides, modes and connections stay.
+     * Running deliveries pick their path again.
+     */
+    public void setDataTier(ResourceLocation tier) {
+        ResourceLocation next = tier == null ? CableTiersManager.BASE_TIER : tier;
+        if (next.equals(dataTier)) {
+            return;
+        }
+        dataTier = next;
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+            if (level instanceof ServerLevel && joined.contains(Line.DATA)) {
+                dataNetwork().ifPresent(network -> network.tierChanged(Conversions.toNodePos(worldPosition)));
+            }
+        }
+    }
+
+    /** The item a line of this duct drops: the tier's cable for the data line, the line's item otherwise. */
+    public Item lineItem(Line line) {
+        if (line == Line.DATA && BuiltInRegistries.ITEM.getOptional(dataTier).orElse(null) instanceof DataCableItem cable) {
+            return cable;
+        }
+        return ServusLogisticsItems.lineItem(line);
     }
 
     /** @return true when the line was present */
@@ -479,6 +527,11 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         return has(Line.DATA) && mode(Line.DATA, side) != SideMode.DISABLED;
     }
 
+    @Override
+    public CableTier dataTier() {
+        return CableTiersManager.INSTANCE.tier(dataTier);
+    }
+
     private void join(Line line) {
         if (level instanceof ServerLevel server && !isRemoved() && joined.add(line)) {
             NetworkManager.of(server).join(worldPosition, nodes.get(line));
@@ -635,6 +688,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         if (facade != null) {
             tag.put("Facade", NbtUtils.writeBlockState(facade));
         }
+        if (has(Line.DATA) && !dataTier.equals(CableTiersManager.BASE_TIER)) {
+            tag.putString("DataTier", dataTier.toString());
+        }
     }
 
     @Override
@@ -695,6 +751,8 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         if (facade != null && facade.isAir()) {
             facade = null;
         }
+        ResourceLocation savedTier = tag.contains("DataTier") ? ResourceLocation.tryParse(tag.getString("DataTier")) : null;
+        dataTier = savedTier == null ? CableTiersManager.BASE_TIER : savedTier;
         if (level != null && level.isClientSide()) {
             requestModelDataUpdate();
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);

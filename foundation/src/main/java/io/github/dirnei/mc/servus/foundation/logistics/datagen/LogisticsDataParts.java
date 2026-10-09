@@ -44,6 +44,8 @@ public final class LogisticsDataParts {
         provider.basicItem(ServusLogisticsItems.POWER_CABLE.get());
         provider.basicItem(ServusLogisticsItems.FLUID_PIPE.get());
         provider.basicItem(ServusLogisticsItems.DATA_CABLE.get());
+        provider.basicItem(ServusLogisticsItems.DUPLEX_DATA_CABLE.get());
+        provider.basicItem(ServusLogisticsItems.FAST_DATA_CABLE.get());
         provider.basicItem(ServusLogisticsItems.FACADE.get());
     }
 
@@ -98,6 +100,23 @@ public final class LogisticsDataParts {
                 .unlockedBy("has_copper", has.apply(Items.COPPER_INGOT))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.DUPLEX_DATA_CABLE.get(), 2)
+                .pattern("DQD")
+                .define('D', ServusLogisticsItems.DATA_CABLE.get())
+                .define('Q', Items.QUARTZ)
+                .unlockedBy("has_data_cable", has.apply(ServusLogisticsItems.DATA_CABLE.get()))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.FAST_DATA_CABLE.get(), 2)
+                .pattern(" G ")
+                .pattern("DQD")
+                .pattern(" G ")
+                .define('D', ServusLogisticsItems.DUPLEX_DATA_CABLE.get())
+                .define('G', Items.GOLD_INGOT)
+                .define('Q', Items.QUARTZ)
+                .unlockedBy("has_duplex_data_cable", has.apply(ServusLogisticsItems.DUPLEX_DATA_CABLE.get()))
+                .save(output);
+
         SpecialRecipeBuilder.special(FacadeRecipe::new).save(output, "servus_foundation:facade");
     }
 
@@ -107,6 +126,10 @@ public final class LogisticsDataParts {
         provider.add(ServusLogisticsItems.POWER_CABLE.get(), "Power Cable");
         provider.add(ServusLogisticsItems.FLUID_PIPE.get(), "Fluid Pipe");
         provider.add(ServusLogisticsItems.DATA_CABLE.get(), "Data Cable");
+        provider.add(ServusLogisticsItems.DUPLEX_DATA_CABLE.get(), "Duplex Data Cable");
+        provider.add(ServusLogisticsItems.FAST_DATA_CABLE.get(), "Fast Data Cable");
+        provider.add("tooltip.servus_foundation.data_cable.simplex", "%s items/s, shared by both directions");
+        provider.add("tooltip.servus_foundation.data_cable.duplex", "%s items/s in each direction");
         provider.add(ServusLogisticsItems.FACADE.get(), "Facade");
         provider.add("item.servus_foundation.facade.named", "Facade (%s)");
         provider.add("item.servus_foundation.facade.hint", "Use on a utility duct to hide it");

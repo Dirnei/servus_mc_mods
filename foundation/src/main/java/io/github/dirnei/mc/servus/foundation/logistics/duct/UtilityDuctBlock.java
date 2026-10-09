@@ -187,7 +187,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
             for (Line line : duct.lines()) {
-                Block.popResource(level, pos, new ItemStack(ServusLogisticsItems.lineItem(line)));
+                Block.popResource(level, pos, new ItemStack(duct.lineItem(line)));
             }
             ItemStack facade = duct.removeFacade();
             if (!facade.isEmpty()) {
@@ -247,7 +247,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
     @Override
     public ItemStack getCloneItemStack(BlockState state, net.minecraft.world.phys.HitResult target, LevelReader level, BlockPos pos, Player player) {
         if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && !duct.lines().isEmpty()) {
-            return new ItemStack(ServusLogisticsItems.lineItem(duct.lines().iterator().next()));
+            return new ItemStack(duct.lineItem(duct.lines().iterator().next()));
         }
         return new ItemStack(ServusLogisticsItems.ITEM_PIPE.get());
     }
