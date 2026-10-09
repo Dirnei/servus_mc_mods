@@ -174,6 +174,7 @@ final class JournalEntries {
                     "To finish this chapter:\n\n"
                             + "- Calcine 100 things\n"
                             + "- Gather 1,000 mB of Salt\n"
+                            + "- Wash Ash into Salt in the Purifier\n"
                             + "- Coagulate your first Salt Crystal\n\n"
                             + "Your team shares this work. See your progress with /servus_manufacturing journal.");
             text("athanor", "The Athanor",

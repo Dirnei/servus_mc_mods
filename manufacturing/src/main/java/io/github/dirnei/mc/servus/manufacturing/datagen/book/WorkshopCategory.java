@@ -32,11 +32,11 @@ final class WorkshopCategory extends CategoryProvider {
     protected String[] generateEntryMap() {
         return new String[] {
                 "_____________________",
-                "___p___c___o___a_____",
+                "___p___c___u___o___a_",
                 "_______f_____________",
-                "_______________s_____",
-                "_______________e_____",
-                "_______________h_____",
+                "___________________s_",
+                "___________________e_",
+                "___________________h_",
         };
     }
 
@@ -44,7 +44,8 @@ final class WorkshopCategory extends CategoryProvider {
     protected void generateEntries() {
         BookEntryModel principles = add(principles().generate('p'));
         BookEntryModel calciner = add(calciner().generate('c').withParent(principles));
-        BookEntryModel coagulator = add(coagulator().generate('o').withParent(calciner));
+        BookEntryModel purifier = add(purifier().generate('u').withParent(calciner));
+        BookEntryModel coagulator = add(coagulator().generate('o').withParent(purifier));
         BookEntryModel athanor = add(athanor().generate('a').withParent(coagulator));
         add(pipes().generate('f').withParent(calciner));
         BookEntryModel block = add(albedo(saltCrystalBlock().generate('s').withParent(athanor)));
@@ -62,7 +63,8 @@ final class WorkshopCategory extends CategoryProvider {
         return new WorkshopEntry(this, "principles", "The Three Principles", "Salt, Sulfur and Mercury",
                 PrincipleFluids.entry(Principle.SALT).bucket().get(), e -> {
             e.text("three", "The Three",
-                    "Every body is made of three. Salt gives it form, Sulfur makes it burn, and Mercury is the spirit that flies off.\n\n"
+                    "Every body is made of three. Salt gives it form, Sulfur makes it burn, and Mercury is the spirit that flies off. "
+                            + "In the fire the Salt stays behind as Ash; the Purifier washes it into liquid Salt.\n\n"
                             + "In this work they are liquids. They flow through Fluid Pipes, rest in Fluid Tanks and fill buckets.");
             e.text("keeping", "Keeping Them",
                     "A Fluid Tank holds one principle at a time, so give each principle its own tank.\n\n"
@@ -100,9 +102,27 @@ final class WorkshopCategory extends CategoryProvider {
                     "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan. Mercury drips through the Receiver "
                             + "into the right tank, and Sulfur rises into the Hood and runs down the duct into the left tank.\n\n"
                             + "Take them from the tanks with a bucket, or with a pipe whose side at the tank you set to pull in with the carrot: "
-                            + "a tank on a plain side only ever fills. The Salt waits in the Ash Pan for a bucket, a pipe or a tank.");
+                            + "a tank on a plain side only ever fills.\n\n"
+                            + "The Salt stays in the Ash Pan as Ash, one Ash for every 100 Salt. Take it with an empty hand, or put a hopper "
+                            + "under the Ash Pan, and wash it in the Purifier. When the Ash Pan is full, the Calciner waits.");
             e.list("burns", "What Burns", AlchemyRecipeTable.calcination().stream()
                     .map(row -> PrincipleText.line(row.label(), row.output())).toList());
+        });
+    }
+
+    private WorkshopEntry purifier() {
+        return new WorkshopEntry(this, "purifier", "The Purifier", "Wash the Salt out of the Ash",
+                ServusManufacturingItems.PURIFIER.get(), e -> {
+            e.spotlight("machine", ServusManufacturingItems.PURIFIER.get(), "The Purifier",
+                    "A vat of oak and iron. Water washes the Salt out of the Ash, and what drains off is the Salt the Coagulator needs.");
+            e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":purifier", "Planks, a cauldron and a hopper.");
+            e.text("leaching", "Leaching",
+                    "Give it Ash by hand, by hopper or by pipe, and water by bucket or by pipe from a pump. "
+                            + "The water takes up the Salt of the Ash, and after a while the brine is Salt.\n\n"
+                            + "Take the Salt with an empty bucket, or pipe it away: the Purifier gives Salt and takes water on every side "
+                            + "without any setting. Sneak with an empty hand to take the Ash back.");
+            e.list("washes", "What It Washes", AlchemyRecipeTable.purification().stream()
+                    .map(row -> row.count() + " " + row.label() + " and " + row.water() + " mB water: " + row.salt() + " Salt").toList());
         });
     }
 

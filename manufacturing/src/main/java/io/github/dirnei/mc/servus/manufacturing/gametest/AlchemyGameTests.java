@@ -488,7 +488,7 @@ public final class AlchemyGameTests {
         helper.assertTrue(book != null, "the journal book should be loaded");
         helper.assertTrue(book.getCategory(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "workshop")) != null,
                 "the Workshop category should exist");
-        for (String entry : java.util.List.of("principles", "calciner", "coagulator", "athanor", "pipes", "salt_crystal_block",
+        for (String entry : java.util.List.of("principles", "calciner", "purifier", "coagulator", "athanor", "pipes", "salt_crystal_block",
                 "elixir_of_sight", "gnome_hollow")) {
             // The server keeps only categories until the book is built for clients, so look at the loaded data files.
             ResourceLocation file = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID,

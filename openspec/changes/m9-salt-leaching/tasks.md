@@ -16,7 +16,7 @@
 
 ## 4. Journal and plan
 
-- [ ] 4.1 Villach task `purify` in `journal/villach.json` and the Villach book text; Workshop Purifier entry (machine, recipe, how to use, purification list) after the Calciner; Calciner and Principles pages explain Ash; lang; `gradlew :manufacturing:runData` and `gradlew build` green, the journal GameTest still lists every entry
+- [x] 4.1 Villach task `purify` in `journal/villach.json` and the Villach book text; Workshop Purifier entry (machine, recipe, how to use, purification list) after the Calciner; Calciner and Principles pages explain Ash; lang; `gradlew :manufacturing:runData` and `gradlew build` green, the journal GameTest still lists every entry
 - [ ] 4.2 PLAN.md M9: item 6b2, Tria Prima paragraph, Nigredo table; no em dashes; `gradlew build` green
 
 ## 5. Integration

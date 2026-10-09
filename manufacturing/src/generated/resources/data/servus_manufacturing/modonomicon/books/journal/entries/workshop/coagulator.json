@@ -81,13 +81,13 @@
   "parents": [
     {
       "draw_arrow": true,
-      "entry": "workshop/calciner",
+      "entry": "workshop/purifier",
       "line_enabled": true,
       "line_reversed": false
     }
   ],
   "show_when_any_parent_unlocked": false,
-  "sort_number": 2,
-  "x": 1,
+  "sort_number": 3,
+  "x": 5,
   "y": -2
 }
