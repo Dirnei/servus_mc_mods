@@ -110,37 +110,6 @@ A rack SHALL show the item types it holds the most of, up to a display count (`d
 - **WHEN** a rack holds cobblestone and an iron ingot
 - **THEN** a small cobblestone cube and an upright ingot stand on the lower shelf between the posts, visible from the aisle and from the sides
 
-### Requirement: Rack is a storage block
-A rack SHALL be a stock holding node of the warehouse network: its contents are indexed, it joins through touching storage blocks on any side and through rails on its front side only, and rails dock onto its front only. A rack SHALL be picked from and filled by the warehouse only through a shuttle, never instantly. A shuttle SHALL reach a rack through a rail at the front of any bay of the rack's section and SHALL park on that rail to pick from or put into any bay of the section. A rail touching a rack's side or back SHALL NOT count as a way to reach it, even when that rail belongs to the warehouse. A rack SHALL NOT carry a connection lamp.
-
-#### Scenario: Rack beside a rail
-- **WHEN** a rack is placed with a rail of an online warehouse in front of it
-- **THEN** the rail shows a dock towards it and the terminal lists its contents
-
-#### Scenario: Rail at the side
-- **WHEN** a rail of an online warehouse runs along the side or the back of a rack and nothing else touches it
-- **THEN** the rail shows no dock, and the rack's contents are not listed
-
-#### Scenario: Side rail does not reach
-- **WHEN** a rack touches the controller directly, holds bread, and a rail of the warehouse with a garage and a shuttle runs along the rack's side but not its front
-- **THEN** the terminal lists the bread but a request for it is refused as needing a shuttle
-
-#### Scenario: Rack without a shuttle
-- **WHEN** a rack touches the controller directly, holds bread, and the warehouse has no garage
-- **THEN** the terminal lists the bread but a request for it is refused as needing a shuttle
-
-#### Scenario: Rack by shuttle
-- **WHEN** the same rack stands with its front on a rail and a garage with one shuttle is on that rail
-- **THEN** a request for bread sends the shuttle to the rack's front and the bread lands in the terminal's output slots
-
-#### Scenario: Section served from one rail
-- **WHEN** a section of three bays has a rail only in front of its left bay and the right bay holds bread
-- **THEN** a request for bread sends the shuttle to the rail in front of the left bay and the bread lands in the terminal's output slots
-
-#### Scenario: Neighbouring section not served
-- **WHEN** a lone rack stands beside a section with a front rail, does not join it, holds bread and has no front rail of its own
-- **THEN** a request for that bread is refused as needing a shuttle
-
 ### Requirement: Rack is obtainable and dismantled
 The rack SHALL be craftable from vanilla materials, SHALL spill its contents when broken, and SHALL keep them on the dropped item when dismantled by sneaking with the Configuration Carrot. The Configuration Carrot SHALL NOT turn a rack; its facing is set when it is placed. The crafted rack SHALL remember the wood of the planks it was made from: the planks that appear most often, or the middle one when all three differ.
 
@@ -231,3 +200,38 @@ The creative tab and the recipe viewer SHALL list one Heavy Duty Rack, the oak o
 #### Scenario: Creative tab
 - **WHEN** the player opens the Servus Storage creative tab
 - **THEN** one Heavy Duty Rack with oak boards is listed
+
+### Requirement: Rack joins through its front rail
+A rack SHALL be a stock holding node of the warehouse network that joins only through a rail in front of a bay of its section: a section belongs to the network of a rail standing in front of any of its bays, and the bays of one section belong together. A rack SHALL NOT join through touching the controller, crates, stations, garages, elevators or racks of another section, on any side, and SHALL pass no connection on. A rack SHALL NOT pull neighbouring inventories into the warehouse, and no storage block SHALL index a rack as a foreign inventory. Rails dock onto a rack's front only. A rack SHALL be picked from and filled only through a shuttle parked on a front rail of its section. A rack SHALL NOT carry a connection lamp.
+
+#### Scenario: Rack beside a rail
+- **WHEN** a rack is placed with a rail of an online warehouse in front of it
+- **THEN** the rail shows a dock towards it and the terminal lists its contents
+
+#### Scenario: Rack touching the controller
+- **WHEN** a rack holding bread touches the controller directly and has no front rail
+- **THEN** the terminal does not list the bread
+
+#### Scenario: Rail at the side
+- **WHEN** a rail of an online warehouse runs along the side or the back of a rack and nothing else touches it
+- **THEN** the rail shows no dock, and the rack's contents are not listed
+
+#### Scenario: Front rail connects the section
+- **WHEN** a section of three bays holds bread in its right bay and a rail of an online warehouse is placed in front of its left bay
+- **THEN** the terminal lists the bread, and breaking that rail removes it from the list again
+
+#### Scenario: Crate behind a rack
+- **WHEN** a crate holding apples touches only the back of a rack that has a front rail of an online warehouse
+- **THEN** the terminal does not list the apples
+
+#### Scenario: Rack by shuttle
+- **WHEN** a rack stands with its front on a rail and a garage with one shuttle is on that rail
+- **THEN** a request for its bread sends the shuttle to the rack's front and the bread lands in the terminal's output slots
+
+#### Scenario: Section served from one rail
+- **WHEN** a section of three bays has a rail only in front of its left bay and the right bay holds bread
+- **THEN** a request for bread sends the shuttle to the rail in front of the left bay and the bread lands in the terminal's output slots
+
+#### Scenario: Neighbouring section not joined
+- **WHEN** a lone rack stands beside a section with a front rail, does not join it, holds bread and has no front rail of its own
+- **THEN** the terminal does not list that bread
