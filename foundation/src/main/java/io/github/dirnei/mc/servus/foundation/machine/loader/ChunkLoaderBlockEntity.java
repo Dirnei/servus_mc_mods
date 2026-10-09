@@ -1,13 +1,13 @@
-package io.github.dirnei.mc.servus.manufacturing.machine.loader;
+package io.github.dirnei.mc.servus.foundation.machine.loader;
 
-import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.config.ServusManufacturingConfig;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.menu.ChunkLoaderMenu;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
+import io.github.dirnei.mc.servus.foundation.machine.menu.ChunkLoaderMenu;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
@@ -32,7 +32,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
     public static final int STATUS_TEAM_LIMIT = 2;
     public static final int STATUS_FTB_CHUNKS = 3;
     public static final int STATUS_NO_OWNER = 4;
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "chunk_loader");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "chunk_loader");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final String FTB_CHUNKS = "ftbchunks";
 
@@ -41,7 +41,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
     private int status = STATUS_NO_POWER;
 
     public ChunkLoaderBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusManufacturingBlockEntities.CHUNK_LOADER.get(), pos, state, 0);
+        super(MachineContent.CHUNK_LOADER_ENTITY.get(), pos, state, 0);
     }
 
     @Override
@@ -59,11 +59,16 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
         return status;
     }
 
+    /** Whether this loader currently holds its chunk ticket. */
+    public boolean ticketHeld() {
+        return ticketHeld;
+    }
+
     private int allowance() {
         if (owner == null) {
             return STATUS_NO_OWNER;
         }
-        if (ServusManufacturingConfig.chunkLoaderRespectsFtbChunks() && ModList.get().isLoaded(FTB_CHUNKS)) {
+        if (ServusFoundationConfig.chunkLoaderRespectsFtbChunks() && ModList.get().isLoaded(FTB_CHUNKS)) {
             return STATUS_FTB_CHUNKS;
         }
         if (!(level instanceof ServerLevel server)) {
@@ -71,7 +76,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
         }
         ChunkLoaderData data = ChunkLoaderData.get(server.getServer());
         if (!data.isRegistered(owner, server, worldPosition)) {
-            if (data.countFor(owner) >= ServusManufacturingConfig.maxChunkLoadersPerTeam()) {
+            if (data.countFor(owner) >= ServusFoundationConfig.maxChunkLoadersPerTeam()) {
                 return STATUS_TEAM_LIMIT;
             }
             data.register(owner, server, worldPosition);
@@ -110,7 +115,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
             return;
         }
         ChunkPos chunk = new ChunkPos(worldPosition);
-        ServusManufacturingChunks.CONTROLLER.forceChunk(server, worldPosition, chunk.x, chunk.z, wanted, true);
+        ChunkLoaderTickets.CONTROLLER.forceChunk(server, worldPosition, chunk.x, chunk.z, wanted, true);
         ticketHeld = wanted;
         setChanged();
     }

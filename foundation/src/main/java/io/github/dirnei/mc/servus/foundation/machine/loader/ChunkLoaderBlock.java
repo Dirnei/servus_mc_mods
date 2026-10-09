@@ -1,9 +1,9 @@
-package io.github.dirnei.mc.servus.manufacturing.machine.loader;
+package io.github.dirnei.mc.servus.foundation.machine.loader;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
@@ -22,6 +22,6 @@ public class ChunkLoaderBlock extends MachineBlock {
 
     @Override
     protected BlockEntityType<? extends MachineBlockEntity> blockEntityType() {
-        return ServusManufacturingBlockEntities.CHUNK_LOADER.get();
+        return MachineContent.CHUNK_LOADER_ENTITY.get();
     }
 }

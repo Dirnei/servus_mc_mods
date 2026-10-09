@@ -1,9 +1,9 @@
-package io.github.dirnei.mc.servus.manufacturing.menu;
+package io.github.dirnei.mc.servus.foundation.machine.menu;
 
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.machine.loader.ChunkLoaderBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingMenus;
+import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerData;
@@ -11,11 +11,11 @@ import net.minecraft.world.inventory.ContainerData;
 public class ChunkLoaderMenu extends MachineMenu {
 
     public ChunkLoaderMenu(int containerId, Inventory playerInventory, MachineBlockEntity machine) {
-        super(ServusManufacturingMenus.CHUNK_LOADER.get(), containerId, playerInventory, machine);
+        super(MachineContent.CHUNK_LOADER_MENU.get(), containerId, playerInventory, machine);
     }
 
     private ChunkLoaderMenu(int containerId, Inventory playerInventory, MachineBlockEntity machine, ContainerData data) {
-        super(ServusManufacturingMenus.CHUNK_LOADER.get(), containerId, playerInventory, machine, data);
+        super(MachineContent.CHUNK_LOADER_MENU.get(), containerId, playerInventory, machine, data);
     }
 
     public static ChunkLoaderMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {

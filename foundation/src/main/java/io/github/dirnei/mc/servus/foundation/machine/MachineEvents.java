@@ -69,6 +69,8 @@ public final class MachineEvents {
                     (machine, side) -> side == null || PumpBlock.givesWater(machine.getBlockState(), side) ? machine.energyStorage() : null);
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, MachineContent.ELECTRIC_PUMP_ENTITY.get(),
                     (machine, side) -> machine.fluidHandler(side));
+            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, MachineContent.CHUNK_LOADER_ENTITY.get(),
+                    (machine, side) -> machine.energyStorage());
             // Every formed Sink block hands out its controller's handlers, except on the front faces; casings offer none.
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, MachineContent.SINK_ENTITY.get(),
                     (sink, side) -> sink.itemHandler(side));

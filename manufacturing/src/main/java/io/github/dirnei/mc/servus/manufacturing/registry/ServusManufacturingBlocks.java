@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.crusher.CrusherBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlock;
-import io.github.dirnei.mc.servus.manufacturing.machine.loader.ChunkLoaderBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtractorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlock;
@@ -35,8 +34,6 @@ public final class ServusManufacturingBlocks {
             BLOCKS.registerBlock("electric_extractor", ElectricExtractorBlock::new, machine());
     public static final DeferredBlock<CrusherBlock> CRUSHER =
             BLOCKS.registerBlock("crusher", CrusherBlock::new, machine());
-    public static final DeferredBlock<ChunkLoaderBlock> CHUNK_LOADER =
-            BLOCKS.registerBlock("chunk_loader", ChunkLoaderBlock::new, machine());
     public static final DeferredBlock<ResearchLabBlock> RESEARCH_LAB =
             BLOCKS.registerBlock("research_lab", ResearchLabBlock::new, machine());
 

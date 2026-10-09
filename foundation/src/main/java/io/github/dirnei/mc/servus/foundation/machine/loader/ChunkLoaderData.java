@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.manufacturing.machine.loader;
+package io.github.dirnei.mc.servus.foundation.machine.loader;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;

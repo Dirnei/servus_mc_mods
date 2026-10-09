@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/orientable",
   "textures": {
-    "front": "servus_manufacturing:block/chunk_loader_front",
+    "front": "servus_foundation:block/chunk_loader_front_lit",
     "side": "servus_foundation:block/machine_side",
     "top": "servus_foundation:block/machine_top"
   }

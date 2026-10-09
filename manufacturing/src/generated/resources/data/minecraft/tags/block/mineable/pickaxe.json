@@ -5,7 +5,6 @@
     "servus_manufacturing:assembler",
     "servus_manufacturing:research_lab",
     "servus_manufacturing:electric_extractor",
-    "servus_manufacturing:crusher",
-    "servus_manufacturing:chunk_loader"
+    "servus_manufacturing:crusher"
   ]
 }

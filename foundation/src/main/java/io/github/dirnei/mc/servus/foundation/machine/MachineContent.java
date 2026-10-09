@@ -3,7 +3,10 @@ package io.github.dirnei.mc.servus.foundation.machine;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlock;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderBlock;
+import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.menu.BurnerPumpMenu;
+import io.github.dirnei.mc.servus.foundation.machine.menu.ChunkLoaderMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.ElectricPumpMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
@@ -80,12 +83,22 @@ public final class MachineContent {
     public static final DeferredBlock<ChimneyBlock> CHIMNEY = BLOCKS.registerBlock("chimney", ChimneyBlock::new, brick().noOcclusion());
     public static final DeferredItem<BlockItem> CHIMNEY_ITEM = ITEMS.registerSimpleBlockItem(CHIMNEY);
 
+    public static final DeferredBlock<ChunkLoaderBlock> CHUNK_LOADER =
+            BLOCKS.registerBlock("chunk_loader", ChunkLoaderBlock::new, machine());
+    public static final DeferredItem<BlockItem> CHUNK_LOADER_ITEM = ITEMS.registerSimpleBlockItem(CHUNK_LOADER);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChunkLoaderBlockEntity>> CHUNK_LOADER_ENTITY =
+            BLOCK_ENTITIES.register("chunk_loader", () -> BlockEntityType.Builder
+                    .of(ChunkLoaderBlockEntity::new, CHUNK_LOADER.get())
+                    .build(null));
+    public static final DeferredHolder<MenuType<?>, MenuType<ChunkLoaderMenu>> CHUNK_LOADER_MENU =
+            MENUS.register("chunk_loader", () -> IMenuTypeExtension.create(ChunkLoaderMenu::fromNetwork));
+
     private MachineContent() {
     }
 
     /** Creative tab order of Foundation's machines. */
     public static List<DeferredItem<? extends Item>> creativeTabOrder() {
-        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM, SINK_ITEM, CHIMNEY_ITEM);
+        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM, CHUNK_LOADER_ITEM, SINK_ITEM, CHIMNEY_ITEM);
     }
 
     /** Brick blocks of the Sink family: like vanilla bricks. */

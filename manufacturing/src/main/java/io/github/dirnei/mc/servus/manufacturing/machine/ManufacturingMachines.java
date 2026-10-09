@@ -30,7 +30,6 @@ public final class ManufacturingMachines {
         add("assembler", "crafter", List.of("servus_manufacturing:assembling", "minecraft:crafting"),
                 MachineStats.crafter(20, 20, 8000, 2));
         add("research_lab", "powered", List.of(RESEARCH), MachineStats.powered(1, 10, 4000));
-        add("chunk_loader", "powered", List.of(), MachineStats.powered(1, 10, 4000));
     }
 
     private static void add(String path, String kind, List<String> recipeTypes, MachineStats stats) {

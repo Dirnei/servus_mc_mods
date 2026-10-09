@@ -32,6 +32,7 @@ final class MachineDataParts {
 
     static void blockStates(BlockStateProvider provider) {
         machine(provider, MachineContent.COAL_GENERATOR.get(), "coal_generator");
+        machine(provider, MachineContent.CHUNK_LOADER.get(), "chunk_loader");
         pump(provider, MachineContent.BURNER_PUMP.get(), "burner_pump");
         pump(provider, MachineContent.ELECTRIC_PUMP.get(), "electric_pump");
         SinkModels.sink(provider);
@@ -42,7 +43,7 @@ final class MachineDataParts {
     /** Blocks that drop themselves and are mined with a pickaxe. */
     static List<Block> selfDropping() {
         return List.of(MachineContent.COAL_GENERATOR.get(), MachineContent.BURNER_PUMP.get(), MachineContent.ELECTRIC_PUMP.get(),
-                MachineContent.SINK.get(), MachineContent.CHIMNEY.get());
+                MachineContent.SINK.get(), MachineContent.CHIMNEY.get(), MachineContent.CHUNK_LOADER.get());
     }
 
     static void lang(LanguageProvider provider) {
@@ -51,6 +52,15 @@ final class MachineDataParts {
         provider.add(MachineContent.ELECTRIC_PUMP.get(), "Electric Pump");
         provider.add("gui.servus_foundation.pump.source_ok", "Infinite water source below");
         provider.add("gui.servus_foundation.pump.source_missing", "Needs an infinite water source below");
+        provider.add(MachineContent.CHUNK_LOADER.get(), "Chunk Loader");
+        provider.add("gui.servus_foundation.chunk_loader.no_power", "Inactive: no power");
+        provider.add("gui.servus_foundation.chunk_loader.active", "Active: chunk kept loaded");
+        provider.add("gui.servus_foundation.chunk_loader.team_limit", "Inactive: team limit reached");
+        provider.add("gui.servus_foundation.chunk_loader.ftb_chunks", "Inactive: use FTB Chunks");
+        provider.add("gui.servus_foundation.chunk_loader.no_owner", "Inactive: no owner");
+        provider.add("servus_foundation.configuration.chunkLoader", "Chunk Loader");
+        provider.add("servus_foundation.configuration.maxChunkLoadersPerTeam", "Max chunk loaders per team");
+        provider.add("servus_foundation.configuration.chunkLoaderRespectsFtbChunks", "Chunk loader respects FTB Chunks");
         provider.add(MachineContent.SINK.get(), "Sink");
         provider.add(MachineContent.CHIMNEY.get(), "Chimney");
         provider.add("gui.servus_foundation.sink.height", "Chimney height: %s");
@@ -101,6 +111,18 @@ final class MachineDataParts {
                 .define('I', Items.IRON_INGOT)
                 .define('P', MachineContent.BURNER_PUMP_ITEM.get())
                 .unlockedBy("has_burner_pump", has.apply(MachineContent.BURNER_PUMP_ITEM.get()))
+                .save(output);
+
+        // No assembler in Foundation: the Chunk Loader is crafted by hand.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MachineContent.CHUNK_LOADER_ITEM.get())
+                .pattern("ICI")
+                .pattern("RER")
+                .pattern("ICI")
+                .define('I', Items.IRON_INGOT)
+                .define('C', Items.COPPER_INGOT)
+                .define('R', Items.REDSTONE)
+                .define('E', Items.ENDER_PEARL)
+                .unlockedBy("has_ender_pearl", has.apply(Items.ENDER_PEARL))
                 .save(output);
 
         // Eight Sink blocks build one 2x2x2 Sink.

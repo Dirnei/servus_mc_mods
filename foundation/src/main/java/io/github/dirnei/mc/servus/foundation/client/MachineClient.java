@@ -18,6 +18,7 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 public final class MachineClient {
 
     public static final Layout GENERATOR = new Layout(true, false, true, Layout.gui(ServusFoundationIds.MOD_ID, "coal_generator"));
+    public static final Layout LOADER = new Layout(false, false, true, Layout.gui(ServusFoundationIds.MOD_ID, "chunk_loader"));
     /** Pumps: a fluid gauge and the water source status line, no side panel. */
     public static final Layout BURNER_PUMP = new Layout(true, true, false, true, false, Layout.gui(ServusFoundationIds.MOD_ID, "burner_pump"));
     public static final Layout ELECTRIC_PUMP = new Layout(false, true, true, true, false, Layout.gui(ServusFoundationIds.MOD_ID, "electric_pump"));
@@ -37,6 +38,7 @@ public final class MachineClient {
         event.register(MachineContent.ELECTRIC_PUMP_MENU.get(),
                 (MachineMenu menu, Inventory inventory, Component title) -> new MachineScreen(menu, inventory, title, ELECTRIC_PUMP));
         event.register(MachineContent.SINK_MENU.get(), SinkScreen::new);
+        event.register(MachineContent.CHUNK_LOADER_MENU.get(), ChunkLoaderScreen::new);
     }
 
     /** The Sink fan is a standalone model drawn by its block entity renderer. */
@@ -52,5 +54,6 @@ public final class MachineClient {
         event.registerBlockEntityRenderer(MachineContent.BURNER_PUMP_ENTITY.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.ELECTRIC_PUMP_ENTITY.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.SINK_ENTITY.get(), SinkRenderer::new);
+        event.registerBlockEntityRenderer(MachineContent.CHUNK_LOADER_ENTITY.get(), SideMarkerRenderer::new);
     }
 }

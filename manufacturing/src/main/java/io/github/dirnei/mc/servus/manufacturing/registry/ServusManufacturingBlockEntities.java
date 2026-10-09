@@ -4,7 +4,6 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.machine.assembler.AssemblerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.crusher.CrusherBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.machine.loader.ChunkLoaderBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.smelter.BurnerSmelterBlockEntity;
@@ -44,10 +43,6 @@ public final class ServusManufacturingBlockEntities {
                     .of(CrusherBlockEntity::new, ServusManufacturingBlocks.CRUSHER.get())
                     .build(null));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChunkLoaderBlockEntity>> CHUNK_LOADER =
-            BLOCK_ENTITIES.register("chunk_loader", () -> BlockEntityType.Builder
-                    .of(ChunkLoaderBlockEntity::new, ServusManufacturingBlocks.CHUNK_LOADER.get())
-                    .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ResearchLabBlockEntity>> RESEARCH_LAB =
             BLOCK_ENTITIES.register("research_lab", () -> BlockEntityType.Builder

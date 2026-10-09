@@ -25,9 +25,9 @@
 
 ## 5. Chunk Loader
 
-- [ ] 5.1 Move `machine/loader` (`ChunkLoaderBlock`, `ChunkLoaderBlockEntity`, `ChunkLoaderData`, the ticket controller now `servus_foundation:chunk_loader`), `ChunkLoaderMenu` and `ChunkLoaderScreen` to Foundation; move `maxChunkLoadersPerTeam` and `chunkLoaderRespectsFtbChunks` to `ServusFoundationConfig` with the same defaults and comments and drop them from `ServusManufacturingConfig`; register block, item, menu, capabilities, screen and renderer; move stats JSON, textures and GUI. Verify: `gradlew build`.
-- [ ] 5.2 Foundation datagen: block state, models, loot, tags, lang and the new shaped recipe (ender pearl, iron ingots, copper ingots, redstone); delete `assembling/chunk_loader` and any tech unlock of it. Verify: both data runs, recipe JSON under `data/servus_foundation/recipe/`.
-- [ ] 5.3 Add a Foundation GameTest that a placed, powered Chunk Loader reports active and that breaking it releases its ticket (spec foundation/chunk-loader, "Removed"). Verify: Foundation GameTests green.
+- [x] 5.1 Move `machine/loader` (`ChunkLoaderBlock`, `ChunkLoaderBlockEntity`, `ChunkLoaderData`, the ticket controller now `servus_foundation:chunk_loader`), `ChunkLoaderMenu` and `ChunkLoaderScreen` to Foundation; move `maxChunkLoadersPerTeam` and `chunkLoaderRespectsFtbChunks` to `ServusFoundationConfig` with the same defaults and comments and drop them from `ServusManufacturingConfig`; register block, item, menu, capabilities, screen and renderer; move stats JSON, textures and GUI. Verify: `gradlew build`.
+- [x] 5.2 Foundation datagen: block state, models, loot, tags, lang and the new shaped recipe (ender pearl, iron ingots, copper ingots, redstone); delete `assembling/chunk_loader` and any tech unlock of it. Verify: both data runs, recipe JSON under `data/servus_foundation/recipe/`.
+- [x] 5.3 Add a Foundation GameTest that a placed, powered Chunk Loader reports active and that breaking it releases its ticket (spec foundation/chunk-loader, "Removed"). Verify: Foundation GameTests green.
 
 ## 6. Docs and export
 

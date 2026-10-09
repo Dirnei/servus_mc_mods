@@ -121,12 +121,6 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .tech("stone_processing")
                 .save(output, "glass");
 
-        assembling(ServusManufacturingItems.CHUNK_LOADER.get(), 1)
-                .requires(ServusManufacturingItems.IRON_GEAR.get(), 4)
-                .requires(ServusManufacturingItems.COPPER_WIRE.get(), 8)
-                .requires(Items.ENDER_PEARL, 1)
-                .time(200)
-                .save(output, "chunk_loader");
 
         assembling(ServusManufacturingItems.RED_PACK.get(), 1)
                 .requires(ServusManufacturingItems.IRON_GEAR.get(), 1)

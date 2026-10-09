@@ -23,11 +23,11 @@ class ManufacturingMachinesTest {
     @Test
     void everyMachineHasAnEntry() {
         for (String path : new String[] {"burner_extractor", "burner_smelter", "electric_extractor", "crusher",
-                "assembler", "research_lab", "chunk_loader"}) {
+                "assembler", "research_lab"}) {
             MachineDefaults.MachineInfo info = MachineDefaults.info("servus_manufacturing:" + path);
             assertTrue(KINDS.contains(info.kind()), path);
         }
-        assertEquals(7, MachineDefaults.all().keySet().stream().filter(id -> id.startsWith("servus_manufacturing:")).count());
+        assertEquals(6, MachineDefaults.all().keySet().stream().filter(id -> id.startsWith("servus_manufacturing:")).count());
     }
 
     @Test
