@@ -77,4 +77,20 @@ public final class PageSplitter {
         }
         return runs;
     }
+
+    /**
+     * Lays out a list as markdown bullet lines over pages: {@code first} items on the first page,
+     * which carries a title, and {@code rest} items on every page after it.
+     */
+    public static List<String> list(List<String> items, int first, int rest) {
+        List<String> pages = new ArrayList<>();
+        int index = 0;
+        while (index < items.size()) {
+            int count = pages.isEmpty() ? first : rest;
+            List<String> page = items.subList(index, Math.min(items.size(), index + count));
+            pages.add(String.join("\n", page.stream().map(item -> "- " + item).toList()));
+            index += page.size();
+        }
+        return pages;
+    }
 }

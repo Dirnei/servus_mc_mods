@@ -4,6 +4,8 @@ import com.klikli_dev.modonomicon.api.datagen.CategoryProviderBase;
 import com.klikli_dev.modonomicon.api.datagen.EntryBackground;
 import com.klikli_dev.modonomicon.api.datagen.EntryProvider;
 import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
+import com.klikli_dev.modonomicon.api.datagen.book.page.BookCraftingRecipePageModel;
+import com.klikli_dev.modonomicon.api.datagen.book.page.BookSpotlightPageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
 import com.mojang.datafixers.util.Pair;
 import java.util.List;
@@ -17,6 +19,10 @@ final class JournalEntries {
     private JournalEntries() {
     }
 
+    /** List lines on a titled page and on every later page; a line often wraps once. */
+    static final int LIST_FIRST = 5;
+    static final int LIST_REST = 6;
+
     /** One entry made of text pages, each a title and a body. */
     abstract static class TextEntry extends EntryProvider {
 
@@ -27,6 +33,46 @@ final class JournalEntries {
         /** A titled text, split over as many pages as it needs to stay at full font size. */
         void text(String page, String title, String body) {
             List<String> parts = PageSplitter.split(body);
+            for (int i = 0; i < parts.size(); i++) {
+                if (i == 0) {
+                    page(page, () -> BookTextPageModel.create()
+                            .withTitle(context().pageTitle())
+                            .withText(context().pageText()));
+                    pageTitle(title);
+                } else {
+                    page(page + "_" + (i + 1), () -> BookTextPageModel.create()
+                            .withText(context().pageText()));
+                }
+                pageText(parts.get(i));
+            }
+        }
+
+        /** A spotlight page that shows an item with a title and a short text. */
+        void spotlight(String page, ItemLike item, String title, String body) {
+            page(page, () -> BookSpotlightPageModel.create()
+                    .withItem(item)
+                    .withTitle(context().pageTitle())
+                    .withText(context().pageText()));
+            pageTitle(title);
+            pageText(body);
+        }
+
+        /** A crafting recipe page for a recipe id, with a short text under it. */
+        void crafting(String page, String recipeId, String body) {
+            page(page, () -> BookCraftingRecipePageModel.create()
+                    .withRecipeId1(recipeId)
+                    .withText(context().pageText()));
+            pageText(body);
+        }
+
+        /** A titled list of lines, laid out over as many pages as it needs at full font size. */
+        void list(String page, String title, List<String> lines) {
+            list(page, title, lines, LIST_FIRST, LIST_REST);
+        }
+
+        /** A titled list with its own line counts, for lines that wrap more than once. */
+        void list(String page, String title, List<String> lines, int first, int rest) {
+            List<String> parts = PageSplitter.list(lines, first, rest);
             for (int i = 0; i < parts.size(); i++) {
                 if (i == 0) {
                     page(page, () -> BookTextPageModel.create()

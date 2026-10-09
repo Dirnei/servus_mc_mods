@@ -55,4 +55,15 @@ class PageSplitterTest {
                     "page " + i + " too long");
         }
     }
+
+    @Test
+    void listFillsTheTitledPageThenTheRest() {
+        List<String> pages = PageSplitter.list(List.of("a", "b", "c", "d", "e"), 2, 2);
+        assertEquals(List.of("- a\n- b", "- c\n- d", "- e"), pages);
+    }
+
+    @Test
+    void emptyListHasNoPages() {
+        assertEquals(List.of(), PageSplitter.list(List.of(), 3, 4));
+    }
 }

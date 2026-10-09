@@ -1,0 +1,53 @@
+{
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "category": "workshop",
+  "condition": {
+    "type": "modonomicon:advancement",
+    "advancement_id": "servus_manufacturing:journal/villach"
+  },
+  "description": "book.servus_manufacturing.journal.workshop.elixir_of_sight.description",
+  "hide_while_locked": false,
+  "icon": {
+    "item": "servus_manufacturing:elixir_of_sight"
+  },
+  "name": "book.servus_manufacturing.journal.workshop.elixir_of_sight.name",
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "item": {
+        "count": 1,
+        "item": "servus_manufacturing:elixir_of_sight"
+      },
+      "text": "book.servus_manufacturing.journal.workshop.elixir_of_sight.elixir.text",
+      "title": "book.servus_manufacturing.journal.workshop.elixir_of_sight.elixir.title"
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.elixir_of_sight.brewing.text",
+      "title": "book.servus_manufacturing.journal.workshop.elixir_of_sight.brewing.title",
+      "use_markdown_in_title": false
+    }
+  ],
+  "parents": [
+    {
+      "draw_arrow": true,
+      "entry": "workshop/salt_crystal_block",
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "show_when_any_parent_unlocked": false,
+  "sort_number": 6,
+  "x": 5,
+  "y": 1
+}

@@ -22,6 +22,7 @@ public final class JournalBook extends SingleBookSubProvider {
     @Override
     protected void generateCategories() {
         add(new OpusCategory(this).generate());
+        add(new WorkshopCategory(this).generate());
     }
 
     @Override

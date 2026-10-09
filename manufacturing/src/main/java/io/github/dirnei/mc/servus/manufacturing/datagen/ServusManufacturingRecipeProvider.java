@@ -39,68 +39,31 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
         athanor(output);
     }
 
-    /** Crafts on the Athanor; the numbers are datapack examples. */
+    /** Crafts on the Athanor, from the shared table the journal lists. */
     private void athanor(RecipeOutput output) {
-        athanorCraft(output, "blaze_powder", Ingredient.of(Items.GUNPOWDER), new Principles(0, 200, 0), 0,
-                new ItemStack(Items.BLAZE_POWDER));
-        athanorCraft(output, "experience_bottle", Ingredient.of(Items.GLASS_BOTTLE), new Principles(50, 0, 100), 1,
-                new ItemStack(Items.EXPERIENCE_BOTTLE));
-        output.accept(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/elixir_of_sight"),
-                new AthanorRecipe(new SizedIngredient(Ingredient.of(ServusManufacturingItems.QUICKSILVER.get()), 1),
-                        new Principles(100, 100, 250), 1, new ItemStack(ElementalSight.ELIXIR.get()), 200), null);
-        output.accept(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/gnome_hollow"),
-                new AthanorRecipe(new SizedIngredient(Ingredient.of(Items.CRACKED_STONE_BRICKS), 1),
-                        new Principles(500, 0, 250), 1, new ItemStack(ServusManufacturingItems.GNOME_HOLLOW.get()), 200), null);
+        for (AlchemyRecipeTable.AthanorCraft craft : AlchemyRecipeTable.athanor()) {
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/" + craft.name());
+            output.accept(id, new AthanorRecipe(new SizedIngredient(craft.input(), 1), craft.principles(), craft.tier(),
+                    craft.result(), craft.time()), null);
+        }
     }
 
-    static void athanorCraft(RecipeOutput output, String name, Ingredient input, Principles principles, int tier, ItemStack result) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/" + name);
-        output.accept(id, new AthanorRecipe(new SizedIngredient(input, 1), principles, tier, result, AthanorRecipe.DEFAULT_TIME), null);
-    }
-
-    /** What the Coagulator makes from the principles; no metal in Nigredo. The numbers are datapack examples. */
+    /** What the Coagulator makes from the principles, from the shared table the journal lists. */
     private void coagulation(RecipeOutput output) {
-        coagulate(output, "salt_crystal", 250, 0, 0, new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get()));
-        coagulate(output, "sulfur", 0, 250, 0, new ItemStack(ServusManufacturingItems.SULFUR.get()));
-        coagulate(output, "quicksilver", 0, 0, 250, new ItemStack(ServusManufacturingItems.QUICKSILVER.get()));
-        coagulate(output, "clay_ball", 100, 0, 50, new ItemStack(Items.CLAY_BALL));
-        coagulate(output, "flint", 150, 0, 0, new ItemStack(Items.FLINT));
-        coagulate(output, "gunpowder", 50, 150, 0, new ItemStack(Items.GUNPOWDER));
-        coagulate(output, "redstone", 50, 0, 150, new ItemStack(Items.REDSTONE));
-        coagulate(output, "glowstone_dust", 0, 100, 100, new ItemStack(Items.GLOWSTONE_DUST));
-        coagulate(output, "bone_meal", 60, 20, 0, new ItemStack(Items.BONE_MEAL));
-        coagulate(output, "slime_ball", 0, 50, 150, new ItemStack(Items.SLIME_BALL));
+        for (AlchemyRecipeTable.Coagulate row : AlchemyRecipeTable.coagulation()) {
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + row.name());
+            output.accept(id, new CoagulationRecipe(row.input(), Optional.empty(), row.result(),
+                    CoagulationRecipe.DEFAULT_TIME, Optional.empty()), null);
+        }
     }
 
-    private static void coagulate(RecipeOutput output, String name, int salt, int sulfur, int mercury, ItemStack result) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + name);
-        output.accept(id, new CoagulationRecipe(new Principles(salt, sulfur, mercury), Optional.empty(), result,
-                CoagulationRecipe.DEFAULT_TIME, Optional.empty()), null);
-    }
-
-    /** What the Calciner burns common matter into; the numbers are datapack examples. */
+    /** What the Calciner burns common matter into, from the shared table the journal lists. */
     private void calcination(RecipeOutput output) {
-        calcine(output, "cobblestone", Ingredient.of(Tags.Items.COBBLESTONES), 100, 0, 10);
-        calcine(output, "stone", Ingredient.of(Tags.Items.STONES), 100, 0, 10);
-        calcine(output, "dirt", Ingredient.of(ItemTags.DIRT), 50, 20, 20);
-        calcine(output, "sand", Ingredient.of(Tags.Items.SANDS), 80, 0, 10);
-        calcine(output, "gravel", Ingredient.of(Tags.Items.GRAVELS), 80, 0, 10);
-        calcine(output, "logs", Ingredient.of(ItemTags.LOGS), 20, 100, 10);
-        calcine(output, "planks", Ingredient.of(ItemTags.PLANKS), 5, 25, 0);
-        calcine(output, "leaves", Ingredient.of(ItemTags.LEAVES), 0, 40, 20);
-        calcine(output, "saplings", Ingredient.of(ItemTags.SAPLINGS), 0, 40, 20);
-        calcine(output, "crops", Ingredient.of(Tags.Items.CROPS), 10, 30, 30);
-        calcine(output, "seeds", Ingredient.of(Tags.Items.SEEDS), 10, 30, 30);
-        calcine(output, "coal", Ingredient.of(ItemTags.COALS), 0, 200, 0);
-        calcine(output, "raw_materials", Ingredient.of(Tags.Items.RAW_MATERIALS), 150, 0, 50);
-        calcine(output, "redstone", Ingredient.of(Tags.Items.DUSTS_REDSTONE), 0, 0, 100);
-        calcine(output, "bones", Ingredient.of(Tags.Items.BONES), 100, 0, 0);
-    }
-
-    private static void calcine(RecipeOutput output, String name, Ingredient input, int salt, int sulfur, int mercury) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calcination/" + name);
-        output.accept(id, new CalcinationRecipe(new SizedIngredient(input, 1), new Principles(salt, sulfur, mercury),
-                CalcinationRecipe.DEFAULT_TIME), null);
+        for (AlchemyRecipeTable.Calcine row : AlchemyRecipeTable.calcination()) {
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calcination/" + row.name());
+            output.accept(id, new CalcinationRecipe(new SizedIngredient(row.input(), 1), row.output(),
+                    CalcinationRecipe.DEFAULT_TIME), null);
+        }
     }
 
     private void crafting(RecipeOutput output) {

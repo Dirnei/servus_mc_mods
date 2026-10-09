@@ -1,0 +1,93 @@
+{
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "category": "workshop",
+  "description": "book.servus_manufacturing.journal.workshop.coagulator.description",
+  "hide_while_locked": false,
+  "icon": {
+    "item": "servus_manufacturing:coagulator"
+  },
+  "name": "book.servus_manufacturing.journal.workshop.coagulator.name",
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "item": {
+        "count": 1,
+        "item": "servus_manufacturing:coagulator"
+      },
+      "text": "book.servus_manufacturing.journal.workshop.coagulator.machine.text",
+      "title": "book.servus_manufacturing.journal.workshop.coagulator.machine.title"
+    },
+    {
+      "type": "modonomicon:crafting_recipe",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "recipe_id_1": "servus_manufacturing:coagulator",
+      "text": "book.servus_manufacturing.journal.workshop.coagulator.recipe.text",
+      "title1": "",
+      "title2": ""
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.coagulator.joining.text",
+      "title": "book.servus_manufacturing.journal.workshop.coagulator.joining.title",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.coagulator.joining_2.text",
+      "title": "",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.coagulator.makes.text",
+      "title": "book.servus_manufacturing.journal.workshop.coagulator.makes.title",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.coagulator.makes_2.text",
+      "title": "",
+      "use_markdown_in_title": false
+    }
+  ],
+  "parents": [
+    {
+      "draw_arrow": true,
+      "entry": "workshop/calciner",
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "show_when_any_parent_unlocked": false,
+  "sort_number": 2,
+  "x": 1,
+  "y": -2
+}
