@@ -2,13 +2,15 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import net.minecraft.server.level.ServerLevel;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -23,19 +25,42 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
-/** Burns its input into Salt, Sulfur and Mercury and pushes them out through its sides. */
-public class CalcinerBlockEntity extends AlchemyMachineBlockEntity {
+/** Burns its input into Salt, Sulfur and Mercury over a fuel fire and pushes them out through its sides. */
+public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements OwnedMachine {
 
     public static final int SLOT_INPUT = 0;
+    public static final int SLOT_FUEL = 1;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final int PUSH_INTERVAL = 10;
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), true, this::setChanged);
+    private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
     private int pushCooldown;
 
     public CalcinerBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusManufacturingBlockEntities.CALCINER.get(), pos, state, 1);
+        super(ServusManufacturingBlockEntities.CALCINER.get(), pos, state, 2);
+    }
+
+    // Owner
+
+    @Override
+    public Optional<UUID> owner() {
+        return ownership.owner();
+    }
+
+    @Override
+    public void setOwner(UUID player) {
+        ownership.setOwner(level, player);
+    }
+
+    public void setTeam(UUID team) {
+        ownership.setTeam(team);
+    }
+
+    /** The owning team, or {@code null} for a machine nobody placed. */
+    public UUID team() {
+        return ownership.team();
     }
 
     public PrincipleTanks tanks() {
@@ -64,6 +89,11 @@ public class CalcinerBlockEntity extends AlchemyMachineBlockEntity {
     @Override
     protected MachineStats defaultStats() {
         return DEFAULTS;
+    }
+
+    @Override
+    protected int fuelSlot() {
+        return SLOT_FUEL;
     }
 
     @Override
@@ -138,12 +168,14 @@ public class CalcinerBlockEntity extends AlchemyMachineBlockEntity {
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("Principles", tanks.save(registries));
+        ownership.save(tag);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         tanks.load(tag.getCompound("Principles"));
+        ownership.load(tag);
     }
 
     @Override

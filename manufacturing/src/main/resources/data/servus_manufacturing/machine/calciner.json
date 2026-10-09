@@ -1,5 +1,4 @@
 {
-  "energy_per_tick": 20,
-  "energy_capacity": 8000,
+  "fuel_divisor": 2,
   "fluid_capacity": 4000
 }

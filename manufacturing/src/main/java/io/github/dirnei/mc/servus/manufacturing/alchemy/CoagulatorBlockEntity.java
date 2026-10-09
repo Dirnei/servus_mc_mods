@@ -2,7 +2,8 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
@@ -13,6 +14,7 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingReci
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -27,8 +29,11 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
-/** Makes its selected recipe's result from piped principles and an optional item. */
-public class CoagulatorBlockEntity extends AlchemyMachineBlockEntity {
+/**
+ * Makes its selected recipe's result from piped principles and an optional item. It needs no power:
+ * the joined principles only take the recipe's time to cool and set.
+ */
+public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMachine {
 
     public static final int SLOT_INGREDIENT = 0;
     public static final int SLOT_OUTPUT = 1;
@@ -39,10 +44,32 @@ public class CoagulatorBlockEntity extends AlchemyMachineBlockEntity {
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
+    private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
     private ResourceLocation selected;
 
     public CoagulatorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.COAGULATOR.get(), pos, state, 2);
+    }
+
+    // Owner
+
+    @Override
+    public Optional<UUID> owner() {
+        return ownership.owner();
+    }
+
+    @Override
+    public void setOwner(UUID player) {
+        ownership.setOwner(level, player);
+    }
+
+    public void setTeam(UUID team) {
+        ownership.setTeam(team);
+    }
+
+    /** The owning team, or {@code null} for a machine nobody placed. */
+    public UUID team() {
+        return ownership.team();
     }
 
     /** Every coagulation recipe in a fixed order, the same on server and client. */
@@ -121,8 +148,7 @@ public class CoagulatorBlockEntity extends AlchemyMachineBlockEntity {
         return currentRecipe().map(recipe -> recipe.acceptsItem(stack)).orElse(false);
     }
 
-    @Override
-    protected boolean canWork() {
+    private boolean canWork() {
         tanks.setCapacity(stats().fluidCapacity());
         return currentRecipe().map(recipe -> tanks.contents().covers(recipe.input())
                 && recipe.itemReady(inventory.getStackInSlot(SLOT_INGREDIENT))
@@ -130,7 +156,24 @@ public class CoagulatorBlockEntity extends AlchemyMachineBlockEntity {
     }
 
     @Override
-    protected void finishWork() {
+    protected boolean tick() {
+        if (!canWork()) {
+            if (progress != 0) {
+                progress = 0;
+                setChanged();
+            }
+            return false;
+        }
+        progress++;
+        if (progress >= workTicks()) {
+            progress = 0;
+            finishWork();
+        }
+        setChanged();
+        return true;
+    }
+
+    private void finishWork() {
         currentRecipe().ifPresent(recipe -> {
             tanks.take(recipe.input());
             recipe.ingredient().ifPresent(sized -> inventory.extractItem(SLOT_INGREDIENT, sized.count(), false));
@@ -203,6 +246,7 @@ public class CoagulatorBlockEntity extends AlchemyMachineBlockEntity {
         if (selected != null) {
             tag.putString("Recipe", selected.toString());
         }
+        ownership.save(tag);
     }
 
     @Override
@@ -210,6 +254,7 @@ public class CoagulatorBlockEntity extends AlchemyMachineBlockEntity {
         super.loadAdditional(tag, registries);
         tanks.load(tag.getCompound("Principles"));
         selected = tag.contains("Recipe") ? ResourceLocation.tryParse(tag.getString("Recipe")) : null;
+        ownership.load(tag);
     }
 
     @Override

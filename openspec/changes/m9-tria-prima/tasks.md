@@ -30,8 +30,8 @@
 
 ## 6. Play check follow-ups: fire, time and stone
 
-- [ ] 6.1 Team ownership as a `TeamOwnership` helper in `alchemy` used by Calciner, Coagulator, Athanor and Gnome Hollow; `AlchemyMachineBlockEntity` removed. Verify: build, Manufacturing GameTests green.
-- [ ] 6.2 Calciner extends `BurnerMachineBlockEntity` (input and fuel slot, upkeep capability, no energy capability), `CalcinerMenu` fuel slot, screen layout with flame and no energy bar, `ManufacturingMachines` kind burner, stats JSON; GameTests fuel the Calciner with coal and check that it exposes no energy storage. Verify: build, data run, GameTests green.
-- [ ] 6.3 Coagulator extends `MachineBlockEntity` with a timed tick (no energy capability), screen layout without energy bar, kind and stats JSON; GameTests run it without power. Verify: build, data run, GameTests green.
+- [x] 6.1 Team ownership as a `TeamOwnership` helper in `alchemy` used by Calciner, Coagulator, Athanor and Gnome Hollow; `AlchemyMachineBlockEntity` removed. Verify: build, Manufacturing GameTests green.
+- [x] 6.2 Calciner extends `BurnerMachineBlockEntity` (input and fuel slot, upkeep capability, no energy capability), `CalcinerMenu` fuel slot, screen layout with flame and no energy bar, `ManufacturingMachines` kind burner, stats JSON; GameTests fuel the Calciner with coal and check that it exposes no energy storage. Verify: build, data run, GameTests green.
+- [x] 6.3 Coagulator extends `MachineBlockEntity` with a timed tick (no energy capability), screen layout without energy bar, kind and stats JSON; GameTests run it without power. Verify: build, data run, GameTests green.
 - [ ] 6.4 Stone look: Calciner, Coagulator, Athanor, Salt Crystal Block and Gnome Hollow models reference vanilla stone textures, with own front textures for the Calciner (furnace mouth) and Coagulator (mould). Verify: data run without missing texture warnings.
 - [ ] 6.5 Docs pages and `gamedata.json` describe the fuelled Calciner and the unpowered Coagulator. Verify: docs tests, all GameTests and `gradlew build test` green.

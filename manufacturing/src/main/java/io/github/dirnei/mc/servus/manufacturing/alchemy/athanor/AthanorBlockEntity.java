@@ -7,7 +7,7 @@ import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyMachineBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwnership;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyMachines;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleTanks;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
@@ -49,7 +49,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
     private static final int TIER_INTERVAL = 100;
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
-    private UUID team;
+    private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
     private int tier;
     private int tierCooldown;
     private ItemStack shownInput = ItemStack.EMPTY;
@@ -82,22 +82,20 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
 
     @Override
     public Optional<UUID> owner() {
-        return Optional.ofNullable(team);
+        return ownership.owner();
     }
 
     @Override
     public void setOwner(UUID player) {
-        team = AlchemyMachineBlockEntity.resolveTeam(level, player);
-        setChanged();
+        ownership.setOwner(level, player);
     }
 
     public void setTeam(UUID team) {
-        this.team = team;
-        setChanged();
+        ownership.setTeam(team);
     }
 
     public UUID team() {
-        return team;
+        return ownership.team();
     }
 
     // Tier
@@ -175,7 +173,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         inventory.extractItem(SLOT_INPUT, recipe.input().count(), false);
         insertOutput(SLOT_OUTPUT, recipe.result().copy());
         if (level instanceof ServerLevel server) {
-            Journal.recordAthanor(server, team, recipe.result(), tierName());
+            Journal.recordAthanor(server, team(), recipe.result(), tierName());
         }
     }
 
@@ -274,9 +272,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         super.saveAdditional(tag, registries);
         tag.put("Principles", tanks.save(registries));
         tag.putInt("Tier", tier);
-        if (team != null) {
-            tag.putUUID("Team", team);
-        }
+        ownership.save(tag);
     }
 
     @Override
@@ -284,7 +280,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         super.loadAdditional(tag, registries);
         tanks.load(tag.getCompound("Principles"));
         tier = tag.getInt("Tier");
-        team = tag.hasUUID("Team") ? tag.getUUID("Team") : null;
+        ownership.load(tag);
     }
 
     @Override

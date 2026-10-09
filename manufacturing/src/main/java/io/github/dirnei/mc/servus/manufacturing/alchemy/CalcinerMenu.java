@@ -8,7 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerData;
 
-/** The Calciner's input slot plus its synced principle tanks. */
+/** The Calciner's input and fuel slots plus its synced principle tanks. */
 public class CalcinerMenu extends MachineMenu implements PrincipleMenu {
 
     public CalcinerMenu(int containerId, Inventory playerInventory, MachineBlockEntity machine) {
@@ -25,7 +25,8 @@ public class CalcinerMenu extends MachineMenu implements PrincipleMenu {
 
     @Override
     protected void addMachineSlots() {
-        addSlot(new MachineSlot(machine, CalcinerBlockEntity.SLOT_INPUT, 56, 35));
+        addSlot(new MachineSlot(machine, CalcinerBlockEntity.SLOT_INPUT, 56, 17));
+        addSlot(new MachineSlot(machine, CalcinerBlockEntity.SLOT_FUEL, 56, 53));
     }
 
     @Override

@@ -20,7 +20,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 /** The Coagulator: slots, gauges, and a select button that opens a popup of every coagulation recipe. */
 public class CoagulatorScreen extends MachineScreen {
 
-    public static final Layout LAYOUT = new Layout(false, true, true, MachineScreens.gui("coagulator"));
+    public static final Layout LAYOUT = new Layout(false, true, false, MachineScreens.gui("coagulator"));
 
     private static final int BUTTON_X = 48;
     private static final int BUTTON_Y = 55;

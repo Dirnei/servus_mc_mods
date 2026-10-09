@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
@@ -81,7 +82,7 @@ public final class AlchemyGameTests {
     static CalcinerBlockEntity calciner(GameTestHelper helper) {
         helper.setBlock(MACHINE, ServusManufacturingBlocks.CALCINER.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
         CalcinerBlockEntity calciner = helper.getBlockEntity(MACHINE);
-        calciner.energyStorage().receiveEnergy(8000, false);
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 4));
         return calciner;
     }
 
@@ -97,15 +98,15 @@ public final class AlchemyGameTests {
         });
     }
 
-    /** With no room for the Salt the Calciner waits and spends no energy. */
+    /** With no room for the Salt the Calciner waits and lights no fuel. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void calcinerWaitsWhenATankIsFull(GameTestHelper helper) {
         CalcinerBlockEntity calciner = calciner(helper);
         calciner.tanks().insert(new Principles(3950, 0, 0));
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
-        int energy = calciner.energyStorage().getEnergyStored();
         helper.runAfterDelay(120, () -> {
-            helper.assertTrue(calciner.energyStorage().getEnergyStored() == energy, "a blocked Calciner spends no energy");
+            helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL).getCount() == 4, "a blocked Calciner burns no fuel");
+            helper.assertTrue(!calciner.isBurning(), "a blocked Calciner is not lit");
             helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT).is(Items.COBBLESTONE), "the cobblestone stays");
             helper.assertTrue(calciner.tanks().amount(Principle.SALT) == 3950, "no Salt was added");
             helper.succeed();
@@ -126,6 +127,39 @@ public final class AlchemyGameTests {
         });
     }
 
+    /** Without fuel the Calciner does nothing. */
+    @GameTest(template = EMPTY, timeoutTicks = 120)
+    public static void calcinerNeedsFuel(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = calciner(helper);
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, ItemStack.EMPTY);
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(calciner.tanks().contents().equals(new Principles(0, 0, 0)), "nothing is calcined without fuel");
+            helper.succeed();
+        });
+    }
+
+    /** The Calciner offers no energy storage and reports its fuel as upkeep for the data line. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void calcinerBurnsFuelInsteadOfEnergy(GameTestHelper helper) {
+        calciner(helper);
+        BlockPos pos = helper.absolutePos(MACHINE);
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, pos, Direction.EAST) == null, "no energy storage");
+        UpkeepHolder upkeep = helper.getLevel().getCapability(ServusFoundationCapabilities.UPKEEP, pos, null);
+        helper.assertTrue(upkeep != null && upkeep.upkeepItem().is(Items.COAL), "coal is the Calciner's upkeep");
+        helper.assertTrue(upkeep.upkeepCount() == 4, "the fuel slot counts as upkeep, got " + upkeep.upkeepCount());
+        helper.succeed();
+    }
+
+    /** The Coagulator offers no energy storage: it needs no power. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void coagulatorNeedsNoPower(GameTestHelper helper) {
+        coagulator(helper, "salt_crystal");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, helper.absolutePos(MACHINE), Direction.EAST) == null,
+                "no energy storage");
+        helper.succeed();
+    }
+
     /** Items without a calcination recipe are refused. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void calcinerRefusesUnknownItems(GameTestHelper helper) {
@@ -144,7 +178,6 @@ public final class AlchemyGameTests {
     static CoagulatorBlockEntity coagulator(GameTestHelper helper, String recipe) {
         helper.setBlock(MACHINE, ServusManufacturingBlocks.COAGULATOR.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
         CoagulatorBlockEntity coagulator = helper.getBlockEntity(MACHINE);
-        coagulator.energyStorage().receiveEnergy(8000, false);
         if (recipe != null) {
             coagulator.select(coagulation(recipe));
         }
@@ -180,14 +213,13 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
-    /** Without enough Mercury the Coagulator waits and spends no energy. */
+    /** Without enough Mercury the Coagulator waits. */
     @GameTest(template = EMPTY, timeoutTicks = 120)
     public static void coagulatorWaitsForMissingPrinciple(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = coagulator(helper, "quicksilver");
         coagulator.tanks().insert(new Principles(0, 0, 20));
-        int energy = coagulator.energyStorage().getEnergyStored();
         helper.runAfterDelay(80, () -> {
-            helper.assertTrue(coagulator.energyStorage().getEnergyStored() == energy, "a waiting Coagulator spends no energy");
+            helper.assertTrue(coagulator.tanks().amount(Principle.MERCURY) == 20, "the Mercury stays");
             helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).isEmpty(), "nothing is made");
             helper.succeed();
         });

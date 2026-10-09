@@ -20,8 +20,10 @@ class ManufacturingMachinesTest {
     @Test
     void alchemyMachinesAreRegistered() {
         MachineDefaults.MachineInfo info = MachineDefaults.info("servus_manufacturing:calciner");
-        assertEquals("powered", info.kind());
-        assertEquals(20, info.stats().energyPerTick());
+        assertEquals("burner", info.kind());
+        assertEquals(0, info.stats().energyPerTick());
+        assertEquals(2, info.stats().fuelDivisor());
+        assertEquals(0, MachineDefaults.stats("servus_manufacturing:coagulator").energyPerTick());
         assertEquals(4000, MachineDefaults.stats("servus_manufacturing:coagulator").fluidCapacity());
     }
 
@@ -31,12 +33,14 @@ class ManufacturingMachinesTest {
     }
 
     @Test
-    void manufacturingMachinesKeepNoUpkeep() {
+    void onlyTheCalcinerKeepsUpkeep() {
         for (MachineDefaults.MachineInfo info : MachineDefaults.all().values()) {
             if (info.id().startsWith("servus_manufacturing:")) {
                 MachineStats stats = info.stats();
-                assertTrue(!stats.hasUpkeep(), info.id() + " keeps no upkeep");
+                boolean calciner = info.id().equals("servus_manufacturing:calciner");
+                assertEquals(calciner, stats.hasUpkeep(), info.id() + " upkeep");
             }
         }
+        assertEquals("minecraft:coal", MachineDefaults.stats("servus_manufacturing:calciner").upkeepItem());
     }
 }

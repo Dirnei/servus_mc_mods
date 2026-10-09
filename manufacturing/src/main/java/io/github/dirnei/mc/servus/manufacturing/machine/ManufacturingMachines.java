@@ -18,13 +18,18 @@ public final class ManufacturingMachines {
             return;
         }
         registered = true;
-        add("calciner", "powered", List.of("servus_manufacturing:calcination"), alchemy(20, 8000, 4000));
-        add("coagulator", "powered", List.of("servus_manufacturing:coagulation"), alchemy(20, 8000, 4000));
+        add("calciner", "burner", List.of("servus_manufacturing:calcination"), calciner(2, 4000));
+        add("coagulator", "crafter", List.of("servus_manufacturing:coagulation"), alchemy(0, 0, 4000));
         add("athanor", "crafter", List.of("servus_manufacturing:athanor"), alchemy(0, 0, 4000));
         add("gnome_hollow", "crafter", List.of(), alchemy(0, 0, 4000));
     }
 
-    /** A powered alchemy machine: recipe time decides the cycle, one principle tank of {@code tank} mB each. */
+    /** The Calciner burns furnace fuel, a burn lasting the fuel's furnace time divided by {@code fuelDivisor}, and keeps coal as upkeep. */
+    private static MachineStats calciner(int fuelDivisor, int tank) {
+        return new MachineStats(1, 0, 0, fuelDivisor, 0, 1, 0, 0, tank, 0, MachineStats.DEFAULT_UPKEEP_ITEM, MachineStats.DEFAULT_UPKEEP_LEVEL);
+    }
+
+    /** An alchemy machine: recipe time decides the cycle, one principle tank of {@code tank} mB each. */
     private static MachineStats alchemy(int energyPerTick, int energyCapacity, int tank) {
         return new MachineStats(1, energyPerTick, energyCapacity, 1, 0, 1, 0, 0, tank, 0, "", 0);
     }

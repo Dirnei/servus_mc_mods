@@ -10,7 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 /** The Calciner: input, progress, energy and the three principle gauges. */
 public class CalcinerScreen extends MachineScreen {
 
-    public static final Layout LAYOUT = new Layout(false, true, true, MachineScreens.gui("calciner"));
+    public static final Layout LAYOUT = Layout.BURNER;
 
     private final PrincipleGauges gauges;
 

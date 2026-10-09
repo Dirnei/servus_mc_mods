@@ -7,7 +7,7 @@ import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyMachineBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwnership;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyMachines;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleTanks;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.VeinData.VeinDef;
@@ -56,7 +56,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
     private final State growth = new State();
-    private UUID team;
+    private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
     private ResourceLocation vein;
     // Client copies from the update tag, for drawing.
     private ItemStack shownYield = ItemStack.EMPTY;
@@ -91,22 +91,20 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
 
     @Override
     public Optional<UUID> owner() {
-        return Optional.ofNullable(team);
+        return ownership.owner();
     }
 
     @Override
     public void setOwner(UUID player) {
-        team = AlchemyMachineBlockEntity.resolveTeam(level, player);
-        setChanged();
+        ownership.setOwner(level, player);
     }
 
     public void setTeam(UUID team) {
-        this.team = team;
-        setChanged();
+        ownership.setTeam(team);
     }
 
     public UUID team() {
-        return team;
+        return ownership.team();
     }
 
     // Seeding
@@ -116,10 +114,10 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         if (def.chapter().isEmpty()) {
             return true;
         }
-        if (!(level instanceof ServerLevel server) || team == null) {
+        if (!(level instanceof ServerLevel server) || team() == null) {
             return false;
         }
-        return Journal.isFinished(server.getServer(), team, def.chapter().get().toString());
+        return Journal.isFinished(server.getServer(), team(), def.chapter().get().toString());
     }
 
     private Optional<Map.Entry<ResourceLocation, VeinDef>> veinFor(ItemStack stack) {
@@ -163,7 +161,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         setChanged();
         syncToClients();
         if (level instanceof ServerLevel server) {
-            Journal.recordItem(server, team, "bind", def.get().yield(), 1);
+            Journal.recordItem(server, team(), "bind", def.get().yield(), 1);
         }
         return Binding.BOUND;
     }
@@ -324,9 +322,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         tag.putBoolean("Bound", growth.bound);
         tag.putInt("StepTimer", growth.stepTimer);
         tag.putInt("YieldTimer", growth.yieldTimer);
-        if (team != null) {
-            tag.putUUID("Team", team);
-        }
+        ownership.save(tag);
     }
 
     @Override
@@ -338,7 +334,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         growth.bound = tag.getBoolean("Bound");
         growth.stepTimer = tag.getInt("StepTimer");
         growth.yieldTimer = tag.getInt("YieldTimer");
-        team = tag.hasUUID("Team") ? tag.getUUID("Team") : null;
+        ownership.load(tag);
         if (tag.contains("ShownYield")) {
             shownYield = ItemStack.parseOptional(registries, tag.getCompound("ShownYield"));
             shownSteps = tag.getInt("ShownSteps");

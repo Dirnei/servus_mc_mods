@@ -51,14 +51,12 @@ public final class ServusManufacturingEvents {
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.CALCINER.get(),
                     (machine, side) -> machine.sideHandler(side));
-            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.CALCINER.get(),
-                    (machine, side) -> machine.energyStorage());
+            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.CALCINER.get(),
+                    (machine, side) -> machine.upkeep());
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.CALCINER.get(),
                     (machine, side) -> machine.fluidHandler(side));
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
                     (machine, side) -> machine.sideHandler(side));
-            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
-                    (machine, side) -> machine.energyStorage());
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
                     (machine, side) -> machine.fluidHandler(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.COAGULATOR.get(),
