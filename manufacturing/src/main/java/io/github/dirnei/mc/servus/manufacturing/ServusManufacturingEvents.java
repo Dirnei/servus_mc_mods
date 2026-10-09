@@ -1,6 +1,10 @@
 package io.github.dirnei.mc.servus.manufacturing;
 
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.manufacturing.gametest.AlchemyGameTests;
+import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import io.github.dirnei.mc.servus.manufacturing.research.ResearchManager;
@@ -40,7 +44,15 @@ public final class ServusManufacturingEvents {
         public static void onBuildCreativeTab(BuildCreativeModeTabContentsEvent event) {
             if (event.getTabKey().equals(ServusFoundationCreativeTabs.SERVUS_KEY)) {
                 ServusManufacturingItems.CREATIVE_TAB_ORDER.forEach(event::accept);
+                for (Principle principle : Principle.values()) {
+                    event.accept(PrincipleFluids.entry(principle).bucket().get());
+                }
             }
+        }
+
+        @SubscribeEvent
+        public static void onRegisterGameTests(RegisterGameTestsEvent event) {
+            event.register(AlchemyGameTests.class);
         }
 
         @SubscribeEvent

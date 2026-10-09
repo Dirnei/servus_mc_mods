@@ -1,10 +1,19 @@
 {
+  "block.servus_manufacturing.mercury": "Mercury",
   "block.servus_manufacturing.research_lab": "Research Lab",
+  "block.servus_manufacturing.salt": "Salt",
+  "block.servus_manufacturing.sulfur": "Sulfur",
+  "fluid_type.servus_manufacturing.mercury": "Mercury",
+  "fluid_type.servus_manufacturing.salt": "Salt",
+  "fluid_type.servus_manufacturing.sulfur": "Sulfur",
   "gui.servus_manufacturing.locked": "Locked: requires research",
   "gui.servus_manufacturing.no_research": "No research selected",
   "gui.servus_manufacturing.research.available": "Available",
   "gui.servus_manufacturing.research.completed": "Completed",
   "gui.servus_manufacturing.research.locked": "Locked",
   "gui.servus_manufacturing.research.researching": "Researching %s / %s",
-  "gui.servus_manufacturing.tech_tree": "Tech Tree"
+  "gui.servus_manufacturing.tech_tree": "Tech Tree",
+  "item.servus_manufacturing.mercury_bucket": "Mercury Bucket",
+  "item.servus_manufacturing.salt_bucket": "Salt Bucket",
+  "item.servus_manufacturing.sulfur_bucket": "Sulfur Bucket"
 }

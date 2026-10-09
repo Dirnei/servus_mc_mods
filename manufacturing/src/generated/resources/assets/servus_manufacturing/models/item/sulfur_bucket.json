@@ -1,0 +1,5 @@
+{
+  "parent": "neoforge:item/bucket",
+  "fluid": "servus_manufacturing:sulfur",
+  "loader": "neoforge:fluid_container"
+}

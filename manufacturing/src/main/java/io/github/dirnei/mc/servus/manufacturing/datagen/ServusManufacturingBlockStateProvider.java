@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
@@ -22,6 +24,12 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         machine(ServusManufacturingBlocks.RESEARCH_LAB.get(), "research_lab");
+        // Liquid blocks are drawn by the fluid renderer; the model only gives the particle.
+        for (Principle principle : Principle.values()) {
+            PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);
+            simpleBlock(entry.block().get(), models().getBuilder(principle.id())
+                    .texture("particle", mcLoc("block/water_still")));
+        }
     }
 
     /** Orientable machine with a lit and an unlit front, rotated by facing. */

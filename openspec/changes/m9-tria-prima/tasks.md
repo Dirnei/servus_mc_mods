@@ -9,7 +9,7 @@
 ## 2. Principles
 
 - [x] 2.1 Pure `Principle` enum and `Principles` value type in `manufacturing/.../alchemy/` with JUnit tests `PrinciplesTest` (sum, subtract, covers, fits into capacity, negative amounts refused, missing keys as 0). Verify: `gradlew test`.
-- [ ] 2.2 Fluid types, source and flowing fluids, liquid blocks and buckets for Salt, Sulfur and Mercury in `manufacturing/.../alchemy/PrincipleFluids.java`; client tint extensions; lang, bucket item models and a `PrincipleTanks` fluid handler (three restricted tanks, give or accept mode). GameTest: a bucket fills from a Fluid Tank holding Mercury. Verify: build, data run, GameTests green.
+- [x] 2.2 Fluid types, source and flowing fluids, liquid blocks and buckets for Salt, Sulfur and Mercury in `manufacturing/.../alchemy/PrincipleFluids.java`; client tint extensions; lang, bucket item models and a `PrincipleTanks` fluid handler (three restricted tanks, give or accept mode). GameTest: a bucket fills from a Fluid Tank holding Mercury. Verify: build, data run, GameTests green.
 
 ## 3. Calciner
 

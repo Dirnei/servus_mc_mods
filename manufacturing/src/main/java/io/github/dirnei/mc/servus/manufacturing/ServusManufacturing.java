@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.machine.ManufacturingMachines;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
@@ -23,6 +24,7 @@ public final class ServusManufacturing {
     public ServusManufacturing(IEventBus modEventBus, ModContainer container) {
         ManufacturingMachines.registerDefaults();
         ServusManufacturingBlocks.BLOCKS.register(modEventBus);
+        PrincipleFluids.register(modEventBus);
         ServusManufacturingItems.ITEMS.register(modEventBus);
         ServusManufacturingBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         ServusManufacturingMenus.MENUS.register(modEventBus);

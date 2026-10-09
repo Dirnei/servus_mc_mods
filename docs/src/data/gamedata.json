@@ -78,48 +78,7 @@
       "upkeep_level": 0
     }
   },
-  "recipes": {
-    "servus_manufacturing:copper_ingot_from_grit_blasting": {
-      "type": "minecraft:blasting",
-      "inputs": [
-        {"item": "servus_manufacturing:copper_grit", "count": 1}
-      ],
-      "outputs": [
-        {"item": "minecraft:copper_ingot", "count": 1}
-      ],
-      "time": 100
-    },
-    "servus_manufacturing:copper_ingot_from_grit_smelting": {
-      "type": "minecraft:smelting",
-      "inputs": [
-        {"item": "servus_manufacturing:copper_grit", "count": 1}
-      ],
-      "outputs": [
-        {"item": "minecraft:copper_ingot", "count": 1}
-      ],
-      "time": 200
-    },
-    "servus_manufacturing:iron_ingot_from_grit_blasting": {
-      "type": "minecraft:blasting",
-      "inputs": [
-        {"item": "servus_manufacturing:iron_grit", "count": 1}
-      ],
-      "outputs": [
-        {"item": "minecraft:iron_ingot", "count": 1}
-      ],
-      "time": 100
-    },
-    "servus_manufacturing:iron_ingot_from_grit_smelting": {
-      "type": "minecraft:smelting",
-      "inputs": [
-        {"item": "servus_manufacturing:iron_grit", "count": 1}
-      ],
-      "outputs": [
-        {"item": "minecraft:iron_ingot", "count": 1}
-      ],
-      "time": 200
-    }
-  },
+  "recipes": {},
   "crafting": {
     "servus_foundation:burner_pump": {
       "type": "minecraft:crafting_shaped",
@@ -364,160 +323,6 @@
       "outputs": [
         {"item": "servus_foundation:sink", "count": 8}
       ]
-    },
-    "servus_manufacturing:assembler": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["ICI", "RTR", "III"],
-      "key": {
-        "C": {"item": "minecraft:copper_ingot"},
-        "I": {"item": "minecraft:iron_ingot"},
-        "R": {"item": "minecraft:redstone"},
-        "T": {"item": "minecraft:crafting_table"}
-      },
-      "inputs": [
-        {"item": "minecraft:copper_ingot", "count": 1},
-        {"item": "minecraft:crafting_table", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 5},
-        {"item": "minecraft:redstone", "count": 2}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:assembler", "count": 1}
-      ]
-    },
-    "servus_manufacturing:assembling/copper_wire": {
-      "type": "servus_manufacturing:assembling",
-      "inputs": [
-        {"item": "minecraft:copper_ingot", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:copper_wire", "count": 2}
-      ]
-    },
-    "servus_manufacturing:assembling/crusher": {
-      "type": "servus_manufacturing:assembling",
-      "inputs": [
-        {"item": "servus_manufacturing:copper_wire", "count": 1},
-        {"item": "servus_manufacturing:electric_extractor", "count": 1},
-        {"item": "servus_manufacturing:iron_gear", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:crusher", "count": 1}
-      ]
-    },
-    "servus_manufacturing:assembling/electric_extractor": {
-      "type": "servus_manufacturing:assembling",
-      "inputs": [
-        {"item": "servus_manufacturing:burner_extractor", "count": 1},
-        {"item": "servus_manufacturing:copper_wire", "count": 1},
-        {"item": "servus_manufacturing:iron_gear", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:electric_extractor", "count": 1}
-      ]
-    },
-    "servus_manufacturing:assembling/glass": {
-      "type": "servus_manufacturing:assembling",
-      "inputs": [
-        {"item": "minecraft:sand", "count": 1}
-      ],
-      "outputs": [
-        {"item": "minecraft:glass", "count": 1}
-      ]
-    },
-    "servus_manufacturing:assembling/iron_gear": {
-      "type": "servus_manufacturing:assembling",
-      "inputs": [
-        {"item": "minecraft:iron_ingot", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:iron_gear", "count": 1}
-      ]
-    },
-    "servus_manufacturing:assembling/red_pack": {
-      "type": "servus_manufacturing:assembling",
-      "inputs": [
-        {"item": "servus_manufacturing:copper_wire", "count": 1},
-        {"item": "servus_manufacturing:iron_gear", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:red_pack", "count": 1}
-      ]
-    },
-    "servus_manufacturing:assembling/stone": {
-      "type": "servus_manufacturing:assembling",
-      "inputs": [
-        {"item": "minecraft:cobblestone", "count": 1}
-      ],
-      "outputs": [
-        {"item": "minecraft:stone", "count": 2}
-      ]
-    },
-    "servus_manufacturing:assembling/stone_bricks": {
-      "type": "servus_manufacturing:assembling",
-      "inputs": [
-        {"item": "minecraft:stone", "count": 1}
-      ],
-      "outputs": [
-        {"item": "minecraft:stone_bricks", "count": 2}
-      ]
-    },
-    "servus_manufacturing:burner_extractor": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["III", "IFI", "CCC"],
-      "key": {
-        "C": {"item": "minecraft:cobblestone"},
-        "F": {"item": "minecraft:furnace"},
-        "I": {"item": "minecraft:iron_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:cobblestone", "count": 3},
-        {"item": "minecraft:furnace", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 5}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:burner_extractor", "count": 1}
-      ]
-    },
-    "servus_manufacturing:burner_smelter": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["III", "BFB", "BBB"],
-      "key": {
-        "B": {"item": "minecraft:bricks"},
-        "F": {"item": "minecraft:furnace"},
-        "I": {"item": "minecraft:iron_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:bricks", "count": 5},
-        {"item": "minecraft:furnace", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 3}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:burner_smelter", "count": 1}
-      ]
-    },
-    "servus_manufacturing:crushing/cobblestone": {
-      "type": "servus_manufacturing:crushing",
-      "special": true,
-      "inputs": [],
-      "outputs": []
-    },
-    "servus_manufacturing:crushing/gravel": {
-      "type": "servus_manufacturing:crushing",
-      "special": true,
-      "inputs": [],
-      "outputs": []
-    },
-    "servus_manufacturing:crushing/raw_copper": {
-      "type": "servus_manufacturing:crushing",
-      "special": true,
-      "inputs": [],
-      "outputs": []
-    },
-    "servus_manufacturing:crushing/raw_iron": {
-      "type": "servus_manufacturing:crushing",
-      "special": true,
-      "inputs": [],
-      "outputs": []
     },
     "servus_manufacturing:research_lab": {
       "type": "minecraft:crafting_shaped",
@@ -918,17 +723,8 @@
     "minecraft:redstone": {
       "name": "Redstone Dust"
     },
-    "minecraft:sand": {
-      "name": "Sand"
-    },
     "minecraft:stick": {
       "name": "Stick"
-    },
-    "minecraft:stone": {
-      "name": "Stone"
-    },
-    "minecraft:stone_bricks": {
-      "name": "Stone Bricks"
     },
     "servus_foundation:burner_pump": {
       "name": "Burner Pump"
@@ -971,36 +767,6 @@
     },
     "servus_foundation:sink": {
       "name": "Sink"
-    },
-    "servus_manufacturing:assembler": {
-      "name": "Assembler"
-    },
-    "servus_manufacturing:burner_extractor": {
-      "name": "Burner Extractor"
-    },
-    "servus_manufacturing:burner_smelter": {
-      "name": "Burner Smelter"
-    },
-    "servus_manufacturing:copper_grit": {
-      "name": "Copper Grit"
-    },
-    "servus_manufacturing:copper_wire": {
-      "name": "Copper Wire"
-    },
-    "servus_manufacturing:crusher": {
-      "name": "Crusher"
-    },
-    "servus_manufacturing:electric_extractor": {
-      "name": "Electric Extractor"
-    },
-    "servus_manufacturing:iron_gear": {
-      "name": "Iron Gear"
-    },
-    "servus_manufacturing:iron_grit": {
-      "name": "Iron Grit"
-    },
-    "servus_manufacturing:red_pack": {
-      "name": "Red Pack"
     },
     "servus_manufacturing:research_lab": {
       "name": "Research Lab"
