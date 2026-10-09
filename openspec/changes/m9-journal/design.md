@@ -63,7 +63,7 @@ The journal is `modonomicon:modonomicon` with component `modonomicon:book_id = s
 
 ### D8: Recipe locks
 
-`CoagulationRecipe` gains `Optional<ResourceLocation> chapter`. `CoagulatorMenu.clickMenuButton` refuses a locked recipe; the screen greys locked rows. The client learns the team's finished chapters from its own advancements (`ClientAdvancements`), which mirror the team's chapters.
+`CoagulationRecipe` gains `Optional<ResourceLocation> chapter`. `CoagulatorMenu.clickMenuButton` refuses a locked recipe; the screen greys locked rows. The screen names the needed chapter in the recipe tooltip; it does not grey rows, since the client has no simple public view of advancement progress.
 
 ### D9: Removal
 

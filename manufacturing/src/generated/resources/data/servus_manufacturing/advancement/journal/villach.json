@@ -1,0 +1,27 @@
+{
+  "parent": "servus_manufacturing:journal/root",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "journal.servus_manufacturing.villach.finished"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "servus_manufacturing:calciner"
+    },
+    "title": {
+      "translate": "journal.servus_manufacturing.villach"
+    }
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

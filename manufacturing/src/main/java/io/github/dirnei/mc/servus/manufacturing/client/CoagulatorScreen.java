@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorMenu;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleMenu;
 import java.util.ArrayList;
+import net.minecraft.ChatFormatting;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -91,6 +92,8 @@ public class CoagulatorScreen extends MachineScreen {
                             Component.translatable("fluid_type.servus_manufacturing." + principle.id())));
                 }
             }
+            recipe.chapter().ifPresent(chapter -> lines.add(Component.translatable("gui.servus_manufacturing.coagulator.chapter",
+                    Component.translatable("journal." + chapter.getNamespace() + "." + chapter.getPath())).withStyle(ChatFormatting.GRAY)));
             recipe.ingredient().ifPresent(sized -> {
                 if (sized.ingredient().getItems().length > 0) {
                     lines.add(Component.literal(sized.count() + " x ").append(sized.ingredient().getItems()[0].getHoverName()));

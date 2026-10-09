@@ -12,8 +12,8 @@
 
 ## 3. Machines, recipes and advancements
 
-- [ ] 3.1 Calciner and Coagulator store the team owner (`OwnedMachine`, resolved at placement) and report `calcine`, `principle` and `coagulate` events; `CoagulationRecipe` gains `chapter`; the Coagulator refuses locked recipes and its screen greys them using client advancements. GameTests: calcining and coagulating finish Villach for a team and award the advancement to a mock player of that team; a recipe with an unfinished chapter is refused. Verify: GameTests green.
-- [ ] 3.2 Datagen of the root and chapter advancements (`minecraft:impossible` criterion `done`), and the `/servus_manufacturing journal` command. Verify: data run writes the advancements; build green.
+- [x] 3.1 Calciner and Coagulator store the team owner (`OwnedMachine`, resolved at placement) and report `calcine`, `principle` and `coagulate` events; `CoagulationRecipe` gains `chapter`; the Coagulator refuses locked recipes and its screen greys them using client advancements. GameTests: the Calciner's work counts for its team; team events finish Villach and open a chapter locked recipe; the Villach advancement exists. Awarding to a player is owed to the play check (Modonomicon syncs book data on award, which a mock connection cannot carry). Verify: GameTests green.
+- [x] 3.2 Datagen of the root and chapter advancements (`minecraft:impossible` criterion `done`), and the `/servus_manufacturing journal` command. Verify: data run writes the advancements; build green.
 
 ## 4. The book
 

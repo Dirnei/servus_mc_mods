@@ -4,6 +4,8 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
+import net.minecraft.server.level.ServerLevel;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import java.util.Optional;
@@ -22,7 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 /** Burns its input into Salt, Sulfur and Mercury and pushes them out through its sides. */
-public class CalcinerBlockEntity extends PoweredMachineBlockEntity {
+public class CalcinerBlockEntity extends AlchemyMachineBlockEntity {
 
     public static final int SLOT_INPUT = 0;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
@@ -92,8 +94,14 @@ public class CalcinerBlockEntity extends PoweredMachineBlockEntity {
     @Override
     protected void finishWork() {
         currentRecipe().ifPresent(recipe -> {
-            inventory.extractItem(SLOT_INPUT, recipe.input().count(), false);
+            ItemStack used = inventory.extractItem(SLOT_INPUT, recipe.input().count(), false);
             tanks.insert(recipe.output());
+            if (level instanceof ServerLevel server) {
+                Journal.recordItem(server, team(), "calcine", used, used.getCount());
+                for (Principle principle : Principle.values()) {
+                    Journal.recordPrinciple(server, team(), principle, recipe.output().get(principle));
+                }
+            }
         });
     }
 

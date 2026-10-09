@@ -12,6 +12,7 @@ import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.data.AdvancementProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
@@ -34,6 +35,8 @@ public final class ServusManufacturingDataGen {
 
         generator.addProvider(event.includeServer(), new ServusManufacturingBlockTagsProvider(output, lookup, existingFileHelper));
         generator.addProvider(event.includeServer(), new ServusManufacturingRecipeProvider(output, lookup));
+        generator.addProvider(event.includeServer(), new AdvancementProvider(output, lookup, existingFileHelper,
+                List.of(new JournalAdvancements())));
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(ServusManufacturingBlockLoot::new, LootContextParamSets.BLOCK)),
                 lookup));

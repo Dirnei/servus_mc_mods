@@ -377,25 +377,6 @@
         {"item": "servus_manufacturing:coagulator", "count": 1}
       ]
     },
-    "servus_manufacturing:research_lab": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["IGI", "RBR", "III"],
-      "key": {
-        "B": {"item": "minecraft:book"},
-        "G": {"item": "minecraft:glass"},
-        "I": {"item": "minecraft:iron_ingot"},
-        "R": {"item": "minecraft:redstone"}
-      },
-      "inputs": [
-        {"item": "minecraft:book", "count": 1},
-        {"item": "minecraft:glass", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 5},
-        {"item": "minecraft:redstone", "count": 2}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:research_lab", "count": 1}
-      ]
-    },
     "servus_storage:access_point": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "OCO", "PPP"],
@@ -707,9 +688,6 @@
     "minecraft:coal": 1600
   },
   "items": {
-    "minecraft:book": {
-      "name": "Book"
-    },
     "minecraft:brick": {
       "name": "Brick"
     },
@@ -829,9 +807,6 @@
     },
     "servus_manufacturing:coagulator": {
       "name": "Coagulator"
-    },
-    "servus_manufacturing:research_lab": {
-      "name": "Research Lab"
     },
     "servus_storage:access_point": {
       "name": "Access Point"

@@ -1,12 +1,20 @@
 {
+  "advancement.servus_manufacturing.journal.root": "Paracelsus' Journal",
+  "advancement.servus_manufacturing.journal.root.description": "Experience is the master. Chapters of the journal, finished by doing alchemy",
   "block.servus_manufacturing.calciner": "Calciner",
   "block.servus_manufacturing.coagulator": "Coagulator",
   "block.servus_manufacturing.mercury": "Mercury",
   "block.servus_manufacturing.salt": "Salt",
   "block.servus_manufacturing.sulfur": "Sulfur",
+  "commands.servus_manufacturing.journal.chapter": "%s: %s",
+  "commands.servus_manufacturing.journal.finished": "finished",
+  "commands.servus_manufacturing.journal.header": "Journal of your team:",
+  "commands.servus_manufacturing.journal.open": "open",
+  "commands.servus_manufacturing.journal.task": "  %s: %s / %s",
   "fluid_type.servus_manufacturing.mercury": "Mercury",
   "fluid_type.servus_manufacturing.salt": "Salt",
   "fluid_type.servus_manufacturing.sulfur": "Sulfur",
+  "gui.servus_manufacturing.coagulator.chapter": "Needs the journal chapter %s",
   "gui.servus_manufacturing.coagulator.needs": "%s mB %s",
   "gui.servus_manufacturing.jei.calcination": "Calcination",
   "gui.servus_manufacturing.jei.coagulation": "Coagulation",
@@ -15,5 +23,9 @@
   "item.servus_manufacturing.salt_bucket": "Salt Bucket",
   "item.servus_manufacturing.salt_crystal": "Salt Crystal",
   "item.servus_manufacturing.sulfur": "Sulfur",
-  "item.servus_manufacturing.sulfur_bucket": "Sulfur Bucket"
+  "item.servus_manufacturing.sulfur_bucket": "Sulfur Bucket",
+  "journal.servus_manufacturing.schwaz": "Schwaz",
+  "journal.servus_manufacturing.schwaz.finished": "Finished the Schwaz chapter of the journal",
+  "journal.servus_manufacturing.villach": "Villach",
+  "journal.servus_manufacturing.villach.finished": "Finished the Villach chapter of the journal"
 }

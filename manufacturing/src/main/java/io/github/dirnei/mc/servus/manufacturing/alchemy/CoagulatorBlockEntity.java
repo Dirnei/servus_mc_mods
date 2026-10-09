@@ -6,6 +6,8 @@ import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
+import net.minecraft.server.level.ServerLevel;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import java.util.Comparator;
@@ -26,7 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 /** Makes its selected recipe's result from piped principles and an optional item. */
-public class CoagulatorBlockEntity extends PoweredMachineBlockEntity {
+public class CoagulatorBlockEntity extends AlchemyMachineBlockEntity {
 
     public static final int SLOT_INGREDIENT = 0;
     public static final int SLOT_OUTPUT = 1;
@@ -65,6 +67,14 @@ public class CoagulatorBlockEntity extends PoweredMachineBlockEntity {
             progress = 0;
             setChanged();
         }
+    }
+
+    /** Whether the owning team may select the recipe: it names no chapter, or the team finished it. */
+    public boolean unlocked(CoagulationRecipe recipe) {
+        if (recipe.chapter().isEmpty()) {
+            return true;
+        }
+        return level instanceof ServerLevel server && Journal.isFinished(server.getServer(), team(), recipe.chapter().get().toString());
     }
 
     /** What a neighbour sees on {@code side}: the three tanks to fill, or nothing where the side takes nothing. */
@@ -125,6 +135,9 @@ public class CoagulatorBlockEntity extends PoweredMachineBlockEntity {
             tanks.take(recipe.input());
             recipe.ingredient().ifPresent(sized -> inventory.extractItem(SLOT_INGREDIENT, sized.count(), false));
             insertOutput(SLOT_OUTPUT, recipe.result().copy());
+            if (level instanceof ServerLevel server) {
+                Journal.recordItem(server, team(), "coagulate", recipe.result(), recipe.result().getCount());
+            }
         });
     }
 

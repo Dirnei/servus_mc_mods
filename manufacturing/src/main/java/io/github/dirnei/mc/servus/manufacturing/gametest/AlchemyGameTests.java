@@ -4,6 +4,15 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsB
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
+import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
+import io.github.dirnei.mc.servus.manufacturing.journal.JournalLedger;
+import io.github.dirnei.mc.servus.foundation.team.Teams;
+import java.util.Optional;
+import java.util.UUID;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
@@ -191,6 +200,44 @@ public final class AlchemyGameTests {
         helper.assertTrue(fresh.selected().isEmpty(), "a new Coagulator has nothing selected");
         fresh.loadWithComponents(saved, helper.getLevel().registryAccess());
         helper.assertTrue(fresh.selected().filter(id -> id.equals(coagulation("gunpowder"))).isPresent(), "the selection should be loaded");
+        helper.succeed();
+    }
+
+    /** A Calciner's work counts for its team's journal: the item and every principle it made. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void calcinerReportsToItsTeamJournal(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = calciner(helper);
+        UUID team = UUID.randomUUID();
+        calciner.setTeam(team);
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
+        helper.succeedWhen(() -> {
+            JournalLedger.TeamJournal journal = Journal.journalOf(helper.getLevel().getServer(), team);
+            helper.assertTrue(journal.count(VILLACH, "calcine") == 1, "one calcined item should count");
+            helper.assertTrue(journal.count(VILLACH, "salt") == 100, "100 mB Salt should count, got " + journal.count(VILLACH, "salt"));
+        });
+    }
+
+    static final String VILLACH = "servus_manufacturing:villach";
+
+    /** Finishing Villach through team events opens chapter locked recipes; its advancement exists for the book. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void finishingVillachAwardsItsAdvancement(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        CoagulatorBlockEntity coagulator = coagulator(helper, null);
+        coagulator.setTeam(team);
+        CoagulationRecipe locked = new CoagulationRecipe(new Principles(10, 0, 0), Optional.empty(), new ItemStack(Items.FLINT),
+                40, Optional.of(ResourceLocation.parse(VILLACH)));
+        helper.assertTrue(!coagulator.unlocked(locked), "a recipe of an unfinished chapter is locked");
+        ServerLevel level = helper.getLevel();
+        Journal.recordItem(level, team, "calcine", new ItemStack(Items.COBBLESTONE), 100);
+        Journal.recordPrinciple(level, team, Principle.SALT, 1000);
+        Journal.recordItem(level, team, "coagulate", new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get()), 1);
+        helper.assertTrue(Journal.isFinished(level.getServer(), team, VILLACH), "Villach should be finished");
+        helper.assertTrue(coagulator.unlocked(locked), "the recipe opens with its chapter");
+        // Awarding to a mock player is left to the play check: Modonomicon syncs book data on every award,
+        // which a mock connection cannot carry.
+        AdvancementHolder advancement = level.getServer().getAdvancements().get(Journal.advancementId(VILLACH));
+        helper.assertTrue(advancement != null, "the Villach advancement should exist");
         helper.succeed();
     }
 

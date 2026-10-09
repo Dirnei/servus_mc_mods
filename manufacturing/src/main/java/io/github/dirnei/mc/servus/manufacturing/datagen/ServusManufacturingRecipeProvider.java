@@ -51,7 +51,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     private static void coagulate(RecipeOutput output, String name, int salt, int sulfur, int mercury, ItemStack result) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + name);
         output.accept(id, new CoagulationRecipe(new Principles(salt, sulfur, mercury), Optional.empty(), result,
-                CoagulationRecipe.DEFAULT_TIME), null);
+                CoagulationRecipe.DEFAULT_TIME, Optional.empty()), null);
     }
 
     /** What the Calciner burns common matter into; the numbers are datapack examples. */

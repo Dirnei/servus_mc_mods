@@ -22,6 +22,8 @@ public final class Journal {
 
     /** Criterion of every chapter advancement. */
     public static final String CRITERION = "done";
+    /** The root of the journal's advancement tab, given to everyone so the tab shows. */
+    public static final ResourceLocation ROOT = ResourceLocation.fromNamespaceAndPath("servus_manufacturing", "journal/root");
 
     private Journal() {
     }
@@ -81,6 +83,10 @@ public final class Journal {
 
     /** Gives the player every chapter advancement their team earned. Safe to call often. */
     public static void catchUp(ServerPlayer player) {
+        AdvancementHolder root = player.server.getAdvancements().get(ROOT);
+        if (root != null) {
+            player.getAdvancements().award(root, CRITERION);
+        }
         for (String chapter : journalOf(player.server, Teams.teamOf(player)).finished()) {
             award(player, chapter);
         }

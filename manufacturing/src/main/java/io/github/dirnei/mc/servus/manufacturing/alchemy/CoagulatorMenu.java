@@ -58,7 +58,11 @@ public class CoagulatorMenu extends MachineMenu implements PrincipleMenu {
         if (index >= 0 && id < SIDE_BUTTON_FIRST && machine instanceof CoagulatorBlockEntity coagulator) {
             List<RecipeHolder<CoagulationRecipe>> recipes = CoagulatorBlockEntity.sortedRecipes(player.level().getRecipeManager());
             if (index < recipes.size()) {
-                coagulator.select(recipes.get(index).id());
+                RecipeHolder<CoagulationRecipe> holder = recipes.get(index);
+                if (!coagulator.unlocked(holder.value())) {
+                    return false;
+                }
+                coagulator.select(holder.id());
                 return true;
             }
             return false;

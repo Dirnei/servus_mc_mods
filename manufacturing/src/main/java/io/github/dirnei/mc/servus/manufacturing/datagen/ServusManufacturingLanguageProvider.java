@@ -19,6 +19,18 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.CALCINER.get(), "Calciner");
         add(ServusManufacturingBlocks.COAGULATOR.get(), "Coagulator");
         add("gui.servus_manufacturing.coagulator.needs", "%s mB %s");
+        add("gui.servus_manufacturing.coagulator.chapter", "Needs the journal chapter %s");
+        add("journal.servus_manufacturing.villach", "Villach");
+        add("journal.servus_manufacturing.schwaz", "Schwaz");
+        add("journal.servus_manufacturing.villach.finished", "Finished the Villach chapter of the journal");
+        add("journal.servus_manufacturing.schwaz.finished", "Finished the Schwaz chapter of the journal");
+        add("advancement.servus_manufacturing.journal.root", "Paracelsus' Journal");
+        add("advancement.servus_manufacturing.journal.root.description", "Experience is the master. Chapters of the journal, finished by doing alchemy");
+        add("commands.servus_manufacturing.journal.header", "Journal of your team:");
+        add("commands.servus_manufacturing.journal.chapter", "%s: %s");
+        add("commands.servus_manufacturing.journal.finished", "finished");
+        add("commands.servus_manufacturing.journal.open", "open");
+        add("commands.servus_manufacturing.journal.task", "  %s: %s / %s");
         add("gui.servus_manufacturing.jei.calcination", "Calcination");
         add("gui.servus_manufacturing.jei.coagulation", "Coagulation");
         add(ServusManufacturingItems.SALT_CRYSTAL.get(), "Salt Crystal");
