@@ -24,7 +24,6 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         // Alchemy is masonry: vanilla stone on the sides and top, our own fronts.
-        machine(ServusManufacturingBlocks.COAGULATOR.get(), "coagulator", mcLoc("block/cobblestone"), mcLoc("block/smooth_stone"));
         new CalcinerModels(this).register();
         simpleBlockWithItem(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), cubeAll(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get()));
         athanor();

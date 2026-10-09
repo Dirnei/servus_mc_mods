@@ -32,7 +32,7 @@ public final class ServusManufacturingClient {
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CALCINER.get(), CalcinerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.PURIFIER.get(), PurifierRenderer::new);
-        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.COAGULATOR.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.COAGULATOR.get(), CoagulatorRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.ATHANOR.get(), AthanorRenderer::new);
     }
 

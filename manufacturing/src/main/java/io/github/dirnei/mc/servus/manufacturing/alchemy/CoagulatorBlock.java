@@ -8,20 +8,29 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.fluids.FluidUtil;
 import com.mojang.serialization.MapCodec;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionResult;
+import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorStructure;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
+/** The Coagulator, the casting table of its build: it holds the tanks, the slots and the recipe. */
 public class CoagulatorBlock extends MachineBlock {
 
     public static final MapCodec<CoagulatorBlock> CODEC = simpleCodec(CoagulatorBlock::new);
+    public static final BooleanProperty FORMED = BooleanProperty.create("formed");
 
     public CoagulatorBlock(Properties properties) {
         super(properties);
+        registerDefaultState(defaultBlockState().setValue(FORMED, false));
     }
 
     @Override
@@ -29,17 +38,52 @@ public class CoagulatorBlock extends MachineBlock {
         return CODEC;
     }
 
-    /** A filled principle container pours into the matching tank instead of opening the GUI. */
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(FORMED);
+    }
+
+    /** The Journal forms the build; anything else passes to an empty hand's click. */
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (PrincipleBuckets.holdsPrinciple(stack) && level.getBlockEntity(pos) instanceof CoagulatorBlockEntity coagulator) {
+        if (stack.getItem() instanceof ParacelsusJournalItem) {
             if (!level.isClientSide()) {
-                FluidUtil.interactWithFluidHandler(player, hand, coagulator.tanks());
+                CoagulatorStructure.tryForm(level, pos, player);
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
-        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    /** An empty hand opens the recipe GUI of a formed Coagulator. */
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!state.getValue(FORMED)) {
+            return InteractionResult.PASS;
+        }
+        return super.useWithoutItem(state, level, pos, player, hitResult);
+    }
+
+    /** The carrot never turns, configures or dismantles the Coagulator. */
+    @Override
+    public InteractionResult onWrench(UseOnContext context, BlockState state) {
+        return InteractionResult.PASS;
+    }
+
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+        CoagulatorStructure.neighbourChanged(level, state, pos);
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock())) {
+            CoagulatorStructure.broken(level, state, pos);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

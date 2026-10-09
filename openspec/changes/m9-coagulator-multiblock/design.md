@@ -28,6 +28,9 @@ The Coagulator today is a `MachineBlock`/`MachineBlockEntity` with a menu (recip
 - `alchemy/coagulator/VatBlock` with `FACING`, `FORMED`, `PIECE` (0 to 2, the Vat cell); no block entity. `neighborChanged` checks the Stone Bricks below the outer Vats. A filled principle bucket on a formed Vat pours with `FluidUtil.interactWithFluidHandler` into the Vat's single tank view.
 - Stone Bricks stay vanilla: no shell block. They are checked from their formed neighbours (the Coagulator beside them, the Vat above).
 
+### Facing of a mirror image build
+The build reads the same from both sides, so two facings match; the check tries the Coagulator's own facing first, so the side its front was placed toward stays the front, and the Vat principles follow from that front (Sulfur on its left). Found while writing the facing GameTest.
+
 ### Ports
 Registered with `registerBlock`:
 - `FluidHandler.BLOCK` on the Vat: a fill only view of the Coagulator's tank of the Vat's principle (`PrincipleTanks.view` gives a fill only view because the Coagulator's tanks take and never give).

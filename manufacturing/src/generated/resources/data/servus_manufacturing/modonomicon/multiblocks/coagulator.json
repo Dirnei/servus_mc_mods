@@ -1,0 +1,25 @@
+{
+  "type": "modonomicon:dense",
+  "mapping": {
+    "0": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:coagulator"
+    },
+    "S": {
+      "type": "modonomicon:block",
+      "block": "minecraft:stone_bricks"
+    },
+    "V": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:principle_vat"
+    }
+  },
+  "pattern": [
+    [
+      "VVV"
+    ],
+    [
+      "S0S"
+    ]
+  ]
+}

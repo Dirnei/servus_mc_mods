@@ -21,6 +21,7 @@ public final class ServusManufacturingItems {
     public static final DeferredItem<BlockItem> SULFUR_DUCT = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.SULFUR_DUCT);
     public static final DeferredItem<BlockItem> PURIFIER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.PURIFIER);
     public static final DeferredItem<BlockItem> COAGULATOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.COAGULATOR);
+    public static final DeferredItem<BlockItem> VAT = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.VAT);
     public static final DeferredItem<BlockItem> ATHANOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ATHANOR);
     public static final DeferredItem<BlockItem> GNOME_HOLLOW = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.GNOME_HOLLOW);
 
@@ -35,7 +36,7 @@ public final class ServusManufacturingItems {
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,
-            ALEMBIC, RECEIVER, SULFUR_HOOD, SULFUR_DUCT, PURIFIER, COAGULATOR, ATHANOR, GNOME_HOLLOW,
+            ALEMBIC, RECEIVER, SULFUR_HOOD, SULFUR_DUCT, PURIFIER, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
             ASH, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER);
 
     private ServusManufacturingItems() {

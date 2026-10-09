@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlock;
@@ -43,6 +44,9 @@ public final class ServusManufacturingBlocks {
     /** The Purifier, a wooden vat that leaches Ash into liquid Salt. */
     public static final DeferredBlock<PurifierBlock> PURIFIER = BLOCKS.registerBlock("purifier", PurifierBlock::new,
             BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion());
+
+    /** A Principle Vat of the Coagulator build. */
+    public static final DeferredBlock<VatBlock> VAT = BLOCKS.registerBlock("principle_vat", VatBlock::new, copper());
 
     public static final DeferredBlock<CoagulatorBlock> COAGULATOR =
             BLOCKS.registerBlock("coagulator", CoagulatorBlock::new, MachineContent.machine());

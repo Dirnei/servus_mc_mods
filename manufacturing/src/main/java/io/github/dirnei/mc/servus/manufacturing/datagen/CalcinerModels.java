@@ -2,6 +2,8 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
@@ -62,6 +64,64 @@ final class CalcinerModels {
         shell();
         duct();
         purifier();
+        coagulator();
+        vat();
+    }
+
+    /** The Coagulator: the old block while unformed; formed, a stone casting table with an iron mold. */
+    private void coagulator() {
+        ModelFile unlit = states.models().orientable("coagulator", states.mcLoc("block/cobblestone"), states.modLoc("block/coagulator_front"),
+                states.mcLoc(STONE));
+        ModelFile lit = states.models().orientable("coagulator_lit", states.mcLoc("block/cobblestone"), states.modLoc("block/coagulator_front_lit"),
+                states.mcLoc(STONE));
+        BlockModelBuilder formed = builder("coagulator_formed")
+                .texture("stone", states.mcLoc(STONE)).texture("front", states.modLoc("block/coagulator_front"))
+                .texture("iron", states.mcLoc(IRON)).texture("particle", states.mcLoc(STONE));
+        formed.element().from(0, 0, 0).to(16, 12, 16)
+                .allFaces((direction, face) -> face.texture(direction == Direction.NORTH ? "#front" : "#stone")).end();
+        box(formed, 0, 12, 0, 16, 16, 3, "#stone");
+        box(formed, 0, 12, 13, 16, 16, 16, "#stone");
+        box(formed, 0, 12, 3, 3, 16, 13, "#stone");
+        box(formed, 13, 12, 3, 16, 16, 13, "#stone");
+        box(formed, 3, 12, 3, 13, 13, 13, "#iron");
+        Block block = ServusManufacturingBlocks.COAGULATOR.get();
+        states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(CoagulatorBlock.FORMED) ? formed : state.getValue(MachineBlock.LIT) ? lit : unlit)
+                .rotationY(rotation(state.getValue(MachineBlock.FACING)))
+                .build());
+        states.simpleBlockItem(block, unlit);
+    }
+
+    /** The Principle Vat: an open copper vat; formed, spouts lead from the side Vats into the middle one and from it down into the mold. */
+    private void vat() {
+        ModelFile plain = vatModel("principle_vat", -1);
+        ModelFile[] pieces = {vatModel("principle_vat_left", 0), vatModel("principle_vat_middle", 1), vatModel("principle_vat_right", 2)};
+        Block block = ServusManufacturingBlocks.VAT.get();
+        states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(VatBlock.FORMED) ? pieces[state.getValue(VatBlock.PIECE)] : plain)
+                .rotationY(rotation(state.getValue(VatBlock.FACING)))
+                .build());
+        states.simpleBlockItem(block, plain);
+    }
+
+    /** Piece 0 is the left Vat (toward +x the player's left), 2 the right one, 1 the middle above the mold. */
+    private ModelFile vatModel(String name, int piece) {
+        BlockModelBuilder model = builder(name)
+                .texture("copper", states.mcLoc(COPPER)).texture("cut", states.mcLoc(CUT_COPPER))
+                .texture("particle", states.mcLoc(COPPER));
+        box(model, 2, 0, 2, 14, 1, 14, "#cut");
+        box(model, 2, 1, 2, 14, 12, 3, "#copper");
+        box(model, 2, 1, 13, 14, 12, 14, "#copper");
+        box(model, 2, 1, 3, 3, 12, 13, "#copper");
+        box(model, 13, 1, 3, 14, 12, 13, "#copper");
+        switch (piece) {
+            case 0 -> box(model, -4, 1.5F, 7, 2, 3.5F, 9, "#cut");
+            case 2 -> box(model, 14, 1.5F, 7, 20, 3.5F, 9, "#cut");
+            case 1 -> box(model, 7, -4, 7, 9, 0, 9, "#cut");
+            default -> {
+            }
+        }
+        return model;
     }
 
     /** The Purifier: an oak vat with two iron bands, open at the top for the brine. */

@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 import com.klikli_dev.modonomicon.api.datagen.MultiblockProvider;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorLayout;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorStructure;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import net.minecraft.data.PackOutput;
@@ -16,6 +18,8 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
 
     /** The id of the Calciner schematic, used by the journal's multiblock page. */
     public static final ResourceLocation CALCINER = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
+    /** The id of the Coagulator schematic. */
+    public static final ResourceLocation COAGULATOR = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulator");
 
     /** The Calciner in the schematic; {@code 0}, the anchor, is the Ash Pan on the ground. */
     private static final char CALCINER_SYMBOL = 'C';
@@ -46,5 +50,15 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
             calciner.block(symbol, () -> CalcinerStructure.expected(role));
         }
         add(CALCINER, calciner.build(false, 1));
+
+        // The Coagulator is the bottom middle, so it is the center and stands on the clicked ground.
+        DenseMultiblockBuilder coagulator = new DenseMultiblockBuilder();
+        for (String row : CoagulatorLayout.patternRows()) {
+            coagulator.layer(row);
+        }
+        for (CoagulatorLayout.Role role : CoagulatorLayout.Role.values()) {
+            coagulator.block(role.symbol(), () -> CoagulatorStructure.expected(role));
+        }
+        add(COAGULATOR, coagulator.build(false, 1));
     }
 }

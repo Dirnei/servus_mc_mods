@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:bucket"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    }
+  },
+  "pattern": [
+    "C C",
+    "CBC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_manufacturing:principle_vat"
+  }
+}

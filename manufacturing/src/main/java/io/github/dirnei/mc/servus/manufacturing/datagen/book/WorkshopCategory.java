@@ -131,11 +131,18 @@ final class WorkshopCategory extends CategoryProvider {
                 ServusManufacturingItems.COAGULATOR.get(), e -> {
             e.spotlight("machine", ServusManufacturingItems.COAGULATOR.get(), "The Coagulator",
                     "It joins the principles again into a body. It needs no fire, only time to cool.");
-            e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":coagulator", "Iron, glass, a cauldron and redstone.");
+            e.multiblock("build", ServusManufacturingMultiblockProvider.COAGULATOR, "The Coagulator",
+                    "Three Principle Vats over a casting table between Stone Bricks. Press Visualize, then click the ground.");
+            e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":coagulator", ServusManufacturingIds.MOD_ID + ":principle_vat",
+                    "The casting table, and a Principle Vat; you need three.");
+            e.text("building", "Building It",
+                    "Set the Coagulator between two Stone Bricks and put a Principle Vat on each of the three. "
+                            + "The left Vat takes Sulfur, the middle one Salt and the right one Mercury, the same sides as at the Calciner. "
+                            + "Use this journal on the Coagulator to bring the build together; break any block and it falls apart.");
             e.text("joining", "Joining",
-                    "Press the select button and choose what to make. Then bring the principles: by pipe into its sides, "
-                            + "or pour a bucket on the block or on a gauge.\n\n"
-                            + "Each principle finds its own tank. A side set to one principle in the Fluids tab takes only that one.");
+                    "Open the Coagulator with an empty hand, press the select button and choose what to make. Then bring the principles: "
+                            + "by pipe or bucket into their Vats, or on a gauge in the GUI.\n\n"
+                            + "A hopper or pipe feeds the ingredient into the table and takes the products from it.");
             e.list("makes", "What It Makes", AlchemyRecipeTable.coagulation().stream()
                     .map(row -> PrincipleText.line(row.label(), row.input())).toList());
         });

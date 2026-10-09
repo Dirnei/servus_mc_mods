@@ -31,6 +31,16 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.SULFUR_HOOD.get(), "Sulfur Hood");
         add(ServusManufacturingBlocks.SULFUR_DUCT.get(), "Sulfur Duct");
         add(ServusManufacturingBlocks.PURIFIER.get(), "Purifier");
+        add(ServusManufacturingBlocks.VAT.get(), "Principle Vat");
+        add("message.servus_manufacturing.coagulator.formed", "The Coagulator is ready.");
+        add("message.servus_manufacturing.coagulator.missing",
+                "The Coagulator is not complete: %s needed %s. The Coagulator page of Paracelsus' Journal shows the build.");
+        add("message.servus_manufacturing.coagulator.at.left_of_the_coagulator", "left of the Coagulator");
+        add("message.servus_manufacturing.coagulator.at.right_of_the_coagulator", "right of the Coagulator");
+        add("message.servus_manufacturing.coagulator.at.above_the_coagulator", "above the Coagulator");
+        add("message.servus_manufacturing.coagulator.at.left_of_the_middle_vat", "left of the middle Vat");
+        add("message.servus_manufacturing.coagulator.at.right_of_the_middle_vat", "right of the middle Vat");
+        add("message.servus_manufacturing.coagulator.at.itself", "here");
         add("jade.servus_manufacturing.purifier.items", "Ash: %s");
         add("jade.servus_manufacturing.purifier.water", "%s / %s mB Water");
         add(ServusManufacturingBlocks.CALCINER_SHELL.get(), "Calciner Bricks");

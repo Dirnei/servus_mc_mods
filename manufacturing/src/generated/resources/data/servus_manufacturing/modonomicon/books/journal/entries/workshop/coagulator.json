@@ -23,15 +23,49 @@
       "title": "book.servus_manufacturing.journal.workshop.coagulator.machine.title"
     },
     {
+      "type": "modonomicon:multiblock",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "multiblock_id": "coagulator",
+      "multiblock_name": "book.servus_manufacturing.journal.workshop.coagulator.build.title",
+      "show_visualize_button": true,
+      "text": "book.servus_manufacturing.journal.workshop.coagulator.build.text"
+    },
+    {
       "type": "modonomicon:crafting_recipe",
       "anchor": "",
       "condition": {
         "type": "modonomicon:none"
       },
       "recipe_id_1": "servus_manufacturing:coagulator",
+      "recipe_id_2": "servus_manufacturing:principle_vat",
       "text": "book.servus_manufacturing.journal.workshop.coagulator.recipe.text",
       "title1": "",
       "title2": ""
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.coagulator.building.text",
+      "title": "book.servus_manufacturing.journal.workshop.coagulator.building.title",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.coagulator.building_2.text",
+      "title": "",
+      "use_markdown_in_title": false
     },
     {
       "type": "modonomicon:text",

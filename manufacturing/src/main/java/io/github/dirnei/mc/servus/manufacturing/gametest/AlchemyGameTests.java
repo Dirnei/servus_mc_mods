@@ -157,20 +157,21 @@ public final class AlchemyGameTests {
         return ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + name);
     }
 
+    /** A formed Coagulator build around {@link #MACHINE}, with {@code recipe} selected when not null. */
     static CoagulatorBlockEntity coagulator(GameTestHelper helper, String recipe) {
-        helper.setBlock(MACHINE, ServusManufacturingBlocks.COAGULATOR.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
-        CoagulatorBlockEntity coagulator = helper.getBlockEntity(MACHINE);
+        CoagulatorBlockEntity coagulator = CoagulatorGameTests.formed(helper, MACHINE);
         if (recipe != null) {
             coagulator.select(coagulation(recipe));
         }
         return coagulator;
     }
 
+    /** The Salt Vat above the Coagulator. */
     static IFluidHandler coagulatorFluid(GameTestHelper helper) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(MACHINE), Direction.EAST);
+        return CoagulatorGameTests.vatHandler(helper, MACHINE, 1);
     }
 
-    /** Salt piped into a Coagulator making Salt Crystals becomes a Salt Crystal. */
+    /** Salt piped into the Salt Vat of a Coagulator making Salt Crystals becomes a Salt Crystal. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void coagulatorMakesSaltCrystalFromPipedSalt(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = coagulator(helper, "salt_crystal");
@@ -183,14 +184,16 @@ public final class AlchemyGameTests {
         });
     }
 
-    /** Only principles go in, each into its own tank. */
+    /** Only its principle goes into a Vat. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void coagulatorRefusesForeignFluid(GameTestHelper helper) {
         coagulator(helper, "salt_crystal");
         IFluidHandler handler = coagulatorFluid(helper);
         helper.assertTrue(handler.fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE) == 0, "water is refused");
-        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.SULFUR), 100), IFluidHandler.FluidAction.EXECUTE) == 100,
-                "Sulfur is taken");
+        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.SULFUR), 100), IFluidHandler.FluidAction.EXECUTE) == 0,
+                "the Salt Vat refuses Sulfur");
+        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 100), IFluidHandler.FluidAction.EXECUTE) == 100,
+                "the Salt Vat takes Salt");
         helper.assertTrue(handler.drain(100, IFluidHandler.FluidAction.EXECUTE).isEmpty(), "the Coagulator gives nothing back");
         helper.succeed();
     }
@@ -399,80 +402,14 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
-    /** An Output side lets neighbours take but pushes nothing; a Push side pushes (shared machine rule). */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void outputSideDoesNotPush(GameTestHelper helper) {
-        CoagulatorBlockEntity coagulator = coagulator(helper, null);
-        BlockPos chestPos = MACHINE.east();
-        helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
-        coagulator.inventory().setStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT, new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get(), 5));
-        coagulator.sideConfig().set(RelativeSide.LEFT, SideMode.OUTPUT);
-        helper.runAfterDelay(20, () -> {
-            helper.assertTrue(chest.countItem(ServusManufacturingItems.SALT_CRYSTAL.get()) == 0, "an Output side must not push");
-            coagulator.sideConfig().set(RelativeSide.LEFT, SideMode.PUSH);
-            helper.runAfterDelay(20, () -> {
-                helper.assertTrue(chest.countItem(ServusManufacturingItems.SALT_CRYSTAL.get()) == 5, "a Push side pushes");
-                helper.succeed();
-            });
-        });
-    }
-
-    /** A Coagulator side set to Mercury takes Mercury and refuses Salt. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
-    public static void coagulatorMercurySideRefusesSalt(GameTestHelper helper) {
-        CoagulatorBlockEntity coagulator = coagulator(helper, "salt_crystal");
-        coagulator.fluidSides().set(RelativeSide.LEFT, FluidSides.TANK_FIRST + Principle.MERCURY.ordinal());
-        helper.getLevel().invalidateCapabilities(helper.absolutePos(MACHINE));
-        IFluidHandler handler = coagulatorFluid(helper);
-        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 100), IFluidHandler.FluidAction.EXECUTE) == 0,
-                "the Mercury side refuses Salt");
-        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), 100), IFluidHandler.FluidAction.EXECUTE) == 100,
-                "the Mercury side takes Mercury");
-        helper.succeed();
-    }
-
-    /** A carrot set to Fluids cycles the clicked face's Fluids side and leaves its Items side alone. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
-    public static void fluidCarrotCyclesTheFluidsLayer(GameTestHelper helper) {
-        CoagulatorBlockEntity coagulator = coagulator(helper, null);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
-        carrot.set(ServusFoundationComponents.CARROT_LAYER.get(), SideLayer.FLUIDS.name());
-        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
-        BlockPos pos = helper.absolutePos(MACHINE);
-        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos).add(0.5, 0, 0), Direction.EAST, pos, false);
-        carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
-        helper.assertTrue(coagulator.fluidSides().value(RelativeSide.LEFT) == FluidSides.TANK_FIRST,
-                "the left Fluids side should move from All to Salt, got " + coagulator.fluidSides().value(RelativeSide.LEFT));
-        helper.assertTrue(coagulator.sideConfig().mode(RelativeSide.LEFT) == SideMode.AUTO, "the Items side stays Auto");
-        helper.succeed();
-    }
-
-    /** Both layers survive saving and loading the block entity, as in a dismantled item. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
-    public static void fluidSidesAreSaved(GameTestHelper helper) {
-        CoagulatorBlockEntity coagulator = coagulator(helper, null);
-        coagulator.fluidSides().set(RelativeSide.TOP, FluidSides.TANK_FIRST + Principle.SULFUR.ordinal());
-        coagulator.sideConfig().set(RelativeSide.TOP, SideMode.INPUT);
-        CompoundTag tag = coagulator.saveWithoutMetadata(helper.getLevel().registryAccess());
-        BlockPos other = MACHINE.east(3);
-        helper.setBlock(other, ServusManufacturingBlocks.COAGULATOR.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
-        CoagulatorBlockEntity copy = helper.getBlockEntity(other);
-        copy.loadWithComponents(tag, helper.getLevel().registryAccess());
-        helper.assertTrue(copy.fluidSides().tank(RelativeSide.TOP) == Principle.SULFUR.ordinal(), "the Fluids layer is kept");
-        helper.assertTrue(copy.sideConfig().mode(RelativeSide.TOP) == SideMode.INPUT, "the Items layer is kept");
-        helper.succeed();
-    }
-
-    /** A Salt bucket used on the Coagulator block pours into its Salt tank and leaves an empty bucket. */
+    /** A Salt bucket used on the Salt Vat pours into the Salt tank and leaves an empty bucket. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void coagulatorTakesAPrincipleBucket(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = coagulator(helper, null);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bucket = new ItemStack(PrincipleFluids.entry(Principle.SALT).bucket().get());
         player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, bucket);
-        BlockPos absolute = helper.absolutePos(MACHINE);
+        BlockPos absolute = helper.absolutePos(CoagulatorGameTests.vat(MACHINE, 1));
         net.minecraft.world.phys.BlockHitResult hit = new net.minecraft.world.phys.BlockHitResult(
                 net.minecraft.world.phys.Vec3.atCenterOf(absolute), Direction.UP, absolute, false);
         helper.getLevel().getBlockState(absolute).useItemOn(bucket, helper.getLevel(), player, net.minecraft.world.InteractionHand.MAIN_HAND, hit);

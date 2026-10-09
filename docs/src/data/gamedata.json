@@ -558,6 +558,21 @@
         {"item": "servus_manufacturing:paracelsus_journal", "count": 1}
       ]
     },
+    "servus_manufacturing:principle_vat": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["C C", "CBC"],
+      "key": {
+        "B": {"item": "minecraft:bucket"},
+        "C": {"item": "minecraft:copper_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bucket", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:principle_vat", "count": 1}
+      ]
+    },
     "servus_manufacturing:purification/ash": {
       "type": "servus_manufacturing:purification",
       "special": true,
@@ -1119,6 +1134,9 @@
     },
     "servus_manufacturing:paracelsus_journal": {
       "name": "Paracelsus' Journal"
+    },
+    "servus_manufacturing:principle_vat": {
+      "name": "Principle Vat"
     },
     "servus_manufacturing:purifier": {
       "name": "Purifier"

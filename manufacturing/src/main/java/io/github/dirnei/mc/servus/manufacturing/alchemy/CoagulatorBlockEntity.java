@@ -5,6 +5,9 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import net.neoforged.neoforge.items.IItemHandler;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
@@ -48,8 +51,17 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
     private ResourceLocation selected;
 
+    private final IItemHandler itemPort = new ItemPort();
+    /** The fill of each principle in sixteenths, -1 for empty, as last sent to the clients that draw the Vats. */
+    private final int[] drawnFill = {-1, -1, -1};
+    private int syncCooldown;
+
     public CoagulatorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.COAGULATOR.get(), pos, state, 2);
+        // Items enter and leave only through the Coagulator's own port, never through a configured side.
+        for (RelativeSide side : RelativeSide.values()) {
+            sideConfig().lock(side, SideMode.DISABLED);
+        }
     }
 
     // Owner
@@ -105,17 +117,65 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
         return level instanceof ServerLevel server && Journal.isFinished(server.getServer(), team(), recipe.chapter().get().toString());
     }
 
-    /** What a neighbour sees on {@code side}: by the Fluids layer, all three tanks, one of them, or nothing. */
-    public IFluidHandler fluidHandler(Direction side) {
-        return AlchemyMachines.sideHandler(this, tanks, side);
+    /** Whether the build around this Coagulator is formed; only then it works. */
+    public boolean formed() {
+        BlockState state = getBlockState();
+        return state.getBlock() instanceof CoagulatorBlock && state.getValue(CoagulatorBlock.FORMED);
     }
 
-    private static final List<SideTank> SIDE_TANKS = PrincipleTanks.sideTanks(true);
+    /** The casting table: takes the ingredient into slot 0, gives the products from slot 1. */
+    public IItemHandler itemPort() {
+        return itemPort;
+    }
 
-    /** Salt, Sulfur and Mercury, all three taken in. */
-    @Override
-    public List<SideTank> sideTanks() {
-        return SIDE_TANKS;
+    /** Sends the tanks to the clients when a Vat's drawn level changed by a sixteenth. */
+    private void syncFill() {
+        boolean changed = false;
+        for (Principle principle : Principle.values()) {
+            int amount = tanks.amount(principle);
+            int fill = amount == 0 ? -1 : amount * 16 / Math.max(1, tanks.capacity());
+            if (fill != drawnFill[principle.ordinal()]) {
+                drawnFill[principle.ordinal()] = fill;
+                changed = true;
+            }
+        }
+        if (changed && level != null) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /** Slot 0 takes what the selected recipe needs and gives nothing; slot 1 gives the products and takes nothing. */
+    private final class ItemPort implements IItemHandler {
+
+        @Override
+        public int getSlots() {
+            return 2;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return inventory.getStackInSlot(slot == 0 ? SLOT_INGREDIENT : SLOT_OUTPUT);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            return slot == 0 && acceptsInput(SLOT_INGREDIENT, stack) ? inventory.insertItem(SLOT_INGREDIENT, stack, simulate) : stack;
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return slot == 1 ? inventory.extractItem(SLOT_OUTPUT, amount, simulate) : ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return inventory.getSlotLimit(slot == 0 ? SLOT_INGREDIENT : SLOT_OUTPUT);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return slot == 0 && acceptsInput(SLOT_INGREDIENT, stack);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -159,7 +219,11 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
 
     private boolean canWork() {
         tanks.setCapacity(stats().fluidCapacity());
-        return currentRecipe().map(recipe -> tanks.contents().covers(recipe.input())
+        if (++syncCooldown >= 10) {
+            syncCooldown = 0;
+            syncFill();
+        }
+        return formed() && currentRecipe().map(recipe -> tanks.contents().covers(recipe.input())
                 && recipe.itemReady(inventory.getStackInSlot(SLOT_INGREDIENT))
                 && canInsertOutput(SLOT_OUTPUT, recipe.result())).orElse(false);
     }
@@ -229,6 +293,9 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
         return new ProductionProvider() {
             @Override
             public List<ProductionRecipe> recipes() {
+                if (!formed()) {
+                    return List.of();
+                }
                 return selectedHolder().map(holder -> {
                     CoagulationRecipe recipe = holder.value();
                     List<ItemStack> inputs = recipe.ingredient()
@@ -246,6 +313,14 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
                 return selectedHolder().map(RecipeHolder::id);
             }
         };
+    }
+
+    /** The clients draw the principles in the Vats. */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        tag.put("Principles", tanks.save(registries));
+        return tag;
     }
 
     @Override
