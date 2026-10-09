@@ -22,15 +22,15 @@ The Storage Terminal GUI SHALL list every indexed item of the warehouses it reac
 - **THEN** the grid shows cobblestone, bread, apple
 
 ### Requirement: Push into the warehouse
-Clicking the grid with a carried stack SHALL store it in the warehouse; shift clicking an inventory slot SHALL move that slot into the input row, which stores it. Pushes SHALL follow the zone routing but SHALL only go into crates and foreign inventories; racks are filled through a Inbound Station. Items that fit nowhere stay where they were or in the input row.
+Clicking the grid with a carried stack SHALL move it into the Input row, and shift clicking an inventory slot SHALL move that slot into the Input row; the Input row stores it. What does not fit into the Input row SHALL stay on the cursor or in the inventory slot. Stored items reach racks, crates and foreign inventories through an Access Point like any intake.
 
 #### Scenario: Shift click to store
-- **WHEN** the player shift clicks 20 cobblestone in the inventory while an empty crate is on the network
-- **THEN** the crate holds 20 cobblestone and the slot is empty
+- **WHEN** the player shift clicks 20 cobblestone in the inventory while an Access Point of the warehouse is on the line
+- **THEN** the slot is empty and the warehouse holds 20 more cobblestone once they are put away
 
 #### Scenario: Only racks have room
 - **WHEN** the player pushes bread while every crate is full and a rack has room
-- **THEN** the bread stays with the player
+- **THEN** a shuttle puts the bread into the rack
 
 ### Requirement: Live stock while open
 The terminal SHALL send its full content (stock, craftable items, requests, rules) when the game opens the screen, without waiting for the periodic update. The client SHALL keep the last content of each terminal for the session and SHALL show it at once when that terminal is opened again, replacing it when the fresh content arrives; the screen SHALL show a loading hint only while it has no content for that terminal yet. While the GUI is open the stock shown SHALL refresh within half a second after the index changes, without resending when nothing changed.
@@ -213,7 +213,7 @@ Start SHALL create a work order for the full amount on a Crafting CPU of the lin
 - **THEN** a request for 8 sticks is listed as producing, and 8 sticks land in the output slots once crafted
 
 ### Requirement: Screen layout
-The Storage Terminal screen SHALL have a column of view buttons left of the panel, the title with a Craft button and the search box, the item grid nine wide with its scrollbar, a message line, the Input row, the Output row, and the player inventory with the hotbar. Each SHALL have its own area that no other element overlaps; the crafting popup lies over the item grid only. The grid SHALL show as many rows as the height setting asks for, small, medium, tall or auto (as many as fit the screen), but never more than fit the screen, and the panel SHALL fit a 1080p screen at GUI scales 2, 3 and 4.
+The Storage Terminal screen SHALL have a column of view buttons left of the panel, the title with a Craft button and the search box, the item grid nine wide with its scrollbar, a message line, the Input row, the Output row, and the player inventory with the hotbar. Each SHALL have its own area that no other element overlaps; the crafting popup lies over the item grid only. A small arrow beside the Input row SHALL point up, into the warehouse, and one beside the Output row SHALL point down, to the player. The grid SHALL show as many rows as the height setting asks for, small, medium, tall or auto (as many as fit the screen), but never more than fit the screen, and the panel SHALL fit a 1080p screen at GUI scales 2, 3 and 4.
 
 #### Scenario: Nothing overlaps
 - **WHEN** the screen is open with requests in the grid and a message shown
@@ -226,6 +226,10 @@ The Storage Terminal screen SHALL have a column of view buttons left of the pane
 #### Scenario: Tall on a small screen
 - **WHEN** the height is tall at GUI scale 4 on a 1080p screen
 - **THEN** the grid shows only as many rows as fit and the panel stays on the screen
+
+#### Scenario: Row arrows
+- **WHEN** the screen is open
+- **THEN** the arrow beside the Input row points up and the arrow beside the Output row points down
 
 ### Requirement: Requests survive a reload
 The open requests of a Storage Terminal SHALL be saved with the terminal and SHALL be there again after the world is reloaded or the terminal's chunk loads again: item, requested, delivered and missing amounts, their shipments and the CPU holding their work order. Request ids SHALL stay unique across terminals and reloads. After a reload a request SHALL go on as before: shipments that still run are booked when they end, a missing part is shipped again, and a request whose work order no longer exists is retried as missing stock.
@@ -289,18 +293,18 @@ Alt clicking a stock entry with an empty cursor SHALL put up to one stack of tha
 - **THEN** the cursor holds 64 planks and the crate 16
 
 ### Requirement: Clear the grid
-A clear button in the crafting popup SHALL move every grid stack into the warehouse; what does not fit SHALL go to the player inventory, and what still does not fit SHALL drop at the player.
+A clear button in the crafting popup SHALL move every grid stack into the Input row, which stores it; what does not fit SHALL go to the player inventory, and what still does not fit SHALL drop at the player.
 
 #### Scenario: Clear
 - **WHEN** the grid holds two planks and the player presses clear
-- **THEN** the grid is empty and the warehouse holds two more planks
+- **THEN** the grid is empty and the two planks are stored through the Input row
 
 ### Requirement: Grid empties on close
-When the terminal screen closes, the grid contents SHALL go into the warehouse, and what does not fit into the player inventory.
+When the terminal screen closes, the grid contents SHALL go into the Input row, which stores them, and what does not fit into the player inventory.
 
 #### Scenario: Close
 - **WHEN** the grid holds a plank and the player closes the screen
-- **THEN** the plank is in the warehouse
+- **THEN** the plank is stored through the Input row
 
 ### Requirement: JEI fills the grid
 With JEI installed, the transfer button on a vanilla crafting recipe while the Storage Terminal is open SHALL open the crafting popup, move the grid contents back to the warehouse and fill the grid with the recipe's ingredients, taking each from instant warehouse stock first and from the player inventory second. Ingredients found in neither SHALL leave their grid slot empty. With max transfer the grid SHALL be filled for as many crafts as fit in a stack.
@@ -328,15 +332,19 @@ With JEI installed, the search mode JEI synced SHALL copy the terminal's search 
 - **THEN** the search mode stays normal and the terminal works unchanged
 
 ### Requirement: Input row
-The Storage Terminal SHALL have an Input row of 9 slots below the item grid. A stack placed into an input slot SHALL be stored into the warehouse right away along the push path (zones, crates and foreign inventories only); what does not fit SHALL stay in the slot and be tried again later. The input slots SHALL NOT be indexed as warehouse stock and SHALL be saved with the terminal and dropped when it breaks.
+The Storage Terminal SHALL have an Input row of 9 slots below the item grid. Stacks in the Input row SHALL be sent as packets over the data line to the Access Point on the terminal's data line nearest to the terminal, which puts them away like any intake (racks by shuttle, zones, crates and foreign inventories). A stack SHALL leave its slot only when a packet takes it; items a packet cannot deliver SHALL come back to the terminal. Without an Access Point on the line the stacks SHALL stay and the message line SHALL say that no Access Point is on the data line. The input slots SHALL NOT be indexed as warehouse stock and SHALL be saved with the terminal and dropped when it breaks.
 
 #### Scenario: Hand in cobblestone
-- **WHEN** the player puts 20 cobblestone into an input slot while an empty crate is on the line
-- **THEN** the crate holds 20 cobblestone and the input slot is empty
+- **WHEN** the player puts 20 cobblestone into an input slot while an Access Point of the warehouse is on the line
+- **THEN** the input slot is empty and the cobblestone ends in the warehouse after the packets and the put-away
 
 #### Scenario: No room
-- **WHEN** the player puts bread into an input slot while every crate is full
-- **THEN** the bread stays in the input slot
+- **WHEN** the player puts bread into an input slot and no Access Point is on the data line
+- **THEN** the bread stays in the input slot and the message line says "No Access Point on this data line"
+
+#### Scenario: Racks only
+- **WHEN** the warehouse has only Heavy Duty Racks with room and the player puts planks into an input slot
+- **THEN** the planks end in a rack
 
 ### Requirement: Automation inserts
 A hopper, duct or packet inserting into the terminal SHALL put items an open request of the terminal still waits for into the output slots, and every other item into the input slots, which store it. Nothing SHALL be extracted from the terminal by automation.
