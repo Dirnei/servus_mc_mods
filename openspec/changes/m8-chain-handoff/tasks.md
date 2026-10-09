@@ -16,4 +16,4 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Full `gradlew build test`, Storage, Foundation and Manufacturing GameTests green; `openspec validate m8-chain-handoff --strict`.
+- [x] 4.1 Full `gradlew build test`, Storage, Foundation and Manufacturing GameTests green; `openspec validate m8-chain-handoff --strict`.
