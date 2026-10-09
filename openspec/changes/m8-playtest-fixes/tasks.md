@@ -6,7 +6,7 @@
 
 ## 2. Search clear
 
-- [ ] 2.1 `CounterTerminalScreen.mouseClicked`: a right click on the search box clears it and resets the scroll. Verify with `gradlew build`.
+- [x] 2.1 `CounterTerminalScreen.mouseClicked`: a right click on the search box clears it and resets the scroll. Verify with `gradlew build`.
 
 ## 3. Lamps, animation and CPU margin
 

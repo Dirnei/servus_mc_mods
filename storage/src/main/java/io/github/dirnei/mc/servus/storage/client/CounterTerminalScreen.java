@@ -595,6 +595,13 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && search != null && search.visible && search.isMouseOver(mouseX, mouseY)) {
+            search.setValue("");
+            scrollRow = 0;
+            setFocused(search);
+            search.setFocused(true);
+            return true;
+        }
         if (dialogOpen() || !ClientStock.online()) {
             return super.mouseClicked(mouseX, mouseY, button);
         }
