@@ -74,6 +74,7 @@
   "gui.servus_foundation.side_mode.output": "Output",
   "gui.servus_foundation.side_mode.pull": "Pull",
   "gui.servus_foundation.side_mode.push": "Push",
+  "gui.servus_foundation.side_tab": "%s sides",
   "gui.servus_foundation.sink.energy": "Energy: %s",
   "gui.servus_foundation.sink.fluid": "Fluid: %s",
   "gui.servus_foundation.sink.height": "Chimney height: %s",

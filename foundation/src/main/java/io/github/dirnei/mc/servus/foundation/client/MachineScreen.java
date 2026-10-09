@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.foundation.client;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.client.FluidGauge;
 import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
+import io.github.dirnei.mc.servus.foundation.side.SideLayer;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import net.minecraft.client.gui.GuiGraphics;
@@ -82,6 +83,13 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         this.inventoryLabelY = this.imageHeight - 94;
         if (showsSidePanel()) {
             panel.placeBeside(leftPos, topPos);
+            if (menu.machine().fluidSides() != null) {
+                panel.enableFluids(menu::fluidSide, menu.machine().sideTanks(), side -> menu.machine().fluidSides().isLocked(side), side -> {
+                    if (minecraft != null && minecraft.gameMode != null) {
+                        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, SideConfigMenus.buttonOf(SideLayer.FLUIDS, side));
+                    }
+                });
+            }
         }
         fluidGauge.place(leftPos + FLUID_X, topPos + FLUID_Y);
     }

@@ -5,7 +5,12 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.GogglesItem;
+import io.github.dirnei.mc.servus.foundation.side.FluidSides;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideLayer;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.side.SideTank;
+import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -20,6 +25,8 @@ import org.joml.Matrix4f;
 /**
  * Draws the side modes on the block while the player holds the carrot or
  * wears the goggles: a frame in the mode colour and a glyph on every face.
+ * A carrot set to Fluids shows the Fluids layer instead: tank sides framed in
+ * the tank's colour, All sides in a neutral blue, Off sides bare.
  */
 public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity> implements BlockEntityRenderer<T> {
 
@@ -49,6 +56,12 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity> implem
         }
         VertexConsumer buffer = buffers.getBuffer(RenderType.debugQuads());
         Matrix4f pose = poseStack.last().pose();
+        Player player = Minecraft.getInstance().player;
+        FluidSides fluids = blockEntity.fluidSides();
+        if (fluids != null && player != null && ConfigurationCarrotItem.heldLayer(player) == SideLayer.FLUIDS) {
+            renderFluids(blockEntity, fluids, buffer, pose);
+            return;
+        }
         for (Direction direction : Direction.values()) {
             if (blockEntity.sideConfig().isLocked(blockEntity.relativeSide(direction))) {
                 continue;
@@ -58,6 +71,26 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity> implem
             Face face = new Face(direction);
             face.frame(buffer, pose, color);
             face.glyph(buffer, pose, mode, color);
+        }
+    }
+
+    private void renderFluids(T blockEntity, FluidSides fluids, VertexConsumer buffer, Matrix4f pose) {
+        List<SideTank> tanks = blockEntity.sideTanks();
+        for (Direction direction : Direction.values()) {
+            RelativeSide side = blockEntity.relativeSide(direction);
+            if (fluids.isLocked(side) || fluids.isOff(side)) {
+                continue;
+            }
+            int value = fluids.value(side);
+            int color = SideConfigPanel.fluidColor(value, tanks);
+            Face face = new Face(direction);
+            face.frame(buffer, pose, color);
+            int tank = fluids.tank(side);
+            if (tank < 0) {
+                face.glyph(buffer, pose, SideMode.AUTO, color);
+            } else {
+                face.glyph(buffer, pose, tanks.get(tank).input() ? SideMode.PULL : SideMode.PUSH, color);
+            }
         }
     }
 

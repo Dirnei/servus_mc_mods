@@ -15,7 +15,7 @@
 
 ## 4. Client
 
-- [ ] 4.1 `SideConfigPanel` tabs (chest and bucket icons), fluid cell colours and letters, tooltips "Left: Salt"; screens keep the selected tab; `SideMarkerRenderer` draws the carrot's layer with tank colours. Verify: `gradlew build`, client check owed to the play check from main.
+- [x] 4.1 `SideConfigPanel` tabs (chest and bucket icons), fluid cell colours and letters, tooltips "Left: Salt"; screens keep the selected tab; `SideMarkerRenderer` draws the carrot's layer with tank colours. Verify: `gradlew build`, client check owed to the play check from main.
 
 ## 5. Plan and docs
 

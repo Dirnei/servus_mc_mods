@@ -52,6 +52,7 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add("gui.servus_foundation.side_layer.items", "Items");
         add("gui.servus_foundation.side_layer.fluids", "Fluids");
         add("gui.servus_foundation.fluid_side.all", "All fluids");
+        add("gui.servus_foundation.side_tab", "%s sides");
         add("message.servus_foundation.carrot_layer", "Layer: %s");
         add("tooltip.servus_foundation.carrot_layer_hint", "Use on the air to switch the layer");
         add("gui.servus_foundation.side_fixed", "(fixed)");
