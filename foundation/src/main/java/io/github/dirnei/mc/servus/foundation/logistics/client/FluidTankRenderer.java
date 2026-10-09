@@ -7,7 +7,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlockEntity
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -91,7 +91,8 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
         float yMax = up ? 1 : 1 - INSET;
         float y1 = y0 + (yMax - y0) * fill;
 
-        VertexConsumer consumer = buffers.getBuffer(RenderType.translucent());
+        // The translucent block sheet is drawn after solid buffers, so the floor below the fluid is never hidden by it.
+        VertexConsumer consumer = buffers.getBuffer(Sheets.translucentCullBlockSheet());
         PoseStack.Pose pose = poseStack.last();
         Box box = new Box(x0, y0, z0, x1, y1, z1);
         for (Direction face : Direction.values()) {

@@ -7,6 +7,7 @@
 - [x] 1.4 Play check follow-up: the floor is inset on sides that are not joined and the fluid starts a little above the floor, so neither the floor edges nor the fluid bottom flicker. Verify: build.
 - [x] 1.5 Play check follow-up: Foundation JEI plugin (`integration/jei/ServusFoundationJeiPlugin`, JEI API compile only) shows the tank recipe with example floor blocks and the facade recipe. Verify: build, recipe visible in JEI.
 - [x] 1.6 Play check follow-up: creative players scooping from a tank keep the empty bucket and get the filled one, like vanilla (`FluidTankBlock.fillInCreative`). GameTest `creativeBucketGetsFilled`. Verify: Foundation GameTests green.
+- [x] 1.7 Play check follow-up: the fluid is drawn with `Sheets.translucentCullBlockSheet()` instead of the chunk translucent type, so it is drawn after the floor and never hides it depending on the view angle. Verify: build, checked in the client.
 - [x] 1.3 Docs: recipe and look in `docs/src/content/docs/mods/foundation.md`; regenerate `gamedata.json`. Verify: docs tests pass.
 
 ## 2. Integration
