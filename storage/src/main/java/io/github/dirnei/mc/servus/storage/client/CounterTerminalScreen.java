@@ -5,6 +5,8 @@ import io.github.dirnei.mc.servus.storage.terminal.CancelRequestPayload;
 import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewRequestPayload;
 import io.github.dirnei.mc.servus.storage.terminal.CraftStartPayload;
+import io.github.dirnei.mc.servus.storage.terminal.GridClearPayload;
+import io.github.dirnei.mc.servus.storage.terminal.GridPullPayload;
 import io.github.dirnei.mc.servus.storage.terminal.PushCarriedPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestItemPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
@@ -21,6 +23,7 @@ import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -119,6 +122,10 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
                     b.setMessage(filterLabel());
                 })
                 .bounds(leftPos + Counter.FILTER.x(), topPos + Counter.FILTER.y(), Counter.FILTER.w(), Counter.FILTER.h()).build());
+
+        addRenderableWidget(Button.builder(Component.literal("x"), b -> PacketDistributor.sendToServer(GridClearPayload.INSTANCE))
+                .bounds(leftPos + Counter.CLEAR.x(), topPos + Counter.CLEAR.y(), Counter.CLEAR.w(), Counter.CLEAR.h())
+                .tooltip(Tooltip.create(Component.translatable("gui.servus_storage.terminal.clear_grid"))).build());
 
         amount = new EditBox(font, dx() + 50, dy() + 22, 50, 12, Component.translatable("gui.servus_storage.terminal.amount"));
         amount.setMaxLength(6);
@@ -367,11 +374,23 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
         PanelPainter.slots(graphics, leftPos, topPos, Counter.OUTPUT, Counter.OUTPUT_COLUMNS, menu.inventoryStart());
         PanelPainter.slots(graphics, leftPos, topPos, Counter.INVENTORY, 9, 27);
         PanelPainter.slots(graphics, leftPos, topPos, Counter.HOTBAR, 9, 9);
+        PanelPainter.slots(graphics, leftPos, topPos, Counter.CRAFT_GRID, 3, 9);
+        PanelPainter.slots(graphics, leftPos, topPos, Counter.CRAFT_RESULT, 1, 1);
+        arrow(graphics, leftPos + Counter.CRAFT_ARROW.x(), topPos + Counter.CRAFT_ARROW.y());
         int max = maxScrollRow();
         int track = Counter.SCROLLBAR.h() - 15;
         int thumb = topPos + Counter.SCROLLBAR.y() + (max == 0 ? 0 : track * scrollRow / max);
         int thumbX = leftPos + Counter.SCROLLBAR.x();
         graphics.fill(thumbX, thumb, thumbX + Counter.SCROLLBAR.w(), thumb + 15, max == 0 ? 0xFF9A9A9A : 0xFFE0E0E0);
+    }
+
+    /** A grey arrow pointing right, 16 by 10, from the grid to the result. */
+    private static void arrow(GuiGraphics graphics, int x, int y) {
+        int colour = 0xFF8B8B8B;
+        graphics.fill(x, y + 3, x + 10, y + 7, colour);
+        for (int i = 0; i < 5; i++) {
+            graphics.fill(x + 10 + i, y + i, x + 11 + i, y + 10 - i, colour);
+        }
     }
 
     @Override
@@ -381,6 +400,8 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
                 Counter.REQUESTS_LABEL.x(), Counter.REQUESTS_LABEL.y(), COLOUR_TEXT, false);
         graphics.drawString(font, Component.translatable("gui.servus_storage.terminal.output"),
                 Counter.OUTPUT_LABEL.x(), Counter.OUTPUT_LABEL.y(), COLOUR_TEXT, false);
+        graphics.drawString(font, Component.translatable("gui.servus_storage.terminal.crafting"),
+                Counter.CRAFT_LABEL.x(), Counter.CRAFT_LABEL.y(), COLOUR_TEXT, false);
     }
 
     @Override
@@ -611,6 +632,13 @@ public class CounterTerminalScreen extends AbstractContainerScreen<CounterTermin
                 return true;
             }
             Optional<Cell> cell = cellUnder(mouseX, mouseY);
+            if (cell.isPresent() && hasAltDown()) {
+                // Alt click: a stack from instant stock onto the cursor, for the crafting grid.
+                if (cell.get().stocked()) {
+                    PacketDistributor.sendToServer(new GridPullPayload(cell.get().stack()));
+                }
+                return true;
+            }
             if (cell.isPresent()) {
                 Cell found = cell.get();
                 boolean craftClick = button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || hasControlDown();

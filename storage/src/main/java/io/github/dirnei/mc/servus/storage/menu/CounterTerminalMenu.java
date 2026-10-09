@@ -95,7 +95,7 @@ public class CounterTerminalMenu extends AbstractContainerMenu {
             addSlot(new Slot(craftSlots, slot, Counter.craftX(slot), Counter.craftY(slot)));
         }
         resultIndex = slots.size();
-        addSlot(new GridResultSlot(player, craftSlots, resultSlots, Counter.CRAFT_RESULT.x() + 1, Counter.CRAFT_RESULT.y() + 1));
+        addSlot(new GridResultSlot(player, craftSlots, resultSlots, Counter.CRAFT_RESULT.x(), Counter.CRAFT_RESULT.y()));
     }
 
     public static CounterTerminalMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {

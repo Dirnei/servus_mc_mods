@@ -11,7 +11,7 @@
 
 ## 3. Screen and JEI
 
-- [ ] 3.1 `client/CounterTerminalScreen`: panel height, grid, arrow, result and clear button drawing, Crafting label, Alt click on stock entries; lang entries. Verify with `gradlew build`.
+- [x] 3.1 `client/CounterTerminalScreen`: panel height, grid, arrow, result and clear button drawing, Crafting label, Alt click on stock entries; lang entries. Verify with `gradlew build`.
 - [ ] 3.2 `integration/jei/CounterTerminalRecipeTransferHandler` registered in `ServusStorageJeiPlugin`. Verify with `gradlew build`.
 
 ## 4. Docs

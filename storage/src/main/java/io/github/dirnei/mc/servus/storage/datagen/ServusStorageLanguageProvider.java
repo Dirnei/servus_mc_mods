@@ -128,6 +128,8 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.stored", "Stored: %s");
         add("gui.servus_storage.terminal.no_warehouse", "No warehouse on this data line");
         add("gui.servus_storage.terminal.requests", "Requests");
+        add("gui.servus_storage.terminal.crafting", "Crafting");
+        add("gui.servus_storage.terminal.clear_grid", "Move the grid into the warehouse");
         add("gui.servus_storage.terminal.output", "Output");
         add("gui.servus_storage.terminal.amount", "Amount");
         add("gui.servus_storage.terminal.plus_stack", "+Stack");
