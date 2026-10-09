@@ -1,8 +1,8 @@
-package io.github.dirnei.mc.servus.manufacturing.menu;
+package io.github.dirnei.mc.servus.foundation.machine.menu;
 
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingMenus;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerData;
@@ -11,11 +11,11 @@ import net.minecraft.world.inventory.ContainerData;
 public class ElectricPumpMenu extends MachineMenu {
 
     public ElectricPumpMenu(int containerId, Inventory playerInventory, MachineBlockEntity machine) {
-        super(ServusManufacturingMenus.ELECTRIC_PUMP.get(), containerId, playerInventory, machine);
+        super(MachineContent.ELECTRIC_PUMP_MENU.get(), containerId, playerInventory, machine);
     }
 
     private ElectricPumpMenu(int containerId, Inventory playerInventory, MachineBlockEntity machine, ContainerData data) {
-        super(ServusManufacturingMenus.ELECTRIC_PUMP.get(), containerId, playerInventory, machine, data);
+        super(MachineContent.ELECTRIC_PUMP_MENU.get(), containerId, playerInventory, machine, data);
     }
 
     public static ElectricPumpMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {

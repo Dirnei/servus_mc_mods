@@ -16,9 +16,6 @@ public final class MachineScreens {
     public static final Layout ELECTRIC = new Layout(false, true, true, gui("electric_extractor"));
     public static final Layout CRUSHER = new Layout(false, true, true, gui("crusher"));
     public static final Layout LOADER = new Layout(false, false, true, gui("chunk_loader"));
-    /** Pumps: a fluid gauge and the water source status line, no side panel. */
-    public static final Layout BURNER_PUMP = new Layout(true, true, false, true, false, gui("burner_pump"));
-    public static final Layout ELECTRIC_PUMP = new Layout(false, true, true, true, false, gui("electric_pump"));
 
     private MachineScreens() {
     }
@@ -33,13 +30,5 @@ public final class MachineScreens {
 
     public static MachineScreen crusher(MachineMenu menu, Inventory playerInventory, Component title) {
         return new MachineScreen(menu, playerInventory, title, CRUSHER);
-    }
-
-    public static MachineScreen burnerPump(MachineMenu menu, Inventory playerInventory, Component title) {
-        return new MachineScreen(menu, playerInventory, title, BURNER_PUMP);
-    }
-
-    public static MachineScreen electricPump(MachineMenu menu, Inventory playerInventory, Component title) {
-        return new MachineScreen(menu, playerInventory, title, ELECTRIC_PUMP);
     }
 }

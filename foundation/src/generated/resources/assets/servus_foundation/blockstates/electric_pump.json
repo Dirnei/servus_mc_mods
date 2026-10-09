@@ -2,7 +2,7 @@
   "multipart": [
     {
       "apply": {
-        "model": "servus_manufacturing:block/electric_pump"
+        "model": "servus_foundation:block/electric_pump"
       },
       "when": {
         "facing": "north",
@@ -11,7 +11,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/electric_pump_lit"
+        "model": "servus_foundation:block/electric_pump_lit"
       },
       "when": {
         "facing": "north",
@@ -20,7 +20,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/electric_pump",
+        "model": "servus_foundation:block/electric_pump",
         "y": 90
       },
       "when": {
@@ -30,7 +30,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/electric_pump_lit",
+        "model": "servus_foundation:block/electric_pump_lit",
         "y": 90
       },
       "when": {
@@ -40,7 +40,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/electric_pump",
+        "model": "servus_foundation:block/electric_pump",
         "y": 180
       },
       "when": {
@@ -50,7 +50,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/electric_pump_lit",
+        "model": "servus_foundation:block/electric_pump_lit",
         "y": 180
       },
       "when": {
@@ -60,7 +60,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/electric_pump",
+        "model": "servus_foundation:block/electric_pump",
         "y": 270
       },
       "when": {
@@ -70,7 +70,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/electric_pump_lit",
+        "model": "servus_foundation:block/electric_pump_lit",
         "y": 270
       },
       "when": {
@@ -80,7 +80,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_up_1"
+        "model": "servus_foundation:block/pump_stub_up_1"
       },
       "when": {
         "up": "1"
@@ -88,7 +88,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_up_2"
+        "model": "servus_foundation:block/pump_stub_up_2"
       },
       "when": {
         "up": "2"
@@ -96,7 +96,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_north_1"
+        "model": "servus_foundation:block/pump_stub_north_1"
       },
       "when": {
         "north": "1"
@@ -104,7 +104,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_north_2"
+        "model": "servus_foundation:block/pump_stub_north_2"
       },
       "when": {
         "north": "2"
@@ -112,7 +112,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_south_1"
+        "model": "servus_foundation:block/pump_stub_south_1"
       },
       "when": {
         "south": "1"
@@ -120,7 +120,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_south_2"
+        "model": "servus_foundation:block/pump_stub_south_2"
       },
       "when": {
         "south": "2"
@@ -128,7 +128,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_west_1"
+        "model": "servus_foundation:block/pump_stub_west_1"
       },
       "when": {
         "west": "1"
@@ -136,7 +136,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_west_2"
+        "model": "servus_foundation:block/pump_stub_west_2"
       },
       "when": {
         "west": "2"
@@ -144,7 +144,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_east_1"
+        "model": "servus_foundation:block/pump_stub_east_1"
       },
       "when": {
         "east": "1"
@@ -152,7 +152,7 @@
     },
     {
       "apply": {
-        "model": "servus_manufacturing:block/pump_stub_east_2"
+        "model": "servus_foundation:block/pump_stub_east_2"
       },
       "when": {
         "east": "2"

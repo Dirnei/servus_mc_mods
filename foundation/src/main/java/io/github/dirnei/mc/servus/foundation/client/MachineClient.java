@@ -17,6 +17,9 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 public final class MachineClient {
 
     public static final Layout GENERATOR = new Layout(true, false, true, Layout.gui(ServusFoundationIds.MOD_ID, "coal_generator"));
+    /** Pumps: a fluid gauge and the water source status line, no side panel. */
+    public static final Layout BURNER_PUMP = new Layout(true, true, false, true, false, Layout.gui(ServusFoundationIds.MOD_ID, "burner_pump"));
+    public static final Layout ELECTRIC_PUMP = new Layout(false, true, true, true, false, Layout.gui(ServusFoundationIds.MOD_ID, "electric_pump"));
 
     private MachineClient() {
     }
@@ -28,11 +31,17 @@ public final class MachineClient {
     @SubscribeEvent
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(MachineContent.COAL_GENERATOR_MENU.get(), MachineClient::generator);
+        event.register(MachineContent.BURNER_PUMP_MENU.get(),
+                (MachineMenu menu, Inventory inventory, Component title) -> new MachineScreen(menu, inventory, title, BURNER_PUMP));
+        event.register(MachineContent.ELECTRIC_PUMP_MENU.get(),
+                (MachineMenu menu, Inventory inventory, Component title) -> new MachineScreen(menu, inventory, title, ELECTRIC_PUMP));
     }
 
     /** Every machine draws its side modes on the block. */
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(MachineContent.COAL_GENERATOR_ENTITY.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(MachineContent.BURNER_PUMP_ENTITY.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(MachineContent.ELECTRIC_PUMP_ENTITY.get(), SideMarkerRenderer::new);
     }
 }

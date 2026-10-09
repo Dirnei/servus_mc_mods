@@ -2,6 +2,21 @@
   "schema": 2,
   "mod_version": "0.1.0",
   "machines": {
+    "servus_foundation:burner_pump": {
+      "kind": "burner",
+      "recipe_types": [],
+      "work_ticks": 20,
+      "energy_per_tick": 0,
+      "energy_capacity": 0,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 250,
+      "fluid_capacity": 4000,
+      "min_source_neighbours": 2,
+      "upkeep_level": 16
+    },
     "servus_foundation:coal_generator": {
       "kind": "generator",
       "recipe_types": [],
@@ -16,6 +31,21 @@
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
       "upkeep_level": 16
+    },
+    "servus_foundation:electric_pump": {
+      "kind": "powered",
+      "recipe_types": [],
+      "work_ticks": 20,
+      "energy_per_tick": 20,
+      "energy_capacity": 8000,
+      "fuel_divisor": 1,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 500,
+      "fluid_capacity": 4000,
+      "min_source_neighbours": 2,
+      "upkeep_level": 0
     },
     "servus_manufacturing:assembler": {
       "kind": "crafter",
@@ -45,21 +75,6 @@
       "fluid_per_cycle": 0,
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
-      "upkeep_level": 16
-    },
-    "servus_manufacturing:burner_pump": {
-      "kind": "burner",
-      "recipe_types": [],
-      "work_ticks": 20,
-      "energy_per_tick": 0,
-      "energy_capacity": 0,
-      "fuel_divisor": 1,
-      "items_per_tick": 0,
-      "recipe_slots": 1,
-      "fuel_reserve": 0,
-      "fluid_per_cycle": 250,
-      "fluid_capacity": 4000,
-      "min_source_neighbours": 2,
       "upkeep_level": 16
     },
     "servus_manufacturing:burner_smelter": {
@@ -120,21 +135,6 @@
       "fluid_per_cycle": 0,
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
-      "upkeep_level": 0
-    },
-    "servus_manufacturing:electric_pump": {
-      "kind": "powered",
-      "recipe_types": [],
-      "work_ticks": 20,
-      "energy_per_tick": 20,
-      "energy_capacity": 8000,
-      "fuel_divisor": 1,
-      "items_per_tick": 0,
-      "recipe_slots": 1,
-      "fuel_reserve": 0,
-      "fluid_per_cycle": 500,
-      "fluid_capacity": 4000,
-      "min_source_neighbours": 2,
       "upkeep_level": 0
     },
     "servus_manufacturing:research_lab": {
@@ -415,6 +415,25 @@
     }
   },
   "crafting": {
+    "servus_foundation:burner_pump": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IBI", "IFI", "CCC"],
+      "key": {
+        "B": {"item": "minecraft:bucket"},
+        "C": {"item": "minecraft:cobblestone"},
+        "F": {"item": "minecraft:furnace"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bucket", "count": 1},
+        {"item": "minecraft:cobblestone", "count": 3},
+        {"item": "minecraft:furnace", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:burner_pump", "count": 1}
+      ]
+    },
     "servus_foundation:coal_generator": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["ICI", "CFC", "ICI"],
@@ -464,19 +483,23 @@
         {"item": "servus_foundation:data_cable", "count": 4}
       ]
     },
-    "servus_foundation:duplex_data_cable": {
+    "servus_foundation:electric_pump": {
       "type": "minecraft:crafting_shaped",
-      "pattern": ["DQD"],
+      "pattern": ["CRC", "IPI", "CRC"],
       "key": {
-        "D": {"item": "servus_foundation:data_cable"},
-        "Q": {"item": "minecraft:quartz"}
+        "C": {"item": "minecraft:copper_ingot"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"item": "servus_foundation:burner_pump"},
+        "R": {"item": "minecraft:redstone"}
       },
       "inputs": [
-        {"item": "minecraft:quartz", "count": 1},
-        {"item": "servus_foundation:data_cable", "count": 2}
+        {"item": "minecraft:copper_ingot", "count": 4},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 2},
+        {"item": "servus_foundation:burner_pump", "count": 1}
       ],
       "outputs": [
-        {"item": "servus_foundation:duplex_data_cable", "count": 2}
+        {"item": "servus_foundation:electric_pump", "count": 1}
       ]
     },
     "servus_foundation:engineer_goggles": {
@@ -501,23 +524,6 @@
       "special": true,
       "inputs": [],
       "outputs": []
-    },
-    "servus_foundation:fast_data_cable": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": [" G ", "DQD", " G "],
-      "key": {
-        "D": {"item": "servus_foundation:duplex_data_cable"},
-        "G": {"item": "minecraft:gold_ingot"},
-        "Q": {"item": "minecraft:quartz"}
-      },
-      "inputs": [
-        {"item": "minecraft:gold_ingot", "count": 2},
-        {"item": "minecraft:quartz", "count": 1},
-        {"item": "servus_foundation:duplex_data_cable", "count": 2}
-      ],
-      "outputs": [
-        {"item": "servus_foundation:fast_data_cable", "count": 2}
-      ]
     },
     "servus_foundation:fluid_pipe": {
       "type": "minecraft:crafting_shaped",
@@ -606,23 +612,6 @@
         {"item": "servus_foundation:power_cable", "count": 8}
       ]
     },
-    "servus_foundation:speed_upgrade": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["RGR", "GCG", "RGR"],
-      "key": {
-        "C": {"item": "minecraft:copper_ingot"},
-        "G": {"item": "minecraft:gold_ingot"},
-        "R": {"item": "minecraft:redstone"}
-      },
-      "inputs": [
-        {"item": "minecraft:copper_ingot", "count": 1},
-        {"item": "minecraft:gold_ingot", "count": 4},
-        {"item": "minecraft:redstone", "count": 4}
-      ],
-      "outputs": [
-        {"item": "servus_foundation:speed_upgrade", "count": 1}
-      ]
-    },
     "servus_manufacturing:assembler": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["ICI", "RTR", "III"],
@@ -708,23 +697,6 @@
         {"item": "servus_manufacturing:chimney", "count": 2}
       ]
     },
-    "servus_manufacturing:coal_generator": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["ICI", "CFC", "ICI"],
-      "key": {
-        "C": {"item": "minecraft:copper_ingot"},
-        "F": {"item": "minecraft:furnace"},
-        "I": {"item": "minecraft:iron_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:copper_ingot", "count": 4},
-        {"item": "minecraft:furnace", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 4}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:coal_generator", "count": 1}
-      ]
-    },
     "servus_manufacturing:research_lab": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["IGI", "RBR", "III"],
@@ -757,6 +729,27 @@
       ],
       "outputs": [
         {"item": "servus_manufacturing:sink", "count": 8}
+      ]
+    },
+    "servus_storage:access_point": {
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["IRI", "OCO", "PPP"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "O": {"item": "minecraft:copper_ingot"},
+        "P": {"tag": "minecraft:planks"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 2},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:access_point", "count": 1}
       ]
     },
     "servus_storage:crafting_cpu": {
@@ -890,27 +883,6 @@
       ],
       "outputs": [
         {"item": "servus_storage:outbound_station", "count": 1}
-      ]
-    },
-    "servus_storage:packing_station": {
-      "type": "servus_foundation:wood_shaped",
-      "pattern": ["IRI", "OCO", "PPP"],
-      "key": {
-        "C": {"item": "minecraft:chest"},
-        "I": {"item": "minecraft:iron_ingot"},
-        "O": {"item": "minecraft:copper_ingot"},
-        "P": {"tag": "minecraft:planks"},
-        "R": {"item": "minecraft:redstone"}
-      },
-      "inputs": [
-        {"tag": "minecraft:planks", "count": 3},
-        {"item": "minecraft:chest", "count": 1},
-        {"item": "minecraft:copper_ingot", "count": 2},
-        {"item": "minecraft:iron_ingot", "count": 2},
-        {"item": "minecraft:redstone", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_storage:packing_station", "count": 1}
       ]
     },
     "servus_storage:pattern_storage": {
@@ -1096,7 +1068,7 @@
         {"item": "servus_manufacturing:red_pack", "count": 10}
       ],
       "ticks_per_pack": 100,
-      "unlocks": ["servus_manufacturing:assembling/electric_extractor", "servus_manufacturing:assembling/electric_pump"]
+      "unlocks": ["servus_manufacturing:assembling/electric_extractor"]
     },
     "servus_manufacturing:logistics": {
       "parents": ["servus_manufacturing:crusher"],
@@ -1174,9 +1146,6 @@
     "minecraft:glass_pane": {
       "name": "Glass Pane"
     },
-    "minecraft:gold_ingot": {
-      "name": "Gold Ingot"
-    },
     "minecraft:gravel": {
       "name": "Gravel"
     },
@@ -1194,9 +1163,6 @@
     },
     "minecraft:paper": {
       "name": "Paper"
-    },
-    "minecraft:quartz": {
-      "name": "Nether Quartz"
     },
     "minecraft:raw_copper": {
       "name": "Raw Copper"
@@ -1222,6 +1188,9 @@
     "minecraft:stone_bricks": {
       "name": "Stone Bricks"
     },
+    "servus_foundation:burner_pump": {
+      "name": "Burner Pump"
+    },
     "servus_foundation:coal_generator": {
       "name": "Coal Generator"
     },
@@ -1231,14 +1200,11 @@
     "servus_foundation:data_cable": {
       "name": "Data Cable"
     },
-    "servus_foundation:duplex_data_cable": {
-      "name": "Duplex Data Cable"
+    "servus_foundation:electric_pump": {
+      "name": "Electric Pump"
     },
     "servus_foundation:engineer_goggles": {
       "name": "Engineer Goggles"
-    },
-    "servus_foundation:fast_data_cable": {
-      "name": "Fast Data Cable"
     },
     "servus_foundation:fluid_pipe": {
       "name": "Fluid Pipe"
@@ -1254,9 +1220,6 @@
     },
     "servus_foundation:power_cable": {
       "name": "Power Cable"
-    },
-    "servus_foundation:speed_upgrade": {
-      "name": "Speed Upgrade"
     },
     "servus_manufacturing:assembler": {
       "name": "Assembler Mk1"
@@ -1275,9 +1238,6 @@
     },
     "servus_manufacturing:chunk_loader": {
       "name": "Chunk Loader"
-    },
-    "servus_manufacturing:coal_generator": {
-      "name": "Coal Generator"
     },
     "servus_manufacturing:copper_grit": {
       "name": "Copper Grit"
@@ -1309,6 +1269,9 @@
     "servus_manufacturing:sink": {
       "name": "Sink"
     },
+    "servus_storage:access_point": {
+      "name": "Access Point"
+    },
     "servus_storage:crafting_cpu": {
       "name": "Crafting CPU"
     },
@@ -1332,9 +1295,6 @@
     },
     "servus_storage:outbound_station": {
       "name": "Outbound Station"
-    },
-    "servus_storage:packing_station": {
-      "name": "Packing Station"
     },
     "servus_storage:pattern_storage": {
       "name": "Pattern Storage"

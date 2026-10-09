@@ -3,7 +3,13 @@ package io.github.dirnei.mc.servus.foundation.machine;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlock;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.menu.BurnerPumpMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
+import io.github.dirnei.mc.servus.foundation.machine.menu.ElectricPumpMenu;
+import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
+import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlock;
+import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlockEntity;
 import java.util.List;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -39,12 +45,32 @@ public final class MachineContent {
     public static final DeferredHolder<MenuType<?>, MenuType<CoalGeneratorMenu>> COAL_GENERATOR_MENU =
             MENUS.register("coal_generator", () -> IMenuTypeExtension.create(CoalGeneratorMenu::fromNetwork));
 
+    public static final DeferredBlock<BurnerPumpBlock> BURNER_PUMP =
+            BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new, machine().noOcclusion());
+    public static final DeferredItem<BlockItem> BURNER_PUMP_ITEM = ITEMS.registerSimpleBlockItem(BURNER_PUMP);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BurnerPumpBlockEntity>> BURNER_PUMP_ENTITY =
+            BLOCK_ENTITIES.register("burner_pump", () -> BlockEntityType.Builder
+                    .of(BurnerPumpBlockEntity::new, BURNER_PUMP.get())
+                    .build(null));
+    public static final DeferredHolder<MenuType<?>, MenuType<BurnerPumpMenu>> BURNER_PUMP_MENU =
+            MENUS.register("burner_pump", () -> IMenuTypeExtension.create(BurnerPumpMenu::fromNetwork));
+
+    public static final DeferredBlock<ElectricPumpBlock> ELECTRIC_PUMP =
+            BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new, machine().noOcclusion());
+    public static final DeferredItem<BlockItem> ELECTRIC_PUMP_ITEM = ITEMS.registerSimpleBlockItem(ELECTRIC_PUMP);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricPumpBlockEntity>> ELECTRIC_PUMP_ENTITY =
+            BLOCK_ENTITIES.register("electric_pump", () -> BlockEntityType.Builder
+                    .of(ElectricPumpBlockEntity::new, ELECTRIC_PUMP.get())
+                    .build(null));
+    public static final DeferredHolder<MenuType<?>, MenuType<ElectricPumpMenu>> ELECTRIC_PUMP_MENU =
+            MENUS.register("electric_pump", () -> IMenuTypeExtension.create(ElectricPumpMenu::fromNetwork));
+
     private MachineContent() {
     }
 
     /** Creative tab order of Foundation's machines. */
     public static List<DeferredItem<? extends Item>> creativeTabOrder() {
-        return List.of(COAL_GENERATOR_ITEM);
+        return List.of(BURNER_PUMP_ITEM, ELECTRIC_PUMP_ITEM, COAL_GENERATOR_ITEM);
     }
 
     /** Block properties every Servus machine shares: metal, lit front glows. */

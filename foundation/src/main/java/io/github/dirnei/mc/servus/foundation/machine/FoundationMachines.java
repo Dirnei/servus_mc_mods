@@ -17,6 +17,8 @@ public final class FoundationMachines {
         }
         registered = true;
         add("coal_generator", "generator", MachineStats.generator(40, 16000, 4));
+        add("burner_pump", "burner", MachineStats.burnerPump(20, 250, 4000, 2));
+        add("electric_pump", "powered", MachineStats.poweredPump(20, 20, 8000, 500, 4000, 2));
     }
 
     private static void add(String path, String kind, MachineStats stats) {

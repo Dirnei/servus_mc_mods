@@ -1,12 +1,12 @@
-package io.github.dirnei.mc.servus.manufacturing.machine.pump;
+package io.github.dirnei.mc.servus.foundation.machine.pump;
 
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.manufacturing.menu.BurnerPumpMenu;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
+import io.github.dirnei.mc.servus.foundation.machine.menu.BurnerPumpMenu;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -23,13 +23,13 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements PumpMachine {
 
     public static final int SLOT_FUEL = 0;
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "burner_pump");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "burner_pump");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final PumpLogic pump = new PumpLogic(DEFAULTS.fluidCapacity(), this::setChanged);
 
     public BurnerPumpBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusManufacturingBlockEntities.BURNER_PUMP.get(), pos, state, 1);
+        super(MachineContent.BURNER_PUMP_ENTITY.get(), pos, state, 1);
         PumpLogic.lockSides(sideConfig());
     }
 

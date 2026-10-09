@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "servus_manufacturing:burner_pump"
+        "recipe": "servus_foundation:burner_pump"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "servus_manufacturing:burner_pump"
+      "servus_foundation:burner_pump"
     ]
   }
 }

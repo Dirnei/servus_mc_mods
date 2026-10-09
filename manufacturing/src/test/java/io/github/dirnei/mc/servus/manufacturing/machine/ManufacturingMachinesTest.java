@@ -23,11 +23,11 @@ class ManufacturingMachinesTest {
     @Test
     void everyMachineHasAnEntry() {
         for (String path : new String[] {"burner_extractor", "burner_smelter", "electric_extractor", "crusher",
-                "assembler", "research_lab", "chunk_loader", "burner_pump", "electric_pump"}) {
+                "assembler", "research_lab", "chunk_loader"}) {
             MachineDefaults.MachineInfo info = MachineDefaults.info("servus_manufacturing:" + path);
             assertTrue(KINDS.contains(info.kind()), path);
         }
-        assertEquals(9, MachineDefaults.all().keySet().stream().filter(id -> id.startsWith("servus_manufacturing:")).count());
+        assertEquals(7, MachineDefaults.all().keySet().stream().filter(id -> id.startsWith("servus_manufacturing:")).count());
     }
 
     @Test
@@ -56,23 +56,8 @@ class ManufacturingMachinesTest {
     }
 
     @Test
-    void pumpsHaveFluidStatsAndOthersNone() {
-        MachineStats burner = MachineDefaults.stats("servus_manufacturing:burner_pump");
-        MachineStats electric = MachineDefaults.stats("servus_manufacturing:electric_pump");
-
-        assertEquals(250, burner.fluidPerCycle());
-        assertEquals(4000, burner.fluidCapacity());
-        assertEquals(2, burner.minSourceNeighbours());
-        assertEquals(0, burner.energyPerTick());
-        assertTrue(electric.fluidPerCycle() * burner.workTicks() > burner.fluidPerCycle() * electric.workTicks(),
-                "the Electric Pump pumps faster");
-        assertEquals(20, electric.energyPerTick());
-        assertEquals(0, MachineDefaults.stats("servus_manufacturing:crusher").fluidCapacity());
-    }
-
-    @Test
     void onlyBurnerMachinesKeepCoalAsUpkeep() {
-        Set<String> burners = Set.of("burner_extractor", "burner_smelter", "burner_pump");
+        Set<String> burners = Set.of("burner_extractor", "burner_smelter");
         for (MachineDefaults.MachineInfo info : MachineDefaults.all().values()) {
             MachineStats stats = info.stats();
             boolean burner = burners.contains(info.id().substring(info.id().indexOf(':') + 1));

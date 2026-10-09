@@ -1,5 +1,7 @@
 {
+  "block.servus_foundation.burner_pump": "Burner Pump",
   "block.servus_foundation.coal_generator": "Coal Generator",
+  "block.servus_foundation.electric_pump": "Electric Pump",
   "block.servus_foundation.fluid_tank": "Fluid Tank",
   "block.servus_foundation.machine_adapter": "Machine Adapter",
   "block.servus_foundation.utility_duct": "Utility Duct",
@@ -34,6 +36,8 @@
   "gui.servus_foundation.mode.output": "Push out",
   "gui.servus_foundation.no_lines": "No lines",
   "gui.servus_foundation.priority": "Priority %s",
+  "gui.servus_foundation.pump.source_missing": "Needs an infinite water source below",
+  "gui.servus_foundation.pump.source_ok": "Infinite water source below",
   "gui.servus_foundation.remove.data": "Remove Data Cable",
   "gui.servus_foundation.remove.energy": "Remove Power Cable",
   "gui.servus_foundation.remove.fluid": "Remove Fluid Pipe",

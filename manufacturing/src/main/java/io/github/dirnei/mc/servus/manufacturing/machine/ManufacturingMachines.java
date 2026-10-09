@@ -31,8 +31,6 @@ public final class ManufacturingMachines {
                 MachineStats.crafter(20, 20, 8000, 2));
         add("research_lab", "powered", List.of(RESEARCH), MachineStats.powered(1, 10, 4000));
         add("chunk_loader", "powered", List.of(), MachineStats.powered(1, 10, 4000));
-        add("burner_pump", "burner", List.of(), MachineStats.burnerPump(20, 250, 4000, 2));
-        add("electric_pump", "powered", List.of(), MachineStats.poweredPump(20, 20, 8000, 500, 4000, 2));
     }
 
     private static void add(String path, String kind, List<String> recipeTypes, MachineStats stats) {

@@ -29,8 +29,6 @@ public final class ServusManufacturingClient {
         event.register(ServusManufacturingMenus.ELECTRIC_EXTRACTOR.get(), MachineScreens::electric);
         event.register(ServusManufacturingMenus.CRUSHER.get(), MachineScreens::crusher);
         event.register(ServusManufacturingMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
-        event.register(ServusManufacturingMenus.BURNER_PUMP.get(), MachineScreens::burnerPump);
-        event.register(ServusManufacturingMenus.ELECTRIC_PUMP.get(), MachineScreens::electricPump);
         event.register(ServusManufacturingMenus.SINK.get(), SinkScreen::new);
     }
 
@@ -44,8 +42,6 @@ public final class ServusManufacturingClient {
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CRUSHER.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CHUNK_LOADER.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.RESEARCH_LAB.get(), SideMarkerRenderer::new);
-        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.BURNER_PUMP.get(), SideMarkerRenderer::new);
-        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.ELECTRIC_PUMP.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.SINK.get(), SinkRenderer::new);
     }
 

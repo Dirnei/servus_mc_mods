@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.manufacturing.machine.pump;
+package io.github.dirnei.mc.servus.foundation.machine.pump;
 
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;

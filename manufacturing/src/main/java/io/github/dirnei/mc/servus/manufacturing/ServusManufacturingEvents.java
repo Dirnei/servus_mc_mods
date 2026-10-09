@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing;
 
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
-import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositManager;
 import io.github.dirnei.mc.servus.manufacturing.gametest.NativeUpkeepGameTests;
@@ -93,8 +92,6 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.upkeep());
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.BURNER_SMELTER.get(),
                     (machine, side) -> machine.upkeep());
-            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.BURNER_PUMP.get(),
-                    (machine, side) -> machine.upkeep());
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.BURNER_SMELTER.get(),
                     (machine, side) -> machine.production());
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.CRUSHER.get(),
@@ -105,15 +102,6 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.RESEARCH_LAB.get(),
                     (machine, side) -> machine.energyStorage());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.BURNER_PUMP.get(),
-                    (machine, side) -> machine.sideHandler(side));
-            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.BURNER_PUMP.get(),
-                    (machine, side) -> machine.fluidHandler(side));
-            // A pump takes energy only where it also gives water: not through its front or bottom.
-            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.ELECTRIC_PUMP.get(),
-                    (machine, side) -> side == null || PumpBlock.givesWater(machine.getBlockState(), side) ? machine.energyStorage() : null);
-            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.ELECTRIC_PUMP.get(),
-                    (machine, side) -> machine.fluidHandler(side));
             // Every formed Sink block hands out its controller's handlers, except on the front faces; casings offer none.
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.SINK.get(),
                     (sink, side) -> sink.itemHandler(side));

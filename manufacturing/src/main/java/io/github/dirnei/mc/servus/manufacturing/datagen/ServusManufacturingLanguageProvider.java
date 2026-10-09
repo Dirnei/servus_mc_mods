@@ -28,8 +28,6 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(), "Electric Extractor");
         add(ServusManufacturingBlocks.CRUSHER.get(), "Crusher");
         add(ServusManufacturingBlocks.CHUNK_LOADER.get(), "Chunk Loader");
-        add(ServusManufacturingBlocks.BURNER_PUMP.get(), "Burner Pump");
-        add(ServusManufacturingBlocks.ELECTRIC_PUMP.get(), "Electric Pump");
         add(ServusManufacturingBlocks.SINK.get(), "Sink");
         add(ServusManufacturingBlocks.CHIMNEY.get(), "Chimney");
         add("gui.servus_manufacturing.sink.height", "Chimney height: %s");
@@ -46,8 +44,6 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
                 "Build a 2x2x2 cube of Sink blocks and click its front with the Configuration Carrot");
         add("message.servus_manufacturing.sink.incomplete", "A Sink needs a full 2x2x2 cube of Sink blocks behind this face");
         add("message.servus_manufacturing.sink.side_face", "Click a side of the cube: that side becomes the front");
-        add("gui.servus_manufacturing.pump.source_ok", "Infinite water source below");
-        add("gui.servus_manufacturing.pump.source_missing", "Needs an infinite water source below");
         add("gui.servus_manufacturing.chunk_loader.no_power", "Inactive: no power");
         add("gui.servus_manufacturing.chunk_loader.active", "Active: chunk kept loaded");
         add("gui.servus_manufacturing.chunk_loader.team_limit", "Inactive: team limit reached");

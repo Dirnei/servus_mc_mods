@@ -3,6 +3,8 @@
     "servus_foundation:utility_duct",
     "servus_foundation:fluid_tank",
     "servus_foundation:machine_adapter",
-    "servus_foundation:coal_generator"
+    "servus_foundation:coal_generator",
+    "servus_foundation:burner_pump",
+    "servus_foundation:electric_pump"
   ]
 }

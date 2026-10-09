@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_burner_pump": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_foundation:burner_pump"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_foundation:electric_pump"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_burner_pump"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_foundation:electric_pump"
+    ]
+  }
+}

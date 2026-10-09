@@ -55,7 +55,7 @@ public final class NativeUpkeepGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 40)
     public static void burnerMachinesExposeUpkeep(GameTestHelper helper) {
         List<Block> burners = List.of(ServusManufacturingBlocks.BURNER_EXTRACTOR.get(), ServusManufacturingBlocks.BURNER_SMELTER.get(),
-                ServusManufacturingBlocks.BURNER_PUMP.get(), MachineContent.COAL_GENERATOR.get());
+                MachineContent.BURNER_PUMP.get(), MachineContent.COAL_GENERATOR.get());
         for (int i = 0; i < burners.size(); i++) {
             BlockPos pos = new BlockPos(2 + 2 * i, 2, 3);
             helper.setBlock(pos, burners.get(i).defaultBlockState());

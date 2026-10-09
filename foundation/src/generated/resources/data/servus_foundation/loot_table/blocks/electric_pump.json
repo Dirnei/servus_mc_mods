@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "servus_manufacturing:burner_pump"
+          "name": "servus_foundation:electric_pump"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "servus_manufacturing:blocks/burner_pump"
+  "random_sequence": "servus_foundation:blocks/electric_pump"
 }

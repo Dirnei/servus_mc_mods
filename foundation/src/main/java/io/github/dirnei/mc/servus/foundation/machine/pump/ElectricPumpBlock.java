@@ -1,8 +1,8 @@
-package io.github.dirnei.mc.servus.manufacturing.machine.pump;
+package io.github.dirnei.mc.servus.foundation.machine.pump;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
@@ -21,6 +21,6 @@ public class ElectricPumpBlock extends PumpBlock {
 
     @Override
     protected BlockEntityType<? extends MachineBlockEntity> blockEntityType() {
-        return ServusManufacturingBlockEntities.ELECTRIC_PUMP.get();
+        return MachineContent.ELECTRIC_PUMP_ENTITY.get();
     }
 }

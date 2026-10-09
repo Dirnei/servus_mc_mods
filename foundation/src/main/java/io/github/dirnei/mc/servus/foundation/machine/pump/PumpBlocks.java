@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.manufacturing.machine.pump;
+package io.github.dirnei.mc.servus.foundation.machine.pump;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;

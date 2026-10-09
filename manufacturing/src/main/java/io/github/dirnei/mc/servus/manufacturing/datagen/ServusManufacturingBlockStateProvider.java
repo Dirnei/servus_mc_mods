@@ -3,7 +3,6 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
-import io.github.dirnei.mc.servus.manufacturing.machine.pump.PumpBlock;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
@@ -45,8 +44,6 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         machine(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(), "electric_extractor");
         machine(ServusManufacturingBlocks.CRUSHER.get(), "crusher");
         machine(ServusManufacturingBlocks.CHUNK_LOADER.get(), "chunk_loader");
-        pump(ServusManufacturingBlocks.BURNER_PUMP.get(), "burner_pump");
-        pump(ServusManufacturingBlocks.ELECTRIC_PUMP.get(), "electric_pump");
 
         sink();
         chimney();
@@ -239,68 +236,6 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
 
     private void cubeAllWithItem(Block block) {
         simpleBlockWithItem(block, cubeAll(block));
-    }
-
-    /**
-     * The compact pump as a multipart: the body per facing and lit state, plus a
-     * pipe stub per connected absolute direction (unrotated, the stubs are symmetric).
-     */
-    private void pump(Block block, String name) {
-        ModelFile unlit = pumpModel(name, modLoc("block/" + name + "_front"));
-        ModelFile lit = pumpModel(name + "_lit", modLoc("block/" + name + "_front_lit"));
-        MultiPartBlockStateBuilder builder = getMultipartBuilder(block);
-        for (Direction facing : Direction.Plane.HORIZONTAL) {
-            for (boolean isLit : new boolean[] {false, true}) {
-                builder.part().modelFile(isLit ? lit : unlit).rotationY(((int) facing.toYRot() + 180) % 360).addModel()
-                        .condition(MachineBlock.FACING, facing).condition(MachineBlock.LIT, isLit).end();
-            }
-        }
-        for (Map.Entry<Direction, IntegerProperty> stub : PumpBlock.STUBS.entrySet()) {
-            for (int size = 1; size <= PumpBlock.MAX_STUB; size++) {
-                builder.part().modelFile(pumpStub(stub.getKey(), size)).addModel().condition(stub.getValue(), size).end();
-            }
-        }
-        simpleBlockItem(block, unlit);
-    }
-
-    /** A short pipe from the pump body to the block edge, as thick as a duct arm with {@code size} lines; shared by both pumps. */
-    private ModelFile pumpStub(Direction direction, int size) {
-        BlockModelBuilder model = models().withExistingParent("pump_stub_" + direction.getSerializedName() + "_" + size, mcLoc("block/block"))
-                .texture("particle", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_side"))
-                .texture("side", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_side"))
-                .texture("top", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_top"));
-        int[] box = PumpBlock.stubBox(direction, size);
-        int lo = 8 - PumpBlock.stubRadius(size);
-        int hi = 8 + PumpBlock.stubRadius(size);
-        model.element().from(box[0], box[1], box[2]).to(box[3], box[4], box[5])
-                .allFaces((face, builder) -> builder.texture(face == direction || face == direction.getOpposite() ? "#top" : "#side")
-                        .uvs(lo, lo, hi, hi))
-                .face(direction).cullface(direction).end();
-        return model;
-    }
-
-    private ModelFile pumpModel(String name, ResourceLocation front) {
-        BlockModelBuilder model = models().withExistingParent(name, mcLoc("block/block"))
-                .texture("particle", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_side"))
-                .texture("side", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_side"))
-                .texture("top", ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/machine_top"))
-                .texture("front", front);
-        model.element().from(1, 0, 1).to(15, 2, 15)
-                .allFaces((direction, face) -> face.texture(direction.getAxis() == Direction.Axis.Y ? "#top" : "#side")
-                        .uvs(1, 14, 15, 16))
-                .face(Direction.UP).uvs(1, 1, 15, 15).end()
-                .face(Direction.DOWN).uvs(1, 1, 15, 15).cullface(Direction.DOWN).end();
-        model.element().from(3, 2, 3).to(13, 12, 13)
-                .allFaces((direction, face) -> face.texture(direction.getAxis() == Direction.Axis.Y ? "#top" : "#side")
-                        .uvs(3, 4, 13, 14))
-                .face(Direction.NORTH).texture("#front").uvs(0, 0, 16, 16).end()
-                .face(Direction.UP).uvs(3, 3, 13, 13).end();
-        model.element().from(6, 12, 6).to(10, 15, 10)
-                .allFaces((direction, face) -> face.texture(direction.getAxis() == Direction.Axis.Y ? "#top" : "#side")
-                        .uvs(6, 1, 10, 4))
-                .face(Direction.UP).uvs(6, 6, 10, 10).end()
-                .face(Direction.DOWN).uvs(6, 6, 10, 10).end();
-        return model;
     }
 
     /** Orientable machine with a lit and an unlit front, rotated by facing. */

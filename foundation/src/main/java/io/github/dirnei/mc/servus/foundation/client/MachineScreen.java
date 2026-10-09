@@ -111,7 +111,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
         guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 0xFF404040, false);
         Component status = Component.translatable(menu.sourceValid()
-                ? "gui.servus_manufacturing.pump.source_ok" : "gui.servus_manufacturing.pump.source_missing");
+                ? "gui.servus_foundation.pump.source_ok" : "gui.servus_foundation.pump.source_missing");
         int available = imageWidth - 2 * inventoryLabelX;
         int width = font.width(status);
         float scale = width > available ? (float) available / width : 1F;

@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
+import io.github.dirnei.mc.servus.foundation.machine.pump.PumpGameTests;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -40,6 +42,7 @@ public final class MachineEvents {
         @SubscribeEvent
         public static void onRegisterGameTests(RegisterGameTestsEvent event) {
             event.register(MachineGameTests.class);
+            event.register(PumpGameTests.class);
         }
 
         @SubscribeEvent
@@ -51,6 +54,17 @@ public final class MachineEvents {
             // Burner machines keep their fuel slot stocked from the data line.
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, MachineContent.COAL_GENERATOR_ENTITY.get(),
                     (machine, side) -> machine.upkeep());
+            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, MachineContent.BURNER_PUMP_ENTITY.get(),
+                    (machine, side) -> machine.upkeep());
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, MachineContent.BURNER_PUMP_ENTITY.get(),
+                    (machine, side) -> machine.sideHandler(side));
+            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, MachineContent.BURNER_PUMP_ENTITY.get(),
+                    (machine, side) -> machine.fluidHandler(side));
+            // A pump takes energy only where it also gives water: not through its front or bottom.
+            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, MachineContent.ELECTRIC_PUMP_ENTITY.get(),
+                    (machine, side) -> side == null || PumpBlock.givesWater(machine.getBlockState(), side) ? machine.energyStorage() : null);
+            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, MachineContent.ELECTRIC_PUMP_ENTITY.get(),
+                    (machine, side) -> machine.fluidHandler(side));
         }
     }
 }
