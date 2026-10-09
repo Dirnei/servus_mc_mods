@@ -42,6 +42,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("jade.servus_manufacturing.calciner.stack", "%s %s");
         add("jade.servus_manufacturing.calciner.empty", "none");
         add("config.jade.plugin_servus_manufacturing.calciner", "Calciner");
+        add("config.jade.plugin_servus_manufacturing.purifier", "Purifier");
         add("message.servus_manufacturing.calciner.missing",
                 "The Calciner is not complete: %s needed %s. The Calciner page of Paracelsus' Journal shows the build.");
         add("message.servus_manufacturing.calciner.left_of", "left of the %s");

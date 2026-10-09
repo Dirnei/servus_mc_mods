@@ -9,6 +9,8 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlo
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlockEntity;
 import java.util.List;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -27,11 +29,11 @@ import snownee.jade.api.WailaPlugin;
 import snownee.jade.api.config.IPluginConfig;
 
 /**
- * Shows what a formed Calciner holds when the player looks at any of its blocks: the matter, the
- * fuel, the progress and the three principles. Only Jade loads this class.
+ * Shows what the alchemy blocks hold: a formed Calciner from any of its blocks (matter, fuel,
+ * progress, the three principles) and the Purifier (Ash, water, Salt, progress). Only Jade loads this class.
  */
 @WailaPlugin(ServusManufacturingIds.MOD_ID)
-public final class CalcinerJadePlugin implements IWailaPlugin {
+public final class ServusManufacturingJadePlugin implements IWailaPlugin {
 
     private static final List<Class<? extends Block>> BLOCKS = List.of(CalcinerBlock.class, CalcinerPartBlock.class, CalcinerShellBlock.class,
             CalcinerDuctBlock.class);
@@ -39,11 +41,53 @@ public final class CalcinerJadePlugin implements IWailaPlugin {
     @Override
     public void register(IWailaCommonRegistration registration) {
         BLOCKS.forEach(block -> registration.registerBlockDataProvider(Provider.INSTANCE, block));
+        registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierBlock.class);
     }
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
         BLOCKS.forEach(block -> registration.registerBlockComponent(Provider.INSTANCE, block));
+        registration.registerBlockComponent(PurifierProvider.INSTANCE, PurifierBlock.class);
+    }
+
+    private enum PurifierProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        INSTANCE;
+
+        private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purifier");
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof PurifierBlockEntity purifier)) {
+                return;
+            }
+            CompoundTag tag = new CompoundTag();
+            tag.putInt("Items", purifier.inventory().getStackInSlot(0).getCount());
+            tag.putInt("Water", purifier.water().getFluidAmount());
+            tag.putInt("Salt", purifier.salt().getFluidAmount());
+            tag.putInt("Capacity", purifier.water().getCapacity());
+            tag.putInt("Progress", purifier.progressPercent());
+            data.put("Purifier", tag);
+        }
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (!data.contains("Purifier")) {
+                return;
+            }
+            CompoundTag tag = data.getCompound("Purifier");
+            int capacity = tag.getInt("Capacity");
+            tooltip.add(Component.translatable("jade.servus_manufacturing.purifier.items", tag.getInt("Items")));
+            tooltip.add(Component.translatable("jade.servus_manufacturing.purifier.water", tag.getInt("Water"), capacity));
+            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.principle", tag.getInt("Salt"), capacity,
+                    new FluidStack(PrincipleFluids.fluid(Principle.SALT), 1).getHoverName()));
+            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.progress", tag.getInt("Progress")));
+        }
+
+        @Override
+        public ResourceLocation getUid() {
+            return UID;
+        }
     }
 
     private enum Provider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {

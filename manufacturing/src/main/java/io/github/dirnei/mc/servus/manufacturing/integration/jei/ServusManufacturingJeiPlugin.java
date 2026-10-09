@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.integration.jei;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
@@ -26,6 +27,8 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
 
     public static final RecipeType<RecipeHolder<CalcinationRecipe>> CALCINATION =
             RecipeType.createRecipeHolderType(ServusManufacturingRecipes.CALCINATION_ID);
+    public static final RecipeType<RecipeHolder<PurificationRecipe>> PURIFICATION =
+            RecipeType.createRecipeHolderType(ServusManufacturingRecipes.PURIFICATION_ID);
     public static final RecipeType<RecipeHolder<CoagulationRecipe>> COAGULATION =
             RecipeType.createRecipeHolderType(ServusManufacturingRecipes.COAGULATION_ID);
     public static final RecipeType<RecipeHolder<AthanorRecipe>> ATHANOR =
@@ -40,6 +43,7 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(
                 new CalcinationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new PurificationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new CoagulationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new AthanorRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
     }
@@ -51,6 +55,7 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
             return;
         }
         registration.addRecipes(CALCINATION, minecraft.level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.CALCINATION.get()));
+        registration.addRecipes(PURIFICATION, minecraft.level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.PURIFICATION.get()));
         registration.addRecipes(COAGULATION, CoagulatorBlockEntity.sortedRecipes(minecraft.level.getRecipeManager()));
         registration.addRecipes(ATHANOR, minecraft.level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.ATHANOR.get()));
     }
@@ -58,6 +63,7 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.CALCINER.get()), CALCINATION);
+        registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.PURIFIER.get()), PURIFICATION);
         registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.COAGULATOR.get()), COAGULATION);
         registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.ATHANOR.get()), ATHANOR);
     }

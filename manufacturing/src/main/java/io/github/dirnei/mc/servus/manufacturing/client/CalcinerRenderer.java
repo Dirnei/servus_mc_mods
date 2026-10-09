@@ -119,7 +119,7 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
         return new float[] {x0, z0, x1, z1};
     }
 
-    private static void drawBox(VertexConsumer consumer, PoseStack.Pose pose, float x0, float y0, float z0, float x1, float y1, float z1,
+    static void drawBox(VertexConsumer consumer, PoseStack.Pose pose, float x0, float y0, float z0, float x1, float y1, float z1,
                                 TextureAtlasSprite sprite, int color, int light) {
         float u0 = sprite.getU0();
         float u1 = sprite.getU1();

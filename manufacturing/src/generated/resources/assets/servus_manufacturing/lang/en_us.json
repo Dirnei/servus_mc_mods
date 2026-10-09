@@ -142,6 +142,7 @@
   "commands.servus_manufacturing.journal.open": "open",
   "commands.servus_manufacturing.journal.task": "  %s: %s / %s",
   "config.jade.plugin_servus_manufacturing.calciner": "Calciner",
+  "config.jade.plugin_servus_manufacturing.purifier": "Purifier",
   "effect.servus_manufacturing.elemental_sight": "Elemental Sight",
   "fluid_type.servus_manufacturing.mercury": "Mercury",
   "fluid_type.servus_manufacturing.salt": "Salt",
