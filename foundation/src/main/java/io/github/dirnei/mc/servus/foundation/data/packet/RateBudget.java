@@ -34,6 +34,11 @@ public final class RateBudget {
         available = Math.min(cap(), available + perSecond / TICKS_PER_SECOND);
     }
 
+    /** Saves up one second's worth at once, as a budget that was idle for a second would have. */
+    public void fill() {
+        available = cap();
+    }
+
     /** How many whole items may pass right now. */
     public int allowance() {
         return (int) Math.floor(available + 1e-9);

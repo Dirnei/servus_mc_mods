@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 Add pure `foundation.data.packet.DuctBudget` and `PathPick` and `foundation.upgrade.UpgradeMath` with JUnit `DuctBudgetTest` (`simplexSharesBothDirections`, `duplexSeparate`, `fractionalCarry`, `loadWindow`), `PathPickTest` (`shortestWins`, `highestBottleneckAmongShortest`), `UpgradeMathTest` (`twoDoublesGiveFour`, `noUpgradesIsOne`). Verify with `gradlew :foundation:test`.
+- [x] 1.1 Add pure `foundation.data.packet.DuctBudget` and `PathPick` and `foundation.upgrade.UpgradeMath` with JUnit `DuctBudgetTest` (`simplexSharesBothDirections`, `duplexSeparate`, `fractionalCarry`, `loadWindow`), `PathPickTest` (`shortestWins`, `highestBottleneckAmongShortest`), `UpgradeMathTest` (`twoDoublesGiveFour`, `noUpgradesIsOne`). Verify with `gradlew :foundation:test`.
 
 ## 2. Tiers and replacement
 
