@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import mezz.jei.api.IModPlugin;
@@ -27,6 +28,8 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
             RecipeType.createRecipeHolderType(ServusManufacturingRecipes.CALCINATION_ID);
     public static final RecipeType<RecipeHolder<CoagulationRecipe>> COAGULATION =
             RecipeType.createRecipeHolderType(ServusManufacturingRecipes.COAGULATION_ID);
+    public static final RecipeType<RecipeHolder<AthanorRecipe>> ATHANOR =
+            RecipeType.createRecipeHolderType(ServusManufacturingRecipes.ATHANOR_ID);
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -37,7 +40,8 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(
                 new CalcinationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
-                new CoagulationRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+                new CoagulationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new AthanorRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
@@ -48,11 +52,13 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
         }
         registration.addRecipes(CALCINATION, minecraft.level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.CALCINATION.get()));
         registration.addRecipes(COAGULATION, CoagulatorBlockEntity.sortedRecipes(minecraft.level.getRecipeManager()));
+        registration.addRecipes(ATHANOR, minecraft.level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.ATHANOR.get()));
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.CALCINER.get()), CALCINATION);
         registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.COAGULATOR.get()), COAGULATION);
+        registration.addRecipeCatalyst(new ItemStack(ServusManufacturingItems.ATHANOR.get()), ATHANOR);
     }
 }
