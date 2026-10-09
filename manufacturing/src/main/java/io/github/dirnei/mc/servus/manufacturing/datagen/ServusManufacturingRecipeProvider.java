@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
@@ -35,6 +36,10 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     protected void buildRecipes(RecipeOutput output) {
         crafting(output);
         calcination(output);
+        for (AlchemyRecipeTable.Purify row : AlchemyRecipeTable.purification()) {
+            output.accept(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purification/" + row.name()),
+                    new PurificationRecipe(new SizedIngredient(row.input(), row.count()), row.water(), row.salt(), row.time()), null);
+        }
         coagulation(output);
         athanor(output);
     }

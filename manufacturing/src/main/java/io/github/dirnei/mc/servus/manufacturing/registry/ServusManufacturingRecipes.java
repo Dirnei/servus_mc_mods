@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.minecraft.core.registries.Registries;
@@ -38,6 +39,13 @@ public final class ServusManufacturingRecipes {
             RECIPE_TYPES.register("athanor", () -> RecipeType.simple(ATHANOR_ID));
     public static final DeferredHolder<RecipeSerializer<?>, AthanorRecipe.Serializer> ATHANOR_SERIALIZER =
             RECIPE_SERIALIZERS.register("athanor", AthanorRecipe.Serializer::new);
+
+    public static final ResourceLocation PURIFICATION_ID =
+            ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purification");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<PurificationRecipe>> PURIFICATION =
+            RECIPE_TYPES.register("purification", () -> RecipeType.simple(PURIFICATION_ID));
+    public static final DeferredHolder<RecipeSerializer<?>, PurificationRecipe.Serializer> PURIFICATION_SERIALIZER =
+            RECIPE_SERIALIZERS.register("purification", PurificationRecipe.Serializer::new);
 
     private ServusManufacturingRecipes() {
     }

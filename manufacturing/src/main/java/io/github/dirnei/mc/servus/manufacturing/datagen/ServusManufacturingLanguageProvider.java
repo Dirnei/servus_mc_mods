@@ -64,7 +64,9 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("commands.servus_manufacturing.journal.task", "  %s: %s / %s");
         add("gui.servus_manufacturing.jei.calcination", "Calcination");
         add("gui.servus_manufacturing.jei.coagulation", "Coagulation");
+        add(ServusManufacturingItems.ASH.get(), "Ash");
         add(ServusManufacturingItems.SALT_CRYSTAL.get(), "Salt Crystal");
+        add("gui.servus_manufacturing.jei.purification", "Purification");
         add(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block");
         add(ServusManufacturingBlocks.ATHANOR.get(), "Athanor");
         add(ServusManufacturingBlocks.GNOME_HOLLOW.get(), "Gnome Hollow");

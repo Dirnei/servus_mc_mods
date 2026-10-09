@@ -543,6 +543,12 @@
         {"item": "servus_manufacturing:paracelsus_journal", "count": 1}
       ]
     },
+    "servus_manufacturing:purification/ash": {
+      "type": "servus_manufacturing:purification",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
     "servus_manufacturing:receiver": {
       "type": "minecraft:crafting_shaped",
       "pattern": [" P ", "GBG", " C "],

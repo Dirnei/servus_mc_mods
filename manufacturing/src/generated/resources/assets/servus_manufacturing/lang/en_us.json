@@ -160,6 +160,8 @@
   "gui.servus_manufacturing.jei.athanor.tier": "Stage: %s",
   "gui.servus_manufacturing.jei.calcination": "Calcination",
   "gui.servus_manufacturing.jei.coagulation": "Coagulation",
+  "gui.servus_manufacturing.jei.purification": "Purification",
+  "item.servus_manufacturing.ash": "Ash",
   "item.servus_manufacturing.elixir_of_sight": "Elixir of Sight",
   "item.servus_manufacturing.mercury_bucket": "Mercury Bucket",
   "item.servus_manufacturing.paracelsus_journal": "Paracelsus' Journal",

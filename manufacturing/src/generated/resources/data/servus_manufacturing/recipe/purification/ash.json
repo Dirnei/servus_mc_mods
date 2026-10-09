@@ -1,0 +1,9 @@
+{
+  "type": "servus_manufacturing:purification",
+  "input": {
+    "count": 1,
+    "item": "servus_manufacturing:ash"
+  },
+  "salt": 100,
+  "water": 100
+}

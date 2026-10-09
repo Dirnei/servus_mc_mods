@@ -19,6 +19,7 @@ final class ServusManufacturingItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
+        basicItem(ServusManufacturingItems.ASH.get());
         basicItem(ServusManufacturingItems.SALT_CRYSTAL.get());
         basicItem(ServusManufacturingItems.SULFUR.get());
         basicItem(ServusManufacturingItems.QUICKSILVER.get());
