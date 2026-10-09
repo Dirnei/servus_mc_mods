@@ -317,6 +317,41 @@ public final class PumpGameTests {
         });
     }
 
+    /**
+     * Two generators and two Electric Pumps along one Power Cable run: generator A
+     * and pump A on channel 1, generator B (no fuel) and pump B on channel 2. Only
+     * pump A gets energy, so channels keep energy apart.
+     */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void energyStaysOnItsChannel(GameTestHelper helper) {
+        for (int z = 1; z <= 4; z++) {
+            duct(helper, new BlockPos(7, 2, z), Line.ENERGY);
+        }
+        BlockPos generatorA = new BlockPos(6, 2, 1);
+        BlockPos pumpA = new BlockPos(8, 2, 1);
+        BlockPos generatorB = new BlockPos(6, 2, 3);
+        BlockPos pumpB = new BlockPos(8, 2, 3);
+        helper.setBlock(generatorA, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
+        MachineBlockEntity fuelled = helper.getBlockEntity(generatorA);
+        fuelled.inventory().setStackInSlot(0, new ItemStack(Items.COAL, 64));
+        helper.setBlock(generatorB, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
+        // Facing north, a pump takes energy on its west side, where the cable runs.
+        helper.setBlock(pumpA, facing(MachineContent.ELECTRIC_PUMP.get(), Direction.NORTH));
+        helper.setBlock(pumpB, facing(MachineContent.ELECTRIC_PUMP.get(), Direction.NORTH));
+        UtilityDuctBlockEntity ductB = helper.getBlockEntity(new BlockPos(7, 2, 3));
+        ductB.setChannel(Line.ENERGY, Direction.WEST, 1);
+        ductB.setChannel(Line.ENERGY, Direction.EAST, 1);
+
+        helper.runAfterDelay(60, () -> {
+            PoweredMachineBlockEntity a = helper.getBlockEntity(pumpA);
+            PoweredMachineBlockEntity b = helper.getBlockEntity(pumpB);
+            helper.assertTrue(a.energyStorage().getEnergyStored() > 0, "pump A on channel 1 should receive energy");
+            helper.assertTrue(b.energyStorage().getEnergyStored() == 0,
+                    "pump B on channel 2 must stay empty, got " + b.energyStorage().getEnergyStored());
+            helper.succeed();
+        });
+    }
+
     /** The Electric Pump is crafted by hand from a Burner Pump, iron, copper and redstone; no assembler, no research. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void electricPumpIsHandCrafted(GameTestHelper helper) {
