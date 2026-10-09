@@ -28,8 +28,8 @@ Each task:
 | Field | Type | Default | Meaning |
 |---|---|---|---|
 | `id` | string | required | Unique within the chapter, shown in `/servus_manufacturing journal`. |
-| `event` | string | required | `calcine` (items calcined), `principle` (mB of a principle made) or `coagulate` (items coagulated). |
-| `filter` | string | any | An item id or `#tag` for `calcine` and `coagulate`, a principle (`salt`, `sulfur`, `mercury`) for `principle`. |
+| `event` | string | required | `calcine` (items calcined), `principle` (mB of a principle made), `coagulate` (items coagulated) or `athanor` (Athanor crafts). |
+| `filter` | string | any | An item id or `#tag` for item events, a principle (`salt`, `sulfur`, `mercury`) for `principle`, or `tier:<name>` for `athanor`. |
 | `count` | int | 1 | How much the task needs. 1 makes it a first time task. |
 
 Only machines placed by a player count, for that player's team at the time of placing.
@@ -43,7 +43,7 @@ A finished chapter grants the advancement `<namespace>:journal/<chapter>`. The j
 | Chapter | Parent | Tasks |
 |---|---|---|
 | `villach` | none | `calcine` 100, `principle` salt 1,000, `coagulate` `servus_manufacturing:salt_crystal` 1 |
-| `schwaz` | `villach` | none yet |
+| `schwaz` | `villach` | `athanor` `tier:albedo` 1 |
 
 ## Locked recipes
 

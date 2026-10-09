@@ -13,5 +13,5 @@
 
 - [x] 3.1 `Journal.recordAthanor`, Schwaz's task in `schwaz.json`, the book's Schwaz task page and an Athanor entry text; GameTest that an Albedo craft finishes Schwaz's task for the team. Verify: GameTests green.
 - [x] 3.2 JEI Athanor category. Verify: build.
-- [ ] 3.3 Docs: Manufacturing page (Athanor, tiers, Salt Crystal Block) and a datapack page for Athanor crafts and tiers; regenerated `gamedata.json`. Verify: docs tests and build pass.
-- [ ] 3.4 Full `gradlew build`, `gradlew test`, GameTests of all three mods green, and the client launches with all three mods: feed an Athanor by bucket, craft Blaze Powder, build the ring and see the flame turn white.
+- [x] 3.3 Docs: Manufacturing page (Athanor, tiers, Salt Crystal Block) and a datapack page for Athanor crafts and tiers; regenerated `gamedata.json`. Verify: docs tests and build pass.
+- [ ] 3.4 Full `gradlew build`, `gradlew test`, GameTests of all three mods green, and the client launches with all three mods: feed an Athanor by bucket, craft Blaze Powder, build the ring and see the flame turn white. (Build, unit tests, docs tests and build, and GameTests green in the worktree: Foundation 70, Manufacturing 18, Storage 233. The client part is owed to the play check from main.)

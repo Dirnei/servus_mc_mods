@@ -10,7 +10,7 @@ It requires Servus: Foundation, whose Utility Duct is its pipe and cable. JEI is
 Numbers below are the current defaults. Machine stats and recipes live in datapack JSON and modpacks can change them (see the [datapack reference](/servus_mc_mods/reference/datapack/machines/)).
 
 :::note
-Manufacturing is being rebuilt as alchemy (milestone M9). The Athanor, the Elixir of Sight and the gnome grown ore veins follow in the next changes.
+Manufacturing is being rebuilt as alchemy (milestone M9). The Elixir of Sight and the gnome grown ore veins follow in the next changes.
 :::
 
 ## Paracelsus' Journal
@@ -20,7 +20,7 @@ The journal is the tech tree. Every player gets it at their first login, and it 
 Each chapter of the journal tells part of Paracelsus' life and lists tasks: do something a number of times, or make something for the first time. Your team shares the tasks. When all tasks of a chapter are done, the chapter is finished for the whole team, each member gets its advancement, and the next chapter opens in the book. `/servus_manufacturing journal` shows the progress.
 
 - **Villach** (Nigredo): calcine 100 things, gather 1,000 mB of Salt, coagulate your first Salt Crystal.
-- **Schwaz** (Albedo): opens after Villach; its tasks arrive with the gnomes.
+- **Schwaz** (Albedo): opens after Villach; finish one craft on an Albedo Athanor.
 
 ## The three principles
 
@@ -30,6 +30,9 @@ Salt, Sulfur and Mercury are fluids. They flow through the Fluid Pipe, wait in F
 
 - **Calciner**: burns one item into its principles, for example one cobblestone into 100 mB Salt and 10 mB Mercury in 4 seconds. It takes common matter: cobblestone, stone, dirt, sand, gravel, logs, planks, leaves, saplings, crops, seeds, coal, raw ores, redstone and bones. It holds 4,000 mB of each principle and pushes them out through its Auto and Push sides. 20 FE per tick while working. Bricks, iron, a furnace and a cauldron.
 - **Coagulator**: makes the recipe you pick in its GUI from a fixed amount of each principle, for example a Salt Crystal from 250 mB Salt in 2 seconds. Each principle goes only into its own tank. 20 FE per tick while working. Iron, glass, a cauldron and redstone.
+
+- **Athanor**: the alchemist's furnace and the heart of the lab. Lay an item on it, feed it principles by bucket or pipe, and it burns them into the craft of that item, for example gunpowder and 200 mB Sulfur into Blaze Powder. It needs no FE. The blocks built around it set its stage, shown by its flame: alone it is Nigredo (black); a ring of eight Salt Crystal Blocks on its level makes it Albedo (white), which some crafts need. Bricks, a blast furnace and a cauldron.
+- **Salt Crystal Block**: nine Salt Crystals, and back.
 
 Power, water, voiding surplus and chunk loading come from [Servus: Foundation](/servus_mc_mods/mods/foundation/#machines): the Coal Generator, the Burner and Electric Pump, the Sink and the Chunk Loader.
 
