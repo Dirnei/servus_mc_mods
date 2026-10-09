@@ -377,6 +377,16 @@
         {"item": "servus_manufacturing:coagulator", "count": 1}
       ]
     },
+    "servus_manufacturing:journal": {
+      "type": "minecraft:crafting_shapeless",
+      "inputs": [
+        {"tag": "minecraft:coals", "count": 1},
+        {"item": "minecraft:book", "count": 1}
+      ],
+      "outputs": [
+        {"item": "modonomicon:modonomicon", "count": 1}
+      ]
+    },
     "servus_storage:access_point": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "OCO", "PPP"],
@@ -688,6 +698,9 @@
     "minecraft:coal": 1600
   },
   "items": {
+    "minecraft:book": {
+      "name": "Book"
+    },
     "minecraft:brick": {
       "name": "Brick"
     },
@@ -759,6 +772,9 @@
     },
     "minecraft:stick": {
       "name": "Stick"
+    },
+    "modonomicon:modonomicon": {
+      "name": "Modonomicon"
     },
     "servus_foundation:burner_pump": {
       "name": "Burner Pump"

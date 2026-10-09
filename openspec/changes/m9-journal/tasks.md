@@ -17,7 +17,7 @@
 
 ## 4. The book
 
-- [ ] 4.1 `JournalBookProvider` with Modonomicon's datagen: book, category, an entry per chapter with story, tasks and unlock pages, advancement conditions on later chapters; the book recipe (book + coal) and the first login gift. Verify: data run writes `data/servus_manufacturing/modonomicon/books/journal/...` and the recipe; GameTest that the recipe gives a stack with `modonomicon:book_id` set to the journal.
+- [x] 4.1 `JournalBookProvider` with Modonomicon's datagen: book, category, an entry per chapter with story, tasks and unlock pages, advancement conditions on later chapters; the book recipe (book + coal) and the first login gift. Verify: data run writes `data/servus_manufacturing/modonomicon/books/journal/...` and the recipe; GameTest that the recipe gives a stack with `modonomicon:book_id` set to the journal.
 
 ## 5. Docs and integration
 

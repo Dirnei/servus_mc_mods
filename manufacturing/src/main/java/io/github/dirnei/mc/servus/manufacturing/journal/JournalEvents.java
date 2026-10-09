@@ -29,6 +29,7 @@ public final class JournalEvents {
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             Journal.catchUp(player);
+            JournalBookItem.giveOnce(player);
         }
     }
 }

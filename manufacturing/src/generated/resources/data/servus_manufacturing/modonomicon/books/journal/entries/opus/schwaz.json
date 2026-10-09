@@ -1,0 +1,51 @@
+{
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "category": "opus",
+  "condition": {
+    "type": "modonomicon:advancement",
+    "advancement_id": "servus_manufacturing:journal/villach"
+  },
+  "description": "book.servus_manufacturing.journal.opus.schwaz.description",
+  "hide_while_locked": false,
+  "icon": {
+    "item": "minecraft:iron_pickaxe"
+  },
+  "name": "book.servus_manufacturing.journal.opus.schwaz.name",
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.opus.schwaz.story.text",
+      "title": "book.servus_manufacturing.journal.opus.schwaz.story.title",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.opus.schwaz.tasks.text",
+      "title": "book.servus_manufacturing.journal.opus.schwaz.tasks.title",
+      "use_markdown_in_title": false
+    }
+  ],
+  "parents": [
+    {
+      "draw_arrow": true,
+      "entry": "opus/villach",
+      "line_enabled": true,
+      "line_reversed": false
+    }
+  ],
+  "show_when_any_parent_unlocked": false,
+  "sort_number": 2,
+  "x": 3,
+  "y": 0
+}

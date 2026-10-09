@@ -5,17 +5,23 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
+import com.klikli_dev.modonomicon.api.datagen.LanguageProviderCache;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 final class ServusManufacturingLanguageProvider extends LanguageProvider {
 
-    ServusManufacturingLanguageProvider(PackOutput output) {
+    private final LanguageProviderCache book;
+
+    ServusManufacturingLanguageProvider(PackOutput output, LanguageProviderCache book) {
         super(output, ServusManufacturingIds.MOD_ID, "en_us");
+        this.book = book;
     }
 
     @Override
     protected void addTranslations() {
+        // Texts of the journal, collected by the Modonomicon book provider.
+        book.data().forEach(this::add);
         add(ServusManufacturingBlocks.CALCINER.get(), "Calciner");
         add(ServusManufacturingBlocks.COAGULATOR.get(), "Coagulator");
         add("gui.servus_manufacturing.coagulator.needs", "%s mB %s");

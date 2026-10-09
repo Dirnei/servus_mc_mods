@@ -1,0 +1,28 @@
+{
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "category": "opus",
+  "description": "book.servus_manufacturing.journal.opus.preface.description",
+  "hide_while_locked": false,
+  "icon": {
+    "item": "minecraft:writable_book"
+  },
+  "name": "book.servus_manufacturing.journal.opus.preface.name",
+  "pages": [
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.opus.preface.intro.text",
+      "title": "book.servus_manufacturing.journal.opus.preface.intro.title",
+      "use_markdown_in_title": false
+    }
+  ],
+  "show_when_any_parent_unlocked": false,
+  "sort_number": 0,
+  "x": -5,
+  "y": 0
+}

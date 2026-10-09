@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "tag": "minecraft:coals"
+    }
+  ],
+  "result": {
+    "components": {
+      "modonomicon:book_id": "servus_manufacturing:journal"
+    },
+    "count": 1,
+    "id": "modonomicon:modonomicon"
+  }
+}

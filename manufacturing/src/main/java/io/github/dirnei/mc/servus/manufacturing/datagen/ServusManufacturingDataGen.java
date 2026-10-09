@@ -12,6 +12,9 @@ import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import com.klikli_dev.modonomicon.api.datagen.LanguageProviderCache;
+import com.klikli_dev.modonomicon.api.datagen.NeoBookProvider;
+import io.github.dirnei.mc.servus.manufacturing.datagen.book.JournalBook;
 import net.neoforged.neoforge.common.data.AdvancementProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
@@ -29,7 +32,10 @@ public final class ServusManufacturingDataGen {
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         CompletableFuture<HolderLookup.Provider> lookup = event.getLookupProvider();
 
-        generator.addProvider(event.includeClient(), new ServusManufacturingLanguageProvider(output));
+        // The book provider fills the language cache, so it runs before the language provider writes it.
+        LanguageProviderCache bookLang = new LanguageProviderCache("en_us");
+        generator.addProvider(event.includeServer(), NeoBookProvider.of(event, lookup, new JournalBook(bookLang)));
+        generator.addProvider(event.includeClient(), new ServusManufacturingLanguageProvider(output, bookLang));
         generator.addProvider(event.includeClient(), new ServusManufacturingBlockStateProvider(output, existingFileHelper));
         generator.addProvider(event.includeClient(), new ServusManufacturingItemModelProvider(output, existingFileHelper));
 

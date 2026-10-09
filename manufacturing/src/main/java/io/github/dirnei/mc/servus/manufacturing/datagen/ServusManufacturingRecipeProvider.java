@@ -19,6 +19,8 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import io.github.dirnei.mc.servus.manufacturing.journal.JournalBookItem;
 import net.minecraft.world.item.Items;
 
 final class ServusManufacturingRecipeProvider extends RecipeProvider {
@@ -91,6 +93,13 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .define('C', Items.CAULDRON)
                 .unlockedBy("has_furnace", has(Items.FURNACE))
                 .save(output);
+
+        // Paracelsus' Journal: a book and a piece of coal, the first fire.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, JournalBookItem.create())
+                .requires(Items.BOOK)
+                .requires(ItemTags.COALS)
+                .unlockedBy("has_book", has(Items.BOOK))
+                .save(output, ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal"));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.COAGULATOR.get())
                 .pattern("IGI")

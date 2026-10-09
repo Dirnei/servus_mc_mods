@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
+import io.github.dirnei.mc.servus.manufacturing.journal.JournalBookItem;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalLedger;
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import java.util.Optional;
@@ -238,6 +239,19 @@ public final class AlchemyGameTests {
         // which a mock connection cannot carry.
         AdvancementHolder advancement = level.getServer().getAdvancements().get(Journal.advancementId(VILLACH));
         helper.assertTrue(advancement != null, "the Villach advancement should exist");
+        helper.succeed();
+    }
+
+    /** The journal recipe makes Modonomicon's book item set to Paracelsus' Journal. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void journalRecipeMakesTheJournal(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ItemStack result = level.getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal"))
+                .map(holder -> holder.value().getResultItem(level.registryAccess()))
+                .orElse(ItemStack.EMPTY);
+        helper.assertTrue(!result.isEmpty(), "the journal recipe should exist");
+        helper.assertTrue(ItemStack.isSameItemSameComponents(result, JournalBookItem.create()), "the result should be the journal, got " + result);
+        helper.assertTrue(result.getComponentsPatch().toString().contains("servus_manufacturing:journal"), "the book id should be set, got " + result.getComponentsPatch());
         helper.succeed();
     }
 
