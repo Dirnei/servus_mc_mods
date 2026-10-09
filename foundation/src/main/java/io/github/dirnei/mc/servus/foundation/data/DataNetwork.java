@@ -33,8 +33,9 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 
 /**
- * One data network: connected data nodes (ducts carrying the data line) plus
- * the blocks they touch that expose the production or stock capabilities.
+ * One data network: connected data nodes (ducts carrying the data line and
+ * carriers such as terminals) plus the blocks the ducts touch that expose the
+ * production or stock capabilities. A carrier is a member itself.
  * Members are read through capability caches whose invalidation posts
  * {@link DataEvent.SidesChanged}, so nothing is scanned per tick. Server
  * thread only.
@@ -77,6 +78,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
 
     private final DataMembers members = new DataMembers();
     private final Map<NodePos, Probe[]> probes = new HashMap<>();
+    private final Map<NodePos, Probe> selfProbes = new HashMap<>();
     private final List<Shipment> shipments = new ArrayList<>();
     private final UpkeepBook<BlockPos> upkeep = new UpkeepBook<>();
     private int upkeepTimer;
@@ -102,9 +104,15 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         return members.contains(Conversions.toNodePos(pos));
     }
 
-    /** How many data nodes (ducts carrying the data line) the network has. */
+    /** How many cables (ducts carrying the data line) the network has; carriers do not count. */
     public int cables() {
-        return size();
+        int count = 0;
+        for (NodePos pos : members()) {
+            if (owner().graph().node(pos).map(DataNode::dataCable).orElse(false)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public ServerLevel level() {
@@ -260,8 +268,13 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
 
     @Override
     protected void handle(DataEvent event) {
-        if (event instanceof DataEvent.SidesChanged changed && probes.containsKey(changed.cable())) {
-            readSides(changed.cable());
+        if (event instanceof DataEvent.SidesChanged changed) {
+            if (probes.containsKey(changed.cable())) {
+                readSides(changed.cable());
+            }
+            if (selfProbes.containsKey(changed.cable())) {
+                readSelf(changed.cable());
+            }
         }
     }
 
@@ -273,15 +286,15 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         level = server;
         BlockPos blockPos = Conversions.toBlockPos(pos);
         Runnable invalidated = () -> postTo(server, pos);
+        if (!node.dataCable()) {
+            // A carrier is a member itself and never makes its neighbours members.
+            selfProbes.put(pos, probe(server, blockPos, null, node, invalidated));
+            post(new DataEvent.SidesChanged(pos));
+            return;
+        }
         Probe[] sides = new Probe[6];
         for (Direction direction : Direction.values()) {
-            BlockPos target = blockPos.relative(direction);
-            sides[direction.ordinal()] = new Probe(
-                    cache(ServusFoundationCapabilities.PRODUCTION, server, target, direction, node, invalidated),
-                    cache(ServusFoundationCapabilities.STOCK_PROVIDER, server, target, direction, node, invalidated),
-                    cache(ServusFoundationCapabilities.STOCK_SINK, server, target, direction, node, invalidated),
-                    cache(ServusFoundationCapabilities.DATA_LINK, server, target, direction, node, invalidated),
-                    cache(ServusFoundationCapabilities.UPKEEP, server, target, direction, node, invalidated));
+            sides[direction.ordinal()] = probe(server, blockPos.relative(direction), direction.getOpposite(), node, invalidated);
         }
         probes.put(pos, sides);
         // Neighbours are read on the next tick, never while a chunk is loading.
@@ -291,6 +304,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
     @Override
     protected void onNodeRemoved(NodePos pos, DataNode node) {
         probes.remove(pos);
+        selfProbes.remove(pos);
         members.removeCable(pos);
         shipments.forEach(shipment -> shipment.nodeRemoved(pos));
     }
@@ -300,6 +314,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         if (other instanceof DataNetwork that) {
             members.absorb(that.members);
             probes.putAll(that.probes);
+            selfProbes.putAll(that.selfProbes);
             shipments.addAll(that.shipments);
             that.shipments.clear();
             if (level == null) {
@@ -307,6 +322,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
             }
             // The other mailbox is cleared on disposal, so pending reads are queued here again.
             that.probes.keySet().forEach(cable -> post(new DataEvent.SidesChanged(cable)));
+            that.selfProbes.keySet().forEach(carrier -> post(new DataEvent.SidesChanged(carrier)));
         }
     }
 
@@ -318,16 +334,33 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
             BlockPos targetPos = Conversions.toBlockPos(target);
             boolean member = level != null && node != null && node.dataSideOpen(Conversions.toDirection(side))
                     && level.isLoaded(targetPos)
+                    && !owner().graph().contains(target)
                     && !(level.getBlockEntity(targetPos) instanceof DataNode);
             members.touch(pos, side, target, member ? sides[side.ordinal()].roles() : Set.of());
         }
     }
 
+    /** A carrier's own roles, read from its capabilities without a side. */
+    private void readSelf(NodePos pos) {
+        Probe probe = selfProbes.get(pos);
+        boolean loaded = level != null && level.isLoaded(Conversions.toBlockPos(pos));
+        members.self(pos, loaded ? probe.roles() : Set.of());
+    }
+
+    /** The capability caches of {@code target} seen from {@code face}, null for a block's own capabilities. */
+    private static Probe probe(ServerLevel level, BlockPos target, Direction face, DataNode node, Runnable invalidated) {
+        return new Probe(
+                cache(ServusFoundationCapabilities.PRODUCTION, level, target, face, node, invalidated),
+                cache(ServusFoundationCapabilities.STOCK_PROVIDER, level, target, face, node, invalidated),
+                cache(ServusFoundationCapabilities.STOCK_SINK, level, target, face, node, invalidated),
+                cache(ServusFoundationCapabilities.DATA_LINK, level, target, face, node, invalidated),
+                cache(ServusFoundationCapabilities.UPKEEP, level, target, face, node, invalidated));
+    }
+
     private static <T> BlockCapabilityCache<T, Direction> cache(BlockCapability<T, Direction> capability, ServerLevel level,
-                                                                BlockPos target, Direction direction,
+                                                                BlockPos target, Direction face,
                                                                 DataNode node, Runnable invalidated) {
-        return BlockCapabilityCache.create(capability, level, target, direction.getOpposite(),
-                () -> !node.dataRemoved(), invalidated);
+        return BlockCapabilityCache.create(capability, level, target, face, () -> !node.dataRemoved(), invalidated);
     }
 
     /** Asks the network that owns the node at {@code pos} to read its sides again on the next tick. */

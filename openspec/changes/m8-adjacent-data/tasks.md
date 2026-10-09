@@ -2,7 +2,7 @@
 
 ## 1. Foundation carriers
 
-- [ ] 1.1 `DataNode.dataCable`, `DataCarrier`, `DataMembers.self`, `DataNetwork` self probes, cable count and node skip in `foundation/src/main/java/.../foundation/data/`. Add `DataMembersTest.selfMembershipCountsOnceAndLeaves`. Verify with `gradlew :foundation:build` and `:foundation:runGameTestServer`.
+- [x] 1.1 `DataNode.dataCable`, `DataCarrier`, `DataMembers.self`, `DataNetwork` self probes, cable count and node skip in `foundation/src/main/java/.../foundation/data/`. Add `DataMembersTest.selfMembershipCountsOnceAndLeaves`. Verify with `gradlew :foundation:build` and `:foundation:runGameTestServer`.
 
 ## 2. Storage carriers
 

@@ -74,6 +74,20 @@ class DataMembersTest {
     }
 
     @Test
+    void selfMembershipCountsOnceAndLeaves() {
+        DataMembers members = new DataMembers();
+        members.self(MEMBER, Set.of(DataRole.LINK));
+        members.touch(CABLE_A, Side.EAST, MEMBER, Set.of(DataRole.PRODUCER));
+        assertEquals(1, members.size());
+        assertEquals(EnumSet.of(DataRole.LINK, DataRole.PRODUCER), members.all().get(MEMBER));
+        members.removeCable(MEMBER);
+        assertEquals(EnumSet.of(DataRole.PRODUCER), members.all().get(MEMBER));
+        members.self(OTHER, Set.of(DataRole.LINK));
+        members.self(OTHER, Set.of());
+        assertFalse(members.contains(OTHER));
+    }
+
+    @Test
     void absorbTakesOverTouches() {
         DataMembers members = new DataMembers();
         DataMembers other = new DataMembers();

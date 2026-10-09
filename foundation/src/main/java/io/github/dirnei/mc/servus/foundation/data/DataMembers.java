@@ -18,7 +18,7 @@ import java.util.Set;
  */
 public final class DataMembers {
 
-    /** One cable side touching a member. */
+    /** One cable side touching a member; a null side is a node that is a member itself. */
     private record Touch(NodePos cable, Side side) {
     }
 
@@ -39,11 +39,20 @@ public final class DataMembers {
         byTouch.put(touch, member);
     }
 
-    /** Forgets every touch of a cable, after it left the network. */
+    /**
+     * Sets the roles of a node that is a member itself, such as a terminal
+     * carrying the data network. Empty roles remove it.
+     */
+    public void self(NodePos node, Set<DataRole> roles) {
+        touch(node, null, node, roles);
+    }
+
+    /** Forgets every touch of a cable, its own membership included, after it left the network. */
     public void removeCable(NodePos cable) {
         for (Side side : Side.ALL) {
             untouch(new Touch(cable, side));
         }
+        untouch(new Touch(cable, null));
     }
 
     /** Takes over every touch of another network, after a merge. */
