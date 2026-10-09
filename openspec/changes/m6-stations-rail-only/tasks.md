@@ -2,7 +2,7 @@
 
 ## 1. Connection rule
 
-- [ ] 1.1 Change `storage/src/main/java/.../storage/network/WarehouseConnectionRule.java` so STATION links only to RAIL and STOCK/GARAGE never to STATION; update `storage/src/test/.../network/WarehouseConnectionRuleTest.java` (`stationLinksOnlyToRails`, `stockAndGarageNeverLinkToStations`, symmetry stays). Verify with `gradlew :storage:test`.
+- [x] 1.1 Change `storage/src/main/java/.../storage/network/WarehouseConnectionRule.java` so STATION links only to RAIL and STOCK/GARAGE never to STATION; update `storage/src/test/.../network/WarehouseConnectionRuleTest.java` (`stationLinksOnlyToRails`, `stockAndGarageNeverLinkToStations`, symmetry stays). Verify with `gradlew :storage:test`.
 
 ## 2. GameTests
 

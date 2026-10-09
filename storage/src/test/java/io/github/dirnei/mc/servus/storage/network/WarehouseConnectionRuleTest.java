@@ -45,13 +45,21 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
-    void stationLinksLikeStock() {
+    void stationLinksOnlyToRails() {
         for (Side side : Side.ALL) {
-            assertTrue(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.STOCK));
-            assertTrue(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.STATION));
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.RAIL));
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.RAIL, side, NodeKind.STATION));
-            assertTrue(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, NodeKind.STATION));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.STOCK));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.STATION));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.STATION, side, NodeKind.GARAGE));
+        }
+    }
+
+    @Test
+    void stockAndGarageNeverLinkToStations() {
+        for (Side side : Side.ALL) {
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, NodeKind.STATION));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.STATION));
         }
     }
 
@@ -64,10 +72,9 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
-    void garageLinksLikeAStation() {
+    void garageLinksToStockGaragesAndRails() {
         for (Side side : Side.ALL) {
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.STOCK));
-            assertTrue(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.STATION));
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.GARAGE));
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.RAIL));
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.RAIL, side, NodeKind.GARAGE));
