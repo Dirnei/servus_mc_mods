@@ -10,8 +10,8 @@
 
 ## 3. Schematics and journal
 
-- [ ] 3.1 `AthanorTierData.SHIPPED`; `ServusManufacturingMultiblockProvider` writes `athanor_nigredo` and `athanor_albedo` from `AthanorLayout` and the tier JSON on the classpath; Athanor and Salt Crystal Block pages get their multiblock pages and text; GameTest that both schematics accept their builds; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
-- [ ] 3.2 PLAN.md M9 item 6d; no em dashes
+- [x] 3.1 `AthanorTierData.SHIPPED`; `ServusManufacturingMultiblockProvider` writes `athanor_nigredo` and `athanor_albedo` from `AthanorLayout` and the tier JSON on the classpath; Athanor and Salt Crystal Block pages get their multiblock pages and text; GameTest that both schematics accept their builds; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
+- [x] 3.2 PLAN.md M9 item 6d; no em dashes
 
 ## 4. Integration
 

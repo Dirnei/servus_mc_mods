@@ -23,6 +23,17 @@
       "title": "book.servus_manufacturing.journal.workshop.athanor.machine.title"
     },
     {
+      "type": "modonomicon:multiblock",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "multiblock_id": "athanor_nigredo",
+      "multiblock_name": "book.servus_manufacturing.journal.workshop.athanor.build.title",
+      "show_visualize_button": true,
+      "text": "book.servus_manufacturing.journal.workshop.athanor.build.text"
+    },
+    {
       "type": "modonomicon:crafting_recipe",
       "anchor": "",
       "condition": {
@@ -32,6 +43,17 @@
       "text": "book.servus_manufacturing.journal.workshop.athanor.recipe.text",
       "title1": "",
       "title2": ""
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.athanor.hearth.text",
+      "title": "book.servus_manufacturing.journal.workshop.athanor.hearth.title",
+      "use_markdown_in_title": false
     },
     {
       "type": "modonomicon:text",

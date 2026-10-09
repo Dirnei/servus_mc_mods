@@ -319,6 +319,23 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
+    /** The journal's Athanor schematics accept the hearth and the Albedo ring, anchored on the hearth centre. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorSchematicsMatchTheBuilds(GameTestHelper helper) {
+        com.klikli_dev.modonomicon.api.multiblock.Multiblock nigredo = com.klikli_dev.modonomicon.api.ModonomiconAPI.get()
+                .getMultiblock(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_nigredo"));
+        com.klikli_dev.modonomicon.api.multiblock.Multiblock albedo = com.klikli_dev.modonomicon.api.ModonomiconAPI.get()
+                .getMultiblock(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_albedo"));
+        helper.assertTrue(nigredo != null && albedo != null, "both Athanor schematics should be loaded");
+        unformedAthanor(helper);
+        BlockPos anchor = helper.absolutePos(MACHINE.below());
+        helper.assertTrue(nigredo.validate(helper.getLevel(), anchor) != null, "the hearth schematic accepts the build");
+        helper.assertTrue(albedo.validate(helper.getLevel(), anchor) == null, "the Albedo schematic wants the ring");
+        saltRing(helper);
+        helper.assertTrue(albedo.validate(helper.getLevel(), anchor) != null, "the Albedo schematic accepts the ring");
+        helper.succeed();
+    }
+
     /** Breaking the brick right under a formed Athanor unforms it at once. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void athanorUnformsWithoutTheBrickBelow(GameTestHelper helper) {

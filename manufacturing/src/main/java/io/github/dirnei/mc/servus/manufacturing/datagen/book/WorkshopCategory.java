@@ -153,7 +153,12 @@ final class WorkshopCategory extends CategoryProvider {
                 ServusManufacturingItems.ATHANOR.get(), e -> {
             e.spotlight("machine", ServusManufacturingItems.ATHANOR.get(), "The Athanor",
                     "Lay an item on it, feed it principles, and it burns them into something new.");
+            e.multiblock("build", ServusManufacturingMultiblockProvider.athanor("nigredo"), "The Athanor on its Hearth",
+                    "Set it on 3 by 3 Bricks and use this journal on it. Press Visualize, then click the ground.");
             e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":athanor", "Bricks, a cauldron and a blast furnace.");
+            e.text("hearth", "Its Hearth",
+                    "The Athanor burns only on a hearth: nine Bricks in a square right below it. When the hearth is laid, "
+                            + "use this journal on the Athanor to light it for good. Take a brick away and its fire goes out.");
             e.text("fire", "Its Fire",
                     "Use an item on it to lay it on top. Pour principle buckets on it, or lead pipes to it.\n\n"
                             + "Alone its flame is black: Nigredo. Eight Salt Crystal Blocks in a ring around it, on its own level, "
@@ -186,6 +191,8 @@ final class WorkshopCategory extends CategoryProvider {
             e.spotlight("block", ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block",
                     "Nine Salt Crystals pressed together. Eight of them around the Athanor make its flame white.");
             e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":salt_crystal_block", "Nine Salt Crystals from the Coagulator.");
+            e.multiblock("ring", ServusManufacturingMultiblockProvider.athanor("albedo"), "The White Ring",
+                    "Eight Salt Crystal Blocks around the Athanor on its own level. Press Visualize, then click the ground.");
         });
     }
 

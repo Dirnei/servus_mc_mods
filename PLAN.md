@@ -310,7 +310,7 @@ One change per item, in this order. Nothing is released, so the old content is r
 6b. `m9-calciner-multiblock`: the Calciner as a one block deep brick furnace with Firebox, Ash Pan, Alembic, Receiver and Sulfur Hood, a Fluid Tank column each for Mercury and Sulfur joined by spout and Sulfur Duct, formed with the Journal, fixed ports, no GUI or side configuration, one formed model, a schematic page with Visualize and a Jade tooltip.
 6b2. `m9-salt-leaching`: the Ash Pan gives Ash instead of liquid Salt, and the Purifier leaches Ash with water into liquid Salt; Villach asks to purify once.
 6c. `m9-coagulator-multiblock`: the Coagulator as a build: three Principle Vats (Sulfur, Salt, Mercury from left to right) over the casting table between Stone Bricks, formed with the Journal, the Vats as input ports, items at the table; the recipe GUI stays for now, without the side panel.
-6d. `m9-athanor-multiblock`: the Athanor's structure tiers as journal schematics, formed with the Journal.
+6d. `m9-athanor-multiblock`: the Athanor stands on a 3 by 3 brick hearth and is formed with the Journal; it crafts only when formed; the hearth and every shipped tier are journal schematics with Visualize, generated from the hearth layout and the tier data.
 7. Balance pass and the docs Balance lab on the new data.
 - Later: Citrinitas and Rubedo, Salamanders, Undines and Sylphs, endless works at the end.
 

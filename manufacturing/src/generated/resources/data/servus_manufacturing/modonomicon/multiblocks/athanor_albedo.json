@@ -1,0 +1,33 @@
+{
+  "type": "modonomicon:dense",
+  "mapping": {
+    "0": {
+      "type": "modonomicon:block",
+      "block": "minecraft:bricks"
+    },
+    "A": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:athanor"
+    },
+    "B": {
+      "type": "modonomicon:block",
+      "block": "minecraft:bricks"
+    },
+    "C": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:salt_crystal_block"
+    }
+  },
+  "pattern": [
+    [
+      "CCC",
+      "CAC",
+      "CCC"
+    ],
+    [
+      "BBB",
+      "B0B",
+      "BBB"
+    ]
+  ]
+}

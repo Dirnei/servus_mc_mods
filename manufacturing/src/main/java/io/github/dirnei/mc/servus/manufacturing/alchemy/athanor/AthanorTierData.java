@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -40,6 +41,24 @@ public final class AthanorTierData extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = new GsonBuilder().create();
 
     public static final AthanorTierData INSTANCE = new AthanorTierData();
+
+    /** The tiers Manufacturing ships, by file name; the journal draws a schematic for each. */
+    public static final List<String> SHIPPED = List.of("albedo");
+
+    /** Reads a shipped tier straight from the mod's own resources, for the data generator. */
+    public static TierDef readShipped(String name) {
+        String path = "/data/servus_manufacturing/" + DIRECTORY + "/" + name + ".json";
+        try (var stream = AthanorTierData.class.getResourceAsStream(path)) {
+            if (stream == null) {
+                throw new IllegalStateException("Missing shipped Athanor tier " + path);
+            }
+            JsonElement json = JsonParser.parseReader(new java.io.InputStreamReader(stream, java.nio.charset.StandardCharsets.UTF_8));
+            TierJson tier = TierJson.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
+            return new TierDef(name, tier.tier(), parseColor(tier.color()), tier.blocks());
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("Cannot read shipped Athanor tier " + path, e);
+        }
+    }
 
     private volatile List<TierDef> tiers = List.of();
 

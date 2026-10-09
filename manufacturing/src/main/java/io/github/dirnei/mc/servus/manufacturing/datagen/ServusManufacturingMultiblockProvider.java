@@ -9,6 +9,12 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTierData;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * The multiblocks the journal draws, written from the same layout that forming checks, so the
@@ -60,5 +66,29 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
             coagulator.block(role.symbol(), () -> CoagulatorStructure.expected(role));
         }
         add(COAGULATOR, coagulator.build(false, 1));
+
+        // The Athanor on its hearth, then each shipped tier with every tier below it.
+        athanor("nigredo", List.of());
+        List<AthanorTiers.BlockAt> blocks = new ArrayList<>();
+        for (AthanorTiers.TierDef tier : AthanorTierData.SHIPPED.stream().map(AthanorTierData::readShipped)
+                .sorted(java.util.Comparator.comparingInt(AthanorTiers.TierDef::number)).toList()) {
+            blocks.addAll(tier.blocks());
+            athanor(tier.name(), List.copyOf(blocks));
+        }
+    }
+
+    /** The id of the schematic of the Athanor at {@code stage}, such as {@code nigredo} or {@code albedo}. */
+    public static ResourceLocation athanor(String stage) {
+        return ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_" + stage);
+    }
+
+    private void athanor(String stage, List<AthanorTiers.BlockAt> extra) {
+        AthanorLayout.Schematic schematic = AthanorLayout.schematic(extra);
+        DenseMultiblockBuilder builder = new DenseMultiblockBuilder();
+        for (List<String> layer : schematic.layers()) {
+            builder.layer(layer.toArray(String[]::new));
+        }
+        schematic.mapping().forEach((symbol, id) -> builder.block(symbol, () -> BuiltInRegistries.BLOCK.get(ResourceLocation.parse(id))));
+        add(athanor(stage), builder.build(false, 1));
     }
 }
