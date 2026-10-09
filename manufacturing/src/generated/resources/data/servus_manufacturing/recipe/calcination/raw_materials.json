@@ -1,0 +1,11 @@
+{
+  "type": "servus_manufacturing:calcination",
+  "input": {
+    "count": 1,
+    "tag": "c:raw_materials"
+  },
+  "output": {
+    "mercury": 50,
+    "salt": 150
+  }
+}

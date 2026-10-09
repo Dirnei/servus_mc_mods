@@ -1,0 +1,12 @@
+{
+  "type": "servus_manufacturing:calcination",
+  "input": {
+    "count": 1,
+    "tag": "minecraft:logs"
+  },
+  "output": {
+    "mercury": 10,
+    "salt": 20,
+    "sulfur": 100
+  }
+}

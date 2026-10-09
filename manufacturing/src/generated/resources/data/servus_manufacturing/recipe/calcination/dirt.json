@@ -1,0 +1,12 @@
+{
+  "type": "servus_manufacturing:calcination",
+  "input": {
+    "count": 1,
+    "tag": "minecraft:dirt"
+  },
+  "output": {
+    "mercury": 20,
+    "salt": 50,
+    "sulfur": 20
+  }
+}

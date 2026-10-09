@@ -1,0 +1,11 @@
+{
+  "type": "servus_manufacturing:calcination",
+  "input": {
+    "count": 1,
+    "tag": "c:sands"
+  },
+  "output": {
+    "mercury": 10,
+    "salt": 80
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "servus_manufacturing:calcination",
+  "input": {
+    "count": 1,
+    "tag": "minecraft:leaves"
+  },
+  "output": {
+    "mercury": 20,
+    "sulfur": 40
+  }
+}

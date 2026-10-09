@@ -1,0 +1,10 @@
+{
+  "type": "servus_manufacturing:calcination",
+  "input": {
+    "count": 1,
+    "tag": "c:dusts/redstone"
+  },
+  "output": {
+    "mercury": 100
+  }
+}

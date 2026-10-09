@@ -1,0 +1,12 @@
+{
+  "type": "servus_manufacturing:calcination",
+  "input": {
+    "count": 1,
+    "tag": "c:crops"
+  },
+  "output": {
+    "mercury": 30,
+    "salt": 10,
+    "sulfur": 30
+  }
+}

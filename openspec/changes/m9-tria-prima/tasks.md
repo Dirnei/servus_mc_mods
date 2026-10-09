@@ -13,7 +13,7 @@
 
 ## 3. Calciner
 
-- [ ] 3.1 `CalcinationRecipe`, serializer, recipe type and datagen builder; shipped recipes from design assumption 1 in `ServusManufacturingRecipeProvider`. Verify: data run writes the recipes under `data/servus_manufacturing/recipe/calcination/`.
+- [x] 3.1 `CalcinationRecipe`, serializer, recipe type and datagen builder; shipped recipes from design assumption 1 in `ServusManufacturingRecipeProvider`. Verify: data run writes the recipes under `data/servus_manufacturing/recipe/calcination/`.
 - [ ] 3.2 `CalcinerBlock`, `CalcinerBlockEntity` (powered, one input slot, `PrincipleTanks` in give mode, pushes on Auto and Push sides, waits when a tank is full), `CalcinerMenu`, screen with three gauges, registration, capabilities (item, energy, fluid, production), stats JSON, model, lang, loot, tag, shaped recipe, defaults in `ManufacturingMachines`. GameTests: cobblestone becomes 100 Salt and 10 Mercury; full Salt tank stops the machine without spending energy; a touching Fluid Tank receives principle; diamond refused; production lists the calcination recipes. Verify: build, data run, GameTests green.
 
 ## 4. Coagulator

@@ -1,0 +1,10 @@
+{
+  "type": "servus_manufacturing:calcination",
+  "input": {
+    "count": 1,
+    "tag": "minecraft:coals"
+  },
+  "output": {
+    "sulfur": 200
+  }
+}
