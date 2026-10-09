@@ -136,22 +136,15 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
     }
 
     /**
-     * The shortest packet route from {@code from} to {@code to}: the source
-     * position when it is not a data node, the data nodes, and the target
-     * position when it is not a data node.
+     * The shortest route from {@code from} to {@code to}: the source position
+     * when it is not a data node, the data nodes, and the target position when
+     * it is not a data node. Deliveries are instant; the route only tells
+     * whether both ends are linked and which faces touch the line.
      */
     public Optional<List<NodePos>> packetRoute(BlockPos from, BlockPos to) {
         NodePos source = Conversions.toNodePos(from);
         NodePos target = Conversions.toNodePos(to);
         return route(source, endpoints(source), target);
-    }
-
-    /** A new route for a packet that sits on the data node {@code at}. */
-    public Optional<List<NodePos>> packetRouteFrom(NodePos at, BlockPos to) {
-        if (!owns(at)) {
-            return Optional.empty();
-        }
-        return route(at, Set.of(at), Conversions.toNodePos(to));
     }
 
     private Optional<List<NodePos>> route(NodePos source, Set<NodePos> starts, NodePos target) {
@@ -171,7 +164,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         }).filter(route -> route.size() >= 2);
     }
 
-    /** The data nodes of this network a packet can enter or leave {@code pos} through. */
+    /** The data nodes of this network items can enter or leave {@code pos} through. */
     private Set<NodePos> endpoints(NodePos pos) {
         Set<NodePos> result = new HashSet<>();
         if (owns(pos)) {

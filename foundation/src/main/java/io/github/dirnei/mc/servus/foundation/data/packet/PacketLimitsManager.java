@@ -12,7 +12,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
-/** Loads packet limits from {@code data/<ns>/data/packets.json}. */
+/** Loads the data line limits (the retry interval) from {@code data/<ns>/data/packets.json}. */
 public final class PacketLimitsManager extends SimpleJsonResourceReloadListener {
 
     public static final String DIRECTORY = "data";
@@ -32,14 +32,10 @@ public final class PacketLimitsManager extends SimpleJsonResourceReloadListener 
     protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
         PacketLimits read = PacketLimits.DEFAULTS;
         if (files.get(PACKETS) instanceof JsonObject json) {
-            read = new PacketLimits(
-                    json.has("packet_size") ? json.get("packet_size").getAsInt() : read.size(),
-                    json.has("packet_speed") ? json.get("packet_speed").getAsDouble() : read.blocksPerSecond(),
-                    json.has("retry_interval") ? json.get("retry_interval").getAsInt() : read.retryTicks());
+            read = new PacketLimits(json.has("retry_interval") ? json.get("retry_interval").getAsInt() : read.retryTicks());
         }
         limits = read;
-        ServusFoundation.LOGGER.info("Data packets: {} items, {} blocks per second, retry every {} ticks",
-                read.size(), read.blocksPerSecond(), read.retryTicks());
+        ServusFoundation.LOGGER.info("Data packets: retry every {} ticks", read.retryTicks());
     }
 
     public PacketLimits limits() {

@@ -17,11 +17,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.IItemHandler;
 
 /**
- * Starts deliveries over the data line and finds them again by id. A send
+ * Starts deliveries over the data line and finds them again by id. The data
+ * line is instant: items do not travel, each tick a delivery moves what the
+ * source gives, the target takes and the transfer gates of both allow. A send
  * hands over a stack the caller holds; a move takes items from the source
- * member as each packet leaves. Server thread only.
+ * member only as far as the target accepts them, so items wait at their
+ * source, never in flight. Server thread only.
  */
 public final class DataPackets {
 
@@ -50,11 +54,24 @@ public final class DataPackets {
 
     /** Moves up to {@code amount} items like {@code like} from the member at {@code from} to the member at {@code to}. */
     public static Optional<Delivery> move(ServerLevel level, BlockPos from, BlockPos to, ItemStack like, int amount) {
+        return move(level, from, to, like, amount, null);
+    }
+
+    /**
+     * Like {@link #move(ServerLevel, BlockPos, BlockPos, ItemStack, int)}, but
+     * takes the items from {@code source} instead of the source member's
+     * capabilities, for a member whose public handler does not give items out
+     * (a terminal's input row, a Packing Station's outgoing buffer). The
+     * member at {@code from} still decides the route and its transfer gate.
+     */
+    public static Optional<Delivery> move(ServerLevel level, BlockPos from, BlockPos to, ItemStack like, int amount,
+                                          IItemHandler source) {
         if (like.isEmpty() || amount < 1) {
             return Optional.empty();
         }
         Delivery delivery = create(amount);
-        start(level, from, to, delivery).ifPresent(network -> network.addShipment(Shipment.move(delivery, from, to, like, amount)));
+        start(level, from, to, delivery)
+                .ifPresent(network -> network.addShipment(Shipment.move(delivery, from, to, like, amount, source)));
         return Optional.of(delivery);
     }
 
@@ -63,7 +80,7 @@ public final class DataPackets {
         return Optional.ofNullable(DELIVERIES.get(id));
     }
 
-    /** Settles every packet of every level; called before the server saves on stop. */
+    /** Settles every running delivery of every level; called before the server saves on stop. */
     public static void settleAll(MinecraftServer server) {
         for (ServerLevel level : server.getAllLevels()) {
             NetworkManager.of(level).set(DataNetwork.TYPE).networks().forEach(DataNetwork::settleAll);

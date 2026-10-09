@@ -31,7 +31,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
- * Packets over the data line between a Warehouse Controller (a crate of
+ * Deliveries over the data line between a Warehouse Controller (a crate of
  * planks beside it) and a Crafting Station: controller at x 2, six data
  * ducts at x 3 to 8, station at x 9, all at y 1, z 3.
  */
@@ -105,7 +105,7 @@ public final class DataPacketGameTests {
                 .orElseThrow(() -> new AssertionError("the move should start"));
     }
 
-    /** Sixteen planks move from the warehouse into the station in two packets. */
+    /** Sixteen planks move from the warehouse into the station. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void packetMoveControllerToStation(GameTestHelper helper) {
         Setup setup = setup(helper, true);
@@ -120,37 +120,32 @@ public final class DataPacketGameTests {
         });
     }
 
-    /** Seven blocks at four per second take 35 ticks. */
+    /** The data line is instant: eight planks arrive within the first ticks, distance does not matter. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void packetTravelTime(GameTestHelper helper) {
+    public static void packetMoveIsInstant(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         helper.runAfterDelay(2, () -> {
             Delivery delivery = move(helper, CONTROLLER, STATION, Items.OAK_PLANKS, 8);
-            helper.runAfterDelay(30, () -> helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 0,
-                    "the packet should still be on the way after 30 ticks"));
-            helper.runAfterDelay(42, () -> {
-                helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 8, "the packet should have arrived after 42 ticks");
-                helper.assertTrue(delivery.state() == Delivery.State.DONE, "delivery done");
+            helper.runAfterDelay(2, () -> {
+                helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 8, "8 planks should have arrived after 2 ticks");
+                helper.assertTrue(delivery.state() == Delivery.State.DONE, "delivery done, " + delivery);
                 helper.succeed();
             });
         });
     }
 
-    /** A sent stack of 20 travels as 8, 8 and 4, one packet at a time. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void packetSendSplits(GameTestHelper helper) {
+    /** A sent stack of 20 arrives at once between members that are no gates. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void packetSendArrivesAtOnce(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         helper.runAfterDelay(2, () -> {
             Delivery delivery = DataPackets.send(helper.getLevel(), helper.absolutePos(CONTROLLER), helper.absolutePos(STATION),
                     new ItemStack(Items.OAK_PLANKS, 20)).orElseThrow();
-            helper.runAfterDelay(45, () -> helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 8,
-                    "only the first packet of 8 should have arrived, got " + count(setup.station().inputs(), Items.OAK_PLANKS)));
-            helper.runAfterDelay(80, () -> helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 16,
-                    "two packets after 80 ticks"));
-            helper.succeedWhen(() -> {
+            helper.runAfterDelay(2, () -> {
                 helper.assertTrue(delivery.state() == Delivery.State.DONE && delivery.delivered() == 20, "all 20 delivered, " + delivery);
                 helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 20, "20 planks in the station");
                 helper.assertTrue(setup.crate().count(0) == 32, "a send takes nothing from the warehouse");
+                helper.succeed();
             });
         });
     }
@@ -165,8 +160,9 @@ public final class DataPacketGameTests {
         }
         helper.runAfterDelay(2, () -> {
             Delivery delivery = move(helper, CONTROLLER, STATION, Items.OAK_PLANKS, 8);
-            helper.runAfterDelay(45, () -> {
+            helper.runAfterDelay(10, () -> {
                 helper.assertTrue(delivery.delivered() == 3 && !delivery.ended(), "3 delivered and 5 waiting, " + delivery);
+                helper.assertTrue(setup.crate().count(0) == 29, "the 5 waiting planks stay in the crate, got " + setup.crate().count(0));
                 inputs.setStackInSlot(1, ItemStack.EMPTY);
                 helper.runAfterDelay(25, () -> {
                     helper.assertTrue(delivery.state() == Delivery.State.DONE && delivery.delivered() == 8, "all 8 delivered after the retry, " + delivery);
@@ -228,37 +224,52 @@ public final class DataPacketGameTests {
         });
     }
 
-    /** Breaking a duct on the route sends the packet round a detour. */
+    /** Breaking a duct while a move waits for room lets the rest go round a detour. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void packetDetourArrives(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         data(helper, new BlockPos(4, 1, 4));
         data(helper, new BlockPos(5, 1, 4));
         data(helper, new BlockPos(6, 1, 4));
+        ItemStackHandler inputs = fillInputs(setup, 3);
         helper.runAfterDelay(2, () -> {
             Delivery delivery = move(helper, CONTROLLER, STATION, Items.OAK_PLANKS, 8);
             helper.runAfterDelay(6, () -> helper.setBlock(new BlockPos(5, 1, 3), Blocks.AIR.defaultBlockState()));
+            helper.runAfterDelay(10, () -> inputs.setStackInSlot(1, ItemStack.EMPTY));
             helper.succeedWhen(() -> {
                 helper.assertTrue(delivery.state() == Delivery.State.DONE && delivery.delivered() == 8, "delivered by the detour, " + delivery);
-                helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 8, "8 planks in the station");
+                helper.assertTrue(setup.crate().count(0) == 24, "8 planks left the crate, " + setup.crate().count(0));
             });
         });
     }
 
-    /** Breaking the only route keeps all planks: they land in the station, the warehouse or on the ground. */
+    /** Breaking the only route fails the move; what it has not moved stays in the warehouse. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void packetBrokenRouteKeepsItems(GameTestHelper helper) {
         Setup setup = setup(helper, true);
+        fillInputs(setup, 3);
         helper.runAfterDelay(2, () -> {
             Delivery delivery = move(helper, CONTROLLER, STATION, Items.OAK_PLANKS, 8);
-            helper.runAfterDelay(6, () -> helper.setBlock(new BlockPos(5, 1, 3), Blocks.AIR.defaultBlockState()));
+            helper.runAfterDelay(6, () -> {
+                helper.assertTrue(delivery.delivered() == 3 && !delivery.ended(), "3 moved before the break, " + delivery);
+                helper.setBlock(new BlockPos(5, 1, 3), Blocks.AIR.defaultBlockState());
+            });
             helper.runAfterDelay(15, () -> {
                 helper.assertTrue(delivery.state() == Delivery.State.FAILED && delivery.reason() == DeliveryReason.ROUTE_BROKEN,
                         "the delivery should fail with route broken, " + delivery);
-                int total = setup.crate().count(0) + count(setup.station().inputs(), Items.OAK_PLANKS) + dropped(helper, Items.OAK_PLANKS);
-                helper.assertTrue(total == 32, "all 32 planks should still exist, got " + total);
+                helper.assertTrue(setup.crate().count(0) == 29, "29 planks stay in the crate, got " + setup.crate().count(0));
+                helper.assertTrue(dropped(helper, Items.OAK_PLANKS) == 0, "nothing is dropped");
                 helper.succeed();
             });
         });
+    }
+
+    /** Fills the station's inputs with planks, leaving room for {@code room} in the first slot. */
+    private static ItemStackHandler fillInputs(Setup setup, int room) {
+        ItemStackHandler inputs = setup.station().inputs();
+        for (int slot = 0; slot < inputs.getSlots(); slot++) {
+            inputs.setStackInSlot(slot, new ItemStack(Items.OAK_PLANKS, slot == 0 ? 64 - room : 64));
+        }
+        return inputs;
     }
 }

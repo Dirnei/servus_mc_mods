@@ -30,6 +30,9 @@ public final class ServusFoundationCapabilities {
     public static final BlockCapability<UpkeepHolder, Direction> UPKEEP =
             BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "upkeep"), UpkeepHolder.class);
 
+    public static final BlockCapability<TransferGate, Direction> TRANSFER_GATE =
+            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "transfer_gate"), TransferGate.class);
+
     private ServusFoundationCapabilities() {
     }
 }
