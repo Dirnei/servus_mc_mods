@@ -2,7 +2,7 @@
 
 ## 1. Tiers
 
-- [ ] 1.1 Pure `AthanorTiers` with `TierDef` and `BlockAt` in `manufacturing/.../alchemy/athanor`, JUnit `AthanorTiersTest` (no tiers gives 0, full ring gives 1, missing lower tier block blocks higher tiers, gaps in numbers). Verify: `gradlew test`.
+- [x] 1.1 Pure `AthanorTiers` with `TierDef` and `BlockAt` in `manufacturing/.../alchemy/athanor`, JUnit `AthanorTiersTest` (no tiers gives 0, full ring gives 1, missing lower tier block blocks higher tiers, gaps in numbers). Verify: `gradlew test`.
 - [ ] 1.2 `AthanorTierData` reload listener, shipped `albedo.json`, Salt Crystal Block (block, item, model, loot, tag, lang, 9 to 1 and 1 to 9 recipes). Verify: build, data run.
 
 ## 2. Athanor
