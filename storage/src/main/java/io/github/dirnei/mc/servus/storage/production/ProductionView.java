@@ -122,8 +122,11 @@ public final class ProductionView {
             ItemStack output = current.output();
             int perCraft = output.isEmpty() ? 0 : output.getCount();
             int done = output.isEmpty() ? 0 : JobStatus.craftsDone(current.collected(ItemKey.of(output)), perCraft, current.batches());
+            String sending = current.handing().map(handing -> handing.key().stack(1).getHoverName().getString()).orElse("");
+            String sendingTo = current.handing().map(handing -> machineName(level, handing.target())).orElse("");
             step = new JobStatus.Step(machineName(level, current.producer()), lower(current.state()), current.reason(),
-                    verb(level, current.recipe().id()), done, current.batches(), outOfFuel(level, current.producer()));
+                    verb(level, current.recipe().id()), done, current.batches(), outOfFuel(level, current.producer()),
+                    sending, sendingTo);
         }
         JobStatus.Status status = JobStatus.of(state, order.reason(), missingName, missingCount, step);
         return new JobRow(cpu, order.id(), key.stack(1), order.amount(), crafted, state, order.open() ? -1 : order.doneAt(),

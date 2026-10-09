@@ -47,6 +47,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.production.job.waiting_machine", "Waiting for %s");
         add("gui.servus_storage.production.job.delivering", "%s: getting ingredients");
         add("gui.servus_storage.production.job.working", "%s: %s %s of %s");
+        add("gui.servus_storage.production.job.sending", "%s: sending %s to %s");
         add("gui.servus_storage.production.job.cancel", "Cancel this job");
         add("gui.servus_storage.production.verb.crafting", "crafting");
         add("gui.servus_storage.production.verb.smelting", "smelting");

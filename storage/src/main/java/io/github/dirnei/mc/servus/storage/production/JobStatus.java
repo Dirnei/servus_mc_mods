@@ -22,8 +22,15 @@ public final class JobStatus {
      * @param done      crafts finished
      * @param total     crafts of the step
      * @param outOfFuel whether the producer keeps upkeep and holds none
+     * @param sending   the item the step hands straight to the next step's producer, empty when none
+     * @param sendingTo the receiving producer's name, empty when none
      */
-    public record Step(String machine, String state, String reason, String verb, int done, int total, boolean outOfFuel) {
+    public record Step(String machine, String state, String reason, String verb, int done, int total, boolean outOfFuel,
+                       String sending, String sendingTo) {
+
+        public Step(String machine, String state, String reason, String verb, int done, int total, boolean outOfFuel) {
+            this(machine, state, reason, verb, done, total, outOfFuel, "", "");
+        }
     }
 
     /** A lang key suffix under {@code gui.servus_storage.production.job.} and its arguments. */
@@ -63,6 +70,9 @@ public final class JobStatus {
         }
         if (!current.reason().isEmpty()) {
             return new Status("blocked", List.of(current.reason()));
+        }
+        if (!current.sending().isEmpty()) {
+            return new Status("sending", List.of(current.machine(), current.sending(), current.sendingTo()));
         }
         return switch (current.state()) {
             case "waiting_station" -> new Status("waiting_machine", List.of(current.machine()));

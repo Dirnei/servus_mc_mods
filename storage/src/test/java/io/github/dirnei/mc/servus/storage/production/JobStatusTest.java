@@ -14,6 +14,13 @@ class JobStatusTest {
     }
 
     @Test
+    void sendingNamesTarget() {
+        Step sending = new Step("Furnace (adapter)", "producing", "", "smelting", 1, 2, false, "Stone", "Crafting Station");
+        assertEquals(new Status("sending", List.of("Furnace (adapter)", "Stone", "Crafting Station")),
+                JobStatus.of("running", "", "", 0, sending));
+    }
+
+    @Test
     void doneAndCancelled() {
         assertEquals(new Status("done", List.of()), JobStatus.of("done", "", "", 0, null));
         assertEquals(new Status("cancelled", List.of()), JobStatus.of("cancelled", "", "", 0, step("producing", "", false)));

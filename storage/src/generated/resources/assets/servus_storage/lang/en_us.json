@@ -47,6 +47,7 @@
   "gui.servus_storage.production.job.missing": "Waiting: %s %s missing",
   "gui.servus_storage.production.job.out_of_fuel": "Waiting: %s out of fuel",
   "gui.servus_storage.production.job.running": "Running",
+  "gui.servus_storage.production.job.sending": "%s: sending %s to %s",
   "gui.servus_storage.production.job.waiting_cpu": "Waiting for a CPU",
   "gui.servus_storage.production.job.waiting_machine": "Waiting for %s",
   "gui.servus_storage.production.job.working": "%s: %s %s of %s",
