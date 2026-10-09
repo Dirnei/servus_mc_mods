@@ -4,8 +4,8 @@ A family of NeoForge mods for Minecraft 1.21.1, built to fit packs like ATM10 bu
 
 | Mod | Mod ID | Purpose |
 |---|---|---|
-| Servus: Foundation | `servus_foundation` | Base of the family: shared APIs, network graph, tick mailbox, the Utility Duct (item, energy, fluid and later data lines) with facades, the Fluid Tank, Configuration Carrot (the wrench role), goggles, config helpers |
-| Servus: Manufacturing | `servus_manufacturing` | Factorio style resource production with its own tech tree |
+| Servus: Foundation | `servus_foundation` | Base of the family: shared APIs, network graph, tick mailbox, the Utility Duct (item, energy, fluid and data lines) with facades, the Fluid Tank, pumps, the Sink, the Chunk Loader, the Coal Generator, Configuration Carrot (the wrench role), goggles, config helpers |
+| Servus: Manufacturing | `servus_manufacturing` | Alchemy after Paracelsus: the three principles, gnome grown ore veins, the Athanor and his journal as the tech tree |
 | Servus: Storage | `servus_storage` | In-world warehouse storage that scales to shuttles, autocrafting and wireless access |
 
 Manufacturing and Storage depend only on Servus: Foundation and never on each other. When both are installed, extra features light up through the Foundation API. Decided in M8: Servus Lib and Servus: Logistics were merged into Servus: Foundation, so every mod gets the ducts and the data line can live in the Utility Duct.
@@ -53,48 +53,50 @@ Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.se
 
 ### 2.1 Servus: Manufacturing
 
-**Core idea:** infinite resource deposits plus a factory you design and balance. Growth comes from research and scaling throughput, Factorio style.
+**Core idea:** alchemy after Paracelsus. Matter is split into the three principles, Salt, Sulfur and Mercury, and products are made again from them. Paracelsus' elemental spirits do the work, and gnomes grow ore veins instead of the world generating them. The story is Paracelsus' own life, told by his journal, which is also the tech tree.
 
-Decisions already made:
-- Deposits are **visible, infinite patches** in the world (iron, copper, coal, stone at Tier 1). No depletion, no drift. You pick a site once and keep it forever.
-- Machines have **fixed speeds and clean ratios** so players can plan builds.
-- **Own tech tree**, standalone. No dependency on items from other mods.
-- Progression is gated by **research packs** consumed over time by a Research Lab.
-- Research progress is **per team** (FTB Teams if present, otherwise per player).
-- **FE** is the energy standard. The mod ships its own generators so it works without other mods.
-- Techs, packs, recipes and deposit definitions are **datapack driven** so modpack authors can retune them.
-- Production must work **overnight while chunk loaded**. A chunk loader upgrade with FE upkeep and a config cap per player/team is planned. Respect FTB Chunks if present.
+Decided in the alchemy rethink (replaces the Factorio style design of M2 and M3, which nothing released depends on):
+- **Two audiences, one path.** Nothing forces a factory, everything rewards one. A casual player does alchemy with a handful of blocks and buckets; a planner pipes the principles, balances the ratios and lets the Crafting CPU order. Both reach the same chapters. No task ever asks for a sustained throughput.
+- **Tria Prima.** The Calciner splits matter into Salt, Sulfur and Mercury, three fluids that travel through the Fluid Pipe and wait in Fluid Tanks. The Coagulator makes products from a fixed ratio of the three. Every input and every product has its own ratio, so surplus of one principle is normal and goes to the Sink or to a later converter. In Nigredo the Calciner takes almost anything (cobble, wood, dirt, ore), so the early game needs no ore source but the pickaxe.
+- **No world generation.** Modded packs have ores enough. The deposit worldgen of M2 goes away.
+- **Gnomes grow the veins.** A Gnome Hollow is seeded with a sample of an ore, matched by tag (`c:ores/iron`, `c:ores/osmium`, ...), so ores of other mods can be grown too. The vein ripens over time while it is fed principles (mostly Salt, the body of metals). A bound gnome then works the mature vein at a fixed rate forever. In Paracelsus' time miners believed metals grow in the earth like plants; this is that belief made real. Seeds are gated by stage (iron and copper early, gold and diamond late).
+- **Elemental Sight.** Paracelsus' elementals live in their element as we live in air, unseen. A Gnome Hollow looks like a plain block. Only under Elemental Sight are the ore buds in the rock around it, the working gnome and the ripeness shown, drawn on the client like the duct overlay; the server keeps only data (vein, ripeness, rate) and never changes a block. Ducts and the data cable reach the Hollow without sight. The sight comes from the **Elixir of Sight**, brewed from the principles.
+- **The four elementals** are the workforce: Gnomes (earth: veins), Salamanders (fire), Undines (water), Sylphs (air). Gnomes come first; what the others do is decided with their stages.
+- **Stages of the Great Work** replace the pack tiers: Nigredo (black), Albedo (white), Citrinitas (yellow), Rubedo (red).
+- **The Athanor** is the heart of the lab, like the Blood Altar of Blood Magic. Important crafts happen on it (the Elixir of Sight, vein seeds, stage items): the item lies on top and the Athanor draws principles from its tank over time while its flame burns. It is fed by bucket or by Fluid Pipe. Its tier is the structure built around it, one ring or part per stage (example: Salt Crystal blocks for Albedo, Sulfur pillars for Citrinitas, Mercury basins and the Stone for Rubedo), and its flame takes the stage's colour. The tier of the structure is the stage gate: there is no separate stage item and no stored stage progress.
+- **The journal is the tech tree.** A Modonomicon book, Paracelsus' journal, with one chapter per part of his life (Villach, Schwaz, the wandering years, Basel, Salzburg). A chapter lists tasks of two kinds only: do something N times, or make something for the first time. When all tasks of a chapter are done, the chapter text appears and its recipes unlock. No Research Lab and no packs: Paracelsus held experience over books. Chapter progress is per team (FTB Teams if present, otherwise per player); the team, sync and recipe unlock code of the M2 research is reused.
+- **Modonomicon** is a hard dependency of Manufacturing. Its NeoForge 1.21.1 Maven artifact is verified before the journal design is written.
+- **FE** stays the energy standard. The Coal Generator moves to Foundation, so every Servus mod has an FE source.
+- Machines have **fixed speeds and clean ratios** so players can plan builds. Alchemy machines expose the production capability and join the data cable, so the Crafting CPU orders "64 iron ingots" without caring that it is alchemy.
+- Principle ratios, recipes, vein seeds, ripening, journal tasks and Athanor structures are **datapack driven** so modpack authors can retune them.
 - Ducts and cables come from Servus: Foundation (the Utility Duct). Machines also push output into adjacent inventories.
 - Every machine and station configures its six sides the same way: Auto, Input, Output, Both, Pull, Push and Off from one shared side panel beside the GUI. The Configuration Carrot cycles the clicked face, and the modes are drawn on the block as coloured frames, with glyphs while the carrot is in hand.
 
-**Tier 1 content (first playable slice)**
+Prior art to stay apart from: Theurgy also works with Sulfur, Salt and Mercury, on single items in small setups. Servus stays factory scale, with grown veins, the elementals as workforce, Paracelsus' life as the story and production on demand through the Crafting CPU.
 
-| Machine | Rate | Power |
+**Story outline of the journal**
+
+| Stage | Chapter | Story | Unlocks (examples) |
+|---|---|---|---|
+| Nigredo | Villach | his father, metals and the first fire | Calciner, Coagulator, Athanor |
+| Albedo | Schwaz | the silver mines, the miners' sickness, the gnomes | Elixir of Sight, Gnome Hollow, iron and copper seeds |
+| Citrinitas | Wandering years | the Tria Prima, "the dose makes the poison", zinc | Salamanders, more seeds |
+| Rubedo | Basel and Salzburg | the burned textbook, his death in 1541 | the Stone, late seeds, endless works |
+
+Historical claims in the journal text are checked again when it is written.
+
+**Nigredo content (first playable slice, examples, numbers in datapack JSON)**
+
+| Block | Does | Power |
 |---|---|---|
-| Burner Extractor | 1 ore per 4 s | burns coal; on a coal deposit keeps a small coal reserve in its fuel slot and pushes only the surplus |
-| Burner Smelter | 1 ingot per 4 s | burns coal |
-| Coal Generator | 40 FE/t | 1 coal per 20 s |
-| Assembler Mk1 | recipe speed x1 | 20 FE/t |
-| Research Lab | consumes packs | 10 FE/t |
-
-Recipes:
-- Iron Gear: 2 iron ingots, 1 s
-- Copper Wire: 1 copper ingot to 2 wire, 0.5 s
-- Red Pack: 1 gear + 2 wire, 5 s
-
-Reference balanced block (1 Red Pack per 5 s): 2 extractors and 2 smelters on iron, 1 extractor and 1 smelter on copper, 1 extractor on coal, 3 assemblers, 1 lab.
-
-First research options: Electric Extractor (2x speed), Crusher (ore to 2 grit), Stone Processing, Logistics (unlocks green pack and Tier 2).
-
-**Pumps** are the first fluid source: a Burner Pump (furnace fuel, hand crafted) and an Electric Pump (FE, faster, made in the assembler after the Electric Extractor research) stand on an infinite water source, a water source block with at least two water source neighbours, and fill an internal water buffer without ever using the water up. They push water out through their sides by the usual side modes, into the Fluid Pipe or a Fluid Tank. Rates and buffer size are datapack numbers (examples: 250 mB and 500 mB per second, 4,000 mB buffer).
-
-**Sink and Chimney** get rid of surplus: the Sink is a 2x2x2 multiblock of eight brick Sink blocks, formed by clicking one side of the cube with the Configuration Carrot. That side becomes the front and shows one big fan behind a grate; breaking any block unforms it. The formed Sink voids items, fluids and FE through the standard capabilities on every outer face except the front, with no side configuration, and from a one slot trash GUI or a bucket by hand. Brick Chimney blocks stacked on any of its four top corners raise its void rate per height (the tallest column counts), and from a configured height on (example 5 blocks) it voids without limit. While it voids, the fan spins and smoke rises from the top of the tallest column. Rate tables per height and the active time are datapack numbers (examples: 4 to 64 items per second, 50 to 800 mB and 100 to 1,600 FE per tick).
-
-**Pack tiers (later):** Mechanical (red), Logistic (green), Chemical (blue), Advanced (purple), Exotic (yellow), plus repeatable infinite research at the end.
+| Calciner | splits one input into its principles, example 1 item per 4 s | FE |
+| Coagulator | makes a product from a principle ratio | FE |
+| Athanor (Nigredo tier) | slow altar crafts that draw principles | none, burns principles |
+| Coal Generator (Foundation) | 40 FE/t, 1 coal per 20 s | burns coal |
 
 ### 2.2 Servus: Foundation
 
-The base mod: the shared API (networks, production and stock capabilities, side config, placement assist, config), the Configuration Carrot, the goggles and the transport content below. It was Servus Lib plus Servus: Logistics until M8.
+The base mod: the shared API (networks, production and stock capabilities, side config, placement assist, config), the Configuration Carrot, the goggles, the transport content and the general utilities below. It was Servus Lib plus Servus: Logistics until M8. Pumps, the Sink, the Chunk Loader and the Coal Generator moved here from Manufacturing in the alchemy rethink, because they are not alchemy and Storage needs them as much: a warehouse voids overflow and runs overnight, and Foundation's fluid line gets its own source. Foundation has no research, so all of them use plain crafting recipes.
 
 
 - **Utility Duct**: one block with several lines (Item Pipe, Power Cable and Fluid Pipe). Each line is placed as its own item and adds to a duct that lacks it.
@@ -106,6 +108,10 @@ The base mod: the shared API (networks, production and stock capabilities, side 
 - The shape follows the lines: thin for one line, thicker for two, thickest for three, arms as thick as the lines that connect there. Lines are removed through the endpoint GUI, not by clicking a part.
 - Networks are cached graphs, rebuilt only on placement or removal, never by walking blocks every tick.
 - **Fluid Tank**: a glass block holding one fluid. Touching tank blocks that fill a complete rectangular box form one tank with a shared content and a capacity of blocks times `capacity_per_block` from data (example 16,000 mB); a group that is not a full box works as single block tanks until it is. Every block stores its own share and the tank network lays the shares out lowest layer first, so forming, splitting and chunk unloads move no fluid. Joined blocks hide glass and frame toward each other through a multipart model. Buckets, an empty hand read out and `IFluidHandler` on every face; a broken block keeps its share in its item.
+- **Pumps** are the first fluid source: a Burner Pump (furnace fuel) and an Electric Pump (FE, faster) stand on an infinite water source, a water source block with at least two water source neighbours, and fill an internal water buffer without ever using the water up. They push water out through their sides by the usual side modes, into the Fluid Pipe or a Fluid Tank. Both are crafted at a crafting table. Rates and buffer size are datapack numbers (examples: 250 mB and 500 mB per second, 4,000 mB buffer).
+- **Sink and Chimney** get rid of surplus: the Sink is a 2x2x2 multiblock of eight brick Sink blocks, formed by clicking one side of the cube with the Configuration Carrot. That side becomes the front and shows one big fan behind a grate; breaking any block unforms it. The formed Sink voids items, fluids and FE through the standard capabilities on every outer face except the front, with no side configuration, and from a one slot trash GUI or a bucket by hand. Brick Chimney blocks stacked on any of its four top corners raise its void rate per height (the tallest column counts), and from a configured height on (example 5 blocks) it voids without limit. While it voids, the fan spins and smoke rises from the top of the tallest column. Rate tables per height and the active time are datapack numbers (examples: 4 to 64 items per second, 50 to 800 mB and 100 to 1,600 FE per tick).
+- **Chunk Loader**: keeps production and warehouses running overnight, with FE upkeep and a config cap per player or team. Respects FTB Chunks if present.
+- **Coal Generator**: the family's FE source so no mod needs another mod for power (example 40 FE/t, 1 coal per 20 s).
 
 ### 2.3 Servus: Storage
 
@@ -170,10 +176,10 @@ The bridge lives in Servus: Foundation as a small API (see section 3).
 2. **Actor pattern without a library.** Each network (duct network, warehouse, factory site) is an object with its own event mailbox. Events: block placed, block removed, machine changed, order created, and so on. Every server tick, each network drains its mailbox and processes events in order. Deterministic and thread safe.
 3. **Heavy work offloaded only when needed.** If something like a huge graph rebuild gets expensive, compute it on an executor from an immutable snapshot and apply the result on the next tick.
 4. **Event driven, not polled.** Own blocks push change events. Foreign inventories (no events) are polled slowly and in batches.
-5. **Data driven content.** Recipes, techs, deposits and balance numbers come from datapack JSON with codecs.
+5. **Data driven content.** Recipes, principle ratios, vein seeds, journal tasks, Athanor structures and balance numbers come from datapack JSON with codecs.
 6. **Capabilities as the integration surface.** Machines and storage expose standard capabilities, so any mod's pipes and cables work.
 7. **Pure logic separated from Minecraft.** Graph algorithms, BOM planning, ratio math, order scheduling live in plain Java classes with no Minecraft types, unit tested with JUnit.
-8. **Persistence:** network and research state in `SavedData`, per chunk deposit data as data attachments, block state in block entities using 1.21 data components and codecs.
+8. **Persistence:** network and journal progress in `SavedData`, block state in block entities using 1.21 data components and codecs.
 
 ### Servus: Foundation API (initial sketch)
 
@@ -212,6 +218,8 @@ Each milestone ends in something playable or testable.
 - Config scaffolding
 
 ### M2: Manufacturing first playable slice
+Built, then superseded by the alchemy rethink (M9). Deposits, extractors, the Burner Smelter, the Assembler, the Research Lab and the packs go away there.
+
 - Deposit blocks and worldgen for iron, copper, coal, stone
 - Burner Extractor, Burner Smelter (fuel handling, fixed rates)
 - Coal Generator (FE)
@@ -225,6 +233,8 @@ Each milestone ends in something playable or testable.
 **Checkpoint: play it.** Is Tier 1 fun? Adjust numbers before building more.
 
 ### M3: Manufacturing Tier 1 completion
+Built. Pumps, Sink and Chunk Loader move to Foundation in M9; the other machines are superseded by the alchemy rethink. The docs site and Balance lab stay.
+
 - Electric Extractor, Crusher, Stone Processing
 - Burner Pump and Electric Pump
 - Sink and Chimney
@@ -283,17 +293,33 @@ One change per item, in this order. Each one builds only on the ones before it a
 13. `m8-storage-terminal` (play test follow-up): the Counter Terminal becomes the Storage Terminal with an Input row that stores what is put in, an Output row for deliveries, and the crafting grid in a popup behind a Craft button.
 - Later: High-Speed Data Cable.
 
-### M9: Wireless and scale
+### M9: Manufacturing becomes alchemy
+One change per item, in this order. Nothing is released, so the old content is removed, not migrated. Each change leaves the game playable:
+1. `m9-foundation-utilities`: Burner and Electric Pump, Sink and Chimney, Chunk Loader and Coal Generator move to Foundation with plain crafting recipes.
+2. `m9-tria-prima`: Salt, Sulfur and Mercury as fluids, the Calciner and the Coagulator with principle ratios from datapack JSON, both on the data cable with the production capability. Removes deposits and their worldgen, the extractors, the Burner Smelter, the Assembler, the Crusher, Stone Processing and the gear, wire and pack items.
+3. `m9-journal`: Modonomicon dependency and Paracelsus' journal, chapters with count and first time tasks per team, chapter completion unlocks recipes. Replaces the Research Lab, packs and techs.
+4. `m9-athanor`: the Athanor with its altar crafts drawing principles and its structure tiers as the stage gate (Nigredo and Albedo first).
+5. `m9-elixir-of-sight`: the Elixir of Sight and the Elemental Sight effect, with the client render hook that shows hidden things only under it.
+6. `m9-gnome-hollow`: vein seeds by ore tag, ripening fed by principles, binding a gnome, a fixed rate forever, the vein drawn only under Elemental Sight, production capability for the Crafting CPU.
+7. Balance pass and the docs Balance lab on the new data.
+- Later: Citrinitas and Rubedo, Salamanders, Undines and Sylphs, endless works at the end.
+
+**Checkpoint: play it.** Is Nigredo to Albedo fun for a casual player and for a planner? Adjust before Citrinitas.
+
+### M10: Wireless and scale
 - Wireless Access Point (replaces the Warehouse Relay idea)
 - Wireless Terminal with range tiers
 - Outbound dock: teleport delivery and courier drone
-- Manufacturing Tier 2 (green pack, steel, circuits)
 
 ---
 
 ## 5. Open decisions
 
-- Tier 2 to 5 content details
+- Citrinitas and Rubedo content, and what Salamanders, Undines and Sylphs do
+- Gnome upkeep: offerings or none, and of what
+- A converter between principles (surplus Sulfur to Salt and so on), or only the Sink
+- Whether too much Elixir of Sight hurts ("the dose makes the poison")
+- Alchemist's Spectacles as a permanent Elemental Sight in a later stage
 - Art style and texture direction (shared look across the family)
 - Final name for the storage mod (Servus: Storage vs Servus: Warehouse)
 
