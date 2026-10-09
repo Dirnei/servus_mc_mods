@@ -29,4 +29,4 @@ None.
 ## Impact
 
 - `storage/.../order/WorkOrder.java` (terminal link, direct count, saved), `storage/.../cpu/CpuBlockEntity.java` (collection), `storage/.../terminal/{TerminalRequests,CounterTerminalBlockEntity}.java`.
-- GameTests in `storage/.../gametest/DirectDeliveryGameTests.java`.
+- GameTests in `storage/.../gametest/CraftingCpuGameTests.java`.

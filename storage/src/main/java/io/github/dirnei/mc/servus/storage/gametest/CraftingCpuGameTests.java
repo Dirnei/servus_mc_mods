@@ -527,4 +527,109 @@ public final class CraftingCpuGameTests {
                     });
         });
     }
+
+    // Direct delivery
+
+    /** Sticks crafted for a request travel straight from the station to the terminal and never enter the warehouse. */
+    @GameTest(template = EMPTY, timeoutTicks = 1000)
+    public static void sticksGoStraightToTerminal(GameTestHelper helper) {
+        setup(helper, true);
+        crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        int[] stockedSticks = {0};
+        helper.onEachTick(() -> {
+            if (helper.getBlockEntity(CONTROLLER) instanceof WarehouseControllerBlockEntity controller) {
+                controller.network().ifPresent(network -> stockedSticks[0] = Math.max(stockedSticks[0], (int) network.available(STICK)));
+            }
+        });
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(STICK, 8);
+            CpuBlockEntity cpu = cpu(helper, CPU_A);
+            WorkOrder order = cpu.book().orders().get(0);
+            helper.assertTrue(helper.absolutePos(TerminalWiring.terminalPos(ACCESS)).equals(order.deliverTo()),
+                    "the order should remember the terminal, got " + order.deliverTo());
+            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8
+                            && cpu.book().orders().stream().noneMatch(WorkOrder::open), 900,
+                    () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK), () -> {
+                        helper.assertTrue(stockedSticks[0] == 0, "no stick should ever be in the warehouse, saw " + stockedSticks[0]);
+                        helper.assertTrue(order.directSent() == 8, "all eight sent directly, got " + order.directSent());
+                        helper.assertTrue(menu.stock().requests().isEmpty(), "the request should be done: " + menu.stock().requests());
+                        helper.succeed();
+                    });
+        });
+    }
+
+    /** Two sticks for a request: one craft gives four, two go to the terminal and two are put away. */
+    @GameTest(template = EMPTY, timeoutTicks = 1000)
+    public static void surplusIsPutAway(GameTestHelper helper) {
+        setup(helper, true);
+        crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(STICK, 2);
+            CpuBlockEntity cpu = cpu(helper, CPU_A);
+            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 2 && warehouse(helper).available(STICK) == 2
+                            && cpu.book().orders().stream().noneMatch(WorkOrder::open), 900,
+                    () -> "two sticks at the terminal and two in storage, had " + terminal.outputCount(Items.STICK)
+                            + " and " + warehouse(helper).available(STICK), () -> {
+                        helper.assertTrue(terminal.outputCount(Items.STICK) == 2, "the terminal gets only what it asked for");
+                        helper.succeed();
+                    });
+        });
+    }
+
+    /** Sticks from planks from logs: the planks go to storage, only the sticks go straight to the terminal. */
+    @GameTest(template = EMPTY, timeoutTicks = 1400)
+    public static void chainDeliversOnlyFinal(GameTestHelper helper) {
+        setup(helper, true);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        patterns.set(1, StationJobs.planks());
+        crate(helper, CRATE_A, Items.OAK_LOG, 2);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        int[] seen = {0, 0};
+        helper.onEachTick(() -> {
+            if (helper.getBlockEntity(CONTROLLER) instanceof WarehouseControllerBlockEntity controller) {
+                controller.network().ifPresent(network -> {
+                    seen[0] = Math.max(seen[0], (int) network.available(PLANKS));
+                    seen[1] = Math.max(seen[1], (int) network.available(STICK));
+                });
+            }
+        });
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            CounterTerminalMenu menu = new CounterTerminalMenu(1, player.getInventory(), terminal);
+            menu.request(STICK, 8);
+            CpuBlockEntity cpu = cpu(helper, CPU_A);
+            TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 1300,
+                    () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK), () -> {
+                        helper.assertTrue(seen[0] > 0, "the planks should pass through storage");
+                        helper.assertTrue(seen[1] == 0, "no stick should be in the warehouse, saw " + seen[1]);
+                        helper.assertTrue(terminal.outputCount(Items.OAK_PLANKS) == 0, "no planks at the terminal");
+                        helper.succeed();
+                    });
+        });
+    }
+
+    /** The terminal link and the direct count are saved with the order. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void deliverToSaved(GameTestHelper helper) {
+        setup(helper, true);
+        crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            CounterTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
+            new CounterTerminalMenu(1, player.getInventory(), terminal).request(STICK, 8);
+            CpuBlockEntity cpu = cpu(helper, CPU_A);
+            int id = cpu.book().orders().get(0).id();
+            CpuBlockEntity loaded = PersistGameTests.reload(helper, cpu.getBlockPos().subtract(helper.absolutePos(BlockPos.ZERO)));
+            WorkOrder order = loaded.book().order(id);
+            helper.assertTrue(order != null && helper.absolutePos(TerminalWiring.terminalPos(ACCESS)).equals(order.deliverTo()),
+                    "the order should still name the terminal after a reload");
+            helper.succeed();
+        });
+    }
 }

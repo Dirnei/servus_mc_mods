@@ -24,7 +24,7 @@ Rejected during apply: deriving `missing` from `requested - delivered - pending 
 `retry` skips a request whose order is open (`hasOpenOrderFor` on its CPU); after the order ends the usual retry ships any rest from stock.
 
 ### Testing
-GameTests in `DirectDeliveryGameTests`: sticks request delivered with the warehouse never holding sticks and the Access Point intake empty; 2 stick request leaves 2 sticks in storage; chain (logs to planks to sticks) puts planks into storage and sticks into the terminal; the order's `deliverTo` survives a save and load.
+GameTests in `CraftingCpuGameTests` (they reuse its setup): sticks request delivered with the warehouse never holding sticks and the Access Point intake empty; 2 stick request leaves 2 sticks in storage; chain (logs to planks to sticks) puts planks into storage and sticks into the terminal; the order's `deliverTo` survives a save and load.
 
 ### PLAN.md open decisions
 None.
