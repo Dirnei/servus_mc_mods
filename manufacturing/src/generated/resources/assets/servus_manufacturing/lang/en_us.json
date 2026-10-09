@@ -47,6 +47,8 @@
   "gui.servus_manufacturing.athanor.stage.rubedo": "Rubedo",
   "gui.servus_manufacturing.coagulator.chapter": "Needs the journal chapter %s",
   "gui.servus_manufacturing.coagulator.needs": "%s mB %s",
+  "gui.servus_manufacturing.coagulator.pick": "Pick a recipe",
+  "gui.servus_manufacturing.coagulator.select": "Select recipe",
   "gui.servus_manufacturing.gnome_hollow.empty": "No vein",
   "gui.servus_manufacturing.gnome_hollow.gnome": "A gnome is at work",
   "gui.servus_manufacturing.gnome_hollow.ripeness": "Ripeness %s / %s",

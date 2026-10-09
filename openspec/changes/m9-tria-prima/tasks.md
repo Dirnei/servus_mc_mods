@@ -20,6 +20,7 @@
 
 - [x] 4.1 `CoagulationRecipe`, serializer, recipe type, datagen builder and the shipped recipes from design assumption 2; items Salt Crystal, Sulfur and Quicksilver with placeholder textures. Verify: data run writes recipes and item models.
 - [x] 4.2 `CoagulatorBlock`, `CoagulatorBlockEntity` (powered, ingredient and output slots, `PrincipleTanks` in accept mode, selected recipe id saved and kept on dismantle), `CoagulatorMenu` with recipe selection by menu button, screen with gauges and a scrolled recipe list, registration, capabilities, stats JSON, model, lang, loot, tag, recipe, defaults. GameTests: piped Salt makes a Salt Crystal; water is refused; missing Mercury waits; selection survives save and load of the block entity; production reports only the selected recipe. Verify: build, data run, GameTests green.
+- [ ] 4.3 Play check follow-up: replace the side recipe list with a select button and a recipe picker popup (`foundation/client/RecipePickerPopup` for reuse, grid of results, visible scrollbar, selected marked, Escape or a click outside closes) in `CoagulatorScreen`; lang keys in the Manufacturing language provider. Verify: build, data run, Manufacturing GameTests green, popup checked in the client.
 
 ## 5. Integration
 

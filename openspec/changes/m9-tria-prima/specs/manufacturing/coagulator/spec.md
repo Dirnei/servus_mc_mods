@@ -14,10 +14,10 @@ A coagulation recipe SHALL be a datapack recipe of type `servus_manufacturing:co
 - **THEN** a Coagulator with that recipe selected and 250 mB Salt makes one Salt Crystal in 2 seconds
 
 ### Requirement: The player picks the recipe
-The Coagulator SHALL run exactly one selected coagulation recipe. Its GUI SHALL list every coagulation recipe with its result and needs, and clicking one SHALL select it. The selection SHALL persist and survive dismantling with the carrot. Without a selection the Coagulator SHALL do nothing.
+The Coagulator SHALL run exactly one selected coagulation recipe. Its GUI SHALL show a select button with the selected recipe's result, or a prompt when none is selected. Clicking the button SHALL open a popup over the GUI with every coagulation recipe as a grid of results and their needs on hover, and clicking one SHALL select it and close the popup. The selection SHALL persist and survive dismantling with the carrot. Without a selection the Coagulator SHALL do nothing.
 
 #### Scenario: Switch recipe
-- **WHEN** the player clicks the Gunpowder recipe in a Coagulator that was making Salt Crystals
+- **WHEN** the player opens the recipe popup of a Coagulator that was making Salt Crystals and clicks Gunpowder
 - **THEN** the Coagulator makes Gunpowder from then on and the selection survives a world reload
 
 ### Requirement: Coagulator works on energy
@@ -35,11 +35,19 @@ The Coagulator SHALL hold one tank per principle (capacity from machine stats, e
 - **THEN** the Salt goes into the Salt tank and the water is refused
 
 ### Requirement: Coagulator GUI
-The Coagulator GUI SHALL show the ingredient and output slots, progress, energy bar, the three principle gauges, the recipe list with the selected recipe marked, and the shared side panel.
+The Coagulator GUI SHALL show the ingredient and output slots, progress, energy bar, the three principle gauges, the recipe select button, and the shared side panel. The recipe popup SHALL mark the selected recipe, SHALL show a scrollbar whenever it holds more recipes than fit, and SHALL close on Escape or a click outside it.
 
 #### Scenario: Selected recipe marked
-- **WHEN** the player opens a Coagulator making Salt Crystals
-- **THEN** the Salt Crystal entry in the list is highlighted
+- **WHEN** the player opens the recipe popup of a Coagulator making Salt Crystals
+- **THEN** the Salt Crystal entry in the popup is highlighted
+
+#### Scenario: More recipes than fit
+- **WHEN** the popup holds more recipes than its visible rows
+- **THEN** a scrollbar shows beside the grid and the mouse wheel or dragging the bar scrolls it
+
+#### Scenario: Close without choosing
+- **WHEN** the player presses Escape or clicks outside the open popup
+- **THEN** the popup closes, the GUI stays open and the selection is unchanged
 
 ### Requirement: Coagulator crafting
 The Coagulator SHALL be crafted at a crafting table from vanilla materials without research.

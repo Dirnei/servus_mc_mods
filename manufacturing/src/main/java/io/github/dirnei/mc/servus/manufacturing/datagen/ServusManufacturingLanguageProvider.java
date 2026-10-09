@@ -26,6 +26,8 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.CALCINER.get(), "Calciner");
         add(ServusManufacturingBlocks.COAGULATOR.get(), "Coagulator");
         add("gui.servus_manufacturing.coagulator.needs", "%s mB %s");
+        add("gui.servus_manufacturing.coagulator.select", "Select recipe");
+        add("gui.servus_manufacturing.coagulator.pick", "Pick a recipe");
         add("gui.servus_manufacturing.coagulator.chapter", "Needs the journal chapter %s");
         add("journal.servus_manufacturing.villach", "Villach");
         add("journal.servus_manufacturing.schwaz", "Schwaz");
