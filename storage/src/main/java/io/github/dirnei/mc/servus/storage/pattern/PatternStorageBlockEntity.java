@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.pattern;
 
+import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.production.ProductionView;
 
@@ -36,6 +37,9 @@ import net.minecraft.world.level.block.Block;
  * patterns travel with the dropped block item.
  */
 public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder, DataLink {
+
+    /** Carries the data network to touching data nodes, like a piece of cable. */
+    private final DataCarrier carrier = new DataCarrier(this);
 
     private final WoodSlot woodSlot = new WoodSlot(this);
 
@@ -231,5 +235,25 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
     @Override
     public ModelData getModelData() {
         return woodSlot.modelData();
+    }
+
+    // Data carrier
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        carrier.join();
+    }
+
+    @Override
+    public void setRemoved() {
+        carrier.leave();
+        super.setRemoved();
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        carrier.leave();
     }
 }

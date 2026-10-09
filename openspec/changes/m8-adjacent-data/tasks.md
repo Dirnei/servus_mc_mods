@@ -6,8 +6,8 @@
 
 ## 2. Storage carriers
 
-- [ ] 2.1 Counter Terminal, Production Terminal, Crafting Station and Pattern Storage block entities hold a `DataCarrier` and join on load, leave on removal and unload; the Crafting CPU carries while formed (`onLoad`, `setBlockState`). Verify with `gradlew build`.
-- [ ] 2.2 GameTests in `storage/.../gametest/AdjacentDataGameTests.java`: `stackWithoutDuctIsOneNetwork`, `craftThroughStack`, `breakingMiddleSplits`, `chestDoesNotConnect`, `accessPointAndAdapterDoNotJoin`, `formedCpuJoinsStack`. Verify with `:storage:runGameTestServer`, `:foundation:runGameTestServer` and `:manufacturing:runGameTestServer` all green.
+- [x] 2.1 Counter Terminal, Production Terminal, Crafting Station and Pattern Storage block entities hold a `DataCarrier` and join on load, leave on removal and unload; the Crafting CPU carries while formed (`onLoad`, `setBlockState`). Verify with `gradlew build`.
+- [x] 2.2 GameTests in `storage/.../gametest/AdjacentDataGameTests.java`: `stackWithoutDuctIsOneNetwork`, `craftThroughStack`, `breakingMiddleSplits`, `chestDoesNotConnect`, `accessPointAndAdapterDoNotJoin`, `formedCpuJoinsStack`. Verify with `:storage:runGameTestServer`, `:foundation:runGameTestServer` and `:manufacturing:runGameTestServer` all green.
 
 ## 3. Docs
 

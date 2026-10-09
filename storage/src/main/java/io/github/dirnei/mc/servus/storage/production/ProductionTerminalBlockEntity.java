@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.production;
 
+import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
@@ -28,6 +29,9 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 
 /** The production overview on the data line. Holds nothing; it only reads the CPUs and producers of its line. */
 public class ProductionTerminalBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, DataLink {
+
+    /** Carries the data network to touching data nodes, like a piece of cable. */
+    private final DataCarrier carrier = new DataCarrier(this);
 
     private final WoodSlot woodSlot = new WoodSlot(this);
 
@@ -116,5 +120,25 @@ public class ProductionTerminalBlockEntity extends BlockEntity implements WoodHo
     @Override
     public ModelData getModelData() {
         return woodSlot.modelData();
+    }
+
+    // Data carrier
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        carrier.join();
+    }
+
+    @Override
+    public void setRemoved() {
+        carrier.leave();
+        super.setRemoved();
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        carrier.leave();
     }
 }

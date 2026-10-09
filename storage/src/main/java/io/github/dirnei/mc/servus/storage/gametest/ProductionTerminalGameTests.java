@@ -128,7 +128,7 @@ public final class ProductionTerminalGameTests {
         helper.runAfterDelay(25, () -> {
             helper.assertTrue(!lit(helper, LONE), "the lamp should stay dark");
             ProductionPayload view = view(helper, LONE);
-            helper.assertTrue(!view.online() && view.reason().equals("no_line"), "offline with no_line, got " + view.reason());
+            helper.assertTrue(!view.online() && view.reason().equals("nothing"), "offline with nothing on its own line, got " + view.reason());
             helper.succeed();
         });
     }

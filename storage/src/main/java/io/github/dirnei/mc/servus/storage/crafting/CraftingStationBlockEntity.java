@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.crafting;
 
+import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.production.ProductionView;
 
@@ -63,6 +64,9 @@ import net.neoforged.neoforge.client.model.data.ModelData;
  * nothing and leftover outputs are pushed into neighbours.
  */
 public class CraftingStationBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, SidedBlockEntity {
+
+    /** Carries the data network to touching data nodes, like a piece of cable. */
+    private final DataCarrier carrier = new DataCarrier(this);
 
     private final WoodSlot woodSlot = new WoodSlot(this);
 
@@ -596,5 +600,25 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     @Override
     public ModelData getModelData() {
         return woodSlot.modelData();
+    }
+
+    // Data carrier
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        carrier.join();
+    }
+
+    @Override
+    public void setRemoved() {
+        carrier.leave();
+        super.setRemoved();
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        carrier.leave();
     }
 }

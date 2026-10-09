@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.cpu;
 
+import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
@@ -59,6 +60,9 @@ import net.neoforged.neoforge.client.model.data.ModelData;
  * when the cube unforms.
  */
 public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink {
+
+    /** Carries the data network to touching data nodes, like a piece of cable. */
+    private final DataCarrier carrier = new DataCarrier(this);
 
     private final WoodSlot woodSlot = new WoodSlot(this);
 
@@ -466,5 +470,34 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     @Override
     public ModelData getModelData() {
         return woodSlot.modelData();
+    }
+
+    // Data carrier
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        carrier.carry(CpuBlock.isFormed(getBlockState()));
+    }
+
+    /** A cube carries the data network while formed; forming and unforming change the block state. */
+    @Override
+    public void setBlockState(BlockState state) {
+        super.setBlockState(state);
+        if (level != null && !level.isClientSide() && !isRemoved()) {
+            carrier.carry(CpuBlock.isFormed(state));
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        carrier.leave();
+        super.setRemoved();
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        carrier.leave();
     }
 }
