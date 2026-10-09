@@ -19,4 +19,4 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full `gradlew build` and `gradlew test` green, Storage GameTests green, `openspec validate m8-terminal-like-rs --strict`.
+- [x] 5.1 Full `gradlew build` and `gradlew test` green, Storage GameTests green, `openspec validate m8-terminal-like-rs --strict`.
