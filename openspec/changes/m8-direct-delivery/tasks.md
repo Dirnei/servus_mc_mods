@@ -9,4 +9,4 @@
 ## 2. Tests and docs
 
 - [x] 2.1 Add to `storage/.../gametest/CraftingCpuGameTests.java` (sticksGoStraightToTerminal, surplusIsPutAway, chainDeliversOnlyFinal, deliverToSaved). Verify with `:storage:runGameTestServer`.
-- [ ] 2.2 Note direct delivery in `docs/src/content/docs/mods/storage.md`; docs tests; full `gradlew build test` green.
+- [x] 2.2 Note direct delivery in `docs/src/content/docs/mods/storage.md`; docs tests; full `gradlew build test` green.
