@@ -68,12 +68,12 @@ public final class StorageTerminalRowsGameTests {
         return crate.count(0);
     }
 
-    /** Cobblestone put into an input slot is stored right away and the slot empties. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    /** Cobblestone put into an input slot is stored over a few seconds and the slot empties. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void inputStores(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             fixture.terminal().input().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 20));
-            TerminalWiring.when(helper, () -> cobble(helper) == 20 && fixture.terminal().input().getStackInSlot(0).isEmpty(), 40,
+            TerminalWiring.when(helper, () -> cobble(helper) == 20 && fixture.terminal().input().getStackInSlot(0).isEmpty(), 150,
                     () -> "the cobblestone should be stored, crate holds " + cobble(helper), helper::succeed);
         });
     }
@@ -182,5 +182,65 @@ public final class StorageTerminalRowsGameTests {
         helper.assertTrue(BuiltInRegistries.ITEM.getKey(ServusStorageItems.STORAGE_TERMINAL.get()).getPath().equals("storage_terminal"),
                 "item id should be storage_terminal");
         helper.succeed();
+    }
+
+    private static int inputCount(StorageTerminalBlockEntity terminal) {
+        int total = 0;
+        for (int slot = 0; slot < terminal.input().getSlots(); slot++) {
+            total += terminal.input().getStackInSlot(slot).getCount();
+        }
+        return total;
+    }
+
+    /** A stack in the Input row leaves at the Packing Station's 8 per second, not all at once. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void inputDrainsGradually(GameTestHelper helper) {
+        setup(helper, true, fixture -> {
+            long start = helper.getTick();
+            fixture.terminal().input().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 64));
+            helper.runAfterDelay(40, () -> {
+                int left = inputCount(fixture.terminal());
+                // At most one second of saved up budget plus two seconds at 8 per second, at least about 1.5 seconds' worth.
+                helper.assertTrue(left >= 64 - 25 && left <= 64 - 10,
+                        "about 16 to 24 cobblestone should have left after 2 seconds, " + left + " left");
+            });
+            TerminalWiring.when(helper, () -> cobble(helper) == 64 && fixture.terminal().input().getStackInSlot(0).isEmpty(), 350,
+                    () -> "all 64 cobblestone should be stored, crate holds " + cobble(helper), () -> {
+                long took = helper.getTick() - start;
+                helper.assertTrue(took >= 120, "64 cobblestone at 8 per second take about 7 seconds, took " + took + " ticks");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A To storage buffer with room for 16 takes 16 of the Input row; the rest waits until there is room again. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void fullToStorageKeepsInput(GameTestHelper helper) {
+        setup(helper, false, fixture -> {
+            io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point =
+                    helper.getBlockEntity(TerminalWiring.packingStationPos(TERMINAL));
+            net.neoforged.neoforge.items.ItemStackHandler buffer = point.buffer();
+            // Nothing can be put away (no crate takes cobblestone or diamonds), so the buffer stays as it is.
+            for (int slot = 0; slot < buffer.getSlots(); slot++) {
+                buffer.setStackInSlot(slot, slot == 0 ? new ItemStack(Items.COBBLESTONE, 48) : new ItemStack(Items.DIAMOND, 64));
+            }
+            for (int slot = 0; slot < fixture.terminal().input().getSlots(); slot++) {
+                fixture.terminal().input().setStackInSlot(slot, new ItemStack(Items.COBBLESTONE, 16));
+            }
+            int handedIn = 16 * fixture.terminal().input().getSlots();
+            helper.runAfterDelay(100, () -> {
+                helper.assertTrue(inputCount(fixture.terminal()) == handedIn - 16,
+                        "only the 16 that fit should leave the Input row, " + inputCount(fixture.terminal()) + " left");
+                helper.assertTrue(buffer.getStackInSlot(0).getCount() == 64, "To storage should be full");
+                buffer.setStackInSlot(1, ItemStack.EMPTY);
+                TerminalWiring.when(helper, () -> inputCount(fixture.terminal()) == handedIn - 80, 200,
+                        () -> "64 more should leave once there is room, " + inputCount(fixture.terminal()) + " left", () -> {
+                    helper.runAfterDelay(40, () -> {
+                        helper.assertTrue(inputCount(fixture.terminal()) == handedIn - 80, "the rest keeps waiting in the Input row");
+                        helper.succeed();
+                    });
+                });
+            });
+        });
     }
 }

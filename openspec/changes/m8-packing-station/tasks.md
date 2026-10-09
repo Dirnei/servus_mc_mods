@@ -16,7 +16,7 @@
 
 ## 4. Terminal input
 
-- [ ] 4.1 `StorageTerminalBlockEntity.storeInput` starts one move per input slot to the nearest Packing Station with an extraction view of the Input row; slots with a running move are skipped; message "No Packing Station on this data line". GameTests `inputDrainsGradually`, `fullToStorageKeepsInput`, existing terminal input tests updated. Verify with build and Storage GameTests.
+- [x] 4.1 `StorageTerminalBlockEntity.storeInput` starts one move per input slot to the nearest Packing Station with an extraction view of the Input row; slots with a running move are skipped; message "No Packing Station on this data line". GameTests `inputDrainsGradually`, `fullToStorageKeepsInput`, existing terminal input tests updated. Verify with build and Storage GameTests.
 
 ## 5. Docs and plan
 

@@ -106,14 +106,14 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
-            if (!storing) {
-                storeSoon = true;
-            }
+            storeSoon = true;
         }
     };
     private final IItemHandler packets = new RoutingHandler();
+    /** The running move of each input slot, or null. */
+    private final Delivery[] inputMoves = new Delivery[TerminalLayout.Storage.ROW_SLOTS];
+    private final IItemHandler[] inputViews = new IItemHandler[TerminalLayout.Storage.ROW_SLOTS];
     private boolean storeSoon;
-    private boolean storing;
     private String inputRefusal;
     private final List<Request> requests = new ArrayList<>();
     private int ticks;
@@ -121,6 +121,9 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
 
     public StorageTerminalBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.STORAGE_TERMINAL.get(), pos, state);
+        for (int i = 0; i < inputViews.length; i++) {
+            inputViews[i] = new InputSlotView(i);
+        }
     }
 
     /** The slots deliveries land in. */
@@ -227,9 +230,11 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     }
 
     /**
-     * Sends the input slots as packets to the nearest Packing Station on the
-     * data line, which puts them away. A stack leaves its slot only when a
-     * delivery takes it; a send that fails at once puts it back.
+     * Moves the input slots over the data line to the nearest Packing Station,
+     * which puts them away. One move per slot takes items out of the slot only
+     * as fast as the station converts them and has room in its To storage
+     * buffer, so the row shrinks over time and keeps what the station cannot
+     * take yet. A slot whose move still runs is left alone.
      */
     public void storeInput(ServerLevel server) {
         storeSoon = false;
@@ -247,22 +252,56 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             return;
         }
         inputRefusal = null;
-        storing = true;
-        try {
-            for (int i = 0; i < input.getSlots(); i++) {
-                ItemStack stack = input.getStackInSlot(i);
-                if (stack.isEmpty()) {
-                    continue;
-                }
-                ItemStack sent = stack.copy();
-                input.setStackInSlot(i, ItemStack.EMPTY);
-                Optional<Delivery> delivery = DataPackets.send(server, worldPosition, point.get(), sent);
-                if (delivery.isEmpty() || delivery.get().state() == Delivery.State.FAILED) {
-                    input.setStackInSlot(i, stack);
-                }
+        for (int i = 0; i < input.getSlots(); i++) {
+            ItemStack stack = input.getStackInSlot(i);
+            if (stack.isEmpty() || inputMoves[i] != null && !inputMoves[i].ended()) {
+                continue;
             }
-        } finally {
-            storing = false;
+            inputMoves[i] = DataPackets.move(server, worldPosition, point.get(), stack.copyWithCount(1), stack.getCount(),
+                    inputViews[i]).orElse(null);
+        }
+    }
+
+    /**
+     * One input slot as a delivery source: items can be taken out (and given
+     * back) only by the move, and only while this terminal exists.
+     */
+    private final class InputSlotView implements IItemHandler {
+
+        private final int slot;
+
+        private InputSlotView(int slot) {
+            this.slot = slot;
+        }
+
+        @Override
+        public int getSlots() {
+            return 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int index) {
+            return isRemoved() ? ItemStack.EMPTY : input.getStackInSlot(slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int index, ItemStack stack, boolean simulate) {
+            return isRemoved() ? stack : input.insertItem(slot, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int index, int amount, boolean simulate) {
+            return isRemoved() ? ItemStack.EMPTY : input.extractItem(slot, amount, simulate);
+        }
+
+        @Override
+        public int getSlotLimit(int index) {
+            return input.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int index, ItemStack stack) {
+            return input.isItemValid(slot, stack);
         }
     }
 
