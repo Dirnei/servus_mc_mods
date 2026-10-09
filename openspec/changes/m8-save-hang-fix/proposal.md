@@ -27,4 +27,4 @@ None.
 ## Impact
 
 - `storage/.../network/WarehouseNetwork.java`.
-- A Storage GameTest for the loaded-only rule.
+- The dedicated server stop check (servus-helpers/stop_check.sh) and the existing Storage GameTests.
