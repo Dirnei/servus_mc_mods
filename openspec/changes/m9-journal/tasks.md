@@ -21,5 +21,5 @@
 
 ## 5. Docs and integration
 
-- [ ] 5.1 Docs: Manufacturing page (journal instead of research), a datapack reference page for journal chapters replacing `techs.md`, regenerated `gamedata.json`. Verify: docs tests and docs build pass.
-- [ ] 5.2 Full `gradlew build`, `gradlew test`, GameTests of all three mods green, and the client launches with all three mods: the journal is given on first login, Villach's tasks finish by calcining and coagulating, the Schwaz entry unlocks.
+- [x] 5.1 Docs: Manufacturing page (journal instead of research), a datapack reference page for journal chapters replacing `techs.md`, regenerated `gamedata.json`. Verify: docs tests and docs build pass.
+- [ ] 5.2 Full `gradlew build`, `gradlew test`, GameTests of all three mods green, and the client launches with all three mods: the journal is given on first login, Villach's tasks finish by calcining and coagulating, the Schwaz entry unlocks. (Build, unit tests, docs tests and build, and GameTests green in the worktree: Foundation 70, Manufacturing 13, Storage 233. The client part, and awarding chapter advancements to real players, are owed to the play check from main.)

@@ -1,0 +1,50 @@
+---
+title: Journal chapters
+description: The chapter JSON of Paracelsus' Journal, the tech tree of Servus Manufacturing.
+sidebar:
+  order: 3
+---
+
+Paracelsus' Journal is Manufacturing's tech tree. A chapter lists tasks; when a team has done all of them, the chapter is finished for the team, every member gets the chapter's advancement and the next chapter opens. Counts on this page are current values; they live in datapack JSON and modpacks can change them.
+
+## File location
+
+```
+data/<namespace>/servus_manufacturing/journal/<chapter>.json
+```
+
+Note the extra `servus_manufacturing` folder. The chapter id is `<namespace>:<chapter>`. Chapters reload with `/reload`.
+
+## Fields
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `parent` | chapter id | none | The chapter that must be finished before this one counts anything. |
+| `order` | int | 0 | Sort order in the journal command. |
+| `tasks` | list | empty | What the chapter asks for. A chapter without tasks never finishes by itself. |
+
+Each task:
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `id` | string | required | Unique within the chapter, shown in `/servus_manufacturing journal`. |
+| `event` | string | required | `calcine` (items calcined), `principle` (mB of a principle made) or `coagulate` (items coagulated). |
+| `filter` | string | any | An item id or `#tag` for `calcine` and `coagulate`, a principle (`salt`, `sulfur`, `mercury`) for `principle`. |
+| `count` | int | 1 | How much the task needs. 1 makes it a first time task. |
+
+Only machines placed by a player count, for that player's team at the time of placing.
+
+## Advancements and the book
+
+A finished chapter grants the advancement `<namespace>:journal/<chapter>`. The journal book unlocks the entry of a chapter when the reader has the advancement of its parent. A pack that adds a chapter adds the advancement (with a single `minecraft:impossible` criterion named `done`) and the book entry as well.
+
+## Built in chapters
+
+| Chapter | Parent | Tasks |
+|---|---|---|
+| `villach` | none | `calcine` 100, `principle` salt 1,000, `coagulate` `servus_manufacturing:salt_crystal` 1 |
+| `schwaz` | `villach` | none yet |
+
+## Locked recipes
+
+A [coagulation recipe](/servus_mc_mods/reference/datapack/recipes/) may name a `chapter`; a Coagulator only lets its owner's team select it after that chapter is finished.

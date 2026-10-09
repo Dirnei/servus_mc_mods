@@ -63,6 +63,7 @@ Built in calcination recipes (80 ticks each):
 | `ingredient` | sized ingredient | none | An item the cycle takes as well. |
 | `result` | item stack | required | `id` and `count` (default 1). |
 | `time` | int | 40 | Ticks per cycle. |
+| `chapter` | chapter id | none | A [journal chapter](/servus_mc_mods/reference/datapack/journal/) the team must have finished before a Coagulator may select this recipe. |
 
 The Coagulator runs only the recipe picked in its GUI.
 
