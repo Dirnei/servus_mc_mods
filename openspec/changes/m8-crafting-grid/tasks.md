@@ -16,7 +16,7 @@
 
 ## 4. Docs
 
-- [ ] 4.1 Storage docs page: crafting grid, Alt click, clear, JEI. Verify with docs `npx vitest run`.
+- [x] 4.1 Storage docs page: crafting grid, Alt click, clear, JEI. Verify with docs `npx vitest run`.
 
 ## 5. Integration
 
