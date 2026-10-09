@@ -1,0 +1,301 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        0,
+        0,
+        3
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        3,
+        16,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        13,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        3,
+        13,
+        0
+      ],
+      "to": [
+        13,
+        16,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bricks"
+        },
+        "east": {
+          "texture": "#bricks"
+        },
+        "north": {
+          "texture": "#bricks"
+        },
+        "south": {
+          "texture": "#bricks"
+        },
+        "up": {
+          "texture": "#bricks"
+        },
+        "west": {
+          "texture": "#bricks"
+        }
+      },
+      "from": [
+        3,
+        0,
+        0
+      ],
+      "to": [
+        13,
+        2,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#embers"
+        },
+        "east": {
+          "texture": "#embers"
+        },
+        "north": {
+          "texture": "#embers"
+        },
+        "south": {
+          "texture": "#embers"
+        },
+        "up": {
+          "texture": "#embers"
+        },
+        "west": {
+          "texture": "#embers"
+        }
+      },
+      "from": [
+        3,
+        2,
+        2
+      ],
+      "to": [
+        13,
+        3,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#crucible"
+        },
+        "east": {
+          "texture": "#crucible"
+        },
+        "north": {
+          "texture": "#crucible"
+        },
+        "south": {
+          "texture": "#crucible"
+        },
+        "up": {
+          "texture": "#crucible"
+        },
+        "west": {
+          "texture": "#crucible"
+        }
+      },
+      "from": [
+        5,
+        3,
+        5
+      ],
+      "to": [
+        11,
+        9,
+        11
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cut"
+        },
+        "east": {
+          "texture": "#cut"
+        },
+        "north": {
+          "texture": "#cut"
+        },
+        "south": {
+          "texture": "#cut"
+        },
+        "up": {
+          "texture": "#cut"
+        },
+        "west": {
+          "texture": "#cut"
+        }
+      },
+      "from": [
+        6,
+        15,
+        6
+      ],
+      "to": [
+        10,
+        20,
+        10
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#stone"
+        },
+        "east": {
+          "texture": "#stone"
+        },
+        "north": {
+          "texture": "#stone"
+        },
+        "south": {
+          "texture": "#stone"
+        },
+        "up": {
+          "texture": "#stone"
+        },
+        "west": {
+          "texture": "#stone"
+        }
+      },
+      "from": [
+        0,
+        14,
+        -1
+      ],
+      "to": [
+        16,
+        16,
+        17
+      ]
+    }
+  ],
+  "textures": {
+    "bricks": "minecraft:block/bricks",
+    "crucible": "minecraft:block/cauldron_side",
+    "cut": "minecraft:block/cut_copper",
+    "embers": "minecraft:block/coal_block",
+    "particle": "minecraft:block/bricks",
+    "stone": "minecraft:block/smooth_stone"
+  }
+}

@@ -1,6 +1,10 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
@@ -10,8 +14,10 @@ import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 
 /**
- * Models of the Calciner parts, built from boxes with vanilla textures. In model space the
- * front faces north, so the player's right when looking at it is west (-x).
+ * Models of the Calciner, built from boxes with vanilla textures. Every block has an unformed
+ * model of its own and a formed piece; the formed pieces overhang into their neighbours so the
+ * whole structure reads as one brick furnace with a copper still. In model space the front faces
+ * north, so the player's right when looking at it is west (-x).
  */
 final class CalcinerModels {
 
@@ -21,6 +27,10 @@ final class CalcinerModels {
     private static final String GLASS = "block/glass";
     private static final String IRON = "block/iron_block";
     private static final String IRON_BARS = "block/iron_bars";
+    private static final String STONE = "block/smooth_stone";
+    private static final String CAULDRON = "block/cauldron_side";
+    private static final String COAL = "block/coal_block";
+    private static final String EMBERS = "block/magma";
 
     private final BlockStateProvider states;
 
@@ -29,31 +39,96 @@ final class CalcinerModels {
     }
 
     void register() {
-        part(ServusManufacturingBlocks.FIREBOX.get(), firebox("calciner_firebox", "block/coal_block"), firebox("calciner_firebox_lit", "block/magma"));
-        ModelFile ashPan = ashPan();
-        part(ServusManufacturingBlocks.ASH_PAN.get(), ashPan, ashPan);
-        ModelFile alembic = alembic();
-        part(ServusManufacturingBlocks.ALEMBIC.get(), alembic, alembic);
-        ModelFile receiver = receiver();
-        part(ServusManufacturingBlocks.RECEIVER.get(), receiver, receiver);
-        ModelFile hood = hood();
-        part(ServusManufacturingBlocks.SULFUR_HOOD.get(), hood, hood);
-        ModelFile shell = states.models().getExistingFile(states.mcLoc("block/bricks"));
-        states.getVariantBuilder(ServusManufacturingBlocks.CALCINER_SHELL.get())
-                .forAllStates(state -> ConfiguredModel.builder().modelFile(shell).build());
+        calciner();
+        ModelFile firebox = firebox("calciner_firebox", COAL);
+        ModelFile fireboxLit = firebox("calciner_firebox_lit", EMBERS);
+        part(ServusManufacturingBlocks.FIREBOX.get(), firebox, fireboxLit, firebox, fireboxLit);
+        ModelFile ashPan = ashPan("calciner_ash_pan", false);
+        ModelFile ashPanFormed = ashPan("calciner_ash_pan_formed", true);
+        part(ServusManufacturingBlocks.ASH_PAN.get(), ashPan, ashPan, ashPanFormed, ashPanFormed);
+        ModelFile alembic = alembic("alembic", false);
+        ModelFile alembicFormed = alembic("alembic_formed", true);
+        part(ServusManufacturingBlocks.ALEMBIC.get(), alembic, alembic, alembicFormed, alembicFormed);
+        ModelFile receiver = receiver("receiver");
+        part(ServusManufacturingBlocks.RECEIVER.get(), receiver, receiver, receiver, receiver);
+        ModelFile hood = hood("sulfur_hood");
+        part(ServusManufacturingBlocks.SULFUR_HOOD.get(), hood, hood, hood, hood);
+        shell();
     }
 
-    /** A part turned by its facing, with a lit model for burning parts. */
-    private void part(Block block, ModelFile unlit, ModelFile lit) {
+    private static int rotation(Direction facing) {
+        return ((int) facing.toYRot() + 180) % 360;
+    }
+
+    /** The mouth: a stone brick box with the old front while unformed, an arch with the crucible when formed. */
+    private void calciner() {
+        ModelFile unlit = states.models().orientable("calciner", states.mcLoc("block/stone_bricks"), states.modLoc("block/calciner_front"),
+                states.mcLoc(STONE));
+        ModelFile lit = states.models().orientable("calciner_lit", states.mcLoc("block/stone_bricks"), states.modLoc("block/calciner_front_lit"),
+                states.mcLoc(STONE));
+        ModelFile formed = mouth("calciner_formed", COAL);
+        ModelFile formedLit = mouth("calciner_formed_lit", EMBERS);
+        Block block = ServusManufacturingBlocks.CALCINER.get();
         states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(state.getValue(CalcinerPartBlock.LIT) ? lit : unlit)
-                .rotationY(((int) state.getValue(CalcinerPartBlock.FACING).toYRot() + 180) % 360)
+                .modelFile(pick(state.getValue(CalcinerBlock.FORMED), state.getValue(MachineBlock.LIT), unlit, lit, formed, formedLit))
+                .rotationY(rotation(state.getValue(MachineBlock.FACING)))
                 .build());
         states.simpleBlockItem(block, unlit);
     }
 
+    private static ModelFile pick(boolean formed, boolean lit, ModelFile unlit, ModelFile litModel, ModelFile formedModel, ModelFile formedLit) {
+        if (formed) {
+            return lit ? formedLit : formedModel;
+        }
+        return lit ? litModel : unlit;
+    }
+
+    /** A part turned by its facing, with lit and formed models. */
+    private void part(Block block, ModelFile unlit, ModelFile lit, ModelFile formed, ModelFile formedLit) {
+        states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(pick(state.getValue(CalcinerPartBlock.FORMED), state.getValue(CalcinerPartBlock.LIT), unlit, lit, formed, formedLit))
+                .rotationY(rotation(state.getValue(CalcinerPartBlock.FACING)))
+                .build());
+        states.simpleBlockItem(block, unlit);
+    }
+
+    /** The bricks of a formed Calciner: a stone cornice on the top row, a stone plinth on the bottom row. */
+    private void shell() {
+        ModelFile top = bricks("calciner_shell_top", true, false);
+        ModelFile middle = bricks("calciner_shell_middle", false, false);
+        ModelFile bottom = bricks("calciner_shell_bottom", false, true);
+        states.getVariantBuilder(ServusManufacturingBlocks.CALCINER_SHELL.get()).forAllStates(state -> {
+            int up = CalcinerLayout.cell(state.getValue(CalcinerShellBlock.CELL)).up();
+            return ConfiguredModel.builder()
+                    .modelFile(up == 0 ? top : up == -1 ? middle : bottom)
+                    .rotationY(rotation(state.getValue(CalcinerShellBlock.FACING)))
+                    .build();
+        });
+    }
+
     private BlockModelBuilder builder(String name) {
         return states.models().withExistingParent(name, states.mcLoc("block/block"));
+    }
+
+    private BlockModelBuilder bricks(String name, boolean cornice, boolean plinth) {
+        BlockModelBuilder model = builder(name).texture("bricks", states.mcLoc(BRICKS)).texture("particle", states.mcLoc(BRICKS));
+        box(model, 0, 0, 0, 16, 16, 16, "#bricks");
+        trim(model, cornice, plinth);
+        return model;
+    }
+
+    /** The stone bands that run along the whole formed furnace, front and back. */
+    private void trim(BlockModelBuilder model, boolean cornice, boolean plinth) {
+        if (!cornice && !plinth) {
+            return;
+        }
+        model.texture("stone", states.mcLoc(STONE));
+        if (cornice) {
+            box(model, 0, 14, -1, 16, 16, 17, "#stone");
+        }
+        if (plinth) {
+            box(model, 0, 0, -1, 16, 2, 17, "#stone");
+        }
     }
 
     /** A brick block with an opening in the front: frame, back wall and sides. */
@@ -81,31 +156,44 @@ final class CalcinerModels {
     }
 
     /** A low drawer with an iron tray, where the Salt gathers. */
-    private ModelFile ashPan() {
-        BlockModelBuilder model = brickFrame("calciner_ash_pan", 1, 7).texture("iron", states.mcLoc(IRON));
-        box(model, 3, 1, 1, 13, 2, 3, "#iron");
-        box(model, 3, 2, 1, 4, 4, 3, "#iron");
-        box(model, 12, 2, 1, 13, 4, 3, "#iron");
+    private ModelFile ashPan(String name, boolean formed) {
+        BlockModelBuilder model = brickFrame(name, 2, 8).texture("iron", states.mcLoc(IRON));
+        box(model, 3, 2, 1, 13, 3, 3, "#iron");
+        box(model, 3, 3, 1, 4, 5, 3, "#iron");
+        box(model, 12, 3, 1, 13, 5, 3, "#iron");
+        trim(model, false, formed);
         return model;
     }
 
-    /** The copper still head that catches the vapour. */
-    private ModelFile alembic() {
-        BlockModelBuilder model = builder("alembic")
+    /** The formed mouth: an arch over the crucible, embers below it, a copper collar up into the Alembic. */
+    private ModelFile mouth(String name, String embers) {
+        BlockModelBuilder model = brickFrame(name, 2, 13)
+                .texture("crucible", states.mcLoc(CAULDRON))
+                .texture("embers", states.mcLoc(embers))
+                .texture("cut", states.mcLoc(CUT_COPPER));
+        box(model, 3, 2, 2, 13, 3, 3, "#embers");
+        box(model, 5, 3, 5, 11, 9, 11, "#crucible");
+        box(model, 6, 15, 6, 10, 20, 10, "#cut");
+        trim(model, true, false);
+        return model;
+    }
+
+    /** The copper still head that catches the vapour; formed, its beak reaches the Receiver on the player's right. */
+    private ModelFile alembic(String name, boolean formed) {
+        BlockModelBuilder model = builder(name)
                 .texture("copper", states.mcLoc(COPPER)).texture("cut", states.mcLoc(CUT_COPPER))
                 .texture("particle", states.mcLoc(COPPER));
         box(model, 3, 0, 3, 13, 3, 13, "#cut");
         box(model, 4, 3, 4, 12, 10, 12, "#copper");
         box(model, 6, 10, 6, 10, 13, 10, "#copper");
         box(model, 5, 13, 5, 11, 15, 11, "#cut");
-        // The beak that leads the vapour to the Receiver on the player's right.
-        box(model, 0, 8, 7, 4, 10, 9, "#cut");
+        box(model, formed ? -8 : 0, 8, 7, 4, 10, 9, "#cut");
         return model;
     }
 
     /** A glass flask on a copper stand, where the Mercury drips in. */
-    private ModelFile receiver() {
-        BlockModelBuilder model = builder("receiver")
+    private ModelFile receiver(String name) {
+        BlockModelBuilder model = builder(name)
                 .texture("glass", states.mcLoc(GLASS)).texture("cut", states.mcLoc(CUT_COPPER))
                 .texture("particle", states.mcLoc(GLASS))
                 .renderType("cutout");
@@ -116,8 +204,8 @@ final class CalcinerModels {
     }
 
     /** The copper hood where the Sulfur rises and settles. */
-    private ModelFile hood() {
-        BlockModelBuilder model = builder("sulfur_hood")
+    private ModelFile hood(String name) {
+        BlockModelBuilder model = builder(name)
                 .texture("copper", states.mcLoc(COPPER)).texture("cut", states.mcLoc(CUT_COPPER))
                 .texture("particle", states.mcLoc(COPPER));
         box(model, 2, 0, 2, 14, 3, 14, "#cut");

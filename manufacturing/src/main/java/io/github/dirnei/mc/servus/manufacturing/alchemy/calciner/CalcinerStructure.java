@@ -210,6 +210,19 @@ public final class CalcinerStructure {
         }
     }
 
+    /** Lights or puts out the fire in the Firebox and the smoke of the Hood of a formed Calciner. */
+    public static void light(Level level, BlockPos controller, Direction direction, boolean lit) {
+        Facing facing = facing(direction);
+        for (Role role : new Role[] {Role.FIREBOX, Role.HOOD}) {
+            BlockPos pos = pos(controller, CalcinerLayout.part(role), facing);
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() instanceof CalcinerPartBlock && state.getValue(CalcinerPartBlock.FORMED)
+                    && state.getValue(CalcinerPartBlock.LIT) != lit) {
+                level.setBlock(pos, state.setValue(CalcinerPartBlock.LIT, lit), Block.UPDATE_CLIENTS);
+            }
+        }
+    }
+
     /** True while forming or unforming swaps blocks. */
     public static boolean changing() {
         return changing;

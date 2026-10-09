@@ -10,6 +10,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -73,6 +77,29 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
             return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    /** Flames at the grate of a burning Firebox, smoke over a working Hood. */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (!state.getValue(FORMED) || !state.getValue(LIT)) {
+            return;
+        }
+        Direction front = state.getValue(FACING);
+        double x = pos.getX() + 0.5;
+        double z = pos.getZ() + 0.5;
+        if (role == Role.FIREBOX) {
+            double side = (random.nextDouble() - 0.5) * 0.5;
+            double fx = x + front.getStepX() * 0.45 + front.getClockWise().getStepX() * side;
+            double fz = z + front.getStepZ() * 0.45 + front.getClockWise().getStepZ() * side;
+            level.addParticle(ParticleTypes.FLAME, fx, pos.getY() + 0.25 + random.nextDouble() * 0.3, fz, 0, 0, 0);
+            if (random.nextDouble() < 0.1) {
+                level.playLocalSound(x, pos.getY(), z, SoundEvents.FURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
+            }
+        } else if (role == Role.HOOD && random.nextFloat() < 0.6F) {
+            level.addAlwaysVisibleParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, true,
+                    x + (random.nextDouble() - 0.5) * 0.2, pos.getY() + 1.0, z + (random.nextDouble() - 0.5) * 0.2, 0, 0.05, 0);
+        }
     }
 
     /** The carrot never turns or configures a part of the Calciner. */

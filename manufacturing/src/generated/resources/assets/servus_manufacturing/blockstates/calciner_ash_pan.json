@@ -9,11 +9,11 @@
       "y": 90
     },
     "facing=east,formed=true,lit=false": {
-      "model": "servus_manufacturing:block/calciner_ash_pan",
+      "model": "servus_manufacturing:block/calciner_ash_pan_formed",
       "y": 90
     },
     "facing=east,formed=true,lit=true": {
-      "model": "servus_manufacturing:block/calciner_ash_pan",
+      "model": "servus_manufacturing:block/calciner_ash_pan_formed",
       "y": 90
     },
     "facing=north,formed=false,lit=false": {
@@ -23,10 +23,10 @@
       "model": "servus_manufacturing:block/calciner_ash_pan"
     },
     "facing=north,formed=true,lit=false": {
-      "model": "servus_manufacturing:block/calciner_ash_pan"
+      "model": "servus_manufacturing:block/calciner_ash_pan_formed"
     },
     "facing=north,formed=true,lit=true": {
-      "model": "servus_manufacturing:block/calciner_ash_pan"
+      "model": "servus_manufacturing:block/calciner_ash_pan_formed"
     },
     "facing=south,formed=false,lit=false": {
       "model": "servus_manufacturing:block/calciner_ash_pan",
@@ -37,11 +37,11 @@
       "y": 180
     },
     "facing=south,formed=true,lit=false": {
-      "model": "servus_manufacturing:block/calciner_ash_pan",
+      "model": "servus_manufacturing:block/calciner_ash_pan_formed",
       "y": 180
     },
     "facing=south,formed=true,lit=true": {
-      "model": "servus_manufacturing:block/calciner_ash_pan",
+      "model": "servus_manufacturing:block/calciner_ash_pan_formed",
       "y": 180
     },
     "facing=west,formed=false,lit=false": {
@@ -53,11 +53,11 @@
       "y": 270
     },
     "facing=west,formed=true,lit=false": {
-      "model": "servus_manufacturing:block/calciner_ash_pan",
+      "model": "servus_manufacturing:block/calciner_ash_pan_formed",
       "y": 270
     },
     "facing=west,formed=true,lit=true": {
-      "model": "servus_manufacturing:block/calciner_ash_pan",
+      "model": "servus_manufacturing:block/calciner_ash_pan_formed",
       "y": 270
     }
   }

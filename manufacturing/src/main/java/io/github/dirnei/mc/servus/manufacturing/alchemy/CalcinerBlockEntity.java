@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingReci
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,6 +46,8 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     private final IItemHandler inputPort = new CalcinerPorts.InsertOnly(inventory, SLOT_INPUT, this::calcinable);
     private final IItemHandler fuelPort = new CalcinerPorts.InsertOnly(inventory, SLOT_FUEL, stack -> stack.getBurnTime(null) > 0);
     private int pushCooldown;
+    /** The lit state last given to the Firebox and the Hood. */
+    private boolean partsLit;
 
     public CalcinerBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.CALCINER.get(), pos, state, 2);
@@ -183,6 +186,10 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     @Override
     protected boolean tick() {
         boolean working = super.tick();
+        if (level != null && formed() && working != partsLit) {
+            partsLit = working;
+            CalcinerStructure.light(level, worldPosition, getBlockState().getValue(MachineBlock.FACING), working);
+        }
         if (level != null && ++pushCooldown >= PUSH_INTERVAL) {
             pushCooldown = 0;
             if (formed()) {

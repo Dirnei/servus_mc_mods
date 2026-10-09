@@ -17,7 +17,7 @@
 
 ## 4. Formed look
 
-- [ ] 4.1 Formed model pieces per cell under `models/block/calciner/formed/` with `formed` blockstate variants rotated by `FACING` for Calciner, parts and shell; Firebox `LIT` light level and emissive coals; `animateTick` flames at the Firebox and smoke at the Hood; `gradlew :manufacturing:runData` and `gradlew build` green
+- [x] 4.1 Formed model pieces per cell under `models/block/calciner/formed/` with `formed` blockstate variants rotated by `FACING` for Calciner, parts and shell; Firebox `LIT` light level and emissive coals; `animateTick` flames at the Firebox and smoke at the Hood; `gradlew :manufacturing:runData` and `gradlew build` green
 - [ ] 4.2 `CalcinerRenderer` BER with `getRenderBoundingBox` over the 3x5 box: Salt heap in the Ash Pan, Mercury in the Receiver, Sulfur crust in the Hood by fill; block entity update only when a drawn level changes by a sixteenth; register in `ServusManufacturingClient`; `gradlew build` green, then launch the client and check forming, fire, smoke and fill levels in game
 
 ## 5. Journal and Jade
