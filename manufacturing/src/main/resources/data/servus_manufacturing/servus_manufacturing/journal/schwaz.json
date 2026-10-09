@@ -1,5 +1,7 @@
 {
   "parent": "servus_manufacturing:villach",
   "order": 1,
-  "tasks": []
+  "tasks": [
+    {"id": "albedo_craft", "event": "athanor", "filter": "tier:albedo", "count": 1}
+  ]
 }

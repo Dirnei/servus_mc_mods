@@ -38,6 +38,17 @@
         "type": "modonomicon:none"
       },
       "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.opus.villach.athanor.text",
+      "title": "book.servus_manufacturing.journal.opus.villach.athanor.title",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
       "text": "book.servus_manufacturing.journal.opus.villach.unlocks.text",
       "title": "book.servus_manufacturing.journal.opus.villach.unlocks.title",
       "use_markdown_in_title": false

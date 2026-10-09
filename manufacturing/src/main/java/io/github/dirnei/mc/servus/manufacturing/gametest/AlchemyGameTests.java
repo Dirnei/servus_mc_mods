@@ -317,6 +317,23 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
+    /** A craft on an Albedo Athanor counts for Schwaz once the team finished Villach. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void albedoCraftCountsForSchwaz(GameTestHelper helper) {
+        UUID team = UUID.randomUUID();
+        ServerLevel level = helper.getLevel();
+        Journal.recordItem(level, team, "calcine", new ItemStack(Items.COBBLESTONE), 100);
+        Journal.recordPrinciple(level, team, Principle.SALT, 1000);
+        Journal.recordItem(level, team, "coagulate", new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get()), 1);
+        AthanorBlockEntity athanor = athanor(helper);
+        athanor.setTeam(team);
+        saltRing(helper);
+        athanor.tanks().insert(new Principles(50, 0, 100));
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GLASS_BOTTLE));
+        helper.succeedWhen(() -> helper.assertTrue(Journal.isFinished(level.getServer(), team, "servus_manufacturing:schwaz"),
+                "Schwaz should be finished by the Albedo craft"));
+    }
+
     /** Production lists only the crafts the tier allows. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void athanorProductionFollowsTheTier(GameTestHelper helper) {

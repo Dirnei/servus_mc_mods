@@ -98,6 +98,10 @@ final class JournalEntries {
                             + "- Gather 1,000 mB of Salt\n"
                             + "- Coagulate your first Salt Crystal\n\n"
                             + "Your team shares this work. See your progress with /servus_manufacturing journal.");
+            text("athanor", "The Athanor",
+                    "Every alchemist needs a furnace that never goes out. Build an Athanor of bricks, a blast furnace and a cauldron. "
+                            + "Lay an item on it and feed it principles by bucket or pipe; it burns them into something new.\n\n"
+                            + "The stones you set around it decide how far its fire reaches. Alone it burns black, the fire of Nigredo.");
             text("unlocks", "What Follows",
                     "Finishing Villach opens the next chapter of the journal: Schwaz, and the mines.");
         }
@@ -136,7 +140,9 @@ final class JournalEntries {
                             + "The old miners say that metals grow in the rock like plants, and that small spirits of the earth live in the galleries. "
                             + "If the mountain grows its ores, perhaps it can be asked to.");
             text("tasks", "The Work",
-                    "The spirits of the earth have not shown themselves yet. This chapter continues in a later edition of the journal.");
+                    "Salt is the body of all things. Press nine Salt Crystals into a block, eight such blocks into a ring around your Athanor, "
+                            + "and its flame turns white: Albedo.\n\n"
+                            + "To go on: finish one craft on an Albedo Athanor.");
         }
 
         @Override
