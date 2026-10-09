@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import java.util.Optional;
 import net.minecraft.world.item.ItemStack;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
@@ -44,6 +45,9 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 new ItemStack(Items.BLAZE_POWDER));
         athanorCraft(output, "experience_bottle", Ingredient.of(Items.GLASS_BOTTLE), new Principles(50, 0, 100), 1,
                 new ItemStack(Items.EXPERIENCE_BOTTLE));
+        output.accept(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/elixir_of_sight"),
+                new AthanorRecipe(new SizedIngredient(Ingredient.of(ServusManufacturingItems.QUICKSILVER.get()), 1),
+                        new Principles(100, 100, 250), 1, new ItemStack(ElementalSight.ELIXIR.get()), 200), null);
     }
 
     static void athanorCraft(RecipeOutput output, String name, Ingredient input, Principles principles, int tier, ItemStack result) {

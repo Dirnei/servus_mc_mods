@@ -69,6 +69,11 @@ public final class Journal {
         }, 1);
     }
 
+    /** An event without a filter, such as {@code sight}. */
+    public static void recordEvent(ServerLevel level, UUID team, String event, int amount) {
+        record(level, team, event, task -> task.filter().isEmpty(), amount);
+    }
+
     /** A {@code principle} event: mB of one principle made. Filters are a principle name. */
     public static void recordPrinciple(ServerLevel level, UUID team, Principle principle, int amount) {
         record(level, team, "principle", task -> task.filter().isEmpty() || task.filter().equals(principle.id()), amount);

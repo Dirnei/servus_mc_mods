@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import com.klikli_dev.modonomicon.api.datagen.LanguageProviderCache;
@@ -42,6 +43,8 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingItems.SALT_CRYSTAL.get(), "Salt Crystal");
         add(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block");
         add(ServusManufacturingBlocks.ATHANOR.get(), "Athanor");
+        add(ElementalSight.ELIXIR.get(), "Elixir of Sight");
+        add(ElementalSight.EFFECT.get(), "Elemental Sight");
         add("gui.servus_manufacturing.athanor.stage.nigredo", "Nigredo");
         add("gui.servus_manufacturing.athanor.stage.albedo", "Albedo");
         add("gui.servus_manufacturing.athanor.stage.citrinitas", "Citrinitas");

@@ -377,6 +377,12 @@
       "inputs": [],
       "outputs": []
     },
+    "servus_manufacturing:athanor/elixir_of_sight": {
+      "type": "servus_manufacturing:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
     "servus_manufacturing:athanor/experience_bottle": {
       "type": "servus_manufacturing:athanor",
       "special": true,

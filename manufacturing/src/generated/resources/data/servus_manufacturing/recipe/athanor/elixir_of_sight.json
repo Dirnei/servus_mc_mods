@@ -1,0 +1,18 @@
+{
+  "type": "servus_manufacturing:athanor",
+  "input": {
+    "count": 1,
+    "item": "servus_manufacturing:quicksilver"
+  },
+  "principles": {
+    "mercury": 250,
+    "salt": 100,
+    "sulfur": 100
+  },
+  "result": {
+    "count": 1,
+    "id": "servus_manufacturing:elixir_of_sight"
+  },
+  "tier": 1,
+  "time": 200
+}

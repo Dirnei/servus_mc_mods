@@ -6,6 +6,9 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalBookItem;
@@ -332,6 +335,32 @@ public final class AlchemyGameTests {
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GLASS_BOTTLE));
         helper.succeedWhen(() -> helper.assertTrue(Journal.isFinished(level.getServer(), team, "servus_manufacturing:schwaz"),
                 "Schwaz should be finished by the Albedo craft"));
+    }
+
+    /** Drinking the Elixir of Sight gives Elemental Sight and leaves a glass bottle. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void elixirGivesElementalSight(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack left = ElementalSight.ELIXIR.get().finishUsingItem(new ItemStack(ElementalSight.ELIXIR.get()), helper.getLevel(), player);
+        helper.assertTrue(ElementalSight.active(player), "the drinker should have Elemental Sight");
+        helper.assertTrue(player.getEffect(ElementalSight.EFFECT).getDuration() == ElementalSight.DURATION, "for three minutes");
+        helper.assertTrue(left.is(Items.GLASS_BOTTLE), "a glass bottle should be left, got " + left);
+        helper.succeed();
+    }
+
+    /** The elixir is an Albedo craft: nothing at Nigredo, the elixir once the ring stands. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void elixirNeedsAnAlbedoAthanor(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        athanor.tanks().insert(new Principles(100, 100, 250));
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(ServusManufacturingItems.QUICKSILVER.get()));
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no elixir at Nigredo");
+            saltRing(helper);
+            athanor.checkTier();
+            helper.succeedWhen(() -> helper.assertTrue(
+                    athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(ElementalSight.ELIXIR.get()), "the elixir should be made"));
+        });
     }
 
     /** Production lists only the crafts the tier allows. */

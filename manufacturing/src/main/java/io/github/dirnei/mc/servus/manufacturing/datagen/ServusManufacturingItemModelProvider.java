@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
@@ -21,6 +22,7 @@ final class ServusManufacturingItemModelProvider extends ItemModelProvider {
         basicItem(ServusManufacturingItems.SALT_CRYSTAL.get());
         basicItem(ServusManufacturingItems.SULFUR.get());
         basicItem(ServusManufacturingItems.QUICKSILVER.get());
+        basicItem(ElementalSight.ELIXIR.get());
         // Buckets draw their principle with NeoForge's fluid container model, tinted like the fluid.
         for (Principle principle : Principle.values()) {
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);
