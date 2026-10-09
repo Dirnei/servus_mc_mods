@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.EnergyNeighbors;
 import io.github.dirnei.mc.servus.foundation.machine.MachineEnergyStorage;
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
+import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;

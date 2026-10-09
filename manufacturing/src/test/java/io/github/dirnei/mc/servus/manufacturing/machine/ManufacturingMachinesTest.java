@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.machine;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -7,9 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class MachineDefaultsTest {
+class ManufacturingMachinesTest {
+
+    @BeforeAll
+    static void register() {
+        ManufacturingMachines.registerDefaults();
+    }
 
     private static final Set<String> KINDS = Set.of("burner", "powered", "crafter", "generator");
 
@@ -20,7 +27,7 @@ class MachineDefaultsTest {
             MachineDefaults.MachineInfo info = MachineDefaults.info("servus_manufacturing:" + path);
             assertTrue(KINDS.contains(info.kind()), path);
         }
-        assertEquals(10, MachineDefaults.all().size());
+        assertEquals(10, MachineDefaults.all().keySet().stream().filter(id -> id.startsWith("servus_manufacturing:")).count());
     }
 
     @Test

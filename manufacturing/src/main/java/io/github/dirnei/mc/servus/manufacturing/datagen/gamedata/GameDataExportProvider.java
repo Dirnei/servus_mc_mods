@@ -17,7 +17,7 @@ import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Re
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Stack;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataJson.Tech;
 import io.github.dirnei.mc.servus.manufacturing.deposit.DepositDefinition;
-import io.github.dirnei.mc.servus.manufacturing.machine.MachineDefaults;
+import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.manufacturing.recipe.AssemblingRecipeSerializer;
 import io.github.dirnei.mc.servus.manufacturing.recipe.CrushingRecipeSerializer;

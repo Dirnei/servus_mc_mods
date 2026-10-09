@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing;
 
 import io.github.dirnei.mc.servus.manufacturing.config.ServusManufacturingConfig;
+import io.github.dirnei.mc.servus.manufacturing.machine.ManufacturingMachines;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
@@ -22,6 +23,7 @@ public final class ServusManufacturing {
     public static final Logger LOGGER = LoggerFactory.getLogger(ServusManufacturing.class);
 
     public ServusManufacturing(IEventBus modEventBus, ModContainer container) {
+        ManufacturingMachines.registerDefaults();
         ServusManufacturingBlocks.BLOCKS.register(modEventBus);
         ServusManufacturingItems.ITEMS.register(modEventBus);
         ServusManufacturingBlockEntities.BLOCK_ENTITIES.register(modEventBus);
