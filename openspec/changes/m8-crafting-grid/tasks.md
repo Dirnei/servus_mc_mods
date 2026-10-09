@@ -6,8 +6,8 @@
 
 ## 2. Menu and payloads
 
-- [ ] 2.1 `menu/CounterTerminalMenu`: crafting container, result slot with refill, result recomputation, shift click on result and grid, grid emptied on close, `pullToCursor`, `clearGrid`, `fillGrid`. New payloads `terminal/GridPullPayload`, `GridClearPayload`, `GridFillPayload` registered in `ServusStoragePayloads`; grep that every payload TYPE is registered. Verify with `gradlew build`.
-- [ ] 2.2 GameTests in `gametest/CraftingGridGameTests.java`: `gridCraftsSticks`, `gridShiftCraftRefills`, `gridSkipsRackStock`, `gridClearStores`, `gridCloseStores`, `gridFillFromCrateFirst`, `gridPullToCursor`. Verify with `:storage:runGameTestServer`.
+- [x] 2.1 `menu/CounterTerminalMenu`: crafting container, result slot with refill, result recomputation, shift click on result and grid, grid emptied on close, `pullToCursor`, `clearGrid`, `fillGrid`. New payloads `terminal/GridPullPayload`, `GridClearPayload`, `GridFillPayload` registered in `ServusStoragePayloads`; grep that every payload TYPE is registered. Verify with `gradlew build`.
+- [x] 2.2 GameTests in `gametest/CraftingGridGameTests.java`: `gridCraftsSticks`, `gridShiftCraftRefills`, `gridSkipsRackStock`, `gridClearStores`, `gridCloseStores`, `gridFillFromCrateFirst`, `gridPullToCursor`. Verify with `:storage:runGameTestServer`.
 
 ## 3. Screen and JEI
 
