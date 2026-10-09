@@ -2,7 +2,7 @@
 
 ## 1. Layout
 
-- [ ] 1.1 Pure `alchemy/athanor/AthanorLayout` (hearth cells, `schematic(extra)` with layers and mapping) with JUnit `AthanorLayoutTest`; `gradlew :manufacturing:test` green
+- [x] 1.1 Pure `alchemy/athanor/AthanorLayout` (hearth cells, `schematic(extra)` with layers and mapping) with JUnit `AthanorLayoutTest`; `gradlew :manufacturing:test` green
 
 ## 2. Forming
 
