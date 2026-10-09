@@ -43,7 +43,9 @@ public final class PatternEditing {
         if (match.isEmpty()) {
             return "no_match";
         }
-        ItemStack result = match.get().value().getResultItem(level.registryAccess());
+        // The result as the recipe really crafts it from these cells, components included.
+        ItemStack result = EncodedPattern.assembledResult(level, match.get().id(), cells,
+                match.get().value().getResultItem(level.registryAccess()));
         if (result.isEmpty()) {
             return "no_match";
         }

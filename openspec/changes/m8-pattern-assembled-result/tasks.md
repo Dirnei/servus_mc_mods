@@ -2,7 +2,7 @@
 
 ## 1. Patterns keep the assembled result
 
-- [ ] 1.1 Add `EncodedPattern.assembledResult` and `assembled(Level)`, store the assembled pattern in `PatternEditing.save`, and refresh kept patterns lazily in `PatternStorageBlockEntity` (`storage/.../pattern/`). Add Storage GameTests in a new `PatternResultGameTests`: `rackPatternResultHasWood`, `oldPatternResultRefreshed`, `rackRequestArrives` (2 racks requested through a CPU arrive in the terminal), `woodBlockRequestArrives` (Pattern Storage from birch planks). Verify with `gradlew build test` and `:storage:runGameTestServer`.
+- [x] 1.1 Add `EncodedPattern.assembledResult` and `assembled(Level)`, store the assembled pattern in `PatternEditing.save`, and refresh kept patterns lazily in `PatternStorageBlockEntity` (`storage/.../pattern/`). Add Storage GameTests in a new `PatternResultGameTests`: `rackPatternResultHasWood`, `oldPatternResultRefreshed`, `rackRequestArrives` (2 racks requested through a CPU arrive in the terminal), `woodBlockRequestArrives` (Pattern Storage from birch planks). Verify with `gradlew build test` and `:storage:runGameTestServer`.
 
 ## 2. Assembler reports what it crafts
 

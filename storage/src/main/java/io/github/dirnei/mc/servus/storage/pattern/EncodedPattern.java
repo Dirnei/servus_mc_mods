@@ -11,6 +11,9 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.level.Level;
 
 /**
  * A vanilla crafting recipe as a pattern holds it: the recipe id, a 3 by 3
@@ -44,6 +47,41 @@ public record EncodedPattern(ResourceLocation recipe, List<ItemStack> template, 
         }
         template = List.copyOf(cells);
         result = result.copy();
+    }
+
+    /**
+     * What the recipe really makes from the template: the assembled stack,
+     * with the components the recipe adds (such as the wood of the planks).
+     * Falls back to the plain recipe result, or to {@code fallback} when the
+     * recipe is gone.
+     */
+    public static ItemStack assembledResult(Level level, ResourceLocation recipe, List<ItemStack> template, ItemStack fallback) {
+        var holder = level.getRecipeManager().byKey(recipe);
+        if (holder.isEmpty() || !(holder.get().value() instanceof CraftingRecipe crafting)) {
+            return fallback.copy();
+        }
+        List<ItemStack> cells = new ArrayList<>(GRID);
+        for (int i = 0; i < GRID; i++) {
+            cells.add(i < template.size() ? template.get(i) : ItemStack.EMPTY);
+        }
+        CraftingInput input = CraftingInput.of(3, 3, cells);
+        if (crafting.matches(input, level)) {
+            ItemStack assembled = crafting.assemble(input, level.registryAccess());
+            if (!assembled.isEmpty()) {
+                return assembled;
+            }
+        }
+        ItemStack plain = crafting.getResultItem(level.registryAccess());
+        return plain.isEmpty() ? fallback.copy() : plain.copy();
+    }
+
+    /** This pattern with the result its recipe really makes; the same instance when that is already the result. */
+    public EncodedPattern assembled(Level level) {
+        ItemStack real = assembledResult(level, recipe, template, result);
+        if (ItemStack.isSameItemSameComponents(real, result) && real.getCount() == result.getCount()) {
+            return this;
+        }
+        return new EncodedPattern(recipe, template, real);
     }
 
     /** The template's cells as keys, {@code null} for empty cells. */

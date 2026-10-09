@@ -47,6 +47,9 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
 
     private EncodedPattern[] patterns = new EncodedPattern[slots()];
 
+    /** Whether the kept patterns carry the result their recipe really makes; cleared by every restore. */
+    private boolean refreshed;
+
     public PatternStorageBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.PATTERN_STORAGE.get(), pos, state);
     }
@@ -68,6 +71,7 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
 
     /** The pattern at a place, if any. */
     public Optional<EncodedPattern> pattern(int slot) {
+        refresh();
         return slot >= 0 && slot < patterns.length ? Optional.ofNullable(patterns[slot]) : Optional.empty();
     }
 
@@ -95,7 +99,7 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
     /** Puts a pattern at a place, replacing what is there. */
     public void set(int slot, EncodedPattern pattern) {
         grow(slot + 1);
-        patterns[slot] = pattern;
+        patterns[slot] = level instanceof ServerLevel server ? pattern.assembled(server) : pattern;
         setChanged();
         updateLights();
     }
@@ -138,6 +142,31 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
         }
     }
 
+    /**
+     * Patterns kept from before get the result their recipe really makes from
+     * the template, once per restore and only on a server level: loading has no
+     * level yet, and a placed item applies its patterns after the block loaded.
+     */
+    private void refresh() {
+        if (refreshed || !(level instanceof ServerLevel server)) {
+            return;
+        }
+        refreshed = true;
+        boolean changed = false;
+        for (int slot = 0; slot < patterns.length; slot++) {
+            if (patterns[slot] != null) {
+                EncodedPattern real = patterns[slot].assembled(server);
+                if (real != patterns[slot]) {
+                    patterns[slot] = real;
+                    changed = true;
+                }
+            }
+        }
+        if (changed) {
+            setChanged();
+        }
+    }
+
     private void grow(int length) {
         if (patterns.length < length) {
             patterns = Arrays.copyOf(patterns, length);
@@ -156,6 +185,7 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
 
     private void restore(StoredPatterns stored) {
         patterns = new EncodedPattern[slots()];
+        refreshed = false;
         if (stored == null) {
             return;
         }
