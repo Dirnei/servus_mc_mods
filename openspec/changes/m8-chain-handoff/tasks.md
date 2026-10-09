@@ -2,7 +2,7 @@
 
 ## 1. Pure handoff split
 
-- [ ] 1.1 Add `storage/order/Handoff.java` (no Minecraft imports): split a movable count of one output over dependants (owed, delivering, same producer), hold or store the rest by the wait rule. Add `storage/src/test/.../order/HandoffTest.java` with `allToDeliveringDependant`, `surplusGoesToStorage`, `holdsWhileDependantWaits`, `holdExpires`, `sameProducerGoesToStorage`, `severalDependantsInOrder`. Verify with `gradlew :storage:test`.
+- [x] 1.1 Add `storage/order/Handoff.java` (no Minecraft imports): split a movable count of one output over dependants (owed, delivering, same producer), hold or store the rest by the wait rule. Add `storage/src/test/.../order/HandoffTest.java` with `allToDeliveringDependant`, `surplusGoesToStorage`, `holdsWhileDependantWaits`, `holdExpires`, `sameProducerGoesToStorage`, `severalDependantsInOrder`. Verify with `gradlew :storage:test`.
 
 ## 2. CPU handoff
 
