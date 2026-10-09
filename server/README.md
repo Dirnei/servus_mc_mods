@@ -17,13 +17,25 @@ After a code change: run `pack.ps1` again, then `docker compose restart`. The wo
 
 ## Players
 
-1. Install [Prism Launcher](https://prismlauncher.org) and log in with the Microsoft account.
-2. Add Instance, Import, pick `servus-playtest-<version>.mrpack`. Prism installs Minecraft 1.21.1,
-   NeoForge and all mods.
-3. Give the instance 4 GB of memory (Edit, Settings, Java), start it, Multiplayer, add the server.
+`pack.ps1` writes three files to `server\dist`, all with the same jars:
 
-For a new pack version, delete the old instance (or its `mods` folder) and import the new pack.
-Worlds are only on the server, so nothing is lost.
+| File | For |
+|---|---|
+| `servus-playtest-<version>.mrpack` | Prism Launcher, Modrinth App |
+| `servus-playtest-<version>-curseforge.zip` | FTB App, CurseForge app |
+| `servus-playtest-<version>-mods.zip` | any launcher, by hand |
+
+**Prism Launcher:** Add Instance, Import, pick the `.mrpack`.
+
+**FTB App:** Create Instance, Curse Import, pick the `-curseforge.zip`. If the import fails
+(the FTB App has known bugs with NeoForge packs), make the instance by hand instead: Create
+Instance, Vanilla, Minecraft 1.21.1 with NeoForge 21.1.255. Then open the instance folder and
+unpack the jars from `-mods.zip` into its `mods` folder.
+
+Give the instance 4 GB of memory, start it, Multiplayer, add the server.
+
+For a new pack version, delete the old instance (or empty its `mods` folder and unpack the new
+`-mods.zip`). Worlds are only on the server, so nothing is lost.
 
 ## Address
 

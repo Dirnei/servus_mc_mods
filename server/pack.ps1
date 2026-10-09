@@ -59,14 +59,31 @@ if (Test-Path $mods) { Remove-Item $mods -Recurse -Force }
 New-Item -ItemType Directory $mods | Out-Null
 $jars | ForEach-Object { Copy-Item $_.FullName $mods }
 
-# Modrinth pack: every jar as an override, NeoForge version in the index
+# Player packs. Every jar goes in as an override, so no download links are needed.
 $sha = (git -C $root rev-parse --short HEAD).Trim()
 $version = "$($props['mod_version'])-$sha"
-$stage = Join-Path $env:TEMP "servus-mrpack-$sha"
-if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
-New-Item -ItemType Directory (Join-Path $stage 'overrides\mods') | Out-Null
-$jars | ForEach-Object { Copy-Item $_.FullName (Join-Path $stage 'overrides\mods') }
-$index = [ordered]@{
+New-Item -ItemType Directory $dist -Force | Out-Null
+Get-ChildItem $dist -File | Remove-Item
+Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+
+# Writes a zip with the given text files and the jars under $jarDir. Entries are added
+# one by one so their names use forward slashes; Windows PowerShell zips with
+# backslashes otherwise and launchers reject the pack.
+function Write-Pack([string]$path, [hashtable]$texts, [string]$jarDir) {
+    $archive = [IO.Compression.ZipFile]::Open($path, 'Create')
+    try {
+        foreach ($name in $texts.Keys) {
+            $writer = [IO.StreamWriter]::new($archive.CreateEntry($name).Open(), [Text.UTF8Encoding]::new($false))
+            try { $writer.Write($texts[$name]) } finally { $writer.Dispose() }
+        }
+        foreach ($jar in $jars) {
+            [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $jar.FullName, "$jarDir/$($jar.Name)")
+        }
+    } finally { $archive.Dispose() }
+}
+
+# Modrinth pack for Prism Launcher and the Modrinth App
+$mrIndex = [ordered]@{
     formatVersion = 1
     game = 'minecraft'
     versionId = $version
@@ -75,23 +92,28 @@ $index = [ordered]@{
     files = @()
     dependencies = [ordered]@{ minecraft = $mc; neoforge = $neo }
 }
-[IO.File]::WriteAllText((Join-Path $stage 'modrinth.index.json'), ($index | ConvertTo-Json -Depth 5), [Text.UTF8Encoding]::new($false))
+$mrpack = Join-Path $dist "servus-playtest-$version.mrpack"
+Write-Pack $mrpack @{ 'modrinth.index.json' = ($mrIndex | ConvertTo-Json -Depth 5) } 'overrides/mods'
 
-New-Item -ItemType Directory $dist -Force | Out-Null
-$pack = Join-Path $dist "servus-playtest-$version.mrpack"
-Get-ChildItem $dist -Filter '*.mrpack' | Remove-Item
-# Entries are added one by one so their names use forward slashes; Windows PowerShell
-# zips with backslashes otherwise and launchers reject the pack.
-Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
-$archive = [IO.Compression.ZipFile]::Open($pack, 'Create')
-try {
-    Get-ChildItem $stage -Recurse -File | ForEach-Object {
-        $name = $_.FullName.Substring($stage.Length + 1).Replace([char]92, [char]47)
-        [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $_.FullName, $name)
-    }
-} finally { $archive.Dispose() }
-Remove-Item $stage -Recurse -Force
+# CurseForge pack for the FTB App (Curse Import) and the CurseForge app
+$cfManifest = [ordered]@{
+    minecraft = [ordered]@{ version = $mc; modLoaders = @([ordered]@{ id = "neoforge-$neo"; primary = $true }) }
+    manifestType = 'minecraftModpack'
+    manifestVersion = 1
+    name = 'Servus Playtest'
+    version = $version
+    author = $props['mod_authors']
+    files = @()
+    overrides = 'overrides'
+}
+$cfpack = Join-Path $dist "servus-playtest-$version-curseforge.zip"
+Write-Pack $cfpack @{ 'manifest.json' = ($cfManifest | ConvertTo-Json -Depth 5) } 'overrides/mods'
+
+# Bare jars, for a hand made NeoForge $neo instance when an import fails
+$modsZip = Join-Path $dist "servus-playtest-$version-mods.zip"
+Write-Pack $modsZip @{} 'mods'
 
 Write-Host "Mods for the server: $mods"
 $jars | ForEach-Object { Write-Host "  $($_.Name)" }
-Write-Host "Pack for the players: $pack"
+Write-Host "Packs for the players in $dist"
+Get-ChildItem $dist -File | ForEach-Object { Write-Host "  $($_.Name)" }
