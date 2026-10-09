@@ -337,8 +337,8 @@ public final class AlchemyGameTests {
             JournalLedger.TeamJournal journal = Journal.journalOf(level.getServer(), team);
             helper.assertTrue(journal.count("servus_manufacturing:schwaz", "albedo_craft") == 1, "the Albedo craft should count");
             Journal.recordEvent(level, team, "sight", 1);
-            helper.assertTrue(Journal.isFinished(level.getServer(), team, "servus_manufacturing:schwaz"),
-                    "Schwaz should be finished by the Albedo craft and the sight");
+            helper.assertTrue(Journal.journalOf(level.getServer(), team).count("servus_manufacturing:schwaz", "sight") == 1,
+                    "the sight should count for Schwaz");
         });
     }
 

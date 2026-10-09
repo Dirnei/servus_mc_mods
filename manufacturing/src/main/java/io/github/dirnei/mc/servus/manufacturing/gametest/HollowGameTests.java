@@ -136,6 +136,20 @@ public final class HollowGameTests {
         helper.succeedWhen(() -> helper.assertTrue(chest.countItem(Items.RAW_IRON) >= 2, "the chest should get raw iron"));
     }
 
+    /** Binding a gnome counts for Schwaz. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void bindingCountsForSchwaz(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.addEffect(new MobEffectInstance(ElementalSight.EFFECT, 200));
+        GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
+        holder[0] = ironHollow(helper, true, () -> {
+            holder[0].bind(player);
+            int count = Journal.journalOf(helper.getLevel().getServer(), holder[0].team()).count("servus_manufacturing:schwaz", "gnome");
+            helper.assertTrue(count == 1, "the bound gnome should count for Schwaz, got " + count);
+            helper.succeed();
+        });
+    }
+
     /** A working Hollow is a producer of its yield with no inputs. */
     @GameTest(template = EMPTY, timeoutTicks = 40)
     public static void workingHollowIsAProducer(GameTestHelper helper) {

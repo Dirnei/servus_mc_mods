@@ -144,7 +144,11 @@ final class JournalEntries {
                             + "and its flame turns white: Albedo.\n\n"
                             + "The spirits of the earth live in the rock as we live in air, and common eyes do not see them. "
                             + "On a white Athanor, Quicksilver and the three principles give the Elixir of Sight.\n\n"
-                            + "To go on: finish one craft on an Albedo Athanor, and drink the Elixir of Sight.");
+                            + "The miners of Schwaz say the metals grow in the mountain like roots, tended by gnomes. "
+                            + "Burn cracked stone bricks with Salt and Mercury on a white Athanor into a Gnome Hollow, give it a sample of ore, "
+                            + "and feed it Salt and Mercury until the vein is ripe. Then drink the elixir and offer a Salt Crystal: "
+                            + "a gnome takes it and digs that ore for you, for as long as the Hollow stands.\n\n"
+                            + "To go on: finish one craft on an Albedo Athanor, drink the Elixir of Sight, and bind a gnome.");
         }
 
         @Override
