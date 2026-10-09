@@ -170,8 +170,10 @@ public final class ProductionView {
                 return new MachineRow(pos, icon, name(level, pos), "crafting", station.job().orElseThrow().result().copyWithCount(1),
                         station.jobLeft(), "", ItemStack.EMPTY, 0, 0, -1);
             }
-            String state = blockedReason.isEmpty() ? "idle" : "blocked";
-            return new MachineRow(pos, icon, name(level, pos), state, ItemStack.EMPTY, 0, blockedReason, ItemStack.EMPTY, 0, 0, -1);
+            // Leftovers without a job close the station until they are taken out.
+            String reason = blockedReason.isEmpty() && station.job().isEmpty() && station.hasOutputs() ? "outputs not collected" : blockedReason;
+            String state = reason.isEmpty() ? "idle" : "blocked";
+            return new MachineRow(pos, icon, name(level, pos), state, ItemStack.EMPTY, 0, reason, ItemStack.EMPTY, 0, 0, -1);
         }
         UpkeepHolder upkeep = level.getCapability(ServusFoundationCapabilities.UPKEEP, pos, null);
         boolean keeps = upkeep != null && !upkeep.upkeepItem().isEmpty() && upkeep.upkeepLevel() > 0;

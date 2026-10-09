@@ -96,6 +96,33 @@ public final class StationHandsGameTests {
         return helper.getBlockEntity(pos);
     }
 
+    /** A station still holding outputs takes no job; the CPU gives the step to the free station instead. */
+    @GameTest(template = EMPTY, timeoutTicks = 800)
+    public static void stationWithOutputsIsSkipped(GameTestHelper helper) {
+        setup(helper, 8);
+        CraftingStationBlockEntity held = station(helper, STATION_A);
+        held.outputs().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 3));
+        helper.assertTrue(held.blockedFor(new Object()) && !held.assign(StationJobs.sticks(), 1, new Object()),
+                "a station with leftovers in its outputs refuses a new job");
+        TerminalWiring.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 4, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            WorkOrder order = placed.created().order();
+            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 700,
+                    () -> "the order should finish on the free station, state " + order.state() + " " + order.reason(), () -> {
+                helper.assertTrue(order.steps().get(0).producer().equals(helper.absolutePos(STATION_B)),
+                        "the step should run on the free station, ran on " + order.steps().get(0).producer());
+                helper.assertTrue(held.job().isEmpty() && held.outputs().getStackInSlot(0).is(Items.COBBLESTONE),
+                        "the blocked station got no job and keeps its leftovers");
+                var row = io.github.dirnei.mc.servus.storage.production.ProductionView.of(helper.getLevel(),
+                                helper.absolutePos(new BlockPos(4, 2, 2))).machines().stream().filter(machine -> machine.pos().equals(helper.absolutePos(STATION_A))).findFirst();
+                helper.assertTrue(row.isPresent() && row.get().state().equals("blocked"),
+                        "the Machines tab shows the station as blocked, got " + row.map(r -> r.state()).orElse("none"));
+                helper.succeed();
+            });
+        });
+    }
+
     /** An order from a pattern runs on a station that has nothing configured; it is idle again once the step is done. */
     @GameTest(template = EMPTY, timeoutTicks = 800)
     public static void patternOrderOnPlainStation(GameTestHelper helper) {

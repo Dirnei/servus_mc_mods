@@ -18,6 +18,7 @@ import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.Handoff;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
+import io.github.dirnei.mc.servus.storage.order.StepRef;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.terminal.CounterTerminalBlockEntity;
@@ -321,6 +322,13 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
 
         @Override
         public boolean busyElsewhere(BlockPos producer) {
+            ServerLevel server = serverLevel();
+            // A station whose outputs wait for someone else's collection, or hold leftovers, takes no new step.
+            if (server.isLoaded(producer) && server.getBlockEntity(producer) instanceof CraftingStationBlockEntity station
+                    && station.hasOutputs()
+                    && !(station.jobOwner() instanceof StepRef ref && ref.cpu().equals(getBlockPos()))) {
+                return true;
+            }
             return dataNetwork().map(network -> CpuOrders.busyElsewhere(serverLevel(), network, producer, book)).orElse(false);
         }
 

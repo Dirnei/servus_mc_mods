@@ -230,13 +230,41 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         return job != null && jobLeft > 0;
     }
 
+    /** Whether any output slot still holds items. */
+    public boolean hasOutputs() {
+        for (int slot = 0; slot < outputs.getSlots(); slot++) {
+            if (!outputs.getStackInSlot(slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Who the current or last job belongs to, null when none. */
+    public Object jobOwner() {
+        return jobOwner;
+    }
+
     /**
-     * Hands the station a job. Refused while another owner's job has crafts left.
+     * Whether the station is closed to a job of that owner: outputs that are not
+     * collected yet belong to the current job's owner only; leftovers without a
+     * job close it to everyone until they are taken out.
+     */
+    public boolean blockedFor(Object owner) {
+        return hasOutputs() && (jobOwner == null || !Objects.equals(jobOwner, owner));
+    }
+
+    /**
+     * Hands the station a job. Refused while another owner's job has crafts left,
+     * and while outputs wait that are not this owner's.
      *
      * @return whether the station took the job
      */
     public boolean assign(EncodedPattern pattern, int crafts, Object owner) {
         if (working() && !Objects.equals(jobOwner, owner)) {
+            return false;
+        }
+        if (blockedFor(owner)) {
             return false;
         }
         boolean same = job != null && Objects.equals(jobOwner, owner) && job.equals(pattern);

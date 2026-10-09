@@ -8,6 +8,8 @@
 
 - [x] 2.1 Add `ConfiguredRecipe.producedResult(Level)` and report it in `AssemblerBlockEntity.production()` (`manufacturing/.../machine/assembler/`); Manufacturing GameTest `assemblerReportsWoodResult`. Verify with `gradlew build test` and `:manufacturing:runGameTestServer`.
 
+- [x] 2.2 Stations whose outputs still hold items refuse other jobs, the CPU skips them and the Machines tab shows them blocked (`storage/.../crafting/CraftingStationBlockEntity.java`, `cpu/CpuBlockEntity.java`, `production/ProductionView.java`); Storage GameTest `stationWithOutputsIsSkipped` in `StationHandsGameTests`. Verify with `gradlew build test` and `:storage:runGameTestServer`.
+
 ## 3. Integration
 
 - [ ] 3.1 Full `gradlew build test`, Foundation, Manufacturing and Storage GameTests green, `openspec validate --strict`.
