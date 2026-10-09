@@ -18,7 +18,7 @@ Play test feedback on the Rail Elevator (PLAN.md M6, item "Rail Elevator for mul
 None.
 
 ### Modified Capabilities
-- `storage/rail-elevator`: segments are walkable from above and sneaking descends; a plain click with an elevator builds the shaft up.
+- `storage/rail-elevator`: segments are walkable from above and sneaking descends; the sneak placement requirement is replaced by one where any click with an elevator builds the shaft up.
 
 ## Non-goals
 
