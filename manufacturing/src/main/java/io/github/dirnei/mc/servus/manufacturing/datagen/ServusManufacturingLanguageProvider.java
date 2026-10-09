@@ -31,6 +31,13 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.SULFUR_HOOD.get(), "Sulfur Hood");
         add(ServusManufacturingBlocks.CALCINER_SHELL.get(), "Calciner Bricks");
         add("message.servus_manufacturing.calciner.formed", "The Calciner is ready.");
+        add("jade.servus_manufacturing.calciner.input", "Matter: %s");
+        add("jade.servus_manufacturing.calciner.fuel", "Fuel: %s");
+        add("jade.servus_manufacturing.calciner.progress", "Progress: %s%%");
+        add("jade.servus_manufacturing.calciner.principle", "%s / %s mB %s");
+        add("jade.servus_manufacturing.calciner.stack", "%s %s");
+        add("jade.servus_manufacturing.calciner.empty", "none");
+        add("config.jade.plugin_servus_manufacturing.calciner", "Calciner");
         add("message.servus_manufacturing.calciner.missing",
                 "The Calciner is not complete: %s needed %s. The Calciner page of Paracelsus' Journal shows the build.");
         add("message.servus_manufacturing.calciner.left_of", "left of the %s");

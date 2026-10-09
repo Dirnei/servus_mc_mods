@@ -23,7 +23,7 @@
 ## 5. Journal and Jade
 
 - [x] 5.1 Add `ServusManufacturingMultiblockProvider` generating `data/servus_manufacturing/modonomicon/multiblocks/calciner.json` from `CalcinerLayout` (`0` the Calciner, `_` free corners) and register it in the data generators; extend `WorkshopCategory.calciner()` with the multiblock page with Visualize, crafting pages for all six parts and new text on forming with the Journal, ports and buckets (no gauges or GUI); `gradlew :manufacturing:runData` and `gradlew build` green, a GameTest shows the server loaded schematic accepts the build (page and Visualize are checked in game in 6.2)
-- [ ] 5.2 Add Jade `compileOnly` to `manufacturing/build.gradle` and `integration/jade/CalcinerJadePlugin` showing input, fuel, progress and the three principles for any block of a formed Calciner; `gradlew build` green, then check the tooltip on the Receiver in game
+- [x] 5.2 Add Jade `compileOnly` to `manufacturing/build.gradle` and `integration/jade/CalcinerJadePlugin` showing input, fuel, progress and the three principles for any block of a formed Calciner; `gradlew build` green, Jade loads the plugin in the client (the tooltip on the Receiver is checked in game in 6.2)
 
 ## 6. Plan and integration
 

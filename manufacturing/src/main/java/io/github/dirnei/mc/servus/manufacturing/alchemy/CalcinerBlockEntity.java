@@ -158,6 +158,12 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         return stack.getBurnTime(null) > 0 ? inventory.insertItem(SLOT_FUEL, stack, false) : stack;
     }
 
+    /** How far the current cycle is, 0 to 100. */
+    public int progressPercent() {
+        int ticks = workTicks();
+        return ticks <= 0 || ticks == Integer.MAX_VALUE ? 0 : Math.min(100, progress * 100 / ticks);
+    }
+
     /** Takes the whole input out. */
     public ItemStack takeInput() {
         ItemStack taken = inventory.getStackInSlot(SLOT_INPUT).copy();

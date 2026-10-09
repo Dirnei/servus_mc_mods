@@ -19,6 +19,8 @@ dependencies {
     localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
     // Playtest conveniences in dev runs only: block info and vein mining.
+    // Only the Jade plugin class touches Jade, and Jade alone loads it.
+    compileOnly "maven.modrinth:jade:${jade_version}"
     localRuntime "maven.modrinth:jade:${jade_version}"
     // FTB Library pulls Architectury in through its own metadata.
     localRuntime "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
