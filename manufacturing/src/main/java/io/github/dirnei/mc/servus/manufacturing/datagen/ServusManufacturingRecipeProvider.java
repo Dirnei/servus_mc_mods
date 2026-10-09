@@ -101,5 +101,16 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .define('C', Items.CAULDRON)
                 .unlockedBy("has_furnace", has(Items.FURNACE))
                 .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.COAGULATOR.get())
+                .pattern("IGI")
+                .pattern("GCG")
+                .pattern("IRI")
+                .define('I', Items.IRON_INGOT)
+                .define('G', Items.GLASS)
+                .define('C', Items.CAULDRON)
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_cauldron", has(Items.CAULDRON))
+                .save(output);
     }
 }

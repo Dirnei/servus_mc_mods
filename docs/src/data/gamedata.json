@@ -373,6 +373,25 @@
         {"item": "servus_manufacturing:calciner", "count": 1}
       ]
     },
+    "servus_manufacturing:coagulator": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IGI", "GCG", "IRI"],
+      "key": {
+        "C": {"item": "minecraft:cauldron"},
+        "G": {"item": "minecraft:glass"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:cauldron", "count": 1},
+        {"item": "minecraft:glass", "count": 3},
+        {"item": "minecraft:iron_ingot", "count": 4},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:coagulator", "count": 1}
+      ]
+    },
     "servus_manufacturing:research_lab": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["IGI", "RBR", "III"],

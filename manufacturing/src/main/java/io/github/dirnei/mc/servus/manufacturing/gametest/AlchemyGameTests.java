@@ -3,6 +3,17 @@ package io.github.dirnei.mc.servus.manufacturing.gametest;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
+import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.material.Fluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -109,5 +120,96 @@ public final class AlchemyGameTests {
         helper.assertTrue(ItemHandlerHelper.insertItemStacked(side, new ItemStack(Items.DIAMOND), false).getCount() == 1, "a diamond is refused");
         helper.assertTrue(ItemHandlerHelper.insertItemStacked(side, new ItemStack(Items.OAK_LOG), false).isEmpty(), "a log is taken");
         helper.succeed();
+    }
+
+    static ResourceLocation coagulation(String name) {
+        return ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + name);
+    }
+
+    static CoagulatorBlockEntity coagulator(GameTestHelper helper, String recipe) {
+        helper.setBlock(MACHINE, ServusManufacturingBlocks.COAGULATOR.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
+        CoagulatorBlockEntity coagulator = helper.getBlockEntity(MACHINE);
+        coagulator.energyStorage().receiveEnergy(8000, false);
+        if (recipe != null) {
+            coagulator.select(coagulation(recipe));
+        }
+        return coagulator;
+    }
+
+    static IFluidHandler coagulatorFluid(GameTestHelper helper) {
+        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(MACHINE), Direction.EAST);
+    }
+
+    /** Salt piped into a Coagulator making Salt Crystals becomes a Salt Crystal. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void coagulatorMakesSaltCrystalFromPipedSalt(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = coagulator(helper, "salt_crystal");
+        int filled = coagulatorFluid(helper).fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 250), IFluidHandler.FluidAction.EXECUTE);
+        helper.assertTrue(filled == 250, "the Salt tank should take 250 mB, took " + filled);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).is(ServusManufacturingItems.SALT_CRYSTAL.get()),
+                    "a Salt Crystal should be made");
+            helper.assertTrue(coagulator.tanks().amount(Principle.SALT) == 0, "the Salt is used up");
+        });
+    }
+
+    /** Only principles go in, each into its own tank. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void coagulatorRefusesForeignFluid(GameTestHelper helper) {
+        coagulator(helper, "salt_crystal");
+        IFluidHandler handler = coagulatorFluid(helper);
+        helper.assertTrue(handler.fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE) == 0, "water is refused");
+        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.SULFUR), 100), IFluidHandler.FluidAction.EXECUTE) == 100,
+                "Sulfur is taken");
+        helper.assertTrue(handler.drain(100, IFluidHandler.FluidAction.EXECUTE).isEmpty(), "the Coagulator gives nothing back");
+        helper.succeed();
+    }
+
+    /** Without enough Mercury the Coagulator waits and spends no energy. */
+    @GameTest(template = EMPTY, timeoutTicks = 120)
+    public static void coagulatorWaitsForMissingPrinciple(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = coagulator(helper, "quicksilver");
+        coagulator.tanks().insert(new Principles(0, 0, 20));
+        int energy = coagulator.energyStorage().getEnergyStored();
+        helper.runAfterDelay(80, () -> {
+            helper.assertTrue(coagulator.energyStorage().getEnergyStored() == energy, "a waiting Coagulator spends no energy");
+            helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).isEmpty(), "nothing is made");
+            helper.succeed();
+        });
+    }
+
+    /** The selected recipe is saved with the block entity and reported as the only production recipe. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void coagulatorKeepsAndReportsItsSelection(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = coagulator(helper, "gunpowder");
+        ProductionProvider production = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(MACHINE), Direction.UP);
+        helper.assertTrue(production != null && production.recipes().size() == 1
+                && production.recipes().get(0).outputs().get(0).is(Items.GUNPOWDER), "only the gunpowder recipe should be reported");
+        CompoundTag saved = coagulator.saveWithoutMetadata(helper.getLevel().registryAccess());
+        helper.setBlock(MACHINE, Blocks.AIR.defaultBlockState());
+        CoagulatorBlockEntity fresh = coagulator(helper, null);
+        helper.assertTrue(fresh.selected().isEmpty(), "a new Coagulator has nothing selected");
+        fresh.loadWithComponents(saved, helper.getLevel().registryAccess());
+        helper.assertTrue(fresh.selected().filter(id -> id.equals(coagulation("gunpowder"))).isPresent(), "the selection should be loaded");
+        helper.succeed();
+    }
+
+    /** An Output side lets neighbours take but pushes nothing; a Push side pushes (shared machine rule). */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void outputSideDoesNotPush(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = coagulator(helper, null);
+        BlockPos chestPos = MACHINE.east();
+        helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        coagulator.inventory().setStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT, new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get(), 5));
+        coagulator.sideConfig().set(RelativeSide.LEFT, SideMode.OUTPUT);
+        helper.runAfterDelay(20, () -> {
+            helper.assertTrue(chest.countItem(ServusManufacturingItems.SALT_CRYSTAL.get()) == 0, "an Output side must not push");
+            coagulator.sideConfig().set(RelativeSide.LEFT, SideMode.PUSH);
+            helper.runAfterDelay(20, () -> {
+                helper.assertTrue(chest.countItem(ServusManufacturingItems.SALT_CRYSTAL.get()) == 5, "a Push side pushes");
+                helper.succeed();
+            });
+        });
     }
 }

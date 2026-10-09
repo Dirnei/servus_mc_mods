@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -21,6 +22,11 @@ public final class ServusManufacturingBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CalcinerBlockEntity>> CALCINER =
             BLOCK_ENTITIES.register("calciner", () -> BlockEntityType.Builder
                     .of(CalcinerBlockEntity::new, ServusManufacturingBlocks.CALCINER.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoagulatorBlockEntity>> COAGULATOR =
+            BLOCK_ENTITIES.register("coagulator", () -> BlockEntityType.Builder
+                    .of(CoagulatorBlockEntity::new, ServusManufacturingBlocks.COAGULATOR.get())
                     .build(null));
 
     private ServusManufacturingBlockEntities() {

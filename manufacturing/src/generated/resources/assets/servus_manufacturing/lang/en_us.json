@@ -1,5 +1,6 @@
 {
   "block.servus_manufacturing.calciner": "Calciner",
+  "block.servus_manufacturing.coagulator": "Coagulator",
   "block.servus_manufacturing.mercury": "Mercury",
   "block.servus_manufacturing.research_lab": "Research Lab",
   "block.servus_manufacturing.salt": "Salt",
@@ -7,6 +8,9 @@
   "fluid_type.servus_manufacturing.mercury": "Mercury",
   "fluid_type.servus_manufacturing.salt": "Salt",
   "fluid_type.servus_manufacturing.sulfur": "Sulfur",
+  "gui.servus_manufacturing.coagulator.needs": "%s mB %s",
+  "gui.servus_manufacturing.jei.calcination": "Calcination",
+  "gui.servus_manufacturing.jei.coagulation": "Coagulation",
   "gui.servus_manufacturing.locked": "Locked: requires research",
   "gui.servus_manufacturing.no_research": "No research selected",
   "gui.servus_manufacturing.research.available": "Available",

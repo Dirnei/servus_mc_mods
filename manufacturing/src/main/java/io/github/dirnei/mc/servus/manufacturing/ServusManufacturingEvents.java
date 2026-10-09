@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
@@ -72,6 +73,14 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.energyStorage());
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.CALCINER.get(),
                     (machine, side) -> machine.fluidHandler(side));
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
+                    (machine, side) -> machine.sideHandler(side));
+            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
+                    (machine, side) -> machine.energyStorage());
+            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
+                    (machine, side) -> machine.fluidHandler(side));
+            event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.COAGULATOR.get(),
+                    (machine, side) -> machine.production());
         }
     }
 }

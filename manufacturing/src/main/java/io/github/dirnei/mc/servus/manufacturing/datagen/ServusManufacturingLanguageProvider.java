@@ -18,6 +18,10 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         add(ServusManufacturingBlocks.RESEARCH_LAB.get(), "Research Lab");
         add(ServusManufacturingBlocks.CALCINER.get(), "Calciner");
+        add(ServusManufacturingBlocks.COAGULATOR.get(), "Coagulator");
+        add("gui.servus_manufacturing.coagulator.needs", "%s mB %s");
+        add("gui.servus_manufacturing.jei.calcination", "Calcination");
+        add("gui.servus_manufacturing.jei.coagulation", "Coagulation");
         add(ServusManufacturingItems.SALT_CRYSTAL.get(), "Salt Crystal");
         add(ServusManufacturingItems.SULFUR.get(), "Sulfur");
         add(ServusManufacturingItems.QUICKSILVER.get(), "Quicksilver");

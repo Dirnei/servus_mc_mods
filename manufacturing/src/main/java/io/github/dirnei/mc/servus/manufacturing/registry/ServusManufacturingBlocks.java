@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.registry;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlock;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -16,6 +17,9 @@ public final class ServusManufacturingBlocks {
 
     public static final DeferredBlock<CalcinerBlock> CALCINER =
             BLOCKS.registerBlock("calciner", CalcinerBlock::new, MachineContent.machine());
+
+    public static final DeferredBlock<CoagulatorBlock> COAGULATOR =
+            BLOCKS.registerBlock("coagulator", CoagulatorBlock::new, MachineContent.machine());
 
     private ServusManufacturingBlocks() {
     }
