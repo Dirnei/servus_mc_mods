@@ -3,9 +3,12 @@ package io.github.dirnei.mc.servus.storage.network;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 
 /**
- * Which warehouse nodes link up when they touch. Stock holding blocks and
- * garages link to each other and to rails on any side. Stations link only to
- * rails, so they never join or pass on a warehouse by touching it. Rails link
+ * Which warehouse nodes link up when they touch. Stock holding blocks served
+ * instantly (crates, foreign inventories, the controller) link to each other
+ * and to rails on any side. Blocks shuttles serve (racks, stations, Access
+ * Points, garages) are rail only: they link only to rails (racks also to bays
+ * of their own section), so they never join or pass on a warehouse by
+ * touching it. Rails link
  * sideways to rails and to elevator segments. Segments link vertically to
  * segments and sideways to rails, never straight to a storage block or a
  * station. Pure, no Minecraft imports.
@@ -18,6 +21,11 @@ public final class WarehouseConnectionRule {
     private WarehouseConnectionRule() {
     }
 
+    /** Whether shuttles serve the kind, so it joins a warehouse only through rails. */
+    public static boolean railOnly(NodeKind kind) {
+        return kind == NodeKind.RACK || kind == NodeKind.STATION || kind == NodeKind.GARAGE;
+    }
+
     /**
      * @param from the node being asked
      * @param side the side of {@code from} that faces {@code to}
@@ -26,9 +34,9 @@ public final class WarehouseConnectionRule {
     public static boolean accepts(NodeKind from, Side side, NodeKind to) {
         boolean vertical = side == Side.UP || side == Side.DOWN;
         return switch (from) {
-            case STOCK, GARAGE -> to != NodeKind.ELEVATOR && to != NodeKind.RACK && to != NodeKind.STATION;
-            // Stations (and Access Points) join only through rails.
-            case STATION -> to == NodeKind.RAIL;
+            case STOCK -> to == NodeKind.STOCK || to == NodeKind.RAIL;
+            // Shuttle served blocks join only through rails; which faces take a rail is up to the block.
+            case STATION, GARAGE -> to == NodeKind.RAIL;
             // A rack links only to rails (its front, checked by the network) and to bays of its own section.
             case RACK -> to == NodeKind.RAIL || to == NodeKind.RACK;
             case RAIL -> to == NodeKind.STOCK || to == NodeKind.STATION || to == NodeKind.GARAGE || to == NodeKind.RACK || !vertical;

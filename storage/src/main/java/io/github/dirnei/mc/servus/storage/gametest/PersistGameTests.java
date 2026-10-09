@@ -157,11 +157,11 @@ public final class PersistGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void shipmentCappedAfterReload(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
-        AccessPointBlockEntity point = helper.getBlockEntity(ACCESS);
+        AccessPointBlockEntity point = helper.getBlockEntity(TerminalWiring.accessPointPos(ACCESS));
         AccessPointBlockEntity.Shipment shipment = point.addShipment(helper.absolutePos(STATION_A), STICK, 16);
         ItemHandlerHelper.insertItemStacked(point.outgoing(), new ItemStack(Items.STICK, 8), false);
         long id = shipment.id();
-        AccessPointBlockEntity loaded = reload(helper, ACCESS);
+        AccessPointBlockEntity loaded = reload(helper, TerminalWiring.accessPointPos(ACCESS));
         helper.assertTrue(loaded.shipments().isEmpty() || loaded.shipments().get(0).id() == id, "no other shipment appears");
         ProductionLedger ledger = ProductionLedger.get(helper.getLevel());
         TerminalWiring.when(helper, () -> ledger.transfer(id) != null && ledger.transfer(id).asked() == 8, 150,

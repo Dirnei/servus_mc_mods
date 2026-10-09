@@ -69,7 +69,7 @@ public final class PushedOutputGameTests {
     private static void push(GameTestHelper helper, CraftingStationBlockEntity station, Direction face) {
         int count = station.outputs().getStackInSlot(0).getCount();
         ItemStack sticks = station.outputs().extractItem(0, count, false);
-        AccessPointBlockEntity point = helper.getBlockEntity(ACCESS);
+        AccessPointBlockEntity point = helper.getBlockEntity(TerminalWiring.accessPointPos(ACCESS));
         ItemStack left = ItemHandlerHelper.insertItem(point.handlerFor(face), sticks, false);
         helper.assertTrue(left.isEmpty(), "the Access Point should take the sticks, left " + left);
     }

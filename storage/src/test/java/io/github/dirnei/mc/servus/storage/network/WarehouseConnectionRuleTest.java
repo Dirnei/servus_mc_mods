@@ -72,14 +72,20 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
-    void garageLinksToStockGaragesAndRails() {
+    void shuttleServedKindsAreRailOnly() {
+        for (NodeKind kind : new NodeKind[] {NodeKind.STATION, NodeKind.GARAGE, NodeKind.RACK}) {
+            assertTrue(WarehouseConnectionRule.railOnly(kind));
+            for (Side side : Side.ALL) {
+                assertTrue(WarehouseConnectionRule.accepts(kind, side, NodeKind.RAIL));
+                assertFalse(WarehouseConnectionRule.accepts(kind, side, NodeKind.STOCK));
+                assertFalse(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, kind));
+                assertFalse(WarehouseConnectionRule.accepts(kind, side, NodeKind.ELEVATOR));
+            }
+        }
+        assertFalse(WarehouseConnectionRule.railOnly(NodeKind.STOCK));
         for (Side side : Side.ALL) {
-            assertTrue(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.STOCK));
-            assertTrue(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.GARAGE));
-            assertTrue(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.RAIL));
-            assertTrue(WarehouseConnectionRule.accepts(NodeKind.RAIL, side, NodeKind.GARAGE));
-            assertFalse(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.ELEVATOR));
-            assertFalse(WarehouseConnectionRule.accepts(NodeKind.ELEVATOR, side, NodeKind.GARAGE));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.GARAGE));
+            assertFalse(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.STATION));
         }
     }
 

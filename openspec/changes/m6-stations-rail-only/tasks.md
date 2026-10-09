@@ -3,10 +3,11 @@
 ## 1. Connection rule
 
 - [x] 1.1 Change `storage/src/main/java/.../storage/network/WarehouseConnectionRule.java` so STATION links only to RAIL and STOCK/GARAGE never to STATION; update `storage/src/test/.../network/WarehouseConnectionRuleTest.java` (`stationLinksOnlyToRails`, `stockAndGarageNeverLinkToStations`, symmetry stays). Verify with `gradlew :storage:test`.
+- [x] 1.2 Widen to one general rule: `WarehouseConnectionRule.railOnly` for RACK, STATION and GARAGE; GARAGE links only to RAIL, STOCK only to STOCK and RAIL; JUnit `shuttleServedKindsAreRailOnly`. Verify with `gradlew :storage:test`.
 
 ## 2. GameTests
 
-- [ ] 2.1 Add `storage/src/main/java/.../storage/gametest/StationRailGameTests.java` (station touching controller offline and keeps buffer, rail placed later connects and puts away, breaking the rail disconnects, crate touching only the station not linked, Access Point touching controller without rail is dark) and wire existing GameTests that relied on station adjacency with rails. Verify with `gradlew build` and the Storage GameTests, all green.
+- [ ] 2.1 Add `storage/src/main/java/.../storage/gametest/StationRailGameTests.java` (station touching controller offline and keeps buffer, rail placed later connects and puts away, breaking the rail disconnects, crate touching only the station not linked, Access Point touching controller without rail is dark, garage touching controller without back rail is dark) and wire existing GameTests that relied on station adjacency with rails. Verify with `gradlew build` and the Storage GameTests, all green.
 
 ## 3. Docs
 

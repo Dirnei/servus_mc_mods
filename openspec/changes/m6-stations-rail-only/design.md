@@ -12,9 +12,10 @@ Warehouse links are decided by the pure `WarehouseConnectionRule` over node kind
 
 ## Decisions
 
-- `WarehouseConnectionRule.accepts`: `STATION` accepts only `RAIL`. `STOCK` and `GARAGE` no longer accept `STATION`. `RAIL` keeps accepting `STATION` on every side. The rule stays symmetric, so neither side can link a station except a rail. Alternative considered: a per side check in `StorageNodeBlockEntity` like the rack's section link; not needed because stations take rails on every face they already accept, so the kind rule is enough.
+- One general rule in `WarehouseConnectionRule`: `railOnly(kind)` is true for the shuttle served kinds RACK, STATION and GARAGE. STATION and GARAGE accept only RAIL; RACK accepts RAIL and RACK (section links checked by the network as before); STOCK accepts only STOCK and RAIL. RAIL keeps accepting all of them. The rule stays symmetric. Which faces take a rail stays per block (`acceptsRail`): rack front, every station side, garage back. Alternative considered: a per side check like the rack's section link for every block; not needed because `acceptsRail` already limits the faces.
 - The Access Point needs no own code: it inherits `NodeKind.STATION` from the Inbound Station and therefore the rail only rule.
-- Shuttle Garage: unchanged on purpose. It links to its rail and still to touching stock blocks; the user asked only for the stations. Recorded so it can be revisited.
+- Shuttle Garage: now rail only as well (user: "the rule is for all blocks that shuttles interact with"); it already takes its rail only on its back.
+- Crates, the controller and foreign inventories keep adjacency (served instantly). Open question for the user whether they should be rail only too.
 - Lamps: the connection lamp already follows the network the node is in; a station without a rail is a network of its own with no controller, so its lamp is dark and its GUI names the missing controller.
 - Updates: placing or breaking a rail adds or removes a graph node, which merges or splits networks through `NetworkSet`; no ticking scan.
 - NeoForge APIs: none new.
@@ -27,4 +28,4 @@ Warehouse links are decided by the pure `WarehouseConnectionRule` over node kind
 ## Risks / Trade-offs
 
 - [Existing builds with stations pressed against controllers go offline after the update] -> intended by the user; the GUI and dark lamp say so.
-- [Garage still links by adjacency] -> recorded; a follow up can make it rail only too.
+- [Crates still link by touch, so a crate wall beside the controller still works without rails] -> intended for now; open question recorded.

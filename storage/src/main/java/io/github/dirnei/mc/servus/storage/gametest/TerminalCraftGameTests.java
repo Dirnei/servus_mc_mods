@@ -161,9 +161,9 @@ public final class TerminalCraftGameTests {
     public static void accessPointMenuStaysValid(GameTestHelper helper) {
         TerminalWiring.place(helper, ACCESS);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        BlockPos absolute = helper.absolutePos(ACCESS);
+        BlockPos absolute = helper.absolutePos(TerminalWiring.accessPointPos(ACCESS));
         player.moveTo(absolute.getX() + 0.5, absolute.getY() + 1, absolute.getZ() + 1.5);
-        AccessPointBlockEntity point = helper.getBlockEntity(ACCESS);
+        AccessPointBlockEntity point = helper.getBlockEntity(TerminalWiring.accessPointPos(ACCESS));
         InboundStationMenu menu = new InboundStationMenu(1, player.getInventory(), point);
         helper.assertTrue(menu.stillValid(player), "the Access Point GUI should stay open");
         helper.succeed();
