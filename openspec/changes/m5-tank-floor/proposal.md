@@ -9,6 +9,7 @@ The Fluid Tank is glass on all six sides, so a tank shows the ground through its
 ## What Changes
 
 - New tank recipe: copper ingots in the corners, glass on the top, left and right edges, an empty centre, and any solid full block in the bottom middle. That block becomes the tank's floor, like a facade. Glass and other see through blocks are not accepted.
+- JEI shows the tank recipe (and the facade recipe) as example recipes with a cycling floor slot, from a new Foundation JEI plugin (soft dependency).
 - The tank's floor shows that block's texture as a thin plate, seen from below and from inside, only on blocks with nothing of their tank below. The block travels with the item when the tank is broken and placed again.
 - The frame looks like copper.
 - Tank blocks let light through like air and cast no ambient occlusion shadow, so a big tank is lit evenly.
@@ -24,7 +25,6 @@ None.
 ## Non-goals
 
 - The item icon always shows a copper floor; the tooltip names the real floor.
-- JEI does not list the special recipe, like the facade recipe.
 - Sides and top stay glass.
 
 ## Impact
