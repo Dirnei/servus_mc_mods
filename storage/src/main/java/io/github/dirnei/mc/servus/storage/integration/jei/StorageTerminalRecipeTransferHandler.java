@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.integration.jei;
 
+import io.github.dirnei.mc.servus.storage.client.StorageTerminalScreen;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.terminal.GridFillPayload;
@@ -21,8 +22,8 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * JEI plus button on crafting recipes while a Storage Terminal is open: asks
- * the server to fill the crafting grid, from the warehouse first and the
+ * JEI plus button on crafting recipes while a Storage Terminal is open: opens
+ * the crafting popup and asks the server to fill the crafting grid, from the warehouse first and the
  * player inventory second. JEI's crafting view lists its nine input slots in
  * grid order, so slot view i becomes grid slot i.
  */
@@ -57,6 +58,8 @@ public final class StorageTerminalRecipeTransferHandler implements IRecipeTransf
             while (grid.size() < 9) {
                 grid.add(List.of());
             }
+            // The crafting popup shows the filled grid: open it now, or when the terminal returns.
+            StorageTerminalScreen.requestCraftPopup();
             PacketDistributor.sendToServer(new GridFillPayload(grid, maxTransfer));
         }
         return null;

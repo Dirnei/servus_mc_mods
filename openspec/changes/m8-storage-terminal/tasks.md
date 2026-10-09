@@ -6,11 +6,11 @@
 
 ## 2. Input and output rows
 
-- [ ] 2.1 Block entity input handler (saved, dropped), store on change via the server tick, routing capability handler (request items to output, others to input); layout rows Input and Output; menu slots for both, shift click from the inventory into the input. GameTests `inputStores`, `inputKeepsLeftover`, `automationRouting`, `outputRowDelivers`. Verify with build, JUnit and Storage GameTests.
+- [x] 2.1 Block entity input handler (saved, dropped), store on change via the server tick, routing capability handler (request items to output, others to input); layout rows Input and Output; menu slots for both, shift click from the inventory into the input. GameTests `inputStores`, `inputKeepsLeftover`, `automationRouting`, `outputRowDelivers`. Verify with build, JUnit and Storage GameTests.
 
 ## 3. Crafting popup
 
-- [ ] 3.1 Layout: Craft button and popup rectangle; TerminalLayoutTest covers every height and scale with the popup inside the grid area. Menu crafting slots inactive while the popup is closed; screen draws the popup, closing it clears the grid; JEI transfer opens it. GameTest `popupCrafts`. Verify with build, JUnit and Storage GameTests.
+- [x] 3.1 Layout: Craft button and popup rectangle; TerminalLayoutTest covers every height and scale with the popup inside the grid area. Menu crafting slots inactive while the popup is closed; screen draws the popup, closing it clears the grid; JEI transfer opens it. GameTest `popupCrafts`. Verify with build, JUnit and Storage GameTests.
 
 ## 4. Docs
 

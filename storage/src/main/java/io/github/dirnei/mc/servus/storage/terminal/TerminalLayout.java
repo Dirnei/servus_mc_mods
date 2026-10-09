@@ -47,56 +47,72 @@ public final class TerminalLayout {
 
     /**
      * The Storage Terminal, Refined Storage style: view buttons in a column
-     * left of the panel, title and search, the item grid with its scrollbar,
-     * a message line, the crafting grid left of the output, then the player
-     * inventory. Everything from the message line down sits at fixed offsets
-     * from the panel's base top, so slots never move; extra grid rows grow the
-     * panel upwards, to negative y.
+     * left of the panel, title, Craft button and search, the item grid with
+     * its scrollbar, a message line, the Input row, the Output row, then the
+     * player inventory. Everything from the message line down sits at fixed
+     * offsets from the panel's base top, so slots never move; extra grid rows
+     * grow the panel upwards, to negative y. The crafting popup lies over the
+     * grid's base rows, which every height shows.
      */
     public static final class Storage {
         public static final int WIDTH = 190;
         /** Panel height with {@link #BASE_ROWS} grid rows. */
-        public static final int BASE_HEIGHT = 256;
+        public static final int BASE_HEIGHT = 242;
         public static final int COLUMNS = 9;
         public static final int BASE_ROWS = 4;
-        public static final int OUTPUT_COLUMNS = 3;
+        /** Slots in the Input and in the Output row. */
+        public static final int ROW_SLOTS = 9;
         public static final int SIDE_BUTTONS = 5;
         public static final int SIDE_X = -22;
         public static final int SIDE_SIZE = 18;
         public static final int SIDE_STEP = 20;
 
         public static final Rect MESSAGE = new Rect(8, 92, 174, 9);
-        public static final Rect CRAFT_GRID = new Rect(8, 104, 3 * CELL, 3 * CELL);
-        public static final Rect CLEAR = new Rect(89, 106, 12, 12);
-        public static final Rect CRAFT_ARROW = new Rect(66, 123, 16, 10);
-        public static final Rect CRAFT_RESULT = new Rect(86, 122, CELL, CELL);
-        public static final Rect OUTPUT = new Rect(128, 104, OUTPUT_COLUMNS * CELL, 3 * CELL);
-        public static final Rect INVENTORY_LABEL = new Rect(8, 162, 162, 9);
-        public static final Rect INVENTORY = new Rect(8, 173, 9 * CELL, 3 * CELL);
-        public static final Rect HOTBAR = new Rect(8, 231, 9 * CELL, CELL);
+        public static final Rect INPUT = new Rect(8, 104, ROW_SLOTS * CELL, CELL);
+        public static final Rect INPUT_TAG = new Rect(174, 104, 8, CELL);
+        public static final Rect OUTPUT = new Rect(8, 126, ROW_SLOTS * CELL, CELL);
+        public static final Rect OUTPUT_TAG = new Rect(174, 126, 8, CELL);
+        public static final Rect INVENTORY_LABEL = new Rect(8, 148, 162, 9);
+        public static final Rect INVENTORY = new Rect(8, 159, 9 * CELL, 3 * CELL);
+        public static final Rect HOTBAR = new Rect(8, 217, 9 * CELL, CELL);
+
+        /** The crafting popup over the grid's base rows, and its parts. */
+        public static final Rect POPUP = new Rect(8, 18, 174, BASE_ROWS * CELL);
+        public static final Rect CRAFT_GRID = new Rect(18, 27, 3 * CELL, 3 * CELL);
+        public static final Rect CRAFT_ARROW = new Rect(80, 49, 16, 10);
+        public static final Rect CRAFT_RESULT = new Rect(102, 45, CELL, CELL);
+        public static final Rect CLEAR = new Rect(128, 48, 12, 12);
 
         private Storage() {
         }
 
         /** The parts that move with the number of grid rows. */
-        public record Layout(int rows, int top, Rect title, Rect search, Rect grid, Rect scrollbar, Rect dialog, List<Rect> side) {
+        public record Layout(int rows, int top, Rect title, Rect craft, Rect search, Rect grid, Rect scrollbar, Rect dialog,
+                             List<Rect> side) {
 
             /** Panel height including the rows above the base top. */
             public int height() {
                 return BASE_HEIGHT - top;
             }
 
+            /** Everything but the crafting popup, which lies over the grid on purpose. */
             public List<Area> areas() {
-                List<Area> areas = new ArrayList<>(List.of(new Area("title", title), new Area("search", search),
-                        new Area("grid", grid), new Area("scrollbar", scrollbar), new Area("message", MESSAGE),
-                        new Area("craft grid", CRAFT_GRID), new Area("clear", CLEAR), new Area("craft arrow", CRAFT_ARROW),
-                        new Area("craft result", CRAFT_RESULT), new Area("output", OUTPUT),
+                List<Area> areas = new ArrayList<>(List.of(new Area("title", title), new Area("craft button", craft),
+                        new Area("search", search), new Area("grid", grid), new Area("scrollbar", scrollbar),
+                        new Area("message", MESSAGE), new Area("input", INPUT), new Area("input tag", INPUT_TAG),
+                        new Area("output", OUTPUT), new Area("output tag", OUTPUT_TAG),
                         new Area("inventory label", INVENTORY_LABEL), new Area("inventory", INVENTORY), new Area("hotbar", HOTBAR)));
                 for (int i = 0; i < side.size(); i++) {
                     areas.add(new Area("side " + i, side.get(i)));
                 }
                 return areas;
             }
+        }
+
+        /** The parts of the crafting popup. */
+        public static List<Area> popupAreas() {
+            return List.of(new Area("craft grid", CRAFT_GRID), new Area("craft arrow", CRAFT_ARROW),
+                    new Area("craft result", CRAFT_RESULT), new Area("clear", CLEAR));
         }
 
         /** The layout for a number of grid rows, at least {@link #BASE_ROWS}. */
@@ -107,9 +123,10 @@ public final class TerminalLayout {
             for (int i = 0; i < SIDE_BUTTONS; i++) {
                 side.add(new Rect(SIDE_X, top + 4 + i * SIDE_STEP, SIDE_SIZE, SIDE_SIZE));
             }
-            return new Layout(shown, top, new Rect(8, top + 6, 84, 9), new Rect(96, top + 4, 86, 12),
-                    new Rect(8, top + 18, COLUMNS * CELL, shown * CELL), new Rect(174, top + 18, 8, shown * CELL),
-                    new Rect(8, top + 18, 174, CRAFT_GRID.bottom() - 1 - (top + 18)), List.copyOf(side));
+            return new Layout(shown, top, new Rect(8, top + 6, 76, 9), new Rect(86, top + 4, 32, 12),
+                    new Rect(122, top + 4, 60, 12), new Rect(8, top + 18, COLUMNS * CELL, shown * CELL),
+                    new Rect(174, top + 18, 8, shown * CELL),
+                    new Rect(8, top + 18, 174, OUTPUT.bottom() - (top + 18)), List.copyOf(side));
         }
 
         /**
@@ -131,13 +148,22 @@ public final class TerminalLayout {
             return CRAFT_GRID.y() + (slot / 3) * CELL;
         }
 
-        /** Item origin of an output slot. */
+        /** Item origin of an Input row slot. */
+        public static int inputX(int slot) {
+            return INPUT.x() + slot * CELL;
+        }
+
+        public static int inputY(int slot) {
+            return INPUT.y();
+        }
+
+        /** Item origin of an Output row slot. */
         public static int outputX(int slot) {
-            return OUTPUT.x() + (slot % OUTPUT_COLUMNS) * CELL;
+            return OUTPUT.x() + slot * CELL;
         }
 
         public static int outputY(int slot) {
-            return OUTPUT.y() + (slot / OUTPUT_COLUMNS) * CELL;
+            return OUTPUT.y();
         }
     }
 

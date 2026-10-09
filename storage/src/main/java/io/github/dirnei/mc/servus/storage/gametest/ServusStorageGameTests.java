@@ -838,12 +838,14 @@ public final class ServusStorageGameTests {
             player.getInventory().setItem(slot, new ItemStack(Items.COBBLESTONE, 20));
             int menuIndex = menu.inventoryStart() + (slot < 9 ? 27 + slot : slot - 9);
             menu.quickMoveStack(player, menuIndex);
-            helper.assertTrue(crate.count() == 20, "crate should hold 20 cobblestone after the push, had " + crate.count());
             helper.assertTrue(player.getInventory().countItem(Items.COBBLESTONE) == 0, "inventory should be empty of cobblestone");
-
-            menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 5);
-            helper.assertTrue(menu.stock().message().equals("out_of_stock"), "a request for nothing in stock is refused, got " + menu.stock().message());
-            helper.succeed();
+            // The shift click goes into the Input row, which stores it on the next tick.
+            TerminalWiring.when(helper, () -> crate.count() == 20, 40,
+                    () -> "crate should hold 20 cobblestone after the push, had " + crate.count(), () -> {
+                menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 5);
+                helper.assertTrue(menu.stock().message().equals("out_of_stock"), "a request for nothing in stock is refused, got " + menu.stock().message());
+                helper.succeed();
+            });
             });
         });
     }

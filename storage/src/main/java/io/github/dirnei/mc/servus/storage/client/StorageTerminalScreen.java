@@ -45,10 +45,11 @@ import org.lwjgl.glfw.GLFW;
 
 /**
  * Refined Storage style Storage Terminal: view buttons left of the panel,
- * search, the item grid with open requests first, a message line, the crafting
- * grid left of the output, the player inventory; an amount prompt for requests
- * and rules and a craft dialog with a server preview. Everything sits where
- * {@link Counter} says; extra grid rows grow the panel upwards.
+ * a Craft button and search, the item grid with open requests first, a
+ * message line, the Input and Output rows, the player inventory; a crafting
+ * popup over the grid, an amount prompt for requests and rules and a craft
+ * dialog with a server preview. Everything sits where {@link Storage} says;
+ * extra grid rows grow the panel upwards.
  */
 public class StorageTerminalScreen extends AbstractContainerScreen<StorageTerminalMenu> {
 
@@ -82,6 +83,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private final List<IconButton> sideButtons = new ArrayList<>();
 
     private Dialog dialog = Dialog.NONE;
+    private boolean popupOpen;
+    private Button craftButton;
+    private Button clearButton;
     private ItemStack subject = ItemStack.EMPTY;
     private EditBox amount;
     private EditBox maximum;
@@ -173,7 +177,11 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }));
         refreshSideButtons();
 
-        addRenderableWidget(Button.builder(Component.literal("x"), b -> PacketDistributor.sendToServer(GridClearPayload.INSTANCE))
+        Rect craftRect = layout.craft();
+        craftButton = addRenderableWidget(Button.builder(Component.empty(), b -> togglePopup())
+                .bounds(leftPos + craftRect.x(), topPos + craftRect.y(), craftRect.w(), craftRect.h())
+                .tooltip(Tooltip.create(Component.translatable("gui.servus_storage.terminal.craft_button_hint"))).build());
+        clearButton = addRenderableWidget(Button.builder(Component.literal("x"), b -> PacketDistributor.sendToServer(GridClearPayload.INSTANCE))
                 .bounds(leftPos + Storage.CLEAR.x(), topPos + Storage.CLEAR.y(), Storage.CLEAR.w(), Storage.CLEAR.h())
                 .tooltip(Tooltip.create(Component.translatable("gui.servus_storage.terminal.clear_grid"))).build());
 
@@ -202,7 +210,55 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 .bounds(dx() + 92, bottom, 40, 14).build());
         cancelButton = addRenderableWidget(Button.builder(Component.translatable("gui.servus_storage.terminal.cancel"),
                 b -> closeDialog()).bounds(dx() + 134, bottom, 36, 14).build());
+        if (popupRequested) {
+            popupRequested = false;
+            popupOpen = true;
+        }
         applyDialog();
+    }
+
+    // Crafting popup
+
+    /** Set by JEI's transfer: open the popup on the terminal screen now or when it shows next. */
+    private static boolean popupRequested;
+
+    public static void requestCraftPopup() {
+        if (Minecraft.getInstance().screen instanceof StorageTerminalScreen screen) {
+            screen.openCraftPopup();
+        } else {
+            popupRequested = true;
+        }
+    }
+
+    private void togglePopup() {
+        if (popupOpen) {
+            closePopup();
+        } else {
+            openCraftPopup();
+        }
+    }
+
+    /** Shows the crafting popup over the grid; JEI's transfer opens it too. */
+    public void openCraftPopup() {
+        if (dialogOpen()) {
+            closeDialog();
+        }
+        popupOpen = true;
+        applyDialog();
+    }
+
+    /** Hides the popup and stores what is left in its grid. */
+    private void closePopup() {
+        if (!popupOpen) {
+            return;
+        }
+        popupOpen = false;
+        PacketDistributor.sendToServer(GridClearPayload.INSTANCE);
+        applyDialog();
+    }
+
+    private boolean insidePopup(int x, int y) {
+        return popupOpen && Storage.POPUP.contains(x, y);
     }
 
     private IconButton sideButton(Rect rect, Supplier<String> icon, Button.OnPress press) {
@@ -285,6 +341,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     private void openRequest(ItemStack stack) {
+        closePopup();
         subject = stack.copyWithCount(1);
         dialog = Dialog.REQUEST;
         amount.setValue(Integer.toString(stack.getMaxStackSize()));
@@ -293,6 +350,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     private void openCraft(ItemStack stack) {
+        closePopup();
         subject = stack.copyWithCount(1);
         dialog = Dialog.CRAFT;
         ClientStock.clearPreview();
@@ -324,6 +382,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     private void applyDialog() {
         boolean open = dialogOpen();
+        menu.setCraftOpen(popupOpen && !open);
+        craftButton.visible = !open;
+        craftButton.setMessage(Component.translatable(popupOpen ? "gui.servus_storage.terminal.craft_close" : "gui.servus_storage.terminal.craft_button"));
+        clearButton.visible = popupOpen && !open;
         search.visible = !open;
         sideButtons.forEach(button -> button.visible = !open);
         amount.visible = open;
@@ -499,7 +561,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         int x = (int) mouseX - leftPos;
         int y = (int) mouseY - topPos;
         Rect grid = layout.grid();
-        if (!grid.contains(x, y)) {
+        if (!grid.contains(x, y) || insidePopup(x, y)) {
             return -1;
         }
         return ((y - grid.y()) / CELL + scrollRow) * COLUMNS + (x - grid.x()) / CELL;
@@ -519,18 +581,50 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         Rect grid = layout.grid();
         PanelPainter.slots(graphics, leftPos, topPos, grid, COLUMNS, COLUMNS * layout.rows());
         PanelPainter.inset(graphics, leftPos, topPos, layout.scrollbar());
-        PanelPainter.slots(graphics, leftPos, topPos, Storage.OUTPUT, Storage.OUTPUT_COLUMNS, menu.inventoryStart());
+        PanelPainter.slots(graphics, leftPos, topPos, Storage.INPUT, Storage.ROW_SLOTS, Storage.ROW_SLOTS);
+        PanelPainter.slots(graphics, leftPos, topPos, Storage.OUTPUT, Storage.ROW_SLOTS, menu.outputSlots());
+        tag(graphics, Storage.INPUT_TAG, false);
+        tag(graphics, Storage.OUTPUT_TAG, true);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.INVENTORY, 9, 27);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.HOTBAR, 9, 9);
-        PanelPainter.slots(graphics, leftPos, topPos, Storage.CRAFT_GRID, 3, 9);
-        PanelPainter.slots(graphics, leftPos, topPos, Storage.CRAFT_RESULT, 1, 1);
-        arrow(graphics, leftPos + Storage.CRAFT_ARROW.x(), topPos + Storage.CRAFT_ARROW.y());
+        if (popupOpen && !dialogOpen()) {
+            Rect popup = Storage.POPUP;
+            int px = leftPos + popup.x();
+            int py = topPos + popup.y();
+            graphics.fill(px - 1, py - 1, px + popup.w() + 1, py + popup.h() + 1, 0xFF373737);
+            graphics.fill(px, py, px + popup.w(), py + popup.h(), 0xFFC6C6C6);
+            PanelPainter.slots(graphics, leftPos, topPos, Storage.CRAFT_GRID, 3, 9);
+            PanelPainter.slots(graphics, leftPos, topPos, Storage.CRAFT_RESULT, 1, 1);
+            arrow(graphics, leftPos + Storage.CRAFT_ARROW.x(), topPos + Storage.CRAFT_ARROW.y());
+        }
         int max = maxScrollRow();
         Rect bar = layout.scrollbar();
         int track = bar.h() - 15;
         int thumb = topPos + bar.y() + (max == 0 ? 0 : track * scrollRow / max);
         int thumbX = leftPos + bar.x();
         graphics.fill(thumbX, thumb, thumbX + bar.w(), thumb + 15, max == 0 ? 0xFF9A9A9A : 0xFFE0E0E0);
+    }
+
+    /** A small arrow beside a row: down into the warehouse for the input, up out of it for the output. */
+    private void tag(GuiGraphics graphics, Rect rect, boolean up) {
+        int colour = up ? 0xFF4C7FB0 : 0xFF4C9A5A;
+        int cx = leftPos + rect.x() + rect.w() / 2;
+        int top = topPos + rect.y() + 4;
+        graphics.fill(cx - 1, top, cx + 1, top + 10, colour);
+        for (int i = 0; i < 4; i++) {
+            int y = up ? top + i : top + 9 - i;
+            graphics.fill(cx - 1 - i, y, cx + 1 + i, y + 1, colour);
+        }
+    }
+
+    private Component tagTooltip(int x, int y) {
+        if (Storage.INPUT_TAG.contains(x, y)) {
+            return Component.translatable("gui.servus_storage.terminal.input_tag");
+        }
+        if (Storage.OUTPUT_TAG.contains(x, y)) {
+            return Component.translatable("gui.servus_storage.terminal.output_tag");
+        }
+        return null;
     }
 
     /** A grey arrow pointing right, 16 by 10, from the grid to the result. */
@@ -566,8 +660,11 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
         renderGrid(graphics, mouseX, mouseY);
         Optional<Cell> hovered = cellUnder(mouseX, mouseY);
+        Component tag = tagTooltip(mouseX - leftPos, mouseY - topPos);
         if (hovered.isPresent()) {
             graphics.renderTooltip(font, cellTooltip(hovered.get()), Optional.empty(), mouseX, mouseY);
+        } else if (tag != null) {
+            graphics.renderTooltip(font, tag, mouseX, mouseY);
         } else {
             renderTooltip(graphics, mouseX, mouseY);
         }
@@ -625,6 +722,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             Cell cell = list.get(first + i);
             int x = leftPos + grid.x() + (i % COLUMNS) * CELL;
             int y = topPos + grid.y() + (i / COLUMNS) * CELL;
+            if (insidePopup(x - leftPos, y - topPos)) {
+                continue;
+            }
             if (cell.isRequest()) {
                 graphics.fill(x - 1, y - 1, x + 17, y + 17, 0xFF5868A8);
             }
@@ -845,6 +945,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             if (dialogOpen()) {
                 closeDialog();
+                return true;
+            }
+            if (popupOpen) {
+                closePopup();
                 return true;
             }
             return super.keyPressed(keyCode, scanCode, modifiers);

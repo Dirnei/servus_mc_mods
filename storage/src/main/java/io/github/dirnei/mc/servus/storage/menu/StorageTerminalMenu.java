@@ -43,9 +43,11 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The terminal's output slots, the player inventory, a 3x3 crafting grid
- * with its result and the warehouses the terminal reaches over its data
- * line. Slot order: outputs, player inventory, grid, result.
+ * The terminal's output and input slots, the player inventory, a 3x3
+ * crafting grid with its result and the warehouses the terminal reaches over
+ * its data line. Slot order: outputs, inputs, player inventory, grid, result.
+ * The grid and result only take part while the crafting popup is open on the
+ * client; the server always keeps them.
  */
 public class StorageTerminalMenu extends AbstractContainerMenu {
 
@@ -56,6 +58,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     private final ContainerLevelAccess access;
     private final Player player;
     private final int outputSlots;
+    private final int inputStart;
     private final int inventoryStart;
     private final int gridStart;
     private final int resultIndex;
@@ -65,6 +68,8 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     private int syncTimer;
     private long lastSignature = Long.MIN_VALUE;
     private long firstSyncTick = -1;
+    /** Whether the crafting popup shows; only the client screen changes it. */
+    private boolean craftOpen = true;
 
     public StorageTerminalMenu(int containerId, Inventory playerInventory, StorageTerminalBlockEntity terminal) {
         super(ServusStorageMenus.STORAGE_TERMINAL.get(), containerId);
@@ -80,6 +85,10 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
                 }
             });
         }
+        inputStart = slots.size();
+        for (int slot = 0; slot < terminal.input().getSlots(); slot++) {
+            addSlot(new SlotItemHandler(terminal.input(), slot, Storage.inputX(slot), Storage.inputY(slot)));
+        }
         inventoryStart = slots.size();
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
@@ -92,7 +101,12 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         }
         gridStart = slots.size();
         for (int slot = 0; slot < 9; slot++) {
-            addSlot(new Slot(craftSlots, slot, Storage.craftX(slot), Storage.craftY(slot)));
+            addSlot(new Slot(craftSlots, slot, Storage.craftX(slot), Storage.craftY(slot)) {
+                @Override
+                public boolean isActive() {
+                    return craftOpen;
+                }
+            });
         }
         resultIndex = slots.size();
         addSlot(new GridResultSlot(player, craftSlots, resultSlots, Storage.CRAFT_RESULT.x(), Storage.CRAFT_RESULT.y()));
@@ -108,6 +122,25 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     public StorageTerminalBlockEntity terminal() {
         return terminal;
+    }
+
+    /** How many output slots there are; they come first. */
+    public int outputSlots() {
+        return outputSlots;
+    }
+
+    /** Index of the first input slot. */
+    public int inputStart() {
+        return inputStart;
+    }
+
+    /** Shows or hides the crafting popup's slots; the client screen calls this. */
+    public void setCraftOpen(boolean open) {
+        craftOpen = open;
+    }
+
+    public boolean craftOpen() {
+        return craftOpen;
     }
 
     /** Index of the first player inventory slot. */
@@ -320,6 +353,11 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         }
 
         @Override
+        public boolean isActive() {
+            return craftOpen;
+        }
+
+        @Override
         public void onTake(Player taker, ItemStack stack) {
             ItemStack[] before = new ItemStack[craftSlots.getContainerSize()];
             for (int slot = 0; slot < before.length; slot++) {
@@ -402,7 +440,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         syncTimer = SYNC_INTERVAL;
     }
 
-    /** Shift click: an output slot goes to the inventory, an inventory slot is stored in the warehouse. */
+    /** Shift click: output and input slots go to the inventory, an inventory slot into the input row, which stores it. */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         if (index < 0 || index >= slots.size()) {
@@ -444,7 +482,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             }
             return original;
         }
-        if (index < outputSlots) {
+        if (index < inventoryStart) {
             ItemStack original = stack.copy();
             if (!moveItemStackTo(stack, inventoryStart, gridStart, true)) {
                 return ItemStack.EMPTY;
@@ -456,15 +494,17 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             }
             return original;
         }
-        Optional<WarehouseNetwork> network = online();
-        if (network.isEmpty()) {
+        ItemStack original = stack.copy();
+        if (!moveItemStackTo(stack, inputStart, inventoryStart, false)) {
             return ItemStack.EMPTY;
         }
-        ItemStack left = network.get().insert(stack);
-        slot.set(left);
-        slot.setChanged();
+        if (stack.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
         forceSync();
-        return ItemStack.EMPTY;
+        return original;
     }
 
     @Override

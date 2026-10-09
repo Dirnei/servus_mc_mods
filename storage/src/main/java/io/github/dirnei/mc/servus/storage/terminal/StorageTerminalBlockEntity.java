@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
@@ -84,13 +85,27 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         }
     }
 
-    private final ItemStackHandler output = new ItemStackHandler(StorageStatsManager.INSTANCE.terminalOutputSlots()) {
+    /** Output slots shown in one row: at most {@link TerminalLayout.Storage#ROW_SLOTS}. */
+    private final ItemStackHandler output = new ItemStackHandler(Math.max(1,
+            Math.min(TerminalLayout.Storage.ROW_SLOTS, StorageStatsManager.INSTANCE.terminalOutputSlots()))) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
         }
     };
-    private final IItemHandler packets = new OutputInsertHandler();
+    /** Items handed in; stored into the warehouse on the next tick, leftovers retried. */
+    private final ItemStackHandler input = new ItemStackHandler(TerminalLayout.Storage.ROW_SLOTS) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            setChanged();
+            if (!storing) {
+                storeSoon = true;
+            }
+        }
+    };
+    private final IItemHandler packets = new RoutingHandler();
+    private boolean storeSoon;
+    private boolean storing;
     private final List<Request> requests = new ArrayList<>();
     private int ticks;
     private boolean idsSeen;
@@ -104,7 +119,12 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         return output;
     }
 
-    /** What automation and packets see: insertion into the output slots only. */
+    /** The slots the player and automation hand items in through. */
+    public ItemStackHandler input() {
+        return input;
+    }
+
+    /** What automation and packets see: items a request waits for go to the output, the rest to the input. */
     public IItemHandler packetHandler() {
         return packets;
     }
@@ -162,6 +182,16 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         }
     }
 
+    /** Whether an open request still waits for this item. */
+    public boolean waitsFor(ItemKey key) {
+        for (Request request : requests) {
+            if (request.key.equals(key) && request.delivered < request.requested) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Gives arrived items to the open requests of that item, oldest first. */
     private void credit(ItemKey key, int count) {
         for (Request request : requests) {
@@ -181,6 +211,43 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     public static void serverTick(Level level, BlockPos pos, BlockState state, StorageTerminalBlockEntity terminal) {
         if (level instanceof ServerLevel server) {
             TerminalRequests.tick(server, terminal, ++terminal.ticks);
+            if (terminal.storeSoon || terminal.ticks % 20 == 0) {
+                terminal.storeInput(server);
+            }
+        }
+    }
+
+    /** Stores the input slots into the reachable warehouses; what does not fit stays for the next try. */
+    public void storeInput(ServerLevel server) {
+        storeSoon = false;
+        boolean any = false;
+        for (int i = 0; i < input.getSlots() && !any; i++) {
+            any = !input.getStackInSlot(i).isEmpty();
+        }
+        if (!any) {
+            return;
+        }
+        List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(server, worldPosition);
+        storing = true;
+        try {
+            for (int i = 0; i < input.getSlots(); i++) {
+                ItemStack rest = input.getStackInSlot(i);
+                if (rest.isEmpty()) {
+                    continue;
+                }
+                int before = rest.getCount();
+                for (WarehouseNetwork network : warehouses) {
+                    if (rest.isEmpty()) {
+                        break;
+                    }
+                    rest = network.insert(rest.copy());
+                }
+                if (rest.getCount() != before) {
+                    input.setStackInSlot(i, rest);
+                }
+            }
+        } finally {
+            storing = false;
         }
     }
 
@@ -192,13 +259,15 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         }
     }
 
-    /** Drops every stack in the output slots at the terminal. */
+    /** Drops every stack in the output and input slots at the terminal. */
     public void dropOutput(Level level, BlockPos pos) {
-        for (int i = 0; i < output.getSlots(); i++) {
-            ItemStack stack = output.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                Block.popResource(level, pos, stack);
-                output.setStackInSlot(i, ItemStack.EMPTY);
+        for (ItemStackHandler handler : List.of(output, input)) {
+            for (int i = 0; i < handler.getSlots(); i++) {
+                ItemStack stack = handler.getStackInSlot(i);
+                if (!stack.isEmpty()) {
+                    Block.popResource(level, pos, stack);
+                    handler.setStackInSlot(i, ItemStack.EMPTY);
+                }
             }
         }
     }
@@ -222,6 +291,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         super.saveAdditional(tag, registries);
         woodSlot.save(tag);
         tag.put("Output", output.serializeNBT(registries));
+        tag.put("Input", input.serializeNBT(registries));
         ListTag list = new ListTag();
         for (Request request : requests) {
             CompoundTag entry = new CompoundTag();
@@ -258,6 +328,13 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
                 output.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         }
+        if (tag.contains("Input")) {
+            ItemStackHandler saved = new ItemStackHandler();
+            saved.deserializeNBT(registries, tag.getCompound("Input"));
+            for (int i = 0; i < input.getSlots(); i++) {
+                input.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
+            }
+        }
         requests.clear();
         idsSeen = false;
         for (Tag raw : tag.getList("Requests", Tag.TAG_COMPOUND)) {
@@ -279,27 +356,42 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         }
     }
 
-    /** Insertion into the output slots, crediting requests; nothing can be taken out. */
-    private final class OutputInsertHandler implements IItemHandler {
+    /**
+     * What automation and packets see: the output slots first, then the input
+     * slots. An item an open request waits for may only go into the output,
+     * where it is credited; every other item only into the input, which
+     * stores it. Nothing can be taken out.
+     */
+    private final class RoutingHandler implements IItemHandler {
 
         @Override
         public int getSlots() {
-            return output.getSlots();
+            return output.getSlots() + input.getSlots();
         }
 
         @Override
         public ItemStack getStackInSlot(int slot) {
-            return output.getStackInSlot(slot);
+            return slot < output.getSlots() ? output.getStackInSlot(slot) : input.getStackInSlot(slot - output.getSlots());
         }
 
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            ItemStack left = output.insertItem(slot, stack, simulate);
-            int landed = stack.getCount() - left.getCount();
-            if (!simulate && landed > 0) {
-                credit(ItemKey.of(stack), landed);
+            if (stack.isEmpty()) {
+                return stack;
             }
-            return left;
+            boolean wanted = waitsFor(ItemKey.of(stack));
+            if (slot < output.getSlots()) {
+                if (!wanted) {
+                    return stack;
+                }
+                ItemStack left = output.insertItem(slot, stack, simulate);
+                int landed = stack.getCount() - left.getCount();
+                if (!simulate && landed > 0) {
+                    credit(ItemKey.of(stack), landed);
+                }
+                return left;
+            }
+            return wanted ? stack : input.insertItem(slot - output.getSlots(), stack, simulate);
         }
 
         @Override
@@ -309,12 +401,12 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
 
         @Override
         public int getSlotLimit(int slot) {
-            return output.getSlotLimit(slot);
+            return 64;
         }
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return output.isItemValid(slot, stack);
+            return (slot < output.getSlots()) == waitsFor(ItemKey.of(stack));
         }
     }
 
