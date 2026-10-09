@@ -25,7 +25,7 @@
 
 ## 6. Docs and plan
 
-- [ ] 6.1 Foundation and Storage docs pages (tiers, simplex and duplex, replacement, upgrades, load), `:manufacturing:runData` for gamedata, PLAN.md M8 list item and section 3. Verify with `npm test` in `docs/`.
+- [x] 6.1 Foundation and Storage docs pages (tiers, simplex and duplex, replacement, upgrades, load), `:manufacturing:runData` for gamedata, PLAN.md M8 list item and section 3. Verify with `npm test` in `docs/`.
 
 ## 7. Integration
 

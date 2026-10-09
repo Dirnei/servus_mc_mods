@@ -14,7 +14,10 @@ Foundation loads on its own, and each content mod loads with only Foundation ins
 - **Item Pipe**: places a duct with an item line, or adds the item line to a duct that lacks it. Eight from iron ingots, glass and a chest.
 - **Power Cable**: places a duct with an energy line, or adds it to a duct. Eight from copper ingots, redstone and glass.
 - **Fluid Pipe**: places a duct with a fluid line, or adds it to a duct. Eight from iron ingots, glass and a bucket.
-- **Data Cable**: places a duct with the data line, or adds it to a duct. Four from two copper ingots and a redstone dust.
+- **Data Cable**: places a duct with the data line, or adds it to a duct. Four from two copper ingots and a redstone dust. 32 items per second, shared by both directions (simplex).
+- **Duplex Data Cable**: the data line with 32 items per second in each direction at the same time. Two from two Data Cables and a quartz.
+- **Fast Data Cable**: the data line with 128 items per second in each direction. Two from two Duplex Data Cables, a quartz and two gold ingots.
+- **Speed Upgrade**: goes into the upgrade slots of a Servus block and doubles its rate per upgrade. Redstone, gold ingots and a copper ingot.
 - **Facade**: any full block without a block entity plus one iron ingot gives six facades of that block. Use one on a duct to make it look like that block.
 - **Fluid Tank**: a glass block that holds one fluid. Iron ingots and glass.
 - **Machine Adapter**: makes a machine of vanilla or another mod a producer on the data line. Copper ingots around a hopper, redstone and a Data Cable over a row of planks; it shows the wood of the planks, like the Storage blocks.
@@ -49,8 +52,30 @@ The data line is the wiring for on-demand autocrafting. It never moves anything 
 - Ducts with the data line link to each other and form a data network.
 - A block is a member when it can make items (a Crafting Station, an Assembler), holds stock (a Warehouse Controller) or is a link on the line without either (a Packing Station, through the `servus_foundation:data_link` capability). Other mods join by exposing the same Foundation capabilities. Chests and other plain inventories are not members.
 - There are no channels, filters or priorities. In the endpoint GUI the data tab only switches a side on or off; an off side reaches no member and does not link to the next duct.
-- Right click a duct with the data line with an empty hand to see how many ducts, producers and stock members its network has.
-- The data line is teal, and its ring at a member is always teal.
+- Right click a duct with the data line with an empty hand to see how many ducts, producers and stock members its network has, and how many items per second passed this duct during the last second out of its bandwidth ("24 of 32 items/s").
+- The data line's ring at a member shows its tier: teal for the Data Cable, blue for the Duplex Data Cable, gold for the Fast Data Cable.
+
+### Cable tiers and bandwidth
+
+Each tier of the data line lets a number of items per second through every duct, its bandwidth:
+
+| Tier | Items per second | Directions |
+| --- | --- | --- |
+| Data Cable | 32 | simplex: both directions share the 32 |
+| Duplex Data Cable | 32 | duplex: 32 each way at the same time |
+| Fast Data Cable | 128 | duplex: 128 each way at the same time |
+
+- Ducts of different tiers link into one data network.
+- A delivery moves no faster than the slowest duct on its path, and no faster than the Packing Station or other transfer gate at its ends. Example: a Packing Station with two Speed Upgrades (32 per second) sends over two Fast Data Cable ducts and one Data Cable duct: it moves 32 items per second; a second Packing Station on the same Data Cable duct gains nothing until that duct is a Duplex or Fast Data Cable.
+- Simplex and duplex: a Packing Station that sends 20 items per second out and receives 20 per second over the same Data Cable duct needs 40 of its 32, so both slow down to 32 together. Over a Duplex Data Cable each direction has its own 32.
+- Deliveries that cross the same duct share its bandwidth; the older delivery goes first. A delivery takes the shortest path, and among equally short paths the one with the most bandwidth. There is no detour for bandwidth.
+- Upgrade a duct in place: use a higher tier cable on it (no sneaking). The duct keeps its sides and connections, takes one cable from your hand and drops the old one. A lower or equal tier never replaces a duct; it places a new duct against the clicked face like any line item. Sneaking keeps the placement assist.
+- A broken duct drops the cable of its tier.
+- While you wear Engineer Goggles or hold the carrot, every data duct within 32 blocks shows its load over the last second through walls: green idle, then yellow, orange and red at its full bandwidth.
+
+### Upgrades
+
+Blocks with upgrade slots (the Packing Station, for now) accept only upgrade items, one per slot. Their rate is the base rate times the product of the multipliers of the upgrades they hold: a base of 8 with two Speed Upgrades of 2 makes 32. Upgrades drop when the block is broken. Other mods add better upgrades by registering an upgrade item (or tagging an item `servus_foundation:upgrades`) with its multiplier in `upgrades.json`.
 
 ### Packets
 
@@ -119,7 +144,7 @@ Sides are relative (front, back, left, right, top, bottom), so a configuration s
 
 ## Datapack values
 
-Transfer rates live in `data/servus_foundation/duct/utility_duct.json`, the tank size in `data/servus_foundation/tank/fluid_tank.json` and the retry interval of deliveries in `data/servus_foundation/data/packets.json`. Current values, which modpacks can change:
+Transfer rates live in `data/servus_foundation/duct/utility_duct.json`, the tank size in `data/servus_foundation/tank/fluid_tank.json`, the retry interval of deliveries in `data/servus_foundation/data/packets.json`, the data cable tiers in `data/servus_foundation/data/cable_tiers.json` and the upgrade multipliers in `data/servus_foundation/data/upgrades.json`. Files of other namespaces under `data/<namespace>/data/` add tiers and upgrades. Current values, which modpacks can change:
 
 ```json
 {
@@ -139,6 +164,20 @@ Transfer rates live in `data/servus_foundation/duct/utility_duct.json`, the tank
 ```json
 {
   "retry_interval": 20
+}
+```
+
+```json
+{
+  "servus_foundation:data_cable": { "items_per_second": 32, "duplex": false },
+  "servus_foundation:duplex_data_cable": { "items_per_second": 32, "duplex": true },
+  "servus_foundation:fast_data_cable": { "items_per_second": 128, "duplex": true }
+}
+```
+
+```json
+{
+  "servus_foundation:speed_upgrade": { "speed_multiplier": 2 }
 }
 ```
 
