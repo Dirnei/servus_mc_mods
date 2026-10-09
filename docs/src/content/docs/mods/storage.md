@@ -32,6 +32,8 @@ Numbers below are the current defaults. They live in datapack JSON under `data/<
 
 Every storage block that is part of a working warehouse shows a connection lamp.
 
+The Counter Terminal, the Production Terminal, the Crafting Station, the Pattern Storage and every block of a formed Crafting CPU carry the data line themselves: blocks that touch each other share one data network, like devices in Refined Storage, and one duct anywhere links the whole group to the rest of the line. The Access Point, the Machine Adapter and the Warehouse Controller do not carry it, and a chest or machine touching only these devices does not join.
+
 ## Automation
 
 - **Requests** at the Counter Terminal become pick jobs to the Access Point with the shortest shuttle trip: instant from crates and foreign inventories no shuttle reaches, by shuttle otherwise, never instant from a rack. The Access Point sends them on as packets. A terminal reaches a warehouse when the warehouse's controller or one of its Access Points shares its data line; with several warehouses the stock adds up and the fullest one ships first.

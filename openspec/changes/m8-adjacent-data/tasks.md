@@ -11,4 +11,4 @@
 
 ## 3. Docs
 
-- [ ] 3.1 Storage docs page and PLAN.md 2.4: devices that touch share the data network. Verify with `npx vitest run` in `docs/` and `openspec validate m8-adjacent-data --strict`.
+- [x] 3.1 Storage docs page and PLAN.md 2.4: devices that touch share the data network. Verify with `npx vitest run` in `docs/` and `openspec validate m8-adjacent-data --strict`.

@@ -24,6 +24,9 @@ The data network (`foundation.data.DataNetwork`) is a graph of `DataNode`s; toda
 ### Lookups
 `DataNetworks.networkAt` already answers the node's own network first, and every Storage lookup (TerminalWarehouses, TerminalCraftables, ProductionView, PatternLibrary, CpuOrders, lamps) reads members of that network, where carriers now appear through self membership. No lookup changes.
 
+### Lone devices
+A device alone is now a network of one node, so a lone Production Terminal reports "No Crafting CPU or warehouse on this data line" (reason `nothing`) instead of "Not on a data line" (`no_line`); its lamp stays dark. The GameTest `productionTerminalAloneIsDark` was updated.
+
 ### Packets
 Carriers are graph nodes, so packet routes may pass through them. A packet ending at a carrier enters its item handler on the face toward the previous node (existing `Shipment` logic). A Crafting Station's front is fixed off, so a packet that would arrive through the front is refused and settles as before; recorded as a known limit.
 
