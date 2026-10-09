@@ -11,4 +11,4 @@
 
 ## 3. Docs
 
-- [ ] 3.1 Update PLAN.md section 2.3 and `docs/src/content/docs/mods/storage.md` to say stations and Access Points join only through rails. Verify with `npx vitest run` in `docs/` and `gradlew build`.
+- [x] 3.1 Update PLAN.md section 2.3 and `docs/src/content/docs/mods/storage.md` to say stations and Access Points join only through rails. Verify with `npx vitest run` in `docs/` and `gradlew build`.
