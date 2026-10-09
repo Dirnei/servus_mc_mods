@@ -14,7 +14,7 @@
 
 ## 4. Docs and plan
 
-- [ ] 4.1 Storage docs page and PLAN.md elevator sentence. Verify with `npx vitest run` in `docs/`.
+- [x] 4.1 Storage docs page and PLAN.md elevator sentence. Verify with `npx vitest run` in `docs/`.
 
 ## 5. Integration
 
