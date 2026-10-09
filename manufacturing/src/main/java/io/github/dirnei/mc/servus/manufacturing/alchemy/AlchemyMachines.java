@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import java.util.function.Function;
+import io.github.dirnei.mc.servus.foundation.side.FluidSides;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -33,10 +33,27 @@ public final class AlchemyMachines {
         return -1;
     }
 
-    /** Fills touching fluid handlers on sides whose mode pushes, one principle after another. */
-    public static void push(Level level, BlockPos pos, PrincipleTanks tanks, Function<Direction, SideMode> sideModes) {
+    /**
+     * What a machine's tanks offer on a world face by its Fluids layer: every tank on All sides,
+     * one tank on a side set to it, nothing on Off sides. A null face (no side) sees every tank.
+     */
+    public static IFluidHandler sideHandler(MachineBlockEntity machine, PrincipleTanks tanks, Direction face) {
+        FluidSides sides = machine.fluidSides();
+        if (face == null || sides == null) {
+            return tanks;
+        }
+        RelativeSide side = machine.relativeSide(face);
+        if (sides.isAll(side)) {
+            return tanks;
+        }
+        int tank = sides.tank(side);
+        return tank < 0 ? null : tanks.view(Principle.values()[tank]);
+    }
+
+    /** Fills touching fluid handlers with each principle on the sides set to that principle or to All. */
+    public static void push(Level level, BlockPos pos, PrincipleTanks tanks, MachineBlockEntity machine) {
         for (Direction direction : Direction.values()) {
-            if (!sideModes.apply(direction).pushes()) {
+            if (sideHandler(machine, tanks, direction) == null) {
                 continue;
             }
             IFluidHandler neighbour = level.getCapability(Capabilities.FluidHandler.BLOCK, pos.relative(direction), direction.getOpposite());
@@ -45,7 +62,7 @@ public final class AlchemyMachines {
             }
             for (Principle principle : Principle.values()) {
                 FluidTank tank = tanks.tank(principle);
-                if (tank.isEmpty()) {
+                if (tank.isEmpty() || !machine.fluidSideExposes(direction, principle.ordinal())) {
                     continue;
                 }
                 FluidStack offer = tank.getFluid().copy();

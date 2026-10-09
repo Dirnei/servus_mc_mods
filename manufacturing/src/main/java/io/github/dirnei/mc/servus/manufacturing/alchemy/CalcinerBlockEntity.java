@@ -9,6 +9,8 @@ import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import net.minecraft.server.level.ServerLevel;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
+import io.github.dirnei.mc.servus.foundation.side.SideTank;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
@@ -67,9 +69,17 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         return tanks;
     }
 
-    /** What a neighbour sees on {@code side}: the three tanks to drain, or nothing where the side gives nothing. */
+    /** What a neighbour sees on {@code side}: by the Fluids layer, all three tanks, one of them, or nothing. */
     public IFluidHandler fluidHandler(Direction side) {
-        return side == null || sideMode(side).allowsExtract() ? tanks : null;
+        return AlchemyMachines.sideHandler(this, tanks, side);
+    }
+
+    private static final List<SideTank> SIDE_TANKS = PrincipleTanks.sideTanks(false);
+
+    /** Salt, Sulfur and Mercury, all three given out. */
+    @Override
+    public List<SideTank> sideTanks() {
+        return SIDE_TANKS;
     }
 
     private Optional<CalcinationRecipe> currentRecipe() {
@@ -140,7 +150,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         boolean working = super.tick();
         if (level != null && ++pushCooldown >= PUSH_INTERVAL) {
             pushCooldown = 0;
-            AlchemyMachines.push(level, worldPosition, tanks, this::sideMode);
+            AlchemyMachines.push(level, worldPosition, tanks, this);
         }
         return working;
     }

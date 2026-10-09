@@ -23,6 +23,14 @@ import net.minecraft.server.level.ServerPlayer;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationComponents;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.foundation.side.FluidSides;
+import io.github.dirnei.mc.servus.foundation.side.SideLayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import net.minecraft.nbt.CompoundTag;
@@ -429,5 +437,86 @@ public final class AlchemyGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    /** Facing north the Calciner's left is east and its right is west. */
+    private static void onlyFluidSides(CalcinerBlockEntity calciner, int left, int right) {
+        FluidSides sides = calciner.fluidSides();
+        for (RelativeSide side : RelativeSide.values()) {
+            sides.set(side, FluidSides.OFF);
+        }
+        sides.set(RelativeSide.LEFT, left);
+        sides.set(RelativeSide.RIGHT, right);
+    }
+
+    /** A Salt side and a Mercury side fill two touching tanks with one principle each. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void calcinerSeparatesPrinciplesBySide(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = calciner(helper);
+        onlyFluidSides(calciner, FluidSides.TANK_FIRST + Principle.SALT.ordinal(), FluidSides.TANK_FIRST + Principle.MERCURY.ordinal());
+        BlockPos east = MACHINE.east();
+        BlockPos west = MACHINE.west();
+        helper.setBlock(east, ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
+        helper.setBlock(west, ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
+        calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE, 2));
+        IFluidHandler eastSide = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(MACHINE), Direction.EAST);
+        helper.assertTrue(eastSide != null && eastSide.getTanks() == 1, "the Salt side should offer one tank");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(MACHINE), Direction.UP) == null,
+                "an Off side offers nothing");
+        helper.succeedWhen(() -> {
+            IFluidHandler saltTank = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(east), Direction.WEST);
+            IFluidHandler mercuryTank = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(west), Direction.EAST);
+            helper.assertTrue(saltTank.getFluidInTank(0).getFluid().isSame(PrincipleFluids.fluid(Principle.SALT))
+                    && saltTank.getFluidInTank(0).getAmount() == 200, "the east tank should hold 200 Salt, got " + saltTank.getFluidInTank(0));
+            helper.assertTrue(mercuryTank.getFluidInTank(0).getFluid().isSame(PrincipleFluids.fluid(Principle.MERCURY))
+                    && mercuryTank.getFluidInTank(0).getAmount() == 20, "the west tank should hold 20 Mercury, got " + mercuryTank.getFluidInTank(0));
+        });
+    }
+
+    /** A Coagulator side set to Mercury takes Mercury and refuses Salt. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void coagulatorMercurySideRefusesSalt(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = coagulator(helper, "salt_crystal");
+        coagulator.fluidSides().set(RelativeSide.LEFT, FluidSides.TANK_FIRST + Principle.MERCURY.ordinal());
+        helper.getLevel().invalidateCapabilities(helper.absolutePos(MACHINE));
+        IFluidHandler handler = coagulatorFluid(helper);
+        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 100), IFluidHandler.FluidAction.EXECUTE) == 0,
+                "the Mercury side refuses Salt");
+        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), 100), IFluidHandler.FluidAction.EXECUTE) == 100,
+                "the Mercury side takes Mercury");
+        helper.succeed();
+    }
+
+    /** A carrot set to Fluids cycles the clicked face's Fluids side and leaves its Items side alone. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void fluidCarrotCyclesTheFluidsLayer(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = calciner(helper);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
+        carrot.set(ServusFoundationComponents.CARROT_LAYER.get(), SideLayer.FLUIDS.name());
+        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+        BlockPos pos = helper.absolutePos(MACHINE);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos).add(0.5, 0, 0), Direction.EAST, pos, false);
+        carrot.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+        helper.assertTrue(calciner.fluidSides().value(RelativeSide.LEFT) == FluidSides.TANK_FIRST,
+                "the left Fluids side should move from All to Salt, got " + calciner.fluidSides().value(RelativeSide.LEFT));
+        helper.assertTrue(calciner.sideConfig().mode(RelativeSide.LEFT) == SideMode.AUTO, "the Items side stays Auto");
+        helper.succeed();
+    }
+
+    /** Both layers survive saving and loading the block entity, as in a dismantled item. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void fluidSidesAreSaved(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = calciner(helper);
+        calciner.fluidSides().set(RelativeSide.TOP, FluidSides.TANK_FIRST + Principle.SULFUR.ordinal());
+        calciner.sideConfig().set(RelativeSide.TOP, SideMode.INPUT);
+        CompoundTag tag = calciner.saveWithoutMetadata(helper.getLevel().registryAccess());
+        BlockPos other = MACHINE.east(3);
+        helper.setBlock(other, ServusManufacturingBlocks.CALCINER.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
+        CalcinerBlockEntity copy = helper.getBlockEntity(other);
+        copy.loadWithComponents(tag, helper.getLevel().registryAccess());
+        helper.assertTrue(copy.fluidSides().tank(RelativeSide.TOP) == Principle.SULFUR.ordinal(), "the Fluids layer is kept");
+        helper.assertTrue(copy.sideConfig().mode(RelativeSide.TOP) == SideMode.INPUT, "the Items layer is kept");
+        helper.succeed();
     }
 }

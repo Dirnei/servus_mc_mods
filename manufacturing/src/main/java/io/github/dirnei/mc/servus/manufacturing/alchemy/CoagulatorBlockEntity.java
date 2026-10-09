@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import net.minecraft.server.level.ServerLevel;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
+import io.github.dirnei.mc.servus.foundation.side.SideTank;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -104,9 +105,17 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
         return level instanceof ServerLevel server && Journal.isFinished(server.getServer(), team(), recipe.chapter().get().toString());
     }
 
-    /** What a neighbour sees on {@code side}: the three tanks to fill, or nothing where the side takes nothing. */
+    /** What a neighbour sees on {@code side}: by the Fluids layer, all three tanks, one of them, or nothing. */
     public IFluidHandler fluidHandler(Direction side) {
-        return side == null || sideMode(side).allowsInsert() ? tanks : null;
+        return AlchemyMachines.sideHandler(this, tanks, side);
+    }
+
+    private static final List<SideTank> SIDE_TANKS = PrincipleTanks.sideTanks(true);
+
+    /** Salt, Sulfur and Mercury, all three taken in. */
+    @Override
+    public List<SideTank> sideTanks() {
+        return SIDE_TANKS;
     }
 
     @SuppressWarnings("unchecked")

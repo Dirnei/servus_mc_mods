@@ -15,6 +15,7 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 public final class PrincipleTanks implements IFluidHandler {
 
     private final FluidTank[] tanks = new FluidTank[Principle.values().length];
+    private final IFluidHandler[] views = new IFluidHandler[Principle.values().length];
     private final boolean gives;
     private final Runnable changed;
 
@@ -28,7 +29,24 @@ public final class PrincipleTanks implements IFluidHandler {
                     changed.run();
                 }
             };
+            views[principle.ordinal()] = new View(principle);
         }
+    }
+
+    /** A handler of one principle's tank only, in the same direction as the whole: what a side set to that tank exposes. */
+    public IFluidHandler view(Principle principle) {
+        return views[principle.ordinal()];
+    }
+
+    /** The tanks a machine with these tanks offers in its Fluids layer, in principle order. */
+    public static java.util.List<io.github.dirnei.mc.servus.foundation.side.SideTank> sideTanks(boolean input) {
+        java.util.List<io.github.dirnei.mc.servus.foundation.side.SideTank> list = new java.util.ArrayList<>();
+        for (Principle principle : Principle.values()) {
+            list.add(new io.github.dirnei.mc.servus.foundation.side.SideTank(
+                    "fluid_type." + io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds.MOD_ID + "." + principle.id(),
+                    principle.color(), input));
+        }
+        return java.util.List.copyOf(list);
     }
 
     public void setCapacity(int capacity) {
@@ -125,6 +143,54 @@ public final class PrincipleTanks implements IFluidHandler {
             }
         }
         return FluidStack.EMPTY;
+    }
+
+    private final class View implements IFluidHandler {
+
+        private final Principle principle;
+
+        private View(Principle principle) {
+            this.principle = principle;
+        }
+
+        private FluidTank tank() {
+            return tanks[principle.ordinal()];
+        }
+
+        @Override
+        public int getTanks() {
+            return 1;
+        }
+
+        @Override
+        public FluidStack getFluidInTank(int tank) {
+            return tank().getFluid();
+        }
+
+        @Override
+        public int getTankCapacity(int tank) {
+            return tank().getCapacity();
+        }
+
+        @Override
+        public boolean isFluidValid(int tank, FluidStack stack) {
+            return tank().isFluidValid(stack);
+        }
+
+        @Override
+        public int fill(FluidStack resource, FluidAction action) {
+            return gives || resource.isEmpty() ? 0 : tank().fill(resource, action);
+        }
+
+        @Override
+        public FluidStack drain(FluidStack resource, FluidAction action) {
+            return !gives || resource.isEmpty() ? FluidStack.EMPTY : tank().drain(resource, action);
+        }
+
+        @Override
+        public FluidStack drain(int maxDrain, FluidAction action) {
+            return gives ? tank().drain(maxDrain, action) : FluidStack.EMPTY;
+        }
     }
 
     public CompoundTag save(HolderLookup.Provider registries) {
