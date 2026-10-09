@@ -500,8 +500,8 @@
   "render_type": "minecraft:cutout",
   "textures": {
     "floor": "minecraft:block/copper_block",
-    "frame": "servus_foundation:block/fluid_tank_frame",
+    "frame": "minecraft:block/copper_block",
     "glass": "servus_foundation:block/fluid_tank_glass",
-    "particle": "servus_foundation:block/fluid_tank_frame"
+    "particle": "minecraft:block/copper_block"
   }
 }

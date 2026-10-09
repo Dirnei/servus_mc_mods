@@ -20,7 +20,7 @@ Foundation loads on its own, and each content mod loads with only Foundation ins
 - **Fast Data Cable**: the data line with 128 items per second in each direction. Two from two Duplex Data Cables, a quartz and two gold ingots.
 - **Speed Upgrade**: goes into the upgrade slots of a Servus block and doubles its rate per upgrade. Redstone, gold ingots and a copper ingot.
 - **Facade**: any full block without a block entity plus one iron ingot gives six facades of that block. Use one on a duct to make it look like that block.
-- **Fluid Tank**: a glass block with a copper floor that holds one fluid. Iron ingots, glass and a copper ingot in the bottom middle.
+- **Fluid Tank**: a glass block with a copper frame that holds one fluid. Copper ingots in the corners, glass on the top, left and right edges, and any solid block in the bottom middle, which becomes the tank's floor.
 - **Machine Adapter**: makes a machine of vanilla or another mod a producer on the data line. Copper ingots around a hopper, redstone and a Data Cable over a row of planks; it shows the wood of the planks, like the Storage blocks.
 
 All of them are listed in the Servus creative tab.
@@ -117,7 +117,7 @@ Upkeep is a consumable a machine keeps stocked, such as its fuel. A block names 
 
 ## Fluid Tank
 
-Touching tank blocks that fill a complete rectangular box form one tank with a shared content. The lowest layer has a copper floor; sides and top are glass. A group that is not a full box works as single block tanks until it is. Buckets work on every face, and an empty hand shows what the tank holds. A broken block keeps its share of the fluid in its item.
+Touching tank blocks that fill a complete rectangular box form one tank with a shared content. The lowest layer shows the floor block the tank was crafted with; sides and top are glass. Broken blocks keep their floor. A group that is not a full box works as single block tanks until it is. Buckets work on every face, and an empty hand shows what the tank holds. A broken block keeps its share of the fluid in its item.
 
 ## Machines
 

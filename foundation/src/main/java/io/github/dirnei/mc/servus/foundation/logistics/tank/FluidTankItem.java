@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.foundation.logistics.tank;
 
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsComponents;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -16,6 +17,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -30,6 +32,19 @@ public class FluidTankItem extends BlockItem {
 
     public FluidTankItem(Block block, Properties properties) {
         super(block, properties);
+    }
+
+    /** A fresh tank item with the given floor. */
+    public static ItemStack withFloor(Block floor) {
+        ItemStack stack = new ItemStack(ServusLogisticsItems.FLUID_TANK.get());
+        stack.set(ServusLogisticsComponents.TANK_FLOOR.get(), floor);
+        return stack;
+    }
+
+    /** The floor block the item carries, copper when none. */
+    public static Block floor(ItemStack stack) {
+        Block floor = stack.get(ServusLogisticsComponents.TANK_FLOOR.get());
+        return floor == null ? Blocks.COPPER_BLOCK : floor;
     }
 
     /** The fluid the item carries, empty when none. */
@@ -146,5 +161,7 @@ public class FluidTankItem extends BlockItem {
             tooltip.add(Component.translatable("tooltip.servus_foundation.fluid_tank.fluid", fluid.getHoverName(), fluid.getAmount())
                     .withStyle(ChatFormatting.GRAY));
         }
+        tooltip.add(Component.translatable("tooltip.servus_foundation.fluid_tank.floor", floor(stack).getName())
+                .withStyle(ChatFormatting.GRAY));
     }
 }

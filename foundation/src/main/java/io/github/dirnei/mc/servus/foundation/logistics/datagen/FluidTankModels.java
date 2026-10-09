@@ -15,8 +15,9 @@ import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder
  * The Fluid Tank's connected look: a multipart block state of six glass
  * faces, each shown while its side is not joined, and twelve frame edge bars,
  * each shown while neither of its two sides is joined. That draws a frame
- * only around the outside of a formed tank. The bottom is a copper plate
- * instead of glass, so a tank never shows the ground through its floor.
+ * only around the outside of a formed tank. The bottom has no glass: the
+ * renderer draws the floor block the tank was crafted with. The item model
+ * shows a copper floor.
  */
 final class FluidTankModels {
 
@@ -48,21 +49,20 @@ final class FluidTankModels {
 
     static void generate(BlockStateProvider provider) {
         ResourceLocation glass = provider.modLoc("block/fluid_tank_glass");
-        ResourceLocation frame = provider.modLoc("block/fluid_tank_frame");
+        ResourceLocation frame = provider.mcLoc("block/copper_block");
         MultiPartBlockStateBuilder multipart = provider.getMultipartBuilder(ServusLogisticsBlocks.FLUID_TANK.get());
 
         // The complete single block, for the item.
         BlockModelBuilder whole = base(provider, "block/fluid_tank", glass, frame);
 
         for (Direction side : Direction.values()) {
-            BlockModelBuilder model = base(provider, "block/fluid_tank/glass_" + side.getSerializedName(), glass, frame);
             if (side == Direction.DOWN) {
-                floorPlate(model);
                 floorPlate(whole);
-            } else {
-                glassFace(model, side);
-                glassFace(whole, side);
+                continue;
             }
+            BlockModelBuilder model = base(provider, "block/fluid_tank/glass_" + side.getSerializedName(), glass, frame);
+            glassFace(model, side);
+            glassFace(whole, side);
             multipart.part().modelFile(model).addModel()
                     .condition(FluidTankBlock.property(side), false).end();
         }

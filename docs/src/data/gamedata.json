@@ -317,21 +317,10 @@
       ]
     },
     "servus_foundation:fluid_tank": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["IGI", "G G", "ICI"],
-      "key": {
-        "C": {"item": "minecraft:copper_ingot"},
-        "G": {"item": "minecraft:glass"},
-        "I": {"item": "minecraft:iron_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:copper_ingot", "count": 1},
-        {"item": "minecraft:glass", "count": 3},
-        {"item": "minecraft:iron_ingot", "count": 4}
-      ],
-      "outputs": [
-        {"item": "servus_foundation:fluid_tank", "count": 1}
-      ]
+      "type": "servus_foundation:fluid_tank",
+      "special": true,
+      "inputs": [],
+      "outputs": []
     },
     "servus_foundation:item_pipe": {
       "type": "minecraft:crafting_shaped",
@@ -961,9 +950,6 @@
     },
     "servus_foundation:fluid_pipe": {
       "name": "Fluid Pipe"
-    },
-    "servus_foundation:fluid_tank": {
-      "name": "Fluid Tank"
     },
     "servus_foundation:item_pipe": {
       "name": "Item Pipe"

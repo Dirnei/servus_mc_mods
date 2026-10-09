@@ -2,14 +2,6 @@
   "multipart": [
     {
       "apply": {
-        "model": "servus_foundation:block/fluid_tank/glass_down"
-      },
-      "when": {
-        "down": "false"
-      }
-    },
-    {
-      "apply": {
         "model": "servus_foundation:block/fluid_tank/glass_up"
       },
       "when": {

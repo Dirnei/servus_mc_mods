@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.datagen;
 
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
+import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import java.util.List;
@@ -74,15 +75,6 @@ public final class LogisticsDataParts {
                 .unlockedBy("has_copper", has.apply(Items.COPPER_INGOT))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusLogisticsItems.FLUID_TANK.get())
-                .pattern("IGI")
-                .pattern("G G")
-                .pattern("ICI")
-                .define('I', Items.IRON_INGOT)
-                .define('G', Items.GLASS)
-                .define('C', Items.COPPER_INGOT)
-                .unlockedBy("has_glass", has.apply(Items.GLASS))
-                .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.FLUID_PIPE.get(), 8)
                 .pattern("III")
@@ -119,6 +111,7 @@ public final class LogisticsDataParts {
                 .save(output);
 
         SpecialRecipeBuilder.special(FacadeRecipe::new).save(output, "servus_foundation:facade");
+        SpecialRecipeBuilder.special(FluidTankRecipe::new).save(output, "servus_foundation:fluid_tank");
     }
 
     public static void language(LanguageProvider provider) {
@@ -137,6 +130,7 @@ public final class LogisticsDataParts {
         provider.add(ServusLogisticsBlocks.FLUID_TANK.get(), "Fluid Tank");
         provider.add("tooltip.servus_foundation.fluid_tank.empty", "Empty");
         provider.add("tooltip.servus_foundation.fluid_tank.fluid", "%s: %s mB");
+        provider.add("tooltip.servus_foundation.fluid_tank.floor", "Floor: %s");
         provider.add("message.servus_foundation.fluid_tank.empty", "Empty, capacity %s mB");
         provider.add("message.servus_foundation.fluid_tank.content", "%s: %s / %s mB");
         provider.add("message.servus_foundation.fluid_tank.mixed", "The tanks hold different fluids");

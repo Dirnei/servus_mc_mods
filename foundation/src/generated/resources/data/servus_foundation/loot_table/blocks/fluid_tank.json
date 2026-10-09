@@ -15,7 +15,8 @@
             {
               "function": "minecraft:copy_components",
               "include": [
-                "servus_foundation:fluid"
+                "servus_foundation:fluid",
+                "servus_foundation:tank_floor"
               ],
               "source": "block_entity"
             }

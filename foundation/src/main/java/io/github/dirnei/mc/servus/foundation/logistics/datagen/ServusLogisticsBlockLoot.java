@@ -34,7 +34,8 @@ public final class ServusLogisticsBlockLoot extends BlockLootSubProvider {
                 .setRolls(ConstantValue.exactly(1.0F))
                 .add(LootItem.lootTableItem(tank)
                         .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
-                                .include(ServusLogisticsComponents.FLUID.get()))))));
+                                .include(ServusLogisticsComponents.FLUID.get())
+                                .include(ServusLogisticsComponents.TANK_FLOOR.get()))))));
     }
 
     @Override

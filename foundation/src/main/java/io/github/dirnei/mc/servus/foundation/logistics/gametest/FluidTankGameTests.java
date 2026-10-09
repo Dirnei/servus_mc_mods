@@ -6,8 +6,10 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsI
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlock;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankItem;
+import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.TankStatsManager;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -18,6 +20,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
@@ -443,6 +449,49 @@ public final class FluidTankGameTests {
                 .thenExecute(() -> {
                     assertCapacity(helper, base, 3 * cap());
                     assertAmount(helper, base, 2 * cap());
+                })
+                .thenSucceed();
+    }
+
+    private static CraftingInput tankGrid(net.minecraft.world.item.Item floor) {
+        ItemStack c = new ItemStack(Items.COPPER_INGOT);
+        ItemStack g = new ItemStack(Items.GLASS);
+        return CraftingInput.of(3, 3, List.of(c.copy(), g.copy(), c.copy(), g.copy(), ItemStack.EMPTY, g.copy(),
+                c.copy(), new ItemStack(floor), c.copy()));
+    }
+
+    /** Copper, glass and stone bricks craft a tank with a stone brick floor; glass in the floor slot crafts nothing. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void recipeTakesTheFloorBlock(GameTestHelper helper) {
+        var level = helper.getLevel();
+        CraftingInput bricks = tankGrid(Items.STONE_BRICKS);
+        Optional<RecipeHolder<CraftingRecipe>> match = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, bricks, level);
+        helper.assertTrue(match.isPresent(), "copper, glass and stone bricks should match the tank recipe");
+        ItemStack result = match.get().value().assemble(bricks, level.registryAccess());
+        helper.assertTrue(result.is(ServusLogisticsItems.FLUID_TANK.get()) && result.getCount() == 1, "result should be one tank");
+        helper.assertTrue(FluidTankItem.floor(result) == Blocks.STONE_BRICKS, "the tank should remember stone bricks");
+        Optional<RecipeHolder<CraftingRecipe>> glass = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING,
+                tankGrid(Items.GLASS), level);
+        helper.assertTrue(glass.isEmpty() || !(glass.get().value() instanceof FluidTankRecipe), "glass must not be a floor");
+        helper.succeed();
+    }
+
+    /** A placed tank takes its floor from the item and drops it again. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void floorTravelsWithTheItem(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 3);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        InteractionResult placed = placeItem(helper, player, pos, FluidTankItem.withFloor(Blocks.STONE_BRICKS));
+        helper.assertTrue(placed.consumesAction(), "the tank should place, got " + placed);
+        helper.startSequence()
+                .thenIdle(2)
+                .thenExecute(() -> {
+                    BlockPos absolute = helper.absolutePos(pos);
+                    FluidTankBlockEntity tank = (FluidTankBlockEntity) helper.getLevel().getBlockEntity(absolute);
+                    helper.assertTrue(tank != null && tank.floor() == Blocks.STONE_BRICKS, "the placed tank should have a stone brick floor");
+                    List<ItemStack> drops = Block.getDrops(helper.getLevel().getBlockState(absolute), helper.getLevel(), absolute, tank);
+                    helper.assertTrue(drops.size() == 1 && FluidTankItem.floor(drops.get(0)) == Blocks.STONE_BRICKS,
+                            "the dropped tank should keep its floor");
                 })
                 .thenSucceed();
     }

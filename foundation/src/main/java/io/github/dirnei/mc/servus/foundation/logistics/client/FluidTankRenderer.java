@@ -17,18 +17,24 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * Draws the fluid of one tank block as a box from the block bottom up to its
  * share of the capacity, with the fluid's still texture and tint. Faces
  * toward joined blocks of the same tank are skipped, so a formed tank shows
- * one continuous body of fluid.
+ * one continuous body of fluid. A block with nothing of its tank below it
+ * also draws its floor: the block it was crafted with, squashed to a plate.
  */
 public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEntity> {
 
     /** Gap between the fluid and the glass on sides that are not joined. */
     private static final float INSET = 0.01F;
+    /** Height of the floor plate; the fluid starts on top of it. */
+    private static final float FLOOR = 1.0F / 16.0F;
+    /** Lifts the floor off the frame's bottom faces so they do not flicker. */
+    private static final float FLOOR_LIFT = 0.001F;
 
     public FluidTankRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -36,6 +42,15 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
     @Override
     public void render(FluidTankBlockEntity tank, float partialTick, PoseStack poseStack, MultiBufferSource buffers,
                        int packedLight, int packedOverlay) {
+        BlockState tankState = tank.getBlockState();
+        if (tankState.getBlock() instanceof FluidTankBlock && !joined(tankState, Direction.DOWN)) {
+            poseStack.pushPose();
+            poseStack.translate(0, FLOOR_LIFT, 0);
+            poseStack.scale(1, FLOOR, 1);
+            Minecraft.getInstance().getBlockRenderer().renderSingleBlock(tank.floor().defaultBlockState(), poseStack, buffers,
+                    packedLight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
+            poseStack.popPose();
+        }
         FluidStack fluid = tank.rawShare();
         int capacity = tank.capacityPerBlock();
         if (fluid.isEmpty() || capacity <= 0) {
@@ -65,7 +80,7 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
         float x1 = joined(state, Direction.EAST) ? 1 : 1 - INSET;
         float z0 = joined(state, Direction.NORTH) ? 0 : INSET;
         float z1 = joined(state, Direction.SOUTH) ? 1 : 1 - INSET;
-        float y0 = down ? 0 : INSET;
+        float y0 = down ? 0 : FLOOR + FLOOR_LIFT;
         float yMax = up ? 1 : 1 - INSET;
         float y1 = y0 + (yMax - y0) * fill;
 

@@ -16,7 +16,10 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
@@ -32,6 +35,8 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
     private static final String TAG_FLUID = "fluid";
     private static final String TAG_CAPACITY = "capacity";
     private static final String TAG_BOX = "box";
+    private static final String TAG_FLOOR = "floor";
+    private Block floor = Blocks.COPPER_BLOCK;
 
     private FluidStack share = FluidStack.EMPTY;
     /** The tank box this block belongs to when it is part of a bigger tank, kept so a reload restores it. */
@@ -166,6 +171,7 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         if (!current.isEmpty()) {
             tag.put(TAG_FLUID, current.save(registries));
         }
+        tag.putString(TAG_FLOOR, BuiltInRegistries.BLOCK.getKey(floor).toString());
         if (savedBox != null) {
             tag.putIntArray(TAG_BOX, new int[] {savedBox.minX(), savedBox.minY(), savedBox.minZ(),
                     savedBox.maxX(), savedBox.maxY(), savedBox.maxZ()});
@@ -181,6 +187,22 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         if (tag.contains(TAG_CAPACITY)) {
             clientCapacity = tag.getInt(TAG_CAPACITY);
         }
+        floor = readFloor(tag);
+    }
+
+    private static Block readFloor(CompoundTag tag) {
+        ResourceLocation id = ResourceLocation.tryParse(tag.getString(TAG_FLOOR));
+        return id == null || !BuiltInRegistries.BLOCK.containsKey(id) ? Blocks.COPPER_BLOCK : BuiltInRegistries.BLOCK.get(id);
+    }
+
+    /** The block this tank block shows as its floor while nothing of its tank is below it. */
+    public Block floor() {
+        return floor;
+    }
+
+    public void setFloor(Block floor) {
+        this.floor = floor;
+        setChanged();
     }
 
     // Item components: the broken block's share travels in its item
@@ -192,6 +214,10 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         if (content != null && !content.isEmpty()) {
             setShare(content.copy());
         }
+        Block itemFloor = input.get(ServusLogisticsComponents.TANK_FLOOR);
+        if (itemFloor != null) {
+            floor = itemFloor;
+        }
     }
 
     @Override
@@ -201,6 +227,7 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         if (!current.isEmpty()) {
             components.set(ServusLogisticsComponents.FLUID.get(), SimpleFluidContent.copyOf(current));
         }
+        components.set(ServusLogisticsComponents.TANK_FLOOR.get(), floor);
     }
 
     @Override
@@ -209,6 +236,7 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
         super.removeComponentsFromTag(tag);
         tag.remove(TAG_FLUID);
         tag.remove(TAG_BOX);
+        tag.remove(TAG_FLOOR);
     }
 
     @Override
@@ -219,6 +247,7 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
             tag.put(TAG_FLUID, current.save(registries));
         }
         tag.putInt(TAG_CAPACITY, capacityPerBlock());
+        tag.putString(TAG_FLOOR, BuiltInRegistries.BLOCK.getKey(floor).toString());
         return tag;
     }
 

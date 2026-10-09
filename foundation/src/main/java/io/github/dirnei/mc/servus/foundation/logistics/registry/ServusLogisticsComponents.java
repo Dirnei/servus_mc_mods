@@ -21,6 +21,12 @@ public final class ServusLogisticsComponents {
                     .persistent(BuiltInRegistries.BLOCK.byNameCodec())
                     .networkSynchronized(ByteBufCodecs.registry(Registries.BLOCK)));
 
+    /** The block a Fluid Tank shows as its floor. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Block>> TANK_FLOOR =
+            COMPONENTS.registerComponentType("tank_floor", builder -> builder
+                    .persistent(BuiltInRegistries.BLOCK.byNameCodec())
+                    .networkSynchronized(ByteBufCodecs.registry(Registries.BLOCK)));
+
     /** The fluid a Fluid Tank item carries. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<SimpleFluidContent>> FLUID =
             COMPONENTS.registerComponentType("fluid", builder -> builder
