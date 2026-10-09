@@ -77,3 +77,10 @@ The Pattern Storage front SHALL show a 3x3 grid of lights with one lit light per
 #### Scenario: Other capacity
 - **WHEN** `patterns_per_block` is 18 and the block holds 1 pattern
 - **THEN** 1 light is lit
+
+### Requirement: Pattern Storage online lamp
+Pattern Storage SHALL show an online lamp on its front next to the pattern lights, lit while a formed Crafting CPU or an online warehouse is on its data line and dark otherwise, refreshed about once a second.
+
+#### Scenario: On a line with a CPU
+- **WHEN** a Pattern Storage touches a data duct whose line has a formed CPU
+- **THEN** its lamp is lit within about a second, and the pattern lights keep showing the stored count
