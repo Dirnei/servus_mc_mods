@@ -36,6 +36,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_HANDOFF_WAIT_TICKS = 100;
     public static final int DEFAULT_PATTERNS_PER_BLOCK = 9;
     public static final double DEFAULT_PACKING_ITEMS_PER_SECOND = 8.0;
+    public static final int DEFAULT_PACKING_UPGRADE_SLOTS = 2;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
@@ -68,6 +69,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int handoffWaitTicks = DEFAULT_HANDOFF_WAIT_TICKS;
     private volatile int patternsPerBlock = DEFAULT_PATTERNS_PER_BLOCK;
     private volatile double packingItemsPerSecond = DEFAULT_PACKING_ITEMS_PER_SECOND;
+    private volatile int packingUpgradeSlots = DEFAULT_PACKING_UPGRADE_SLOTS;
 
     private StorageStatsManager() {
         super(GSON, DIRECTORY);
@@ -95,6 +97,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         handoffWaitTicks = intField(files.get(CPU), "handoff_wait_ticks", DEFAULT_HANDOFF_WAIT_TICKS);
         patternsPerBlock = intField(files.get(PATTERN_STORAGE), "patterns_per_block", DEFAULT_PATTERNS_PER_BLOCK);
         packingItemsPerSecond = doubleField(files.get(PACKING_STATION), "items_per_second", DEFAULT_PACKING_ITEMS_PER_SECOND);
+        packingUpgradeSlots = intField(files.get(PACKING_STATION), "upgrade_slots", DEFAULT_PACKING_UPGRADE_SLOTS);
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
 
@@ -167,6 +170,11 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     /** Items a Packing Station converts per second in each direction. */
     public double packingItemsPerSecond() {
         return packingItemsPerSecond;
+    }
+
+    /** Upgrade slots of a Packing Station placed from now on. */
+    public int packingUpgradeSlots() {
+        return packingUpgradeSlots;
     }
 
     /** For tests: sets the Packing Station rate as if a datapack had been loaded. */

@@ -14,8 +14,9 @@ import net.minecraft.resources.ResourceLocation;
  *
  * @param line  the current delivery or why the station waits
  * @param alert whether the line explains a problem (drawn red)
+ * @param rate  items per second the station converts in each direction, upgrades included
  */
-public record PackingStatusPayload(Component line, boolean alert) implements CustomPacketPayload {
+public record PackingStatusPayload(Component line, boolean alert, float rate) implements CustomPacketPayload {
 
     public static final Type<PackingStatusPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "packing_status"));
@@ -23,9 +24,10 @@ public record PackingStatusPayload(Component line, boolean alert) implements Cus
     public static final StreamCodec<RegistryFriendlyByteBuf, PackingStatusPayload> STREAM_CODEC = StreamCodec.composite(
             ComponentSerialization.STREAM_CODEC, PackingStatusPayload::line,
             ByteBufCodecs.BOOL, PackingStatusPayload::alert,
+            ByteBufCodecs.FLOAT, PackingStatusPayload::rate,
             PackingStatusPayload::new);
 
-    public static final PackingStatusPayload EMPTY = new PackingStatusPayload(Component.empty(), false);
+    public static final PackingStatusPayload EMPTY = new PackingStatusPayload(Component.empty(), false, 0);
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

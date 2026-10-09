@@ -17,7 +17,7 @@
 ## 4. Upgrades
 
 - [x] 4.1 `foundation.upgrade` (`UpgradeItem`, `UpgradeSlots`, `upgrades.json`, `servus_foundation:upgrades` tag) and the Speed Upgrade item with recipe and lang. Verify with build and `:foundation:runData`.
-- [ ] 4.2 Packing Station `upgrade_slots` in `packing_station.json`, upgrade row in its GUI, rate from multiplier, rate shown. GameTest `speedUpgradeDoubles`. Verify with build and Storage GameTests.
+- [x] 4.2 Packing Station `upgrade_slots` in `packing_station.json`, upgrade row in its GUI, rate from multiplier, rate shown. GameTest `speedUpgradeDoubles`. Verify with build and Storage GameTests.
 
 ## 5. Production Terminal
 

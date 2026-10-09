@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.data.packet.RateBudget;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.foundation.production.TransferGate;
+import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeSlots;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
@@ -116,6 +117,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     private final IItemHandler[] faces = new IItemHandler[6];
     private final RateBudget toStorage = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
     private final RateBudget toNetwork = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
+    private final UpgradeSlots upgrades = new UpgradeSlots(StorageStatsManager.INSTANCE.packingUpgradeSlots(), this::setChanged);
 
     public PackingStationBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.PACKING_STATION.get(), pos, state);
@@ -203,15 +205,59 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     @Override
     public void consume(Flow flow, int items) {
         budget(flow).consume(items);
+        (flow == Flow.IN ? usedIn : usedOut).add(items);
     }
+
+    /** Items per tick over the last second, for the Production Terminal. */
+    private static final class Window {
+        private final int[] ticks = new int[RateBudget.TICKS_PER_SECOND];
+        private int slot;
+
+        void tick() {
+            slot = (slot + 1) % ticks.length;
+            ticks[slot] = 0;
+        }
+
+        void add(int items) {
+            ticks[slot] += Math.max(0, items);
+        }
+
+        int sum() {
+            int total = 0;
+            for (int value : ticks) {
+                total += value;
+            }
+            return total;
+        }
+    }
+
+    private final Window usedIn = new Window();
+    private final Window usedOut = new Window();
 
     private RateBudget budget(Flow flow) {
         return flow == Flow.IN ? toStorage : toNetwork;
     }
 
-    /** Refills both budgets by one tick, following the rate from data after a reload. */
+    /** The speed upgrades; the only slots of the GUI a player can change. */
+    public UpgradeSlots upgrades() {
+        return upgrades;
+    }
+
+    /** Items per second converted in each direction: the base rate from data times the upgrades. */
+    public double rate() {
+        return StorageStatsManager.INSTANCE.packingItemsPerSecond() * upgrades.multiplier();
+    }
+
+    /** Items that entered the To storage buffer over the line, or left the To network buffer, during the last second. */
+    public int used(Flow flow) {
+        return flow == Flow.IN ? usedIn.sum() : usedOut.sum();
+    }
+
+    /** Refills both budgets by one tick, following the rate from data and upgrades. */
     private void tickBudgets() {
-        double rate = StorageStatsManager.INSTANCE.packingItemsPerSecond();
+        usedIn.tick();
+        usedOut.tick();
+        double rate = rate();
         if (toStorage.rate() != rate) {
             toStorage.setRate(rate);
             toNetwork.setRate(rate);
@@ -245,41 +291,45 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         String prefix = "gui.servus_storage.packing_station.status.";
         Optional<WarehouseNetwork> network = network();
         if (network.isEmpty()) {
-            return new PackingStatusPayload(Component.translatable(prefix + "no_rail"), true);
+            return status(Component.translatable(prefix + "no_rail"), true);
         }
         switch (network.get().status()) {
             case NO_CONTROLLER -> {
-                return new PackingStatusPayload(Component.translatable("gui.servus_storage.terminal.no_controller"), true);
+                return status(Component.translatable("gui.servus_storage.terminal.no_controller"), true);
             }
             case MULTIPLE_CONTROLLERS -> {
-                return new PackingStatusPayload(Component.translatable("gui.servus_storage.terminal.multiple_controllers"), true);
+                return status(Component.translatable("gui.servus_storage.terminal.multiple_controllers"), true);
             }
             case ONLINE -> {
             }
         }
         if (!(level instanceof ServerLevel server) || DataNetworks.networkAt(server, worldPosition).isEmpty()) {
-            return new PackingStatusPayload(Component.translatable(prefix + "no_data_line"), true);
+            return status(Component.translatable(prefix + "no_data_line"), true);
         }
         if (sending() && runningFor != null) {
-            return new PackingStatusPayload(Component.translatable(prefix + "sending",
+            return status(Component.translatable(prefix + "sending",
                     runningFor.key.stack(1).getHoverName(), targetName(server, runningFor.target)), false);
         }
         if (blockedReason() != null) {
             String item = blockedStack().getHoverName().getString();
             String reason = blockedReason().name().toLowerCase(java.util.Locale.ROOT);
             String key = reason.equals("no_room") && blockedZone().isEmpty() ? "no_room_general" : reason;
-            return new PackingStatusPayload(Component.translatable("gui.servus_storage.station.blocked." + key, item, blockedZone()), true);
+            return status(Component.translatable("gui.servus_storage.station.blocked." + key, item, blockedZone()), true);
         }
         if (toStorageFull()) {
-            return new PackingStatusPayload(Component.translatable(prefix + "to_storage_full"), true);
+            return status(Component.translatable(prefix + "to_storage_full"), true);
         }
         for (Shipment shipment : shipments) {
             if (!shipment.ended() && shipment.missing() > outgoingCount(shipment.key)) {
-                return new PackingStatusPayload(Component.translatable(prefix + "waiting_shuttle",
+                return status(Component.translatable(prefix + "waiting_shuttle",
                         shipment.key.stack(1).getHoverName()), false);
             }
         }
-        return new PackingStatusPayload(Component.translatable(prefix + "idle"), false);
+        return status(Component.translatable(prefix + "idle"), false);
+    }
+
+    private PackingStatusPayload status(Component line, boolean alert) {
+        return new PackingStatusPayload(line, alert, (float) rate());
     }
 
     private static Component targetName(ServerLevel level, BlockPos target) {
@@ -501,6 +551,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     @Override
     public void dropContents(Level level, BlockPos pos) {
         super.dropContents(level, pos);
+        upgrades.takeAll().forEach(stack -> Block.popResource(level, pos, stack));
         for (int i = 0; i < outgoing.getSlots(); i++) {
             ItemStack stack = outgoing.getStackInSlot(i);
             if (!stack.isEmpty()) {
@@ -516,6 +567,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("Outgoing", outgoing.serializeNBT(registries));
+        tag.put("Upgrades", upgrades.serializeNBT(registries));
         ListTag list = new ListTag();
         for (Shipment shipment : shipments) {
             if (!shipment.ended()) {
@@ -536,6 +588,13 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             saved.deserializeNBT(registries, tag.getCompound("Outgoing"));
             for (int i = 0; i < outgoing.getSlots(); i++) {
                 outgoing.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
+            }
+        }
+        if (tag.contains("Upgrades")) {
+            ItemStackHandler saved = new ItemStackHandler();
+            saved.deserializeNBT(registries, tag.getCompound("Upgrades"));
+            for (int i = 0; i < upgrades.getSlots(); i++) {
+                upgrades.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         }
         shipments.clear();

@@ -212,6 +212,10 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
                 "Items that arrived over the data line and wait to be put away into the warehouse");
         add("gui.servus_storage.packing_station.to_network.tooltip",
                 "Items picked from the warehouse that wait to be sent over the data line");
+        add("gui.servus_storage.packing_station.upgrades", "Upgrades");
+        add("gui.servus_storage.packing_station.upgrades.tooltip",
+                "Speed Upgrades multiply how many items per second the station converts in each direction");
+        add("gui.servus_storage.packing_station.rate", "%s/s");
         add("gui.servus_storage.packing_station.status.sending", "Sending %s to %s");
         add("gui.servus_storage.packing_station.status.no_rail", "No rail: place it beside a warehouse rail");
         add("gui.servus_storage.packing_station.status.no_data_line", "No data line touches this station");

@@ -402,4 +402,49 @@ public final class PackingStationGameTests {
         helper.assertTrue(player.getInventory().getItem(0).getCount() == 3, "shift click from the inventory moves nothing");
         helper.succeed();
     }
+
+    /** One Speed Upgrade doubles the station's rate: about 16 planks per second leave, and the GUI shows 16/s. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void speedUpgradeDoubles(GameTestHelper helper) {
+        setup(helper, 0, 0, true, false);
+        PackingStationBlockEntity point = helper.getBlockEntity(FAR);
+        net.minecraft.world.entity.player.Player player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        io.github.dirnei.mc.servus.storage.menu.PackingStationMenu menu =
+                new io.github.dirnei.mc.servus.storage.menu.PackingStationMenu(1, player.getInventory(), point);
+        player.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE, 4));
+        player.getInventory().setItem(1, new ItemStack(io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems.SPEED_UPGRADE.get(), 1));
+        int hotbar = menu.inventoryStart() + 27;
+        menu.quickMoveStack(player, hotbar);
+        menu.quickMoveStack(player, hotbar + 1);
+        helper.assertTrue(point.upgrades().getStackInSlot(0).is(io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems.SPEED_UPGRADE.get()),
+                "shift click puts the Speed Upgrade into the upgrade row");
+        helper.assertTrue(player.getInventory().getItem(0).getCount() == 4, "cobblestone stays in the inventory");
+        helper.assertTrue(point.rate() == 16, "the rate is 16 per second, got " + point.rate());
+        helper.assertTrue(point.status().rate() == 16, "the GUI is told 16/s, got " + point.status().rate());
+        helper.runAfterDelay(10, () -> {
+            preload(helper, FAR, 128);
+            helper.runAfterDelay(80, () -> {
+                int sent = sent(helper, FAR, 128);
+                helper.assertTrue(sent >= 56 && sent <= 16 + 64 + 1, "about 64 planks should go out in 4 seconds, got " + sent);
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Upgrades drop when the station is broken. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void upgradesDropWithStation(GameTestHelper helper) {
+        packingStation(helper, FAR);
+        PackingStationBlockEntity point = helper.getBlockEntity(FAR);
+        point.upgrades().setStackInSlot(1, new ItemStack(io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems.SPEED_UPGRADE.get()));
+        helper.destroyBlock(FAR);
+        helper.runAfterDelay(2, () -> {
+            AABB area = new AABB(helper.absolutePos(FAR)).inflate(3);
+            int upgrades = helper.getLevel().getEntitiesOfClass(ItemEntity.class, area).stream()
+                    .filter(e -> e.getItem().is(io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems.SPEED_UPGRADE.get()))
+                    .mapToInt(e -> e.getItem().getCount()).sum();
+            helper.assertTrue(upgrades == 1, "the Speed Upgrade drops, got " + upgrades);
+            helper.succeed();
+        });
+    }
 }
