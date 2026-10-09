@@ -19,7 +19,7 @@
 
 ## 5. Plan and docs
 
-- [ ] 5.1 PLAN.md: add `m9-side-config-tabs` to the M9 list and one sentence in section 2.1; docs `mods/foundation.md` side configuration section describes the Fluids layer, tabs and the carrot layer; `mods/manufacturing.md` mentions one principle per side. Verify: docs tests and docs build pass.
+- [x] 5.1 PLAN.md: add `m9-side-config-tabs` to the M9 list and one sentence in section 2.1; docs `mods/foundation.md` side configuration section describes the Fluids layer, tabs and the carrot layer; `mods/manufacturing.md` mentions one principle per side. Verify: docs tests and docs build pass.
 
 ## 6. Integration
 

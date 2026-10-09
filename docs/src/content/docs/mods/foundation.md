@@ -144,6 +144,10 @@ Every machine and station uses the same side setup. A side has one of these mode
 
 Sides are relative (front, back, left, right, top, bottom), so a configuration survives rotation. Blocks may support only some modes. The GUI shows a side panel left of the container, and the block draws a colored frame on every face that is not in its default mode. With the carrot or goggles, every face shows its frame and an arrow glyph.
 
+Blocks with several tanks, such as the Calciner and the Coagulator, have a second layer for fluids. Their side panel shows two tabs above the grid, Items (a chest) and Fluids (a bucket). In the Fluids tab every side is Off, All fluids, or one of the block's tanks, drawn in that fluid's colour. A side set to a tank offers only that tank, so a pipe arm on it carries one fluid; output tanks also push into a touching tank on their sides. All fluids is the default and behaves like a block without layers. Fixed sides stay Off.
+
+The Configuration Carrot carries a layer, Items by default. Right click the air with it to switch between Items and Fluids; its tooltip names the layer. A click on a face cycles that face in the carrot's layer, and while a carrot set to Fluids is in hand the faces show the Fluids layer in the tanks' colours.
+
 ## Shared systems
 
 - **Network graph and manager**: ducts, tanks, rails and warehouses are connected graphs that merge and split on placement and removal. Nothing scans blocks every tick.
