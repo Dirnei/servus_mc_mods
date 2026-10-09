@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.datagen;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import java.util.Optional;
 import net.minecraft.world.item.ItemStack;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
@@ -34,6 +35,20 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
         crafting(output);
         calcination(output);
         coagulation(output);
+        athanor(output);
+    }
+
+    /** Crafts on the Athanor; the numbers are datapack examples. */
+    private void athanor(RecipeOutput output) {
+        athanorCraft(output, "blaze_powder", Ingredient.of(Items.GUNPOWDER), new Principles(0, 200, 0), 0,
+                new ItemStack(Items.BLAZE_POWDER));
+        athanorCraft(output, "experience_bottle", Ingredient.of(Items.GLASS_BOTTLE), new Principles(50, 0, 100), 1,
+                new ItemStack(Items.EXPERIENCE_BOTTLE));
+    }
+
+    static void athanorCraft(RecipeOutput output, String name, Ingredient input, Principles principles, int tier, ItemStack result) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/" + name);
+        output.accept(id, new AthanorRecipe(new SizedIngredient(input, 1), principles, tier, result, AthanorRecipe.DEFAULT_TIME), null);
     }
 
     /** What the Coagulator makes from the principles; no metal in Nigredo. The numbers are datapack examples. */
@@ -106,6 +121,16 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .requires(ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get())
                 .unlockedBy("has_salt_crystal_block", has(ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get()))
                 .save(output, ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "salt_crystal_from_block"));
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.ATHANOR.get())
+                .pattern("BCB")
+                .pattern("BFB")
+                .pattern("BBB")
+                .define('B', Items.BRICKS)
+                .define('C', Items.CAULDRON)
+                .define('F', Items.BLAST_FURNACE)
+                .unlockedBy("has_blast_furnace", has(Items.BLAST_FURNACE))
+                .save(output);
 
         // Paracelsus' Journal: a book and a piece of coal, the first fire.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, JournalBookItem.create())

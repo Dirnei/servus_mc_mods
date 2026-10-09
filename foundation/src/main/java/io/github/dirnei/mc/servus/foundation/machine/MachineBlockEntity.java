@@ -303,8 +303,13 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         }
     }
 
-    private void updateLit(BlockState state, boolean working) {
-        if (level != null && state.hasProperty(MachineBlock.LIT) && state.getValue(MachineBlock.LIT) != working) {
+    private void updateLit(BlockState ticked, boolean working) {
+        if (level == null) {
+            return;
+        }
+        // The tick may have changed other properties of the block; build on the current state.
+        BlockState state = level.getBlockState(worldPosition);
+        if (state.hasProperty(MachineBlock.LIT) && state.getValue(MachineBlock.LIT) != working) {
             level.setBlock(worldPosition, state.setValue(MachineBlock.LIT, working), Block.UPDATE_CLIENTS);
         }
     }

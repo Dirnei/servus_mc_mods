@@ -22,6 +22,7 @@ public final class ManufacturingMachines {
         registered = true;
         add("calciner", "powered", List.of("servus_manufacturing:calcination"), alchemy(20, 8000, 4000));
         add("coagulator", "powered", List.of("servus_manufacturing:coagulation"), alchemy(20, 8000, 4000));
+        add("athanor", "crafter", List.of("servus_manufacturing:athanor"), alchemy(0, 0, 4000));
     }
 
     /** A powered alchemy machine: recipe time decides the cycle, one principle tank of {@code tank} mB each. */

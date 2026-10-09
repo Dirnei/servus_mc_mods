@@ -41,6 +41,13 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("gui.servus_manufacturing.jei.coagulation", "Coagulation");
         add(ServusManufacturingItems.SALT_CRYSTAL.get(), "Salt Crystal");
         add(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block");
+        add(ServusManufacturingBlocks.ATHANOR.get(), "Athanor");
+        add("gui.servus_manufacturing.athanor.stage.nigredo", "Nigredo");
+        add("gui.servus_manufacturing.athanor.stage.albedo", "Albedo");
+        add("gui.servus_manufacturing.athanor.stage.citrinitas", "Citrinitas");
+        add("gui.servus_manufacturing.athanor.stage.rubedo", "Rubedo");
+        add("gui.servus_manufacturing.jei.athanor", "Athanor");
+        add("gui.servus_manufacturing.jei.athanor.tier", "Stage: %s");
         add(ServusManufacturingItems.SULFUR.get(), "Sulfur");
         add(ServusManufacturingItems.QUICKSILVER.get(), "Quicksilver");
         for (Principle principle : Principle.values()) {

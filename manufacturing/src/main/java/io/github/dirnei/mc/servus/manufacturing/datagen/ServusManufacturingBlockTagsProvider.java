@@ -21,6 +21,7 @@ final class ServusManufacturingBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(ServusManufacturingBlocks.CALCINER.get())
                 .add(ServusManufacturingBlocks.COAGULATOR.get())
-                .add(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get());
+                .add(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get())
+                .add(ServusManufacturingBlocks.ATHANOR.get());
     }
 }

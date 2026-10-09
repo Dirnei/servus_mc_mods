@@ -10,6 +10,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -33,15 +34,19 @@ public abstract class AlchemyMachineBlockEntity extends PoweredMachineBlockEntit
     /** Takes the placing player's id and stores their team. */
     @Override
     public void setOwner(UUID player) {
-        UUID resolved = player;
+        team = resolveTeam(level, player);
+        setChanged();
+    }
+
+    /** The team of a player who is online, else the player's own id. */
+    public static UUID resolveTeam(Level level, UUID player) {
         if (level instanceof ServerLevel server) {
             ServerPlayer online = server.getServer().getPlayerList().getPlayer(player);
             if (online != null) {
-                resolved = Teams.teamOf(online);
+                return Teams.teamOf(online);
             }
         }
-        team = resolved;
-        setChanged();
+        return player;
     }
 
     /** Sets the owning team directly, for tests and commands. */

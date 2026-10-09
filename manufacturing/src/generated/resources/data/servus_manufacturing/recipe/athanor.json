@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:bricks"
+    },
+    "C": {
+      "item": "minecraft:cauldron"
+    },
+    "F": {
+      "item": "minecraft:blast_furnace"
+    }
+  },
+  "pattern": [
+    "BCB",
+    "BFB",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_manufacturing:athanor"
+  }
+}

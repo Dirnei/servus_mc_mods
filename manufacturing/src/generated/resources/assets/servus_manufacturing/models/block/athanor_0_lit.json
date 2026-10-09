@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "servus_manufacturing:block/athanor_front_0_lit",
+    "side": "servus_manufacturing:block/athanor_side",
+    "top": "servus_manufacturing:block/athanor_top"
+  }
+}

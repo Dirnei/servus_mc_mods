@@ -50,6 +50,25 @@ public final class Journal {
         }, amount);
     }
 
+    /** An {@code athanor} event: a finished Athanor craft. Filters are {@code tier:<name>}, an item id or {@code #tag}. */
+    public static void recordAthanor(ServerLevel level, UUID team, ItemStack result, String tierName) {
+        String id = BuiltInRegistries.ITEM.getKey(result.getItem()).toString();
+        record(level, team, "athanor", task -> {
+            String filter = task.filter();
+            if (filter.isEmpty()) {
+                return true;
+            }
+            if (filter.startsWith("tier:")) {
+                return filter.substring(5).equals(tierName);
+            }
+            if (filter.startsWith("#")) {
+                ResourceLocation tag = ResourceLocation.tryParse(filter.substring(1));
+                return tag != null && result.is(TagKey.create(Registries.ITEM, tag));
+            }
+            return filter.equals(id);
+        }, 1);
+    }
+
     /** A {@code principle} event: mB of one principle made. Filters are a principle name. */
     public static void recordPrinciple(ServerLevel level, UUID team, Principle principle, int amount) {
         record(level, team, "principle", task -> task.filter().isEmpty() || task.filter().equals(principle.id()), amount);

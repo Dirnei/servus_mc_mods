@@ -5,6 +5,8 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalBookItem;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalLedger;
@@ -252,6 +254,78 @@ public final class AlchemyGameTests {
         helper.assertTrue(!result.isEmpty(), "the journal recipe should exist");
         helper.assertTrue(ItemStack.isSameItemSameComponents(result, JournalBookItem.create()), "the result should be the journal, got " + result);
         helper.assertTrue(result.getComponentsPatch().toString().contains("servus_manufacturing:journal"), "the book id should be set, got " + result.getComponentsPatch());
+        helper.succeed();
+    }
+
+    static AthanorBlockEntity athanor(GameTestHelper helper) {
+        helper.setBlock(MACHINE, ServusManufacturingBlocks.ATHANOR.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
+        return helper.getBlockEntity(MACHINE);
+    }
+
+    static void saltRing(GameTestHelper helper) {
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                if (dx != 0 || dz != 0) {
+                    helper.setBlock(MACHINE.offset(dx, 0, dz), ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get().defaultBlockState());
+                }
+            }
+        }
+    }
+
+    /** Gunpowder and Sulfur become Blaze Powder on a bare Athanor. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void athanorMakesBlazePowderAtNigredo(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        athanor.tanks().insert(new Principles(0, 200, 0));
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GUNPOWDER));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(Items.BLAZE_POWDER), "Blaze Powder should be made");
+            helper.assertTrue(athanor.tanks().amount(Principle.SULFUR) == 0, "the Sulfur is burned");
+        });
+    }
+
+    /** The Salt Crystal ring makes the Athanor Albedo and allows the Albedo craft; a gap brings it back to Nigredo. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void athanorTierFollowsTheRing(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        athanor.tanks().insert(new Principles(50, 0, 100));
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GLASS_BOTTLE));
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no Albedo craft at Nigredo");
+            saltRing(helper);
+            athanor.checkTier();
+            helper.assertTrue(athanor.tier() == 1 && helper.getBlockState(MACHINE).getValue(AthanorBlock.TIER) == 1, "the ring makes Albedo");
+            helper.runAfterDelay(120, () -> {
+                helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(Items.EXPERIENCE_BOTTLE),
+                        "the Albedo craft should run");
+                helper.setBlock(MACHINE.east(), Blocks.AIR.defaultBlockState());
+                athanor.checkTier();
+                helper.assertTrue(athanor.tier() == 0, "a gap in the ring is Nigredo again");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A Sulfur bucket empties into the Athanor's Sulfur tank. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorTakesABucket(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        FluidActionResult result = FluidUtil.tryEmptyContainer(new ItemStack(PrincipleFluids.entry(Principle.SULFUR).bucket().get()),
+                athanor.tanks(), 1000, null, true);
+        helper.assertTrue(result.isSuccess() && result.getResult().is(Items.BUCKET), "the bucket should be emptied");
+        helper.assertTrue(athanor.tanks().amount(Principle.SULFUR) == 1000, "the Sulfur tank should hold 1000 mB");
+        helper.succeed();
+    }
+
+    /** Production lists only the crafts the tier allows. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorProductionFollowsTheTier(GameTestHelper helper) {
+        athanor(helper);
+        ProductionProvider production = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(MACHINE), Direction.UP);
+        helper.assertTrue(production != null, "the Athanor should be a producer");
+        helper.assertTrue(production.recipes().stream().anyMatch(recipe -> recipe.outputs().get(0).is(Items.BLAZE_POWDER)), "Blaze Powder at Nigredo");
+        helper.assertTrue(production.recipes().stream().noneMatch(recipe -> recipe.outputs().get(0).is(Items.EXPERIENCE_BOTTLE)),
+                "no Albedo craft at Nigredo");
         helper.succeed();
     }
 

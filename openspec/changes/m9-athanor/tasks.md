@@ -7,7 +7,7 @@
 
 ## 2. Athanor
 
-- [ ] 2.1 `AthanorRecipe` with serializer, type and shipped crafts; `AthanorBlock` (facing, lit, `TIER` state, use: bucket, place item, sneak take, GUI), `AthanorBlockEntity` (team owner, input and output, `PrincipleTanks`, tier checks, crafts, production, journal event), `AthanorMenu`, `AthanorScreen` with gauges and tier name, `AthanorRenderer`, registration, capabilities, stats JSON, placeholder textures and models, lang, loot, tag, recipe. GameTests: Blaze Powder at tier 0; ring raises tier and allows the Albedo craft, removal lowers it; bucket fills the Sulfur tank; production lists only allowed crafts. Verify: build, data run, GameTests green.
+- [x] 2.1 `AthanorRecipe` with serializer, type and shipped crafts; `AthanorBlock` (facing, lit, `TIER` state, use: bucket, place item, sneak take, GUI), `AthanorBlockEntity` (team owner, input and output, `PrincipleTanks`, tier checks, crafts, production, journal event), `AthanorMenu`, `AthanorScreen` with gauges and tier name, `AthanorRenderer`, registration, capabilities, stats JSON, placeholder textures and models, lang, loot, tag, recipe. GameTests: Blaze Powder at tier 0; ring raises tier and allows the Albedo craft, removal lowers it; bucket fills the Sulfur tank; production lists only allowed crafts. Verify: build, data run, GameTests green.
 
 ## 3. Journal, JEI and docs
 

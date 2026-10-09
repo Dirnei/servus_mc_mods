@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerMenu;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorMenu;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -20,6 +21,9 @@ public final class ServusManufacturingMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<CoagulatorMenu>> COAGULATOR =
             MENUS.register("coagulator", () -> IMenuTypeExtension.create(CoagulatorMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<AthanorMenu>> ATHANOR =
+            MENUS.register("athanor", () -> IMenuTypeExtension.create(AthanorMenu::fromNetwork));
 
     private ServusManufacturingMenus() {
     }

@@ -22,6 +22,7 @@ public final class ServusManufacturingClient {
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ServusManufacturingMenus.CALCINER.get(), CalcinerScreen::new);
         event.register(ServusManufacturingMenus.COAGULATOR.get(), CoagulatorScreen::new);
+        event.register(ServusManufacturingMenus.ATHANOR.get(), AthanorScreen::new);
     }
 
     /** Every machine draws its side modes on the block. */
@@ -29,6 +30,7 @@ public final class ServusManufacturingClient {
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CALCINER.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.COAGULATOR.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.ATHANOR.get(), AthanorRenderer::new);
     }
 
     /** Dev only icon export for the docs, when the iconExport run asks for it. */
