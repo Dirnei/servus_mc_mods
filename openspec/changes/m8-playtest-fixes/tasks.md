@@ -15,4 +15,4 @@
 
 ## 4. Docs and integration
 
-- [ ] 4.1 Note the lamps and the search clear in `docs/src/content/docs/mods/storage.md`; run the docs tests; full `gradlew build test` and `:storage:runGameTestServer` green.
+- [x] 4.1 Note the lamps and the search clear in `docs/src/content/docs/mods/storage.md`; run the docs tests; full `gradlew build test` and `:storage:runGameTestServer` green.
