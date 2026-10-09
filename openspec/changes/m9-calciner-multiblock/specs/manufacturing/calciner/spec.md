@@ -1,0 +1,58 @@
+# Spec Delta
+
+## MODIFIED Requirements
+
+### Requirement: Calciner burns fuel
+The Calciner SHALL be a burner machine following the shared machine rules: one input slot and one fuel slot that takes any furnace fuel, burning one item when the previous burn has ended and work is available, with no FE buffer and no energy capability. It SHALL work only while its structure is formed. It SHALL start a cycle only when each of its three principle tanks has room for the whole output of the recipe. It SHALL report its fuel as upkeep, like the other burner machines, so a data line keeps it fuelled.
+
+#### Scenario: Coal
+- **WHEN** a formed Calciner holds cobblestone and one coal
+- **THEN** it burns the coal and calcines cobblestone for the coal's burn time
+
+#### Scenario: No fuel
+- **WHEN** the fuel slot is empty and the burn has ended
+- **THEN** progress stops and resumes when fuel is added
+
+#### Scenario: Tanks full
+- **WHEN** the Salt tank of a Calciner cannot take the 100 mB the next cobblestone would give
+- **THEN** the Calciner waits without burning new fuel until the Salt is drained
+
+#### Scenario: No power needed
+- **WHEN** a Power Cable touches any block of a Calciner
+- **THEN** the cable finds no energy storage on it
+
+#### Scenario: Unformed does nothing
+- **WHEN** a Calciner that is not formed holds cobblestone and coal
+- **THEN** it burns nothing and makes nothing
+
+### Requirement: Calciner crafting
+The Calciner SHALL be crafted at a crafting table from vanilla materials without research. The Calciner block is the furnace mouth of the structure; the fire lives in the Firebox.
+
+#### Scenario: Recipe
+- **WHEN** the player crafts the Calciner pattern of bricks, iron bars and a cauldron
+- **THEN** one Calciner is produced
+
+### Requirement: Calciner reports to the journal
+The Calciner SHALL remember the player who formed it as its owner and SHALL report every finished cycle to the journal of the owner's team: one `calcine` event for the item, and one `principle` event per principle with the mB it made.
+
+#### Scenario: Cobblestone counts
+- **WHEN** a Calciner a player formed calcines one cobblestone
+- **THEN** the player's team gets a `calcine` event for cobblestone and `principle` events of 100 Salt and 10 Mercury
+
+#### Scenario: Formed by another player
+- **WHEN** player A placed the Calciner and player B formed it
+- **THEN** the events go to player B's team
+
+## REMOVED Requirements
+
+### Requirement: Principles leave through the sides
+**Reason**: The Calciner no longer uses the side configuration or its Fluids layer; each principle leaves through its own part.
+**Migration**: See `manufacturing/calciner-structure`, requirement "Principle ports". Pipes and tanks connect to the Ash Pan (Salt), the Receiver (Mercury) or the Hood (Sulfur).
+
+### Requirement: Calciner GUI
+**Reason**: The Calciner is worked in the world without a GUI.
+**Migration**: Input and fuel by hand, hopper or pipe; amounts in the formed model and in Jade (`manufacturing/calciner-structure`).
+
+### Requirement: Buckets from the gauges
+**Reason**: There are no gauges without a GUI.
+**Migration**: Use an empty bucket on the Ash Pan, Receiver or Hood (`manufacturing/calciner-structure`, requirement "Buckets at the ports").
