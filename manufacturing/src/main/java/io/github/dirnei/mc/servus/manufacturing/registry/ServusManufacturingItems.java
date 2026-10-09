@@ -18,7 +18,6 @@ public final class ServusManufacturingItems {
 
     public static final DeferredItem<BlockItem> BURNER_EXTRACTOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.BURNER_EXTRACTOR);
     public static final DeferredItem<BlockItem> BURNER_SMELTER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.BURNER_SMELTER);
-    public static final DeferredItem<BlockItem> COAL_GENERATOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.COAL_GENERATOR);
     public static final DeferredItem<BlockItem> ASSEMBLER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ASSEMBLER);
     public static final DeferredItem<BlockItem> ELECTRIC_EXTRACTOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR);
     public static final DeferredItem<BlockItem> CRUSHER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.CRUSHER);
@@ -37,7 +36,7 @@ public final class ServusManufacturingItems {
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(
-            BURNER_EXTRACTOR, BURNER_SMELTER, ELECTRIC_EXTRACTOR, CRUSHER, BURNER_PUMP, ELECTRIC_PUMP, COAL_GENERATOR, ASSEMBLER,
+            BURNER_EXTRACTOR, BURNER_SMELTER, ELECTRIC_EXTRACTOR, CRUSHER, BURNER_PUMP, ELECTRIC_PUMP, ASSEMBLER,
             RESEARCH_LAB, CHUNK_LOADER, SINK, CHIMNEY,
             IRON_GEAR, COPPER_WIRE, RED_PACK, IRON_GRIT, COPPER_GRIT,
             IRON_DEPOSIT, COPPER_DEPOSIT, COAL_DEPOSIT, STONE_DEPOSIT);

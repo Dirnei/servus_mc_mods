@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
@@ -54,7 +55,7 @@ public final class NativeUpkeepGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 40)
     public static void burnerMachinesExposeUpkeep(GameTestHelper helper) {
         List<Block> burners = List.of(ServusManufacturingBlocks.BURNER_EXTRACTOR.get(), ServusManufacturingBlocks.BURNER_SMELTER.get(),
-                ServusManufacturingBlocks.BURNER_PUMP.get(), ServusManufacturingBlocks.COAL_GENERATOR.get());
+                ServusManufacturingBlocks.BURNER_PUMP.get(), MachineContent.COAL_GENERATOR.get());
         for (int i = 0; i < burners.size(); i++) {
             BlockPos pos = new BlockPos(2 + 2 * i, 2, 3);
             helper.setBlock(pos, burners.get(i).defaultBlockState());
@@ -147,7 +148,7 @@ public final class NativeUpkeepGameTests {
         BlockPos generator = new BlockPos(5, 2, 3);
         BlockPos duct = new BlockPos(4, 2, 3);
         helper.setBlock(smelter, ServusManufacturingBlocks.BURNER_SMELTER.get().defaultBlockState());
-        helper.setBlock(generator, ServusManufacturingBlocks.COAL_GENERATOR.get().defaultBlockState());
+        helper.setBlock(generator, MachineContent.COAL_GENERATOR.get().defaultBlockState());
         dataDuct(helper, duct);
         helper.succeedWhen(() -> {
             DataMember smelterMember = member(helper, duct, smelter).orElse(null);

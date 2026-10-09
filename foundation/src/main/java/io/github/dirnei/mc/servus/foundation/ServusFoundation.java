@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.ServusLogisticsContent;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -29,6 +30,7 @@ public final class ServusFoundation {
         NetworkTypes.register(DataNetwork.TYPE);
         ServusLogisticsContent.register(modEventBus);
         AdapterContent.register(modEventBus);
+        MachineContent.register(modEventBus);
         WoodContent.register(modEventBus);
         container.registerConfig(ModConfig.Type.COMMON, ServusFoundationConfig.SPEC);
         LOGGER.info("Servus: Foundation loaded");

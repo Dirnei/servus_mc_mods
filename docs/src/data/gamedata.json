@@ -2,6 +2,21 @@
   "schema": 2,
   "mod_version": "0.1.0",
   "machines": {
+    "servus_foundation:coal_generator": {
+      "kind": "generator",
+      "recipe_types": [],
+      "work_ticks": 1,
+      "energy_per_tick": 40,
+      "energy_capacity": 16000,
+      "fuel_divisor": 4,
+      "items_per_tick": 0,
+      "recipe_slots": 1,
+      "fuel_reserve": 0,
+      "fluid_per_cycle": 0,
+      "fluid_capacity": 0,
+      "min_source_neighbours": 0,
+      "upkeep_level": 16
+    },
     "servus_manufacturing:assembler": {
       "kind": "crafter",
       "recipe_types": ["servus_manufacturing:assembling", "minecraft:crafting"],
@@ -76,21 +91,6 @@
       "fluid_capacity": 0,
       "min_source_neighbours": 0,
       "upkeep_level": 0
-    },
-    "servus_manufacturing:coal_generator": {
-      "kind": "generator",
-      "recipe_types": [],
-      "work_ticks": 1,
-      "energy_per_tick": 40,
-      "energy_capacity": 16000,
-      "fuel_divisor": 4,
-      "items_per_tick": 0,
-      "recipe_slots": 1,
-      "fuel_reserve": 0,
-      "fluid_per_cycle": 0,
-      "fluid_capacity": 0,
-      "min_source_neighbours": 0,
-      "upkeep_level": 16
     },
     "servus_manufacturing:crusher": {
       "kind": "powered",
@@ -415,6 +415,23 @@
     }
   },
   "crafting": {
+    "servus_foundation:coal_generator": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["ICI", "CFC", "ICI"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"},
+        "F": {"item": "minecraft:furnace"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 4},
+        {"item": "minecraft:furnace", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_foundation:coal_generator", "count": 1}
+      ]
+    },
     "servus_foundation:configuration_carrot": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["R", "I", "C"],
@@ -1204,6 +1221,9 @@
     },
     "minecraft:stone_bricks": {
       "name": "Stone Bricks"
+    },
+    "servus_foundation:coal_generator": {
+      "name": "Coal Generator"
     },
     "servus_foundation:configuration_carrot": {
       "name": "Configuration Carrot"

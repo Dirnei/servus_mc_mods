@@ -6,7 +6,6 @@ import io.github.dirnei.mc.servus.manufacturing.menu.BurnerExtractorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerPumpMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.BurnerSmelterMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ChunkLoaderMenu;
-import io.github.dirnei.mc.servus.manufacturing.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.CrusherMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ElectricExtractorMenu;
 import io.github.dirnei.mc.servus.manufacturing.menu.ElectricPumpMenu;
@@ -29,8 +28,6 @@ public final class ServusManufacturingMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<BurnerSmelterMenu>> BURNER_SMELTER =
             MENUS.register("burner_smelter", () -> IMenuTypeExtension.create(BurnerSmelterMenu::fromNetwork));
 
-    public static final DeferredHolder<MenuType<?>, MenuType<CoalGeneratorMenu>> COAL_GENERATOR =
-            MENUS.register("coal_generator", () -> IMenuTypeExtension.create(CoalGeneratorMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<AssemblerMenu>> ASSEMBLER =
             MENUS.register("assembler", () -> IMenuTypeExtension.create(AssemblerMenu::fromNetwork));

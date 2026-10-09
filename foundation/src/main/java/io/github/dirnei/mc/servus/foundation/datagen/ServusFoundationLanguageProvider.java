@@ -19,6 +19,7 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add(ServusFoundationItems.CONFIGURATION_CARROT.get(), "Configuration Carrot");
         add(ServusFoundationItems.GOGGLES.get(), "Engineer Goggles");
         add(AdapterContent.BLOCK.get(), "Machine Adapter");
+        MachineDataParts.lang(this);
         add("gui.servus_foundation.machine_adapter.machine", "Machine: %s");
         add("gui.servus_foundation.machine_adapter.no_profile", "No machine this adapter knows");
         add("gui.servus_foundation.machine_adapter.upkeep", "Upkeep item and level");

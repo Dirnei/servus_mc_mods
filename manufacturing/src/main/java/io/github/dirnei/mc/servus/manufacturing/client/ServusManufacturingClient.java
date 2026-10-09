@@ -24,7 +24,6 @@ public final class ServusManufacturingClient {
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         event.register(ServusManufacturingMenus.BURNER_EXTRACTOR.get(), MachineScreen::burner);
         event.register(ServusManufacturingMenus.BURNER_SMELTER.get(), MachineScreen::burner);
-        event.register(ServusManufacturingMenus.COAL_GENERATOR.get(), MachineScreens::generator);
         event.register(ServusManufacturingMenus.ASSEMBLER.get(), AssemblerScreen::new);
         event.register(ServusManufacturingMenus.RESEARCH_LAB.get(), ResearchLabScreen::new);
         event.register(ServusManufacturingMenus.ELECTRIC_EXTRACTOR.get(), MachineScreens::electric);
@@ -40,7 +39,6 @@ public final class ServusManufacturingClient {
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.BURNER_EXTRACTOR.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.BURNER_SMELTER.get(), SideMarkerRenderer::new);
-        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.COAL_GENERATOR.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.ASSEMBLER.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.ELECTRIC_EXTRACTOR.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CRUSHER.get(), SideMarkerRenderer::new);

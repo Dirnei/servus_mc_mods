@@ -23,11 +23,11 @@ class ManufacturingMachinesTest {
     @Test
     void everyMachineHasAnEntry() {
         for (String path : new String[] {"burner_extractor", "burner_smelter", "electric_extractor", "crusher",
-                "assembler", "coal_generator", "research_lab", "chunk_loader", "burner_pump", "electric_pump"}) {
+                "assembler", "research_lab", "chunk_loader", "burner_pump", "electric_pump"}) {
             MachineDefaults.MachineInfo info = MachineDefaults.info("servus_manufacturing:" + path);
             assertTrue(KINDS.contains(info.kind()), path);
         }
-        assertEquals(10, MachineDefaults.all().keySet().stream().filter(id -> id.startsWith("servus_manufacturing:")).count());
+        assertEquals(9, MachineDefaults.all().keySet().stream().filter(id -> id.startsWith("servus_manufacturing:")).count());
     }
 
     @Test
@@ -56,15 +56,6 @@ class ManufacturingMachinesTest {
     }
 
     @Test
-    void generatorBurnsFourTimesFaster() {
-        MachineStats stats = MachineDefaults.stats("servus_manufacturing:coal_generator");
-
-        assertEquals(40, stats.energyPerTick());
-        assertEquals(4, stats.fuelDivisor());
-        assertEquals("generator", MachineDefaults.info("servus_manufacturing:coal_generator").kind());
-    }
-
-    @Test
     void pumpsHaveFluidStatsAndOthersNone() {
         MachineStats burner = MachineDefaults.stats("servus_manufacturing:burner_pump");
         MachineStats electric = MachineDefaults.stats("servus_manufacturing:electric_pump");
@@ -81,7 +72,7 @@ class ManufacturingMachinesTest {
 
     @Test
     void onlyBurnerMachinesKeepCoalAsUpkeep() {
-        Set<String> burners = Set.of("burner_extractor", "burner_smelter", "burner_pump", "coal_generator");
+        Set<String> burners = Set.of("burner_extractor", "burner_smelter", "burner_pump");
         for (MachineDefaults.MachineInfo info : MachineDefaults.all().values()) {
             MachineStats stats = info.stats();
             boolean burner = burners.contains(info.id().substring(info.id().indexOf(':') + 1));

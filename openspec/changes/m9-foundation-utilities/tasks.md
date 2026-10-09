@@ -8,8 +8,8 @@
 
 ## 2. Coal Generator
 
-- [ ] 2.1 Move `machine/generator` to `foundation/.../machine/generator` with its menu; register block, block entity, item, menu, capabilities (energy, item handler, upkeep), screen and side marker renderer in Foundation; move `coal_generator.json` stats to `data/servus_foundation/machine/`; Foundation datagen for block state, models, loot, pickaxe tag, lang and the existing shaped recipe; move the front textures and GUI. Remove all of it from Manufacturing. Verify: `gradlew build`, both data runs.
-- [ ] 2.2 Update `NativeUpkeepGameTests` to place `servus_foundation:coal_generator`, and add a Foundation GameTest that a generator with coal fills an adjacent FE buffer (spec foundation/coal-generator, "Consumer beside the generator"). Verify: Foundation and Manufacturing GameTests green.
+- [x] 2.1 Move `machine/generator` to `foundation/.../machine/generator` with its menu; register block, block entity, item, menu, capabilities (energy, item handler, upkeep), screen and side marker renderer in Foundation; move `coal_generator.json` stats to `data/servus_foundation/machine/`; Foundation datagen for block state, models, loot, pickaxe tag, lang and the existing shaped recipe; move the front textures and GUI. Remove all of it from Manufacturing. Verify: `gradlew build`, both data runs.
+- [x] 2.2 Update `NativeUpkeepGameTests` to place `servus_foundation:coal_generator`, and add a Foundation GameTest that a generator with coal fills an adjacent FE buffer (spec foundation/coal-generator, "Consumer beside the generator"). Verify: Foundation and Manufacturing GameTests green.
 
 ## 3. Pumps
 

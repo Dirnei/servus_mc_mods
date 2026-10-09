@@ -1,10 +1,10 @@
-package io.github.dirnei.mc.servus.manufacturing.menu;
+package io.github.dirnei.mc.servus.foundation.machine.menu;
 
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineSlot;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingMenus;
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerData;
@@ -12,11 +12,11 @@ import net.minecraft.world.inventory.ContainerData;
 public class CoalGeneratorMenu extends MachineMenu {
 
     public CoalGeneratorMenu(int containerId, Inventory playerInventory, MachineBlockEntity machine) {
-        super(ServusManufacturingMenus.COAL_GENERATOR.get(), containerId, playerInventory, machine);
+        super(MachineContent.COAL_GENERATOR_MENU.get(), containerId, playerInventory, machine);
     }
 
     private CoalGeneratorMenu(int containerId, Inventory playerInventory, MachineBlockEntity machine, ContainerData data) {
-        super(ServusManufacturingMenus.COAL_GENERATOR.get(), containerId, playerInventory, machine, data);
+        super(MachineContent.COAL_GENERATOR_MENU.get(), containerId, playerInventory, machine, data);
     }
 
     public static CoalGeneratorMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {

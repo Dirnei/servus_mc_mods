@@ -1,13 +1,13 @@
-package io.github.dirnei.mc.servus.manufacturing.machine.generator;
+package io.github.dirnei.mc.servus.foundation.machine.generator;
 
-import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.EnergyNeighbors;
 import io.github.dirnei.mc.servus.foundation.machine.MachineEnergyStorage;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
-import io.github.dirnei.mc.servus.manufacturing.menu.CoalGeneratorMenu;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
+import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
 
     public static final int SLOT_FUEL = 0;
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coal_generator");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "coal_generator");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final MachineEnergyStorage energy;
@@ -35,7 +35,7 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
     private boolean capacityApplied;
 
     public CoalGeneratorBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusManufacturingBlockEntities.COAL_GENERATOR.get(), pos, state, 1);
+        super(MachineContent.COAL_GENERATOR_ENTITY.get(), pos, state, 1);
         this.energy = new MachineEnergyStorage(DEFAULTS.energyCapacity(), 0, Integer.MAX_VALUE, this::setChanged);
     }
 

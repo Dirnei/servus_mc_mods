@@ -11,7 +11,6 @@ import net.minecraft.world.entity.player.Inventory;
 /** Screen layouts and factories of Manufacturing's machines on the shared {@link MachineScreen}. */
 public final class MachineScreens {
 
-    public static final Layout GENERATOR = new Layout(true, false, true, gui("coal_generator"));
     public static final Layout ASSEMBLER = new Layout(false, false, true, gui("assembler"));
     public static final Layout LAB = new Layout(false, true, true, gui("research_lab"));
     public static final Layout ELECTRIC = new Layout(false, true, true, gui("electric_extractor"));
@@ -42,9 +41,5 @@ public final class MachineScreens {
 
     public static MachineScreen electricPump(MachineMenu menu, Inventory playerInventory, Component title) {
         return new MachineScreen(menu, playerInventory, title, ELECTRIC_PUMP);
-    }
-
-    public static MachineScreen generator(MachineMenu menu, Inventory playerInventory, Component title) {
-        return new MachineScreen(menu, playerInventory, title, GENERATOR);
     }
 }

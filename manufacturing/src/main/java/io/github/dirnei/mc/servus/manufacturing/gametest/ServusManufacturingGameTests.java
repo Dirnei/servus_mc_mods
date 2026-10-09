@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
@@ -175,7 +176,7 @@ public final class ServusManufacturingGameTests {
     }
 
     private static void generator(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, facing(ServusManufacturingBlocks.COAL_GENERATOR.get(), Direction.NORTH));
+        helper.setBlock(pos, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
         fuel(helper, pos);
     }
 
@@ -194,7 +195,7 @@ public final class ServusManufacturingGameTests {
         BlockPos generatorB = new BlockPos(6, 2, 3);
         BlockPos machineB = new BlockPos(8, 2, 3);
         generator(helper, generatorA);
-        helper.setBlock(generatorB, facing(ServusManufacturingBlocks.COAL_GENERATOR.get(), Direction.NORTH));
+        helper.setBlock(generatorB, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
         helper.setBlock(machineA, facing(ServusManufacturingBlocks.ASSEMBLER.get(), Direction.NORTH));
         helper.setBlock(machineB, facing(ServusManufacturingBlocks.ASSEMBLER.get(), Direction.NORTH));
         UtilityDuctBlockEntity ductB = helper.getBlockEntity(new BlockPos(7, 2, 3));

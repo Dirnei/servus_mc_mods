@@ -1,9 +1,9 @@
-package io.github.dirnei.mc.servus.manufacturing.machine.generator;
+package io.github.dirnei.mc.servus.foundation.machine.generator;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
+import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
@@ -22,6 +22,6 @@ public class CoalGeneratorBlock extends MachineBlock {
 
     @Override
     protected BlockEntityType<? extends MachineBlockEntity> blockEntityType() {
-        return ServusManufacturingBlockEntities.COAL_GENERATOR.get();
+        return MachineContent.COAL_GENERATOR_ENTITY.get();
     }
 }

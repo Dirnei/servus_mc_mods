@@ -2,6 +2,7 @@
   "values": [
     "servus_foundation:utility_duct",
     "servus_foundation:fluid_tank",
-    "servus_foundation:machine_adapter"
+    "servus_foundation:machine_adapter",
+    "servus_foundation:coal_generator"
   ]
 }

@@ -13,7 +13,6 @@ final class ServusManufacturingBlockLoot extends BlockLootSubProvider {
     private static final List<Block> SELF_DROPPING = List.of(
             ServusManufacturingBlocks.BURNER_EXTRACTOR.get(),
             ServusManufacturingBlocks.BURNER_SMELTER.get(),
-            ServusManufacturingBlocks.COAL_GENERATOR.get(),
             ServusManufacturingBlocks.ASSEMBLER.get(),
             ServusManufacturingBlocks.RESEARCH_LAB.get(),
             ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(),

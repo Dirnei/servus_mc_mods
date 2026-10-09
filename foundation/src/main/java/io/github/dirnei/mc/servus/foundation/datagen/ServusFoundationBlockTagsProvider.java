@@ -21,5 +21,6 @@ final class ServusFoundationBlockTagsProvider extends BlockTagsProvider {
     protected void addTags(HolderLookup.Provider provider) {
         LogisticsDataParts.pickaxeBlocks().forEach(block -> tag(BlockTags.MINEABLE_WITH_PICKAXE).add(block));
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(AdapterContent.BLOCK.get());
+        MachineDataParts.selfDropping().forEach(block -> tag(BlockTags.MINEABLE_WITH_PICKAXE).add(block));
     }
 }

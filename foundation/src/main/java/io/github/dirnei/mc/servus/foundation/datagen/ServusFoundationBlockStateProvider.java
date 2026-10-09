@@ -21,6 +21,7 @@ final class ServusFoundationBlockStateProvider extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         LogisticsDataParts.blockStates(this);
+        MachineDataParts.blockStates(this);
         // directionalBlock turns the model's up face toward the facing: the port on top, the funnel below.
         Map<Direction, ResourceLocation> adapterFaces = new EnumMap<>(Direction.class);
         for (Direction direction : Direction.values()) {

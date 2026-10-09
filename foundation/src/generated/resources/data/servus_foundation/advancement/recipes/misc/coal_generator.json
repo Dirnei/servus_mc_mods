@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "servus_manufacturing:coal_generator"
+        "recipe": "servus_foundation:coal_generator"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "servus_manufacturing:coal_generator"
+      "servus_foundation:coal_generator"
     ]
   }
 }

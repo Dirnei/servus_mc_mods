@@ -7,7 +7,6 @@ import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlockEnti
 import io.github.dirnei.mc.servus.manufacturing.machine.loader.ChunkLoaderBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtractorBlockEntity;
-import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.ElectricPumpBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.SinkBlockEntity;
@@ -32,10 +31,6 @@ public final class ServusManufacturingBlockEntities {
                     .of(BurnerSmelterBlockEntity::new, ServusManufacturingBlocks.BURNER_SMELTER.get())
                     .build(null));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR =
-            BLOCK_ENTITIES.register("coal_generator", () -> BlockEntityType.Builder
-                    .of(CoalGeneratorBlockEntity::new, ServusManufacturingBlocks.COAL_GENERATOR.get())
-                    .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AssemblerBlockEntity>> ASSEMBLER =
             BLOCK_ENTITIES.register("assembler", () -> BlockEntityType.Builder

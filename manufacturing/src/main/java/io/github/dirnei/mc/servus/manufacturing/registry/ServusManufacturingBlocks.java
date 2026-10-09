@@ -8,7 +8,6 @@ import io.github.dirnei.mc.servus.manufacturing.machine.lab.ResearchLabBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.loader.ChunkLoaderBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.BurnerExtractorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.extractor.ElectricExtractorBlock;
-import io.github.dirnei.mc.servus.manufacturing.machine.generator.CoalGeneratorBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.BurnerPumpBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.pump.ElectricPumpBlock;
 import io.github.dirnei.mc.servus.manufacturing.machine.sink.ChimneyBlock;
@@ -34,8 +33,6 @@ public final class ServusManufacturingBlocks {
             BLOCKS.registerBlock("burner_extractor", BurnerExtractorBlock::new, machine());
     public static final DeferredBlock<BurnerSmelterBlock> BURNER_SMELTER =
             BLOCKS.registerBlock("burner_smelter", BurnerSmelterBlock::new, machine());
-    public static final DeferredBlock<CoalGeneratorBlock> COAL_GENERATOR =
-            BLOCKS.registerBlock("coal_generator", CoalGeneratorBlock::new, machine());
     public static final DeferredBlock<AssemblerBlock> ASSEMBLER =
             BLOCKS.registerBlock("assembler", AssemblerBlock::new, machine());
     public static final DeferredBlock<ElectricExtractorBlock> ELECTRIC_EXTRACTOR =

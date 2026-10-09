@@ -74,10 +74,6 @@ public final class ServusManufacturingEvents {
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.BURNER_SMELTER.get(),
                     (machine, side) -> machine.sideHandler(side));
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.COAL_GENERATOR.get(),
-                    (machine, side) -> machine.sideHandler(side));
-            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.COAL_GENERATOR.get(),
-                    (machine, side) -> machine.energyStorage());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.ASSEMBLER.get(),
                     (machine, side) -> machine.sideHandler(side));
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusManufacturingBlockEntities.ASSEMBLER.get(),
@@ -98,8 +94,6 @@ public final class ServusManufacturingEvents {
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.BURNER_SMELTER.get(),
                     (machine, side) -> machine.upkeep());
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.BURNER_PUMP.get(),
-                    (machine, side) -> machine.upkeep());
-            event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusManufacturingBlockEntities.COAL_GENERATOR.get(),
                     (machine, side) -> machine.upkeep());
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusManufacturingBlockEntities.BURNER_SMELTER.get(),
                     (machine, side) -> machine.production());

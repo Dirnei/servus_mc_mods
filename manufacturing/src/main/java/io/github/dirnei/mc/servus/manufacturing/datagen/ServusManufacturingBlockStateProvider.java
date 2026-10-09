@@ -40,7 +40,6 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
 
         machine(ServusManufacturingBlocks.BURNER_EXTRACTOR.get(), "burner_extractor");
         machine(ServusManufacturingBlocks.BURNER_SMELTER.get(), "burner_smelter");
-        machine(ServusManufacturingBlocks.COAL_GENERATOR.get(), "coal_generator");
         machine(ServusManufacturingBlocks.ASSEMBLER.get(), "assembler");
         machine(ServusManufacturingBlocks.RESEARCH_LAB.get(), "research_lab");
         machine(ServusManufacturingBlocks.ELECTRIC_EXTRACTOR.get(), "electric_extractor");
