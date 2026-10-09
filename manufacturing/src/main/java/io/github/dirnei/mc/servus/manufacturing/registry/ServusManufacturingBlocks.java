@@ -5,6 +5,9 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
 import net.minecraft.world.level.block.Block;
@@ -22,6 +25,18 @@ public final class ServusManufacturingBlocks {
     public static final DeferredBlock<CalcinerBlock> CALCINER =
             BLOCKS.registerBlock("calciner", CalcinerBlock::new, MachineContent.machine());
 
+    public static final DeferredBlock<CalcinerPartBlock> FIREBOX = calcinerPart("calciner_firebox", Role.FIREBOX,
+            bricks().lightLevel(state -> state.getValue(CalcinerPartBlock.LIT) ? 13 : 0));
+    public static final DeferredBlock<CalcinerPartBlock> ASH_PAN = calcinerPart("calciner_ash_pan", Role.ASH_PAN, bricks());
+    public static final DeferredBlock<CalcinerPartBlock> ALEMBIC = calcinerPart("alembic", Role.ALEMBIC, copper());
+    public static final DeferredBlock<CalcinerPartBlock> RECEIVER = calcinerPart("receiver", Role.RECEIVER,
+            BlockBehaviour.Properties.of().mapColor(MapColor.NONE).strength(1.0F).sound(SoundType.GLASS).noOcclusion());
+    public static final DeferredBlock<CalcinerPartBlock> SULFUR_HOOD = calcinerPart("sulfur_hood", Role.HOOD, copper());
+
+    /** A brick of a formed Calciner; mined like Bricks and dropping them. */
+    public static final DeferredBlock<CalcinerShellBlock> CALCINER_SHELL = BLOCKS.registerBlock("calciner_shell",
+            CalcinerShellBlock::new, bricks());
+
     public static final DeferredBlock<CoagulatorBlock> COAGULATOR =
             BLOCKS.registerBlock("coagulator", CoagulatorBlock::new, MachineContent.machine());
 
@@ -34,6 +49,21 @@ public final class ServusManufacturingBlocks {
 
     public static final DeferredBlock<GnomeHollowBlock> GNOME_HOLLOW = BLOCKS.registerBlock("gnome_hollow", GnomeHollowBlock::new,
             BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(1.5F, 6.0F).requiresCorrectToolForDrops().sound(SoundType.STONE));
+
+    private static DeferredBlock<CalcinerPartBlock> calcinerPart(String name, Role role, BlockBehaviour.Properties properties) {
+        return BLOCKS.registerBlock(name, props -> new CalcinerPartBlock(role, props), properties);
+    }
+
+    /** Properties of vanilla Bricks. */
+    private static BlockBehaviour.Properties bricks() {
+        return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F, 6.0F).requiresCorrectToolForDrops()
+                .sound(SoundType.STONE).noOcclusion();
+    }
+
+    private static BlockBehaviour.Properties copper() {
+        return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(3.0F, 6.0F).requiresCorrectToolForDrops()
+                .sound(SoundType.COPPER).noOcclusion();
+    }
 
     private ServusManufacturingBlocks() {
     }

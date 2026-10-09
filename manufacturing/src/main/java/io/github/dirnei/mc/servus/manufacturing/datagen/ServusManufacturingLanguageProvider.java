@@ -24,6 +24,12 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         // Texts of the journal, collected by the Modonomicon book provider.
         book.data().forEach(this::add);
         add(ServusManufacturingBlocks.CALCINER.get(), "Calciner");
+        add(ServusManufacturingBlocks.FIREBOX.get(), "Firebox");
+        add(ServusManufacturingBlocks.ASH_PAN.get(), "Ash Pan");
+        add(ServusManufacturingBlocks.ALEMBIC.get(), "Alembic");
+        add(ServusManufacturingBlocks.RECEIVER.get(), "Receiver");
+        add(ServusManufacturingBlocks.SULFUR_HOOD.get(), "Sulfur Hood");
+        add(ServusManufacturingBlocks.CALCINER_SHELL.get(), "Calciner Bricks");
         add(ServusManufacturingBlocks.COAGULATOR.get(), "Coagulator");
         add("gui.servus_manufacturing.coagulator.needs", "%s mB %s");
         add("gui.servus_manufacturing.coagulator.select", "Select recipe");

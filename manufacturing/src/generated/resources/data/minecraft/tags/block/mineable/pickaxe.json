@@ -1,6 +1,12 @@
 {
   "values": [
     "servus_manufacturing:calciner",
+    "servus_manufacturing:calciner_firebox",
+    "servus_manufacturing:calciner_ash_pan",
+    "servus_manufacturing:alembic",
+    "servus_manufacturing:receiver",
+    "servus_manufacturing:sulfur_hood",
+    "servus_manufacturing:calciner_shell",
     "servus_manufacturing:coagulator",
     "servus_manufacturing:salt_crystal_block",
     "servus_manufacturing:athanor",

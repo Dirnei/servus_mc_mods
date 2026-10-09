@@ -13,6 +13,11 @@ public final class ServusManufacturingItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ServusManufacturingIds.MOD_ID);
 
     public static final DeferredItem<BlockItem> CALCINER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.CALCINER);
+    public static final DeferredItem<BlockItem> FIREBOX = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.FIREBOX);
+    public static final DeferredItem<BlockItem> ASH_PAN = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ASH_PAN);
+    public static final DeferredItem<BlockItem> ALEMBIC = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ALEMBIC);
+    public static final DeferredItem<BlockItem> RECEIVER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.RECEIVER);
+    public static final DeferredItem<BlockItem> SULFUR_HOOD = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.SULFUR_HOOD);
     public static final DeferredItem<BlockItem> COAGULATOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.COAGULATOR);
     public static final DeferredItem<BlockItem> ATHANOR = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ATHANOR);
     public static final DeferredItem<BlockItem> GNOME_HOLLOW = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.GNOME_HOLLOW);
@@ -26,7 +31,8 @@ public final class ServusManufacturingItems {
             ParacelsusJournalItem::new, new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, COAGULATOR, ATHANOR, GNOME_HOLLOW,
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,
+            ALEMBIC, RECEIVER, SULFUR_HOOD, COAGULATOR, ATHANOR, GNOME_HOLLOW,
             SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER);
 
     private ServusManufacturingItems() {

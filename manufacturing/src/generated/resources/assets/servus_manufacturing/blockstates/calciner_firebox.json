@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=east,formed=false,lit=false": {
+      "model": "servus_manufacturing:block/calciner_firebox",
+      "y": 90
+    },
+    "facing=east,formed=false,lit=true": {
+      "model": "servus_manufacturing:block/calciner_firebox_lit",
+      "y": 90
+    },
+    "facing=east,formed=true,lit=false": {
+      "model": "servus_manufacturing:block/calciner_firebox",
+      "y": 90
+    },
+    "facing=east,formed=true,lit=true": {
+      "model": "servus_manufacturing:block/calciner_firebox_lit",
+      "y": 90
+    },
+    "facing=north,formed=false,lit=false": {
+      "model": "servus_manufacturing:block/calciner_firebox"
+    },
+    "facing=north,formed=false,lit=true": {
+      "model": "servus_manufacturing:block/calciner_firebox_lit"
+    },
+    "facing=north,formed=true,lit=false": {
+      "model": "servus_manufacturing:block/calciner_firebox"
+    },
+    "facing=north,formed=true,lit=true": {
+      "model": "servus_manufacturing:block/calciner_firebox_lit"
+    },
+    "facing=south,formed=false,lit=false": {
+      "model": "servus_manufacturing:block/calciner_firebox",
+      "y": 180
+    },
+    "facing=south,formed=false,lit=true": {
+      "model": "servus_manufacturing:block/calciner_firebox_lit",
+      "y": 180
+    },
+    "facing=south,formed=true,lit=false": {
+      "model": "servus_manufacturing:block/calciner_firebox",
+      "y": 180
+    },
+    "facing=south,formed=true,lit=true": {
+      "model": "servus_manufacturing:block/calciner_firebox_lit",
+      "y": 180
+    },
+    "facing=west,formed=false,lit=false": {
+      "model": "servus_manufacturing:block/calciner_firebox",
+      "y": 270
+    },
+    "facing=west,formed=false,lit=true": {
+      "model": "servus_manufacturing:block/calciner_firebox_lit",
+      "y": 270
+    },
+    "facing=west,formed=true,lit=false": {
+      "model": "servus_manufacturing:block/calciner_firebox",
+      "y": 270
+    },
+    "facing=west,formed=true,lit=true": {
+      "model": "servus_manufacturing:block/calciner_firebox_lit",
+      "y": 270
+    }
+  }
+}

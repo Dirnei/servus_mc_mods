@@ -1,0 +1,76 @@
+{
+  "variants": {
+    "cell=1,facing=east": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=1,facing=north": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=1,facing=south": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=1,facing=west": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=2,facing=east": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=2,facing=north": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=2,facing=south": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=2,facing=west": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=3,facing=east": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=3,facing=north": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=3,facing=south": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=3,facing=west": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=4,facing=east": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=4,facing=north": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=4,facing=south": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=4,facing=west": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=5,facing=east": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=5,facing=north": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=5,facing=south": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=5,facing=west": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=6,facing=east": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=6,facing=north": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=6,facing=south": {
+      "model": "minecraft:block/bricks"
+    },
+    "cell=6,facing=west": {
+      "model": "minecraft:block/bricks"
+    }
+  }
+}

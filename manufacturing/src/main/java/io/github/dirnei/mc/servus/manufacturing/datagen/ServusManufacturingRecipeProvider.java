@@ -70,13 +70,53 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.CALCINER.get())
                 .pattern("BIB")
-                .pattern("IFI")
                 .pattern("BCB")
                 .define('B', Items.BRICKS)
-                .define('I', Items.IRON_INGOT)
-                .define('F', Items.FURNACE)
+                .define('I', Items.IRON_BARS)
                 .define('C', Items.CAULDRON)
+                .unlockedBy("has_cauldron", has(Items.CAULDRON))
+                .save(output);
+
+        // The parts of the Calciner structure, all from vanilla materials.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.FIREBOX.get())
+                .pattern("BIB")
+                .pattern("BFB")
+                .define('B', Items.BRICKS)
+                .define('I', Items.IRON_BARS)
+                .define('F', Items.FURNACE)
                 .unlockedBy("has_furnace", has(Items.FURNACE))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.ASH_PAN.get())
+                .pattern("B B")
+                .pattern("BIB")
+                .define('B', Items.BRICKS)
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy("has_bricks", has(Items.BRICKS))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.ALEMBIC.get())
+                .pattern(" C ")
+                .pattern("CGC")
+                .pattern("C C")
+                .define('C', Items.COPPER_INGOT)
+                .define('G', Items.GLASS)
+                .unlockedBy("has_copper", has(Items.COPPER_INGOT))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.RECEIVER.get())
+                .pattern(" P ")
+                .pattern("GBG")
+                .pattern(" C ")
+                .define('P', Items.GLASS_PANE)
+                .define('G', Items.GLASS)
+                .define('B', Items.GLASS_BOTTLE)
+                .define('C', Items.COPPER_INGOT)
+                .unlockedBy("has_glass_bottle", has(Items.GLASS_BOTTLE))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.SULFUR_HOOD.get())
+                .pattern(" C ")
+                .pattern("CBC")
+                .define('C', Items.COPPER_INGOT)
+                .define('B', Items.BRICKS)
+                .unlockedBy("has_copper", has(Items.COPPER_INGOT))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get())

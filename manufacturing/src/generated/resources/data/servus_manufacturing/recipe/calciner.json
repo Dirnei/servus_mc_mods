@@ -8,16 +8,12 @@
     "C": {
       "item": "minecraft:cauldron"
     },
-    "F": {
-      "item": "minecraft:furnace"
-    },
     "I": {
-      "item": "minecraft:iron_ingot"
+      "item": "minecraft:iron_bars"
     }
   },
   "pattern": [
     "BIB",
-    "IFI",
     "BCB"
   ],
   "result": {
