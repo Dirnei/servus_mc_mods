@@ -1,0 +1,9 @@
+{
+  "samples": ["c:ores/copper", "c:raw_materials/copper"],
+  "yield": {"id": "minecraft:raw_copper"},
+  "chapter": "servus_manufacturing:villach",
+  "steps": 20,
+  "step_ticks": 100,
+  "step_cost": {"salt": 100, "mercury": 20},
+  "yield_ticks": 200
+}

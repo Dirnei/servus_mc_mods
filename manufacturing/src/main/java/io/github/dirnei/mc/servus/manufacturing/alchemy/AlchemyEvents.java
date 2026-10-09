@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTierData;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.VeinData;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
@@ -16,5 +17,6 @@ public final class AlchemyEvents {
     @SubscribeEvent
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(AthanorTierData.INSTANCE);
+        event.addListener(VeinData.INSTANCE);
     }
 }
