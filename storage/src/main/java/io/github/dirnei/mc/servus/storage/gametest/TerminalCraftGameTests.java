@@ -156,7 +156,7 @@ public final class TerminalCraftGameTests {
         });
     }
 
-    /** The intake GUI of a Packing Station stays valid for a player in reach. */
+    /** The buffer GUI of a Packing Station stays valid for a player in reach. */
     @GameTest(template = EMPTY, timeoutTicks = 40)
     public static void packingStationMenuStaysValid(GameTestHelper helper) {
         TerminalWiring.place(helper, ACCESS);
@@ -164,7 +164,8 @@ public final class TerminalCraftGameTests {
         BlockPos absolute = helper.absolutePos(TerminalWiring.packingStationPos(ACCESS));
         player.moveTo(absolute.getX() + 0.5, absolute.getY() + 1, absolute.getZ() + 1.5);
         PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS));
-        InboundStationMenu menu = new InboundStationMenu(1, player.getInventory(), point);
+        io.github.dirnei.mc.servus.storage.menu.PackingStationMenu menu =
+                new io.github.dirnei.mc.servus.storage.menu.PackingStationMenu(1, player.getInventory(), point);
         helper.assertTrue(menu.stillValid(player), "the Packing Station GUI should stay open");
         helper.succeed();
     }

@@ -204,6 +204,20 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.craft_more", "+%s more");
         add("gui.servus_storage.terminal.craft_hint", "Click to craft");
         add("gui.servus_storage.terminal.craftable_hint", "Ctrl click or middle click to craft more");
+        add("tooltip.servus_storage.packing_station",
+                "Packs items from the warehouse into packets for the data line, and unpacks arriving packets for storage");
+        add("gui.servus_storage.packing_station.to_storage", "To storage");
+        add("gui.servus_storage.packing_station.to_network", "To network");
+        add("gui.servus_storage.packing_station.to_storage.tooltip",
+                "Items that arrived over the data line and wait to be put away into the warehouse");
+        add("gui.servus_storage.packing_station.to_network.tooltip",
+                "Items picked from the warehouse that wait to be sent over the data line");
+        add("gui.servus_storage.packing_station.status.sending", "Sending %s to %s");
+        add("gui.servus_storage.packing_station.status.no_rail", "No rail: place it beside a warehouse rail");
+        add("gui.servus_storage.packing_station.status.no_data_line", "No data line touches this station");
+        add("gui.servus_storage.packing_station.status.to_storage_full", "To storage is full, waiting for put-away");
+        add("gui.servus_storage.packing_station.status.waiting_shuttle", "Waiting for a shuttle with %s");
+        add("gui.servus_storage.packing_station.status.idle", "Idle");
         add("gui.servus_storage.station.blocked.no_room", "%s: no room in %s or in general storage");
         add("gui.servus_storage.station.blocked.no_room_general", "%s: no room in general storage");
         add("gui.servus_storage.station.blocked.no_storage", "%s: no storage to go to");

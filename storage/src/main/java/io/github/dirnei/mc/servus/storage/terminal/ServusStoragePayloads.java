@@ -70,6 +70,9 @@ public final class ServusStoragePayloads {
                 (payload, context) -> ClientLifts.update(payload));
         registrar.playToClient(StationStatePayload.TYPE, StationStatePayload.STREAM_CODEC,
                 (payload, context) -> ClientStationState.update(payload));
+        registrar.playToClient(io.github.dirnei.mc.servus.storage.packing.PackingStatusPayload.TYPE,
+                io.github.dirnei.mc.servus.storage.packing.PackingStatusPayload.STREAM_CODEC,
+                (payload, context) -> io.github.dirnei.mc.servus.storage.client.ClientPackingStatus.update(payload));
         registrar.playToServer(KeepSlotPayload.TYPE, KeepSlotPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player

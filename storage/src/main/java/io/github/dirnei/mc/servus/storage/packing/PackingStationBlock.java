@@ -4,7 +4,14 @@ import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import net.minecraft.core.BlockPos;
+import io.github.dirnei.mc.servus.storage.menu.PackingStationMenu;
+import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -19,8 +26,9 @@ import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
 /**
  * The Packing Station: a station on the rails that is also a link member of the
- * data line. Right click shows the intake buffer; the carrot dismantles it
- * while sneaking. Its sides have no modes.
+ * data line, packing items from the warehouse into packets and unpacking
+ * arriving packets for storage. Right click shows both buffers read-only; the
+ * carrot dismantles it while sneaking. Its sides have no modes.
  */
 public class PackingStationBlock extends InboundStationBlock {
 
@@ -38,6 +46,20 @@ public class PackingStationBlock extends InboundStationBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new PackingStationBlockEntity(pos, state);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof PackingStationBlockEntity point) {
+            player.openMenu(point, buf -> PackingStationMenu.writeOpening(buf, point));
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        tooltip.add(Component.translatable("tooltip.servus_storage.packing_station").withStyle(ChatFormatting.GRAY));
     }
 
     /** Sneaking dismantles and drops both buffers; a plain click does nothing, there are no side modes. */

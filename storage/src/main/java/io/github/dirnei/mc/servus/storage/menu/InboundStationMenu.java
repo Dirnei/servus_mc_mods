@@ -119,9 +119,7 @@ public class InboundStationMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        // The Packing Station shares this menu but is a block of its own.
-        return stillValid(access, player, ServusStorageBlocks.INBOUND_STATION.get())
-                || stillValid(access, player, ServusStorageBlocks.PACKING_STATION.get());
+        return stillValid(access, player, ServusStorageBlocks.INBOUND_STATION.get());
     }
 
     // Sync

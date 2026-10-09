@@ -11,6 +11,13 @@ import io.github.dirnei.mc.servus.storage.network.DeliveryTarget;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
+import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
+import io.github.dirnei.mc.servus.storage.menu.PackingStationMenu;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
@@ -220,6 +227,77 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
         ItemStack probe = key.stack(max);
         return max - ItemHandlerHelper.insertItemStacked(outgoing, probe, true).getCount();
+    }
+
+    // Menu
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new PackingStationMenu(containerId, playerInventory, this);
+    }
+
+    /**
+     * The status line of the GUI: the delivery running now, or why the station
+     * waits (no rail, offline, no data line, put-away blocked, To storage full,
+     * waiting for a shuttle). Server side.
+     */
+    public PackingStatusPayload status() {
+        String prefix = "gui.servus_storage.packing_station.status.";
+        Optional<WarehouseNetwork> network = network();
+        if (network.isEmpty()) {
+            return new PackingStatusPayload(Component.translatable(prefix + "no_rail"), true);
+        }
+        switch (network.get().status()) {
+            case NO_CONTROLLER -> {
+                return new PackingStatusPayload(Component.translatable("gui.servus_storage.terminal.no_controller"), true);
+            }
+            case MULTIPLE_CONTROLLERS -> {
+                return new PackingStatusPayload(Component.translatable("gui.servus_storage.terminal.multiple_controllers"), true);
+            }
+            case ONLINE -> {
+            }
+        }
+        if (!(level instanceof ServerLevel server) || DataNetworks.networkAt(server, worldPosition).isEmpty()) {
+            return new PackingStatusPayload(Component.translatable(prefix + "no_data_line"), true);
+        }
+        if (sending() && runningFor != null) {
+            return new PackingStatusPayload(Component.translatable(prefix + "sending",
+                    runningFor.key.stack(1).getHoverName(), targetName(server, runningFor.target)), false);
+        }
+        if (blockedReason() != null) {
+            String item = blockedStack().getHoverName().getString();
+            String reason = blockedReason().name().toLowerCase(java.util.Locale.ROOT);
+            String key = reason.equals("no_room") && blockedZone().isEmpty() ? "no_room_general" : reason;
+            return new PackingStatusPayload(Component.translatable("gui.servus_storage.station.blocked." + key, item, blockedZone()), true);
+        }
+        if (toStorageFull()) {
+            return new PackingStatusPayload(Component.translatable(prefix + "to_storage_full"), true);
+        }
+        for (Shipment shipment : shipments) {
+            if (!shipment.ended() && shipment.missing() > outgoingCount(shipment.key)) {
+                return new PackingStatusPayload(Component.translatable(prefix + "waiting_shuttle",
+                        shipment.key.stack(1).getHoverName()), false);
+            }
+        }
+        return new PackingStatusPayload(Component.translatable(prefix + "idle"), false);
+    }
+
+    private static Component targetName(ServerLevel level, BlockPos target) {
+        if (!level.isLoaded(target)) {
+            return Component.literal(target.toShortString());
+        }
+        return level.getBlockState(target).getBlock().getName();
+    }
+
+    /** Whether the To storage buffer has no free slot left. */
+    private boolean toStorageFull() {
+        for (int slot = 0; slot < buffer().getSlots(); slot++) {
+            ItemStack stack = buffer().getStackInSlot(slot);
+            if (stack.isEmpty() || stack.getCount() < stack.getMaxStackSize()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** Open shipments, oldest first. */

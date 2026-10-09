@@ -368,4 +368,38 @@ public final class PackingStationGameTests {
             });
         });
     }
+
+    /** Neither row of the Packing Station GUI gives items out or takes items in. */
+    @GameTest(template = EMPTY, timeoutTicks = 60)
+    public static void guiRefusesExtraction(GameTestHelper helper) {
+        packingStation(helper, FAR);
+        PackingStationBlockEntity point = helper.getBlockEntity(FAR);
+        point.outgoing().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 16));
+        point.buffer().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 5));
+        net.minecraft.world.entity.player.Player player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        io.github.dirnei.mc.servus.storage.menu.PackingStationMenu menu =
+                new io.github.dirnei.mc.servus.storage.menu.PackingStationMenu(1, player.getInventory(), point);
+        int toStorage = 0;
+        int toNetwork = menu.toStorageSlots();
+        for (net.minecraft.world.inventory.ClickType click : List.of(net.minecraft.world.inventory.ClickType.PICKUP,
+                net.minecraft.world.inventory.ClickType.QUICK_MOVE, net.minecraft.world.inventory.ClickType.THROW,
+                net.minecraft.world.inventory.ClickType.SWAP)) {
+            menu.clicked(toNetwork, 0, click, player);
+            menu.clicked(toStorage, 0, click, player);
+        }
+        helper.assertTrue(point.outgoing().getStackInSlot(0).getCount() == 16, "the 16 planks stay in the To network row");
+        helper.assertTrue(point.buffer().getStackInSlot(0).getCount() == 5, "the 5 cobblestone stay in the To storage row");
+        helper.assertTrue(menu.getCarried().isEmpty(), "nothing lands on the cursor");
+        helper.assertTrue(player.getInventory().countItem(Items.OAK_PLANKS) == 0 && player.getInventory().countItem(Items.COBBLESTONE) == 0,
+                "nothing lands in the player inventory");
+        menu.setCarried(new ItemStack(Items.DIAMOND, 3));
+        menu.clicked(toNetwork + 1, 0, net.minecraft.world.inventory.ClickType.PICKUP, player);
+        helper.assertTrue(point.outgoing().getStackInSlot(1).isEmpty() && menu.getCarried().getCount() == 3,
+                "nothing can be put into the To network row");
+        menu.setCarried(ItemStack.EMPTY);
+        player.getInventory().setItem(0, new ItemStack(Items.DIAMOND, 3));
+        menu.clicked(menu.inventoryStart() + 27, 0, net.minecraft.world.inventory.ClickType.QUICK_MOVE, player);
+        helper.assertTrue(player.getInventory().getItem(0).getCount() == 3, "shift click from the inventory moves nothing");
+        helper.succeed();
+    }
 }

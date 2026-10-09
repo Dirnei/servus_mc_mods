@@ -31,6 +31,9 @@ public final class ServusStorageMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<InboundStationMenu>> INBOUND_STATION =
             MENUS.register("inbound_station", () -> IMenuTypeExtension.create(InboundStationMenu::fromNetwork));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<io.github.dirnei.mc.servus.storage.menu.PackingStationMenu>> PACKING_STATION =
+            MENUS.register("packing_station", () -> IMenuTypeExtension.create(io.github.dirnei.mc.servus.storage.menu.PackingStationMenu::fromNetwork));
+
     public static final DeferredHolder<MenuType<?>, MenuType<ZoneLabelMenu>> ZONE_LABEL =
             MENUS.register("zone_label", () -> IMenuTypeExtension.create(ZoneLabelMenu::fromNetwork));
 

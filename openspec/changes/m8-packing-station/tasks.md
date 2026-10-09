@@ -12,7 +12,7 @@
 ## 3. Packing Station
 
 - [x] 3.1 `PackingStationBlockEntity` implements `TransferGate` with two budgets from `items_per_second` in new `data/servus_storage/storage/packing_station.json` (via `StorageStatsManager`); IN accepts only allowance and To storage room; OUT sends from To network at the allowance; `WarehouseNetwork` releases picks into To network only while it has room. GameTests `drainsAtEightPerSecond`, `twoStationsDoubleThroughput`, `bothDirectionsAtOnce`. Verify with build and Storage GameTests.
-- [ ] 3.2 Read-only GUI: `PackingStationMenu` (read-only slot subclass, no shift click), `PackingStationScreen` with "To storage" and "To network" rows and tooltips, status line payload (current delivery or wait reason), item tooltip, lang. GameTest `guiRefusesExtraction` (menu click leaves the slot unchanged). Verify with build and Storage GameTests; grep that every payload TYPE is registered.
+- [x] 3.2 Read-only GUI: `PackingStationMenu` (read-only slot subclass, no shift click), `PackingStationScreen` with "To storage" and "To network" rows and tooltips, status line payload (current delivery or wait reason), item tooltip, lang. GameTest `guiRefusesExtraction` (menu click leaves the slot unchanged). Verify with build and Storage GameTests; grep that every payload TYPE is registered.
 
 ## 4. Terminal input
 

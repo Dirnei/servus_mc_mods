@@ -35,6 +35,16 @@
   "gui.servus_storage.outbound.short.no_rail": "%s: this station has no rail for shuttle deliveries",
   "gui.servus_storage.outbound.short.offline": "%s: the warehouse is offline",
   "gui.servus_storage.outbound.short.out_of_stock": "%s: nothing in stock",
+  "gui.servus_storage.packing_station.status.idle": "Idle",
+  "gui.servus_storage.packing_station.status.no_data_line": "No data line touches this station",
+  "gui.servus_storage.packing_station.status.no_rail": "No rail: place it beside a warehouse rail",
+  "gui.servus_storage.packing_station.status.sending": "Sending %s to %s",
+  "gui.servus_storage.packing_station.status.to_storage_full": "To storage is full, waiting for put-away",
+  "gui.servus_storage.packing_station.status.waiting_shuttle": "Waiting for a shuttle with %s",
+  "gui.servus_storage.packing_station.to_network": "To network",
+  "gui.servus_storage.packing_station.to_network.tooltip": "Items picked from the warehouse that wait to be sent over the data line",
+  "gui.servus_storage.packing_station.to_storage": "To storage",
+  "gui.servus_storage.packing_station.to_storage.tooltip": "Items that arrived over the data line and wait to be put away into the warehouse",
   "gui.servus_storage.production.cpu_line": "CPU at %s: %s of %s slots, %s waiting",
   "gui.servus_storage.production.cpus_header": "%s CPUs, %s of %s slots",
   "gui.servus_storage.production.cpus_header_one": "1 CPU, %s of %s slots",
@@ -198,5 +208,6 @@
   "message.servus_storage.zone_label.cleared": "Zone cleared",
   "message.servus_storage.zone_label.stamped": "Zone: %s",
   "message.servus_storage.zone_label.unnamed": "Give the label a name first: right click the air with it",
-  "tooltip.servus_storage.heavy_rack.wood": "Wood: %s"
+  "tooltip.servus_storage.heavy_rack.wood": "Wood: %s",
+  "tooltip.servus_storage.packing_station": "Packs items from the warehouse into packets for the data line, and unpacks arriving packets for storage"
 }
