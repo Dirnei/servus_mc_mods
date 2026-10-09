@@ -17,12 +17,12 @@ Iron, copper, coal and stone deposits generate as flat surface patches in the ov
 
 - **Burner Extractor**: burns furnace fuel and mines the deposit below it, one item per 4 seconds.
 - **Burner Smelter**: burns fuel and smelts any vanilla smelting recipe at a fixed 4 seconds per item, ignoring the recipe's cooking time.
-- **Coal Generator**: burns fuel for 40 FE per tick; one coal lasts 20 seconds. Pushes energy into adjacent consumers.
 - **Assembler Mk1**: powered crafter with 18 input and 4 output slots. Configure up to two recipes (assembling recipes or any vanilla or modded crafting recipe) in its recipe editor; it alternates between those it can craft.
 - **Research Lab**: powered, consumes packs for the team's current research.
 - **Electric Extractor** (research): powered extractor, twice as fast as the burner one.
 - **Crusher** (research): powered, turns one raw ore into two grit; grit smelts into ingots, so crushing doubles the ingots per ore.
-- **Chunk Loader**: keeps its chunk loaded while powered. At most 4 active loaders per team (config). Stays inactive when FTB Chunks is installed, unless the config says otherwise.
+
+Power, water, voiding surplus and chunk loading come from [Servus: Foundation](/servus_mc_mods/mods/foundation/#machines): the Coal Generator, the Burner and Electric Pump, the Sink and the Chunk Loader.
 
 All machines face the player on placement, open a GUI on right click, push output into adjacent inventories and drop their contents when broken. Burner machines only burn fuel while they have work; powered machines only draw energy on ticks they work and keep their progress when power runs out.
 
@@ -47,4 +47,4 @@ The reference block (two extractors and two smelters on iron, one of each on cop
 
 - [Servus: Foundation](/servus_mc_mods/mods/foundation/): side configuration, the Configuration Carrot, teams, the production capability every machine exposes, and the Item Pipes and Power Cables that move items and FE between machines.
 - [Storage](/servus_mc_mods/mods/storage/): an Assembler on the data line lets a Crafting CPU plan work orders from the Assembler's configured recipes. A Burner Smelter or Crusher on the data line runs order steps with its smelting or crushing recipes.
-- **Upkeep**: the Burner Extractor, Burner Smelter, Burner Pump and Coal Generator keep coal at 16 in their fuel slot as upkeep. On a data line with a warehouse they are refilled on their own, independent of orders; the item and level are the machine stats `upkeep_item` and `upkeep_level`.
+- **Upkeep**: the Burner Extractor and Burner Smelter, like Foundation's Burner Pump and Coal Generator, keep coal at 16 in their fuel slot as upkeep. On a data line with a warehouse they are refilled on their own, independent of orders; the item and level are the machine stats `upkeep_item` and `upkeep_level`.

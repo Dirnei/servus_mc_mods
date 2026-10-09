@@ -224,18 +224,6 @@
       ],
       "time": 200
     },
-    "servus_manufacturing:assembling/chunk_loader": {
-      "type": "servus_manufacturing:assembling",
-      "inputs": [
-        {"item": "servus_manufacturing:iron_gear", "count": 4},
-        {"item": "servus_manufacturing:copper_wire", "count": 8},
-        {"item": "minecraft:ender_pearl", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:chunk_loader", "count": 1}
-      ],
-      "time": 200
-    },
     "servus_manufacturing:assembling/copper_wire": {
       "type": "servus_manufacturing:assembling",
       "inputs": [
@@ -1226,9 +1214,6 @@
     },
     "servus_manufacturing:burner_smelter": {
       "name": "Burner Smelter"
-    },
-    "servus_manufacturing:chunk_loader": {
-      "name": "Chunk Loader"
     },
     "servus_manufacturing:copper_grit": {
       "name": "Copper Grit"

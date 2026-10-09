@@ -40,7 +40,10 @@ neoForge {
         data {
             // Game data export for the documentation site (docs/).
             systemProperty 'servus.gamedata.output', rootProject.file('docs/src/data/gamedata.json').absolutePath
-            systemProperty 'servus.gamedata.resources', file('src/main/resources').absolutePath
+            // Hand written resources, Manufacturing's first: machine stats live in the mod that owns the machine.
+            systemProperty 'servus.gamedata.resources', ['manufacturing', 'foundation', 'storage']
+                    .collect { rootProject.file("${it}/src/main/resources").absolutePath }
+                    .join(File.pathSeparator)
             // Recipes and lang of every Servus mod, read as files so mods not loaded here still take part.
             systemProperty 'servus.gamedata.generated', ['foundation', 'manufacturing', 'storage']
                     .collect { rootProject.file("${it}/src/generated/resources").absolutePath }

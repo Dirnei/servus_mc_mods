@@ -31,7 +31,7 @@
 
 ## 6. Docs and export
 
-- [ ] 6.1 Run the Manufacturing data run to regenerate `docs/src/data/gamedata.json`, regenerate the icons with the icon dev run, and update `docs/src/content/docs/mods/foundation.md`, `mods/manufacturing.md`, `reference/datapack/machines.md` and `reference/datapack/recipes.md` so the moved blocks are described under Foundation with `servus_foundation` ids. Verify: the docs tests and build pass, `git diff` of `gamedata.json` shows only the namespace and recipe changes.
+- [x] 6.1 Run the Manufacturing data run to regenerate `docs/src/data/gamedata.json`, regenerate the icons with the icon dev run, and update `docs/src/content/docs/mods/foundation.md`, `mods/manufacturing.md`, `reference/datapack/machines.md` and `reference/datapack/recipes.md` so the moved blocks are described under Foundation with `servus_foundation` ids. Verify: the docs tests and build pass, `git diff` of `gamedata.json` shows only the namespace and recipe changes. (Done: the export now reads machine stats from every mod's resources; the six icons were moved to `icons/servus_foundation/` instead of a fresh icon run, since their models are unchanged.)
 
 ## 7. Integration
 

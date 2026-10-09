@@ -1,11 +1,11 @@
 ---
 title: Machine stats
-description: The machine stats JSON format of Servus Manufacturing, every field, the code defaults and the timing rules.
+description: The machine stats JSON format of the Servus machines, every field, the code defaults and the timing rules.
 sidebar:
   order: 1
 ---
 
-Every Servus Manufacturing machine reads its balance numbers from a machine stats file. All numbers on this page are current values; they live in datapack JSON and modpacks can change them.
+Every Servus machine reads its balance numbers from a machine stats file. All numbers on this page are current values; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -13,7 +13,7 @@ Every Servus Manufacturing machine reads its balance numbers from a machine stat
 data/<namespace>/machine/<machine>.json
 ```
 
-The file name is the machine id. The built in machines are in the `servus_manufacturing` namespace, so to retune the Burner Smelter a datapack provides `data/servus_manufacturing/machine/burner_smelter.json`. Files are reloaded with `/reload`.
+The file name is the machine id and the namespace is the mod that owns the machine: the Coal Generator, the pumps and the Chunk Loader are `servus_foundation`, the other machines `servus_manufacturing`. To retune the Burner Smelter a datapack provides `data/servus_manufacturing/machine/burner_smelter.json`. Files are reloaded with `/reload`.
 
 ## Fields
 
@@ -36,7 +36,7 @@ Every field is optional. A field the file leaves out, or a missing file, falls b
 
 ## Example
 
-The shipped `data/servus_manufacturing/machine/coal_generator.json`:
+The shipped `data/servus_foundation/machine/coal_generator.json`:
 
 ```json
 {
@@ -66,11 +66,11 @@ These are the defaults built into the code, used for any field a file leaves out
 | `electric_extractor` | powered | deposit extraction | 40 | 20 | 8000 | 1 | 1 |
 | `crusher` | powered | `servus_manufacturing:crushing` | 60 | 20 | 8000 | 1 | 1 |
 | `assembler` | crafter | `servus_manufacturing:assembling`, `minecraft:crafting` | 20 | 20 | 8000 | 1 | 2 |
-| `coal_generator` | generator | burns fuel | 1 | 40 | 16000 | 4 | 1 |
+| `servus_foundation:coal_generator` | generator | burns fuel | 1 | 40 | 16000 | 4 | 1 |
 | `research_lab` | powered | research packs | 1 | 10 | 4000 | 1 | 1 |
-| `chunk_loader` | powered | nothing, upkeep only | 1 | 10 | 4000 | 1 | 1 |
-| `burner_pump` | burner | water | 20 | 0 | 0 | 1 | 1 |
-| `electric_pump` | powered | water | 20 | 20 | 8000 | 1 | 1 |
+| `servus_foundation:chunk_loader` | powered | nothing, upkeep only | 1 | 10 | 4000 | 1 | 1 |
+| `servus_foundation:burner_pump` | burner | water | 20 | 0 | 0 | 1 | 1 |
+| `servus_foundation:electric_pump` | powered | water | 20 | 20 | 8000 | 1 | 1 |
 
 `items_per_tick` is 0 for every machine. `fuel_reserve` is 4 for the `burner_extractor` and 0 for every other machine: on a coal deposit the extractor keeps four coal in its fuel slot and pushes only the surplus. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump), `fluid_capacity` 4000 and `min_source_neighbours` 2; these are 0 for every other machine. `upkeep_item` is `minecraft:coal` and `upkeep_level` 16 for the Burner Extractor, Burner Smelter, Burner Pump and Coal Generator; every other machine keeps no upkeep.
 

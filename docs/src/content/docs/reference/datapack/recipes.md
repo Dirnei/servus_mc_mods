@@ -51,7 +51,6 @@ Built in assembling recipes:
 | `iron_gear` | 2 iron ingot | 1 Iron Gear | 20 (default) | none |
 | `copper_wire` | 1 copper ingot | 2 Copper Wire | 10 | none |
 | `red_pack` | 1 Iron Gear, 2 Copper Wire | 1 Red Pack | 100 | none |
-| `chunk_loader` | 4 Iron Gear, 8 Copper Wire, 1 ender pearl | 1 Chunk Loader | 200 | none |
 | `electric_extractor` | 1 Burner Extractor, 4 Iron Gear, 6 Copper Wire | 1 Electric Extractor | 200 | `electric_extractor` |
 | `crusher` | 1 Electric Extractor, 4 Iron Gear, 6 Copper Wire | 1 Crusher | 200 | `crusher` |
 | `stone` | 2 cobblestone | 2 stone | 20 (default) | `stone_processing` |

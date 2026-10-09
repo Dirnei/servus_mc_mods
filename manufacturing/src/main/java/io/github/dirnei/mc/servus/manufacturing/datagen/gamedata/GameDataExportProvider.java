@@ -56,7 +56,7 @@ import net.neoforged.fml.ModList;
  * item names) to the documentation site. Runs last in the data run, so this run's recipes and lang file exist.
  *
  * <p>Paths come from system properties set by the Manufacturing data run: {@code servus.gamedata.output} (the
- * JSON file), {@code servus.gamedata.resources} (the hand written {@code src/main/resources}) and
+ * JSON file), {@code servus.gamedata.resources} (the hand written {@code src/main/resources} of every mod, Manufacturing's first) and
  * {@code servus.gamedata.generated} (the generated resource folders of all Servus mods, joined with the path
  * separator). Recipes and language files of the other mods are read from those folders as plain files, so mods
  * that are not loaded in this run still take part. Without the properties the provider does nothing, so other
@@ -84,7 +84,8 @@ public final class GameDataExportProvider implements DataProvider {
         }
         try {
             List<Path> generatedRoots = Stream.of(generated.split(File.pathSeparator)).map(Path::of).toList();
-            String json = GameDataJson.write(collect(Path.of(resources), generatedRoots));
+            List<Path> resourceRoots = Stream.of(resources.split(File.pathSeparator)).map(Path::of).toList();
+            String json = GameDataJson.write(collect(resourceRoots, generatedRoots));
             Path file = Path.of(target);
             Files.createDirectories(file.getParent());
             if (!Files.exists(file) || !Files.readString(file, StandardCharsets.UTF_8).equals(json)) {
@@ -97,10 +98,11 @@ public final class GameDataExportProvider implements DataProvider {
         }
     }
 
-    private GameData collect(Path resources, List<Path> generatedRoots) throws IOException {
-        Path mainData = resources.resolve("data").resolve(NS);
+    private GameData collect(List<Path> resourceRoots, List<Path> generatedRoots) throws IOException {
+        // The first root is Manufacturing's own; machine stats come from every mod's resources.
+        Path mainData = resourceRoots.get(0).resolve("data").resolve(NS);
 
-        List<Machine> machines = machines(mainData.resolve("machine"));
+        List<Machine> machines = machines(resourceRoots);
         List<Recipe> recipes = new ArrayList<>();
         List<Crafting> crafting = new ArrayList<>();
         for (Path root : generatedRoots) {
@@ -132,13 +134,17 @@ public final class GameDataExportProvider implements DataProvider {
 
     // Machines
 
-    private static List<Machine> machines(Path dir) throws IOException {
+    /** Each machine's stats file sits at {@code data/<namespace>/machine/<path>.json} in its own mod's resources. */
+    private static List<Machine> machines(List<Path> resourceRoots) throws IOException {
         List<Machine> machines = new ArrayList<>();
         for (MachineDefaults.MachineInfo info : MachineDefaults.all().values()) {
-            Path file = dir.resolve(ResourceLocation.parse(info.id()).getPath() + ".json");
+            ResourceLocation id = ResourceLocation.parse(info.id());
             MachineStats stats = info.stats();
-            if (Files.exists(file)) {
-                stats = decode(MachineStats.Partial.CODEC, readJson(file), file).over(stats);
+            for (Path root : resourceRoots) {
+                Path file = root.resolve("data").resolve(id.getNamespace()).resolve("machine").resolve(id.getPath() + ".json");
+                if (Files.exists(file)) {
+                    stats = decode(MachineStats.Partial.CODEC, readJson(file), file).over(stats);
+                }
             }
             Map<String, Integer> values = new LinkedHashMap<>();
             values.put("work_ticks", stats.workTicks());

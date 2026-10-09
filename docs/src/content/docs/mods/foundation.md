@@ -113,11 +113,20 @@ Sides are relative to the machine's facing; sides left out are off. A profile on
 
 ## Upkeep
 
-Upkeep is a consumable a machine keeps stocked, such as its fuel. A block names its upkeep item, the level to keep and how many it holds through the `servus_foundation:upkeep` capability, and becomes an upkeep member of the data line, so the duct shows a data arm toward it. Every 40 ticks the data line looks at its upkeep members: when one holds less than its level and has no request on its way, the line asks a supplier on it (a Warehouse Controller or Packing Station, lowest position first) for the difference. What the member gains counts against the request; a request that is not complete after 1200 ticks is given up and asked again. Upkeep is never part of an order. The Machine Adapter and the Manufacturing burner machines use it.
+Upkeep is a consumable a machine keeps stocked, such as its fuel. A block names its upkeep item, the level to keep and how many it holds through the `servus_foundation:upkeep` capability, and becomes an upkeep member of the data line, so the duct shows a data arm toward it. Every 40 ticks the data line looks at its upkeep members: when one holds less than its level and has no request on its way, the line asks a supplier on it (a Warehouse Controller or Packing Station, lowest position first) for the difference. What the member gains counts against the request; a request that is not complete after 1200 ticks is given up and asked again. Upkeep is never part of an order. The Machine Adapter, the Burner Pump, the Coal Generator and the Manufacturing burner machines use it.
 
 ## Fluid Tank
 
 Touching tank blocks that fill a complete rectangular box form one tank with a shared content. A group that is not a full box works as single block tanks until it is. Buckets work on every face, and an empty hand shows what the tank holds. A broken block keeps its share of the fluid in its item.
+
+## Machines
+
+Foundation ships the utility machines every base needs, all crafted at a crafting table without research. They follow the same machine rules as every Servus machine: they face the player, open a GUI, push output into touching inventories and keep their configuration when dismantled with the carrot. Numbers are datapack defaults (`data/servus_foundation/machine/`).
+
+- **Coal Generator**: burns furnace fuel for 40 FE per tick; one coal lasts 20 seconds. Pushes energy into touching consumers. Iron, copper and a furnace.
+- **Burner Pump** and **Electric Pump**: stand on an infinite water source (a source block with at least two source neighbours) and fill a 4,000 mB buffer without using the water up, 250 mB or 500 mB per second. Water leaves through every face but the front and the bottom, into a Fluid Pipe or a Fluid Tank. The Electric Pump is a Burner Pump with iron, copper and redstone.
+- **Sink** and **Chimney**: eight Sink blocks in a 2x2x2 cube, formed by clicking one side with the Configuration Carrot, void items, fluids and FE through every outer face but the front, and from a trash slot or a bucket. Chimney blocks stacked on a top corner raise the rate; from 5 blocks on it voids without limit (rates in `data/servus_foundation/sink/sink.json`).
+- **Chunk Loader**: keeps its chunk loaded while powered, 10 FE per tick. At most 4 active loaders per team (`maxChunkLoadersPerTeam` in `servus_foundation-common.toml`); stays inactive when FTB Chunks is installed unless `chunkLoaderRespectsFtbChunks` is off. An ender pearl, iron, copper and redstone.
 
 ## Side configuration
 
