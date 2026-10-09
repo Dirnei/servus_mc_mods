@@ -15,6 +15,7 @@ import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.storage.order.Handoff;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
@@ -274,6 +275,10 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
                 if (toMove <= 0) {
                     continue;
                 }
+                toMove = handOff(server, step, order, key, toMove);
+                if (toMove <= 0) {
+                    continue;
+                }
                 if (target.isEmpty()) {
                     target = collectionPoint(server, producer);
                     if (target.isEmpty()) {
@@ -366,6 +371,66 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         });
         setChanged();
         return direct;
+    }
+
+    /**
+     * Sends outputs a later step of the same order still needs straight to
+     * that step's producer, booked by one ledger id on both steps; keeps
+     * outputs back for a while when the later step's producer is still busy.
+     *
+     * @return how many of the key still go to storage
+     */
+    private int handOff(ServerLevel server, OrderStep step, WorkOrder order, ItemKey key, int toMove) {
+        if (order == null || step.ref() == null) {
+            return toMove;
+        }
+        List<OrderStep> dependants = new ArrayList<>();
+        List<Handoff.Dependant> facts = new ArrayList<>();
+        boolean waiting = false;
+        List<OrderStep> steps = order.steps();
+        for (int i = step.ref().step() + 1; i < steps.size(); i++) {
+            OrderStep later = steps.get(i);
+            if (later.state() == OrderStep.State.DONE || later.needed(key) <= 0) {
+                continue;
+            }
+            boolean same = later.producer().equals(step.producer());
+            boolean delivering = later.state() == OrderStep.State.DELIVERING && server.isLoaded(later.producer());
+            dependants.add(later);
+            facts.add(new Handoff.Dependant(later.owed(key), delivering, same));
+            waiting |= !delivering && !same && later.owed(key) > 0;
+        }
+        if (dependants.isEmpty()) {
+            step.clearHold();
+            return toMove;
+        }
+        long heldFor = waiting ? step.heldFor(server.getGameTime()) : 0;
+        Handoff.Split split = Handoff.split(toMove, facts, heldFor, StorageStatsManager.INSTANCE.handoffWaitTicks());
+        if (split.hold() == 0) {
+            step.clearHold();
+        }
+        int unsent = 0;
+        for (int i = 0; i < dependants.size(); i++) {
+            int count = split.handed().get(i);
+            if (count <= 0) {
+                continue;
+            }
+            OrderStep later = dependants.get(i);
+            Optional<Delivery> delivery = DataPackets.move(server, step.producer(), later.producer(), key.stack(1), count);
+            if (delivery.isEmpty()) {
+                unsent += count;
+                continue;
+            }
+            ProductionLedger ledger = ProductionLedger.get(server);
+            ProductionLedger.Transfer transfer = ledger.open(count);
+            step.collecting(key, transfer.id(), count, later.producer());
+            later.handedIn(key, transfer.id(), count);
+            delivery.get().onEnd(ended -> {
+                ledger.delivered(transfer, ended.delivered());
+                ledger.end(transfer);
+            });
+            setChanged();
+        }
+        return split.toStorage() + unsent;
     }
 
     /** The pattern of the CPU's data line that the step was planned from: same recipe id, same inputs per batch. */

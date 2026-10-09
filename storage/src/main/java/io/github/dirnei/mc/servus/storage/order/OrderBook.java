@@ -398,6 +398,9 @@ public final class OrderBook {
             switch (step.state()) {
                 case WAITING_STATION -> {
                     if (producerBusy(step.producer(), step)) {
+                        relocate(step);
+                    }
+                    if (producerBusy(step.producer(), step)) {
                         step.setReason("producer busy");
                     } else if (!host.start(step)) {
                         step.setReason("station busy");
@@ -449,7 +452,7 @@ public final class OrderBook {
                 step.addFed(key, feed.planned(), feed.shipped());
                 order.useReserved(key, feed.planned());
             }
-            if (feed.planned() < owed && reason == null) {
+            if (feed.planned() < owed && reason == null && !madeEarlier(order, step, key)) {
                 String why = feed.refusal();
                 reason = why.isEmpty() || why.equals("out_of_stock") ? "missing " + key.stack(1).getHoverName().getString() : why;
             }
@@ -461,6 +464,46 @@ public final class OrderBook {
             return blocked;
         }
         return blocked == null ? reason : blocked;
+    }
+
+    /** Whether an earlier step of the order that is not done makes the key, so the step waits for it rather than misses it. */
+    private static boolean madeEarlier(WorkOrder order, OrderStep step, ItemKey key) {
+        for (OrderStep earlier : order.steps()) {
+            if (earlier == step) {
+                return false;
+            }
+            if (earlier.state() != OrderStep.State.DONE && earlier.produces(key)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Moves a waiting step to the first free producer of the line that offers
+     * the same recipe with the same inputs, so chains spread over producers.
+     */
+    private void relocate(OrderStep step) {
+        for (Producer producer : host.producers()) {
+            if (producer.pos().equals(step.producer()) || producerBusy(producer.pos(), step)) {
+                continue;
+            }
+            for (ProductionRecipe recipe : producer.recipes()) {
+                if (recipe.id().equals(step.recipe().id()) && sameInputs(recipe, step)) {
+                    step.setProducer(producer.pos());
+                    host.changed();
+                    return;
+                }
+            }
+        }
+    }
+
+    private static boolean sameInputs(ProductionRecipe recipe, OrderStep step) {
+        Map<ItemKey, Integer> inputs = new LinkedHashMap<>();
+        for (ItemStack input : recipe.inputs()) {
+            inputs.merge(ItemKey.of(input), input.getCount(), Integer::sum);
+        }
+        return inputs.equals(step.inputs());
     }
 
     private boolean producerBusy(BlockPos producer, OrderStep except) {

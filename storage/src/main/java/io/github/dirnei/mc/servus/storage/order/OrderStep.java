@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.LongFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -27,11 +28,15 @@ public final class OrderStep {
     private record Feeding(ItemKey key, long transfer, int asked) {
     }
 
-    /** Outputs moving from the producer to an Access Point, by ledger id. */
-    private record Collecting(ItemKey key, long transfer, int sent) {
+    /** Outputs moving away from the producer, by ledger id; target is the next step's producer for a handoff, else null. */
+    private record Collecting(ItemKey key, long transfer, int sent, BlockPos target) {
     }
 
-    private final BlockPos producer;
+    /** Outputs on their way straight to the producer of a later step. */
+    public record Handing(ItemKey key, BlockPos target) {
+    }
+
+    private BlockPos producer;
     private final ProductionRecipe recipe;
     private final int batches;
     private final Map<ItemKey, Integer> inputs = new LinkedHashMap<>();
@@ -43,6 +48,8 @@ public final class OrderStep {
     private State state = State.WAITING_STATION;
     private String reason = "";
     private StepRef ref;
+    /** When outputs started waiting for a busy later step; not saved, -1 when nothing waits. */
+    private long holdSince = -1;
 
     public OrderStep(BlockPos producer, ProductionRecipe recipe, int batches) {
         this.producer = producer;
@@ -65,6 +72,11 @@ public final class OrderStep {
     /** The producer on the data line that runs the step. */
     public BlockPos producer() {
         return producer;
+    }
+
+    /** Moves a waiting step to another producer with the same recipe. */
+    void setProducer(BlockPos producer) {
+        this.producer = producer;
     }
 
     public ProductionRecipe recipe() {
@@ -103,6 +115,16 @@ public final class OrderStep {
 
     public int fed(ItemKey key) {
         return fed.getOrDefault(key, 0);
+    }
+
+    /** How many of an input the step still needs fed. */
+    public int owed(ItemKey key) {
+        return Math.max(0, needed(key) - fed(key));
+    }
+
+    /** Inputs handed over straight from an earlier step's producer, booked by ledger id like a shipment. */
+    public void handedIn(ItemKey key, long transfer, int count) {
+        addFed(key, count, List.of(new OrderBook.Shipped(transfer, count)));
     }
 
     void addFed(ItemKey key, int count, List<OrderBook.Shipped> shipped) {
@@ -184,8 +206,36 @@ public final class OrderStep {
 
     /** Outputs left the producer as packets, tracked by the ledger transfer. */
     public void collecting(ItemKey key, long transfer, int count) {
+        collecting(key, transfer, count, null);
+    }
+
+    /** Outputs left the producer straight for a later step's producer, tracked by the ledger transfer. */
+    public void collecting(ItemKey key, long transfer, int count, BlockPos target) {
         inFlight.merge(key, count, Integer::sum);
-        collecting.add(new Collecting(key, transfer, count));
+        collecting.add(new Collecting(key, transfer, count, target));
+    }
+
+    /** The first handoff still on its way, if any. */
+    public Optional<Handing> handing() {
+        for (Collecting one : collecting) {
+            if (one.target() != null) {
+                return Optional.of(new Handing(one.key(), one.target()));
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** Ticks outputs have waited for a busy later step, 0 when they just started waiting. */
+    public long heldFor(long now) {
+        if (holdSince < 0) {
+            holdSince = now;
+        }
+        return now - holdSince;
+    }
+
+    /** Nothing waits any more. */
+    public void clearHold() {
+        holdSince = -1;
     }
 
     /** A collection delivery ended: {@code delivered} of the {@code sent} items reached the Access Point. */
@@ -264,6 +314,9 @@ public final class OrderStep {
             entry.put("Item", Saving.key(one.key(), registries));
             entry.putLong("Transfer", one.transfer());
             entry.putInt("Sent", one.sent());
+            if (one.target() != null) {
+                entry.put("Target", NbtUtils.writeBlockPos(one.target()));
+            }
             collectingList.add(entry);
         }
         tag.put("Collecting", collectingList);
@@ -288,7 +341,8 @@ public final class OrderStep {
         for (Tag raw : tag.getList("Collecting", Tag.TAG_COMPOUND)) {
             CompoundTag entry = (CompoundTag) raw;
             Saving.key(entry.getCompound("Item"), registries).ifPresent(key ->
-                    step.collecting(key, entry.getLong("Transfer"), entry.getInt("Sent")));
+                    step.collecting(key, entry.getLong("Transfer"), entry.getInt("Sent"),
+                            NbtUtils.readBlockPos(entry, "Target").orElse(null)));
         }
         return step;
     }

@@ -1,3 +1,4 @@
 {
-  "order_slots": 2
+  "order_slots": 2,
+  "handoff_wait_ticks": 100
 }
