@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.ServusLogisticsContent;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.network.NetworkTypes;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationComponents;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -26,6 +27,7 @@ public final class ServusFoundation {
 
     public ServusFoundation(IEventBus modEventBus, ModContainer container) {
         ServusFoundationItems.ITEMS.register(modEventBus);
+        ServusFoundationComponents.COMPONENTS.register(modEventBus);
         ServusFoundationCreativeTabs.TABS.register(modEventBus);
         NetworkTypes.register(DataNetwork.TYPE);
         ServusLogisticsContent.register(modEventBus);
