@@ -17,12 +17,24 @@ A calcination recipe SHALL be a datapack recipe of type `servus_manufacturing:ca
 - **WHEN** a hopper offers a diamond and no calcination recipe matches diamonds
 - **THEN** the Calciner takes nothing
 
-### Requirement: Calciner works on energy
-The Calciner SHALL be a powered machine following the shared machine rules: one input slot, an FE buffer, `energy_per_tick` spent only while it works, progress kept without energy. It SHALL start a cycle only when each of its three principle tanks has room for the whole output of the recipe.
+### Requirement: Calciner burns fuel
+The Calciner SHALL be a burner machine following the shared machine rules: one input slot and one fuel slot that takes any furnace fuel, burning one item when the previous burn has ended and work is available, with no FE buffer and no energy capability. It SHALL start a cycle only when each of its three principle tanks has room for the whole output of the recipe. It SHALL report its fuel as upkeep, like the other burner machines, so a data line keeps it fuelled.
+
+#### Scenario: Coal
+- **WHEN** a Calciner holds cobblestone and one coal
+- **THEN** it burns the coal and calcines cobblestone for the coal's burn time
+
+#### Scenario: No fuel
+- **WHEN** the fuel slot is empty and the burn has ended
+- **THEN** progress stops and resumes when fuel is added
 
 #### Scenario: Tanks full
 - **WHEN** the Salt tank of a Calciner cannot take the 100 mB the next cobblestone would give
-- **THEN** the Calciner waits without spending energy until the Salt is drained
+- **THEN** the Calciner waits without burning new fuel until the Salt is drained
+
+#### Scenario: No power needed
+- **WHEN** a Power Cable touches a Calciner
+- **THEN** the cable finds no energy storage on it
 
 ### Requirement: Principles leave through the sides
 The Calciner SHALL hold one tank per principle (capacity from machine stats, example 4,000 mB) and SHALL offer all three through the fluid capability on every side that allows extraction, push them into touching fluid handlers through Auto and Push sides, and never accept fluid.
@@ -36,7 +48,7 @@ The Calciner SHALL hold one tank per principle (capacity from machine stats, exa
 - **THEN** the Calciner hands out Sulfur and keeps its Salt and Mercury
 
 ### Requirement: Calciner GUI
-The Calciner GUI SHALL show its input slot, progress, energy bar, the three principle gauges with amount and capacity on hover, and the shared side panel.
+The Calciner GUI SHALL show its input slot, its fuel slot with the burn flame, progress, the three principle gauges with amount and capacity on hover, and the shared side panel.
 
 #### Scenario: Gauges
 - **WHEN** the player hovers the Salt gauge of a Calciner holding 300 mB of Salt

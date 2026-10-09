@@ -20,12 +20,16 @@ The Coagulator SHALL run exactly one selected coagulation recipe. Its GUI SHALL 
 - **WHEN** the player opens the recipe popup of a Coagulator that was making Salt Crystals and clicks Gunpowder
 - **THEN** the Coagulator makes Gunpowder from then on and the selection survives a world reload
 
-### Requirement: Coagulator works on energy
-The Coagulator SHALL be a powered machine following the shared machine rules: an FE buffer, energy spent only while it works, progress kept without energy. A cycle SHALL start only when its tanks hold the recipe's principles, its ingredient slot holds the recipe's item, and its output slot has room; the principles and the item SHALL be taken when the cycle completes.
+### Requirement: Coagulator works on time alone
+The Coagulator SHALL need no power: no FE buffer, no fuel and no energy capability. The joined principles simply take the recipe's time to cool and set. A cycle SHALL start only when its tanks hold the recipe's principles, its ingredient slot holds the recipe's item, and its output slot has room; the principles and the item SHALL be taken when the cycle completes.
 
 #### Scenario: Missing Mercury
 - **WHEN** the selected recipe needs 50 mB Mercury and the Mercury tank holds 20 mB
-- **THEN** the Coagulator waits without spending energy
+- **THEN** the Coagulator waits and keeps no progress
+
+#### Scenario: No power needed
+- **WHEN** a Coagulator holds 250 mB Salt with the Salt Crystal recipe selected and nothing touches it
+- **THEN** it makes one Salt Crystal after the recipe's time
 
 ### Requirement: Each principle into its own tank
 The Coagulator SHALL hold one tank per principle (capacity from machine stats, example 4,000 mB) and SHALL accept through the fluid capability only Salt into the Salt tank, Sulfur into the Sulfur tank and Mercury into the Mercury tank, on every side that allows insertion. It SHALL never give fluid away.
@@ -35,7 +39,7 @@ The Coagulator SHALL hold one tank per principle (capacity from machine stats, e
 - **THEN** the Salt goes into the Salt tank and the water is refused
 
 ### Requirement: Coagulator GUI
-The Coagulator GUI SHALL show the ingredient and output slots, progress, energy bar, the three principle gauges, the recipe select button, and the shared side panel. The recipe popup SHALL mark the selected recipe, SHALL show a scrollbar whenever it holds more recipes than fit, and SHALL close on Escape or a click outside it.
+The Coagulator GUI SHALL show the ingredient and output slots, progress, the three principle gauges, the recipe select button, and the shared side panel. The recipe popup SHALL mark the selected recipe, SHALL show a scrollbar whenever it holds more recipes than fit, and SHALL close on Escape or a click outside it.
 
 #### Scenario: Selected recipe marked
 - **WHEN** the player opens the recipe popup of a Coagulator making Salt Crystals

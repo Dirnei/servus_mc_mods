@@ -57,7 +57,17 @@ The lab and its tests read `docs/src/data/gamedata.json`. Its tests switch to a 
 
 ### D9: Machine stats
 
-`calciner` and `coagulator` register through `ManufacturingMachines` as powered machines: work ticks unused (recipe time rules), 20 FE/t, 8,000 FE buffer, `fluid_capacity` 4,000 mB per tank. Stats files under `data/servus_manufacturing/machine/`.
+`calciner` registers through `ManufacturingMachines` as a burner machine and `coagulator` as a timed machine: work ticks unused (recipe time rules), `fluid_capacity` 4,000 mB per tank, the Calciner with the burner `fuel_divisor` and coal upkeep. Stats files under `data/servus_manufacturing/machine/`.
+
+### D10: Nigredo runs on fire and time, not FE (play check)
+
+Decided in the play check: the Calciner extends Foundation's `BurnerMachineBlockEntity` and burns furnace fuel, the Coagulator extends `MachineBlockEntity` with a plain timed tick and needs no power. Calcination is burning, and Nigredo is the black of that fire; an FE Calciner worked against the story and made the first step a generator, a cable and two machines. The Coagulator only lets joined principles cool and set. FE versions come later as upgrades, together with the Salamanders (fire without fuel). Neither machine exposes an energy capability; the Calciner's fuel slot is its upkeep, so the data line keeps it fuelled like every burner.
+
+Team ownership, shared by the Calciner, Coagulator, Athanor and Gnome Hollow, moves from the `AlchemyMachineBlockEntity` base class into a small `TeamOwnership` helper each block entity holds, since the two machines no longer share a base class.
+
+### D11: Stone look (play check)
+
+The alchemy blocks look like masonry, not like machines: their models reference vanilla stone textures (stone bricks, cobblestone, smooth stone, chiseled stone bricks), and only the fronts are our own small textures (the Calciner's furnace mouth, the Coagulator's mould).
 
 ### Pure and Minecraft logic
 
@@ -72,7 +82,7 @@ Settles from PLAN.md 2.1: how the Tria Prima is played in Nigredo (Calciner and 
 1. **Principle ratios** of the shipped calcination recipes (examples per item): cobblestone and stone 100 Salt, 10 Mercury; dirt 50 Salt, 20 Sulfur, 20 Mercury; sand and gravel 80 Salt, 10 Mercury; logs 20 Salt, 100 Sulfur, 10 Mercury; planks 5 Salt, 25 Sulfur; leaves and saplings 40 Sulfur, 20 Mercury; crops and seeds 10 Salt, 30 Sulfur, 30 Mercury; coal and charcoal 200 Sulfur; raw iron, copper and gold 150 Salt, 50 Mercury; redstone 100 Mercury; bone 100 Salt. Time 80 ticks each.
 2. **Coagulator products in Nigredo**: Salt Crystal (250 Salt), Sulfur (250 Sulfur), Quicksilver (250 Mercury), clay ball (100 Salt, 50 Mercury), flint (150 Salt), gunpowder (150 Sulfur, 50 Salt), redstone (50 Salt, 150 Mercury), glowstone dust (100 Sulfur, 100 Mercury), bone meal (60 Salt, 20 Sulfur), slime ball (50 Sulfur, 150 Mercury). 40 ticks each. No metal from principles.
 3. **No fallback calcination**: items without a recipe are refused instead of giving a little Salt.
-4. **Both machines are FE powered** at 20 FE/t (PLAN.md keeps FE; Salamanders may change fire later).
+4. **Fuel and time, not FE** (decided in the play check, see D10): the Calciner burns furnace fuel with the burner fuel divisor, the Coagulator needs no power.
 5. **Recipes**: Calciner from bricks, iron, a furnace and a cauldron; Coagulator from iron, glass, a cauldron and redstone. No research.
 6. **Principle look**: tinted vanilla water textures; principle buckets can be poured into the world and flow but never form new sources.
 7. **Coagulator recipe pick** by clicking a list in its GUI; the CPU sees only the selected recipe.

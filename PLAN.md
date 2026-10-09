@@ -66,7 +66,7 @@ Decided in the alchemy rethink (replaces the Factorio style design of M2 and M3,
 - **The Athanor** is the heart of the lab, like the Blood Altar of Blood Magic. Important crafts happen on it (the Elixir of Sight, vein seeds, stage items): the item lies on top and the Athanor draws principles from its tank over time while its flame burns. It is fed by bucket or by Fluid Pipe. Its tier is the structure built around it, one ring or part per stage (example: Salt Crystal blocks for Albedo, Sulfur pillars for Citrinitas, Mercury basins and the Stone for Rubedo), and its flame takes the stage's colour. The tier of the structure is the stage gate: there is no separate stage item and no stored stage progress.
 - **The journal is the tech tree.** A Modonomicon book, Paracelsus' journal, with one chapter per part of his life (Villach, Schwaz, the wandering years, Basel, Salzburg). A chapter lists tasks of two kinds only: do something N times, or make something for the first time. When all tasks of a chapter are done, the chapter text appears and its recipes unlock. No Research Lab and no packs: Paracelsus held experience over books. Chapter progress is per team (FTB Teams if present, otherwise per player); the team, sync and recipe unlock code of the M2 research is reused.
 - **Modonomicon** is a hard dependency of Manufacturing. Its NeoForge 1.21.1 Maven artifact is verified before the journal design is written.
-- **FE** stays the energy standard. The Coal Generator moves to Foundation, so every Servus mod has an FE source.
+- **FE** stays the energy standard. The Coal Generator moves to Foundation, so every Servus mod has an FE source. Nigredo itself runs on fire and time: the Calciner burns furnace fuel and the Coagulator needs no power (decided in the play check); FE versions arrive later as upgrades, together with the Salamanders.
 - Machines have **fixed speeds and clean ratios** so players can plan builds. Alchemy machines expose the production capability and join the data cable, so the Crafting CPU orders "64 iron ingots" without caring that it is alchemy.
 - Principle ratios, recipes, vein seeds, ripening, journal tasks and Athanor structures are **datapack driven** so modpack authors can retune them.
 - Ducts and cables come from Servus: Foundation (the Utility Duct). Machines also push output into adjacent inventories.
@@ -89,8 +89,8 @@ Historical claims in the journal text are checked again when it is written.
 
 | Block | Does | Power |
 |---|---|---|
-| Calciner | splits one input into its principles, example 1 item per 4 s | FE |
-| Coagulator | makes a product from a principle ratio | FE |
+| Calciner | splits one input into its principles, example 1 item per 4 s | burns furnace fuel |
+| Coagulator | makes a product from a principle ratio | none, it takes time to set |
 | Athanor (Nigredo tier) | slow altar crafts that draw principles | none, burns principles |
 | Coal Generator (Foundation) | 40 FE/t, 1 coal per 20 s | burns coal |
 

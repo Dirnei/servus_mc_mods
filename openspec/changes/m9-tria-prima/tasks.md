@@ -27,3 +27,11 @@
 - [x] 5.1 JEI Calcination and Coagulation categories in `integration/jei` with the machines as catalysts. Verify: build.
 - [x] 5.2 Update `docs/src/content/docs/mods/manufacturing.md` (Calciner, Coagulator, principles, no deposits, research note) and the datapack reference pages (machine table, new recipe types, deposits and assembling sections removed); regenerate `gamedata.json` and icons of new items by copying placeholder textures. Verify: docs tests and docs build pass.
 - [ ] 5.3 Full `gradlew build`, `gradlew test`, GameTests of all three mods green, and the client launches with all three mods: calcine cobblestone, pipe Salt into a Coagulator and make a Salt Crystal, check JEI categories. (Build, unit tests, docs tests and build, and GameTests green in the worktree: Foundation 70, Manufacturing 10, Storage 233. The client part is owed to the play check from main.)
+
+## 6. Play check follow-ups: fire, time and stone
+
+- [ ] 6.1 Team ownership as a `TeamOwnership` helper in `alchemy` used by Calciner, Coagulator, Athanor and Gnome Hollow; `AlchemyMachineBlockEntity` removed. Verify: build, Manufacturing GameTests green.
+- [ ] 6.2 Calciner extends `BurnerMachineBlockEntity` (input and fuel slot, upkeep capability, no energy capability), `CalcinerMenu` fuel slot, screen layout with flame and no energy bar, `ManufacturingMachines` kind burner, stats JSON; GameTests fuel the Calciner with coal and check that it exposes no energy storage. Verify: build, data run, GameTests green.
+- [ ] 6.3 Coagulator extends `MachineBlockEntity` with a timed tick (no energy capability), screen layout without energy bar, kind and stats JSON; GameTests run it without power. Verify: build, data run, GameTests green.
+- [ ] 6.4 Stone look: Calciner, Coagulator, Athanor, Salt Crystal Block and Gnome Hollow models reference vanilla stone textures, with own front textures for the Calciner (furnace mouth) and Coagulator (mould). Verify: data run without missing texture warnings.
+- [ ] 6.5 Docs pages and `gamedata.json` describe the fuelled Calciner and the unpowered Coagulator. Verify: docs tests, all GameTests and `gradlew build test` green.
