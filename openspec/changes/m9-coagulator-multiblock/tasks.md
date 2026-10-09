@@ -3,7 +3,7 @@
 ## 1. Shared geometry and layout
 
 - [x] 1.1 Move `Facing` and `Offset` into `alchemy/structure` and add `Structures` (facing, direction, pos); switch `CalcinerLayout`, `CalcinerStructure`, `CalcinerPorts`, `CalcinerRenderer`, the Calciner GameTests and `CalcinerLayoutTest` to them; `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green
-- [ ] 1.2 Pure `alchemy/coagulator/CoagulatorLayout` with JUnit `CoagulatorLayoutTest` (cells, Vat principles, pattern, round trips, placement); `gradlew :manufacturing:test` green
+- [x] 1.2 Pure `alchemy/coagulator/CoagulatorLayout` with JUnit `CoagulatorLayoutTest` (cells, Vat principles, pattern, round trips, placement); `gradlew :manufacturing:test` green
 
 ## 2. Build
 
