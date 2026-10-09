@@ -6,20 +6,30 @@ Recipe viewers show how Manufacturing items are made so players never have to gu
 
 ## Requirements
 
-### Requirement: Assembling recipes appear in JEI
-When JEI is installed, every assembling recipe SHALL appear in an "Assembling" category showing each ingredient with its count, the result with its count, and the time in seconds. The Assembler Mk1 SHALL be listed as the category's machine.
-
-#### Scenario: Look up red pack
-- **WHEN** the player looks up the Red Pack recipe in JEI
-- **THEN** the Assembling category shows one iron gear and two copper wire as inputs, one red pack as output and 5.0 s
-
-#### Scenario: Click the assembler
-- **WHEN** the player clicks the Assembler Mk1 in JEI
-- **THEN** the Assembling category opens with all assembling recipes
-
 ### Requirement: Works without JEI
 Servus Manufacturing SHALL load and work with JEI absent.
 
 #### Scenario: No JEI
 - **WHEN** the game runs without JEI
 - **THEN** no error is logged and all machines work as before
+
+### Requirement: Calcination recipes appear in JEI
+When JEI is installed, every calcination recipe SHALL appear in a "Calcination" category showing the ingredient, the mB of each principle it gives and the time in seconds. The Calciner SHALL be listed as the category's machine.
+
+#### Scenario: Look up Salt
+- **WHEN** the player looks up the uses of cobblestone in JEI
+- **THEN** the Calcination category shows cobblestone giving Salt and Mercury with their amounts and the time
+
+### Requirement: Coagulation recipes appear in JEI
+When JEI is installed, every coagulation recipe SHALL appear in a "Coagulation" category showing the principles with their mB, the item ingredient if any, the result and the time in seconds. The Coagulator SHALL be listed as the category's machine.
+
+#### Scenario: Look up Gunpowder
+- **WHEN** the player looks up how gunpowder is made in JEI
+- **THEN** the Coagulation category shows the gunpowder recipe with its principles and time
+
+### Requirement: Athanor crafts appear in JEI
+When JEI is installed, every Athanor craft SHALL appear in an "Athanor" category showing the item, the principles with their mB, the result, the time and the minimum tier. The Athanor SHALL be listed as the category's machine.
+
+#### Scenario: Look up Blaze Powder
+- **WHEN** the player looks up how Blaze Powder is made in JEI
+- **THEN** the Athanor category shows gunpowder, 200 mB Sulfur, the result, the time and tier Nigredo
