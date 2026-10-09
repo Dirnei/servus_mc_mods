@@ -1,6 +1,6 @@
 ---
 title: Getting started
-description: Install the Servus mods and take the first steps from a deposit to your first research.
+description: Install the Servus mods and take the first steps into alchemy.
 ---
 
 :::note
@@ -19,24 +19,16 @@ You need Minecraft 1.21.1 with NeoForge 21.1.x. Servus: Foundation is required b
 | Servus: Storage | Servus: Foundation |
 | Servus: Manufacturing | Servus: Foundation |
 
-JEI is optional. With it installed, assembling and crushing recipes show up in their own categories.
-
-## First steps: find a deposit
-
-Deposits are flat, unbreakable patches on the surface: iron, copper, coal and stone. They never run out, so pick a site you like and build your factory there.
-
-## Burner Extractor and Smelter
-
-Craft a Burner Extractor from iron ingots, cobblestone and a furnace and place it on a deposit. With coal in its fuel slot it mines one item every 4 seconds. A Burner Smelter (iron ingots, bricks, a furnace) turns raw ore into ingots at the same rate. Machines push their output into any adjacent chest.
+JEI is optional. With it installed, calcination and coagulation recipes show up in their own categories.
 
 ## Power
 
-The Coal Generator burns furnace fuel and makes 40 FE per tick. It feeds machines that touch it directly; for longer distances use Power Cables from Servus: Foundation.
+The Coal Generator from Servus: Foundation burns furnace fuel and makes 40 FE per tick. It feeds machines that touch it directly; for longer distances use Power Cables.
 
-## Assembler and the Red Pack
+## Calcine
 
-The Assembler Mk1 crafts from up to two recipes you configure in its GUI. Make iron gears and copper wire, then Red Packs from one gear and two wire. Item Pipes carry items between the machines.
+Craft a Calciner from bricks, iron ingots, a furnace and a cauldron, power it and put cobblestone, logs, dirt or other common matter into it. It burns each item into Salt, Sulfur and Mercury. Put a Fluid Tank against its side, or run Fluid Pipes from it.
 
-## Research
+## Coagulate
 
-Place a Research Lab, open the tech tree and pick a tech. The lab consumes Red Packs over time and the finished tech unlocks new recipes, such as the Electric Extractor and the Crusher. Research progress belongs to your team.
+Craft a Coagulator from iron ingots, glass, a cauldron and redstone. Pick a recipe in its GUI, pipe the principles it needs into it, and it makes Salt Crystals, Sulfur, Quicksilver or everyday goods like gunpowder and redstone. Surplus principles go into a Sink.

@@ -52,19 +52,11 @@ The shipped `data/servus_manufacturing/servus_manufacturing/tech/crusher.json`:
 
 ## Built in techs
 
-| Tech | Parents | Cost | Unlocks |
-|---|---|---|---|
-| `electric_extractor` | none | 10 Red Packs | `assembling/electric_extractor` |
-| `stone_processing` | none | 10 Red Packs | `assembling/stone`, `assembling/stone_bricks`, `assembling/glass` |
-| `crusher` | `electric_extractor` | 15 Red Packs | `assembling/crusher` |
-| `logistics` | `crusher` | 25 Red Packs | `assembling/green_pack` |
-
-All use 100 ticks per pack.
+None. The old Factorio techs went with the alchemy rethink, and Paracelsus' journal replaces the tech tree in a following change. The format still loads techs a datapack adds.
 
 ## Notes
 
 - **Research time**: one lab needs `count x ticks_per_pack` ticks for a tech. The Crusher tech takes 15 x 100 = 1500 ticks (75 seconds) with one lab. Several labs of the same team work in parallel, so two labs take about half as long.
 - **Energy**: a lab spends its `energy_per_tick` from the [machine stats](/servus_mc_mods/reference/datapack/machines/) while it works (10 FE per tick by default), so one pack at 100 ticks costs 1000 FE.
-- **What actually locks a recipe** is the `tech` field of an [assembling recipe](/servus_mc_mods/reference/datapack/recipes/). The `unlocks` list does not gate anything on its own. Keep both in sync when you add or move recipes.
 - Progress is per team and survives restarts. Packs consumed for a tech still count after switching to another tech and back.
 - The display name comes from the language key `tech.<namespace>.<name>`.

@@ -1,11 +1,11 @@
 ---
 title: Recipes
-description: The assembling and crushing recipe formats of Servus Manufacturing, and how the Burner Smelter uses vanilla smelting.
+description: The calcination and coagulation recipe formats of Servus Manufacturing.
 sidebar:
   order: 4
 ---
 
-Servus Manufacturing adds two recipe types: `servus_manufacturing:assembling` for the Assembler and `servus_manufacturing:crushing` for the Crusher. Times and amounts on this page are current values; they live in datapack JSON and modpacks can change them.
+Servus Manufacturing adds two recipe types: `servus_manufacturing:calcination` for the Calciner and `servus_manufacturing:coagulation` for the Coagulator. Times and amounts on this page are current values; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -13,94 +13,70 @@ Servus Manufacturing adds two recipe types: `servus_manufacturing:assembling` fo
 data/<namespace>/recipe/<path>.json
 ```
 
-These are ordinary Minecraft recipes, so they live in the normal `recipe` folder and are reloaded with `/reload`. The built in ones use the subfolders `assembling/` and `crushing/`, which gives ids like `servus_manufacturing:assembling/red_pack`. Overriding a built in recipe works by using the same path.
+These are ordinary Minecraft recipes, so they live in the normal `recipe` folder and are reloaded with `/reload`. The built in ones use the subfolders `calcination/` and `coagulation/`, which gives ids like `servus_manufacturing:coagulation/salt_crystal`. Overriding a built in recipe works by using the same path.
 
-## Assembling
+## Principles
 
-| Field | Type | Default | Meaning |
-|---|---|---|---|
-| `type` | string | required | `servus_manufacturing:assembling` |
-| `ingredients` | list of sized ingredients | required | Each entry is an `item` or a `tag` with a `count` (default 1). |
-| `result` | item stack | required | `id` and `count` (default 1). |
-| `time` | int | 20 | Ticks per craft. |
-| `tech` | tech id | none | When set, a team must have completed this [tech](/servus_mc_mods/reference/datapack/techs/) before the recipe can be added to an Assembler. |
-
-Example, the shipped `data/servus_manufacturing/recipe/assembling/crusher.json`:
+Both recipe types write principle amounts the same way: an object with `salt`, `sulfur` and `mercury` in mB. A missing key is 0.
 
 ```json
-{
-  "type": "servus_manufacturing:assembling",
-  "ingredients": [
-    { "count": 1, "item": "servus_manufacturing:electric_extractor" },
-    { "count": 4, "item": "servus_manufacturing:iron_gear" },
-    { "count": 6, "item": "servus_manufacturing:copper_wire" }
-  ],
-  "result": {
-    "count": 1,
-    "id": "servus_manufacturing:crusher"
-  },
-  "tech": "servus_manufacturing:crusher",
-  "time": 200
-}
+{"salt": 100, "mercury": 10}
 ```
 
-Built in assembling recipes:
-
-| Recipe | Inputs | Result | Time | Tech |
-|---|---|---|---|---|
-| `iron_gear` | 2 iron ingot | 1 Iron Gear | 20 (default) | none |
-| `copper_wire` | 1 copper ingot | 2 Copper Wire | 10 | none |
-| `red_pack` | 1 Iron Gear, 2 Copper Wire | 1 Red Pack | 100 | none |
-| `electric_extractor` | 1 Burner Extractor, 4 Iron Gear, 6 Copper Wire | 1 Electric Extractor | 200 | `electric_extractor` |
-| `crusher` | 1 Electric Extractor, 4 Iron Gear, 6 Copper Wire | 1 Crusher | 200 | `crusher` |
-| `stone` | 2 cobblestone | 2 stone | 20 (default) | `stone_processing` |
-| `stone_bricks` | 2 stone | 2 stone bricks | 20 (default) | `stone_processing` |
-| `glass` | 1 sand | 1 glass | 40 | `stone_processing` |
-
-The Assembler also runs any `minecraft:crafting` recipe, from any mod. Those take the Assembler's `work_ticks` from the [machine stats](/servus_mc_mods/reference/datapack/machines/) instead of a recipe time, and are never locked by research.
-
-## Crushing
+## Calcination
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
-| `type` | string | required | `servus_manufacturing:crushing` |
+| `type` | string | required | `servus_manufacturing:calcination` |
 | `input` | sized ingredient | required | One `item` or `tag` with a `count` (default 1). |
-| `result` | item stack | required | `id` and `count` (default 1). |
-| `time` | int | 60 | Ticks per crush. |
+| `output` | principles | required | What one cycle puts into the Calciner's tanks. |
+| `time` | int | 80 | Ticks per cycle. |
 
-Example, the shipped `data/servus_manufacturing/recipe/crushing/raw_iron.json`:
+An item without a calcination recipe is refused by the Calciner.
 
-```json
-{
-  "type": "servus_manufacturing:crushing",
-  "input": {
-    "count": 1,
-    "item": "minecraft:raw_iron"
-  },
-  "result": {
-    "count": 2,
-    "id": "servus_manufacturing:iron_grit"
-  }
-}
-```
+Built in calcination recipes (80 ticks each):
 
-Built in crushing recipes:
+| Recipe | Input | Salt | Sulfur | Mercury |
+|---|---|---|---|---|
+| `cobblestone` | `#c:cobblestones` | 100 | 0 | 10 |
+| `stone` | `#c:stones` | 100 | 0 | 10 |
+| `dirt` | `#minecraft:dirt` | 50 | 20 | 20 |
+| `sand` | `#c:sands` | 80 | 0 | 10 |
+| `gravel` | `#c:gravels` | 80 | 0 | 10 |
+| `logs` | `#minecraft:logs` | 20 | 100 | 10 |
+| `planks` | `#minecraft:planks` | 5 | 25 | 0 |
+| `leaves` | `#minecraft:leaves` | 0 | 40 | 20 |
+| `saplings` | `#minecraft:saplings` | 0 | 40 | 20 |
+| `crops` | `#c:crops` | 10 | 30 | 30 |
+| `seeds` | `#c:seeds` | 10 | 30 | 30 |
+| `coal` | `#minecraft:coals` | 0 | 200 | 0 |
+| `raw_materials` | `#c:raw_materials` | 150 | 0 | 50 |
+| `redstone` | `#c:dusts/redstone` | 0 | 0 | 100 |
+| `bones` | `#c:bones` | 100 | 0 | 0 |
 
-| Recipe | Input | Result | Time |
+## Coagulation
+
+| Field | Type | Default | Meaning |
 |---|---|---|---|
-| `raw_iron` | 1 raw iron | 2 Iron Grit | 60 (default) |
-| `raw_copper` | 1 raw copper | 2 Copper Grit | 60 (default) |
-| `cobblestone` | 1 cobblestone | 1 gravel | 40 |
-| `gravel` | 1 gravel | 1 sand | 40 |
+| `type` | string | required | `servus_manufacturing:coagulation` |
+| `input` | principles | required | What one cycle takes from the Coagulator's tanks. |
+| `ingredient` | sized ingredient | none | An item the cycle takes as well. |
+| `result` | item stack | required | `id` and `count` (default 1). |
+| `time` | int | 40 | Ticks per cycle. |
 
-Iron Grit and Copper Grit have vanilla smelting and blasting recipes that give one ingot each.
+The Coagulator runs only the recipe picked in its GUI.
 
-## Burner Smelter
+Built in coagulation recipes (40 ticks each, no item ingredient):
 
-The Burner Smelter has no recipe type of its own. It runs every `minecraft:smelting` recipe, from vanilla and from other mods, and finishes one item per its own `work_ticks` (80 by default). The recipe's `cookingtime` and `experience` are ignored. To make the smelter accept a new item, add a normal smelting recipe.
-
-## Notes
-
-- Recipe times are game ticks, 20 per second. A powered machine spends its `energy_per_tick` on every tick of the recipe time.
-- With JEI installed, assembling and crushing recipes appear in their own categories with times in seconds.
-- Use the [Balance lab](/servus_mc_mods/lab/) to see how a changed recipe time moves the ratios of a production chain.
+| Recipe | Salt | Sulfur | Mercury | Result |
+|---|---|---|---|---|
+| `salt_crystal` | 250 | 0 | 0 | 1 Salt Crystal |
+| `sulfur` | 0 | 250 | 0 | 1 Sulfur |
+| `quicksilver` | 0 | 0 | 250 | 1 Quicksilver |
+| `clay_ball` | 100 | 0 | 50 | 1 clay ball |
+| `flint` | 150 | 0 | 0 | 1 flint |
+| `gunpowder` | 50 | 150 | 0 | 1 gunpowder |
+| `redstone` | 50 | 0 | 150 | 1 redstone |
+| `glowstone_dust` | 0 | 100 | 100 | 1 glowstone dust |
+| `bone_meal` | 60 | 20 | 0 | 1 bone meal |
+| `slime_ball` | 0 | 50 | 150 | 1 slime ball |

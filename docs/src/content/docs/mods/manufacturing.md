@@ -1,50 +1,37 @@
 ---
 title: "Servus: Manufacturing"
-description: Factorio style production with infinite deposits, fixed rate machines and a pack driven research tree.
+description: Alchemy after Paracelsus. Matter is split into Salt, Sulfur and Mercury and made again from them.
 ---
 
-Servus: Manufacturing (`servus_manufacturing`) is about building a factory you can plan. Resources come from infinite deposits, machines run at fixed speeds with clean ratios, and progress is gated by research packs that a Research Lab consumes over time.
+Servus: Manufacturing (`servus_manufacturing`) is alchemy after Paracelsus. Every material is made of three principles, Salt, Sulfur and Mercury. The Calciner splits matter into them and the Coagulator joins them again into new things. Nothing forces you to build a factory: a few blocks and buckets get you going, and pipes and ratios reward the planner.
 
 It requires Servus: Foundation, whose Utility Duct is its pipe and cable. JEI is optional.
 
-Numbers below are the current defaults. Machine stats, recipes, techs and deposits live in datapack JSON and modpacks can change them (see the [datapack reference](/servus_mc_mods/reference/datapack/machines/)).
+Numbers below are the current defaults. Machine stats and recipes live in datapack JSON and modpacks can change them (see the [datapack reference](/servus_mc_mods/reference/datapack/machines/)).
 
-## Deposits
+:::note
+Manufacturing is being rebuilt as alchemy (milestone M9). Paracelsus' journal, the Athanor, the Elixir of Sight and the gnome grown ore veins follow in the next changes. Until the journal arrives the Research Lab has no techs.
+:::
 
-Iron, copper, coal and stone deposits generate as flat surface patches in the overworld. They cannot be mined and never run out. An extractor on top yields one raw iron, raw copper, coal or cobblestone per cycle.
+## The three principles
+
+Salt, Sulfur and Mercury are fluids. They flow through the Fluid Pipe, wait in Fluid Tanks, go into buckets and can be voided in the Sink like any other fluid. Poured into the world they flow like water but never make new sources.
 
 ## Machines
 
-- **Burner Extractor**: burns furnace fuel and mines the deposit below it, one item per 4 seconds.
-- **Burner Smelter**: burns fuel and smelts any vanilla smelting recipe at a fixed 4 seconds per item, ignoring the recipe's cooking time.
-- **Assembler Mk1**: powered crafter with 18 input and 4 output slots. Configure up to two recipes (assembling recipes or any vanilla or modded crafting recipe) in its recipe editor; it alternates between those it can craft.
-- **Research Lab**: powered, consumes packs for the team's current research.
-- **Electric Extractor** (research): powered extractor, twice as fast as the burner one.
-- **Crusher** (research): powered, turns one raw ore into two grit; grit smelts into ingots, so crushing doubles the ingots per ore.
+- **Calciner**: burns one item into its principles, for example one cobblestone into 100 mB Salt and 10 mB Mercury in 4 seconds. It takes common matter: cobblestone, stone, dirt, sand, gravel, logs, planks, leaves, saplings, crops, seeds, coal, raw ores, redstone and bones. It holds 4,000 mB of each principle and pushes them out through its Auto and Push sides. 20 FE per tick while working. Bricks, iron, a furnace and a cauldron.
+- **Coagulator**: makes the recipe you pick in its GUI from a fixed amount of each principle, for example a Salt Crystal from 250 mB Salt in 2 seconds. Each principle goes only into its own tank. 20 FE per tick while working. Iron, glass, a cauldron and redstone.
+- **Research Lab**: kept until the journal replaces it.
 
 Power, water, voiding surplus and chunk loading come from [Servus: Foundation](/servus_mc_mods/mods/foundation/#machines): the Coal Generator, the Burner and Electric Pump, the Sink and the Chunk Loader.
 
-All machines face the player on placement, open a GUI on right click, push output into adjacent inventories and drop their contents when broken. Burner machines only burn fuel while they have work; powered machines only draw energy on ticks they work and keep their progress when power runs out.
+All machines face the player on placement, open a GUI on right click, push output into adjacent inventories and drop their contents when broken. Powered machines only draw energy on ticks they work and keep their progress when power runs out.
 
-## Items
+## Coagulator products
 
-- **Iron Gear**: two iron ingots, assembled.
-- **Copper Wire**: one copper ingot gives two wire, assembled.
-- **Red Pack**: one gear and two wire, the first research pack.
-- **Iron Grit, Copper Grit**: from the Crusher, smelt into ingots.
-
-## Research
-
-Techs form a tree. A team picks an available tech in the lab's tech tree screen, and every lab of that team consumes one matching pack per `ticks_per_pack`. More labs finish faster. Completed techs unlock assembling recipes for the whole team.
-
-Current techs: Electric Extractor, Crusher (after Electric Extractor), Stone Processing (stone, stone bricks and glass in the assembler) and Logistics (after Crusher, the gate to Tier 2).
-
-## Balance target
-
-The reference block (two extractors and two smelters on iron, one of each on copper, one extractor on coal, three assemblers, generators and one lab) makes one Red Pack every 5 seconds. A GameTest keeps that true.
+Salt Crystal, Sulfur and Quicksilver are the first alchemical materials. The Coagulator also makes clay, flint, gunpowder, redstone, glowstone dust, bone meal and slime balls from the principles. No metal comes from principles in this first stage; metals are grown by the gnomes later.
 
 ## How it connects
 
-- [Servus: Foundation](/servus_mc_mods/mods/foundation/): side configuration, the Configuration Carrot, teams, the production capability every machine exposes, and the Item Pipes and Power Cables that move items and FE between machines.
-- [Storage](/servus_mc_mods/mods/storage/): an Assembler on the data line lets a Crafting CPU plan work orders from the Assembler's configured recipes. A Burner Smelter or Crusher on the data line runs order steps with its smelting or crushing recipes.
-- **Upkeep**: the Burner Extractor and Burner Smelter, like Foundation's Burner Pump and Coal Generator, keep coal at 16 in their fuel slot as upkeep. On a data line with a warehouse they are refilled on their own, independent of orders; the item and level are the machine stats `upkeep_item` and `upkeep_level`.
+- [Servus: Foundation](/servus_mc_mods/mods/foundation/): side configuration, the Configuration Carrot, the Fluid Pipe and Fluid Tank, Power Cables and Item Pipes.
+- [Storage](/servus_mc_mods/mods/storage/): a Coagulator on the data line is a producer of its selected recipe, so a Crafting CPU can order Salt Crystals or gunpowder. Its principles must reach it by pipe; the data line only carries items. The Calciner is no producer.
