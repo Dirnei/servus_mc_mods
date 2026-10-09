@@ -6,7 +6,7 @@ The Access Point is the warehouse's door to the data line: shuttles bring items 
 ## Requirements
 
 ### Requirement: Access Point joins rails and the data line
-The Access Point SHALL be a block that links to rails on every side like a station, so shuttles can reach it, and SHALL be a link member of the data line it touches. It SHALL hold no stock of the warehouse and SHALL show the online lamp like other warehouse blocks.
+The Access Point SHALL be a block that joins the warehouse only through rails on its sides, like a station, so shuttles can reach it; it SHALL NOT link to touching controllers, storage blocks, racks, garages or stations. It SHALL be a link member of the data line it touches, SHALL hold no stock of the warehouse and SHALL show the online lamp like other warehouse blocks.
 
 #### Scenario: Both networks
 - **WHEN** an Access Point stands beside a rail of a warehouse and a duct with the data line touches it
@@ -15,6 +15,10 @@ The Access Point SHALL be a block that links to rails on every side like a stati
 #### Scenario: Not stock
 - **WHEN** items wait in an Access Point's buffers
 - **THEN** the warehouse stock does not count them
+
+#### Scenario: Touching the controller is not enough
+- **WHEN** an Access Point touches the controller and no rail touches it
+- **THEN** it does not belong to that warehouse and its lamp is dark
 
 ### Requirement: Packets are put away
 Packets delivered to an Access Point SHALL land in its intake buffer (example 9 slots, `inbound_buffer_slots` in `warehouse.json`) and the warehouse SHALL put them away by its zone rules like items in an Inbound Station, by shuttle for racks.

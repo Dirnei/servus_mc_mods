@@ -34,7 +34,7 @@ The Inbound Station SHALL be a block with a horizontal facing and an intake buff
 - **THEN** 10 bread drop at its position
 
 ### Requirement: Station is a warehouse node without stock
-The station SHALL be a member of the warehouse network like a storage block: it SHALL link to touching storage blocks and stations, rails SHALL dock onto it on any side, and it SHALL NOT link to elevator segments. Its buffer SHALL NOT be indexed and inventories touching it SHALL NOT become warehouse sources. The station SHALL show the connection lamp like storage blocks.
+The station SHALL be a member of the warehouse network only through rails: rails SHALL dock onto it on any side and link it, and it SHALL NOT link to touching controllers, storage blocks, racks, garages, other stations or elevator segments, so it never passes the warehouse connection on to a neighbour. Its buffer SHALL NOT be indexed and inventories touching it SHALL NOT become warehouse sources. The station SHALL show the connection lamp like storage blocks, lit only while a rail links it to an online warehouse.
 
 #### Scenario: Chest feeding the station is not stock
 - **WHEN** a chest with 30 bread touches only the station of an online warehouse
@@ -48,11 +48,23 @@ The station SHALL be a member of the warehouse network like a storage block: it 
 - **WHEN** a rail runs from a controller to a station and on to a crate
 - **THEN** the crate, the station and the controller form one online warehouse
 
+#### Scenario: Touching the controller is not enough
+- **WHEN** a station touches the controller and no rail touches the station
+- **THEN** the station is not part of that warehouse, its lamp is dark and items in its buffer stay there
+
+#### Scenario: Rail placed later
+- **WHEN** a rail is then placed between the station and the controller
+- **THEN** the station joins the warehouse and its lamp lights; breaking that rail takes it out again
+
+#### Scenario: Crate touching only the station
+- **WHEN** a crate touches only a station that is linked by rail
+- **THEN** the crate is not part of the warehouse
+
 ### Requirement: Put-away without shuttles
 When the warehouse is online and the chosen target is a crate or foreign inventory that no shuttle can carry to, the warehouse SHALL move a buffer stack there at once, at most `put_away_per_tick` stacks per station per tick (example 1). Targets SHALL follow the put-away routing of the zones. A Heavy Duty Rack SHALL never be filled instantly: a stack whose only room is in racks SHALL wait for a shuttle, and when no shuttle can reach them the station SHALL report that the stack needs a shuttle. The buffer SHALL stay untouched while the warehouse is offline.
 
 #### Scenario: Instant put-away
-- **WHEN** a station touching the controller receives 64 cobblestone, a crate touches the controller and the warehouse has no garage
+- **WHEN** a station linked by a rail to the controller receives 64 cobblestone, a crate touches the controller and the warehouse has no garage
 - **THEN** within a few ticks the cobblestone sits in the crate and the buffer is empty
 
 #### Scenario: Offline
@@ -109,7 +121,7 @@ Right clicking the station SHALL open a GUI with the buffer slots and the player
 - **THEN** the cobblestone is in the buffer and is put away as if a hopper had fed it
 
 #### Scenario: Offline
-- **WHEN** the station touches crates but no controller
+- **WHEN** the station touches crates and a controller but no rail
 - **THEN** the GUI says the warehouse has no controller
 
 #### Scenario: Waiting stack

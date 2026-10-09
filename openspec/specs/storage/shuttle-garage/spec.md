@@ -26,7 +26,7 @@ The Shuttle Garage SHALL be a block with a horizontal facing that holds up to `g
 - **THEN** the GUI says three shuttles, one out, and the first slot cannot be emptied until it is back
 
 ### Requirement: Garage is a warehouse node without stock
-The garage SHALL be a member of the warehouse network like a storage block: it SHALL link to touching storage blocks, stations and garages, it SHALL take a rail only on its back, and it SHALL NOT link to elevator segments. It SHALL hold no stock, SHALL NOT make inventories beside it part of the warehouse, and SHALL show the connection lamp like storage blocks. The rail behind it SHALL render a plain arm towards the garage, not a dock piece.
+The garage SHALL be a member of the warehouse network only through the rail on its back, following the rail only rule for shuttle served blocks: it SHALL NOT link to touching controllers, storage blocks, racks, stations, other garages or elevator segments. It SHALL hold no stock, SHALL NOT make inventories beside it part of the warehouse, and SHALL show the connection lamp like storage blocks, lit only while its back rail links it to an online warehouse. The rail behind it SHALL render a plain arm towards the garage, not a dock piece.
 
 #### Scenario: Chest beside a garage
 - **WHEN** a chest with bread touches only a garage of an online warehouse
@@ -39,6 +39,10 @@ The garage SHALL be a member of the warehouse network like a storage block: it S
 #### Scenario: Rail at the side
 - **WHEN** a rail runs along the side or the front of a garage and nothing else touches it
 - **THEN** the rail shows neither an arm nor a dock towards the garage and the garage has no home rail
+
+#### Scenario: Touching the controller is not enough
+- **WHEN** a garage touches the controller and no rail lies behind it
+- **THEN** the garage does not belong to that warehouse, its lamp is dark and its shuttles serve nothing
 
 ### Requirement: Home rail per garage
 The rail behind a garage SHALL be the home of its shuttles: idle shuttles sit inside the garage, a shuttle leaves onto the home rail for a job and returns through it. A garage with no rail behind it SHALL keep its shuttles inside and they SHALL NOT serve jobs. When a garage loses its home rail while shuttles are out, those shuttles SHALL be recalled as the Recall button does. Shuttles out on a job SHALL keep moving and finish their legs whether or not any garage has a home rail. The shuttles of several garages SHALL serve one shared queue; the free shuttle with the shortest way to the job SHALL take it.
