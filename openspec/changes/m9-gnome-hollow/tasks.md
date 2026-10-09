@@ -2,7 +2,7 @@
 
 ## 1. Vein logic and data
 
-- [ ] 1.1 Pure `VeinGrowth` in `manufacturing/.../alchemy/hollow` with JUnit `VeinGrowthTest` (waits without principles, step timing and cost, ripeness cap, no yield before binding, yield rate, no yield with a full output). Verify: `gradlew test`.
+- [x] 1.1 Pure `VeinGrowth` in `manufacturing/.../alchemy/hollow` with JUnit `VeinGrowthTest` (waits without principles, step timing and cost, ripeness cap, no yield before binding, yield rate, no yield with a full output). Verify: `gradlew test`.
 - [ ] 1.2 `VeinData` reload listener with the vein codec, shipped `iron.json` and `copper.json`. Verify: build, the GameTest server logs two veins.
 
 ## 2. Gnome Hollow
