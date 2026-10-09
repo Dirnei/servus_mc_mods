@@ -26,6 +26,7 @@ Built in crafts (100 ticks each):
 | `athanor/blaze_powder` | gunpowder | 200 Sulfur | 0 (Nigredo) | Blaze Powder |
 | `athanor/experience_bottle` | glass bottle | 50 Salt, 100 Mercury | 1 (Albedo) | Bottle o' Enchanting |
 | `athanor/elixir_of_sight` | Quicksilver | 100 Salt, 100 Sulfur, 250 Mercury | 1 (Albedo) | Elixir of Sight (200 ticks) |
+| `athanor/gnome_hollow` | cracked stone bricks | 500 Salt, 250 Mercury | 1 (Albedo) | Gnome Hollow (200 ticks) |
 
 ## Tiers
 
