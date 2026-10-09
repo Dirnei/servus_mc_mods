@@ -2590,14 +2590,57 @@ public final class ServusStorageGameTests {
 
     /** Uses an elevator item while sneaking on the east face of a segment. */
     private static ItemStack sneakElevator(GameTestHelper helper, Player player, BlockPos clicked) {
+        return useElevator(helper, player, clicked, true);
+    }
+
+    /** Uses an elevator item on the east face of a block, sneaking or not. */
+    private static ItemStack useElevator(GameTestHelper helper, Player player, BlockPos clicked, boolean sneak) {
         BlockPos absolute = helper.absolutePos(clicked);
         ItemStack elevator = new ItemStack(ServusStorageBlocks.ELEVATOR.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, elevator);
-        player.setShiftKeyDown(true);
+        player.setShiftKeyDown(sneak);
         elevator.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(absolute).relative(Direction.EAST, 0.5), Direction.EAST, absolute, false)));
         player.setShiftKeyDown(false);
         return elevator;
+    }
+
+    /** A plain click on the side of the lowest segment places a new segment on top of the shaft, like scaffolding. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void plainElevatorBuildsUp(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        shaft(helper, 3, 3, 4);
+        ItemStack held = useElevator(helper, player, new BlockPos(3, 1, 3), false);
+        helper.assertBlockPresent(ServusStorageBlocks.ELEVATOR.get(), new BlockPos(3, 5, 3));
+        helper.assertBlockNotPresent(ServusStorageBlocks.ELEVATOR.get(), new BlockPos(4, 1, 3));
+        helper.assertTrue(held.isEmpty(), "one elevator should be used");
+        helper.succeed();
+    }
+
+    /** A plain click on a shaft capped by stone places nothing and keeps the stack. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void plainElevatorBlockedTop(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        shaft(helper, 3, 3, 2);
+        helper.setBlock(new BlockPos(3, 3, 3), Blocks.STONE.defaultBlockState());
+        ItemStack held = useElevator(helper, player, new BlockPos(3, 2, 3), false);
+        helper.assertTrue(held.getCount() == 1, "the stack should keep its elevator");
+        helper.assertBlockNotPresent(ServusStorageBlocks.ELEVATOR.get(), new BlockPos(4, 2, 3));
+        helper.succeed();
+    }
+
+    /** A plain click on the top of a stone block places a segment on it as with any block. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void plainElevatorOnGround(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.setBlock(new BlockPos(3, 1, 3), Blocks.STONE.defaultBlockState());
+        BlockPos absolute = helper.absolutePos(new BlockPos(3, 1, 3));
+        ItemStack elevator = new ItemStack(ServusStorageBlocks.ELEVATOR.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, elevator);
+        elevator.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(absolute).relative(Direction.UP, 0.5), Direction.UP, absolute, false)));
+        helper.assertBlockPresent(ServusStorageBlocks.ELEVATOR.get(), new BlockPos(3, 2, 3));
+        helper.succeed();
     }
 
     private static void shaft(GameTestHelper helper, int x, int z, int height) {

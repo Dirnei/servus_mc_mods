@@ -10,7 +10,7 @@
 
 ## 3. Plain click builds up
 
-- [ ] 3.1 Add `rail/ElevatorItem` (updatePlacementContext with `ShaftTop`, build height message) and use it in `ServusStorageItems.ELEVATOR`. GameTests `plainElevatorBuildsUp`, `plainElevatorBlockedTop`; the sneak tests stay green. Verify with `gradlew build` and `:storage:runGameTestServer`.
+- [x] 3.1 Add `rail/ElevatorItem` (updatePlacementContext with `ShaftTop`, build height message) and use it in `ServusStorageItems.ELEVATOR`. GameTests `plainElevatorBuildsUp`, `plainElevatorBlockedTop`, `plainElevatorOnGround`; the sneak tests stay green. Verify with `gradlew build` and `:storage:runGameTestServer`.
 
 ## 4. Docs and plan
 

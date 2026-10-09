@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.foundation.placement.AssistedBlockItem;
 import io.github.dirnei.mc.servus.foundation.wood.WoodBlockItem;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackItem;
-import io.github.dirnei.mc.servus.storage.rail.ElevatorAssist;
+import io.github.dirnei.mc.servus.storage.rail.ElevatorItem;
 import io.github.dirnei.mc.servus.storage.rail.RailAssist;
 import io.github.dirnei.mc.servus.storage.zone.ZoneLabelItem;
 import java.util.List;
@@ -32,8 +32,8 @@ public final class ServusStorageItems {
             properties -> new WoodBlockItem(ServusStorageBlocks.PATTERN_STORAGE.get(), properties));
     public static final DeferredItem<AssistedBlockItem> RAIL = ITEMS.registerItem("rail",
             properties -> new AssistedBlockItem(ServusStorageBlocks.RAIL.get(), RailAssist.INSTANCE, properties));
-    public static final DeferredItem<AssistedBlockItem> ELEVATOR = ITEMS.registerItem("elevator",
-            properties -> new AssistedBlockItem(ServusStorageBlocks.ELEVATOR.get(), ElevatorAssist.INSTANCE, properties));
+    public static final DeferredItem<ElevatorItem> ELEVATOR = ITEMS.registerItem("elevator",
+            properties -> new ElevatorItem(ServusStorageBlocks.ELEVATOR.get(), properties));
     public static final DeferredItem<WoodBlockItem> INBOUND_STATION = ITEMS.registerItem("inbound_station",
             properties -> new WoodBlockItem(ServusStorageBlocks.INBOUND_STATION.get(), properties));
     public static final DeferredItem<WoodBlockItem> ACCESS_POINT = ITEMS.registerItem("access_point",
