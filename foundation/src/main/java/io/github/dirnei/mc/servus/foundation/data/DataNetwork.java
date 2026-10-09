@@ -12,8 +12,9 @@ import io.github.dirnei.mc.servus.foundation.production.ItemSupplier;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.foundation.data.packet.DeliveryReason;
+import io.github.dirnei.mc.servus.foundation.data.packet.DuctBudget;
 import io.github.dirnei.mc.servus.foundation.data.packet.PacketLimitsManager;
-import io.github.dirnei.mc.servus.foundation.data.packet.PacketRoutes;
+import io.github.dirnei.mc.servus.foundation.data.packet.PathPick;
 import io.github.dirnei.mc.servus.foundation.data.packet.Shipment;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,6 +81,8 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
     private final Map<NodePos, Probe[]> probes = new HashMap<>();
     private final Map<NodePos, Probe> selfProbes = new HashMap<>();
     private final List<Shipment> shipments = new ArrayList<>();
+    /** Budgets of the ducts that carried items during the last second; idle ducts have none. */
+    private final Map<NodePos, DuctBudget> budgets = new HashMap<>();
     private final UpkeepBook<BlockPos> upkeep = new UpkeepBook<>();
     private int upkeepTimer;
     private ServerLevel level;
@@ -151,7 +154,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         if (source.equals(target)) {
             return Optional.empty();
         }
-        return PacketRoutes.shortest(starts, endpoints(target), owner().graph()::neighbors).map(path -> {
+        return PathPick.best(starts, endpoints(target), owner().graph()::neighbors, this::bandwidth).map(path -> {
             List<NodePos> route = new ArrayList<>();
             if (!path.get(0).equals(source)) {
                 route.add(source);
@@ -162,6 +165,129 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
             }
             return route;
         }).filter(route -> route.size() >= 2);
+    }
+
+    // Bandwidth
+
+    /** One duct a delivery crosses and in which direction: forward runs from the lower to the higher neighbour position. */
+    public record Hop(NodePos pos, boolean forward) {
+    }
+
+    /** Items per second the node at {@code pos} lets through; unlimited for a carrier or a position that is no node. */
+    public double bandwidth(NodePos pos) {
+        CableTier tier = owner().graph().node(pos).map(DataNode::dataTier).orElse(null);
+        return tier == null ? Double.POSITIVE_INFINITY : tier.itemsPerSecond();
+    }
+
+    /** The ducts with a bandwidth along a route and the direction a delivery crosses each. */
+    public List<Hop> hops(List<NodePos> route) {
+        List<Hop> hops = new ArrayList<>();
+        int last = route.size() - 1;
+        for (int i = 0; i <= last; i++) {
+            NodePos at = route.get(i);
+            if (owner().graph().node(at).map(DataNode::dataTier).orElse(null) == null) {
+                continue;
+            }
+            NodePos before = route.get(Math.max(0, i - 1));
+            NodePos after = route.get(Math.min(last, i + 1));
+            hops.add(new Hop(at, NODE_ORDER.compare(before, after) <= 0));
+        }
+        return hops;
+    }
+
+    private static final Comparator<NodePos> NODE_ORDER =
+            Comparator.comparingInt(NodePos::x).thenComparingInt(NodePos::y).thenComparingInt(NodePos::z);
+
+    /** How many items may cross every duct of the hops this tick: the smallest remaining budget. */
+    public int pathAllowance(List<Hop> hops) {
+        int allowed = Integer.MAX_VALUE;
+        for (Hop hop : hops) {
+            DuctBudget budget = budget(hop.pos());
+            if (budget != null) {
+                allowed = Math.min(allowed, budget.allowance(hop.forward()));
+            }
+        }
+        return allowed;
+    }
+
+    /** Records that {@code items} crossed every duct of the hops. */
+    public void consumePath(List<Hop> hops, int items) {
+        for (Hop hop : hops) {
+            DuctBudget budget = budget(hop.pos());
+            if (budget != null) {
+                budget.consume(hop.forward(), items);
+            }
+        }
+    }
+
+    /** The budget of a duct of this network, made full on first use; null for a node without a bandwidth. */
+    private DuctBudget budget(NodePos pos) {
+        DuctBudget budget = budgets.get(pos);
+        if (budget != null) {
+            return budget;
+        }
+        CableTier tier = owner().graph().node(pos).map(DataNode::dataTier).orElse(null);
+        if (tier == null || !owns(pos)) {
+            return null;
+        }
+        budget = new DuctBudget(tier.itemsPerSecond(), tier.duplex());
+        budgets.put(pos, budget);
+        return budget;
+    }
+
+    /**
+     * The load of the duct at {@code pos} over the last second in items per
+     * second: both directions for simplex, the busier one for duplex.
+     */
+    public int load(NodePos pos) {
+        DuctBudget budget = budgets.get(pos);
+        return budget == null ? 0 : budget.load();
+    }
+
+    /** Items that crossed the duct at {@code pos} in one direction during the last second. */
+    public int used(NodePos pos, boolean forward) {
+        DuctBudget budget = budgets.get(pos);
+        return budget == null ? 0 : budget.used(forward);
+    }
+
+    /** One duct with its load over the last second and its bandwidth. */
+    public record DuctLoad(BlockPos pos, int load, double bandwidth) {
+        public double share() {
+            return bandwidth <= 0 ? 1 : load / bandwidth;
+        }
+    }
+
+    /** Every duct that carried items during the last second, busiest share first. */
+    public List<DuctLoad> loads() {
+        List<DuctLoad> result = new ArrayList<>();
+        budgets.forEach((pos, budget) -> {
+            if (!budget.idle()) {
+                result.add(new DuctLoad(Conversions.toBlockPos(pos), budget.load(), budget.rate()));
+            }
+        });
+        result.sort(Comparator.comparingDouble(DuctLoad::share).reversed()
+                .thenComparingLong(load -> load.pos().asLong()));
+        return result;
+    }
+
+    /** The duct with the highest share of its bandwidth used during the last second, empty when the line is idle. */
+    public Optional<DuctLoad> busiest() {
+        List<DuctLoad> all = loads();
+        return all.isEmpty() ? Optional.empty() : Optional.of(all.get(0));
+    }
+
+    /** Refills the budgets of busy ducts, follows tier changes and forgets ducts idle for a second. */
+    private void tickBudgets() {
+        budgets.entrySet().removeIf(entry -> {
+            CableTier tier = owner().graph().node(entry.getKey()).map(DataNode::dataTier).orElse(null);
+            if (tier == null || !owns(entry.getKey())) {
+                return true;
+            }
+            DuctBudget budget = entry.getValue();
+            budget.setRate(tier.itemsPerSecond(), tier.duplex());
+            budget.tick();
+            return budget.idle();
+        });
     }
 
     /** The data nodes of this network items can enter or leave {@code pos} through. */
@@ -189,6 +315,9 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
     protected void onTick() {
         if (level == null) {
             return;
+        }
+        if (!budgets.isEmpty()) {
+            tickBudgets();
         }
         if (!shipments.isEmpty()) {
             var limits = PacketLimitsManager.INSTANCE.limits();
@@ -285,6 +414,8 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
             post(new DataEvent.SidesChanged(pos));
             return;
         }
+        // A new duct may offer a shorter or wider path.
+        shipments.forEach(Shipment::reroute);
         Probe[] sides = new Probe[6];
         for (Direction direction : Direction.values()) {
             sides[direction.ordinal()] = probe(server, blockPos.relative(direction), direction.getOpposite(), node, invalidated);
@@ -296,7 +427,7 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
 
     /** A duct's data line changed its tier in place: running deliveries pick their path again. */
     public void tierChanged(NodePos pos) {
-        shipments.forEach(shipment -> shipment.nodeRemoved(pos));
+        shipments.forEach(Shipment::reroute);
     }
 
     @Override
@@ -304,7 +435,8 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         probes.remove(pos);
         selfProbes.remove(pos);
         members.removeCable(pos);
-        shipments.forEach(shipment -> shipment.nodeRemoved(pos));
+        budgets.remove(pos);
+        shipments.forEach(Shipment::reroute);
     }
 
     @Override
@@ -315,6 +447,9 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
             selfProbes.putAll(that.selfProbes);
             shipments.addAll(that.shipments);
             that.shipments.clear();
+            budgets.putAll(that.budgets);
+            that.budgets.clear();
+            shipments.forEach(Shipment::reroute);
             if (level == null) {
                 level = that.level;
             }

@@ -11,7 +11,7 @@
 
 ## 3. Bandwidth
 
-- [ ] 3.1 `DataNetwork` per tick duct budgets and load window; `Shipment` path choice with `PathPick` and per tick amount bounded by the path budgets. GameTests `slowestDuctDecides`, `sharedDuctSplits`, `simplexOppositeShares`. Verify with build, Foundation and Storage GameTests.
+- [x] 3.1 `DataNetwork` per tick duct budgets and load window; `Shipment` path choice with `PathPick` and per tick amount bounded by the path budgets. GameTests `slowestDuctDecides`, `sharedDuctSplits`, `simplexOppositeShares`. Verify with build, Foundation and Storage GameTests.
 - [ ] 3.2 Summary with "N of M items/s"; goggles load payload and overlay tint. GameTest `summaryShowsLoad`. Verify with build and Foundation GameTests; grep that every payload TYPE is registered.
 
 ## 4. Upgrades

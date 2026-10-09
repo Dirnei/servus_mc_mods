@@ -35,6 +35,7 @@ public final class Shipment {
     private Direction targetFace = Direction.UP;
     private Direction sourceFace = Direction.UP;
     private boolean routed;
+    private List<DataNetwork.Hop> hops = List.of();
     private int retry;
 
     private Shipment(Delivery delivery, BlockPos from, BlockPos to, ItemStack pending, ItemStack like, int toTake,
@@ -68,9 +69,14 @@ public final class Shipment {
         return to;
     }
 
-    /** A data node went away: the route is checked again before the next items move. */
-    public void nodeRemoved(NodePos pos) {
+    /** The graph or a tier changed: the route is picked again before the next items move. */
+    public void reroute() {
         routed = false;
+    }
+
+    /** The ducts this shipment crosses, empty before it is routed. */
+    public List<DataNetwork.Hop> hops() {
+        return hops;
     }
 
     /** Advances one tick. Returns true when the shipment is finished and can be dropped. */
@@ -88,6 +94,8 @@ public final class Shipment {
         TransferGate in = PacketIo.gate(level, to, targetFace);
         int left = pending.isEmpty() ? toTake : pending.getCount();
         int allowed = TransferAmount.gates(left, allowance(out, TransferGate.Flow.OUT), allowance(in, TransferGate.Flow.IN));
+        // Every duct on the path limits it as well; deliveries that cross a duct share its budget in creation order.
+        allowed = Math.min(allowed, network.pathAllowance(hops));
         int moved = 0;
         if (allowed > 0) {
             moved = pending.isEmpty() ? take(level, allowed, limits) : offer(level, allowed, limits);
@@ -100,6 +108,7 @@ public final class Shipment {
             if (in != null) {
                 in.consume(TransferGate.Flow.IN, moved);
             }
+            network.consumePath(hops, moved);
         }
         if (pending.isEmpty() && toTake <= 0) {
             delivery.done();
@@ -170,6 +179,7 @@ public final class Shipment {
         List<NodePos> path = route.get();
         sourceFace = PacketIo.face(from, Conversions.toBlockPos(path.get(1)));
         targetFace = PacketIo.face(to, Conversions.toBlockPos(path.get(path.size() - 2)));
+        hops = network.hops(path);
         routed = true;
         return true;
     }
