@@ -27,10 +27,39 @@ final class PrincipleGauges {
         }
     }
 
+    private int left;
+    private int top;
+
     void place(int leftPos, int topPos) {
+        left = leftPos;
+        top = topPos;
         for (int i = 0; i < gauges.length; i++) {
             gauges[i].place(leftPos + X + i * STEP, topPos + Y);
         }
+    }
+
+    /** The principle whose gauge is under the mouse, or null. */
+    Principle principleAt(double mouseX, double mouseY) {
+        for (Principle principle : Principle.values()) {
+            int x = left + X + principle.ordinal() * STEP;
+            int y = top + Y;
+            if (mouseX >= x && mouseX < x + WIDTH && mouseY >= y && mouseY < y + HEIGHT) {
+                return principle;
+            }
+        }
+        return null;
+    }
+
+    /** Sends a gauge click when a container is on the cursor; returns whether the click was a gauge click. */
+    boolean click(net.minecraft.client.Minecraft minecraft, int containerId, net.minecraft.world.item.ItemStack carried,
+                  double mouseX, double mouseY) {
+        Principle principle = principleAt(mouseX, mouseY);
+        if (principle == null || carried.isEmpty() || minecraft.gameMode == null) {
+            return false;
+        }
+        minecraft.gameMode.handleInventoryButtonClick(containerId,
+                io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleBuckets.GAUGE_BUTTON_FIRST + principle.ordinal());
+        return true;
     }
 
     private FluidStack stack(Principle principle) {

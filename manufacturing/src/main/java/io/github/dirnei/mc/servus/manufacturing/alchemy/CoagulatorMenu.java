@@ -54,6 +54,10 @@ public class CoagulatorMenu extends MachineMenu implements PrincipleMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
+        Principle principle = PrincipleBuckets.gaugeOf(id);
+        if (principle != null) {
+            return machine instanceof CoagulatorBlockEntity coagulator && PrincipleBuckets.clickGauge(player, this, coagulator.tanks(), principle);
+        }
         int index = id - RECIPE_BUTTON_FIRST;
         if (index >= 0 && id < SIDE_BUTTON_FIRST && machine instanceof CoagulatorBlockEntity coagulator) {
             List<RecipeHolder<CoagulationRecipe>> recipes = CoagulatorBlockEntity.sortedRecipes(player.level().getRecipeManager());

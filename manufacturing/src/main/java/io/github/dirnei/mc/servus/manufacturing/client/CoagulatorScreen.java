@@ -146,6 +146,9 @@ public class CoagulatorScreen extends MachineScreen {
             }
             return true;
         }
+        if (minecraft != null && gauges.click(minecraft, menu.containerId, menu.getCarried(), mouseX, mouseY)) {
+            return true;
+        }
         if (buttonHovered(mouseX, mouseY)) {
             popup.open(leftPos, topPos, imageWidth, imageHeight, recipes().size(), selected());
             popupOpen = true;

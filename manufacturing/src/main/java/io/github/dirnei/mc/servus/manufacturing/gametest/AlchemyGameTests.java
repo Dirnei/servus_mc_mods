@@ -519,4 +519,39 @@ public final class AlchemyGameTests {
         helper.assertTrue(copy.sideConfig().mode(RelativeSide.TOP) == SideMode.INPUT, "the Items layer is kept");
         helper.succeed();
     }
+
+    /** An empty bucket on the Calciner's Salt gauge takes Salt out; the Mercury stays. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void calcinerGaugeFillsABucket(GameTestHelper helper) {
+        CalcinerBlockEntity calciner = calciner(helper);
+        calciner.tanks().insert(new Principles(1500, 0, 1000));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerMenu menu =
+                new io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerMenu(0, player.getInventory(), calciner);
+        menu.setCarried(new ItemStack(Items.BUCKET));
+        boolean clicked = menu.clickMenuButton(player,
+                io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleBuckets.GAUGE_BUTTON_FIRST + Principle.SALT.ordinal());
+        helper.assertTrue(clicked, "the gauge click should be handled");
+        helper.assertTrue(menu.getCarried().is(PrincipleFluids.entry(Principle.SALT).bucket().get()), "the cursor should hold a Salt bucket");
+        helper.assertTrue(calciner.tanks().contents().equals(new Principles(500, 0, 1000)), "1,000 mB Salt should be gone, got "
+                + calciner.tanks().contents());
+        helper.succeed();
+    }
+
+    /** A Salt bucket used on the Coagulator block pours into its Salt tank and leaves an empty bucket. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void coagulatorTakesAPrincipleBucket(GameTestHelper helper) {
+        CoagulatorBlockEntity coagulator = coagulator(helper, null);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack bucket = new ItemStack(PrincipleFluids.entry(Principle.SALT).bucket().get());
+        player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, bucket);
+        BlockPos absolute = helper.absolutePos(MACHINE);
+        net.minecraft.world.phys.BlockHitResult hit = new net.minecraft.world.phys.BlockHitResult(
+                net.minecraft.world.phys.Vec3.atCenterOf(absolute), Direction.UP, absolute, false);
+        helper.getLevel().getBlockState(absolute).useItemOn(bucket, helper.getLevel(), player, net.minecraft.world.InteractionHand.MAIN_HAND, hit);
+        helper.assertTrue(coagulator.tanks().contents().equals(new Principles(1000, 0, 0)), "the Salt tank should hold 1,000 mB, got "
+                + coagulator.tanks().contents());
+        helper.assertTrue(player.getItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND).is(Items.BUCKET), "an empty bucket should be left");
+        helper.succeed();
+    }
 }

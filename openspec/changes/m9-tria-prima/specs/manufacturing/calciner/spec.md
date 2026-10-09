@@ -60,3 +60,10 @@ The Calciner SHALL be crafted at a crafting table from vanilla materials without
 #### Scenario: Recipe
 - **WHEN** the player crafts the Calciner pattern of bricks, iron ingots, a furnace and a cauldron
 - **THEN** one Calciner is produced
+
+### Requirement: Buckets from the gauges
+Clicking a principle gauge in the Calciner GUI with an empty bucket or another fluid container on the cursor SHALL fill it from that principle's tank when the tank holds enough. The Calciner SHALL NOT hand out principles to a container used on the block from outside.
+
+#### Scenario: Salt into a bucket
+- **WHEN** the player clicks the Salt gauge with an empty bucket on the cursor and the Salt tank holds 1,500 mB
+- **THEN** the cursor holds a Salt bucket and 500 mB Salt remain

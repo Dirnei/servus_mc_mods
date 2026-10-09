@@ -36,4 +36,13 @@ public class CalcinerScreen extends MachineScreen {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         gauges.renderTooltip(guiGraphics, font, mouseX, mouseY);
     }
+
+    /** A bucket on the cursor dropped on a gauge takes that principle out. */
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (minecraft != null && gauges.click(minecraft, menu.containerId, menu.getCarried(), mouseX, mouseY)) {
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
 }

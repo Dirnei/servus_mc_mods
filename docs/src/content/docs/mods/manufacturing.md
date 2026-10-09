@@ -20,7 +20,7 @@ Each chapter of the journal tells part of Paracelsus' life and lists tasks: do s
 
 ## The three principles
 
-Salt, Sulfur and Mercury are fluids. They flow through the Fluid Pipe, wait in Fluid Tanks, go into buckets and can be voided in the Sink like any other fluid. Poured into the world they flow like water but never make new sources.
+Salt, Sulfur and Mercury are fluids. They flow through the Fluid Pipe, wait in Fluid Tanks, go into buckets and can be voided in the Sink like any other fluid. Poured into the world they flow like water but never make new sources. To fill a bucket with one principle, open the Calciner and click its gauge with the empty bucket; to pour a principle bucket into the Coagulator, Athanor or Gnome Hollow, use it on the block (in the Coagulator you can also click a gauge with it).
 
 ## Machines
 

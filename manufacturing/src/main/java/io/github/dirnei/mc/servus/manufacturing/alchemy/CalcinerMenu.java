@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.MachineSlot;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingMenus;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
 
 /** The Calciner's input and fuel slots plus its synced principle tanks. */
@@ -27,6 +28,15 @@ public class CalcinerMenu extends MachineMenu implements PrincipleMenu {
     protected void addMachineSlots() {
         addSlot(new MachineSlot(machine, CalcinerBlockEntity.SLOT_INPUT, 56, 17));
         addSlot(new MachineSlot(machine, CalcinerBlockEntity.SLOT_FUEL, 56, 53));
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        Principle principle = PrincipleBuckets.gaugeOf(id);
+        if (principle != null) {
+            return machine instanceof CalcinerBlockEntity calciner && PrincipleBuckets.clickGauge(player, this, calciner.tanks(), principle);
+        }
+        return super.clickMenuButton(player, id);
     }
 
     @Override

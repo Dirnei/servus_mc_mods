@@ -66,3 +66,10 @@ Manufacturing SHALL add the items Salt Crystal, Sulfur and Quicksilver, made onl
 #### Scenario: Sulfur
 - **WHEN** a Coagulator runs the shipped Sulfur recipe
 - **THEN** it makes the Sulfur item from Sulfur principle
+
+### Requirement: Buckets pour in
+A filled principle bucket or container SHALL pour into the matching tank when the player uses it on the Coagulator block, instead of opening the GUI, and when the player clicks any principle gauge in the GUI with it on the cursor. The player SHALL get the empty container back.
+
+#### Scenario: Salt bucket on the block
+- **WHEN** a player uses a Salt bucket on a Coagulator with room in its Salt tank
+- **THEN** the Salt tank gains 1,000 mB and the player holds an empty bucket
