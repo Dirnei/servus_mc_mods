@@ -99,7 +99,8 @@ final class WorkshopCategory extends CategoryProvider {
             e.text("emptying", "Taking Them Out",
                     "Each principle leaves where it belongs. Salt stays behind as ash in the Ash Pan. Mercury drips through the Receiver "
                             + "into the right tank, and Sulfur rises into the Hood and runs down the duct into the left tank.\n\n"
-                            + "Take them from the tanks with a pipe or a bucket. The Salt waits in the Ash Pan for a bucket, a pipe or a tank.");
+                            + "Take them from the tanks with a bucket, or with a pipe whose side at the tank you set to pull in with the carrot: "
+                            + "a tank on a plain side only ever fills. The Salt waits in the Ash Pan for a bucket, a pipe or a tank.");
             e.list("burns", "What Burns", AlchemyRecipeTable.calcination().stream()
                     .map(row -> PrincipleText.line(row.label(), row.output())).toList());
         });
