@@ -48,6 +48,8 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     private int pushCooldown;
     /** The lit state last given to the Firebox and the Hood. */
     private boolean partsLit;
+    /** The fill of each principle in sixteenths, -1 for empty, as last sent to the clients that draw it. */
+    private final int[] drawnFill = {-1, -1, -1};
 
     public CalcinerBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.CALCINER.get(), pos, state, 2);
@@ -194,6 +196,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
             pushCooldown = 0;
             if (formed()) {
                 CalcinerPorts.push(level, worldPosition, getBlockState().getValue(MachineBlock.FACING), tanks);
+                syncFill();
             }
         }
         return working;
@@ -202,6 +205,30 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     @Override
     protected int workTicks() {
         return currentRecipe().map(recipe -> Math.max(1, recipe.time())).orElse(Integer.MAX_VALUE);
+    }
+
+    /** Sends the tanks to the clients when a drawn fill level changed by a sixteenth. */
+    private void syncFill() {
+        boolean changed = false;
+        for (Principle principle : Principle.values()) {
+            int amount = tanks.amount(principle);
+            int fill = amount == 0 ? -1 : amount * 16 / Math.max(1, tanks.capacity());
+            if (fill != drawnFill[principle.ordinal()]) {
+                drawnFill[principle.ordinal()] = fill;
+                changed = true;
+            }
+        }
+        if (changed && level != null) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /** The clients draw the principles in the formed model. */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        tag.put("Principles", tanks.save(registries));
+        return tag;
     }
 
     @Override

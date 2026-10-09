@@ -30,7 +30,7 @@ public final class ServusManufacturingClient {
     /** Every machine draws its side modes on the block. */
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CALCINER.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.CALCINER.get(), CalcinerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.COAGULATOR.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(ServusManufacturingBlockEntities.ATHANOR.get(), AthanorRenderer::new);
     }
