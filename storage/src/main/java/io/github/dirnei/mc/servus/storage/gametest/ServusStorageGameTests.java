@@ -76,6 +76,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -201,14 +203,37 @@ public final class ServusStorageGameTests {
 
     private static final BlockPos NC_SEGMENT = new BlockPos(6, 1, 6);
 
-    /** A segment blocks nobody, keeps a full outline to target it, and is climbable. */
+    /** An entity above a segment stands on its top plate; one that descends or is inside passes. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void elevatorStandsFromAbove(GameTestHelper helper) {
+        helper.setBlock(NC_SEGMENT.below(), Blocks.STONE.defaultBlockState());
+        helper.setBlock(NC_SEGMENT, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        BlockState state = helper.getBlockState(NC_SEGMENT);
+        BlockPos absolute = helper.absolutePos(NC_SEGMENT);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setPos(absolute.getX() + 0.5, absolute.getY() + 1.0, absolute.getZ() + 0.5);
+        VoxelShape above = state.getCollisionShape(helper.getLevel(), absolute, CollisionContext.of(player));
+        helper.assertTrue(!above.isEmpty() && above.max(Direction.Axis.Y) == 1.0, "an entity above should stand on the top plate");
+        player.setShiftKeyDown(true);
+        helper.assertTrue(state.getCollisionShape(helper.getLevel(), absolute, CollisionContext.of(player)).isEmpty(),
+                "a sneaking player should sink through");
+        player.setShiftKeyDown(false);
+        player.setPos(absolute.getX() + 0.5, absolute.getY() + 0.2, absolute.getZ() + 0.5);
+        helper.assertTrue(state.getCollisionShape(helper.getLevel(), absolute, CollisionContext.of(player)).isEmpty(),
+                "an entity inside the segment should pass");
+        helper.assertTrue(state.isScaffolding(player), "sneaking should not hold the player like a ladder");
+        helper.succeed();
+    }
+
+    /** A segment has at most its top plate as collision, keeps a full outline to target it, and is climbable. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void elevatorHasNoCollision(GameTestHelper helper) {
         helper.setBlock(NC_SEGMENT.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(NC_SEGMENT, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
         BlockState state = helper.getBlockState(NC_SEGMENT);
         BlockPos absolute = helper.absolutePos(NC_SEGMENT);
-        helper.assertTrue(state.getCollisionShape(helper.getLevel(), absolute).isEmpty(), "a segment must have no collision");
+        VoxelShape plain = state.getCollisionShape(helper.getLevel(), absolute);
+        helper.assertTrue(plain.min(Direction.Axis.Y) >= 14.0 / 16.0, "without an entity only the top plate collides, like scaffolding");
         helper.assertTrue(!state.getShape(helper.getLevel(), absolute).isEmpty(), "a segment keeps an outline");
         helper.assertTrue(state.is(BlockTags.CLIMBABLE), "a segment is climbable");
         helper.succeed();

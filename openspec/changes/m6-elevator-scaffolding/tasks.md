@@ -6,7 +6,7 @@
 
 ## 2. Standing and sneaking down
 
-- [ ] 2.1 `ElevatorBlock`: collision plate from `ShaftFooting`, `isScaffolding` returns true. Rework `elevatorHasNoCollision` and add `elevatorStandsFromAbove` in `ServusStorageGameTests`. Verify with `gradlew build` and `:storage:runGameTestServer`.
+- [x] 2.1 `ElevatorBlock`: collision plate from `ShaftFooting`, `isScaffolding` returns true. Rework `elevatorHasNoCollision` and add `elevatorStandsFromAbove` in `ServusStorageGameTests`. Verify with `gradlew build` and `:storage:runGameTestServer`.
 
 ## 3. Plain click builds up
 

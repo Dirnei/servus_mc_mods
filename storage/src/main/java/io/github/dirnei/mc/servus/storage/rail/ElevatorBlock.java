@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -20,11 +21,15 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * One segment of a rail elevator shaft: four corner posts around an open
  * middle. Segments stack vertically into a shaft with one lift car and take
  * rails on their four sides; the network joins anything touching them.
- * Entities pass through and climb the shaft like a ladder.
+ * Entities pass through and climb the shaft, and stand on each level from
+ * above like on scaffolding.
  */
 public class ElevatorBlock extends ConnectableBlock {
 
     public static final MapCodec<ElevatorBlock> CODEC = simpleCodec(ElevatorBlock::new);
+
+    /** The walkable top, as thick as a scaffolding top. */
+    private static final VoxelShape TOP = Block.box(0, 14, 0, 16, 16, 16);
 
     public ElevatorBlock(Properties properties) {
         super(properties, 4);
@@ -49,10 +54,20 @@ public class ElevatorBlock extends ConnectableBlock {
         return Shapes.block();
     }
 
-    /** Players and entities walk through the shaft; the climbable tag lets them climb it. */
+    /**
+     * Like scaffolding: an entity above the segment stands on a thin plate at
+     * its top unless it is descending; inside or from the side it walks
+     * through, and the climbable tag lets it climb.
+     */
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.empty();
+        return ShaftFooting.stands(context.isAbove(Shapes.block(), pos, true), context.isDescending()) ? TOP : Shapes.empty();
+    }
+
+    /** Sneaking sinks through the shaft instead of holding on like on a ladder. */
+    @Override
+    public boolean isScaffolding(BlockState state, LevelReader level, BlockPos pos, LivingEntity entity) {
+        return true;
     }
 
     /** A segment stands on a solid block or on another segment. */
