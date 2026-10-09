@@ -27,7 +27,9 @@ public final class JournalBook extends SingleBookSubProvider {
     @Override
     protected BookModel additionalSetup(BookModel book) {
         // An inner margin so text keeps clear of the page edges.
-        return book.withGenerateBookItem(true)
+        // The journal is Manufacturing's own item, so it reads as a Servus item, not a Modonomicon one.
+        return book.withGenerateBookItem(false)
+                .withCustomBookItem(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "paracelsus_journal"))
                 .withBookTextOffsetX(7)
                 .withBookTextOffsetY(4)
                 .withBookTextOffsetWidth(-14)

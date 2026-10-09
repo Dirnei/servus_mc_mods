@@ -33,6 +33,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("journal.servus_manufacturing.schwaz", "Schwaz");
         add("journal.servus_manufacturing.villach.finished", "Finished the Villach chapter of the journal");
         add("journal.servus_manufacturing.schwaz.finished", "Finished the Schwaz chapter of the journal");
+        add("item.servus_manufacturing.paracelsus_journal", "Paracelsus' Journal");
         add("advancement.servus_manufacturing.journal.root", "Paracelsus' Journal");
         add("advancement.servus_manufacturing.journal.root.description", "Experience is the master. Chapters of the journal, finished by doing alchemy");
         add("commands.servus_manufacturing.journal.header", "Journal of your team:");

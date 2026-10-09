@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
@@ -287,7 +289,7 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
-    /** The journal recipe makes Modonomicon's book item set to Paracelsus' Journal. */
+    /** The journal recipe makes Manufacturing's own journal item, which opens Paracelsus' Journal. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void journalRecipeMakesTheJournal(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
@@ -296,7 +298,10 @@ public final class AlchemyGameTests {
                 .orElse(ItemStack.EMPTY);
         helper.assertTrue(!result.isEmpty(), "the journal recipe should exist");
         helper.assertTrue(ItemStack.isSameItemSameComponents(result, JournalBookItem.create()), "the result should be the journal, got " + result);
-        helper.assertTrue(result.getComponentsPatch().toString().contains("servus_manufacturing:journal"), "the book id should be set, got " + result.getComponentsPatch());
+        helper.assertTrue(result.is(ServusManufacturingItems.PARACELSUS_JOURNAL.get()), "the result should be the Servus journal item, got " + result);
+        helper.assertTrue(BuiltInRegistries.ITEM.getKey(result.getItem()).getNamespace().equals(ServusManufacturingIds.MOD_ID),
+                "the journal should belong to Servus: Manufacturing");
+        helper.assertTrue(((ParacelsusJournalItem) result.getItem()).bookId.equals(JournalBookItem.BOOK), "the item should open the journal book");
         helper.succeed();
     }
 

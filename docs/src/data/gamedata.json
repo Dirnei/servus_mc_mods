@@ -495,7 +495,7 @@
         {"item": "minecraft:book", "count": 1}
       ],
       "outputs": [
-        {"item": "modonomicon:modonomicon", "count": 1}
+        {"item": "servus_manufacturing:paracelsus_journal", "count": 1}
       ]
     },
     "servus_manufacturing:salt_crystal_block": {
@@ -915,9 +915,6 @@
     "minecraft:stick": {
       "name": "Stick"
     },
-    "modonomicon:modonomicon": {
-      "name": "Modonomicon"
-    },
     "servus_foundation:burner_pump": {
       "name": "Burner Pump"
     },
@@ -977,6 +974,9 @@
     },
     "servus_manufacturing:gnome_hollow": {
       "name": "Gnome Hollow"
+    },
+    "servus_manufacturing:paracelsus_journal": {
+      "name": "Paracelsus' Journal"
     },
     "servus_manufacturing:salt_crystal": {
       "name": "Salt Crystal"

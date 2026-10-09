@@ -23,6 +23,7 @@ final class ServusManufacturingItemModelProvider extends ItemModelProvider {
         basicItem(ServusManufacturingItems.SULFUR.get());
         basicItem(ServusManufacturingItems.QUICKSILVER.get());
         basicItem(ElementalSight.ELIXIR.get());
+        basicItem(ServusManufacturingItems.PARACELSUS_JOURNAL.get());
         // Buckets draw their principle with NeoForge's fluid container model, tinted like the fluid.
         for (Principle principle : Principle.values()) {
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);

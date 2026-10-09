@@ -11,7 +11,7 @@ Numbers below are the current defaults. Machine stats and recipes live in datapa
 
 ## Paracelsus' Journal
 
-The journal is the tech tree. Every player gets it at their first login, and it can be crafted from a book and a piece of coal. It is a Modonomicon book, so Modonomicon is required.
+The journal is the tech tree. Every player gets it at their first login, and it can be crafted from a book and a piece of coal. The book runs on Modonomicon, so Modonomicon is required, but the journal itself is a Servus item. Besides the story, its Workshop tab shows how to build and use every machine, with the crafting recipes and a list of every calcination, coagulation and Athanor recipe.
 
 Each chapter of the journal tells part of Paracelsus' life and lists tasks: do something a number of times, or make something for the first time. Your team shares the tasks. When all tasks of a chapter are done, the chapter is finished for the whole team, each member gets its advancement, and the next chapter opens in the book. `/servus_manufacturing journal` shows the progress.
 

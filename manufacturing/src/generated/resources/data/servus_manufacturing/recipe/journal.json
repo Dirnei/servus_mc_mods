@@ -10,10 +10,7 @@
     }
   ],
   "result": {
-    "components": {
-      "modonomicon:book_id": "servus_manufacturing:journal"
-    },
     "count": 1,
-    "id": "modonomicon:modonomicon"
+    "id": "servus_manufacturing:paracelsus_journal"
   }
 }

@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.registry;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
+import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
 import java.util.List;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -21,8 +22,11 @@ public final class ServusManufacturingItems {
     public static final DeferredItem<Item> SULFUR = ITEMS.registerSimpleItem("sulfur");
     public static final DeferredItem<Item> QUICKSILVER = ITEMS.registerSimpleItem("quicksilver");
 
+    public static final DeferredItem<ParacelsusJournalItem> PARACELSUS_JOURNAL = ITEMS.registerItem("paracelsus_journal",
+            ParacelsusJournalItem::new, new Item.Properties().stacksTo(1));
+
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CALCINER, COAGULATOR, ATHANOR, GNOME_HOLLOW,
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, COAGULATOR, ATHANOR, GNOME_HOLLOW,
             SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER);
 
     private ServusManufacturingItems() {
