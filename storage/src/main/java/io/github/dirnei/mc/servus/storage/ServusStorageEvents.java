@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage;
 
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
-import io.github.dirnei.mc.servus.storage.access.WarehouseSupplier;
+import io.github.dirnei.mc.servus.storage.packing.WarehouseSupplier;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
@@ -94,9 +94,9 @@ public final class ServusStorageEvents {
                     (rack, side) -> rack.items());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.ACCESS_POINT.get(),
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point.handlerFor(side));
-            event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.ACCESS_POINT.get(),
+            event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point);
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.CRAFTING_CPU.get(),
                     (cpu, side) -> cpu.dataLink());
@@ -120,7 +120,7 @@ public final class ServusStorageEvents {
                     (controller, side) -> controller.sink());
             event.registerBlockEntity(ServusFoundationCapabilities.SUPPLIER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
                     (controller, side) -> new WarehouseSupplier(controller));
-            event.registerBlockEntity(ServusFoundationCapabilities.SUPPLIER, ServusStorageBlockEntities.ACCESS_POINT.get(),
+            event.registerBlockEntity(ServusFoundationCapabilities.SUPPLIER, ServusStorageBlockEntities.PACKING_STATION.get(),
                     (point, side) -> new WarehouseSupplier(point));
         }
     }

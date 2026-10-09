@@ -168,7 +168,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(LIFT_RAIL_HIGH, ServusStorageBlocks.RAIL.get().defaultBlockState());
         helper.setBlock(LIFT_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        // The Access Point joins only through a rail: two rails south of the controller and the Access Point.
+        // The Packing Station joins only through a rail: two rails south of the controller and the Packing Station.
         for (BlockPos rail : List.of(LIFT_CONTROLLER.south(), LIFT_TERMINAL.south())) {
             helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
             placeRail(helper, rail);

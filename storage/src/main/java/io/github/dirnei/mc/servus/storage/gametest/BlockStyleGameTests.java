@@ -113,10 +113,10 @@ public final class BlockStyleGameTests {
         helper.succeed();
     }
 
-    /** Dismantling an Access Point with the carrot drops it with its wood. */
+    /** Dismantling a Packing Station with the carrot drops it with its wood. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void woodSurvivesDismantle(GameTestHelper helper) {
-        helper.setBlock(AT, ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        helper.setBlock(AT, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         ((WoodHolder) helper.getLevel().getBlockEntity(helper.absolutePos(AT))).woodSlot().set(SPRUCE);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setShiftKeyDown(true);
@@ -125,9 +125,9 @@ public final class BlockStyleGameTests {
         BlockPos pos = helper.absolutePos(AT);
         ((ConfigurationCarrotItem) carrot.getItem()).useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot,
                 new BlockHitResult(Vec3.atCenterOf(pos), Direction.NORTH, pos, false)));
-        helper.assertBlockNotPresent(ServusStorageBlocks.ACCESS_POINT.get(), AT);
+        helper.assertBlockNotPresent(ServusStorageBlocks.PACKING_STATION.get(), AT);
         List<ItemEntity> items = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(1),
-                entity -> entity.getItem().is(ServusStorageItems.ACCESS_POINT.get()));
+                entity -> entity.getItem().is(ServusStorageItems.PACKING_STATION.get()));
         helper.assertTrue(items.size() == 1 && SPRUCE.equals(Wood.of(items.get(0).getItem())), "the dismantled item keeps spruce, got " + items);
         helper.succeed();
     }

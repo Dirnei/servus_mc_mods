@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.terminal;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
  * The warehouses a block reaches over its data line: those whose controller
- * or one of whose Access Points is a member of its data network and that are
+ * or one of whose Packing Stations is a member of its data network and that are
  * online. Server thread only.
  */
 public final class TerminalWarehouses {
@@ -59,7 +59,7 @@ public final class TerminalWarehouses {
             Optional<WarehouseNetwork> network = Optional.empty();
             if (entity instanceof WarehouseControllerBlockEntity controller) {
                 network = controller.network();
-            } else if (entity instanceof AccessPointBlockEntity point) {
+            } else if (entity instanceof PackingStationBlockEntity point) {
                 network = point.network();
             }
             network.filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).ifPresent(found::add);

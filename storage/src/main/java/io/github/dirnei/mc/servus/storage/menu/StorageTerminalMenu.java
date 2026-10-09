@@ -222,7 +222,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         return result;
     }
 
-    /** Hands a stack to the input row, which stores it through an Access Point; returns what did not fit. */
+    /** Hands a stack to the input row, which stores it through a Packing Station; returns what did not fit. */
     private ItemStack store(ItemStack stack) {
         return terminal.queueInput(stack);
     }

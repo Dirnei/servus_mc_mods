@@ -12,7 +12,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 /**
  * Progress of production that outlives the block entities taking part:
- * shipments from Access Points and outputs moving back from producers, by
+ * shipments from Packing Stations and outputs moving back from producers, by
  * id, plus the counters for transfer and request ids. Owners keep only ids
  * and book them here, so a delivery that ends while its owner is unloaded,
  * or across a restart, is not lost. One per dimension, saved with it.

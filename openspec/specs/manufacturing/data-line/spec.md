@@ -13,7 +13,7 @@ The Burner Extractor, Burner Smelter, Burner Pump and Coal Generator SHALL expos
 - **THEN** it answers coal, level 16 and count 5
 
 #### Scenario: Refilled from the warehouse
-- **WHEN** a Burner Smelter with an empty fuel slot is on a data line with a warehouse holding coal and an Access Point
+- **WHEN** a Burner Smelter with an empty fuel slot is on a data line with a warehouse holding coal and a Packing Station
 - **THEN** after a while its fuel slot holds 16 coal without any order
 
 ### Requirement: Upkeep stats
@@ -35,7 +35,7 @@ The Burner Smelter SHALL expose the production capability: one recipe per input 
 - **THEN** it reports a recipe with one raw iron in, one iron ingot out and 80 ticks
 
 #### Scenario: Order through the smelter
-- **WHEN** a Crafting CPU plans 4 iron ingots on a line with a warehouse holding raw iron, an Access Point and a Burner Smelter
+- **WHEN** a Crafting CPU plans 4 iron ingots on a line with a warehouse holding raw iron, a Packing Station and a Burner Smelter
 - **THEN** the step runs on the smelter, the raw iron arrives as packets and the 4 ingots are collected into storage, and the order has no coal in it
 
 ### Requirement: Crusher is a producer

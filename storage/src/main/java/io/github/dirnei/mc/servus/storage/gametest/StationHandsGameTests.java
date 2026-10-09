@@ -52,7 +52,7 @@ public final class StationHandsGameTests {
     private StationHandsGameTests() {
     }
 
-    /** Warehouse with planks, Access Point, two plain stations, a sticks pattern and a CPU on one data line. */
+    /** Warehouse with planks, Packing Station, two plain stations, a sticks pattern and a CPU on one data line. */
     static CrateBlockEntity setup(GameTestHelper helper, int planks) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -147,11 +147,11 @@ public final class StationHandsGameTests {
     }
 
     /**
-     * A station right beside the Access Point keeps its job's sticks for the CPU instead of pushing them
-     * into the Access Point, so they are counted and the order finishes.
+     * A station right beside the Packing Station keeps its job's sticks for the CPU instead of pushing them
+     * into the Packing Station, so they are counted and the order finishes.
      */
     @GameTest(template = EMPTY, timeoutTicks = 800)
-    public static void stationBesideAccessPointFinishes(GameTestHelper helper) {
+    public static void stationBesidePackingStationFinishes(GameTestHelper helper) {
         setup(helper, 8);
         BlockPos beside = new BlockPos(3, 1, 3);
         helper.setBlock(STATION_A, Blocks.AIR.defaultBlockState());
@@ -160,12 +160,12 @@ public final class StationHandsGameTests {
         TerminalWiring.when(helper, () -> DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2)))
                 .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 1
                         && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
-                .orElse(false), 60, () -> "the station beside the Access Point and the CPU should join the line", () -> {
+                .orElse(false), 60, () -> "the station beside the Packing Station and the CPU should join the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 4, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             helper.assertTrue(order.steps().get(0).producer().equals(helper.absolutePos(beside)),
-                    "the step should run on the station beside the Access Point, got " + order.steps().get(0).producer());
+                    "the step should run on the station beside the Packing Station, got " + order.steps().get(0).producer());
             TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 700,
                     () -> "the order should finish, state " + order.state() + " " + order.reason(), () -> {
                 helper.assertTrue(station(helper, beside).job().isEmpty(), "the station is idle after the step");

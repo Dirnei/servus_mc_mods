@@ -18,9 +18,9 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Places a Storage Terminal on the data line the way the older tests had it
- * beside the warehouse: an Access Point takes the terminal's old spot, a data
+ * beside the warehouse: a Packing Station takes the terminal's old spot, a data
  * duct sits on top of it and the terminal on top of the duct. Stations join
- * only through rails, so unless a rail already touches the Access Point a rail
+ * only through rails, so unless a rail already touches the Packing Station a rail
  * is laid under it and under every storage block beside it.
  */
 public final class TerminalWiring {
@@ -28,9 +28,9 @@ public final class TerminalWiring {
     private TerminalWiring() {
     }
 
-    /** Access Point at {@code pos}, data duct above, terminal two blocks up, linked to the warehouse by rail. */
+    /** Packing Station at {@code pos}, data duct above, terminal two blocks up, linked to the warehouse by rail. */
     public static void place(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        helper.setBlock(pos, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         dataDuct(helper, pos.above());
         helper.setBlock(terminalPos(pos), ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
                 .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
@@ -67,8 +67,8 @@ public final class TerminalWiring {
         return pos.above(2);
     }
 
-    /** Where {@link #place} put the Access Point. */
-    public static BlockPos accessPointPos(BlockPos pos) {
+    /** Where {@link #place} put the Packing Station. */
+    public static BlockPos packingStationPos(BlockPos pos) {
         return pos;
     }
 

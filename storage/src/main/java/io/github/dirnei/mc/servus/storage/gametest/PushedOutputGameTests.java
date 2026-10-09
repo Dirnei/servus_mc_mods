@@ -6,7 +6,7 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
@@ -25,9 +25,9 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
- * A producer beside an Access Point that pushes its outputs on its own. The
+ * A producer beside a Packing Station that pushes its outputs on its own. The
  * station below has only Input sides, so the CPU can not collect its outputs;
- * the test moves them through the Access Point face that touches the station,
+ * the test moves them through the Packing Station face that touches the station,
  * which is what a pushing machine does.
  */
 @GameTestHolder(ServusStorageIds.MOD_ID)
@@ -42,7 +42,7 @@ public final class PushedOutputGameTests {
     private PushedOutputGameTests() {
     }
 
-    /** Places the station east of the Access Point with every side Input. */
+    /** Places the station east of the Packing Station with every side Input. */
     private static CraftingStationBlockEntity pushingStation(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 8);
         helper.setBlock(new BlockPos(4, 1, 2), Blocks.AIR.defaultBlockState());
@@ -65,13 +65,13 @@ public final class PushedOutputGameTests {
                 .orElse(false);
     }
 
-    /** Takes the crafted sticks out of the station and inserts them into the Access Point through the given face. */
+    /** Takes the crafted sticks out of the station and inserts them into the Packing Station through the given face. */
     private static void push(GameTestHelper helper, CraftingStationBlockEntity station, Direction face) {
         int count = station.outputs().getStackInSlot(0).getCount();
         ItemStack sticks = station.outputs().extractItem(0, count, false);
-        AccessPointBlockEntity point = helper.getBlockEntity(TerminalWiring.accessPointPos(ACCESS));
+        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS));
         ItemStack left = ItemHandlerHelper.insertItem(point.handlerFor(face), sticks, false);
-        helper.assertTrue(left.isEmpty(), "the Access Point should take the sticks, left " + left);
+        helper.assertTrue(left.isEmpty(), "the Packing Station should take the sticks, left " + left);
     }
 
     private static boolean crafted(CraftingStationBlockEntity station) {

@@ -48,7 +48,7 @@ public final class AdapterOrderGameTests {
     private AdapterOrderGameTests() {
     }
 
-    /** Warehouse with cobblestone and coal, Access Point, an adapter on a furnace and a CPU on one data line. */
+    /** Warehouse with cobblestone and coal, Packing Station, an adapter on a furnace and a CPU on one data line. */
     private static void setup(GameTestHelper helper) {
         setup(helper, new ItemStack(Items.COBBLESTONE, 16));
     }

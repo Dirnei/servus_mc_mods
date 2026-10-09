@@ -51,9 +51,9 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Crafting CPUs on the data line. The warehouse is a controller at (2,1,2)
- * with crates west of it and an Access Point at (2,1,3), a data duct on the
- * Access Point and the Storage Terminal on top. Data ducts run along y 2
- * from the Access Point east to a Crafting Station at (4,1,2) and on to the
+ * with crates west of it and a Packing Station at (2,1,3), a data duct on the
+ * Packing Station and the Storage Terminal on top. Data ducts run along y 2
+ * from the Packing Station east to a Crafting Station at (4,1,2) and on to the
  * CPU cube at x 6 to 8, z 1 to 3; a second cube can stand at z 5 to 7.
  */
 @GameTestHolder(ServusStorageIds.MOD_ID)

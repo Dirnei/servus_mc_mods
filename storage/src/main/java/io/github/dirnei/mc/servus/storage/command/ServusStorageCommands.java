@@ -231,9 +231,9 @@ public final class ServusStorageCommands {
             return 0;
         }
         int planned = shipping.shipment().map(shipment -> shipment.planned()).orElse(0);
-        BlockPos via = shipping.accessPoint();
+        BlockPos via = shipping.packingStation();
         source.sendSuccess(() -> Component.literal("Shipping " + planned + " " + wanted.getHoverName().getString()
-                + " via the Access Point at " + via.toShortString()), false);
+                + " via the Packing Station at " + via.toShortString()), false);
         return planned;
     }
 

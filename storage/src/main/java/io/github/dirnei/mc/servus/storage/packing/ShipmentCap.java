@@ -1,10 +1,10 @@
-package io.github.dirnei.mc.servus.storage.access;
+package io.github.dirnei.mc.servus.storage.packing;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * After an Access Point loads, its shipments may only wait for what its
+ * After a Packing Station loads, its shipments may only wait for what its
  * outgoing buffer holds: picks that were on their way may never come. Shares
  * the buffer among the shipments of one item, oldest first. Pure.
  */

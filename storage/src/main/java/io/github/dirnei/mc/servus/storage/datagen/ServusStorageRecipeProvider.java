@@ -178,7 +178,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_hopper", has(Items.HOPPER))
                 .save(WoodRecipes.output(output));
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.ACCESS_POINT.get())
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.PACKING_STATION.get())
                 .pattern("IRI")
                 .pattern("OCO")
                 .pattern("PPP")

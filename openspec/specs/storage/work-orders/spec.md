@@ -37,7 +37,7 @@ An order SHALL be planned with the Foundation order planner over the recipes of 
 - **THEN** the order is blocked with planks missing and starts when planks arrive
 
 ### Requirement: States and reasons
-An order SHALL be waiting for its CPU, running, blocked, done or cancelled. Blocked reasons SHALL be: a missing raw material by name, the delivery needing a shuttle no garage provides, no Access Point on the line, or the producer out of reach. Each step SHALL show waiting for the producer, delivering, producing or done. `/servus_warehouse orders <pos>` SHALL list every order with its item, amount, state, reason and steps.
+An order SHALL be waiting for its CPU, running, blocked, done or cancelled. Blocked reasons SHALL be: a missing raw material by name, the delivery needing a shuttle no garage provides, no Packing Station on the line, or the producer out of reach. Each step SHALL show waiting for the producer, delivering, producing or done. `/servus_warehouse orders <pos>` SHALL list every order with its item, amount, state, reason and steps.
 
 #### Scenario: Listing
 - **WHEN** an op runs the orders command while a sticks order is producing

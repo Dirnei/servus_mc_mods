@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.gametest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
@@ -157,11 +157,11 @@ public final class PersistGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void shipmentCappedAfterReload(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
-        AccessPointBlockEntity point = helper.getBlockEntity(TerminalWiring.accessPointPos(ACCESS));
-        AccessPointBlockEntity.Shipment shipment = point.addShipment(helper.absolutePos(STATION_A), STICK, 16);
+        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS));
+        PackingStationBlockEntity.Shipment shipment = point.addShipment(helper.absolutePos(STATION_A), STICK, 16);
         ItemHandlerHelper.insertItemStacked(point.outgoing(), new ItemStack(Items.STICK, 8), false);
         long id = shipment.id();
-        AccessPointBlockEntity loaded = reload(helper, TerminalWiring.accessPointPos(ACCESS));
+        PackingStationBlockEntity loaded = reload(helper, TerminalWiring.packingStationPos(ACCESS));
         helper.assertTrue(loaded.shipments().isEmpty() || loaded.shipments().get(0).id() == id, "no other shipment appears");
         ProductionLedger ledger = ProductionLedger.get(helper.getLevel());
         TerminalWiring.when(helper, () -> ledger.transfer(id) != null && ledger.transfer(id).asked() == 8, 150,

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "servus_storage:access_point"
+        "recipe": "servus_storage:packing_station"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "servus_storage:access_point"
+      "servus_storage:packing_station"
     ]
   }
 }

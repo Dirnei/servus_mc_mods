@@ -61,11 +61,11 @@ A new order SHALL go to the CPU of the data line that has a free slot, the one w
 - **THEN** each CPU holds two orders and no order waits
 
 ### Requirement: Steps run over the data line
-The producers of a CPU SHALL be the members of its data line with the producer role. A step SHALL run on the producer whose reported recipe it uses, or, for a step planned from a pattern, on a producer of the line that can execute that pattern; when it plans, a CPU SHALL prefer producers no step occupies. Before the inputs of a pattern step on a Crafting Station are shipped, the CPU SHALL hand the station the step's pattern and batches as its job; a station that refuses keeps the step waiting for the station. Its inputs SHALL be shipped by the warehouses of the line through an Access Point as packets into the producer, the warehouse holding the most of an input first. While the step delivers or produces, outputs of its recipe in the producer SHALL be moved as packets to an Access Point of the line, where they are put away; what arrives there SHALL count for the step. A step whose shipment ends short SHALL ship the rest again. When a step is done or its order is cancelled, the CPU SHALL end the station's job. Each producer SHALL run one step at a time over all CPUs of the line, orders in creation order.
+The producers of a CPU SHALL be the members of its data line with the producer role. A step SHALL run on the producer whose reported recipe it uses, or, for a step planned from a pattern, on a producer of the line that can execute that pattern; when it plans, a CPU SHALL prefer producers no step occupies. Before the inputs of a pattern step on a Crafting Station are shipped, the CPU SHALL hand the station the step's pattern and batches as its job; a station that refuses keeps the step waiting for the station. Its inputs SHALL be shipped by the warehouses of the line through a Packing Station as packets into the producer, the warehouse holding the most of an input first. While the step delivers or produces, outputs of its recipe in the producer SHALL be moved as packets to a Packing Station of the line, where they are put away; what arrives there SHALL count for the step. A step whose shipment ends short SHALL ship the rest again. When a step is done or its order is cancelled, the CPU SHALL end the station's job. Each producer SHALL run one step at a time over all CPUs of the line, orders in creation order.
 
 #### Scenario: Sticks over the line
-- **WHEN** a CPU runs a sticks step for 2 batches on a Crafting Station on the line, and the warehouse has planks and an Access Point on the line
-- **THEN** the station gets a sticks job for 2 crafts, 4 planks arrive in the station as packets, it crafts twice, the 8 sticks travel back to the Access Point and into storage, the step is done and the station is idle again
+- **WHEN** a CPU runs a sticks step for 2 batches on a Crafting Station on the line, and the warehouse has planks and a Packing Station on the line
+- **THEN** the station gets a sticks job for 2 crafts, 4 planks arrive in the station as packets, it crafts twice, the 8 sticks travel back to the Packing Station and into storage, the step is done and the station is idle again
 
 #### Scenario: Producer busy
 - **WHEN** two CPUs each have an order that needs the same Crafting Station
@@ -80,25 +80,25 @@ The producers of a CPU SHALL be the members of its data line with the producer r
 - **THEN** the step runs on that station and counts the sticks that come back like any step
 
 ### Requirement: Diagnosis commands
-`/servus_warehouse orders <pos>` SHALL list the orders of every CPU on the data line found from the position (a data member, a CPU block, or a warehouse block whose Access Point is on a line) with item, amount, state, reason and steps. `/servus_warehouse order <pos> <item> <count>` SHALL make an order on that line without a request. `/servus_warehouse producers <pos>` SHALL list the producers of that line with their recipes.
+`/servus_warehouse orders <pos>` SHALL list the orders of every CPU on the data line found from the position (a data member, a CPU block, or a warehouse block whose Packing Station is on a line) with item, amount, state, reason and steps. `/servus_warehouse order <pos> <item> <count>` SHALL make an order on that line without a request. `/servus_warehouse producers <pos>` SHALL list the producers of that line with their recipes.
 
 #### Scenario: Listing
-- **WHEN** an op runs the orders command on a controller whose Access Point is on a line with a CPU running a sticks order
+- **WHEN** an op runs the orders command on a controller whose Packing Station is on a line with a CPU running a sticks order
 - **THEN** chat lists the CPU, the order with its state and the sticks step on the Crafting Station
 
 ### Requirement: Pushed outputs count
-Items of a step's recipe output that the step's producer pushes into an Access Point through the face touching the producer SHALL count for that step while it delivers or produces, up to what the step still needs; when several steps of the Access Point's data line match, the oldest order's step SHALL be served first. Items entering an Access Point through a face that does not touch the producer SHALL count for no step.
+Items of a step's recipe output that the step's producer pushes into a Packing Station through the face touching the producer SHALL count for that step while it delivers or produces, up to what the step still needs; when several steps of the Packing Station's data line match, the oldest order's step SHALL be served first. Items entering a Packing Station through a face that does not touch the producer SHALL count for no step.
 
-#### Scenario: Producer beside the Access Point
-- **WHEN** a sticks step runs on a producer directly beside an Access Point and the producer pushes 4 sticks into it
+#### Scenario: Producer beside the Packing Station
+- **WHEN** a sticks step runs on a producer directly beside a Packing Station and the producer pushes 4 sticks into it
 - **THEN** the 4 sticks are put away, the step counts them and the order is done
 
 #### Scenario: Other face
-- **WHEN** 4 sticks enter that Access Point through a face that touches a hopper instead of the producer
+- **WHEN** 4 sticks enter that Packing Station through a face that touches a hopper instead of the producer
 - **THEN** the sticks are put away and the step counts none of them
 
 #### Scenario: No double count
-- **WHEN** the CPU moves the step's outputs as packets into an Access Point through its data duct
+- **WHEN** the CPU moves the step's outputs as packets into a Packing Station through its data duct
 - **THEN** they count once, when the packets land
 
 ### Requirement: Orders survive reloads
@@ -134,7 +134,7 @@ On every face of a formed CPU the lights SHALL sit inside the dark glass with at
 - **THEN** the lights nearest the corner are surrounded by glass and do not touch the frame
 
 ### Requirement: Results go straight to the requesting terminal
-A work order made for a Storage Terminal request SHALL remember that terminal. When the CPU collects the outputs of a step that makes the order's item, it SHALL send up to the amount the request still needs (and at most the order's amount) directly from the producer to the terminal as packets; the rest, and every output of a step that makes another item, SHALL go to an Access Point and be put away. Outputs SHALL count for the step wherever they land. When the terminal cannot be reached from the producer's data line the outputs SHALL go to the Access Point. The link and the amount already sent SHALL be saved with the order.
+A work order made for a Storage Terminal request SHALL remember that terminal. When the CPU collects the outputs of a step that makes the order's item, it SHALL send up to the amount the request still needs (and at most the order's amount) directly from the producer to the terminal as packets; the rest, and every output of a step that makes another item, SHALL go to a Packing Station and be put away. Outputs SHALL count for the step wherever they land. When the terminal cannot be reached from the producer's data line the outputs SHALL go to the Packing Station. The link and the amount already sent SHALL be saved with the order.
 
 #### Scenario: Sticks for a request
 - **WHEN** a request for 8 sticks makes an order and the station crafts 8 sticks
@@ -153,7 +153,7 @@ A work order made for a Storage Terminal request SHALL remember that terminal. W
 - **THEN** its outputs are put away as before
 
 ### Requirement: Intermediates go straight to the next step
-When the CPU collects outputs of a step that a later step of the same order still needs, and that later step is delivering on another producer, it SHALL send them as packets straight from the step's producer to the later step's producer, up to what the later step still needs, counted as fed inputs of the later step and as collected outputs of the step. Only outputs beyond that go to an Access Point. Storage SHALL ship the later step only the inputs it still needs after that.
+When the CPU collects outputs of a step that a later step of the same order still needs, and that later step is delivering on another producer, it SHALL send them as packets straight from the step's producer to the later step's producer, up to what the later step still needs, counted as fed inputs of the later step and as collected outputs of the step. Only outputs beyond that go to a Packing Station. Storage SHALL ship the later step only the inputs it still needs after that.
 
 #### Scenario: Planks to sticks on two stations
 - **WHEN** an order for 8 sticks has a planks step on one Crafting Station and a sticks step on a second station
@@ -165,10 +165,10 @@ When the CPU collects outputs of a step that a later step of the same order stil
 
 #### Scenario: Surplus still stored
 - **WHEN** a step makes 4 planks and the later step needs 2
-- **THEN** 2 planks go to the later step and 2 to an Access Point
+- **THEN** 2 planks go to the later step and 2 to a Packing Station
 
 ### Requirement: Waiting for the next step
-When a later step of the same order still needs a step's outputs but is not delivering yet because its producer is busy with another order, the outputs SHALL wait at their producer for up to `handoff_wait_ticks` (example 100, from `data/<ns>/storage/cpu.json`) and then go to an Access Point as before. When the later step runs on the same producer as the step, the outputs SHALL go to an Access Point without waiting.
+When a later step of the same order still needs a step's outputs but is not delivering yet because its producer is busy with another order, the outputs SHALL wait at their producer for up to `handoff_wait_ticks` (example 100, from `data/<ns>/storage/cpu.json`) and then go to a Packing Station as before. When the later step runs on the same producer as the step, the outputs SHALL go to a Packing Station without waiting.
 
 #### Scenario: Next producer stays busy
 - **WHEN** the only producer for the later step is busy with another order for longer than the wait

@@ -64,12 +64,12 @@ public final class TerminalCableGameTests {
         return 0;
     }
 
-    /** A request travels from a crate through the Access Point and three data ducts into the output slots. */
+    /** A request travels from a crate through the Packing Station and three data ducts into the output slots. */
     @GameTest(template = EMPTY, timeoutTicks = 400)
     public static void terminalRequestArrivesAsPackets(GameTestHelper helper) {
         CrateBlockEntity crate = crate(helper, new BlockPos(1, 1, 3), Items.OAK_PLANKS, 20);
         controller(helper, new BlockPos(2, 1, 3));
-        helper.setBlock(new BlockPos(3, 1, 3), ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        helper.setBlock(new BlockPos(3, 1, 3), ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         TerminalWiring.railUnder(helper, new BlockPos(3, 1, 3));
         for (int x = 4; x <= 6; x++) {
             TerminalWiring.dataDuct(helper, new BlockPos(x, 1, 3));
@@ -121,11 +121,11 @@ public final class TerminalCableGameTests {
     public static void twoWarehousesMergeAndSplit(GameTestHelper helper) {
         CrateBlockEntity first = crate(helper, new BlockPos(1, 1, 1), Items.COBBLESTONE, 30);
         controller(helper, new BlockPos(2, 1, 1));
-        helper.setBlock(new BlockPos(3, 1, 1), ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        helper.setBlock(new BlockPos(3, 1, 1), ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         TerminalWiring.railUnder(helper, new BlockPos(3, 1, 1));
         CrateBlockEntity second = crate(helper, new BlockPos(1, 1, 8), Items.COBBLESTONE, 20);
         controller(helper, new BlockPos(2, 1, 8));
-        helper.setBlock(new BlockPos(3, 1, 8), ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        helper.setBlock(new BlockPos(3, 1, 8), ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         TerminalWiring.railUnder(helper, new BlockPos(3, 1, 8));
         for (int z = 1; z <= 8; z++) {
             TerminalWiring.dataDuct(helper, new BlockPos(4, 1, z));
@@ -150,7 +150,7 @@ public final class TerminalCableGameTests {
     public static void terminalCancelPutsPicksBack(GameTestHelper helper) {
         CrateBlockEntity crate = crate(helper, new BlockPos(1, 1, 3), Items.COBBLESTONE, 64);
         controller(helper, new BlockPos(2, 1, 3));
-        helper.setBlock(new BlockPos(3, 1, 3), ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        helper.setBlock(new BlockPos(3, 1, 3), ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         TerminalWiring.railUnder(helper, new BlockPos(3, 1, 3));
         TerminalWiring.dataDuct(helper, new BlockPos(4, 1, 3));
         StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(5, 1, 3));
@@ -185,9 +185,9 @@ public final class TerminalCableGameTests {
         });
     }
 
-    /** A warehouse reached only through its controller cannot ship: there is no Access Point on the line. */
+    /** A warehouse reached only through its controller cannot ship: there is no Packing Station on the line. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void terminalRequestWithoutAccessPointIsRefused(GameTestHelper helper) {
+    public static void terminalRequestWithoutPackingStationIsRefused(GameTestHelper helper) {
         crate(helper, new BlockPos(1, 1, 3), Items.COBBLESTONE, 10);
         controller(helper, new BlockPos(2, 1, 3));
         TerminalWiring.dataDuct(helper, new BlockPos(3, 1, 3));
@@ -197,7 +197,7 @@ public final class TerminalCableGameTests {
         TerminalWiring.when(helper, () -> stockOf(menu, Items.COBBLESTONE) == 10, 60,
                 () -> "the controller on the line should make the stock visible", () -> {
             menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 5);
-            helper.assertTrue(menu.stock().message().equals("no_access_point"), "the request is refused, got " + menu.stock().message());
+            helper.assertTrue(menu.stock().message().equals("no_packing_station"), "the request is refused, got " + menu.stock().message());
             helper.assertTrue(menu.stock().requests().isEmpty(), "no request is left open");
             helper.succeed();
         });

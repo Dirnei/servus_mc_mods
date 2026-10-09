@@ -66,7 +66,7 @@ class JobStatusTest {
 
     @Test
     void noStepUsesOrderReason() {
-        assertEquals(new Status("blocked", List.of("no access point")), JobStatus.of("blocked", "no access point", "", 0, null));
+        assertEquals(new Status("blocked", List.of("no packing station")), JobStatus.of("blocked", "no packing station", "", 0, null));
         assertEquals("running", JobStatus.of("running", "", "", 0, null).key());
     }
 

@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.access;
+package io.github.dirnei.mc.servus.storage.packing;
 
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
@@ -37,7 +37,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * outgoing buffer receives shuttle and instant picks for shipments and sends
  * them as packets, one delivery at a time.
  */
-public class AccessPointBlockEntity extends InboundStationBlockEntity implements DeliveryTarget, DataLink {
+public class PackingStationBlockEntity extends InboundStationBlockEntity implements DeliveryTarget, DataLink {
 
     /**
      * Items on their way to one data member. Its progress is a transfer in the
@@ -104,8 +104,8 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
     private int sendTimer;
     private final IItemHandler[] faces = new IItemHandler[6];
 
-    public AccessPointBlockEntity(BlockPos pos, BlockState state) {
-        super(ServusStorageBlockEntities.ACCESS_POINT.get(), pos, state);
+    public PackingStationBlockEntity(BlockPos pos, BlockState state) {
+        super(ServusStorageBlockEntities.PACKING_STATION.get(), pos, state);
     }
 
     @Override
@@ -241,7 +241,7 @@ public class AccessPointBlockEntity extends InboundStationBlockEntity implements
         }
     }
 
-    public static void serverTick(Level level, BlockPos pos, BlockState state, AccessPointBlockEntity point) {
+    public static void serverTick(Level level, BlockPos pos, BlockState state, PackingStationBlockEntity point) {
         InboundStationBlockEntity.serverTick(level, pos, state, point);
         if (level instanceof ServerLevel server && ++point.sendTimer >= StorageStatsManager.INSTANCE.pushInterval()) {
             point.sendTimer = 0;

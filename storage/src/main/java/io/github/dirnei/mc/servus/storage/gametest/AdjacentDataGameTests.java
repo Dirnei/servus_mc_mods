@@ -111,7 +111,7 @@ public final class AdjacentDataGameTests {
         CrateBlockEntity planks = helper.getBlockEntity(CRATE);
         planks.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
         helper.setBlock(new BlockPos(1, 1, 3), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        helper.setBlock(ACCESS, ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        helper.setBlock(ACCESS, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         TerminalWiring.railUnder(helper, ACCESS);
         TerminalWiring.dataDuct(helper, DUCT);
         row(helper);
@@ -123,7 +123,7 @@ public final class AdjacentDataGameTests {
         TerminalWiring.when(helper, () -> network(helper, TERMINAL)
                         .map(net -> CpuOrders.cpus(helper.getLevel(), net).size() == 1 && member(net, helper, ACCESS, DataRole.LINK))
                         .orElse(false), 60,
-                () -> "the CPU and the Access Point should be on the terminal's network", () -> {
+                () -> "the CPU and the Packing Station should be on the terminal's network", () -> {
             StorageTerminalBlockEntity terminal = helper.getBlockEntity(TERMINAL);
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
@@ -166,18 +166,18 @@ public final class AdjacentDataGameTests {
         });
     }
 
-    /** An Access Point and a Machine Adapter touching a lone terminal do not join its network. */
+    /** A Packing Station and a Machine Adapter touching a lone terminal do not join its network. */
     @GameTest(template = EMPTY, timeoutTicks = 40)
-    public static void accessPointAndAdapterDoNotJoin(GameTestHelper helper) {
+    public static void packingStationAndAdapterDoNotJoin(GameTestHelper helper) {
         terminal(helper, TERMINAL);
-        helper.setBlock(PATTERNS, ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        helper.setBlock(PATTERNS, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         helper.setBlock(STATION, AdapterContent.BLOCK.get().defaultBlockState());
         helper.runAfterDelay(3, () -> {
             DataNetwork net = network(helper, TERMINAL).orElseThrow();
             List<BlockPos> members = net.dataMembers().stream().map(member -> member.pos()).toList();
             helper.assertTrue(members.equals(List.of(helper.absolutePos(TERMINAL))), "only the terminal is a member, got " + members);
             helper.assertTrue(network(helper, PATTERNS).isEmpty() && network(helper, STATION).isEmpty(),
-                    "the Access Point and the adapter are on no network");
+                    "the Packing Station and the adapter are on no network");
             helper.succeed();
         });
     }

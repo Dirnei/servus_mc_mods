@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.gametest;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
@@ -27,13 +27,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-/** Crafting from the Storage Terminal: craftable items, previews, starting a craft, instant content, Access Point GUI. */
+/** Crafting from the Storage Terminal: craftable items, previews, starting a craft, instant content, Packing Station GUI. */
 @GameTestHolder(ServusStorageIds.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class TerminalCraftGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
-    /** Where {@link StationHandsGameTests#setup} puts the Access Point; the terminal sits two blocks above. */
+    /** Where {@link StationHandsGameTests#setup} puts the Packing Station; the terminal sits two blocks above. */
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     private static final BlockPos CPU = new BlockPos(6, 1, 1);
     private static final ItemKey STICK = ItemKey.of(new ItemStack(Items.STICK));
@@ -156,16 +156,16 @@ public final class TerminalCraftGameTests {
         });
     }
 
-    /** The intake GUI of an Access Point stays valid for a player in reach. */
+    /** The intake GUI of a Packing Station stays valid for a player in reach. */
     @GameTest(template = EMPTY, timeoutTicks = 40)
-    public static void accessPointMenuStaysValid(GameTestHelper helper) {
+    public static void packingStationMenuStaysValid(GameTestHelper helper) {
         TerminalWiring.place(helper, ACCESS);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        BlockPos absolute = helper.absolutePos(TerminalWiring.accessPointPos(ACCESS));
+        BlockPos absolute = helper.absolutePos(TerminalWiring.packingStationPos(ACCESS));
         player.moveTo(absolute.getX() + 0.5, absolute.getY() + 1, absolute.getZ() + 1.5);
-        AccessPointBlockEntity point = helper.getBlockEntity(TerminalWiring.accessPointPos(ACCESS));
+        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS));
         InboundStationMenu menu = new InboundStationMenu(1, player.getInventory(), point);
-        helper.assertTrue(menu.stillValid(player), "the Access Point GUI should stay open");
+        helper.assertTrue(menu.stillValid(player), "the Packing Station GUI should stay open");
         helper.succeed();
     }
 }

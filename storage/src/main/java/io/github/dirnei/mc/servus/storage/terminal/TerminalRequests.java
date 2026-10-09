@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.terminal;
 
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
@@ -20,7 +20,7 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
  * Requests of a Storage Terminal on the data line: shipped by the reachable
- * warehouses through their Access Points, booked as shipments end, retried
+ * warehouses through their Packing Stations, booked as shipments end, retried
  * while stock is missing. Server thread only.
  */
 public final class TerminalRequests {
@@ -50,7 +50,7 @@ public final class TerminalRequests {
      * Makes a request for {@code amount} of {@code key}.
      *
      * @return an empty string when the request was made, else the refusal key:
-     *         {@code offline}, {@code no_access_point}, {@code needs_shuttle}, {@code no_rail} or {@code out_of_stock}
+     *         {@code offline}, {@code no_packing_station}, {@code needs_shuttle}, {@code no_rail} or {@code out_of_stock}
      */
     public static String request(ServerLevel level, StorageTerminalBlockEntity terminal, ItemKey key, int amount) {
         List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(level, terminal.getBlockPos());
@@ -122,8 +122,8 @@ public final class TerminalRequests {
             WarehouseNetwork.Shipping shipping = warehouse.ship(terminal.getBlockPos(), request.key,
                     (int) Math.min(available, remaining), request.id);
             if (shipping.shipped()) {
-                AccessPointBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
-                request.shipments.add(new Tracked(shipping.accessPoint(), shipment.id(), shipment.planned()));
+                PackingStationBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
+                request.shipments.add(new Tracked(shipping.packingStation(), shipment.id(), shipment.planned()));
                 terminal.setChanged();
                 remaining -= shipment.planned();
             } else if (refusal[0].isEmpty()) {
@@ -213,7 +213,7 @@ public final class TerminalRequests {
         }
         CpuOrders.cancelForRequest(level, terminal.getBlockPos(), requestId);
         for (Tracked tracked : request.shipments) {
-            if (level.getBlockEntity(tracked.accessPoint()) instanceof AccessPointBlockEntity point) {
+            if (level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point) {
                 point.cancel(tracked.shipmentId());
             }
         }
@@ -232,7 +232,7 @@ public final class TerminalRequests {
 
     static RequestState state(ServerLevel level, StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
         for (Tracked tracked : request.shipments) {
-            if (level.getBlockEntity(tracked.accessPoint()) instanceof AccessPointBlockEntity point && point.isSending(tracked.shipmentId())) {
+            if (level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point && point.isSending(tracked.shipmentId())) {
                 // Packets that find no room wait at the terminal.
                 boolean fits = ItemHandlerHelper.insertItemStacked(terminal.output(), request.key.stack(1), true).isEmpty();
                 return fits ? RequestState.SENDING : RequestState.WAITING_ROOM;

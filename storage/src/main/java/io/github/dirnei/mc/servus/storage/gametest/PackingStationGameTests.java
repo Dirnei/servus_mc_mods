@@ -13,8 +13,8 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
-import io.github.dirnei.mc.servus.storage.access.ServusStorageShipping;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.packing.ServusStorageShipping;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
@@ -44,15 +44,15 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
- * Access Points between a warehouse and a data line. Rails run along z 6 from
+ * Packing Stations between a warehouse and a data line. Rails run along z 6 from
  * x 2 to 9 with the controller at x 1 and a crate beside it at x 0, a garage
- * north of the rail at x 2, Access Points south of the rail at x 3 (far) and
+ * north of the rail at x 2, Packing Stations south of the rail at x 3 (far) and
  * x 7 (near), a rack at x 9 facing the rail, data ducts along z 8 from x 3 to
  * 7 and a Crafting Station south of the ducts at x 5.
  */
 @GameTestHolder(ServusStorageIds.MOD_ID)
 @PrefixGameTestTemplate(false)
-public final class AccessPointGameTests {
+public final class PackingStationGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CRATE = new BlockPos(0, 1, 6);
@@ -64,7 +64,7 @@ public final class AccessPointGameTests {
     private static final BlockPos STATION = new BlockPos(5, 1, 9);
     private static final BlockPos DUCT = new BlockPos(5, 1, 8);
 
-    private AccessPointGameTests() {
+    private PackingStationGameTests() {
     }
 
     private record Setup(CrateBlockEntity crate, CraftingStationBlockEntity station, HeavyRackBlockEntity rack) {
@@ -86,8 +86,8 @@ public final class AccessPointGameTests {
         helper.setBlock(pos, state);
     }
 
-    private static void accessPoint(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+    private static void packingStation(GameTestHelper helper, BlockPos pos) {
+        helper.setBlock(pos, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
     }
 
     private static Setup setup(GameTestHelper helper, int cratePlanks, int rackPlanks, boolean far, boolean near) {
@@ -110,10 +110,10 @@ public final class AccessPointGameTests {
             rack.items().insertItem(0, new ItemStack(Items.OAK_PLANKS, rackPlanks), false);
         }
         if (far) {
-            accessPoint(helper, FAR);
+            packingStation(helper, FAR);
         }
         if (near) {
-            accessPoint(helper, NEAR);
+            packingStation(helper, NEAR);
         }
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState()
                 .setValue(CraftingStationBlock.FACING, Direction.SOUTH));
@@ -143,43 +143,43 @@ public final class AccessPointGameTests {
                 new ItemStack(Items.OAK_PLANKS), amount);
     }
 
-    /** Both Access Points are link members of the data line. */
+    /** Both Packing Stations are link members of the data line. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void accessPointIsLinkMember(GameTestHelper helper) {
+    public static void packingStationIsLinkMember(GameTestHelper helper) {
         setup(helper, 0, 0, true, true);
         helper.runAfterDelay(5, () -> {
             DataNetwork network = DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(DUCT)).orElseThrow();
             List<BlockPos> links = network.dataMembers(DataRole.LINK).stream().map(DataMember::pos).toList();
             helper.assertTrue(links.contains(helper.absolutePos(FAR)) && links.contains(helper.absolutePos(NEAR)),
-                    "both Access Points should be link members, got " + network.dataMembers());
+                    "both Packing Stations should be link members, got " + network.dataMembers());
             helper.assertTrue(network.dataMembers(DataRole.PRODUCER).size() == 1, "the station is the producer");
             helper.succeed();
         });
     }
 
-    /** An Access Point belongs to the warehouse of the rail beside it and holds no stock. */
+    /** A Packing Station belongs to the warehouse of the rail beside it and holds no stock. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void accessPointJoinsWarehouse(GameTestHelper helper) {
+    public static void packingStationJoinsWarehouse(GameTestHelper helper) {
         setup(helper, 8, 0, true, false);
         helper.runAfterDelay(10, () -> {
-            AccessPointBlockEntity point = helper.getBlockEntity(FAR);
+            PackingStationBlockEntity point = helper.getBlockEntity(FAR);
             point.outgoing().setStackInSlot(0, new ItemStack(Items.DIAMOND, 3));
-            WarehouseNetwork network = point.network().orElseThrow(() -> new AssertionError("the Access Point should be in a warehouse"));
+            WarehouseNetwork network = point.network().orElseThrow(() -> new AssertionError("the Packing Station should be in a warehouse"));
             helper.assertTrue(network.status() == WarehouseNetwork.Status.ONLINE, "the warehouse should be online");
             helper.assertTrue(network.index().count(io.github.dirnei.mc.servus.storage.network.ItemKey.of(new ItemStack(Items.DIAMOND))) == 0,
-                    "items in the Access Point are not stock");
+                    "items in the Packing Station are not stock");
             helper.succeed();
         });
     }
 
-    /** Planks sent as packets into an Access Point end up in the crate. */
+    /** Planks sent as packets into a Packing Station end up in the crate. */
     @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void packetsArePutAway(GameTestHelper helper) {
         Setup setup = setup(helper, 32, 0, true, false);
         helper.runAfterDelay(10, () -> {
             DataPackets.send(helper.getLevel(), helper.absolutePos(STATION), helper.absolutePos(FAR), new ItemStack(Items.OAK_PLANKS, 16))
                     .orElseThrow(() -> new AssertionError("the send should start"));
-            AccessPointBlockEntity point = helper.getBlockEntity(FAR);
+            PackingStationBlockEntity point = helper.getBlockEntity(FAR);
             helper.succeedWhen(() -> {
                 helper.assertTrue(setup.crate().count(0) == 48, "48 planks should be in the crate, got " + setup.crate().count(0));
                 helper.assertTrue(point.isEmpty(), "the intake should be empty again");
@@ -187,7 +187,7 @@ public final class AccessPointGameTests {
         });
     }
 
-    /** Bread put into a Storage Terminal's input travels to the Access Point and a shuttle puts it into the rack. */
+    /** Bread put into a Storage Terminal's input travels to the Packing Station and a shuttle puts it into the rack. */
     @GameTest(template = EMPTY, timeoutTicks = 600)
     public static void inputReachesRack(GameTestHelper helper) {
         Setup setup = setup(helper, 0, 0, false, true);
@@ -206,14 +206,14 @@ public final class AccessPointGameTests {
         });
     }
 
-    /** Planks in a crate are shipped at once to the Access Point and travel as packets to the station. */
+    /** Planks in a crate are shipped at once to the Packing Station and travel as packets to the station. */
     @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void shipFromCrate(GameTestHelper helper) {
         Setup setup = setup(helper, 32, 0, true, false);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork.Shipping shipping = ship(helper, 16);
             helper.assertTrue(shipping.shipped(), "shipping should start, refused " + shipping.refusal());
-            AccessPointBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
+            PackingStationBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
             helper.assertTrue(shipment.planned() == 16, "16 planned, got " + shipment.planned());
             helper.succeedWhen(() -> {
                 helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 16, "16 planks should reach the station");
@@ -223,7 +223,7 @@ public final class AccessPointGameTests {
         });
     }
 
-    /** Planks only in a rack ride a shuttle to the Access Point first. */
+    /** Planks only in a rack ride a shuttle to the Packing Station first. */
     @GameTest(template = EMPTY, timeoutTicks = 600)
     public static void shipFromRackByShuttle(GameTestHelper helper) {
         Setup setup = setup(helper, 0, 16, false, true);
@@ -238,37 +238,37 @@ public final class AccessPointGameTests {
         });
     }
 
-    /** With two Access Points the one nearer to the rack serves the shipment. */
+    /** With two Packing Stations the one nearer to the rack serves the shipment. */
     @GameTest(template = EMPTY, timeoutTicks = 600)
-    public static void nearerAccessPointWins(GameTestHelper helper) {
+    public static void nearerPackingStationWins(GameTestHelper helper) {
         Setup setup = setup(helper, 0, 16, true, true);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork.Shipping shipping = ship(helper, 16);
             helper.assertTrue(shipping.shipped(), "shipping should start, refused " + shipping.refusal());
-            helper.assertTrue(helper.absolutePos(NEAR).equals(shipping.accessPoint()),
-                    "the near Access Point should be chosen, got " + shipping.accessPoint());
+            helper.assertTrue(helper.absolutePos(NEAR).equals(shipping.packingStation()),
+                    "the near Packing Station should be chosen, got " + shipping.packingStation());
             helper.succeedWhen(() -> helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 16,
                     "16 planks should reach the station"));
         });
     }
 
-    /** Without an Access Point on the data line nothing leaves the warehouse. */
+    /** Without a Packing Station on the data line nothing leaves the warehouse. */
     @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void shipRefusedWithoutAccessPoint(GameTestHelper helper) {
+    public static void shipRefusedWithoutPackingStation(GameTestHelper helper) {
         Setup setup = setup(helper, 32, 0, false, false);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork.Shipping shipping = ship(helper, 16);
-            helper.assertTrue(shipping.refusal().equals("no_access_point"), "refused with no_access_point, got " + shipping.refusal());
+            helper.assertTrue(shipping.refusal().equals("no_packing_station"), "refused with no_packing_station, got " + shipping.refusal());
             helper.assertTrue(setup.crate().count(0) == 32, "the planks stay in the crate");
             helper.succeed();
         });
     }
 
-    /** A broken Access Point drops both buffers (the block itself drops by its loot table when mined with a pickaxe). */
+    /** A broken Packing Station drops both buffers (the block itself drops by its loot table when mined with a pickaxe). */
     @GameTest(template = EMPTY, timeoutTicks = 60)
-    public static void brokenAccessPointDropsBuffers(GameTestHelper helper) {
-        accessPoint(helper, FAR);
-        AccessPointBlockEntity point = helper.getBlockEntity(FAR);
+    public static void brokenPackingStationDropsBuffers(GameTestHelper helper) {
+        packingStation(helper, FAR);
+        PackingStationBlockEntity point = helper.getBlockEntity(FAR);
         point.outgoing().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 5));
         point.buffer().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 3));
         helper.destroyBlock(FAR);

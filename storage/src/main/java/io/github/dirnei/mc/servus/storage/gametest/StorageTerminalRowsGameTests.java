@@ -78,9 +78,9 @@ public final class StorageTerminalRowsGameTests {
         });
     }
 
-    /** Without an Access Point on the data line the stack stays in the input slot and the message says why. */
+    /** Without a Packing Station on the data line the stack stays in the input slot and the message says why. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void inputWaitsWithoutAccessPoint(GameTestHelper helper) {
+    public static void inputWaitsWithoutPackingStation(GameTestHelper helper) {
         BlockPos lone = new BlockPos(9, 1, 9);
         helper.setBlock(lone, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
                 .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
@@ -90,8 +90,8 @@ public final class StorageTerminalRowsGameTests {
             helper.runAfterDelay(30, () -> {
                 ItemStack left = terminal.input().getStackInSlot(0);
                 helper.assertTrue(left.is(Items.BREAD) && left.getCount() == 5, "the bread should stay in the input, got " + left);
-                helper.assertTrue("input_no_access_point".equals(terminal.inputRefusal()),
-                        "the input should wait for an Access Point, got " + terminal.inputRefusal());
+                helper.assertTrue("input_no_packing_station".equals(terminal.inputRefusal()),
+                        "the input should wait for a Packing Station, got " + terminal.inputRefusal());
                 helper.succeed();
             });
         });

@@ -15,7 +15,7 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlock;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -105,8 +105,8 @@ public final class ServusStorageBlocks {
                             .requiresCorrectToolForDrops()
                             .sound(SoundType.METAL));
 
-    public static final DeferredBlock<AccessPointBlock> ACCESS_POINT =
-            BLOCKS.registerBlock("access_point", AccessPointBlock::new,
+    public static final DeferredBlock<PackingStationBlock> PACKING_STATION =
+            BLOCKS.registerBlock("packing_station", PackingStationBlock::new,
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_CYAN)
                             .strength(3.0F)

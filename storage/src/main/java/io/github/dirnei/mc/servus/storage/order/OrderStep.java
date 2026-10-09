@@ -160,7 +160,7 @@ public final class OrderStep {
     }
 
     /**
-     * Books ended collections: what reached the Access Point is collected. A
+     * Books ended collections: what reached the Packing Station is collected. A
      * collection the ledger forgot counts as landed in full.
      */
     void settleCollections(LongFunction<ProductionLedger.Transfer> transfers) {
@@ -199,7 +199,7 @@ public final class OrderStep {
         return state == State.DELIVERING || state == State.PRODUCING;
     }
 
-    /** Outputs of the key travelling from the producer to an Access Point. */
+    /** Outputs of the key travelling from the producer to a Packing Station. */
     public int inFlight(ItemKey key) {
         return inFlight.getOrDefault(key, 0);
     }
@@ -238,7 +238,7 @@ public final class OrderStep {
         holdSince = -1;
     }
 
-    /** A collection delivery ended: {@code delivered} of the {@code sent} items reached the Access Point. */
+    /** A collection delivery ended: {@code delivered} of the {@code sent} items reached the Packing Station. */
     private void landed(ItemKey key, int sent, int delivered) {
         inFlight.merge(key, -sent, Integer::sum);
         if (delivered > 0) {
@@ -247,7 +247,7 @@ public final class OrderStep {
     }
 
     /**
-     * The producer pushed outputs of the key into an Access Point on its own.
+     * The producer pushed outputs of the key into a Packing Station on its own.
      * Counts up to what the step still needs of the key.
      *
      * @return how many were counted

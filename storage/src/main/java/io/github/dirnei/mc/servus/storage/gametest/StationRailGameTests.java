@@ -105,14 +105,14 @@ public final class StationRailGameTests {
         });
     }
 
-    /** Access Point, Outbound Station and Shuttle Garage pressed against the controller stay out without a rail. */
+    /** Packing Station, Outbound Station and Shuttle Garage pressed against the controller stay out without a rail. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void shuttleBlocksNeedARail(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = controller(helper);
         BlockPos access = CONTROLLER.east();
         BlockPos outbound = CONTROLLER.west();
         BlockPos garage = CONTROLLER.south();
-        helper.setBlock(access, ServusStorageBlocks.ACCESS_POINT.get().defaultBlockState());
+        helper.setBlock(access, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         helper.setBlock(outbound, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState()
                 .setValue(OutboundStationBlock.FACING, Direction.WEST));
         helper.setBlock(garage, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState()

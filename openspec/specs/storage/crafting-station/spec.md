@@ -45,7 +45,7 @@ The station SHALL have a Lib side configuration like a machine: Auto, Input, Out
 - **THEN** the planks move into the station, the sticks stay in its outputs while the job is held, and they end up in the Inbound Station's buffer once the job ends
 
 #### Scenario: Job outputs stay for the CPU
-- **WHEN** the station holds a sticks job, has crafted sticks and an Access Point touches it on an Auto side
+- **WHEN** the station holds a sticks job, has crafted sticks and a Packing Station touches it on an Auto side
 - **THEN** the sticks stay in the outputs until the CPU collects them as packets, and the order finishes
 
 #### Scenario: Front closed

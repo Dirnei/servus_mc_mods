@@ -50,7 +50,7 @@ public final class CpuOrders {
 
     /**
      * The data line found from a position: a data member or cable, a CPU
-     * block, or a warehouse block whose Access Points are on a line.
+     * block, or a warehouse block whose Packing Stations are on a line.
      */
     public static Optional<DataNetwork> network(ServerLevel level, BlockPos pos) {
         Optional<DataNetwork> direct = DataNetworks.networkAt(level, pos);
@@ -67,13 +67,13 @@ public final class CpuOrders {
         return Optional.empty();
     }
 
-    /** The data line of a warehouse: the controller's own, else that of its first Access Point on a line. */
+    /** The data line of a warehouse: the controller's own, else that of its first Packing Station on a line. */
     public static Optional<DataNetwork> network(ServerLevel level, WarehouseNetwork warehouse) {
         Optional<DataNetwork> fromController = warehouse.controllerPos().flatMap(pos -> DataNetworks.networkAt(level, pos));
         if (fromController.isPresent()) {
             return fromController;
         }
-        for (BlockPos point : warehouse.accessPoints()) {
+        for (BlockPos point : warehouse.packingStations()) {
             Optional<DataNetwork> line = DataNetworks.networkAt(level, point);
             if (line.isPresent()) {
                 return line;
@@ -99,13 +99,13 @@ public final class CpuOrders {
     }
 
     /**
-     * A neighbour of an Access Point pushed {@code count} of the key into it.
+     * A neighbour of a Packing Station pushed {@code count} of the key into it.
      * Counts them for the running steps of the line's CPUs that run on that
      * neighbour and make the key, oldest order first.
      */
-    public static void creditPushed(ServerLevel level, BlockPos accessPoint, BlockPos neighbour, ItemKey key, int count) {
+    public static void creditPushed(ServerLevel level, BlockPos packingStation, BlockPos neighbour, ItemKey key, int count) {
         int left = count;
-        for (CpuBlockEntity cpu : cpus(level, accessPoint)) {
+        for (CpuBlockEntity cpu : cpus(level, packingStation)) {
             for (WorkOrder order : cpu.book().orders()) {
                 if (!order.open()) {
                     continue;

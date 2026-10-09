@@ -32,8 +32,8 @@ A block SHALL be a member of a data network on a side that touches a duct's data
 - **THEN** the controller is a stock member of that network
 
 #### Scenario: Link member
-- **WHEN** a duct with the data line touches an Access Point
-- **THEN** the duct shows a data arm toward it and the Access Point is a link member of that network
+- **WHEN** a duct with the data line touches a Packing Station
+- **THEN** the duct shows a data arm toward it and the Packing Station is a link member of that network
 
 #### Scenario: Chest
 - **WHEN** a duct carrying only the data line touches a chest

@@ -24,7 +24,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.HEAVY_RACK.get(), "Heavy Duty Rack");
         add("tooltip.servus_storage.heavy_rack.wood", "Wood: %s");
         add(ServusStorageBlocks.INBOUND_STATION.get(), "Inbound Station");
-        add(ServusStorageBlocks.ACCESS_POINT.get(), "Access Point");
+        add(ServusStorageBlocks.PACKING_STATION.get(), "Packing Station");
         add(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "Shuttle Garage");
         add(ServusStorageBlocks.OUTBOUND_STATION.get(), "Outbound Station");
         add(ServusStorageBlocks.CRAFTING_STATION.get(), "Crafting Station");
@@ -182,9 +182,9 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.state.missing", "%s missing");
         add("gui.servus_storage.terminal.message.offline", "No warehouse on this data line");
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");
-        add("gui.servus_storage.terminal.message.no_rail", "The Access Point has no rail for shuttle deliveries");
-        add("gui.servus_storage.terminal.message.no_access_point", "No Access Point of the warehouse on this data line");
-        add("gui.servus_storage.terminal.message.input_no_access_point", "No Access Point on this data line");
+        add("gui.servus_storage.terminal.message.no_rail", "The Packing Station has no rail for shuttle deliveries");
+        add("gui.servus_storage.terminal.message.no_packing_station", "No Packing Station of the warehouse on this data line");
+        add("gui.servus_storage.terminal.message.input_no_packing_station", "No Packing Station on this data line");
         add("gui.servus_storage.terminal.message.out_of_stock", "Nothing of that in stock");
         add("gui.servus_storage.terminal.message.missing", "Raw materials are missing");
         add("gui.servus_storage.terminal.message.no_cpu", "No Crafting CPU on this data line");

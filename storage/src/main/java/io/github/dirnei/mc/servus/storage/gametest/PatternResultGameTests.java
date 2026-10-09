@@ -38,7 +38,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 public final class PatternResultGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
-    /** Where {@link StationHandsGameTests#setup} puts the Access Point and the Pattern Storage. */
+    /** Where {@link StationHandsGameTests#setup} puts the Packing Station and the Pattern Storage. */
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     private static final BlockPos PATTERNS = new BlockPos(4, 3, 2);
     private static final BlockPos LONE = new BlockPos(10, 1, 10);

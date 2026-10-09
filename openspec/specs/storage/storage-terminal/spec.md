@@ -22,10 +22,10 @@ The Storage Terminal GUI SHALL list every indexed item of the warehouses it reac
 - **THEN** the grid shows cobblestone, bread, apple
 
 ### Requirement: Push into the warehouse
-Clicking the grid with a carried stack SHALL move it into the Input row, and shift clicking an inventory slot SHALL move that slot into the Input row; the Input row stores it. What does not fit into the Input row SHALL stay on the cursor or in the inventory slot. Stored items reach racks, crates and foreign inventories through an Access Point like any intake.
+Clicking the grid with a carried stack SHALL move it into the Input row, and shift clicking an inventory slot SHALL move that slot into the Input row; the Input row stores it. What does not fit into the Input row SHALL stay on the cursor or in the inventory slot. Stored items reach racks, crates and foreign inventories through a Packing Station like any intake.
 
 #### Scenario: Shift click to store
-- **WHEN** the player shift clicks 20 cobblestone in the inventory while an Access Point of the warehouse is on the line
+- **WHEN** the player shift clicks 20 cobblestone in the inventory while a Packing Station of the warehouse is on the line
 - **THEN** the slot is empty and the warehouse holds 20 more cobblestone once they are put away
 
 #### Scenario: Only racks have room
@@ -51,7 +51,7 @@ The terminal SHALL send its full content (stock, craftable items, requests, rule
 When no warehouse is reachable the GUI SHALL show the reason instead of the stock and SHALL refuse requests and pushes. Output slots SHALL stay usable so deliveries already made can be collected.
 
 #### Scenario: No controller
-- **WHEN** the terminal sits on a data line with no controller and no Access Point of an online warehouse
+- **WHEN** the terminal sits on a data line with no controller and no Packing Station of an online warehouse
 - **THEN** the GUI says no warehouse is reachable
 
 #### Scenario: Collect while offline
@@ -66,7 +66,7 @@ The Storage Terminal SHALL be crafted from glass, iron ingots, a chest and plank
 - **THEN** a Storage Terminal is produced
 
 ### Requirement: Request items
-Clicking an entry SHALL open an amount prompt defaulting to one stack, with buttons for -stack, -10, -1, +1, +10 and +stack and a text field, and confirming SHALL create a request for that amount. +stack SHALL raise the amount to the next full stack above it and -stack SHALL lower it to the full stack below it; the amount SHALL stay between 1 and 99999. Shift clicking an entry SHALL request one stack at once. A request SHALL be shipped through the Access Point with the shortest shuttle trip that shares the terminal's data line: picks land in that Access Point (instantly for stock no shuttle can reach in crates and foreign inventories, by shuttle for stock a shuttle can reach, never instantly from a rack) and travel on as packets into the output slots. A request SHALL be refused with the reason when no Access Point shares the line, when its stock sits only in racks no shuttle can reach, or when it needs a shuttle while the Access Point touches no rail. When stock falls short and a producer can make the item, the shortfall SHALL become a work order linked to the request.
+Clicking an entry SHALL open an amount prompt defaulting to one stack, with buttons for -stack, -10, -1, +1, +10 and +stack and a text field, and confirming SHALL create a request for that amount. +stack SHALL raise the amount to the next full stack above it and -stack SHALL lower it to the full stack below it; the amount SHALL stay between 1 and 99999. Shift clicking an entry SHALL request one stack at once. A request SHALL be shipped through the Packing Station with the shortest shuttle trip that shares the terminal's data line: picks land in that Packing Station (instantly for stock no shuttle can reach in crates and foreign inventories, by shuttle for stock a shuttle can reach, never instantly from a rack) and travel on as packets into the output slots. A request SHALL be refused with the reason when no Packing Station shares the line, when its stock sits only in racks no shuttle can reach, or when it needs a shuttle while the Packing Station touches no rail. When stock falls short and a producer can make the item, the shortfall SHALL become a work order linked to the request.
 
 #### Scenario: Request a stack
 - **WHEN** the player shift clicks cobblestone, the warehouse holds 50 in a crate touching the controller and has no garage
@@ -74,7 +74,7 @@ Clicking an entry SHALL open an amount prompt defaulting to one stack, with butt
 
 #### Scenario: Request an amount
 - **WHEN** the player clicks iron ingots, presses +10 three times and confirms, and the ingots sit in a crate beside a rail with a shuttle available
-- **THEN** a request for 94 is listed, a shuttle fetches two loads to the Access Point, and 94 ingots land in the output slots over time
+- **THEN** a request for 94 is listed, a shuttle fetches two loads to the Packing Station, and 94 ingots land in the output slots over time
 
 #### Scenario: Stack steps
 - **WHEN** the amount is 1 and the player presses +stack for an item that stacks to 64
@@ -88,9 +88,9 @@ Clicking an entry SHALL open an amount prompt defaulting to one stack, with butt
 - **WHEN** the player requests bread that only sits in a rack and the warehouse has no garage
 - **THEN** the request is refused and the GUI says the item needs a shuttle
 
-#### Scenario: No Access Point
-- **WHEN** the terminal reaches a warehouse only through its controller and the warehouse has no Access Point on that data line
-- **THEN** the request is refused and the GUI says there is no Access Point
+#### Scenario: No Packing Station
+- **WHEN** the terminal reaches a warehouse only through its controller and the warehouse has no Packing Station on that data line
+- **THEN** the request is refused and the GUI says there is no Packing Station
 
 #### Scenario: Partly in stock
 - **WHEN** the player requests 100 bread and the warehouse holds 70
@@ -116,10 +116,10 @@ The terminal SHALL have `terminal_output_slots` output slots (example 9, from `w
 - **THEN** the hopper takes nothing
 
 ### Requirement: Open requests
-The terminal's open requests SHALL be the first entries of the item grid, before the stock entries and independent of the sort, drawn on a tinted background with the delivered and requested amounts and a mark for the state: picking while items are on their way to the Access Point, sending while packets are on the line, waiting for room in the output slots, producing, or missing stock. Their tooltip SHALL name the item, the amounts and the state in words. The search filters them like stock; the view setting does not hide them. Clicking a request entry SHALL cancel it: picks not yet started are dropped, items already picked or at the Access Point go back into storage, packets already on the line still land in the output slots, and a work order of the request is cancelled.
+The terminal's open requests SHALL be the first entries of the item grid, before the stock entries and independent of the sort, drawn on a tinted background with the delivered and requested amounts and a mark for the state: picking while items are on their way to the Packing Station, sending while packets are on the line, waiting for room in the output slots, producing, or missing stock. Their tooltip SHALL name the item, the amounts and the state in words. The search filters them like stock; the view setting does not hide them. Clicking a request entry SHALL cancel it: picks not yet started are dropped, items already picked or at the Packing Station go back into storage, packets already on the line still land in the output slots, and a work order of the request is cancelled.
 
 #### Scenario: Progress
-- **WHEN** a request for 128 cobblestone has 64 delivered and the rest on its way to the Access Point
+- **WHEN** a request for 128 cobblestone has 64 delivered and the rest on its way to the Packing Station
 - **THEN** the first grid entry shows cobblestone with 64 of 128 and the state picking
 
 #### Scenario: Sending
@@ -150,10 +150,10 @@ The amount prompt SHALL have a Rule mode with minimum and maximum fields, Save a
 - **THEN** the marker and tooltip line are gone
 
 ### Requirement: Terminal sits on the data line
-The Storage Terminal SHALL be a member of a data line with the link role, and SHALL NOT join a warehouse network by touching rails, crates, racks or controllers. A warehouse SHALL be reachable from the terminal when its controller or one of its Access Points is a member of the terminal's data network and the warehouse is online. The terminal's lamp SHALL be lit while at least one warehouse is reachable.
+The Storage Terminal SHALL be a member of a data line with the link role, and SHALL NOT join a warehouse network by touching rails, crates, racks or controllers. A warehouse SHALL be reachable from the terminal when its controller or one of its Packing Stations is a member of the terminal's data network and the warehouse is online. The terminal's lamp SHALL be lit while at least one warehouse is reachable.
 
 #### Scenario: Reached over the data line
-- **WHEN** a terminal and an Access Point of an online warehouse are linked by data ducts
+- **WHEN** a terminal and a Packing Station of an online warehouse are linked by data ducts
 - **THEN** the terminal lists the warehouse's stock and its lamp is lit
 
 #### Scenario: Beside a controller only
@@ -332,15 +332,15 @@ With JEI installed, the search mode JEI synced SHALL copy the terminal's search 
 - **THEN** the search mode stays normal and the terminal works unchanged
 
 ### Requirement: Input row
-The Storage Terminal SHALL have an Input row of 9 slots below the item grid. Stacks in the Input row SHALL be sent as packets over the data line to the Access Point on the terminal's data line nearest to the terminal, which puts them away like any intake (racks by shuttle, zones, crates and foreign inventories). A stack SHALL leave its slot only when a packet takes it; items a packet cannot deliver SHALL come back to the terminal. Without an Access Point on the line the stacks SHALL stay and the message line SHALL say that no Access Point is on the data line. The input slots SHALL NOT be indexed as warehouse stock and SHALL be saved with the terminal and dropped when it breaks.
+The Storage Terminal SHALL have an Input row of 9 slots below the item grid. Stacks in the Input row SHALL be sent as packets over the data line to the Packing Station on the terminal's data line nearest to the terminal, which puts them away like any intake (racks by shuttle, zones, crates and foreign inventories). A stack SHALL leave its slot only when a packet takes it; items a packet cannot deliver SHALL come back to the terminal. Without a Packing Station on the line the stacks SHALL stay and the message line SHALL say that no Packing Station is on the data line. The input slots SHALL NOT be indexed as warehouse stock and SHALL be saved with the terminal and dropped when it breaks.
 
 #### Scenario: Hand in cobblestone
-- **WHEN** the player puts 20 cobblestone into an input slot while an Access Point of the warehouse is on the line
+- **WHEN** the player puts 20 cobblestone into an input slot while a Packing Station of the warehouse is on the line
 - **THEN** the input slot is empty and the cobblestone ends in the warehouse after the packets and the put-away
 
 #### Scenario: No room
-- **WHEN** the player puts bread into an input slot and no Access Point is on the data line
-- **THEN** the bread stays in the input slot and the message line says "No Access Point on this data line"
+- **WHEN** the player puts bread into an input slot and no Packing Station is on the data line
+- **THEN** the bread stays in the input slot and the message line says "No Packing Station on this data line"
 
 #### Scenario: Racks only
 - **WHEN** the warehouse has only Heavy Duty Racks with room and the player puts planks into an input slot

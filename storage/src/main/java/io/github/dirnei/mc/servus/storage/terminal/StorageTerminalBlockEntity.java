@@ -6,7 +6,7 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
@@ -65,8 +65,8 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     /** How a request is doing, as the GUI shows it. */
     public enum RequestState { PICKING, SENDING, WAITING_ROOM, PRODUCING, MISSING }
 
-    /** A shipment an Access Point runs for a request, by its ledger id, and how many items were asked of it. */
-    public record Tracked(BlockPos accessPoint, long shipmentId, int asked) {
+    /** A shipment a Packing Station runs for a request, by its ledger id, and how many items were asked of it. */
+    public record Tracked(BlockPos packingStation, long shipmentId, int asked) {
     }
 
     /** One open request: what was asked, what arrived, what cannot come. */
@@ -227,7 +227,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     }
 
     /**
-     * Sends the input slots as packets to the nearest Access Point on the
+     * Sends the input slots as packets to the nearest Packing Station on the
      * data line, which puts them away. A stack leaves its slot only when a
      * delivery takes it; a send that fails at once puts it back.
      */
@@ -241,9 +241,9 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             inputRefusal = null;
             return;
         }
-        Optional<BlockPos> point = nearestAccessPoint(server);
+        Optional<BlockPos> point = nearestPackingStation(server);
         if (point.isEmpty()) {
-            inputRefusal = "input_no_access_point";
+            inputRefusal = "input_no_packing_station";
             return;
         }
         inputRefusal = null;
@@ -281,8 +281,8 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         return inputRefusal;
     }
 
-    /** The Access Point of an online warehouse on this data line nearest to the terminal. */
-    private Optional<BlockPos> nearestAccessPoint(ServerLevel server) {
+    /** The Packing Station of an online warehouse on this data line nearest to the terminal. */
+    private Optional<BlockPos> nearestPackingStation(ServerLevel server) {
         Optional<DataNetwork> line = DataNetworks.networkAt(server, worldPosition);
         if (line.isEmpty()) {
             return Optional.empty();
@@ -290,10 +290,10 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         BlockPos best = null;
         for (DataMember member : line.get().dataMembers()) {
             BlockPos pos = member.pos();
-            if (!server.isLoaded(pos) || !(server.getBlockEntity(pos) instanceof AccessPointBlockEntity accessPoint)) {
+            if (!server.isLoaded(pos) || !(server.getBlockEntity(pos) instanceof PackingStationBlockEntity packingStation)) {
                 continue;
             }
-            boolean online = accessPoint.network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).isPresent();
+            boolean online = packingStation.network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).isPresent();
             if (!online) {
                 continue;
             }
@@ -365,7 +365,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             ListTag shipments = new ListTag();
             for (Tracked tracked : request.shipments) {
                 CompoundTag shipment = new CompoundTag();
-                shipment.put("AccessPoint", NbtUtils.writeBlockPos(tracked.accessPoint()));
+                shipment.put("PackingStation", NbtUtils.writeBlockPos(tracked.packingStation()));
                 shipment.putLong("Id", tracked.shipmentId());
                 shipment.putInt("Asked", tracked.asked());
                 shipments.add(shipment);
@@ -408,7 +408,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             request.orderCpu = NbtUtils.readBlockPos(entry, "OrderCpu").orElse(null);
             for (Tag rawShipment : entry.getList("Shipments", Tag.TAG_COMPOUND)) {
                 CompoundTag shipment = (CompoundTag) rawShipment;
-                NbtUtils.readBlockPos(shipment, "AccessPoint").ifPresent(point -> request.shipments.add(
+                NbtUtils.readBlockPos(shipment, "PackingStation").ifPresent(point -> request.shipments.add(
                         new Tracked(point, shipment.getLong("Id"), shipment.getInt("Asked"))));
             }
             requests.add(request);

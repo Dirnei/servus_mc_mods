@@ -6,7 +6,7 @@ The wood material lets Servus blocks show the wood they were crafted from, so a 
 ## Requirements
 
 ### Requirement: Wood from the recipe
-The recipes of the wood blocks (Crafting CPU, Access Point, Inbound Station, Outbound Station, Storage Terminal, Production Terminal, Pattern Storage, Crafting Station, Warehouse Controller, Shuttle Garage, Machine Adapter) SHALL accept any planks and SHALL record on the result the wood of the planks in the grid: the planks block that appears most often, and on a tie the middle one in reading order.
+The recipes of the wood blocks (Crafting CPU, Packing Station, Inbound Station, Outbound Station, Storage Terminal, Production Terminal, Pattern Storage, Crafting Station, Warehouse Controller, Shuttle Garage, Machine Adapter) SHALL accept any planks and SHALL record on the result the wood of the planks in the grid: the planks block that appears most often, and on a tie the middle one in reading order.
 
 #### Scenario: Birch
 - **WHEN** the player crafts a Storage Terminal with birch planks
@@ -20,8 +20,8 @@ The recipes of the wood blocks (Crafting CPU, Access Point, Inbound Station, Out
 A placed wood block SHALL keep the wood of its item, SHALL drop an item carrying that wood when mined or dismantled with the Configuration Carrot, and SHALL use oak when no wood is set.
 
 #### Scenario: Break and place
-- **WHEN** a birch Access Point is mined and placed again
-- **THEN** the placed Access Point is birch
+- **WHEN** a birch Packing Station is mined and placed again
+- **THEN** the placed Packing Station is birch
 
 #### Scenario: No wood
 - **WHEN** a Pattern Storage is given by command without a wood

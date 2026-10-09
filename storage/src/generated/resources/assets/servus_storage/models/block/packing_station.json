@@ -81,12 +81,12 @@
   "render_type": "minecraft:cutout",
   "textures": {
     "board": "servus_foundation:block/wood_board",
-    "down": "servus_storage:block/access_point_top",
-    "east": "servus_storage:block/access_point_side",
-    "north": "servus_storage:block/access_point_front_working",
-    "particle": "servus_storage:block/access_point_front_working",
-    "south": "servus_storage:block/access_point_side",
-    "up": "servus_storage:block/access_point_top",
-    "west": "servus_storage:block/access_point_side"
+    "down": "servus_storage:block/packing_station_top",
+    "east": "servus_storage:block/packing_station_side",
+    "north": "servus_storage:block/packing_station_front",
+    "particle": "servus_storage:block/packing_station_front",
+    "south": "servus_storage:block/packing_station_side",
+    "up": "servus_storage:block/packing_station_top",
+    "west": "servus_storage:block/packing_station_side"
   }
 }

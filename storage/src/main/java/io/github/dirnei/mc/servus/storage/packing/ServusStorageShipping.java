@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.access;
+package io.github.dirnei.mc.servus.storage.packing;
 
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;

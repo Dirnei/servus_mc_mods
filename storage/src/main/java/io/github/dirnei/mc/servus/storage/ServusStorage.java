@@ -31,7 +31,7 @@ public final class ServusStorage {
         ServusStorageComponents.COMPONENTS.register(modEventBus);
         ServusStorageRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         NetworkTypes.register(WarehouseNetwork.TYPE);
-        for (var block : java.util.List.of(ServusStorageBlocks.CRAFTING_CPU, ServusStorageBlocks.ACCESS_POINT,
+        for (var block : java.util.List.of(ServusStorageBlocks.CRAFTING_CPU, ServusStorageBlocks.PACKING_STATION,
                 ServusStorageBlocks.INBOUND_STATION, ServusStorageBlocks.OUTBOUND_STATION, ServusStorageBlocks.STORAGE_TERMINAL,
                 ServusStorageBlocks.PRODUCTION_TERMINAL, ServusStorageBlocks.PATTERN_STORAGE, ServusStorageBlocks.CRAFTING_STATION,
                 ServusStorageBlocks.WAREHOUSE_CONTROLLER, ServusStorageBlocks.SHUTTLE_GARAGE)) {

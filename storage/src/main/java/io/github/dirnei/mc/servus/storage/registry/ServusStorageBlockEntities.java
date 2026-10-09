@@ -13,7 +13,7 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEntity;
@@ -56,9 +56,9 @@ public final class ServusStorageBlockEntities {
                     .of(InboundStationBlockEntity::new, ServusStorageBlocks.INBOUND_STATION.get())
                     .build(null));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AccessPointBlockEntity>> ACCESS_POINT =
-            BLOCK_ENTITIES.register("access_point", () -> BlockEntityType.Builder
-                    .of(AccessPointBlockEntity::new, ServusStorageBlocks.ACCESS_POINT.get())
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackingStationBlockEntity>> PACKING_STATION =
+            BLOCK_ENTITIES.register("packing_station", () -> BlockEntityType.Builder
+                    .of(PackingStationBlockEntity::new, ServusStorageBlocks.PACKING_STATION.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShuttleGarageBlockEntity>> SHUTTLE_GARAGE =

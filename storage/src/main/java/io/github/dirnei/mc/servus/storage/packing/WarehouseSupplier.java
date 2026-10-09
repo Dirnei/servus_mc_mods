@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.access;
+package io.github.dirnei.mc.servus.storage.packing;
 
 import io.github.dirnei.mc.servus.foundation.production.ItemSupplier;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -9,7 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The supplier capability of a Warehouse Controller or an Access Point: ships
+ * The supplier capability of a Warehouse Controller or a Packing Station: ships
  * what the warehouse holds to a data member, like any shipment.
  */
 public record WarehouseSupplier(StorageNodeBlockEntity node) implements ItemSupplier {
@@ -26,6 +26,6 @@ public record WarehouseSupplier(StorageNodeBlockEntity node) implements ItemSupp
             return 0;
         }
         WarehouseNetwork.Shipping shipping = network.get().ship(target, key, asked);
-        return shipping.shipment().map(AccessPointBlockEntity.Shipment::planned).orElse(0);
+        return shipping.shipment().map(PackingStationBlockEntity.Shipment::planned).orElse(0);
     }
 }

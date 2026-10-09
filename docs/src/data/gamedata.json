@@ -693,27 +693,6 @@
         {"item": "servus_manufacturing:sink", "count": 8}
       ]
     },
-    "servus_storage:access_point": {
-      "type": "servus_foundation:wood_shaped",
-      "pattern": ["IRI", "OCO", "PPP"],
-      "key": {
-        "C": {"item": "minecraft:chest"},
-        "I": {"item": "minecraft:iron_ingot"},
-        "O": {"item": "minecraft:copper_ingot"},
-        "P": {"tag": "minecraft:planks"},
-        "R": {"item": "minecraft:redstone"}
-      },
-      "inputs": [
-        {"tag": "minecraft:planks", "count": 3},
-        {"item": "minecraft:chest", "count": 1},
-        {"item": "minecraft:copper_ingot", "count": 2},
-        {"item": "minecraft:iron_ingot", "count": 2},
-        {"item": "minecraft:redstone", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_storage:access_point", "count": 1}
-      ]
-    },
     "servus_storage:crafting_cpu": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "RCR", "PPP"],
@@ -845,6 +824,27 @@
       ],
       "outputs": [
         {"item": "servus_storage:outbound_station", "count": 1}
+      ]
+    },
+    "servus_storage:packing_station": {
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["IRI", "OCO", "PPP"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "O": {"item": "minecraft:copper_ingot"},
+        "P": {"tag": "minecraft:planks"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 2},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:packing_station", "count": 1}
       ]
     },
     "servus_storage:pattern_storage": {
@@ -1225,9 +1225,6 @@
     "servus_manufacturing:sink": {
       "name": "Sink"
     },
-    "servus_storage:access_point": {
-      "name": "Access Point"
-    },
     "servus_storage:crafting_cpu": {
       "name": "Crafting CPU"
     },
@@ -1251,6 +1248,9 @@
     },
     "servus_storage:outbound_station": {
       "name": "Outbound Station"
+    },
+    "servus_storage:packing_station": {
+      "name": "Packing Station"
     },
     "servus_storage:pattern_storage": {
       "name": "Pattern Storage"

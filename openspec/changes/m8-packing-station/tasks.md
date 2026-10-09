@@ -2,7 +2,7 @@
 
 ## 1. Rename
 
-- [ ] 1.1 Rename Access Point to Packing Station with a script and `git mv` (classes `AccessPoint*` to `PackingStation*`, package `storage.access` to `storage.packing`, ids, lang keys, textures, the docs icon, specs text, PLAN.md, README, docs pages), move `openspec/specs/storage/access-point` to `storage/packing-station`, regenerate data (`:storage:runData`, `:manufacturing:runData`). Verify with `gradlew build test`, Storage GameTests and a grep that finds no `access_point`, `AccessPoint` or "Access Point" outside archives; `openspec validate m8-packing-station --strict` shows no "target spec does not exist" notice.
+- [x] 1.1 Rename Access Point to Packing Station with a script and `git mv` (classes `AccessPoint*` to `PackingStation*`, package `storage.access` to `storage.packing`, ids, lang keys, textures, the docs icon, specs text, PLAN.md, README, docs pages), move `openspec/specs/storage/access-point` to `storage/packing-station`, regenerate data (`:storage:runData`, `:manufacturing:runData`). Verify with `gradlew build test`, Storage GameTests and a grep that finds no `access_point`, `AccessPoint` or "Access Point" outside archives; `openspec validate m8-packing-station --strict` shows no "target spec does not exist" notice.
 
 ## 2. Instant deliveries and gates (Foundation)
 

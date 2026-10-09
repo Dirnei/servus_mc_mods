@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.access;
+package io.github.dirnei.mc.servus.storage.packing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class AccessPointChoiceTest {
+class PackingStationChoiceTest {
 
-    private static final int NONE = AccessPointChoice.UNREACHABLE;
+    private static final int NONE = PackingStationChoice.UNREACHABLE;
 
     private static String choose(Map<String, Integer> trips, String... order) {
-        return AccessPointChoice.choose(List.of(order), trips::get).orElseThrow();
+        return PackingStationChoice.choose(List.of(order), trips::get).orElseThrow();
     }
 
     @Test
@@ -37,6 +37,6 @@ class AccessPointChoiceTest {
 
     @Test
     void emptyHasNone() {
-        assertTrue(AccessPointChoice.<String>choose(List.of(), s -> 0).isEmpty());
+        assertTrue(PackingStationChoice.<String>choose(List.of(), s -> 0).isEmpty());
     }
 }

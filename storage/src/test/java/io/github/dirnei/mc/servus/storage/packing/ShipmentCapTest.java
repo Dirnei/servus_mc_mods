@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.access;
+package io.github.dirnei.mc.servus.storage.packing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

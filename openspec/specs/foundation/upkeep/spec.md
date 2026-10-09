@@ -27,7 +27,7 @@ A block that exposes the upkeep capability on a side touching a duct's data line
 Every data network SHALL check its upkeep members at a fixed interval (example every 40 ticks) without scanning blocks. When a member holds less than its level and no earlier request for it is still open, the network SHALL ask the suppliers on the line, lowest position first, for the difference and remember the answer as the open request. Items of the upkeep item that the member gains count against the open request; the request SHALL end when it is complete or after a timeout (example 1200 ticks), so the next check asks again. Upkeep SHALL never be part of an order.
 
 #### Scenario: Refill
-- **WHEN** a Burner Smelter keeping coal at 16 holds 4 coal and a warehouse with coal and an Access Point is on its line
+- **WHEN** a Burner Smelter keeping coal at 16 holds 4 coal and a warehouse with coal and a Packing Station is on its line
 - **THEN** the network asks for 12 coal and the smelter ends up with 16 coal
 
 #### Scenario: One request at a time

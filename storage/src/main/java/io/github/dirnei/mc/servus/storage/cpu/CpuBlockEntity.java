@@ -10,7 +10,7 @@ import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
-import io.github.dirnei.mc.servus.storage.access.AccessPointBlockEntity;
+import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -227,7 +227,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
                 }
                 WarehouseNetwork.Shipping shipping = warehouse.ship(producer, key, (int) Math.min(available, remaining));
                 if (shipping.shipped()) {
-                    AccessPointBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
+                    PackingStationBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
                     int asked = shipment.planned();
                     shipped.add(new OrderBook.Shipped(shipment.id(), asked));
                     planned += asked;
@@ -488,12 +488,12 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         return best;
     }
 
-    /** The Access Point of the line that takes collected outputs: the lowest position whose line reaches the producer. */
+    /** The Packing Station of the line that takes collected outputs: the lowest position whose line reaches the producer. */
     private Optional<BlockPos> collectionPoint(ServerLevel level, BlockPos producer) {
         List<BlockPos> points = new ArrayList<>();
         for (WarehouseNetwork warehouse : warehouses()) {
-            for (BlockPos point : warehouse.accessPoints()) {
-                if (level.getBlockEntity(point) instanceof AccessPointBlockEntity
+            for (BlockPos point : warehouse.packingStations()) {
+                if (level.getBlockEntity(point) instanceof PackingStationBlockEntity
                         && DataNetworks.networkAt(level, point).filter(network -> network.reaches(producer)).isPresent()) {
                     points.add(point);
                 }

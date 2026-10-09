@@ -20,11 +20,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "servus_storage:access_point"
+          "name": "servus_storage:packing_station"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "servus_storage:blocks/access_point"
+  "random_sequence": "servus_storage:blocks/packing_station"
 }

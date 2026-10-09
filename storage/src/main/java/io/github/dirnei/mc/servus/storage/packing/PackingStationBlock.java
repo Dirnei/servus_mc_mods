@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.access;
+package io.github.dirnei.mc.servus.storage.packing;
 
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
@@ -18,15 +18,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
 /**
- * The Access Point: a station on the rails that is also a link member of the
+ * The Packing Station: a station on the rails that is also a link member of the
  * data line. Right click shows the intake buffer; the carrot dismantles it
  * while sneaking. Its sides have no modes.
  */
-public class AccessPointBlock extends InboundStationBlock {
+public class PackingStationBlock extends InboundStationBlock {
 
-    public static final MapCodec<AccessPointBlock> CODEC = simpleCodec(AccessPointBlock::new);
+    public static final MapCodec<PackingStationBlock> CODEC = simpleCodec(PackingStationBlock::new);
 
-    public AccessPointBlock(Properties properties) {
+    public PackingStationBlock(Properties properties) {
         super(properties);
     }
 
@@ -37,7 +37,7 @@ public class AccessPointBlock extends InboundStationBlock {
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new AccessPointBlockEntity(pos, state);
+        return new PackingStationBlockEntity(pos, state);
     }
 
     /** Sneaking dismantles and drops both buffers; a plain click does nothing, there are no side modes. */
@@ -50,7 +50,7 @@ public class AccessPointBlock extends InboundStationBlock {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide()) {
-            if (level.getBlockEntity(pos) instanceof AccessPointBlockEntity point) {
+            if (level.getBlockEntity(pos) instanceof PackingStationBlockEntity point) {
                 point.dropContents(level, pos);
             }
             Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
@@ -64,6 +64,6 @@ public class AccessPointBlock extends InboundStationBlock {
         if (level.isClientSide()) {
             return null;
         }
-        return createTickerHelper(type, ServusStorageBlockEntities.ACCESS_POINT.get(), AccessPointBlockEntity::serverTick);
+        return createTickerHelper(type, ServusStorageBlockEntities.PACKING_STATION.get(), PackingStationBlockEntity::serverTick);
     }
 }
