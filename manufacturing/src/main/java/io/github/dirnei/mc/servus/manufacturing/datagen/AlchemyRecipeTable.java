@@ -32,7 +32,7 @@ public final class AlchemyRecipeTable {
     }
 
     /** One purification: an item leached with water into Salt. */
-    public record Purify(String name, String label, Ingredient input, int count, int water, int salt, int time) {
+    public record Purify(String name, String label, Ingredient input, int count, int water, int salt, ItemStack residue, int time) {
     }
 
     private AlchemyRecipeTable() {
@@ -59,7 +59,8 @@ public final class AlchemyRecipeTable {
 
     /** What the Purifier leaches into Salt: the Ash of the Calciner. */
     public static List<Purify> purification() {
-        return List.of(new Purify("ash", "Ash", Ingredient.of(ServusManufacturingItems.ASH.get()), 1, 100, 100, 40));
+        return List.of(new Purify("ash", "Ash", Ingredient.of(ServusManufacturingItems.ASH.get()), 4, 400, 400,
+                new ItemStack(ServusManufacturingItems.CAPUT_MORTUUM.get()), 160));
     }
 
     /** What the Coagulator makes from the principles; no metal in Nigredo. */

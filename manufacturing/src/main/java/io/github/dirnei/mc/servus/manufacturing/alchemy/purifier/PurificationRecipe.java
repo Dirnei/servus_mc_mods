@@ -23,10 +23,11 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
  *
  * @param input what is consumed, with count
  * @param water mB of water it takes
- * @param salt  mB of Salt it makes
- * @param time  ticks per cycle
+ * @param salt    mB of Salt it makes
+ * @param residue what stays behind in the vat, empty for nothing
+ * @param time    ticks per cycle
  */
-public record PurificationRecipe(SizedIngredient input, int water, int salt, int time) implements Recipe<SingleRecipeInput> {
+public record PurificationRecipe(SizedIngredient input, int water, int salt, ItemStack residue, int time) implements Recipe<SingleRecipeInput> {
 
     public static final int DEFAULT_TIME = 40;
 
@@ -34,6 +35,7 @@ public record PurificationRecipe(SizedIngredient input, int water, int salt, int
             SizedIngredient.FLAT_CODEC.fieldOf("input").forGetter(PurificationRecipe::input),
             Codec.INT.fieldOf("water").forGetter(PurificationRecipe::water),
             Codec.INT.fieldOf("salt").forGetter(PurificationRecipe::salt),
+            ItemStack.OPTIONAL_CODEC.optionalFieldOf("residue", ItemStack.EMPTY).forGetter(PurificationRecipe::residue),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(PurificationRecipe::time)
     ).apply(instance, PurificationRecipe::new));
 
@@ -41,6 +43,7 @@ public record PurificationRecipe(SizedIngredient input, int water, int salt, int
             SizedIngredient.STREAM_CODEC, PurificationRecipe::input,
             ByteBufCodecs.VAR_INT, PurificationRecipe::water,
             ByteBufCodecs.VAR_INT, PurificationRecipe::salt,
+            ItemStack.OPTIONAL_STREAM_CODEC, PurificationRecipe::residue,
             ByteBufCodecs.VAR_INT, PurificationRecipe::time,
             PurificationRecipe::new);
 

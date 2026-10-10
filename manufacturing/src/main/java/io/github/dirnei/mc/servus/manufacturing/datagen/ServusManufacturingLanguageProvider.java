@@ -82,6 +82,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("gui.servus_manufacturing.jei.calcination", "Calcination");
         add("gui.servus_manufacturing.jei.coagulation", "Coagulation");
         add(ServusManufacturingItems.ASH.get(), "Ash");
+        add(ServusManufacturingItems.CAPUT_MORTUUM.get(), "Caput Mortuum");
         add(ServusManufacturingItems.SALT_CRYSTAL.get(), "Salt Crystal");
         add("gui.servus_manufacturing.jei.purification", "Purification");
         add(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block");

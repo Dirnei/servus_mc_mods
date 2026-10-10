@@ -1,9 +1,14 @@
 {
   "type": "servus_manufacturing:purification",
   "input": {
-    "count": 1,
+    "count": 4,
     "item": "servus_manufacturing:ash"
   },
-  "salt": 100,
-  "water": 100
+  "residue": {
+    "count": 1,
+    "id": "servus_manufacturing:caput_mortuum"
+  },
+  "salt": 400,
+  "time": 160,
+  "water": 400
 }

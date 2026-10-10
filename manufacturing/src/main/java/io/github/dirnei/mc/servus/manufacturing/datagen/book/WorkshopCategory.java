@@ -122,7 +122,9 @@ final class WorkshopCategory extends CategoryProvider {
                             + "Take the Salt with an empty bucket, or pipe it away: the Purifier gives Salt and takes water on every side "
                             + "without any setting. Sneak with an empty hand to take the Ash back.");
             e.list("washes", "What It Washes", AlchemyRecipeTable.purification().stream()
-                    .map(row -> row.count() + " " + row.label() + " and " + row.water() + " mB water: " + row.salt() + " Salt").toList());
+                    .map(row -> row.count() + " " + row.label() + " and " + row.water() + " mB water: " + row.salt() + " Salt"
+                            + (row.residue().isEmpty() ? "" : " and " + row.residue().getCount() + " " + row.residue().getHoverName().getString()))
+                    .toList());
         });
     }
 

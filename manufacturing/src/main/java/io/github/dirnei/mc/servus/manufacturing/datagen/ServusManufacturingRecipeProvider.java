@@ -38,7 +38,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
         calcination(output);
         for (AlchemyRecipeTable.Purify row : AlchemyRecipeTable.purification()) {
             output.accept(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purification/" + row.name()),
-                    new PurificationRecipe(new SizedIngredient(row.input(), row.count()), row.water(), row.salt(), row.time()), null);
+                    new PurificationRecipe(new SizedIngredient(row.input(), row.count()), row.water(), row.salt(), row.residue(), row.time()), null);
         }
         coagulation(output);
         athanor(output);
