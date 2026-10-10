@@ -293,6 +293,7 @@
   "textures": {
     "iron": "minecraft:block/iron_block",
     "particle": "minecraft:block/oak_planks",
-    "planks": "minecraft:block/oak_planks"
+    "planks": "minecraft:block/oak_planks",
+    "spout": "minecraft:block/dark_oak_planks"
   }
 }

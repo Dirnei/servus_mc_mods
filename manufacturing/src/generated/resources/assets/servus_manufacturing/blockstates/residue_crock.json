@@ -1,7 +1,31 @@
 {
   "variants": {
-    "": {
+    "facing=east,formed=false": {
       "model": "servus_manufacturing:block/residue_crock"
+    },
+    "facing=east,formed=true": {
+      "model": "servus_manufacturing:block/residue_crock_formed",
+      "y": 90
+    },
+    "facing=north,formed=false": {
+      "model": "servus_manufacturing:block/residue_crock"
+    },
+    "facing=north,formed=true": {
+      "model": "servus_manufacturing:block/residue_crock_formed"
+    },
+    "facing=south,formed=false": {
+      "model": "servus_manufacturing:block/residue_crock"
+    },
+    "facing=south,formed=true": {
+      "model": "servus_manufacturing:block/residue_crock_formed",
+      "y": 180
+    },
+    "facing=west,formed=false": {
+      "model": "servus_manufacturing:block/residue_crock"
+    },
+    "facing=west,formed=true": {
+      "model": "servus_manufacturing:block/residue_crock_formed",
+      "y": 270
     }
   }
 }

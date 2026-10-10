@@ -8,6 +8,8 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlo
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierSideBlock;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
@@ -34,6 +36,7 @@ final class CalcinerModels {
     private static final String CAULDRON = "block/cauldron_side";
     private static final String COAL = "block/coal_block";
     private static final String EMBERS = "block/magma";
+    private static final String DARK_OAK = "block/dark_oak_planks";
 
     /** Where the stone cornice starts and the stone plinth ends, in sixteenths. */
     private static final int CORNICE = 14;
@@ -124,11 +127,34 @@ final class CalcinerModels {
         return model;
     }
 
-    /** The Purifier: an oak vat with two iron bands, open at the top for the brine. */
+    /**
+     * The Purifier: an oak vat with two iron bands, a Catch Basin and a Residue Crock. Formed, the
+     * vat grows a dark oak spout down the front of each plank into the block below it, and the Basin
+     * and the Crock get a dark oak rim and a bracket against the log they face.
+     */
     private void purifier() {
-        BlockModelBuilder model = builder("purifier")
+        ModelFile vat = purifierVat("purifier", false);
+        ModelFile vatFormed = purifierVat("purifier_formed", true);
+        Block vatBlock = ServusManufacturingBlocks.PURIFIER.get();
+        states.getVariantBuilder(vatBlock).forAllStates(state -> state.getValue(PurifierBlock.FORMED)
+                ? ConfiguredModel.builder().modelFile(vatFormed).rotationY(rotation(state.getValue(PurifierBlock.FACING))).build()
+                : ConfiguredModel.builder().modelFile(vat).build());
+        states.simpleBlockItem(vatBlock, vat);
+        side(ServusManufacturingBlocks.CATCH_BASIN.get(), catchBasin("catch_basin", false), catchBasin("catch_basin_formed", true));
+        side(ServusManufacturingBlocks.RESIDUE_CROCK.get(), residueCrock("residue_crock", false), residueCrock("residue_crock_formed", true));
+    }
+
+    private void side(Block block, ModelFile plain, ModelFile formed) {
+        states.getVariantBuilder(block).forAllStates(state -> state.getValue(PurifierSideBlock.FORMED)
+                ? ConfiguredModel.builder().modelFile(formed).rotationY(rotation(state.getValue(PurifierSideBlock.FACING))).build()
+                : ConfiguredModel.builder().modelFile(plain).build());
+        states.simpleBlockItem(block, plain);
+    }
+
+    private ModelFile purifierVat(String name, boolean formed) {
+        BlockModelBuilder model = builder(name)
                 .texture("planks", states.mcLoc("block/oak_planks")).texture("iron", states.mcLoc(IRON))
-                .texture("particle", states.mcLoc("block/oak_planks"));
+                .texture("spout", states.mcLoc(DARK_OAK)).texture("particle", states.mcLoc("block/oak_planks"));
         box(model, 1, 0, 1, 15, 2, 15, "#planks");
         box(model, 1, 0, 1, 15, 14, 3, "#planks");
         box(model, 1, 0, 13, 15, 14, 15, "#planks");
@@ -140,13 +166,33 @@ final class CalcinerModels {
             box(model, 0.75F, y, 1, 1, y + 1, 15, "#iron");
             box(model, 15, y, 1, 15.25F, y + 1, 15, "#iron");
         }
-        states.simpleBlock(ServusManufacturingBlocks.PURIFIER.get(), model);
-        states.simpleBlockItem(ServusManufacturingBlocks.PURIFIER.get(), model);
+        if (formed) {
+            // Front faces north; one spout per plank. Each keeps a pixel off the plank's front face (z 0).
+            for (boolean west : new boolean[] {true, false}) {
+                spoutBox(model, west, 2, 11, -3, 4, 13, 1, "#spout");
+                spoutBox(model, west, -12, 11, -3, 4, 13, -1, "#spout");
+                spoutBox(model, west, -12, -6, -3, -10, 11, -1, "#spout");
+                spoutBox(model, west, -12, -6, -1, -10, -5, 3, "#spout");
+                spoutBox(model, west, -12.25F, 3, -3.25F, -9.75F, 4, -0.75F, "#iron");
+            }
+        }
+        return model;
+    }
 
-        // The Catch Basin: a low oak trough on the stand, where the Salt gathers.
-        BlockModelBuilder basin = builder("catch_basin")
+    /** A box on the west side of the vat, or its mirror on the east side. */
+    private static void spoutBox(BlockModelBuilder model, boolean west, float x1, float y1, float z1, float x2, float y2, float z2, String texture) {
+        if (west) {
+            box(model, x1, y1, z1, x2, y2, z2, texture);
+        } else {
+            box(model, 16 - x2, y1, z1, 16 - x1, y2, z2, texture);
+        }
+    }
+
+    /** The Catch Basin: a low oak trough on the stand, where the Salt gathers. */
+    private ModelFile catchBasin(String name, boolean formed) {
+        BlockModelBuilder basin = builder(name)
                 .texture("planks", states.mcLoc("block/oak_planks")).texture("iron", states.mcLoc(IRON))
-                .texture("particle", states.mcLoc("block/oak_planks"));
+                .texture("spout", states.mcLoc(DARK_OAK)).texture("particle", states.mcLoc("block/oak_planks"));
         box(basin, 1, 0, 1, 15, 2, 15, "#planks");
         box(basin, 1, 0, 1, 15, 10, 3, "#planks");
         box(basin, 1, 0, 13, 15, 10, 15, "#planks");
@@ -156,13 +202,17 @@ final class CalcinerModels {
         box(basin, 0.75F, 6, 15, 15.25F, 7, 15.25F, "#iron");
         box(basin, 0.75F, 6, 1, 1, 7, 15, "#iron");
         box(basin, 15, 6, 1, 15.25F, 7, 15, "#iron");
-        states.simpleBlock(ServusManufacturingBlocks.CATCH_BASIN.get(), basin);
-        states.simpleBlockItem(ServusManufacturingBlocks.CATCH_BASIN.get(), basin);
+        if (formed) {
+            sideFrame(basin);
+        }
+        return basin;
+    }
 
-        // The Residue Crock: a squat terracotta pot with a brick rim, where the Caput Mortuum falls.
-        BlockModelBuilder crock = builder("residue_crock")
+    /** The Residue Crock: a squat terracotta pot with a brick rim, where the Caput Mortuum falls. */
+    private ModelFile residueCrock(String name, boolean formed) {
+        BlockModelBuilder crock = builder(name)
                 .texture("clay", states.mcLoc("block/terracotta")).texture("bricks", states.mcLoc(BRICKS))
-                .texture("particle", states.mcLoc("block/terracotta"));
+                .texture("spout", states.mcLoc(DARK_OAK)).texture("particle", states.mcLoc("block/terracotta"));
         box(crock, 3, 0, 3, 13, 2, 13, "#clay");
         box(crock, 2, 1, 2, 14, 10, 4, "#clay");
         box(crock, 2, 1, 12, 14, 10, 14, "#clay");
@@ -172,8 +222,19 @@ final class CalcinerModels {
         box(crock, 1.5F, 10, 12, 14.5F, 11.5F, 14.5F, "#bricks");
         box(crock, 1.5F, 10, 4, 4, 11.5F, 12, "#bricks");
         box(crock, 12, 10, 4, 14.5F, 11.5F, 12, "#bricks");
-        states.simpleBlock(ServusManufacturingBlocks.RESIDUE_CROCK.get(), crock);
-        states.simpleBlockItem(ServusManufacturingBlocks.RESIDUE_CROCK.get(), crock);
+        if (formed) {
+            sideFrame(crock);
+        }
+        return crock;
+    }
+
+    /** A dark oak stand under a formed Basin or Crock with a bracket to the log it faces (north in model space). */
+    private static void sideFrame(BlockModelBuilder model) {
+        box(model, 0.5F, 0, 0.5F, 2.5F, 4, 2.5F, "#spout");
+        box(model, 13.5F, 0, 0.5F, 15.5F, 4, 2.5F, "#spout");
+        box(model, 0.5F, 0, 13.5F, 2.5F, 4, 15.5F, "#spout");
+        box(model, 13.5F, 0, 13.5F, 15.5F, 4, 15.5F, "#spout");
+        box(model, 5, 3, 0, 11, 5, 1, "#spout");
     }
 
     /** The Sulfur Duct: a straight copper pipe while unformed, its piece of the run from Hood to tank when formed. */

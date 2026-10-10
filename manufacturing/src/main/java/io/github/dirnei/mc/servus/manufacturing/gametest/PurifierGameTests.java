@@ -223,6 +223,25 @@ public final class PurifierGameTests {
         helper.succeed();
     }
 
+    /** Forming turns the Vat to the build's front and the Basin and the Crock to the log; unforming shows the plain blocks again. */
+    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    public static void formedStatesFollowTheBuild(GameTestHelper helper) {
+        purifier(helper);
+        helper.assertBlockProperty(PURIFIER, PurifierBlock.FACING, Direction.NORTH);
+        helper.assertBlockProperty(BASIN, PurifierSideBlock.FACING, Direction.WEST);
+        helper.assertBlockProperty(CROCK, PurifierSideBlock.FACING, Direction.EAST);
+        helper.getLevel().destroyBlock(helper.absolutePos(PURIFIER.below()), true);
+        helper.assertBlockProperty(PURIFIER, PurifierBlock.FORMED, false);
+        helper.assertBlockProperty(BASIN, PurifierSideBlock.FORMED, false);
+        helper.assertBlockProperty(CROCK, PurifierSideBlock.FORMED, false);
+        build(helper, PURIFIER, true);
+        form(helper);
+        helper.assertBlockProperty(PURIFIER, PurifierBlock.FACING, Direction.SOUTH);
+        helper.assertBlockProperty(CROCK, PurifierSideBlock.FACING, Direction.EAST);
+        helper.assertBlockProperty(BASIN, PurifierSideBlock.FACING, Direction.WEST);
+        helper.succeed();
+    }
+
     /** A finished purification counts for the Villach task of the owner's team. */
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 300)
     public static void purifierReportsToTheJournal(GameTestHelper helper) {
