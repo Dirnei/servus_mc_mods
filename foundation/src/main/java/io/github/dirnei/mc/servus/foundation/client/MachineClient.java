@@ -41,17 +41,20 @@ public final class MachineClient {
         event.register(MachineContent.CHUNK_LOADER_MENU.get(), ChunkLoaderScreen::new);
     }
 
-    /** The Sink fan is a standalone model drawn by its block entity renderer. */
+    /** The Sink fan and the Burner Pump beam and rods are standalone models drawn by block entity renderers. */
     @SubscribeEvent
     public static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
         event.register(SinkRenderer.FAN_MODEL);
+        event.register(BurnerPumpRenderer.BEAM_MODEL);
+        event.register(BurnerPumpRenderer.ROD_MODEL);
+        event.register(BurnerPumpRenderer.PISTON_MODEL);
     }
 
     /** Every machine draws its side modes on the block. */
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(MachineContent.COAL_GENERATOR_ENTITY.get(), SideMarkerRenderer::new);
-        event.registerBlockEntityRenderer(MachineContent.BURNER_PUMP_ENTITY.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(MachineContent.BURNER_PUMP_ENTITY.get(), BurnerPumpRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.ELECTRIC_PUMP_ENTITY.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.SINK_ENTITY.get(), SinkRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.CHUNK_LOADER_ENTITY.get(), SideMarkerRenderer::new);

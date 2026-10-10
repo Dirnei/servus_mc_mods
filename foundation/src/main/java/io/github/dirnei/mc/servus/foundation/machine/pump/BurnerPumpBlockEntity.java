@@ -28,6 +28,9 @@ public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements P
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final PumpLogic pump = new PumpLogic(DEFAULTS.fluidCapacity(), this::setChanged);
+    /** Client only: how many ticks the beam has rocked, and the frame time it was advanced to. */
+    public double beamPhase;
+    public double beamTime = -1;
 
     public BurnerPumpBlockEntity(BlockPos pos, BlockState state) {
         super(MachineContent.BURNER_PUMP_ENTITY.get(), pos, state, 1);
