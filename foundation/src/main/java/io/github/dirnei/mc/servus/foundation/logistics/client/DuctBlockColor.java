@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEnti
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColor;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +28,13 @@ public final class DuctBlockColor implements BlockColor {
     public int getColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos, int tintIndex) {
         if (level == null || pos == null || !(level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct)) {
             return WHITE;
+        }
+        if (tintIndex >= PanelQuads.PANEL_TINT_BASE) {
+            int offset = tintIndex - PanelQuads.PANEL_TINT_BASE;
+            int face = offset / PanelQuads.TINTS_PER_SIDE;
+            BlockState panel = face < 6 ? duct.panel(Direction.values()[face]) : null;
+            return panel == null ? WHITE
+                    : Minecraft.getInstance().getBlockColors().getColor(panel, level, pos, offset % PanelQuads.TINTS_PER_SIDE);
         }
         Line line = DuctParts.ringLine(tintIndex);
         if (line == null) {

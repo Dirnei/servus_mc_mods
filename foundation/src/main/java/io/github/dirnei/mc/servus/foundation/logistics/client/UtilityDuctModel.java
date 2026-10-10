@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.foundation.logistics.client;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctModelData;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctParts;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
+import io.github.dirnei.mc.servus.foundation.logistics.duct.PanelSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +29,9 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The duct's baked model: with a facade in the model data it looks like that
- * block; otherwise it is composed from the part models by the lines and arms
- * the block entity reports. The centre part follows the line set, each arm
+ * The duct's baked model, composed from the part models by the lines and arms
+ * the block entity reports, plus one panel per covered face (see
+ * {@link PanelQuads}). The centre part follows the line set, each arm
  * the lines connected on that side, and an arm's ring faces (the tinted ones)
  * only show when the side is an endpoint. A data line tier other than the
  * base one swaps every data containing texture ({@code duct_data},
@@ -54,9 +55,7 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
         this.parts = parts;
     }
 
-    private static BakedModel modelOf(BlockState facade) {
-        return Minecraft.getInstance().getBlockRenderer().getBlockModel(facade);
-    }
+    private final PanelQuads panelQuads = new PanelQuads();
 
     private BakedModel part(String name) {
         return parts.getOrDefault(name, base);
@@ -72,6 +71,23 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
         if (side != null) {
             return List.of();
         }
+        List<BakedQuad> quads = renderType == null || base.getRenderTypes(state, rand, extraData).contains(renderType)
+                ? ductQuads(state, rand, extraData, renderType, lines) : new ArrayList<>();
+        PanelSet panels = extraData.get(DuctModelData.PANELS);
+        if (panels != null) {
+            for (Direction face : Direction.values()) {
+                BlockState panel = panels.state(face);
+                if (panel != null && (renderType == null || renderType == PanelQuads.renderType(panel, rand))) {
+                    quads.addAll(panelQuads.quads(panel, face, panels.isHollow(face)));
+                }
+            }
+        }
+        return quads;
+    }
+
+    /** The centre and arm parts for the lines and arms in the model data, reskinned for the data tier. */
+    private List<BakedQuad> ductQuads(@Nullable BlockState state, RandomSource rand, ModelData extraData,
+                                      @Nullable RenderType renderType, int lines) {
         int[] arms = extraData.get(DuctModelData.ARMS);
         Integer endpoints = extraData.get(DuctModelData.ENDPOINTS);
         int linesMask = DuctParts.normalize(lines);
@@ -152,7 +168,19 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
 
     @Override
     public ChunkRenderTypeSet getRenderTypes(BlockState state, RandomSource rand, ModelData data) {
-        return base.getRenderTypes(state, rand, data);
+        ChunkRenderTypeSet types = base.getRenderTypes(state, rand, data);
+        PanelSet panels = data.get(DuctModelData.PANELS);
+        if (panels == null) {
+            return types;
+        }
+        List<RenderType> panelTypes = new ArrayList<>();
+        for (Direction face : Direction.values()) {
+            BlockState panel = panels.state(face);
+            if (panel != null) {
+                panelTypes.add(PanelQuads.renderType(panel, rand));
+            }
+        }
+        return ChunkRenderTypeSet.union(types, ChunkRenderTypeSet.of(panelTypes));
     }
 
     @Override

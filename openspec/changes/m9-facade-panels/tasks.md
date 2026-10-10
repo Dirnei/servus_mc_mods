@@ -14,7 +14,7 @@
 
 ## 3. Rendering
 
-- [ ] 3.1 `UtilityDuctModel` and `DuctBlockColor` in `foundation/.../logistics/client/` (design D5): baked panel quads per face from the panel block's quads with `FaceBakery`, cached per state, face and hollow; render type union and per type quads; panel tint indices from 200 decoded by `DuctBlockColor`. `DuctOverlayRenderer` picks ducts with panels (design D6). Verify: `gradlew build`, then the client from main: stone and grass block panels, a hollow panel with an arm through it, six stone panels look like stone.
+- [x] 3.1 `UtilityDuctModel` and `DuctBlockColor` in `foundation/.../logistics/client/` (design D5): baked panel quads per face from the panel block's quads with `FaceBakery`, cached per state, face and hollow; render type union and per type quads; panel tint indices from 200 decoded by `DuctBlockColor`. `DuctOverlayRenderer` picks ducts with panels (design D6). Verify: `gradlew build`, then the client from main: stone and grass block panels, a hollow panel with an arm through it, six stone panels look like stone.
 
 ## 4. Examples, JEI, plan and docs
 
