@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 `DuctShapes.panel(side, hollow)` in `foundation/.../logistics/duct/DuctShapes.java` and the pure `PanelHit` in `foundation/.../logistics/duct/PanelHit.java` (design D3, D4). JUnit in `foundation/src/test/.../logistics/duct/`: `DuctShapesPanelTest` (solid slab is one pixel on each of the six faces, hollow frame is four boxes leaving pixels 4 to 12 open, all boxes inside 0 to 16) and `PanelHitTest` (hit in a slab picks that face, the clicked face wins on an edge shared by two slabs, a hit in the middle or on a face without a panel gives none). Verify: `gradlew test`.
+- [x] 1.1 `DuctShapes.panel(side, hollow)` in `foundation/.../logistics/duct/DuctShapes.java` and the pure `PanelHit` in `foundation/.../logistics/duct/PanelHit.java` (design D3, D4). JUnit in `foundation/src/test/.../logistics/duct/`: `DuctShapesPanelTest` (solid slab is one pixel on each of the six faces, hollow frame is four boxes leaving pixels 4 to 12 open, all boxes inside 0 to 16) and `PanelHitTest` (hit in a slab picks that face, the clicked face wins on an edge shared by two slabs, a hit in the middle or on a face without a panel gives none). Verify: `gradlew test`.
 
 ## 2. Panels on the duct
 

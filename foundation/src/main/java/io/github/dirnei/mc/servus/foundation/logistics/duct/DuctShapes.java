@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import java.util.List;
+
 /**
  * The boxes a duct is made of, in pixels of a 16 pixel block: a centre cube
  * whose radius grows with the number of lines, and one arm per side as thick
@@ -80,6 +82,43 @@ public final class DuctShapes {
             case SOUTH -> new Box(lo, lo, hi, hi, hi, 16);
             case WEST -> new Box(0, lo, lo, lo, hi, hi);
             case EAST -> new Box(hi, lo, lo, 16, hi, hi);
+            default -> throw new IllegalArgumentException("side " + side);
+        };
+    }
+
+    /** Panel thickness in pixels. */
+    public static final int PANEL_THICKNESS = 1;
+    /** The hole of a hollow panel runs from this pixel to {@code 16 - HOLE_EDGE}, wide enough for the thickest arm. */
+    public static final int HOLE_EDGE = 8 - THICKEST_RADIUS;
+
+    /**
+     * The boxes of a panel on a side: one full slab when solid, four boxes
+     * framing the hole when hollow.
+     */
+    public static List<Box> panel(int side, boolean hollow) {
+        if (!hollow) {
+            return List.of(onSide(side, 0, 0, 16, 16));
+        }
+        int a = HOLE_EDGE;
+        int b = 16 - HOLE_EDGE;
+        return List.of(
+                onSide(side, 0, 0, 16, a),
+                onSide(side, 0, b, 16, 16),
+                onSide(side, 0, a, a, b),
+                onSide(side, b, a, 16, b));
+    }
+
+    /**
+     * A one pixel box on a side covering {@code u0..u1} by {@code v0..v1} of
+     * that face; u and v are the two other axes in x, y, z order.
+     */
+    private static Box onSide(int side, float u0, float v0, float u1, float v1) {
+        float lo = (side & 1) == 0 ? 0 : 16 - PANEL_THICKNESS;
+        float hi = lo + PANEL_THICKNESS;
+        return switch (side) {
+            case DOWN, UP -> new Box(u0, lo, v0, u1, hi, v1);
+            case NORTH, SOUTH -> new Box(u0, v0, lo, u1, v1, hi);
+            case WEST, EAST -> new Box(lo, u0, v0, hi, u1, v1);
             default -> throw new IllegalArgumentException("side " + side);
         };
     }
