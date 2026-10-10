@@ -159,11 +159,16 @@ public abstract class PumpBlock extends MachineBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return shapes.computeIfAbsent(state, PumpBlock::shapeOf);
+        return shapes.computeIfAbsent(state, this::shapeOf);
     }
 
-    private static VoxelShape shapeOf(BlockState state) {
-        VoxelShape shape = BODY;
+    /** The body without stubs; the compact pump's is the same for every facing. */
+    protected VoxelShape bodyShape(BlockState state) {
+        return BODY;
+    }
+
+    private VoxelShape shapeOf(BlockState state) {
+        VoxelShape shape = bodyShape(state);
         for (Map.Entry<Direction, IntegerProperty> stub : STUBS.entrySet()) {
             int size = state.getValue(stub.getValue());
             if (size > 0) {

@@ -53,29 +53,31 @@ The upper half has no block entity, so `level.getCapability(...)` against it ret
 Models are built by datagen in `MachineDataParts`, facing north and rotated by the blockstate like today:
 
 ```
- front view (facing north, the player looks at the fire door)
+ front view (facing north, the player looks at the fire door; x 0 is the player's right)
 
  y32 +----------------------------+
-     |  ||                        |   upper half:
-     |  ||   =====beam=====       |   chimney  x 11..14, z 11..14 (back right), up to y 31
-     |  ||  /     ^pivot     \    |   cylinder x 2..6, z 5..9 (left), y 16..24
-     |  || [cyl]  [post]     |rod |   pivot post centre, z 6..8, y 16..26
- y16 +--||-[   ]-------------|----+
-     |  ||[====boiler====]   |    |   lower half:
-     |  ||[  FIRE DOOR   ]  [|]   |   base plate 1..15 x 0..2 (as today)
-     |    [==============]  [|]   |   boiler x 3..13, z 3..13, y 2..16, front texture on the north face
- y0  +====base plate==============+   rod x 11..13, z 1..3 (front right), y 2..24, drawn by the BER
+     |        [chimney]           |   upper half (pixels relative to the upper block):
+     |rod ======beam======== pis  |   drum top  x 4..12,  z 4..12,  y 0..3
+     |  |       [post]    [cyl]   |   cylinder  x 10..14, z 2.5..6.5, y 3..9
+     |  |    [==drum top==]       |   post      x 7..9,   z 3..5,   y 3..12, pivot at (8, 12.75, 4)
+ y16 +--|-------------------------+   chimney   x 3..6,   z 9..12,  y 3..15
+     |  | [=====drum======]       |   beam (BER) x 0.5..15.5, z 3..5, rocks about the z axis
+     |  | [   FIRE DOOR   ]       |   lower half:
+     |  | [    firebox    ]       |   base plate 1..15 x 0..2, firebox x 3..13, z 3..13, y 2..14
+ y0  +[sock]===base plate=========+   drum x 4..12, y 14..16; rod (BER) x 1.5..2.5, z 3.5..4.5 from the socket
 ```
 
-- The rod stays in the front right corner, outside the stub boxes, which sit centred on each face (pixels 5..11) and only 3 pixels deep. The front never shows a stub.
-- The chimney is part of the upper half's static model and is not drawn per tick.
-- Shapes: lower half = base plate + boiler + stubs; upper half = chimney + cylinder + pivot post. The beam and rod are left out of collision because they move.
+All boxes live in `BurnerPumpParts`, shared by the shapes, datagen and the renderer.
 
-The beam and the rod are two standalone models, `block/burner_pump_beam` and `block/burner_pump_rod`, registered in `MachineClient.onRegisterAdditionalModels` next to the Sink fan. `BurnerPumpRenderer` draws them from the lower half's block entity, following `SinkRenderer`:
+- The rod stands at x 1..3, z 3..5, beside the firebox, in front of the west stub box (z 5..11, 3 pixels deep). The front never shows a stub. `BurnerPumpPartsTest` checks the clearance.
+- The chimney is part of the upper half's static model and is not drawn per tick.
+- Shapes: lower half = base plate + firebox + drum + stubs, the same for every facing; upper half = drum top + cylinder + post + chimney, rotated per facing. The beam and the rods are left out of collision because they move.
+
+The beam, the pump rod and the short piston rod above the cylinder are standalone models, `block/burner_pump_beam`, `block/burner_pump_rod` and `block/burner_pump_piston`, registered in `MachineClient.onRegisterAdditionalModels` next to the Sink fan. `BurnerPumpRenderer` draws them from the lower half's block entity, following `SinkRenderer`:
 
 - Rotate by facing like the blockstate.
 - Rotate the beam about the Z axis through the pivot.
-- Translate the rod vertically by the beam end's height.
+- Translate the pump rod vertically by the beam's height at `ROD_X`, and the piston rod by its height at `PISTON_X`, which is opposite.
 - `getRenderBoundingBox` spans both blocks.
 - Light is sampled at the upper half, where most of the beam is.
 
@@ -117,6 +119,6 @@ None of section 5's open decisions are touched. This change adds M9 item 1b and 
 
 - [Breaking the top in survival might drop nothing or twice] → Mirror the vanilla door code exactly. A GameTest breaks each half with `destroyBlock(pos, true)` and counts item entities.
 - [GameTests set blocks with `setBlock`, which skips `setPlacedBy`, so the upper half would be missing and `updateShape` would remove the lower half when its neighbour updates] → The `burnerPump` test helper places the upper half explicitly, and `MachineBaseGameTests` does too for the Burner Pump.
-- [The rod in the front right corner could clip a duct stub on the right side at stub size 2] → The rod box (x 11..13, z 1..3) and the side stub box (z 5..11) do not overlap. The play check confirms it.
+- [The rod beside the firebox could clip a duct stub on that side at stub size 2] → The rod box (x 1..3, z 3..5) and the side stub box (z 5..11) do not overlap; `BurnerPumpPartsTest` checks it.
 - [The beam frozen mid stroke looks odd when idle] → Accept for now. Easing back to level is a renderer only change if the play check asks for it.
 - [Existing worlds with a one block Burner Pump] → The project is unreleased, so there is no migration. A placed pump without an upper half shows the new lower half and removes itself on its next neighbour update. Players re-place it.

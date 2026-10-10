@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.foundation.machine.pump;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import java.util.EnumMap;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -24,6 +26,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * The Burner Pump: a small beam engine two blocks tall, placed and broken as
@@ -45,6 +49,24 @@ public class BurnerPumpBlock extends PumpBlock {
     public static final MapCodec<BurnerPumpBlock> CODEC = simpleCodec(BurnerPumpBlock::new);
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
 
+    /** Symmetric, so one shape fits every facing; the small rod socket takes no space. */
+    private static final VoxelShape LOWER = Shapes.or(box(BurnerPumpParts.BASE), box(BurnerPumpParts.FIREBOX),
+            box(BurnerPumpParts.DRUM_LOWER));
+    /** The upper parts per facing; the moving beam and rods take no space. */
+    private static final Map<Direction, VoxelShape> UPPER = new EnumMap<>(Direction.class);
+
+    static {
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            int quarters = quarters(facing);
+            VoxelShape shape = Shapes.empty();
+            for (float[] part : new float[][] {BurnerPumpParts.DRUM_UPPER, BurnerPumpParts.CYLINDER, BurnerPumpParts.POST,
+                    BurnerPumpParts.CHIMNEY}) {
+                shape = Shapes.or(shape, box(BurnerPumpParts.rotated(part, quarters)));
+            }
+            UPPER.put(facing, shape);
+        }
+    }
+
     public BurnerPumpBlock(Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState().setValue(HALF, DoubleBlockHalf.LOWER));
@@ -64,6 +86,20 @@ public class BurnerPumpBlock extends PumpBlock {
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(HALF);
+    }
+
+    /** Quarter turns from the north built models to {@code facing}, as the blockstate rotates them. */
+    public static int quarters(Direction facing) {
+        return ((int) facing.toYRot() + 180) % 360 / 90;
+    }
+
+    private static VoxelShape box(float[] box) {
+        return Shapes.box(box[0] / 16.0, box[1] / 16.0, box[2] / 16.0, box[3] / 16.0, box[4] / 16.0, box[5] / 16.0);
+    }
+
+    @Override
+    protected VoxelShape bodyShape(BlockState state) {
+        return isUpper(state) ? UPPER.get(state.getValue(FACING)) : LOWER;
     }
 
     public static boolean isUpper(BlockState state) {
