@@ -259,7 +259,8 @@ final class CalcinerModels {
     /** The Copper Duct: a straight copper pipe while unformed, its piece of the run from Hood to tank when formed. */
     private void duct() {
         ModelFile straight = ductModel("copper_duct", -1);
-        ModelFile[] pieces = {ductModel("copper_duct_across", 0), ductModel("copper_duct_elbow", 1), ductModel("copper_duct_down", 2)};
+        ModelFile[] pieces = {ductModel("copper_duct_across", 0), ductModel("copper_duct_elbow", 1), ductModel("copper_duct_down", 2),
+                ductModel("copper_duct_athanor", 3), ductModel("copper_duct_athanor_over", 4)};
         Block block = ServusManufacturingBlocks.COPPER_DUCT.get();
         states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(CopperDuctBlock.FORMED) ? pieces[state.getValue(CopperDuctBlock.PIECE)] : straight)
@@ -271,6 +272,8 @@ final class CalcinerModels {
     /**
      * One piece of the duct. The Hood lies toward -x (the player's right), the Sulfur tank below
      * the last piece. Piece 0 runs across and into the Hood's pipe, 1 turns down, 2 drops into the tank.
+     * For the Athanor (toward -x) the pipe lies at the bottom: piece 3 runs from the tower's socket and
+     * ends in a flange (the side of a stacked tank), 4 ends over the tank and goes down into its top.
      */
     private ModelFile ductModel(String name, int piece) {
         BlockModelBuilder model = builder(name)
@@ -286,6 +289,15 @@ final class CalcinerModels {
             case 2 -> {
                 box(model, 6, 2, 6, 10, 16, 10, "#copper");
                 box(model, 4, 0, 4, 12, 2, 12, "#cut");
+            }
+            case 3 -> {
+                box(model, 0, 0, 6, 16, 4, 10, "#copper");
+                box(model, 14, 0, 5, 16, 5, 11, "#cut");
+            }
+            case 4 -> {
+                box(model, 0, 0, 6, 10, 4, 10, "#copper");
+                box(model, 5, 0, 5, 11, 5, 11, "#cut");
+                box(model, 4, 0, 4, 12, 1, 12, "#cut");
             }
             default -> {
                 box(model, 0, 6, 6, 16, 10, 10, "#copper");

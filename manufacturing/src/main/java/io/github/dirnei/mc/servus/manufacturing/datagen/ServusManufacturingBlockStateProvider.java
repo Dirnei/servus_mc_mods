@@ -81,10 +81,10 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         CalcinerModels.uvBox(model, 3.25F, 2.5F, 0.25F, 4, 13.75F, 1, "#iron");
         CalcinerModels.uvBox(model, 12, 2.5F, 0.25F, 12.75F, 13.75F, 1, "#iron");
         CalcinerModels.uvBox(model, 4, 13, 0.25F, 12, 13.75F, 1, "#iron");
-        // Sockets for the pipes, at the height the renderer draws them (1.2 to 1.45 blocks).
-        CalcinerModels.uvBox(model, 0, 19.2F, 6, 2.5F, 23.2F, 10, "#copper");
-        CalcinerModels.uvBox(model, 13.5F, 19.2F, 6, 16, 23.2F, 10, "#copper");
-        CalcinerModels.uvBox(model, 6, 19.2F, 13.5F, 10, 23.2F, 16, "#copper");
+        // Sockets for the Copper Ducts, whose pipe lies at the bottom of the block above.
+        CalcinerModels.uvBox(model, 0, 16, 6, 2.5F, 20, 10, "#copper");
+        CalcinerModels.uvBox(model, 13.5F, 16, 6, 16, 20, 10, "#copper");
+        CalcinerModels.uvBox(model, 6, 16, 13.5F, 10, 20, 16, "#copper");
         return model;
     }
 

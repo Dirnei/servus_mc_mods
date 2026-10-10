@@ -15,7 +15,10 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout.Duct;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout.Tank;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
@@ -39,6 +42,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -95,6 +99,48 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
             }
         }
         return null;
+    }
+
+    /** Where a duct of the build stands, one block above the Athanor's level. */
+    public BlockPos ductPos(Duct duct) {
+        return worldPosition.offset(duct.dx(), 1, duct.dz());
+    }
+
+    /**
+     * The first duct position without a Copper Duct, or null when all stand. A duct counts when it
+     * is free or already this build's; over a tank stacked that high the tank takes its place. Six block reads.
+     */
+    private Duct missingDuct() {
+        for (Duct duct : AthanorLayout.ducts(Structures.facing(getBlockState().getValue(MachineBlock.FACING)))) {
+            BlockState state = level.getBlockState(ductPos(duct));
+            boolean free = state.getBlock() instanceof CopperDuctBlock && (!state.getValue(CopperDuctBlock.FORMED) || CopperDuctBlock.athanorPiece(state));
+            boolean stacked = duct.overTank() && state.getBlock() instanceof FluidTankBlock;
+            if (!free && !stacked) {
+                return duct;
+            }
+        }
+        return null;
+    }
+
+    /** Forms the ducts of an Athanor at {@code pos} facing {@code front} into its pipes, or gives them back their straight look. */
+    public static void setDucts(Level level, BlockPos pos, Direction front, boolean formed) {
+        for (Duct duct : AthanorLayout.ducts(Structures.facing(front))) {
+            BlockPos at = pos.offset(duct.dx(), 1, duct.dz());
+            BlockState state = level.getBlockState(at);
+            if (!(state.getBlock() instanceof CopperDuctBlock)) {
+                continue;
+            }
+            BlockState next = state;
+            if (formed && !state.getValue(CopperDuctBlock.FORMED)) {
+                Direction toAthanor = Direction.getNearest(-duct.dx(), 0, -duct.dz());
+                next = CopperDuctBlock.athanorState(state, duct.overTank() ? CopperDuctBlock.ATHANOR_OVER : CopperDuctBlock.ATHANOR_NEAR, toAthanor);
+            } else if (!formed && CopperDuctBlock.athanorPiece(state)) {
+                next = state.setValue(CopperDuctBlock.FORMED, false).setValue(CopperDuctBlock.PIECE, 0);
+            }
+            if (next != state) {
+                level.setBlock(at, next, Block.UPDATE_ALL);
+            }
+        }
     }
 
     /** The fluid handlers of the three tanks that stand. Server thread only. */
@@ -225,19 +271,26 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
                     Component.translatable("message.servus_manufacturing.athanor.tank." + tank.side().name().toLowerCase(java.util.Locale.ROOT))), false);
             return;
         }
+        Duct duct = missingDuct();
+        if (duct != null) {
+            player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.missing_duct",
+                    Component.translatable("message.servus_manufacturing.athanor.tank." + duct.side().name().toLowerCase(java.util.Locale.ROOT))), false);
+            return;
+        }
         setFormed(true);
         List<BlockPos> cells = new ArrayList<>(List.of(worldPosition));
         AthanorLayout.hearth().forEach(brick -> cells.add(worldPosition.offset(brick.dx(), brick.dy(), brick.dz())));
         tankLayout().forEach(each -> cells.add(tankPos(each)));
+        AthanorLayout.ducts(Structures.facing(getBlockState().getValue(MachineBlock.FACING))).forEach(each -> cells.add(ductPos(each)));
         FormingEffect.play(level, worldPosition, cells);
         setOwner(player.getUUID());
         checkTier();
         player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.formed"), true);
     }
 
-    /** Unforms a formed Athanor whose hearth lost a brick or that lost a tank. */
+    /** Unforms a formed Athanor whose hearth lost a brick or that lost a tank or a duct. */
     public void checkHearth() {
-        if (level != null && !level.isClientSide() && formed() && (missingHearthBrick() != null || missingTank() != null)) {
+        if (level != null && !level.isClientSide() && formed() && (missingHearthBrick() != null || missingTank() != null || missingDuct() != null)) {
             setFormed(false);
         }
     }
@@ -246,6 +299,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         BlockState state = level.getBlockState(worldPosition);
         if (state.getBlock() instanceof AthanorBlock && state.getValue(AthanorBlock.FORMED) != formed) {
             level.setBlock(worldPosition, state.setValue(AthanorBlock.FORMED, formed), Block.UPDATE_ALL);
+            setDucts(level, worldPosition, state.getValue(MachineBlock.FACING), formed);
         }
     }
 

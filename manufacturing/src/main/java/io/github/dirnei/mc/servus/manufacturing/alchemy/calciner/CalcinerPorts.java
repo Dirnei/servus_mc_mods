@@ -79,7 +79,7 @@ public final class CalcinerPorts {
         Cell cell;
         if (state.getBlock() instanceof CalcinerPartBlock part) {
             cell = CalcinerLayout.part(part.role());
-        } else if (state.getBlock() instanceof CopperDuctBlock && state.getValue(CopperDuctBlock.FORMED)) {
+        } else if (CopperDuctBlock.calcinerPiece(state)) {
             cell = CopperDuctBlock.cell(state);
         } else {
             return null;

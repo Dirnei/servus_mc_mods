@@ -13,12 +13,23 @@
       "type": "modonomicon:block",
       "block": "minecraft:bricks"
     },
+    "D": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:copper_duct"
+    },
     "T": {
       "type": "modonomicon:block",
       "block": "servus_foundation:fluid_tank"
     }
   },
   "pattern": [
+    [
+      "_____",
+      "_____",
+      "DD_DD",
+      "__D__",
+      "__D__"
+    ],
     [
       "_____",
       "_____",

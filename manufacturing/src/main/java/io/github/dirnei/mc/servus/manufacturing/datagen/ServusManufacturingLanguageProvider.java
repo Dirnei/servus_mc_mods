@@ -46,6 +46,8 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("message.servus_manufacturing.athanor.formed", "The Athanor is ready.");
         add("message.servus_manufacturing.athanor.missing_tank",
                 "The Athanor is not complete: a Fluid Tank is needed %s, two blocks out. The Athanor page of Paracelsus' Journal shows the build.");
+        add("message.servus_manufacturing.athanor.missing_duct",
+                "The Athanor is not complete: two Copper Ducts are needed one block up toward the tank %s. The Athanor page of Paracelsus' Journal shows the build.");
         add("message.servus_manufacturing.athanor.tank.left", "left of it");
         add("message.servus_manufacturing.athanor.tank.back", "behind it");
         add("message.servus_manufacturing.athanor.tank.right", "right of it");

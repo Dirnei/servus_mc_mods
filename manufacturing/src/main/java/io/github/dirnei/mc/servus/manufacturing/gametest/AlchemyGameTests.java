@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import net.minecraft.world.level.block.state.BlockState;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
@@ -300,7 +302,17 @@ public final class AlchemyGameTests {
         for (AthanorLayout.Tank tank : AthanorLayout.tanks(Facing.NORTH)) {
             helper.setBlock(athanorTank(tank.side()), ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
         }
+        for (AthanorLayout.Duct duct : AthanorLayout.ducts(Facing.NORTH)) {
+            helper.setBlock(athanorDuct(duct.side(), duct.overTank()), ServusManufacturingBlocks.COPPER_DUCT.get().defaultBlockState());
+        }
         return helper.getBlockEntity(MACHINE);
+    }
+
+    /** Where the Athanor's duct toward the tank on {@code side} stands in the test: beside the Athanor or over the tank. */
+    static BlockPos athanorDuct(AthanorLayout.TankSide side, boolean overTank) {
+        AthanorLayout.Duct duct = AthanorLayout.ducts(Facing.NORTH).stream()
+                .filter(each -> each.side() == side && each.overTank() == overTank).findFirst().orElseThrow();
+        return MACHINE.offset(duct.dx(), 1, duct.dz());
     }
 
     /** Where the Athanor's tank on {@code side} stands in the test. */
@@ -513,6 +525,48 @@ public final class AlchemyGameTests {
         AthanorBlockEntity athanor = helper.getBlockEntity(MACHINE);
         athanor.checkTier();
         helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.succeed();
+    }
+
+    /** Forming turns the six ducts into the Athanor's pipes; breaking one unforms it at once and gives the others their straight look back. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorFormsItsDucts(GameTestHelper helper) {
+        athanor(helper);
+        for (AthanorLayout.Duct duct : AthanorLayout.ducts(Facing.NORTH)) {
+            BlockState state = helper.getBlockState(athanorDuct(duct.side(), duct.overTank()));
+            helper.assertTrue(CopperDuctBlock.athanorPiece(state), "every duct is formed into the Athanor");
+            helper.assertTrue(state.getValue(CopperDuctBlock.PIECE) == (duct.overTank() ? CopperDuctBlock.ATHANOR_OVER : CopperDuctBlock.ATHANOR_NEAR),
+                    "the duct over the tank turns down, the one beside runs straight");
+        }
+        helper.getLevel().destroyBlock(helper.absolutePos(athanorDuct(AthanorLayout.TankSide.BACK, true)), true);
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.assertBlockProperty(athanorDuct(AthanorLayout.TankSide.LEFT, false), CopperDuctBlock.FORMED, false);
+        helper.succeed();
+    }
+
+    /** Without the duct over the tank behind it the Journal forms nothing; a tank stacked there takes the duct's place. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorNeedsItsDucts(GameTestHelper helper) {
+        unformedAthanor(helper);
+        helper.setBlock(athanorDuct(AthanorLayout.TankSide.BACK, true), Blocks.AIR);
+        Player player = CalcinerGameTests.player(helper, new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get()));
+        CalcinerGameTests.use(helper, player, MACHINE);
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.setBlock(athanorDuct(AthanorLayout.TankSide.BACK, true), ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
+        CalcinerGameTests.use(helper, player, MACHINE);
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
+        helper.succeed();
+    }
+
+    /** A formed Athanor stands as its tower, up to its plate; a duct's pipe is low enough to jump onto. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorCanBeStoodOn(GameTestHelper helper) {
+        athanor(helper);
+        double top = helper.getBlockState(MACHINE).getCollisionShape(helper.getLevel(), helper.absolutePos(MACHINE)).max(net.minecraft.core.Direction.Axis.Y);
+        helper.assertTrue(Math.abs(top - 23 / 16.0) < 1e-6, "the plate is the top of the tower, not " + top);
+        BlockPos duct = athanorDuct(AthanorLayout.TankSide.LEFT, false);
+        double pipe = helper.getBlockState(duct).getCollisionShape(helper.getLevel(), helper.absolutePos(duct)).max(net.minecraft.core.Direction.Axis.Y);
+        helper.assertTrue(1 + pipe <= 1.25, "the pipe can be jumped onto, its top is " + (1 + pipe));
         helper.succeed();
     }
 

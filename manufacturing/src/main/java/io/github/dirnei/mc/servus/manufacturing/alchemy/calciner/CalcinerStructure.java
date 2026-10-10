@@ -207,7 +207,7 @@ public final class CalcinerStructure {
                 } else if (cell.role() == Role.TANK || cell.role() == Role.AIR) {
                     continue;
                 } else if (cell.role() == Role.DUCT) {
-                    if (state.getBlock() instanceof CopperDuctBlock && state.getValue(CopperDuctBlock.FORMED)) {
+                    if (CopperDuctBlock.calcinerPiece(state)) {
                         unformed = state.setValue(CopperDuctBlock.FORMED, false).setValue(CopperDuctBlock.PIECE, 0);
                     }
                 } else if (state.getBlock() instanceof CalcinerPartBlock && state.getValue(CalcinerPartBlock.FORMED)) {
@@ -255,7 +255,7 @@ public final class CalcinerStructure {
         if (state.getBlock() instanceof CalcinerPartBlock part && state.getValue(CalcinerPartBlock.FORMED)) {
             return Optional.of(controller(pos, CalcinerLayout.part(part.role()), state.getValue(CalcinerPartBlock.FACING)));
         }
-        if (state.getBlock() instanceof CopperDuctBlock && state.getValue(CopperDuctBlock.FORMED)) {
+        if (CopperDuctBlock.calcinerPiece(state)) {
             return Optional.of(controller(pos, CopperDuctBlock.cell(state), state.getValue(CopperDuctBlock.FACING)));
         }
         if (state.getBlock() instanceof CalcinerBlock && state.getValue(CalcinerBlock.FORMED)) {

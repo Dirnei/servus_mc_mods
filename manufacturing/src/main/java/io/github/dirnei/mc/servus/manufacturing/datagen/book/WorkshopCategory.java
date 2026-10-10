@@ -163,17 +163,20 @@ final class WorkshopCategory extends CategoryProvider {
             e.spotlight("machine", ServusManufacturingItems.ATHANOR.get(), "The Athanor",
                     "Lay an item on it, feed it principles, and it burns them into something new.");
             e.multiblock("build", ServusManufacturingMultiblockProvider.athanor("nigredo"), "The Athanor on its Hearth",
-                    "Set it on a diamond of 13 Bricks, stand three Fluid Tanks on its tips to its left, behind it and to its right, and use this journal on it. "
+                    "Set it on a diamond of 13 Bricks, stand three Fluid Tanks on its tips to its left, behind it and to its right, "
+                            + "lay two Copper Ducts one block up from the Athanor to each tank, and use this journal on it. "
                             + "Press Visualize, then click the ground.");
             e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":athanor", "Bricks, a cauldron and a blast furnace.");
             e.text("hearth", "Its Hearth",
                     "The Athanor burns only on a hearth: 13 Bricks in a diamond right below it, reaching two blocks out, with its three tanks on the tips. "
-                            + "When all is laid, use this journal on the Athanor: it rises into a stone brick tower and copper pipes reach out to its tanks. "
-                            + "Take a brick or a tank away and its fire goes out.");
+                            + "Two Copper Ducts lead to each tank, one block up: one beside the Athanor, one over the tank. "
+                            + "When all is laid, use this journal on the Athanor: it rises into a stone brick tower and the ducts become pipes into its tanks. "
+                            + "Take a brick, a tank or a duct away and its fire goes out.");
             e.text("tanks", "Its Tanks",
                     "The Athanor keeps no principles of its own. It drinks them from its three Fluid Tanks, two blocks out to its left, "
                             + "behind it and to its right, so they never touch and never run together.\n\n"
-                            + "Any tank may hold any principle. Lead pipes to them or pour buckets in; stack more tanks on one to make it bigger.");
+                            + "Any tank may hold any principle. Lead pipes to them or pour buckets in. To make one bigger, stack tanks on it "
+                            + "where the duct over it lay; the other duct then runs into the tank's side.");
             e.text("fire", "Its Fire",
                     "Use an item on it to lay it on top. It burns what its tanks hold, and the work lies on top when it is done: "
                             + "take it with an empty hand, or sneak to take the item back. Hoppers and pipes may do both.\n\n"
