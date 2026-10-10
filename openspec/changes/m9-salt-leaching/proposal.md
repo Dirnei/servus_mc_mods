@@ -10,7 +10,9 @@ PLAN.md milestone: M9 (Manufacturing becomes alchemy), new item 6b2 `m9-salt-lea
 
 - New item **Ash**. The Calciner's Ash Pan gives Ash instead of liquid Salt: one Ash for each portion of Salt the Purifier makes from one Ash (example 100 mB). The calcination recipes keep their Salt numbers.
 - The Ash Pan becomes an item port: hoppers, Item Pipes and an empty hand take the Ash out. It has no fluid port any more, and buckets do nothing there. The Ash Pan shows an ash heap.
-- New build **Purifier**: a Leaching Vat over a Catch Basin between planks and logs, formed with the Journal. It washes Ash with water into liquid Salt and leaves **Caput Mortuum**, a residue item for a later stage (carbon, diamond), from a datapack recipe of type `servus_manufacturing:purification` (example 4 Ash and 400 mB water into 400 mB Salt and one Caput Mortuum in 8 seconds). No fuel, no power, no GUI. Ash and water go into the Vat by hand, hopper or pipe; Salt comes out of the Basin to pipes, touching tanks and buckets. Jade shows its contents.
+- New build **Purifier**: a Leaching Vat between planks on a log, with a Catch Basin and a **Residue Crock** below the planks (front view `P V P` over `B L R`, mirrored builds form too), formed with the Journal. It washes Ash with water into liquid Salt and leaves **Caput Mortuum**, a residue item for a later stage (carbon, diamond), from a datapack recipe of type `servus_manufacturing:purification` (example 4 Ash and 400 mB water into 400 mB Salt and one Caput Mortuum in 8 seconds). No fuel, no power, no GUI. Ash and water go into the Vat by hand, hopper or pipe; Salt comes out of the Basin only, to pipes, touching tanks and buckets; Caput Mortuum comes out of the Residue Crock only, to hoppers, Item Pipes and an empty hand, so each output has its own port. The Crock is crafted from vanilla materials (example bricks around a barrel). Jade shows its contents.
+- The formed Purifier looks like one build: the Vat gets spouts reaching over both planks toward the Basin and the Crock, which get formed models facing the Vat. Unformed blocks keep their plain models.
+- Forming any alchemy build with the Journal (Calciner, Purifier, Coagulator, Athanor) plays a sound and sends particles up from every block of the build.
 - The Purifier reports a `purify` event to the journal; Villach asks to purify once.
 - The journal gets a Purifier entry in the Workshop, and the Calciner and Principles pages explain the Ash.
 - JEI shows the purification recipe.
@@ -22,7 +24,7 @@ PLAN.md milestone: M9 (Manufacturing becomes alchemy), new item 6b2 `m9-salt-lea
 
 ### Modified Capabilities
 - `manufacturing/calciner-structure`: the Ash Pan gives Ash items instead of liquid Salt (ports, buckets, look). This capability is created by `m9-calciner-multiblock`, which is archived first.
-- `manufacturing/journal`: the `purify` event, and the Purifier entry in the Workshop.
+- `manufacturing/journal`: the `purify` event, the Purifier entry in the Workshop, and the forming effect of the Journal.
 
 ## Impact
 

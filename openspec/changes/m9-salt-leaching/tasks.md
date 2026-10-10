@@ -25,6 +25,14 @@
 - [x] 5.2 `CatchBasinBlock` (item, recipe, loot, tag, lang, model), `FORMED` and `HORIZONTAL_AXIS` on the Purifier, `PurifierStructure` (check both axes, form, unform, neighbour checks, Journal message), works only formed, residue slot and item port, Basin Salt port and push, hand use (residue, Ash back, buckets on Vat and Basin), Basin Salt drawn, Jade on the Basin; `PurifierGameTests` build and form first and cover the residue, the Basin port, forming and unforming; `:manufacturing:runGameTestServer` green
 - [x] 5.3 Schematic and journal page (multiblock, Vat and Basin recipes, text), PROGRESSION.md diamond path, GameTest that the schematic accepts the build; `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
 
-## 6. Integration
+## 6. Split outputs and forming looks
 
-- [ ] 6.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks Ash from the Calciner through the Purifier into liquid Salt
+- [ ] 6.1 `PurifierLayout` with `P V P` over `B L R` and its mirror, `PurifierLayoutTest` updated (both mirrors, placements); `gradlew :manufacturing:test` green
+- [ ] 6.2 `ResidueCrockBlock` (item, recipe, loot, tag, lang, plain model); `HORIZONTAL_FACING` on Basin and Crock; `PurifierStructure` reworked (both axes and mirrors, Crock and log checks, controller from the side blocks); Vat item port insert only, Crock residue port by block, empty hand on the Crock gives the residue; Crock heap in `PurifierRenderer`; Jade on the Crock; `PurifierGameTests` cover both mirrors, residue by hopper under the Crock, breaking the Crock unforms; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
+- [ ] 6.3 Formed models and blockstates for the Vat, the Basin and the Crock in `CalcinerModels`; GameTest that forming sets the formed states with axis and facing and unforming clears them; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
+- [ ] 6.4 `alchemy/structure/FormingEffect` called after a successful Journal form in `CalcinerStructure`, `PurifierStructure`, `CoagulatorStructure` and the Athanor; `gradlew build` and `:manufacturing:runGameTestServer` green
+- [ ] 6.5 Schematic (`ServusManufacturingMultiblockProvider`) and Purifier journal page for the new layout and the Crock recipe, PLAN.md item text; schematic GameTest accepts the build; no em dashes; `gradlew build` and `:manufacturing:runGameTestServer` green
+
+## 7. Integration
+
+- [ ] 7.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks Ash from the Calciner through the Purifier into Salt in the Basin and Caput Mortuum in the Crock, the formed looks, and the forming effect on all four builds

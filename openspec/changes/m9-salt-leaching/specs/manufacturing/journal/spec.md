@@ -30,8 +30,21 @@ The journal SHALL have a Workshop category beside the story with an entry per al
 
 #### Scenario: Purifier entry
 - **WHEN** a new player opens the Workshop category
-- **THEN** the Purifier entry shows the Purifier, its crafting recipe, how Ash and water become Salt, and the purification recipes
+- **THEN** the Purifier entry shows the Purifier build, the crafting recipes of the Vat, the Basin and the Residue Crock, how Ash and water become Salt and Caput Mortuum, and the purification recipes
 
 #### Scenario: Albedo entries locked
 - **WHEN** a player has not finished Villach
 - **THEN** the Salt Crystal Block, Elixir of Sight and Gnome Hollow entries are locked
+
+## ADDED Requirements
+
+### Requirement: Forming shows itself
+When Paracelsus' Journal forms an alchemy build (Calciner, Purifier, Coagulator, Athanor), a sound SHALL play at the build's controller and particles SHALL rise from every block of the build. A failed attempt SHALL show no effect, only the message naming the missing block.
+
+#### Scenario: Formed with effect
+- **WHEN** a player right clicks the controller of a complete build with the Journal
+- **THEN** the build forms, a sound plays and particles rise from every block of it
+
+#### Scenario: Missing block
+- **WHEN** a player right clicks the controller of an incomplete build with the Journal
+- **THEN** no sound plays, no particles rise and the player sees the missing block
