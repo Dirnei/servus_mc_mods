@@ -27,6 +27,13 @@ See proposal.md. The Athanor (`AthanorBlock`, `AthanorBlockEntity`) already comp
 ### Journal
 The Athanor entry gets the Nigredo multiblock page and a line on the hearth; the Salt Crystal Block entry gets the Albedo page.
 
+### Tanks (play check 2026-10-10)
+The user wanted three tanks the principles are piped into. `AthanorLayout.tanks(Facing)` (pure) gives three offsets at the Athanor's level two blocks out: behind, left and right of its front (`MachineBlock` facing); the front stays open for the player. No two of them touch, so the Foundation Fluid Tanks never merge into one; a player may stack tank blocks on one to grow it, and its whole group counts. Forming needs a `FluidTankBlock` at each position; the slow check (every 5 s and before every craft) reads the three positions too and unforms when one is gone, like a corner brick.
+
+The Athanor reaches the tanks through `Capabilities.FluidHandler.BLOCK` at those positions, on the server thread. `canCraft` sums each principle over the three handlers; a finished craft drains each principle from the handlers in turn, simulating first. Any tank may hold any principle. `PrincipleTanks` leaves the Athanor with its save data, the bucket use and the `fluidHandler` capability; the Athanor's side panel keeps only items. The menu's principle data shows the summed amount and the summed capacity of the tanks holding it, so the GUI keeps its bars. Nothing is released, so old Athanors simply lose their stored fluid.
+
+Risk: a datapack tier whose blocks use the tank positions would clash; the shipped Albedo ring stays one block from the Athanor.
+
 ### Pure vs Minecraft
 Pure: `AthanorLayout` with JUnit `AthanorLayoutTest` (nine hearth cells, Nigredo pattern, Albedo pattern with the ring in the Athanor layer, mapping). GameTests: forming, missing brick named, not formed does not craft, hearth brick broken unforms at the next check, schematics accept the builds. Existing Athanor GameTests build the hearth and form first.
 

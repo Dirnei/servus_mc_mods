@@ -10,6 +10,7 @@ PLAN.md milestone: M9 (Manufacturing becomes alchemy), item 6d `m9-athanor-multi
 
 - The Athanor stands on a hearth of 3 by 3 vanilla Bricks directly below it. Right clicking the Athanor with Paracelsus' Journal checks the hearth and forms the Athanor, making the player its owner; a missing brick is named.
 - Only a formed Athanor crafts. The tier rings (Albedo's Salt Crystal ring and later ones) stay as they are: data, checked on use and slowly. The same slow check also checks the hearth and unforms the Athanor when a brick is gone; a broken brick right under it unforms it at once.
+- Three Foundation Fluid Tanks join the build (play check 2026-10-10): two blocks from the Athanor to its left, behind it and to its right, seen from its front, on its level and outside the Albedo ring; the front stays open. They never touch, so they never merge; a tank grows by stacking. Any tank holds any principle. The Athanor takes each craft's principles straight from them; its own tanks, its bucket input and its fluid sides go away, and pipes and buckets fill the tanks.
 - The journal shows the Nigredo hearth on the Athanor page and the Albedo ring on the Salt Crystal Block page as multiblock schematics with Visualize, generated from the hearth layout and the shipped tier data.
 
 ## Capabilities
@@ -28,6 +29,6 @@ None.
 
 ## Non-goals
 
-- A new formed model or a GUI less Athanor: its look and its GUI stay for now, to be discussed.
+- A new formed model or a GUI less Athanor: its look and its GUI stay, the GUI's principle bars show what the three tanks hold.
 - Changes to the tier data or Athanor recipes.
 - Citrinitas and Rubedo stages.

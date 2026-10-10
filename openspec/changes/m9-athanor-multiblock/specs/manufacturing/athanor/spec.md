@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: The Athanor burns principles
-A craft SHALL run only while the Athanor is formed on its hearth, its tier is at least the craft's tier, its tanks hold the craft's principles, the input holds the item and the output has room. The principles and the item SHALL be taken when the craft completes. The Athanor SHALL need no energy and SHALL show a burning flame while it crafts.
+A craft SHALL run only while the Athanor is formed, its tier is at least the craft's tier, the tanks of its build hold the craft's principles, the input holds the item and the output has room. The principles and the item SHALL be taken when the craft completes. The Athanor SHALL need no energy and SHALL show a burning flame while it crafts.
 
 #### Scenario: Too low a tier
 - **WHEN** a glass bottle lies on an Athanor without a Salt Crystal ring and the Mercury is there
@@ -24,10 +24,28 @@ The Athanor SHALL check its tier when it is placed, when a player uses it, when 
 - **WHEN** a corner brick of the hearth of a formed Athanor is broken
 - **THEN** the Athanor is unformed at its next check
 
+### Requirement: Principles by pipe or bucket
+The Athanor SHALL hold no principles itself and SHALL offer no fluid capability. It SHALL read the principles from the Fluid Tanks of its build, whatever principle each tank holds, and drain them when a craft completes. Pipes and buckets SHALL fill the tanks. A bucket on the Athanor SHALL do nothing.
+
+#### Scenario: Sulfur from a tank
+- **WHEN** Sulfur is piped into the tank left of a formed Athanor and gunpowder lies on it
+- **THEN** Blaze Powder is made and the Sulfur in that tank goes down
+
+#### Scenario: Any tank
+- **WHEN** the Sulfur is in the tank behind the Athanor instead
+- **THEN** the craft runs the same
+
+### Requirement: Athanor production
+The Athanor SHALL expose the production capability with one recipe per craft its current tier allows: the item in, the result out, the time; principles are expected in the tanks of its build.
+
+#### Scenario: Tier filters crafts
+- **WHEN** the production capability of a tier 0 Athanor is queried
+- **THEN** it reports Blaze Powder but not the Bottle o' Enchanting
+
 ## ADDED Requirements
 
 ### Requirement: Athanor hearth
-The Athanor SHALL stand on a hearth of 3 by 3 vanilla Bricks directly below it, centred under it. Right clicking the Athanor with Paracelsus' Journal SHALL check the hearth and form the Athanor when it is complete, making the player its owner, and SHALL NOT open the book; when a brick is missing it SHALL name it. Breaking the brick right under a formed Athanor SHALL unform it at once.
+The Athanor SHALL stand on a hearth of 3 by 3 vanilla Bricks directly below it, centred under it, with three Foundation Fluid Tanks two blocks from it on its own level: behind it, to its left and to its right, seen from its front. Right clicking the Athanor with Paracelsus' Journal SHALL check the hearth and the tanks and form the Athanor when they are complete, making the player its owner, and SHALL NOT open the book; when a brick or a tank is missing it SHALL name it. Breaking the brick right under a formed Athanor SHALL unform it at once; a missing tank SHALL unform it at the next check.
 
 #### Scenario: Formed
 - **WHEN** a player right clicks an Athanor standing on a complete hearth with the Journal
@@ -37,8 +55,12 @@ The Athanor SHALL stand on a hearth of 3 by 3 vanilla Bricks directly below it, 
 - **WHEN** a player right clicks an Athanor whose hearth misses a brick with the Journal
 - **THEN** nothing forms and the player is told that Bricks are needed in the hearth
 
+#### Scenario: Tank missing
+- **WHEN** a player right clicks an Athanor on a complete hearth without a Fluid Tank to its left with the Journal
+- **THEN** nothing forms and the player is told that a Fluid Tank is needed left of the Athanor
+
 ### Requirement: Athanor layout is pure logic
-The hearth cells and the schematic of a stage (the hearth, the Athanor and the blocks of every tier up to it) SHALL be computed in pure Java covered by JUnit.
+The hearth cells, the tank positions for each facing and the schematic of a stage (the hearth, the Athanor, its tanks and the blocks of every tier up to it) SHALL be computed in pure Java covered by JUnit.
 
 #### Scenario: Albedo schematic
 - **WHEN** the schematic of a tier with eight Salt Crystal Blocks around the Athanor is computed
