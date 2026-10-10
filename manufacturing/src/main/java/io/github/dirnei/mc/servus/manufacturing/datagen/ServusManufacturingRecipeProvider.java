@@ -100,6 +100,14 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_copper", has(Items.COPPER_INGOT))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.CATCH_BASIN.get())
+                .pattern("P P")
+                .pattern("PIP")
+                .define('P', ItemTags.PLANKS)
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy("has_planks", has(ItemTags.PLANKS))
+                .save(output);
+
         // The parts of the Calciner structure, all from vanilla materials.
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.FIREBOX.get())
                 .pattern("BIB")

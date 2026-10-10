@@ -142,6 +142,22 @@ final class CalcinerModels {
         }
         states.simpleBlock(ServusManufacturingBlocks.PURIFIER.get(), model);
         states.simpleBlockItem(ServusManufacturingBlocks.PURIFIER.get(), model);
+
+        // The Catch Basin: a low oak trough on the stand, where the Salt gathers.
+        BlockModelBuilder basin = builder("catch_basin")
+                .texture("planks", states.mcLoc("block/oak_planks")).texture("iron", states.mcLoc(IRON))
+                .texture("particle", states.mcLoc("block/oak_planks"));
+        box(basin, 1, 0, 1, 15, 2, 15, "#planks");
+        box(basin, 1, 0, 1, 15, 10, 3, "#planks");
+        box(basin, 1, 0, 13, 15, 10, 15, "#planks");
+        box(basin, 1, 0, 3, 3, 10, 13, "#planks");
+        box(basin, 13, 0, 3, 15, 10, 13, "#planks");
+        box(basin, 0.75F, 6, 0.75F, 15.25F, 7, 1, "#iron");
+        box(basin, 0.75F, 6, 15, 15.25F, 7, 15.25F, "#iron");
+        box(basin, 0.75F, 6, 1, 1, 7, 15, "#iron");
+        box(basin, 15, 6, 1, 15.25F, 7, 15, "#iron");
+        states.simpleBlock(ServusManufacturingBlocks.CATCH_BASIN.get(), basin);
+        states.simpleBlockItem(ServusManufacturingBlocks.CATCH_BASIN.get(), basin);
     }
 
     /** The Sulfur Duct: a straight copper pipe while unformed, its piece of the run from Hood to tank when formed. */

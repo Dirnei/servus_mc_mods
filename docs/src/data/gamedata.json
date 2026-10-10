@@ -529,6 +529,21 @@
         {"item": "servus_manufacturing:calciner_firebox", "count": 1}
       ]
     },
+    "servus_manufacturing:catch_basin": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["P P", "PIP"],
+      "key": {
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 4},
+        {"item": "minecraft:iron_ingot", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:catch_basin", "count": 1}
+      ]
+    },
     "servus_manufacturing:coagulator": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["IGI", "GCG", "IRI"],
@@ -1125,6 +1140,9 @@
     },
     "servus_manufacturing:calciner_firebox": {
       "name": "Firebox"
+    },
+    "servus_manufacturing:catch_basin": {
+      "name": "Catch Basin"
     },
     "servus_manufacturing:coagulator": {
       "name": "Coagulator"

@@ -7,6 +7,7 @@
   "block.servus_manufacturing.calciner_ash_pan": "Ash Pan",
   "block.servus_manufacturing.calciner_firebox": "Firebox",
   "block.servus_manufacturing.calciner_shell": "Calciner Bricks",
+  "block.servus_manufacturing.catch_basin": "Catch Basin",
   "block.servus_manufacturing.coagulator": "Coagulator",
   "block.servus_manufacturing.gnome_hollow": "Gnome Hollow",
   "block.servus_manufacturing.mercury": "Mercury",
@@ -203,6 +204,7 @@
   "jade.servus_manufacturing.calciner.progress": "Progress: %s%%",
   "jade.servus_manufacturing.calciner.stack": "%s %s",
   "jade.servus_manufacturing.purifier.items": "Ash: %s",
+  "jade.servus_manufacturing.purifier.residue": "Caput Mortuum: %s",
   "jade.servus_manufacturing.purifier.water": "%s / %s mB Water",
   "journal.servus_manufacturing.schwaz": "Schwaz",
   "journal.servus_manufacturing.schwaz.finished": "Finished the Schwaz chapter of the journal",
@@ -228,5 +230,13 @@
   "message.servus_manufacturing.gnome_hollow.bound": "A gnome takes your offering and sets to work.",
   "message.servus_manufacturing.gnome_hollow.no_sight": "You cannot see the spirits of the earth.",
   "message.servus_manufacturing.gnome_hollow.no_vein": "Nothing grows here yet. Seed the hollow with a sample of ore.",
-  "message.servus_manufacturing.gnome_hollow.not_ripe": "The vein is not ripe yet."
+  "message.servus_manufacturing.gnome_hollow.not_ripe": "The vein is not ripe yet.",
+  "message.servus_manufacturing.purifier.at.below_the_vat": "below the Vat",
+  "message.servus_manufacturing.purifier.at.itself": "here",
+  "message.servus_manufacturing.purifier.at.left_of_the_basin": "left of the Basin",
+  "message.servus_manufacturing.purifier.at.left_of_the_vat": "left of the Vat",
+  "message.servus_manufacturing.purifier.at.right_of_the_basin": "right of the Basin",
+  "message.servus_manufacturing.purifier.at.right_of_the_vat": "right of the Vat",
+  "message.servus_manufacturing.purifier.formed": "The Purifier is ready.",
+  "message.servus_manufacturing.purifier.missing": "The Purifier is not complete: %s needed %s. The Purifier page of Paracelsus' Journal shows the build."
 }

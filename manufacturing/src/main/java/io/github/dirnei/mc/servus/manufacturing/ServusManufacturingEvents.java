@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorStructure;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierStructure;
 import io.github.dirnei.mc.servus.manufacturing.gametest.AlchemyGameTests;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import io.github.dirnei.mc.servus.manufacturing.gametest.CalcinerGameTests;
@@ -58,10 +59,13 @@ public final class ServusManufacturingEvents {
 
         @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+            // The Purifier build: Ash and water into the Vat, the residue out of it, the Salt out of the Catch Basin.
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.PURIFIER.get(),
-                    (purifier, side) -> purifier.itemPort());
+                    (purifier, side) -> purifier.formed() ? purifier.itemPort() : null);
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.PURIFIER.get(),
-                    (purifier, side) -> purifier.fluidPort());
+                    (purifier, side) -> purifier.formed() ? purifier.fluidPort() : null);
+            event.registerBlock(Capabilities.FluidHandler.BLOCK, (level, pos, state, entity, side) -> PurifierStructure.basinHandler(level, pos, state),
+                    ServusManufacturingBlocks.CATCH_BASIN.get());
             // The Calciner structure has fixed ports by position instead of sides.
             event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.items(level, pos, state),
                     ServusManufacturingBlocks.CALCINER.get(), ServusManufacturingBlocks.FIREBOX.get(), ServusManufacturingBlocks.ASH_PAN.get());

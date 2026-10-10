@@ -31,6 +31,17 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.SULFUR_HOOD.get(), "Sulfur Hood");
         add(ServusManufacturingBlocks.SULFUR_DUCT.get(), "Sulfur Duct");
         add(ServusManufacturingBlocks.PURIFIER.get(), "Purifier");
+        add(ServusManufacturingBlocks.CATCH_BASIN.get(), "Catch Basin");
+        add("message.servus_manufacturing.purifier.formed", "The Purifier is ready.");
+        add("message.servus_manufacturing.purifier.missing",
+                "The Purifier is not complete: %s needed %s. The Purifier page of Paracelsus' Journal shows the build.");
+        add("message.servus_manufacturing.purifier.at.below_the_vat", "below the Vat");
+        add("message.servus_manufacturing.purifier.at.left_of_the_vat", "left of the Vat");
+        add("message.servus_manufacturing.purifier.at.right_of_the_vat", "right of the Vat");
+        add("message.servus_manufacturing.purifier.at.left_of_the_basin", "left of the Basin");
+        add("message.servus_manufacturing.purifier.at.right_of_the_basin", "right of the Basin");
+        add("message.servus_manufacturing.purifier.at.itself", "here");
+        add("jade.servus_manufacturing.purifier.residue", "Caput Mortuum: %s");
         add(ServusManufacturingBlocks.VAT.get(), "Principle Vat");
         add("message.servus_manufacturing.coagulator.formed", "The Coagulator is ready.");
         add("message.servus_manufacturing.athanor.formed", "The Athanor is ready.");

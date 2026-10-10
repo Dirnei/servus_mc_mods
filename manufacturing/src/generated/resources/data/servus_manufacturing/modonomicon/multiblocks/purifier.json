@@ -1,0 +1,31 @@
+{
+  "type": "modonomicon:dense",
+  "mapping": {
+    "0": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:catch_basin"
+    },
+    "L": {
+      "type": "modonomicon:tag",
+      "display": "minecraft:oak_log",
+      "tag": "#minecraft:logs"
+    },
+    "P": {
+      "type": "modonomicon:tag",
+      "display": "minecraft:oak_planks",
+      "tag": "#minecraft:planks"
+    },
+    "V": {
+      "type": "modonomicon:block",
+      "block": "servus_manufacturing:purifier"
+    }
+  },
+  "pattern": [
+    [
+      "PVP"
+    ],
+    [
+      "L0L"
+    ]
+  ]
+}

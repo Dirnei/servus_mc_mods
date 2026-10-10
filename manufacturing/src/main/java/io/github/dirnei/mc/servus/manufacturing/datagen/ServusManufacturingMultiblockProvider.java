@@ -15,6 +15,10 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.registries.BuiltInRegistries;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierStructure;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Blocks;
 
 /**
  * The multiblocks the journal draws, written from the same layout that forming checks, so the
@@ -24,6 +28,8 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
 
     /** The id of the Calciner schematic, used by the journal's multiblock page. */
     public static final ResourceLocation CALCINER = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
+    /** The id of the Purifier schematic. */
+    public static final ResourceLocation PURIFIER = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purifier");
     /** The id of the Coagulator schematic. */
     public static final ResourceLocation COAGULATOR = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulator");
 
@@ -66,6 +72,17 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
             coagulator.block(role.symbol(), () -> CoagulatorStructure.expected(role));
         }
         add(COAGULATOR, coagulator.build(false, 1));
+
+        // The Purifier: the Basin is the bottom middle, so it is the anchor; planks and logs of any wood.
+        DenseMultiblockBuilder purifier = new DenseMultiblockBuilder();
+        for (String row : PurifierLayout.patternRows()) {
+            purifier.layer(row.replace(PurifierLayout.Role.BASIN.symbol(), '0'));
+        }
+        purifier.block(PurifierLayout.Role.VAT.symbol(), () -> PurifierStructure.shown(PurifierLayout.Role.VAT));
+        purifier.block('0', () -> PurifierStructure.shown(PurifierLayout.Role.BASIN));
+        purifier.tag(PurifierLayout.Role.PLANKS.symbol(), BlockTags.PLANKS, () -> Blocks.OAK_PLANKS);
+        purifier.tag(PurifierLayout.Role.LOGS.symbol(), BlockTags.LOGS, () -> Blocks.OAK_LOG);
+        add(PURIFIER, purifier.build(false, 1));
 
         // The Athanor on its hearth, then each shipped tier with every tier below it.
         athanor("nigredo", List.of());

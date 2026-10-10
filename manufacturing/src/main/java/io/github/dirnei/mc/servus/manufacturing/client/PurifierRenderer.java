@@ -14,7 +14,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
-/** Draws the Purifier's vat: the Ash still to wash on its floor, over it the brine (the Salt when it holds any, else the water) as high as the tank is full. */
+/** Draws the Purifier: the Ash still to wash on the Vat's floor with the water over it, and the Salt in the Catch Basin below. */
 public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlockEntity> {
 
     /** The inside of the vat in sixteenths: above the floor, inside the walls, below the rim. */
@@ -22,6 +22,9 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
     private static final float INSIDE_MAX = 13 / 16F;
     private static final float FLOOR = 2 / 16F;
     private static final float RIM = 13.5F / 16F;
+    /** The inside of the Catch Basin below, in blocks. */
+    private static final float BASIN_FLOOR = 2 / 16F;
+    private static final float BASIN_RIM = 9.5F / 16F;
 
     public PurifierRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -30,6 +33,11 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
     private static final ResourceLocation ASH = ResourceLocation.withDefaultNamespace("block/light_gray_concrete_powder");
     /** The ash layer grows from one sixteenth to this height with a full stack. */
     private static final float ASH_MAX = 3 / 16F;
+
+    @Override
+    public net.minecraft.world.phys.AABB getRenderBoundingBox(PurifierBlockEntity purifier) {
+        return new net.minecraft.world.phys.AABB(purifier.getBlockPos()).expandTowards(0, -1, 0);
+    }
 
     @Override
     public void render(PurifierBlockEntity purifier, float partialTick, PoseStack poseStack, MultiBufferSource buffers,
@@ -43,21 +51,31 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
                     INSIDE_MIN, FLOOR, INSIDE_MIN, INSIDE_MAX, FLOOR + height, INSIDE_MAX, ash, 0xFFFFFFFF, packedLight);
             floor = FLOOR + height;
         }
-        FluidTank shown = purifier.salt().isEmpty() ? purifier.water() : purifier.salt();
-        FluidStack fluid = shown.getFluid();
+        drawLiquid(purifier.water(), floor, FLOOR, RIM, poseStack, buffers, packedLight);
+        // The Salt drips through into the Catch Basin below.
+        if (purifier.formed()) {
+            poseStack.pushPose();
+            poseStack.translate(0, -1, 0);
+            drawLiquid(purifier.salt(), BASIN_FLOOR, BASIN_FLOOR, BASIN_RIM, poseStack, buffers, packedLight);
+            poseStack.popPose();
+        }
+    }
+
+    /** One liquid as high as its tank is full, between {@code bottom} and {@code rim}, never thinner than half a pixel above {@code floor}. */
+    private static void drawLiquid(FluidTank tank, float floor, float bottom, float rim, PoseStack poseStack, MultiBufferSource buffers, int light) {
+        FluidStack fluid = tank.getFluid();
         if (fluid.isEmpty()) {
             return;
         }
-        float share = Math.min(1.0F, fluid.getAmount() / (float) Math.max(1, shown.getCapacity()));
+        float share = Math.min(1.0F, fluid.getAmount() / (float) Math.max(1, tank.getCapacity()));
         IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
         ResourceLocation still = extensions.getStillTexture(fluid);
         if (still == null) {
             return;
         }
         TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(still);
-        // The brine stands over the ash and rises with what the tank holds.
-        float top = Math.max(floor + 0.5F / 16F, FLOOR + (RIM - FLOOR) * share);
+        float top = Math.max(floor + 0.5F / 16F, bottom + (rim - bottom) * share);
         CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentCullBlockSheet()), poseStack.last(),
-                INSIDE_MIN, floor, INSIDE_MIN, INSIDE_MAX, top, INSIDE_MAX, sprite, extensions.getTintColor(fluid), packedLight);
+                INSIDE_MIN, floor, INSIDE_MIN, INSIDE_MAX, top, INSIDE_MAX, sprite, extensions.getTintColor(fluid), light);
     }
 }
