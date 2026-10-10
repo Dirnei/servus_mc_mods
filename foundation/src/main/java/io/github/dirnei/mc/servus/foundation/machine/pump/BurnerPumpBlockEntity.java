@@ -1,12 +1,13 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.menu.BurnerPumpMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -31,6 +32,8 @@ public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements P
     public BurnerPumpBlockEntity(BlockPos pos, BlockState state) {
         super(MachineContent.BURNER_PUMP_ENTITY.get(), pos, state, 1);
         PumpLogic.lockSides(sideConfig());
+        // The upper half of the engine sits on top: nothing passes there.
+        sideConfig().lock(RelativeSide.TOP, SideMode.DISABLED);
     }
 
     @Override

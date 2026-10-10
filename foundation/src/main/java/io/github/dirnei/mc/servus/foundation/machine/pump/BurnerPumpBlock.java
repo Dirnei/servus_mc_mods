@@ -75,6 +75,12 @@ public class BurnerPumpBlock extends PumpBlock {
         return isUpper(state) ? pos.below() : pos;
     }
 
+    /** Only the lower half's back and sides: its top is the upper half, the upper half has no faces of its own. */
+    @Override
+    protected boolean opensFace(BlockState state, Direction face) {
+        return !isUpper(state) && face != Direction.UP && super.opensFace(state, face);
+    }
+
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockPos pos = context.getClickedPos();

@@ -71,6 +71,11 @@ public abstract class PumpBlock extends MachineBlock {
 
     /** Whether the pump gives water through a face: every face but the front and the bottom. */
     public static boolean givesWater(BlockState state, Direction face) {
+        return state.getBlock() instanceof PumpBlock pump && pump.opensFace(state, face);
+    }
+
+    /** The faces water, fuel or energy pass through; the Burner Pump closes more of them. */
+    protected boolean opensFace(BlockState state, Direction face) {
         return face != Direction.DOWN && face != state.getValue(FACING);
     }
 
