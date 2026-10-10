@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -53,7 +54,8 @@ public final class MachineContent {
             MENUS.register("coal_generator", () -> IMenuTypeExtension.create(CoalGeneratorMenu::fromNetwork));
 
     public static final DeferredBlock<BurnerPumpBlock> BURNER_PUMP =
-            BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new, machine().noOcclusion());
+            BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new,
+                    machine().noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<BlockItem> BURNER_PUMP_ITEM = ITEMS.registerSimpleBlockItem(BURNER_PUMP);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BurnerPumpBlockEntity>> BURNER_PUMP_ENTITY =
             BLOCK_ENTITIES.register("burner_pump", () -> BlockEntityType.Builder
