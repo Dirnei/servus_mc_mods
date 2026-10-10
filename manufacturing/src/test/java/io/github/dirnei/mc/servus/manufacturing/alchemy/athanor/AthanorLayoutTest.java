@@ -26,17 +26,19 @@ class AthanorLayoutTest {
     @Test
     void nigredoSchematic() {
         AthanorLayout.Schematic schematic = AthanorLayout.schematic(List.of());
-        assertEquals(2, schematic.layers().size());
-        assertEquals(List.of("__B__", "_BBB_", "BB0BB", "_BBB_", "__B__"), schematic.layers().get(1));
+        assertEquals(3, schematic.layers().size());
+        assertEquals(List.of("__B__", "_BBB_", "BB0BB", "_BBB_", "__B__"), schematic.layers().get(2));
+        assertEquals(AthanorLayout.COPPER_DUCT, schematic.mapping().get('D'));
         assertEquals(AthanorLayout.BRICKS, schematic.mapping().get('0'));
         assertEquals(AthanorLayout.ATHANOR, schematic.mapping().get('A'));
         assertEquals(AthanorLayout.FLUID_TANK, schematic.mapping().get('T'));
     }
 
     @Test
-    void nigredoSchematicTopLayerIsPaddedToTheHearth() {
+    void nigredoSchematicUpperLayersArePaddedToTheHearth() {
         AthanorLayout.Schematic schematic = AthanorLayout.schematic(List.of());
-        assertEquals(List.of("_____", "_____", "T_A_T", "_____", "__T__"), schematic.layers().getFirst());
+        assertEquals(List.of("_____", "_____", "DD_DD", "__D__", "__D__"), schematic.layers().get(0));
+        assertEquals(List.of("_____", "_____", "T_A_T", "_____", "__T__"), schematic.layers().get(1));
     }
 
     @Test
@@ -50,8 +52,8 @@ class AthanorLayoutTest {
             }
         }
         AthanorLayout.Schematic schematic = AthanorLayout.schematic(ring);
-        assertEquals(List.of(List.of("_____", "_____", "T_A_T", "_____", "__T__"), List.of("CCBCC", "CBBBC", "BB0BB", "CBBBC", "CCBCC")),
-                schematic.layers());
+        assertEquals(List.of(List.of("_____", "_____", "DD_DD", "__D__", "__D__"), List.of("_____", "_____", "T_A_T", "_____", "__T__"),
+                List.of("CCBCC", "CBBBC", "BB0BB", "CBBBC", "CCBCC")), schematic.layers());
         assertEquals(SALT, schematic.mapping().get('C'));
     }
 
@@ -72,6 +74,18 @@ class AthanorLayoutTest {
         for (Facing facing : Facing.values()) {
             for (Tank tank : AthanorLayout.tanks(facing)) {
                 assertTrue(AthanorLayout.hearth().contains(new BlockAt(tank.dx(), -1, tank.dz(), AthanorLayout.BRICKS)), facing + " " + tank);
+            }
+        }
+    }
+
+    @Test
+    void twoDuctsPerTankTheFarOneOverIt() {
+        for (Facing facing : Facing.values()) {
+            List<AthanorLayout.Duct> ducts = AthanorLayout.ducts(facing);
+            assertEquals(6, ducts.size());
+            for (Tank tank : AthanorLayout.tanks(facing)) {
+                assertTrue(ducts.contains(new AthanorLayout.Duct(tank.side(), true, tank.dx(), tank.dz())), facing + " " + tank);
+                assertTrue(ducts.contains(new AthanorLayout.Duct(tank.side(), false, tank.dx() / 2, tank.dz() / 2)), facing + " " + tank);
             }
         }
     }

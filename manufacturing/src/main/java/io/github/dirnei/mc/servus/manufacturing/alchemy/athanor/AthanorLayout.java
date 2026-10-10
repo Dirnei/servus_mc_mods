@@ -9,7 +9,8 @@ import java.util.Map;
 
 /**
  * The Athanor's build: a diamond hearth of 13 Bricks right below it, three Fluid Tanks two blocks
- * out behind it and to its left and right, standing on the tips of the diamond, and the schematic of a stage, the hearth, the Athanor
+ * out behind it and to its left and right, standing on the tips of the diamond, two Copper Ducts
+ * per tank one block up, and the schematic of a stage, the hearth, the Athanor
  * and its tanks with the blocks of its tiers around. Pure Java.
  */
 public final class AthanorLayout {
@@ -17,6 +18,7 @@ public final class AthanorLayout {
     public static final String BRICKS = "minecraft:bricks";
     public static final String ATHANOR = "servus_manufacturing:athanor";
     public static final String FLUID_TANK = "servus_foundation:fluid_tank";
+    public static final String COPPER_DUCT = "servus_manufacturing:copper_duct";
 
     /** Where a tank stands, seen from the Athanor's front. */
     public enum TankSide {
@@ -25,6 +27,14 @@ public final class AthanorLayout {
 
     /** A tank position. */
     public record Tank(TankSide side, int dx, int dz) {
+    }
+
+    /**
+     * A Copper Duct of the build, one block above the Athanor's level.
+     *
+     * @param overTank true for the duct over the tank, which turns down into it; false for the one beside the Athanor
+     */
+    public record Duct(TankSide side, boolean overTank, int dx, int dz) {
     }
 
     /** The hearth: 13 Bricks in a diamond reaching two blocks out, one layer below the Athanor. */
@@ -69,11 +79,27 @@ public final class AthanorLayout {
                 new Tank(TankSide.RIGHT, 2 * rx, 2 * rz));
     }
 
-    /** The schematic of the hearth, the Athanor facing north with its tanks, and {@code extra} blocks around it. */
+    /**
+     * The six ducts of an Athanor whose front faces {@code facing}: for each tank one beside the
+     * Athanor and one over the tank, one block up.
+     */
+    public static List<Duct> ducts(Facing facing) {
+        List<Duct> ducts = new ArrayList<>();
+        for (Tank tank : tanks(facing)) {
+            int ux = Integer.signum(tank.dx());
+            int uz = Integer.signum(tank.dz());
+            ducts.add(new Duct(tank.side(), false, ux, uz));
+            ducts.add(new Duct(tank.side(), true, tank.dx(), tank.dz()));
+        }
+        return List.copyOf(ducts);
+    }
+
+    /** The schematic of the hearth, the Athanor facing north with its tanks and ducts, and {@code extra} blocks around it. */
     public static Schematic schematic(List<BlockAt> extra) {
         List<BlockAt> all = new ArrayList<>(HEARTH);
         all.add(new BlockAt(0, 0, 0, ATHANOR));
         tanks(Facing.NORTH).forEach(tank -> all.add(new BlockAt(tank.dx(), 0, tank.dz(), FLUID_TANK)));
+        ducts(Facing.NORTH).forEach(duct -> all.add(new BlockAt(duct.dx(), 1, duct.dz(), COPPER_DUCT)));
         all.addAll(extra);
         int minX = all.stream().mapToInt(BlockAt::dx).min().orElse(0);
         int maxX = all.stream().mapToInt(BlockAt::dx).max().orElse(0);
@@ -87,6 +113,7 @@ public final class AthanorLayout {
         mapping.put('B', BRICKS);
         mapping.put('A', ATHANOR);
         mapping.put('T', FLUID_TANK);
+        mapping.put('D', COPPER_DUCT);
         Map<String, Character> symbols = new LinkedHashMap<>();
         char next = 'C';
         for (BlockAt block : extra) {
@@ -94,6 +121,9 @@ public final class AthanorLayout {
                 symbols.put(block.block(), next);
                 mapping.put(next, block.block());
                 next++;
+                if (next == 'D') {
+                    next++;
+                }
             }
         }
 
@@ -123,6 +153,9 @@ public final class AthanorLayout {
                 }
                 if (block.block().equals(FLUID_TANK)) {
                     return 'T';
+                }
+                if (block.block().equals(COPPER_DUCT)) {
+                    return 'D';
                 }
                 Character symbol = symbols.get(block.block());
                 return symbol != null ? symbol : 'B';
