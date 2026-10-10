@@ -214,6 +214,21 @@ public final class ServusLogisticsGameTests {
         helper.succeed();
     }
 
+    /** Every example facade shown in the creative tab and in JEI comes from the facade recipe. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void facadeExamplesAreCraftable(GameTestHelper helper) {
+        for (Block block : FacadeItem.EXAMPLES) {
+            CraftingInput input = CraftingInput.of(2, 1, List.of(new ItemStack(block), new ItemStack(Items.IRON_INGOT)));
+            Optional<RecipeHolder<CraftingRecipe>> recipe =
+                    helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
+            helper.assertTrue(recipe.isPresent(), "no facade recipe for " + block);
+            ItemStack result = recipe.get().value().assemble(input, helper.getLevel().registryAccess());
+            helper.assertTrue(result.is(ServusLogisticsItems.FACADE.get()) && result.getCount() == 6 && FacadeItem.blockOf(result) == block,
+                    "six facades of " + block + " expected, got " + result);
+        }
+        helper.succeed();
+    }
+
     /** A Data Cable adds the data line to an item duct; two data ducts form one network with no members. */
     @GameTest(template = EMPTY, timeoutTicks = 40)
     public static void dataLineOnAnItemDuct(GameTestHelper helper) {

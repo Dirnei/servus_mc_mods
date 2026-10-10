@@ -20,6 +20,10 @@ import net.minecraft.world.level.block.Blocks;
 /** A facade: applied to a duct, the duct looks like the stored block. */
 public class FacadeItem extends Item {
 
+    /** The facades shown in the creative tab and in JEI; any facadeable block works the same way. */
+    public static final List<Block> EXAMPLES =
+            List.of(Blocks.STONE, Blocks.STONE_BRICKS, Blocks.OAK_PLANKS, Blocks.BRICKS, Blocks.DEEPSLATE_TILES);
+
     public FacadeItem(Properties properties) {
         super(properties);
     }
@@ -28,6 +32,11 @@ public class FacadeItem extends Item {
         ItemStack stack = new ItemStack(ServusLogisticsItems.FACADE.get(), count);
         stack.set(ServusLogisticsComponents.FACADE_BLOCK.get(), block);
         return stack;
+    }
+
+    /** One facade of each example block. */
+    public static List<ItemStack> examples() {
+        return EXAMPLES.stream().map(block -> of(block, 1)).toList();
     }
 
     public static Block blockOf(ItemStack stack) {

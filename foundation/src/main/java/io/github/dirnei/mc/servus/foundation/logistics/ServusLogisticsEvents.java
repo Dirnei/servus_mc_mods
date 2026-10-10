@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.foundation.logistics;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctStatsManager;
+import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.gametest.FluidTankGameTests;
 import io.github.dirnei.mc.servus.foundation.logistics.gametest.ServusLogisticsGameTests;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlockEntities;
@@ -40,6 +41,7 @@ public final class ServusLogisticsEvents {
         public static void onBuildCreativeTab(BuildCreativeModeTabContentsEvent event) {
             if (event.getTabKey().equals(ServusFoundationCreativeTabs.SERVUS_KEY)) {
                 ServusLogisticsItems.CREATIVE_TAB_ORDER.forEach(event::accept);
+                FacadeItem.examples().forEach(event::accept);
             }
         }
 

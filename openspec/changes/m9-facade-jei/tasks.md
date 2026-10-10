@@ -2,7 +2,7 @@
 
 ## 1. Example facades
 
-- [ ] 1.1 Add `FacadeItem.EXAMPLES` and `FacadeItem.examples()` in `foundation/.../logistics/facade/FacadeItem.java`, and add the example stacks to the Servus tab in `foundation/.../logistics/ServusLogisticsEvents.java` after `CREATIVE_TAB_ORDER`. Add the GameTest `facadeExamplesAreCraftable` in `foundation/.../logistics/gametest/ServusLogisticsGameTests.java`. Verify: `gradlew build`, `gradlew test` and `gradlew runGameTestServer` green.
+- [x] 1.1 Add `FacadeItem.EXAMPLES` and `FacadeItem.examples()` in `foundation/.../logistics/facade/FacadeItem.java`, and add the example stacks to the Servus tab in `foundation/.../logistics/ServusLogisticsEvents.java` after `CREATIVE_TAB_ORDER`. Add the GameTest `facadeExamplesAreCraftable` in `foundation/.../logistics/gametest/ServusLogisticsGameTests.java`. Verify: `gradlew build`, `gradlew test` and `gradlew runGameTestServer` green.
 
 ## 2. JEI
 
