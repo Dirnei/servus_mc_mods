@@ -14,7 +14,8 @@ services:
       MEMORY: "${MEMORY:-4G}"
       MOTD: "Servus play test"
       DIFFICULTY: normal
-      ONLINE_MODE: "TRUE"
+      # FALSE lets the Gradle dev client (player "Dev") join, but then anyone can pick any name
+      ONLINE_MODE: "${ONLINE_MODE:-TRUE}"
       # Comma separated player names, set them in .env
       OPS: "${OPS:-}"
       WHITELIST: "${WHITELIST:-}"
