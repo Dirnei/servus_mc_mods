@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.datagen;
 
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
+import io.github.dirnei.mc.servus.foundation.logistics.facade.HollowFacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
@@ -48,6 +49,7 @@ public final class LogisticsDataParts {
         provider.basicItem(ServusLogisticsItems.DUPLEX_DATA_CABLE.get());
         provider.basicItem(ServusLogisticsItems.FAST_DATA_CABLE.get());
         provider.basicItem(ServusLogisticsItems.FACADE.get());
+        provider.basicItem(ServusLogisticsItems.HOLLOW_FACADE.get());
     }
 
     public static List<Block> pickaxeBlocks() {
@@ -111,6 +113,7 @@ public final class LogisticsDataParts {
                 .save(output);
 
         SpecialRecipeBuilder.special(FacadeRecipe::new).save(output, "servus_foundation:facade");
+        SpecialRecipeBuilder.special(HollowFacadeRecipe::new).save(output, "servus_foundation:hollow_facade");
         SpecialRecipeBuilder.special(FluidTankRecipe::new).save(output, "servus_foundation:fluid_tank");
     }
 
@@ -126,7 +129,9 @@ public final class LogisticsDataParts {
         provider.add("tooltip.servus_foundation.data_cable.duplex", "%s items/s in each direction");
         provider.add(ServusLogisticsItems.FACADE.get(), "Facade");
         provider.add("item.servus_foundation.facade.named", "Facade (%s)");
-        provider.add("item.servus_foundation.facade.hint", "Use on a utility duct to hide it");
+        provider.add("item.servus_foundation.facade.hint", "Use on a face of a utility duct to cover it");
+        provider.add(ServusLogisticsItems.HOLLOW_FACADE.get(), "Hollow Facade");
+        provider.add("item.servus_foundation.hollow_facade.named", "Hollow Facade (%s)");
         provider.add("jei.servus_foundation.facade.info", "Craft any full block without a block entity with one iron ingot to get six facades of that block. "
                 + "Use a facade on a Utility Duct to hide it; sneak with the Configuration Carrot to take it off.");
         provider.add(ServusLogisticsBlocks.FLUID_TANK.get(), "Fluid Tank");
