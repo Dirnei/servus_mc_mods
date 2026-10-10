@@ -24,8 +24,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.fluids.FluidUtil;
 
 /**
- * The Athanor: buckets of principles fill it, other items are laid on it, sneaking with an empty hand takes the item
- * back, a plain click opens the GUI. {@link #TIER} drives the flame colour.
+ * The Athanor: items are laid on it, an empty hand takes the result, sneaking with an empty hand takes the item
+ * back. It has no GUI. {@link #TIER} drives the flame colour.
  */
 public class AthanorBlock extends MachineBlock {
 
@@ -97,17 +97,18 @@ public class AthanorBlock extends MachineBlock {
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
+    /** An empty hand takes the result; sneaking takes the item back. Never opens a menu. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.getBlockEntity(pos) instanceof AthanorBlockEntity athanor && !level.isClientSide()) {
             athanor.checkTier();
-            ItemStack input = athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT);
-            if (player.isShiftKeyDown() && !input.isEmpty()) {
-                athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, ItemStack.EMPTY);
-                player.getInventory().placeItemBackInInventory(input);
-                return InteractionResult.SUCCESS;
+            int slot = player.isShiftKeyDown() ? AthanorBlockEntity.SLOT_INPUT : AthanorBlockEntity.SLOT_OUTPUT;
+            ItemStack taken = athanor.inventory().getStackInSlot(slot);
+            if (!taken.isEmpty()) {
+                athanor.inventory().setStackInSlot(slot, ItemStack.EMPTY);
+                player.getInventory().placeItemBackInInventory(taken);
             }
         }
-        return super.useWithoutItem(state, level, pos, player, hitResult);
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 }

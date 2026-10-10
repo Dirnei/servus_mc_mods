@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
-/** Draws the item lying on top of the Athanor; it turns slowly while the fire burns. */
+/** Draws the item lying on top of the Athanor, or the result once it is made; it turns slowly while the fire burns. */
 public class AthanorRenderer implements BlockEntityRenderer<AthanorBlockEntity> {
 
     public AthanorRenderer(BlockEntityRendererProvider.Context context) {
@@ -23,6 +23,10 @@ public class AthanorRenderer implements BlockEntityRenderer<AthanorBlockEntity> 
     public void render(AthanorBlockEntity athanor, float partialTick, PoseStack poseStack, MultiBufferSource buffers,
                        int packedLight, int packedOverlay) {
         ItemStack stack = athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT);
+        if (stack.isEmpty()) {
+            // Once the work is done the result lies there instead.
+            stack = athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT);
+        }
         if (stack.isEmpty() || athanor.getLevel() == null) {
             return;
         }

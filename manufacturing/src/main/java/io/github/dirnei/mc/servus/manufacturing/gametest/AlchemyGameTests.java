@@ -445,6 +445,24 @@ public final class AlchemyGameTests {
         });
     }
 
+    /** No GUI: an item is laid on by hand, an empty hand takes the result, sneaking takes the item back. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorByHand(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        Player player = CalcinerGameTests.player(helper, new ItemStack(Items.GLASS_BOTTLE, 3));
+        CalcinerGameTests.use(helper, player, MACHINE);
+        helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).getCount() == 3, "the bottles lie on top");
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_OUTPUT, new ItemStack(Items.EXPERIENCE_BOTTLE, 2));
+        CalcinerGameTests.use(helper, player, MACHINE);
+        helper.assertTrue(player.getInventory().countItem(Items.EXPERIENCE_BOTTLE) == 2, "an empty hand takes the result");
+        helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).getCount() == 3, "the bottles stay");
+        player.setShiftKeyDown(true);
+        CalcinerGameTests.use(helper, player, MACHINE);
+        helper.assertTrue(player.getInventory().countItem(Items.GLASS_BOTTLE) == 3, "sneaking takes the bottles back");
+        helper.assertTrue(player.containerMenu == player.inventoryMenu, "no GUI opens");
+        helper.succeed();
+    }
+
     /** Any tank may hold any principle: Sulfur in the tank behind burns the same and leaves that tank lower. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void athanorBurnsFromAnyTank(GameTestHelper helper) {

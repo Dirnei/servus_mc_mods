@@ -10,7 +10,6 @@ import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwnership;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyMachines;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
@@ -54,9 +53,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_OUTPUT = 1;
-    /** Container data after the tanks: the structure's tier. */
-    public static final int DATA_TIER = AlchemyMachines.DATA_COUNT;
-    public static final int DATA_COUNT = DATA_TIER + 1;
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     /** Ticks between tier checks while nothing else asks for one. */
@@ -66,6 +62,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
     private int tier;
     private int tierCooldown;
     private ItemStack shownInput = ItemStack.EMPTY;
+    private ItemStack shownOutput = ItemStack.EMPTY;
 
     public AthanorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.ATHANOR.get(), pos, state, 2);
@@ -131,16 +128,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         return held;
     }
 
-    /** The largest of the three tanks, for the GUI's bars. */
-    private int tankCapacity() {
-        int capacity = 0;
-        for (IFluidHandler handler : tankHandlers()) {
-            for (int i = 0; i < handler.getTanks(); i++) {
-                capacity = Math.max(capacity, handler.getTankCapacity(i));
-            }
-        }
-        return capacity;
-    }
 
     /** Drains {@code amounts} from the tanks, each principle from whichever tanks hold it. */
     private void drain(Principles amounts) {
@@ -319,11 +306,13 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         }
     }
 
-    /** Sends the item lying on top to clients when it changes, for the renderer. */
+    /** Sends the item or the result lying on top to clients when it changes, for the renderer. */
     private void syncInputIfChanged() {
         ItemStack input = inventory.getStackInSlot(SLOT_INPUT);
-        if (level != null && !ItemStack.isSameItemSameComponents(input, shownInput)) {
+        ItemStack output = inventory.getStackInSlot(SLOT_OUTPUT);
+        if (level != null && (!ItemStack.isSameItemSameComponents(input, shownInput) || !ItemStack.isSameItemSameComponents(output, shownOutput))) {
             shownInput = input.copy();
+            shownOutput = output.copy();
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
@@ -364,23 +353,10 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
                 .anyMatch(holder -> holder.value().accepts(stack));
     }
 
-    @Override
-    protected int dataCount() {
-        return DATA_COUNT;
-    }
-
-    @Override
-    protected int getData(int index) {
-        if (index == DATA_TIER) {
-            return tier;
-        }
-        if (index >= AlchemyMachines.DATA_PRINCIPLE_FIRST && index < AlchemyMachines.DATA_TANK_CAPACITY) {
-            return principles().get(Principle.values()[index - AlchemyMachines.DATA_PRINCIPLE_FIRST]);
-        }
-        if (index == AlchemyMachines.DATA_TANK_CAPACITY) {
-            return tankCapacity();
-        }
-        return super.getData(index);
+    /** How far the current craft is, 0 to 100, for Jade. */
+    public int progressPercent() {
+        int work = workTicks();
+        return work <= 0 ? 0 : Math.min(100, progress * 100 / work);
     }
 
     /** The Foundation production view: one recipe per craft the current tier allows; principles come into the build's tanks. */
@@ -435,8 +411,9 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         return tag;
     }
 
+    /** The Athanor has no GUI. */
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new AthanorMenu(containerId, playerInventory, this);
+        return null;
     }
 }

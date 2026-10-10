@@ -71,6 +71,12 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("jade.servus_manufacturing.calciner.empty", "none");
         add("config.jade.plugin_servus_manufacturing.calciner", "Calciner");
         add("config.jade.plugin_servus_manufacturing.purifier", "Purifier");
+        add("config.jade.plugin_servus_manufacturing.athanor", "Athanor");
+        add("jade.servus_manufacturing.athanor.stage", "Stage: %s");
+        add("jade.servus_manufacturing.athanor.unformed", "Not formed (stage %s)");
+        add("jade.servus_manufacturing.athanor.input", "Burning: %s");
+        add("jade.servus_manufacturing.athanor.output", "Made: %s");
+        add("jade.servus_manufacturing.athanor.principle", "%s mB %s in the tanks");
         add("message.servus_manufacturing.calciner.missing",
                 "The Calciner is not complete: %s needed %s. The Calciner page of Paracelsus' Journal shows the build.");
         add("message.servus_manufacturing.calciner.left_of", "left of the %s");

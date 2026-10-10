@@ -21,7 +21,7 @@
 
 ## 5. Look and no GUI
 
-- [ ] 5.1 No GUI: `AthanorBlock` hand use (result by empty hand, input back by sneaking), `AthanorMenu`, `AthanorScreen`, the menu type and tier data removed, renderer shows input or result with sync on both, Jade Athanor provider (lang); GameTests: result taken by hand, item placed by hand; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
+- [x] 5.1 No GUI: `AthanorBlock` hand use (result by empty hand, input back by sneaking), `AthanorMenu`, `AthanorScreen`, the menu type and tier data removed, renderer shows input or result with sync on both, Jade Athanor provider (lang); GameTests: result taken by hand, item placed by hand; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
 - [ ] 5.2 Formed tower models per tier and lit state with the fire door and sockets, blockstates by `FORMED` and facing, `noOcclusion` on the block; `AthanorRenderer` pipes to the tanks (over the ring, down into the top or into the side of a stacked tank) and the item on the plate; journal text; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
 
 ## 6. Integration

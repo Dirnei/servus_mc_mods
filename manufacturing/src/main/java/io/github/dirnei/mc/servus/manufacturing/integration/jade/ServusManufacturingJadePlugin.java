@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.integration.jade;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
@@ -46,6 +49,7 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
         BLOCKS.forEach(block -> registration.registerBlockDataProvider(Provider.INSTANCE, block));
         registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierBlock.class);
         registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierSideBlock.class);
+        registration.registerBlockDataProvider(AthanorProvider.INSTANCE, AthanorBlock.class);
     }
 
     @Override
@@ -53,6 +57,57 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
         BLOCKS.forEach(block -> registration.registerBlockComponent(Provider.INSTANCE, block));
         registration.registerBlockComponent(PurifierProvider.INSTANCE, PurifierBlock.class);
         registration.registerBlockComponent(PurifierProvider.INSTANCE, PurifierSideBlock.class);
+        registration.registerBlockComponent(AthanorProvider.INSTANCE, AthanorBlock.class);
+    }
+
+    /** The Athanor has no GUI: its stage, its work and what its tanks hold. */
+    private enum AthanorProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+        INSTANCE;
+
+        private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor");
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof AthanorBlockEntity athanor)) {
+                return;
+            }
+            CompoundTag tag = new CompoundTag();
+            tag.putString("Tier", athanor.tierName());
+            tag.putBoolean("Formed", athanor.formed());
+            tag.put("Input", athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).saveOptional(accessor.getLevel().registryAccess()));
+            tag.put("Output", athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).saveOptional(accessor.getLevel().registryAccess()));
+            tag.putInt("Progress", athanor.progressPercent());
+            Principles held = athanor.principles();
+            for (Principle principle : Principle.values()) {
+                tag.putInt(principle.id(), held.get(principle));
+            }
+            data.put("Athanor", tag);
+        }
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (!data.contains("Athanor")) {
+                return;
+            }
+            CompoundTag tag = data.getCompound("Athanor");
+            tooltip.add(Component.translatable(tag.getBoolean("Formed") ? "jade.servus_manufacturing.athanor.stage"
+                    : "jade.servus_manufacturing.athanor.unformed", tag.getString("Tier")));
+            ItemStack input = ItemStack.parseOptional(accessor.getLevel().registryAccess(), tag.getCompound("Input"));
+            ItemStack output = ItemStack.parseOptional(accessor.getLevel().registryAccess(), tag.getCompound("Output"));
+            tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.input", Provider.stackText(input)));
+            tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.output", Provider.stackText(output)));
+            tooltip.add(Component.translatable("jade.servus_manufacturing.calciner.progress", tag.getInt("Progress")));
+            for (Principle principle : Principle.values()) {
+                FluidStack stack = new FluidStack(PrincipleFluids.fluid(principle), 1);
+                tooltip.add(Component.translatable("jade.servus_manufacturing.athanor.principle", tag.getInt(principle.id()), stack.getHoverName()));
+            }
+        }
+
+        @Override
+        public ResourceLocation getUid() {
+            return UID;
+        }
     }
 
     private enum PurifierProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
