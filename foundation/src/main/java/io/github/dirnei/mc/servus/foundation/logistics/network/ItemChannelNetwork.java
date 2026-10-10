@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.network;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import io.github.dirnei.mc.servus.foundation.graph.ConnectionRule;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.NetworkType;
@@ -38,7 +37,7 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "item_channel");
 
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, ItemChannelNetwork> TYPE =
-            new NetworkType<>(ID, ConnectionRule.always(), ItemChannelNetwork::new);
+            new NetworkType<>(ID, (from, fromNode, side, to, toNode) -> UtilityDuctBlockEntity.sideOpen(fromNode, side), ItemChannelNetwork::new);
 
     private record Endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int priority,
                             int channel, BlockCapabilityCache<IItemHandler, Direction> cache) {

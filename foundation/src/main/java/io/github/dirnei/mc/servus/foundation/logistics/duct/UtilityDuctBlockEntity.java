@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.data.CableTiersManager;
 import io.github.dirnei.mc.servus.foundation.data.DataMembership;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNode;
+import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
 import io.github.dirnei.mc.servus.foundation.network.NetworkNode;
@@ -273,12 +274,12 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
      * Server only; the client reads the synced masks.
      */
     public boolean computeArm(Line line, Direction side) {
-        if (!has(line) || mode(line, side) == SideMode.DISABLED || !(level instanceof Level realLevel)) {
+        if (!has(line) || mode(line, side) == SideMode.DISABLED || closed(side) || !(level instanceof Level realLevel)) {
             return false;
         }
         BlockPos neighborPos = worldPosition.relative(side);
         if (realLevel.getBlockEntity(neighborPos) instanceof UtilityDuctBlockEntity neighbour) {
-            return neighbour.has(line);
+            return neighbour.has(line) && !neighbour.closed(side.getOpposite());
         }
         return switch (line) {
             case ITEM -> realLevel.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, side.getOpposite()) != null;
@@ -393,7 +394,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
         panels[side.ordinal()] = block;
         hollowPanels = hollow ? hollowPanels | DuctModelData.bit(side) : hollowPanels & ~DuctModelData.bit(side);
-        changed();
+        panelsChanged();
         return true;
     }
 
@@ -406,8 +407,30 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         ItemStack item = FacadeItem.of(panel.getBlock(), 1, isHollow(side));
         panels[side.ordinal()] = null;
         hollowPanels &= ~DuctModelData.bit(side);
-        changed();
+        panelsChanged();
         return item;
+    }
+
+    /**
+     * A panel came or went: arms, handlers and endpoints follow through the
+     * config path, and the graph edges are read again, because a solid panel
+     * closes the side for the item, energy and fluid graphs too. The graph asks
+     * both nodes of an edge, so refreshing this duct covers the neighbour.
+     */
+    private void panelsChanged() {
+        configChanged();
+        if (level instanceof ServerLevel server) {
+            for (Line line : joined) {
+                if (line != Line.DATA) {
+                    NetworkManager.of(server).refresh(worldPosition, nodes.get(line));
+                }
+            }
+        }
+    }
+
+    /** Graph rule of the item, energy and fluid networks: a solid panel closes the side. */
+    public static boolean sideOpen(UtilityDuctBlockEntity duct, Side side) {
+        return !duct.closed(Conversions.toDirection(side));
     }
 
     /** The items of every panel, taken off without updates; for a duct being removed. */
@@ -536,7 +559,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     /** Item handler shown to the neighbour on {@code side}, null without an Item Pipe. */
     public IItemHandler itemHandler(Direction side) {
-        if (!has(Line.ITEM) || side == null) {
+        if (!has(Line.ITEM) || side == null || closed(side)) {
             return null;
         }
         return itemHandlers.computeIfAbsent(side, s -> new DuctItemHandler(this, s));
@@ -544,7 +567,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     /** Fluid handler shown to the neighbour on {@code side}, null without a Fluid Pipe or when the side takes no input. */
     public IFluidHandler fluidHandler(Direction side) {
-        if (!has(Line.FLUID) || side == null || !mode(Line.FLUID, side).allowsInsert()) {
+        if (!has(Line.FLUID) || side == null || closed(side) || !mode(Line.FLUID, side).allowsInsert()) {
             return null;
         }
         return fluidHandlers.computeIfAbsent(side, s -> new DuctFluidHandler(this, s));
@@ -592,7 +615,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     @Override
     public boolean dataSideOpen(Direction side) {
-        return has(Line.DATA) && mode(Line.DATA, side) != SideMode.DISABLED;
+        return has(Line.DATA) && mode(Line.DATA, side) != SideMode.DISABLED && !closed(side);
     }
 
     @Override

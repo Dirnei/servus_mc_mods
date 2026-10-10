@@ -2,7 +2,6 @@ package io.github.dirnei.mc.servus.foundation.logistics.network;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.fluid.FluidRouting;
-import io.github.dirnei.mc.servus.foundation.graph.ConnectionRule;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.NetworkType;
@@ -47,7 +46,7 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "fluid_channel");
 
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, FluidChannelNetwork> TYPE =
-            new NetworkType<>(ID, ConnectionRule.always(), FluidChannelNetwork::new);
+            new NetworkType<>(ID, (from, fromNode, side, to, toNode) -> UtilityDuctBlockEntity.sideOpen(fromNode, side), FluidChannelNetwork::new);
 
     /** A fluid with its components, compared without the amount. */
     public static final class FluidKey {
