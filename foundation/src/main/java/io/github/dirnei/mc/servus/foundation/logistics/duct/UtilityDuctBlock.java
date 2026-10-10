@@ -40,7 +40,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     public static final MapCodec<UtilityDuctBlock> CODEC = simpleCodec(UtilityDuctBlock::new);
 
-    private static final Map<Integer, VoxelShape> SHAPES = new ConcurrentHashMap<>();
+    private static final Map<Long, VoxelShape> SHAPES = new ConcurrentHashMap<>();
 
     public UtilityDuctBlock(Properties properties) {
         super(properties, 4);
@@ -108,25 +108,34 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     /**
      * The shape follows the lines: a centre as thick as the line count and,
-     * per side, an arm as thick as the lines connected there. A facade is a
-     * full block. Without a block entity the state flags decide, as in Lib.
+     * per side, an arm as thick as the lines connected there, plus a slab or a
+     * frame per panel. Without a block entity the state flags decide, as in Lib.
      */
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
-            return shape(duct.linesMask(), duct.armMasks());
+            return shape(duct.linesMask(), duct.armMasks(), duct.solidPanelMask(), duct.hollowPanelMask());
         }
         return super.getShape(state, level, pos, context);
     }
 
     /** The shape for a line set and the per line arm masks (indexed by line ordinal), cached. */
     public static VoxelShape shape(int linesMask, int[] arms) {
-        int key = linesMask & DuctParts.ALL;
+        return shape(linesMask, arms, 0, 0);
+    }
+
+    /** The shape for a line set, the per line arm masks and the six bit solid and hollow panel masks, cached. */
+    public static VoxelShape shape(int linesMask, int[] arms, int solidPanels, int hollowPanels) {
+        long key = linesMask & DuctParts.ALL;
         int all = 0;
+        int shift = Line.VALUES.length;
         for (int i = 0; i < arms.length && i < Line.VALUES.length; i++) {
-            key |= (arms[i] & 63) << (Line.VALUES.length + 6 * i);
+            key |= (long) (arms[i] & 63) << (shift + 6 * i);
             all |= arms[i] & 63;
         }
+        shift += 6 * Line.VALUES.length;
+        key |= (long) (solidPanels & 63) << shift;
+        key |= (long) (hollowPanels & 63) << (shift + 6);
         int armsUnion = all;
         return SHAPES.computeIfAbsent(key, k -> {
             VoxelShape shape = box(DuctShapes.center(DuctShapes.centerRadius(Integer.bitCount(linesMask & DuctParts.ALL), armsUnion)));
@@ -134,6 +143,12 @@ public class UtilityDuctBlock extends ConnectableBlock {
                 int armLines = armLines(arms, direction);
                 if (armLines > 0) {
                     shape = Shapes.or(shape, box(DuctShapes.arm(direction.ordinal(), DuctShapes.radius(armLines))));
+                }
+                int bit = DuctModelData.bit(direction);
+                if (((solidPanels | hollowPanels) & bit) != 0) {
+                    for (DuctShapes.Box panel : DuctShapes.panel(direction.ordinal(), (solidPanels & bit) == 0)) {
+                        shape = Shapes.or(shape, box(panel));
+                    }
                 }
             }
             return shape;
