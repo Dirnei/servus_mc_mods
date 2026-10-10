@@ -9,7 +9,8 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlo
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.CatchBasinBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierSideBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierStructure;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
 import net.minecraft.core.BlockPos;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlockEntity;
@@ -44,14 +45,14 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
     public void register(IWailaCommonRegistration registration) {
         BLOCKS.forEach(block -> registration.registerBlockDataProvider(Provider.INSTANCE, block));
         registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierBlock.class);
-        registration.registerBlockDataProvider(PurifierProvider.INSTANCE, CatchBasinBlock.class);
+        registration.registerBlockDataProvider(PurifierProvider.INSTANCE, PurifierSideBlock.class);
     }
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
         BLOCKS.forEach(block -> registration.registerBlockComponent(Provider.INSTANCE, block));
         registration.registerBlockComponent(PurifierProvider.INSTANCE, PurifierBlock.class);
-        registration.registerBlockComponent(PurifierProvider.INSTANCE, CatchBasinBlock.class);
+        registration.registerBlockComponent(PurifierProvider.INSTANCE, PurifierSideBlock.class);
     }
 
     private enum PurifierProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
@@ -61,7 +62,7 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
 
         @Override
         public void appendServerData(CompoundTag data, BlockAccessor accessor) {
-            BlockPos vat = accessor.getBlockState().getBlock() instanceof CatchBasinBlock ? accessor.getPosition().above() : accessor.getPosition();
+            BlockPos vat = PurifierStructure.vatOf(accessor.getBlockState(), accessor.getPosition()).orElse(accessor.getPosition());
             if (!(accessor.getLevel().getBlockEntity(vat) instanceof PurifierBlockEntity purifier)) {
                 return;
             }

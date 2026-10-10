@@ -5,24 +5,27 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout.
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 
 /**
- * Forms and unforms the Purifier following {@link PurifierLayout}: the Leaching Vat over the Catch
- * Basin between planks and logs. The build reads the same from both sides, so it is checked along
- * the two axes and the Vat keeps the axis. Planks and logs stay vanilla and are checked by their
- * formed neighbours. Server thread only.
+ * Forms and unforms the Purifier following {@link PurifierLayout}: the Leaching Vat between planks
+ * on a log, the Catch Basin and the Residue Crock below the planks. Checking all four facings also
+ * accepts the mirrored build. The Vat keeps the facing; the Basin and the Crock face the log. Planks
+ * and the log stay vanilla and are checked by their formed neighbours. Server thread only, except
+ * the position lookups, which only read block states.
  */
 public final class PurifierStructure {
 
@@ -35,47 +38,41 @@ public final class PurifierStructure {
         return Structures.pos(vat, cell.right(), cell.up(), facing);
     }
 
-    private static Direction.Axis axis(Facing facing) {
-        return facing == Facing.NORTH || facing == Facing.SOUTH ? Direction.Axis.X : Direction.Axis.Z;
-    }
-
-    private static Facing facing(Direction.Axis axis) {
-        return axis == Direction.Axis.X ? Facing.NORTH : Facing.EAST;
-    }
-
     /** The block a cell shows in the message and the schematic. */
     public static Block shown(Role role) {
         return switch (role) {
             case VAT -> ServusManufacturingBlocks.PURIFIER.get();
             case BASIN -> ServusManufacturingBlocks.CATCH_BASIN.get();
+            case CROCK -> ServusManufacturingBlocks.RESIDUE_CROCK.get();
             case PLANKS -> Blocks.OAK_PLANKS;
-            case LOGS -> Blocks.OAK_LOG;
+            case LOG -> Blocks.OAK_LOG;
         };
     }
 
-    private static boolean matches(BlockState state, Cell cell) {
+    private static boolean matches(BlockState state, Cell cell, boolean formed) {
         return switch (cell.role()) {
-            case VAT -> state.is(ServusManufacturingBlocks.PURIFIER.get()) && !state.getValue(PurifierBlock.FORMED);
-            case BASIN -> state.is(ServusManufacturingBlocks.CATCH_BASIN.get()) && !state.getValue(CatchBasinBlock.FORMED);
+            case VAT -> state.is(ServusManufacturingBlocks.PURIFIER.get()) && state.getValue(PurifierBlock.FORMED) == formed;
+            case BASIN -> state.is(ServusManufacturingBlocks.CATCH_BASIN.get()) && state.getValue(PurifierSideBlock.FORMED) == formed;
+            case CROCK -> state.is(ServusManufacturingBlocks.RESIDUE_CROCK.get()) && state.getValue(PurifierSideBlock.FORMED) == formed;
             case PLANKS -> state.is(BlockTags.PLANKS);
-            case LOGS -> state.is(BlockTags.LOGS);
+            case LOG -> state.is(BlockTags.LOGS);
         };
     }
 
     /** The first wrong cell along {@code facing}, or empty when the build is complete there. */
-    private static Optional<Cell> firstWrong(Level level, BlockPos vat, Facing facing) {
-        return PurifierLayout.cells().stream().filter(cell -> !matches(level.getBlockState(pos(vat, cell, facing)), cell)).findFirst();
+    private static Optional<Cell> firstWrong(Level level, BlockPos vat, Facing facing, boolean formed) {
+        return PurifierLayout.cells().stream().filter(cell -> !matches(level.getBlockState(pos(vat, cell, facing)), cell, formed)).findFirst();
     }
 
-    /** The Journal's click on the Vat: forms along the first axis that is complete, else names what is missing. */
+    /** The Journal's click on the Vat: forms along the first facing that is complete, else names what is missing. */
     public static boolean tryForm(Level level, BlockPos vat, Player player) {
         if (level.getBlockState(vat).getValue(PurifierBlock.FORMED)) {
             return true;
         }
         Optional<Cell> best = Optional.empty();
         long bestMatches = -1;
-        for (Facing facing : PurifierLayout.AXES) {
-            Optional<Cell> wrong = firstWrong(level, vat, facing);
+        for (Facing facing : PurifierLayout.FACINGS) {
+            Optional<Cell> wrong = firstWrong(level, vat, facing, false);
             if (wrong.isEmpty()) {
                 form(level, vat, facing);
                 if (level.getBlockEntity(vat) instanceof PurifierBlockEntity purifier) {
@@ -84,7 +81,7 @@ public final class PurifierStructure {
                 player.displayClientMessage(Component.translatable("message.servus_manufacturing.purifier.formed"), true);
                 return true;
             }
-            long matches = PurifierLayout.cells().stream().filter(cell -> matches(level.getBlockState(pos(vat, cell, facing)), cell)).count();
+            long matches = PurifierLayout.cells().stream().filter(cell -> matches(level.getBlockState(pos(vat, cell, facing)), cell, false)).count();
             if (matches > bestMatches) {
                 bestMatches = matches;
                 best = wrong;
@@ -96,19 +93,30 @@ public final class PurifierStructure {
         return false;
     }
 
+    /** Every position of the build along {@code facing}. */
+    public static List<BlockPos> cells(BlockPos vat, Facing facing) {
+        return PurifierLayout.cells().stream().map(cell -> pos(vat, cell, facing)).toList();
+    }
+
     public static void form(Level level, BlockPos vat, Facing facing) {
         changing = true;
         try {
-            BlockState vatState = level.getBlockState(vat);
-            level.setBlock(vat, vatState.setValue(PurifierBlock.FORMED, true).setValue(BlockStateProperties.HORIZONTAL_AXIS, axis(facing)),
-                    Block.UPDATE_ALL);
-            BlockPos basin = vat.below();
-            level.setBlock(basin, level.getBlockState(basin).setValue(CatchBasinBlock.FORMED, true), Block.UPDATE_ALL);
+            Direction front = Structures.direction(facing);
+            Direction right = front.getCounterClockWise();
+            level.setBlock(vat, level.getBlockState(vat).setValue(PurifierBlock.FORMED, true).setValue(PurifierBlock.FACING, front), Block.UPDATE_ALL);
+            // The Basin stands to the left of the log, so it faces right; the Crock faces left.
+            formSide(level, pos(vat, PurifierLayout.cell(Role.BASIN), facing), right);
+            formSide(level, pos(vat, PurifierLayout.cell(Role.CROCK), facing), right.getOpposite());
             level.invalidateCapabilities(vat);
-            level.invalidateCapabilities(basin);
         } finally {
             changing = false;
         }
+    }
+
+    private static void formSide(Level level, BlockPos pos, Direction towardLog) {
+        level.setBlock(pos, level.getBlockState(pos).setValue(PurifierSideBlock.FORMED, true).setValue(PurifierSideBlock.FACING, towardLog),
+                Block.UPDATE_ALL);
+        level.invalidateCapabilities(pos);
     }
 
     /** Unforms the Purifier whose Vat is at {@code vat}; {@code skip} is being broken and is left alone. */
@@ -123,62 +131,74 @@ public final class PurifierStructure {
                 level.setBlock(vat, vatState.setValue(PurifierBlock.FORMED, false), Block.UPDATE_ALL);
                 level.invalidateCapabilities(vat);
             }
-            BlockPos basin = vat.below();
-            BlockState basinState = level.getBlockState(basin);
-            if (!basin.equals(skip) && basinState.getBlock() instanceof CatchBasinBlock && basinState.getValue(CatchBasinBlock.FORMED)) {
-                level.setBlock(basin, basinState.setValue(CatchBasinBlock.FORMED, false), Block.UPDATE_ALL);
-                level.invalidateCapabilities(basin);
+            for (Direction side : Direction.Plane.HORIZONTAL) {
+                BlockPos pos = vat.below().relative(side);
+                BlockState state = level.getBlockState(pos);
+                if (!pos.equals(skip) && state.getBlock() instanceof PurifierSideBlock && state.getValue(PurifierSideBlock.FORMED)
+                        && PurifierSideBlock.vat(pos, state).equals(vat)) {
+                    level.setBlock(pos, state.setValue(PurifierSideBlock.FORMED, false), Block.UPDATE_ALL);
+                    level.invalidateCapabilities(pos);
+                }
             }
         } finally {
             changing = false;
         }
     }
 
-    /** The Vat position of a formed Vat or Basin, or empty. */
-    public static Optional<BlockPos> vatOf(Level level, BlockState state, BlockPos pos) {
+    /** The Vat position of a formed Vat, Basin or Crock, or empty. */
+    public static Optional<BlockPos> vatOf(BlockState state, BlockPos pos) {
         if (state.getBlock() instanceof PurifierBlock && state.getValue(PurifierBlock.FORMED)) {
             return Optional.of(pos);
         }
-        if (state.getBlock() instanceof CatchBasinBlock && state.getValue(CatchBasinBlock.FORMED)) {
-            return Optional.of(pos.above());
+        if (state.getBlock() instanceof PurifierSideBlock && state.getValue(PurifierSideBlock.FORMED)) {
+            return Optional.of(PurifierSideBlock.vat(pos, state));
         }
         return Optional.empty();
     }
 
-    /** A formed Vat or Basin is replaced: unform the rest. */
+    /** Where the block of {@code role} of the formed Purifier at {@code vat} stands. Reads only block states. */
+    public static BlockPos partPos(BlockGetter level, BlockPos vat, Role role) {
+        Facing facing = Structures.facing(level.getBlockState(vat).getValue(PurifierBlock.FACING));
+        return pos(vat, PurifierLayout.cell(role), facing);
+    }
+
+    /** A formed Vat, Basin or Crock is replaced: unform the rest. */
     public static void broken(Level level, BlockState state, BlockPos pos) {
         if (changing || level.isClientSide()) {
             return;
         }
-        vatOf(level, state, pos).ifPresent(vat -> unform(level, vat, pos));
+        vatOf(state, pos).ifPresent(vat -> unform(level, vat, pos));
     }
 
-    /** A neighbour of a formed Vat or Basin changed: the planks and logs have no hook of their own, so check them. */
+    /** A neighbour of a formed block changed: the planks and the log have no hook of their own, so check the whole build. */
     public static void neighbourChanged(Level level, BlockState state, BlockPos pos) {
         if (changing || level.isClientSide()) {
             return;
         }
-        vatOf(level, state, pos).ifPresent(vat -> {
+        vatOf(state, pos).ifPresent(vat -> {
             BlockState vatState = level.getBlockState(vat);
-            if (!(vatState.getBlock() instanceof PurifierBlock)) {
+            if (!(vatState.getBlock() instanceof PurifierBlock) || !vatState.getValue(PurifierBlock.FORMED)
+                    || firstWrong(level, vat, Structures.facing(vatState.getValue(PurifierBlock.FACING)), true).isPresent()) {
                 unform(level, vat, null);
-                return;
-            }
-            Facing facing = facing(vatState.getValue(BlockStateProperties.HORIZONTAL_AXIS));
-            for (Cell cell : PurifierLayout.cells()) {
-                if ((cell.role() == Role.PLANKS || cell.role() == Role.LOGS) && !matches(level.getBlockState(pos(vat, cell, facing)), cell)) {
-                    unform(level, vat, null);
-                    return;
-                }
             }
         });
     }
 
+    private static Optional<PurifierBlockEntity> formedVat(Level level, BlockPos pos, BlockState state, Class<? extends PurifierSideBlock> type) {
+        if (!type.isInstance(state.getBlock()) || !state.getValue(PurifierSideBlock.FORMED)) {
+            return Optional.empty();
+        }
+        return level.getBlockEntity(PurifierSideBlock.vat(pos, state)) instanceof PurifierBlockEntity purifier && purifier.formed()
+                ? Optional.of(purifier) : Optional.empty();
+    }
+
     /** The Salt drain only view of a formed Basin. */
     public static IFluidHandler basinHandler(Level level, BlockPos pos, BlockState state) {
-        if (!(state.getBlock() instanceof CatchBasinBlock) || !state.getValue(CatchBasinBlock.FORMED)) {
-            return null;
-        }
-        return level.getBlockEntity(pos.above()) instanceof PurifierBlockEntity purifier && purifier.formed() ? purifier.saltPort() : null;
+        return formedVat(level, pos, state, CatchBasinBlock.class).map(PurifierBlockEntity::saltPort).orElse(null);
+    }
+
+    /** The residue extract only view of a formed Crock. */
+    public static IItemHandler crockHandler(Level level, BlockPos pos, BlockState state) {
+        return formedVat(level, pos, state, ResidueCrockBlock.class).map(PurifierBlockEntity::residuePort).orElse(null);
     }
 }

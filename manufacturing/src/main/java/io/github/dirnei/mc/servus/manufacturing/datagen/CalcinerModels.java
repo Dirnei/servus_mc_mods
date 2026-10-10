@@ -158,6 +158,22 @@ final class CalcinerModels {
         box(basin, 15, 6, 1, 15.25F, 7, 15, "#iron");
         states.simpleBlock(ServusManufacturingBlocks.CATCH_BASIN.get(), basin);
         states.simpleBlockItem(ServusManufacturingBlocks.CATCH_BASIN.get(), basin);
+
+        // The Residue Crock: a squat terracotta pot with a brick rim, where the Caput Mortuum falls.
+        BlockModelBuilder crock = builder("residue_crock")
+                .texture("clay", states.mcLoc("block/terracotta")).texture("bricks", states.mcLoc(BRICKS))
+                .texture("particle", states.mcLoc("block/terracotta"));
+        box(crock, 3, 0, 3, 13, 2, 13, "#clay");
+        box(crock, 2, 1, 2, 14, 10, 4, "#clay");
+        box(crock, 2, 1, 12, 14, 10, 14, "#clay");
+        box(crock, 2, 1, 4, 4, 10, 12, "#clay");
+        box(crock, 12, 1, 4, 14, 10, 12, "#clay");
+        box(crock, 1.5F, 10, 1.5F, 14.5F, 11.5F, 4, "#bricks");
+        box(crock, 1.5F, 10, 12, 14.5F, 11.5F, 14.5F, "#bricks");
+        box(crock, 1.5F, 10, 4, 4, 11.5F, 12, "#bricks");
+        box(crock, 12, 10, 4, 14.5F, 11.5F, 12, "#bricks");
+        states.simpleBlock(ServusManufacturingBlocks.RESIDUE_CROCK.get(), crock);
+        states.simpleBlockItem(ServusManufacturingBlocks.RESIDUE_CROCK.get(), crock);
     }
 
     /** The Sulfur Duct: a straight copper pipe while unformed, its piece of the run from Hood to tank when formed. */

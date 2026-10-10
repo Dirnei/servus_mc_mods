@@ -59,13 +59,15 @@ public final class ServusManufacturingEvents {
 
         @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-            // The Purifier build: Ash and water into the Vat, the residue out of it, the Salt out of the Catch Basin.
+            // The Purifier build: Ash and water into the Vat, the Salt out of the Catch Basin, the residue out of the Residue Crock.
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.PURIFIER.get(),
                     (purifier, side) -> purifier.formed() ? purifier.itemPort() : null);
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusManufacturingBlockEntities.PURIFIER.get(),
                     (purifier, side) -> purifier.formed() ? purifier.fluidPort() : null);
             event.registerBlock(Capabilities.FluidHandler.BLOCK, (level, pos, state, entity, side) -> PurifierStructure.basinHandler(level, pos, state),
                     ServusManufacturingBlocks.CATCH_BASIN.get());
+            event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, entity, side) -> PurifierStructure.crockHandler(level, pos, state),
+                    ServusManufacturingBlocks.RESIDUE_CROCK.get());
             // The Calciner structure has fixed ports by position instead of sides.
             event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.items(level, pos, state),
                     ServusManufacturingBlocks.CALCINER.get(), ServusManufacturingBlocks.FIREBOX.get(), ServusManufacturingBlocks.ASH_PAN.get());

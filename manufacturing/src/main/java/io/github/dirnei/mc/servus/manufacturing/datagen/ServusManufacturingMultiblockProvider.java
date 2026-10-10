@@ -73,15 +73,16 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
         }
         add(COAGULATOR, coagulator.build(false, 1));
 
-        // The Purifier: the Basin is the bottom middle, so it is the anchor; planks and logs of any wood.
+        // The Purifier: the log is the bottom middle, so it is the anchor; planks and the log of any wood.
         DenseMultiblockBuilder purifier = new DenseMultiblockBuilder();
         for (String row : PurifierLayout.patternRows()) {
-            purifier.layer(row.replace(PurifierLayout.Role.BASIN.symbol(), '0'));
+            purifier.layer(row.replace(PurifierLayout.Role.LOG.symbol(), '0'));
         }
         purifier.block(PurifierLayout.Role.VAT.symbol(), () -> PurifierStructure.shown(PurifierLayout.Role.VAT));
-        purifier.block('0', () -> PurifierStructure.shown(PurifierLayout.Role.BASIN));
+        purifier.block(PurifierLayout.Role.BASIN.symbol(), () -> PurifierStructure.shown(PurifierLayout.Role.BASIN));
+        purifier.block(PurifierLayout.Role.CROCK.symbol(), () -> PurifierStructure.shown(PurifierLayout.Role.CROCK));
         purifier.tag(PurifierLayout.Role.PLANKS.symbol(), BlockTags.PLANKS, () -> Blocks.OAK_PLANKS);
-        purifier.tag(PurifierLayout.Role.LOGS.symbol(), BlockTags.LOGS, () -> Blocks.OAK_LOG);
+        purifier.tag('0', BlockTags.LOGS, () -> Blocks.OAK_LOG);
         add(PURIFIER, purifier.build(false, 1));
 
         // The Athanor on its hearth, then each shipped tier with every tier below it.

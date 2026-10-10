@@ -630,6 +630,21 @@
         {"item": "servus_manufacturing:receiver", "count": 1}
       ]
     },
+    "servus_manufacturing:residue_crock": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["B B", "BXB", "BBB"],
+      "key": {
+        "B": {"item": "minecraft:brick"},
+        "X": {"item": "minecraft:barrel"}
+      },
+      "inputs": [
+        {"item": "minecraft:barrel", "count": 1},
+        {"item": "minecraft:brick", "count": 7}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:residue_crock", "count": 1}
+      ]
+    },
     "servus_manufacturing:salt_crystal_block": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["SSS", "SSS", "SSS"],
@@ -991,6 +1006,9 @@
     "minecraft:coal": 1600
   },
   "items": {
+    "minecraft:barrel": {
+      "name": "Barrel"
+    },
     "minecraft:blast_furnace": {
       "name": "Blast Furnace"
     },
@@ -1161,6 +1179,9 @@
     },
     "servus_manufacturing:receiver": {
       "name": "Receiver"
+    },
+    "servus_manufacturing:residue_crock": {
+      "name": "Residue Crock"
     },
     "servus_manufacturing:salt_crystal": {
       "name": "Salt Crystal"

@@ -10,16 +10,17 @@ import java.util.List;
  *
  * <pre>
  *  P V P     V Leaching Vat (the Purifier block), P planks of any wood
- *  L B L     B Catch Basin, L logs of any wood
+ *  B L R     B Catch Basin, L log of any wood, R Residue Crock
  * </pre>
  *
- * It reads the same from front and back, so only its axis matters. Pure Java.
+ * Seen from the back it reads {@code R L B}, so checking all four facings also accepts the
+ * mirrored build. Pure Java.
  */
 public final class PurifierLayout {
 
     /** What stands at a cell. */
     public enum Role {
-        VAT('V'), PLANKS('P'), BASIN('B'), LOGS('L');
+        VAT('V'), PLANKS('P'), BASIN('B'), LOG('L'), CROCK('R');
 
         private final char symbol;
 
@@ -40,12 +41,12 @@ public final class PurifierLayout {
             new Cell(0, Role.VAT, 0, 0),
             new Cell(1, Role.PLANKS, -1, 0),
             new Cell(2, Role.PLANKS, 1, 0),
-            new Cell(3, Role.BASIN, 0, -1),
-            new Cell(4, Role.LOGS, -1, -1),
-            new Cell(5, Role.LOGS, 1, -1));
+            new Cell(3, Role.BASIN, -1, -1),
+            new Cell(4, Role.LOG, 0, -1),
+            new Cell(5, Role.CROCK, 1, -1));
 
-    /** The two facings that cover both axes; the build is the same seen from the other side. */
-    public static final List<Facing> AXES = List.of(Facing.NORTH, Facing.EAST);
+    /** Every facing: two axes, each with the build and its mirror. */
+    public static final List<Facing> FACINGS = List.of(Facing.NORTH, Facing.EAST, Facing.SOUTH, Facing.WEST);
 
     private PurifierLayout() {
     }
@@ -56,6 +57,10 @@ public final class PurifierLayout {
 
     public static Cell cell(int index) {
         return CELLS.get(index);
+    }
+
+    public static Cell cell(Role role) {
+        return CELLS.stream().filter(cell -> cell.role() == role).findFirst().orElseThrow();
     }
 
     public static Offset worldOffset(Cell cell, Facing facing) {
@@ -76,9 +81,10 @@ public final class PurifierLayout {
     public static String placement(Cell cell) {
         return switch (cell.role()) {
             case VAT -> "itself";
-            case BASIN -> "below the Vat";
+            case LOG -> "below the Vat";
             case PLANKS -> cell.right() < 0 ? "left of the Vat" : "right of the Vat";
-            case LOGS -> cell.right() < 0 ? "left of the Basin" : "right of the Basin";
+            case BASIN -> "below a plank";
+            case CROCK -> "below the other plank";
         };
     }
 }

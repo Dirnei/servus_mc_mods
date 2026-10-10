@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -33,16 +33,17 @@ public class PurifierBlock extends BaseEntityBlock {
     public static final MapCodec<PurifierBlock> CODEC = simpleCodec(PurifierBlock::new);
 
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
-    public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.HORIZONTAL_AXIS;
+    /** The way the formed build's front faces. */
+    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public PurifierBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FORMED, false).setValue(AXIS, Direction.Axis.X));
+        registerDefaultState(stateDefinition.any().setValue(FORMED, false).setValue(FACING, Direction.NORTH));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FORMED, AXIS);
+        builder.add(FORMED, FACING);
     }
 
     @Override
@@ -103,14 +104,14 @@ public class PurifierBlock extends BaseEntityBlock {
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
-    /** An empty hand takes the residue; sneaking with an empty hand takes the Ash back. */
+    /** Sneaking with an empty hand takes the Ash back; the residue is taken at the Residue Crock. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!state.getValue(FORMED)) {
+        if (!state.getValue(FORMED) || !player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof PurifierBlockEntity purifier) {
-            ItemStack taken = player.isShiftKeyDown() ? purifier.takeItems() : purifier.takeResidue();
+            ItemStack taken = purifier.takeItems();
             if (!taken.isEmpty() && !player.addItem(taken)) {
                 player.drop(taken, false);
             }

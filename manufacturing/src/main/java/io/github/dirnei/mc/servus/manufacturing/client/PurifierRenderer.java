@@ -2,6 +2,9 @@ package io.github.dirnei.mc.servus.manufacturing.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlockEntity;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierStructure;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
@@ -14,7 +17,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
-/** Draws the Purifier: the Ash still to wash on the Vat's floor with the water over it, and the Salt in the Catch Basin below. */
+/** Draws the Purifier: the Ash still to wash on the Vat's floor with the water over it, the Salt in the Catch Basin and the Caput Mortuum in the Residue Crock. */
 public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlockEntity> {
 
     /** The inside of the vat in sixteenths: above the floor, inside the walls, below the rim. */
@@ -22,9 +25,16 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
     private static final float INSIDE_MAX = 13 / 16F;
     private static final float FLOOR = 2 / 16F;
     private static final float RIM = 13.5F / 16F;
-    /** The inside of the Catch Basin below, in blocks. */
+    /** The inside of the Catch Basin, in blocks. */
     private static final float BASIN_FLOOR = 2 / 16F;
     private static final float BASIN_RIM = 9.5F / 16F;
+    /** The inside of the Residue Crock, in blocks. */
+    private static final float CROCK_MIN = 4 / 16F;
+    private static final float CROCK_MAX = 12 / 16F;
+    private static final float CROCK_FLOOR = 2 / 16F;
+    private static final float CROCK_TOP = 9.5F / 16F;
+    /** The Caput Mortuum is a dark violet brown powder. */
+    private static final ResourceLocation RESIDUE = ResourceLocation.withDefaultNamespace("block/brown_concrete_powder");
 
     public PurifierRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -36,7 +46,7 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
 
     @Override
     public net.minecraft.world.phys.AABB getRenderBoundingBox(PurifierBlockEntity purifier) {
-        return new net.minecraft.world.phys.AABB(purifier.getBlockPos()).expandTowards(0, -1, 0);
+        return new net.minecraft.world.phys.AABB(purifier.getBlockPos()).inflate(1, 0, 1).expandTowards(0, -1, 0);
     }
 
     @Override
@@ -52,11 +62,25 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
             floor = FLOOR + height;
         }
         drawLiquid(purifier.water(), floor, FLOOR, RIM, poseStack, buffers, packedLight);
-        // The Salt drips through into the Catch Basin below.
-        if (purifier.formed()) {
+        if (!purifier.formed() || purifier.getLevel() == null) {
+            return;
+        }
+        // The Salt runs down into the Catch Basin, the Caput Mortuum into the Residue Crock.
+        BlockPos vat = purifier.getBlockPos();
+        BlockPos basin = PurifierStructure.partPos(purifier.getLevel(), vat, PurifierLayout.Role.BASIN).subtract(vat);
+        poseStack.pushPose();
+        poseStack.translate(basin.getX(), basin.getY(), basin.getZ());
+        drawLiquid(purifier.salt(), BASIN_FLOOR, BASIN_FLOOR, BASIN_RIM, poseStack, buffers, packedLight);
+        poseStack.popPose();
+        int residue = purifier.shownResidue();
+        if (residue > 0) {
+            BlockPos crock = PurifierStructure.partPos(purifier.getLevel(), vat, PurifierLayout.Role.CROCK).subtract(vat);
+            TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(RESIDUE);
+            float top = CROCK_FLOOR + 1 / 16F + (CROCK_TOP - CROCK_FLOOR - 1 / 16F) * Math.min(1.0F, residue / 64F);
             poseStack.pushPose();
-            poseStack.translate(0, -1, 0);
-            drawLiquid(purifier.salt(), BASIN_FLOOR, BASIN_FLOOR, BASIN_RIM, poseStack, buffers, packedLight);
+            poseStack.translate(crock.getX(), crock.getY(), crock.getZ());
+            CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentCullBlockSheet()), poseStack.last(),
+                    CROCK_MIN, CROCK_FLOOR, CROCK_MIN, CROCK_MAX, top, CROCK_MAX, sprite, 0xFFFFFFFF, packedLight);
             poseStack.popPose();
         }
     }

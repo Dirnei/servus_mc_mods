@@ -41,7 +41,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 /**
  * The Leaching Vat, controller of the Purifier build: washes Ash with water into liquid Salt over
  * time, with no power and no GUI, and keeps the residue. Water goes into the Vat, Salt comes out of
- * the Catch Basin below, so the Fluid Pipe sees a sink of water and a source of Salt without any setting.
+ * the Catch Basin and the residue out of the Residue Crock, so pipes and hoppers see one thing at each
+ * block without any setting.
  */
 public class PurifierBlockEntity extends BlockEntity {
 
@@ -77,6 +78,7 @@ public class PurifierBlockEntity extends BlockEntity {
     };
     private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
     private final IItemHandler itemPort = new ItemPort();
+    private final IItemHandler residuePort = new ResiduePort();
     private final IFluidHandler fluidPort = new FluidPort();
     private final IFluidHandler saltPort = new SaltPort();
     private int progress;
@@ -85,8 +87,12 @@ public class PurifierBlockEntity extends BlockEntity {
     private int drawn = -1;
     /** The item count last sent to the clients, -1 before the first send. */
     private int drawnItems = -1;
+    /** The residue count last sent to the clients, -1 before the first send. */
+    private int drawnResidue = -1;
     /** On the client: how many items lie on the vat floor. */
     private int shownItems;
+    /** On the client: how much residue lies in the Crock. */
+    private int shownResidue;
 
     public PurifierBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.PURIFIER.get(), pos, state);
@@ -128,9 +134,14 @@ public class PurifierBlockEntity extends BlockEntity {
         return salt;
     }
 
-    /** Takes items it can purify, gives none back. */
+    /** The Vat: takes items it can purify, gives none back. */
     public IItemHandler itemPort() {
         return itemPort;
+    }
+
+    /** The Residue Crock: gives the residue, takes nothing. */
+    public IItemHandler residuePort() {
+        return residuePort;
     }
 
     /** The Vat: takes only water, gives nothing. */
@@ -247,11 +258,8 @@ public class PurifierBlockEntity extends BlockEntity {
         if (level == null || salt.isEmpty() || !formed()) {
             return;
         }
-        BlockPos basin = worldPosition.below();
+        BlockPos basin = PurifierStructure.partPos(level, worldPosition, PurifierLayout.Role.BASIN);
         for (Direction side : Direction.values()) {
-            if (side == Direction.UP) {
-                continue;
-            }
             IFluidHandler neighbour = level.getCapability(Capabilities.FluidHandler.BLOCK, basin.relative(side), side.getOpposite());
             if (neighbour == null) {
                 continue;
@@ -271,13 +279,20 @@ public class PurifierBlockEntity extends BlockEntity {
         return shownItems;
     }
 
+    /** On the client: how much residue lies in the Crock, for its heap. */
+    public int shownResidue() {
+        return shownResidue;
+    }
+
     /** Sends the brine and the items to the clients when the drawn level, kind or item count changed. */
     private void syncBrine() {
         int now = brineKey();
         int items = inventory.getStackInSlot(SLOT_INPUT).getCount();
-        if ((now != drawn || items != drawnItems) && level != null) {
+        int residue = inventory.getStackInSlot(SLOT_RESIDUE).getCount();
+        if ((now != drawn || items != drawnItems || residue != drawnResidue) && level != null) {
             drawn = now;
             drawnItems = items;
+            drawnResidue = residue;
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
@@ -318,6 +333,7 @@ public class PurifierBlockEntity extends BlockEntity {
         ownership.load(tag);
         if (tag.contains("ShownItems")) {
             shownItems = tag.getInt("ShownItems");
+            shownResidue = tag.getInt("ShownResidue");
         }
     }
 
@@ -328,6 +344,7 @@ public class PurifierBlockEntity extends BlockEntity {
         tag.put("Water", water.writeToNBT(registries, new CompoundTag()));
         tag.put("Salt", salt.writeToNBT(registries, new CompoundTag()));
         tag.putInt("ShownItems", inventory.getStackInSlot(SLOT_INPUT).getCount());
+        tag.putInt("ShownResidue", inventory.getStackInSlot(SLOT_RESIDUE).getCount());
         return tag;
     }
 
@@ -336,37 +353,71 @@ public class PurifierBlockEntity extends BlockEntity {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    /** Slot 0 takes what a purification recipe accepts and gives nothing; slot 1 gives the residue and takes nothing. */
+    /** The Vat: one slot that takes what a purification recipe accepts and gives nothing. */
     private final class ItemPort implements IItemHandler {
 
         @Override
         public int getSlots() {
-            return 2;
+            return 1;
         }
 
         @Override
         public ItemStack getStackInSlot(int slot) {
-            return inventory.getStackInSlot(slot == 0 ? SLOT_INPUT : SLOT_RESIDUE);
+            return inventory.getStackInSlot(SLOT_INPUT);
         }
 
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return slot == 0 && purifiable(stack) ? inventory.insertItem(SLOT_INPUT, stack, simulate) : stack;
+            return purifiable(stack) ? inventory.insertItem(SLOT_INPUT, stack, simulate) : stack;
         }
 
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return slot == 1 ? inventory.extractItem(SLOT_RESIDUE, amount, simulate) : ItemStack.EMPTY;
+            return ItemStack.EMPTY;
         }
 
         @Override
         public int getSlotLimit(int slot) {
-            return inventory.getSlotLimit(slot == 0 ? SLOT_INPUT : SLOT_RESIDUE);
+            return inventory.getSlotLimit(SLOT_INPUT);
         }
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return slot == 0 && purifiable(stack);
+            return purifiable(stack);
+        }
+    }
+
+    /** The Crock: one slot that gives the residue and takes nothing. */
+    private final class ResiduePort implements IItemHandler {
+
+        @Override
+        public int getSlots() {
+            return 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return inventory.getStackInSlot(SLOT_RESIDUE);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            return stack;
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return inventory.extractItem(SLOT_RESIDUE, amount, simulate);
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return inventory.getSlotLimit(SLOT_RESIDUE);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return false;
         }
     }
 

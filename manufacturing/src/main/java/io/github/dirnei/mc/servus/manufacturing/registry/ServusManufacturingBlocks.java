@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.VatBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.CatchBasinBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.ResidueCrockBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlock;
@@ -46,9 +47,13 @@ public final class ServusManufacturingBlocks {
     public static final DeferredBlock<PurifierBlock> PURIFIER = BLOCKS.registerBlock("purifier", PurifierBlock::new,
             BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion());
 
-    /** The Catch Basin under the Purifier's Leaching Vat. */
+    /** The Catch Basin below one plank of the Purifier, where the Salt gathers. */
     public static final DeferredBlock<CatchBasinBlock> CATCH_BASIN = BLOCKS.registerBlock("catch_basin", CatchBasinBlock::new,
             BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion());
+
+    /** The Residue Crock below the other plank of the Purifier, where the Caput Mortuum falls. */
+    public static final DeferredBlock<ResidueCrockBlock> RESIDUE_CROCK = BLOCKS.registerBlock("residue_crock", ResidueCrockBlock::new,
+            BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_ORANGE).strength(1.25F, 4.2F).sound(SoundType.STONE).noOcclusion());
 
     /** A Principle Vat of the Coagulator build. */
     public static final DeferredBlock<VatBlock> VAT = BLOCKS.registerBlock("principle_vat", VatBlock::new, copper());

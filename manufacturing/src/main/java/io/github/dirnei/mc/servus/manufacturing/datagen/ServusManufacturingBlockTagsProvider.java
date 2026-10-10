@@ -20,6 +20,7 @@ final class ServusManufacturingBlockTagsProvider extends BlockTagsProvider {
     protected void addTags(HolderLookup.Provider provider) {
         tag(BlockTags.MINEABLE_WITH_AXE).add(ServusManufacturingBlocks.PURIFIER.get()).add(ServusManufacturingBlocks.CATCH_BASIN.get());
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
+                .add(ServusManufacturingBlocks.RESIDUE_CROCK.get())
                 .add(ServusManufacturingBlocks.CALCINER.get())
                 .add(ServusManufacturingBlocks.FIREBOX.get())
                 .add(ServusManufacturingBlocks.ASH_PAN.get())
