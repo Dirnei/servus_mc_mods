@@ -18,7 +18,7 @@
 
 ## 3. Plan and docs
 
-- [ ] 3.1 `PLAN.md`: add M9 item 1b `m9-burner-pump-steam-engine` and describe the Burner Pump as a two block beam engine in the pumps paragraph of section 2. `docs/src/content/docs/mods/foundation.md`: the Burner Pump line says it is two blocks tall, smokes and rocks its beam while burning, and gives water through its back and sides. Verify: `npm run build` in `docs/` passes.
+- [x] 3.1 `PLAN.md`: add M9 item 1b `m9-burner-pump-steam-engine` and describe the Burner Pump as a two block beam engine in the pumps paragraph of section 2. `docs/src/content/docs/mods/foundation.md`: the Burner Pump line says it is two blocks tall, smokes and rocks its beam while burning, and gives water through its back and sides. Verify: `npm run build` in `docs/` passes.
 
 ## 4. Integration
 
