@@ -11,7 +11,7 @@
 
 ## 3. Plan
 
-- [ ] 3.1 `PLAN.md`: add M9 item 1c `m9-facade-jei`. Verify: `openspec validate m9-facade-jei` passes.
+- [x] 3.1 `PLAN.md`: add M9 item 1c `m9-facade-jei`. Verify: `openspec validate m9-facade-jei` passes.
 
 ## 4. Integration
 
