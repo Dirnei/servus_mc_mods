@@ -73,7 +73,7 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
         }
         add(COAGULATOR, coagulator.build(false, 1));
 
-        // The Purifier: the log is the bottom middle, so it is the anchor; planks and the log of any wood.
+        // The Purifier: the log is the bottom middle, so it is the anchor; any wood, and anything beside the Vat.
         DenseMultiblockBuilder purifier = new DenseMultiblockBuilder();
         for (String row : PurifierLayout.patternRows()) {
             purifier.layer(row.replace(PurifierLayout.Role.LOG.symbol(), '0'));
@@ -81,7 +81,6 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
         purifier.block(PurifierLayout.Role.VAT.symbol(), () -> PurifierStructure.shown(PurifierLayout.Role.VAT));
         purifier.block(PurifierLayout.Role.BASIN.symbol(), () -> PurifierStructure.shown(PurifierLayout.Role.BASIN));
         purifier.block(PurifierLayout.Role.CROCK.symbol(), () -> PurifierStructure.shown(PurifierLayout.Role.CROCK));
-        purifier.tag(PurifierLayout.Role.PLANKS.symbol(), BlockTags.PLANKS, () -> Blocks.OAK_PLANKS);
         purifier.tag('0', BlockTags.LOGS, () -> Blocks.OAK_LOG);
         add(PURIFIER, purifier.build(false, 1));
 

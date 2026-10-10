@@ -12,7 +12,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
-/** The Catch Basin below one of the Purifier's planks: the brine runs into it, and the Salt is taken from it. */
+/** The Catch Basin beside the Purifier's log: the brine runs into it, and the Salt is taken from it. */
 public class CatchBasinBlock extends PurifierSideBlock {
 
     public CatchBasinBlock(Properties properties) {

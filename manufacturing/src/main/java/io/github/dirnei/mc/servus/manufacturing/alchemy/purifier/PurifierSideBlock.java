@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.PushReaction;
 
 /**
- * A block below one of the Purifier's planks: the Catch Basin or the Residue Crock. While formed it
+ * A block beside the Purifier's log: the Catch Basin or the Residue Crock. While formed it
  * faces the log in the middle, so its Vat stands one up and one toward {@link #FACING}.
  */
 public abstract class PurifierSideBlock extends Block {

@@ -47,11 +47,9 @@ public final class PurifierGameTests {
     private PurifierGameTests() {
     }
 
-    /** Builds the unformed Purifier along x: planks beside the Vat, a log below it, the Basin and the Crock below the planks. */
+    /** Builds the unformed Purifier along x: a log below the Vat, the Basin and the Crock beside the log. */
     static void build(GameTestHelper helper, BlockPos vat, boolean mirrored) {
         helper.setBlock(vat, ServusManufacturingBlocks.PURIFIER.get().defaultBlockState());
-        helper.setBlock(vat.east(), Blocks.SPRUCE_PLANKS);
-        helper.setBlock(vat.west(), Blocks.OAK_PLANKS);
         helper.setBlock(vat.below(), Blocks.BIRCH_LOG);
         helper.setBlock(mirrored ? vat.below().west() : vat.below().east(), ServusManufacturingBlocks.CATCH_BASIN.get().defaultBlockState());
         helper.setBlock(mirrored ? vat.below().east() : vat.below().west(), ServusManufacturingBlocks.RESIDUE_CROCK.get().defaultBlockState());
@@ -182,7 +180,7 @@ public final class PurifierGameTests {
         helper.succeed();
     }
 
-    /** Without its Crock nothing forms; breaking a plank of a formed Purifier unforms it. */
+    /** Without its Crock nothing forms; breaking the log of a formed Purifier unforms it. */
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
     public static void purifierFormsAndUnforms(GameTestHelper helper) {
         build(helper, PURIFIER, false);
@@ -190,7 +188,7 @@ public final class PurifierGameTests {
         form(helper);
         helper.assertBlockProperty(PURIFIER, PurifierBlock.FORMED, false);
         purifier(helper);
-        helper.getLevel().destroyBlock(helper.absolutePos(PURIFIER.west()), true);
+        helper.getLevel().destroyBlock(helper.absolutePos(PURIFIER.below()), true);
         helper.assertBlockProperty(PURIFIER, PurifierBlock.FORMED, false);
         helper.assertBlockProperty(BASIN, PurifierSideBlock.FORMED, false);
         helper.assertBlockProperty(CROCK, PurifierSideBlock.FORMED, false);

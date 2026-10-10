@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** The Residue Crock below the other plank of the Purifier: the Caput Mortuum falls into it and is taken from it. */
+/** The Residue Crock on the other side of the Purifier's log: the Caput Mortuum falls into it and is taken from it. */
 public class ResidueCrockBlock extends PurifierSideBlock {
 
     public ResidueCrockBlock(Properties properties) {

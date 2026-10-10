@@ -10,11 +10,6 @@
       "type": "modonomicon:block",
       "block": "servus_manufacturing:catch_basin"
     },
-    "P": {
-      "type": "modonomicon:tag",
-      "display": "minecraft:oak_planks",
-      "tag": "#minecraft:planks"
-    },
     "R": {
       "type": "modonomicon:block",
       "block": "servus_manufacturing:residue_crock"
@@ -26,7 +21,7 @@
   },
   "pattern": [
     [
-      "PVP"
+      "_V_"
     ],
     [
       "B0R"

@@ -9,7 +9,7 @@ import java.util.List;
  * front with the Leaching Vat in the middle of the top row.
  *
  * <pre>
- *  P V P     V Leaching Vat (the Purifier block), P planks of any wood
+ *  _ V _     V Leaching Vat (the Purifier block), _ anything
  *  B L R     B Catch Basin, L log of any wood, R Residue Crock
  * </pre>
  *
@@ -20,7 +20,7 @@ public final class PurifierLayout {
 
     /** What stands at a cell. */
     public enum Role {
-        VAT('V'), PLANKS('P'), BASIN('B'), LOG('L'), CROCK('R');
+        VAT('V'), BASIN('B'), LOG('L'), CROCK('R');
 
         private final char symbol;
 
@@ -39,11 +39,9 @@ public final class PurifierLayout {
 
     private static final List<Cell> CELLS = List.of(
             new Cell(0, Role.VAT, 0, 0),
-            new Cell(1, Role.PLANKS, -1, 0),
-            new Cell(2, Role.PLANKS, 1, 0),
-            new Cell(3, Role.BASIN, -1, -1),
-            new Cell(4, Role.LOG, 0, -1),
-            new Cell(5, Role.CROCK, 1, -1));
+            new Cell(1, Role.BASIN, -1, -1),
+            new Cell(2, Role.LOG, 0, -1),
+            new Cell(3, Role.CROCK, 1, -1));
 
     /** Every facing: two axes, each with the build and its mirror. */
     public static final List<Facing> FACINGS = List.of(Facing.NORTH, Facing.EAST, Facing.SOUTH, Facing.WEST);
@@ -82,9 +80,8 @@ public final class PurifierLayout {
         return switch (cell.role()) {
             case VAT -> "itself";
             case LOG -> "below the Vat";
-            case PLANKS -> cell.right() < 0 ? "left of the Vat" : "right of the Vat";
-            case BASIN -> "below a plank";
-            case CROCK -> "below the other plank";
+            case BASIN -> "beside the log";
+            case CROCK -> "on the other side of the log";
         };
     }
 }

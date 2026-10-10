@@ -114,10 +114,10 @@ final class WorkshopCategory extends CategoryProvider {
         return new WorkshopEntry(this, "purifier", "The Purifier", "Wash the Salt out of the Ash",
                 ServusManufacturingItems.PURIFIER.get(), e -> {
             e.spotlight("machine", ServusManufacturingItems.PURIFIER.get(), "The Purifier",
-                    "A leaching vat on a log between two planks. Water washes the Salt out of the Ash and runs down into the catch basin as "
+                    "A leaching vat on a log. Water washes the Salt out of the Ash and runs down into the catch basin as "
                             + "the Salt the Coagulator needs; what stays behind is Caput Mortuum, the dead head, and it falls into the residue crock.");
             e.multiblock("build", ServusManufacturingMultiblockProvider.PURIFIER, "The Purifier",
-                    "The Vat between two planks on a log, any wood; the Basin below one plank, the Crock below the other, either way round. "
+                    "The Vat on a log of any wood, the Basin on one side of the log and the Crock on the other, either way round. "
                             + "Press Visualize, then click the ground.");
             e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":purifier", ServusManufacturingIds.MOD_ID + ":catch_basin",
                     "The Leaching Vat and the Catch Basin.");

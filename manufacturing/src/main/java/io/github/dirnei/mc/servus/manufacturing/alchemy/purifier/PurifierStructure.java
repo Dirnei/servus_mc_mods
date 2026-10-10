@@ -22,10 +22,10 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 
 /**
- * Forms and unforms the Purifier following {@link PurifierLayout}: the Leaching Vat between planks
- * on a log, the Catch Basin and the Residue Crock below the planks. Checking all four facings also
- * accepts the mirrored build. The Vat keeps the facing; the Basin and the Crock face the log. Planks
- * and the log stay vanilla and are checked by their formed neighbours. Server thread only, except
+ * Forms and unforms the Purifier following {@link PurifierLayout}: the Leaching Vat on a log, the
+ * Catch Basin and the Residue Crock beside the log. Checking all four facings also
+ * accepts the mirrored build. The Vat keeps the facing; the Basin and the Crock face the log. The log
+ * stays vanilla and is checked by its formed neighbours. Server thread only, except
  * the position lookups, which only read block states.
  */
 public final class PurifierStructure {
@@ -45,7 +45,6 @@ public final class PurifierStructure {
             case VAT -> ServusManufacturingBlocks.PURIFIER.get();
             case BASIN -> ServusManufacturingBlocks.CATCH_BASIN.get();
             case CROCK -> ServusManufacturingBlocks.RESIDUE_CROCK.get();
-            case PLANKS -> Blocks.OAK_PLANKS;
             case LOG -> Blocks.OAK_LOG;
         };
     }
@@ -55,7 +54,6 @@ public final class PurifierStructure {
             case VAT -> state.is(ServusManufacturingBlocks.PURIFIER.get()) && state.getValue(PurifierBlock.FORMED) == formed;
             case BASIN -> state.is(ServusManufacturingBlocks.CATCH_BASIN.get()) && state.getValue(PurifierSideBlock.FORMED) == formed;
             case CROCK -> state.is(ServusManufacturingBlocks.RESIDUE_CROCK.get()) && state.getValue(PurifierSideBlock.FORMED) == formed;
-            case PLANKS -> state.is(BlockTags.PLANKS);
             case LOG -> state.is(BlockTags.LOGS);
         };
     }
@@ -172,7 +170,7 @@ public final class PurifierStructure {
         vatOf(state, pos).ifPresent(vat -> unform(level, vat, pos));
     }
 
-    /** A neighbour of a formed block changed: the planks and the log have no hook of their own, so check the whole build. */
+    /** A neighbour of a formed block changed: the log has no hook of its own, so check the whole build. */
     public static void neighbourChanged(Level level, BlockState state, BlockPos pos) {
         if (changing || level.isClientSide()) {
             return;

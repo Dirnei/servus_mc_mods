@@ -37,10 +37,8 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("message.servus_manufacturing.purifier.missing",
                 "The Purifier is not complete: %s needed %s. The Purifier page of Paracelsus' Journal shows the build.");
         add("message.servus_manufacturing.purifier.at.below_the_vat", "below the Vat");
-        add("message.servus_manufacturing.purifier.at.left_of_the_vat", "left of the Vat");
-        add("message.servus_manufacturing.purifier.at.right_of_the_vat", "right of the Vat");
-        add("message.servus_manufacturing.purifier.at.below_a_plank", "below a plank");
-        add("message.servus_manufacturing.purifier.at.below_the_other_plank", "below the other plank");
+        add("message.servus_manufacturing.purifier.at.beside_the_log", "beside the log");
+        add("message.servus_manufacturing.purifier.at.on_the_other_side_of_the_log", "on the other side of the log");
         add("message.servus_manufacturing.purifier.at.itself", "here");
         add("jade.servus_manufacturing.purifier.residue", "Caput Mortuum: %s");
         add(ServusManufacturingBlocks.VAT.get(), "Principle Vat");

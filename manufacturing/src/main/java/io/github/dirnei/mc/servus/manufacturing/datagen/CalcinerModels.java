@@ -129,7 +129,7 @@ final class CalcinerModels {
 
     /**
      * The Purifier: an oak vat with two iron bands, a Catch Basin and a Residue Crock. Formed, the
-     * vat grows a dark oak spout down the front of each plank into the block below it, and the Basin
+     * vat grows a dark oak spout out of each side down into the block beside the log, and the Basin
      * and the Crock get a dark oak rim and a bracket against the log they face.
      */
     private void purifier() {
@@ -167,13 +167,11 @@ final class CalcinerModels {
             box(model, 15, y, 1, 15.25F, y + 1, 15, "#iron");
         }
         if (formed) {
-            // Front faces north; one spout per plank. Each keeps a pixel off the plank's front face (z 0).
+            // One spout out of each side wall, through the open cell beside the vat, down into the Basin or the Crock.
             for (boolean west : new boolean[] {true, false}) {
-                spoutBox(model, west, 2, 11, -3, 4, 13, 1, "#spout");
-                spoutBox(model, west, -12, 11, -3, 4, 13, -1, "#spout");
-                spoutBox(model, west, -12, -6, -3, -10, 11, -1, "#spout");
-                spoutBox(model, west, -12, -6, -1, -10, -5, 3, "#spout");
-                spoutBox(model, west, -12.25F, 3, -3.25F, -9.75F, 4, -0.75F, "#iron");
+                spoutBox(model, west, -9, 9, 7, 1, 11, 9, "#spout");
+                spoutBox(model, west, -9, -5, 7, -7, 9, 9, "#spout");
+                spoutBox(model, west, -9.25F, 2, 6.75F, -6.75F, 3, 9.25F, "#iron");
             }
         }
         return model;
