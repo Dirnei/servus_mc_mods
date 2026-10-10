@@ -22,6 +22,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -87,11 +88,11 @@ public final class CalcinerGameTests {
         BlockPos absolute = helper.absolutePos(pos);
         BlockState state = helper.getLevel().getBlockState(absolute);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute), Direction.NORTH, absolute, false);
+        // As the game does: the held item first, even an empty hand, then the block's own use if it passes.
         ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
-        if (held.isEmpty()) {
+        ItemInteractionResult result = state.useItemOn(held, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        if (result == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION) {
             state.useWithoutItem(helper.getLevel(), player, hit);
-        } else {
-            state.useItemOn(held, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
         }
     }
 

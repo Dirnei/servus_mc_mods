@@ -77,7 +77,7 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
-        if (role == Role.ASH_PAN && state.getValue(FORMED)) {
+        if (role == Role.ASH_PAN && state.getValue(FORMED) && !stack.isEmpty()) {
             // Only an empty hand takes the Ash; anything held keeps its own use.
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
         }
