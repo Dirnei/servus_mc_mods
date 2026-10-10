@@ -19,7 +19,8 @@ Foundation loads on its own, and each content mod loads with only Foundation ins
 - **Duplex Data Cable**: the data line with 32 items per second in each direction at the same time. Two from two Data Cables and a quartz.
 - **Fast Data Cable**: the data line with 128 items per second in each direction. Two from two Duplex Data Cables, a quartz and two gold ingots.
 - **Speed Upgrade**: goes into the upgrade slots of a Servus block and doubles its rate per upgrade. Redstone, gold ingots and a copper ingot.
-- **Facade**: any full block without a block entity plus one iron ingot gives six facades of that block. Use one on a duct to make it look like that block.
+- **Facade**: any full block without a block entity plus one iron ingot gives six facades of that block. Use one on a face of a duct to cover that face with a thin panel of the block. A facade closes the face, so ducts and machines behind it do not connect; sneak with the Configuration Carrot on it to take it off.
+- **Hollow Facade**: eight facades of one block around an empty centre give eight hollow facades. They cover a face like a facade, but the duct passes through the hole in the middle and keeps its connection.
 - **Fluid Tank**: a glass block with a copper frame that holds one fluid. Copper ingots in the corners, glass on the top, left and right edges, and any solid block in the bottom middle, which becomes the tank's floor.
 - **Machine Adapter**: makes a machine of vanilla or another mod a producer on the data line. Copper ingots around a hopper, redstone and a Data Cable over a row of planks; it shows the wood of the planks, like the Storage blocks.
 
