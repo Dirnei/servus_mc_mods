@@ -78,6 +78,10 @@ public class PurifierBlockEntity extends BlockEntity {
     private int pushCooldown;
     /** The brine level last sent to the clients, in sixteenths with the fluid kind, -1 before the first send. */
     private int drawn = -1;
+    /** The item count last sent to the clients, -1 before the first send. */
+    private int drawnItems = -1;
+    /** On the client: how many items lie on the vat floor. */
+    private int shownItems;
 
     public PurifierBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.PURIFIER.get(), pos, state);
@@ -221,11 +225,18 @@ public class PurifierBlockEntity extends BlockEntity {
         }
     }
 
-    /** Sends the brine to the clients when its drawn level or kind changed. */
+    /** On the client: how many items lie on the vat floor, for the ash layer. */
+    public int shownItems() {
+        return shownItems;
+    }
+
+    /** Sends the brine and the items to the clients when the drawn level, kind or item count changed. */
     private void syncBrine() {
         int now = brineKey();
-        if (now != drawn && level != null) {
+        int items = inventory.getStackInSlot(0).getCount();
+        if ((now != drawn || items != drawnItems) && level != null) {
             drawn = now;
+            drawnItems = items;
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
@@ -267,6 +278,9 @@ public class PurifierBlockEntity extends BlockEntity {
         salt.readFromNBT(registries, tag.getCompound("Salt"));
         progress = tag.getInt("Progress");
         ownership.load(tag);
+        if (tag.contains("ShownItems")) {
+            shownItems = tag.getInt("ShownItems");
+        }
     }
 
     /** The clients draw the brine. */
@@ -275,6 +289,7 @@ public class PurifierBlockEntity extends BlockEntity {
         CompoundTag tag = super.getUpdateTag(registries);
         tag.put("Water", water.writeToNBT(registries, new CompoundTag()));
         tag.put("Salt", salt.writeToNBT(registries, new CompoundTag()));
+        tag.putInt("ShownItems", inventory.getStackInSlot(0).getCount());
         return tag;
     }
 

@@ -14,7 +14,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
-/** Draws the brine in the Purifier's vat: the Salt when it holds any, else the water, as high as the tank is full. */
+/** Draws the Purifier's vat: the Ash still to wash on its floor, over it the brine (the Salt when it holds any, else the water) as high as the tank is full. */
 public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlockEntity> {
 
     /** The inside of the vat in sixteenths: above the floor, inside the walls, below the rim. */
@@ -26,9 +26,23 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
     public PurifierRenderer(BlockEntityRendererProvider.Context context) {
     }
 
+    /** The Ash waiting in the vat lies on its floor as grey powder. */
+    private static final ResourceLocation ASH = ResourceLocation.withDefaultNamespace("block/light_gray_concrete_powder");
+    /** The ash layer grows from one sixteenth to this height with a full stack. */
+    private static final float ASH_MAX = 3 / 16F;
+
     @Override
     public void render(PurifierBlockEntity purifier, float partialTick, PoseStack poseStack, MultiBufferSource buffers,
                        int packedLight, int packedOverlay) {
+        float floor = FLOOR;
+        int items = purifier.shownItems();
+        if (items > 0) {
+            TextureAtlasSprite ash = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(ASH);
+            float height = 1 / 16F + (ASH_MAX - 1 / 16F) * Math.min(1.0F, items / 64F);
+            CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentCullBlockSheet()), poseStack.last(),
+                    INSIDE_MIN, FLOOR, INSIDE_MIN, INSIDE_MAX, FLOOR + height, INSIDE_MAX, ash, 0xFFFFFFFF, packedLight);
+            floor = FLOOR + height;
+        }
         FluidTank shown = purifier.salt().isEmpty() ? purifier.water() : purifier.salt();
         FluidStack fluid = shown.getFluid();
         if (fluid.isEmpty()) {
@@ -41,8 +55,9 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
             return;
         }
         TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(still);
-        float top = FLOOR + (RIM - FLOOR) * share;
+        // The brine stands over the ash and rises with what the tank holds.
+        float top = Math.max(floor + 0.5F / 16F, FLOOR + (RIM - FLOOR) * share);
         CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentCullBlockSheet()), poseStack.last(),
-                INSIDE_MIN, FLOOR, INSIDE_MIN, INSIDE_MAX, top, INSIDE_MAX, sprite, extensions.getTintColor(fluid), packedLight);
+                INSIDE_MIN, floor, INSIDE_MIN, INSIDE_MAX, top, INSIDE_MAX, sprite, extensions.getTintColor(fluid), packedLight);
     }
 }
