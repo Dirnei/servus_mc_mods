@@ -1,10 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
 import java.util.Set;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 /** Foundation's machines drop themselves; their contents drop from the block entity. */
 final class MachineBlockLoot extends BlockLootSubProvider {
@@ -15,7 +17,14 @@ final class MachineBlockLoot extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
-        MachineDataParts.selfDropping().forEach(this::dropSelf);
+        for (Block block : MachineDataParts.selfDropping()) {
+            if (block instanceof BurnerPumpBlock) {
+                // Two blocks tall: only the lower half drops the item, like a door.
+                add(block, createSinglePropConditionTable(block, BurnerPumpBlock.HALF, DoubleBlockHalf.LOWER));
+            } else {
+                dropSelf(block);
+            }
+        }
     }
 
     @Override
