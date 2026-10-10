@@ -112,11 +112,15 @@ The hearth cells, the tank positions for each facing and the schematic of a stag
 - **THEN** its lower layer is the diamond hearth with the twelve Salt Crystal Blocks around it, a 5 by 5 square, and its upper layer holds only the Athanor and its tanks
 
 ### Requirement: Formed Athanor look
-A formed Athanor SHALL be drawn as a stone brick tower furnace about one and a half blocks tall, turned by its front, with an iron fire door showing the flame in the tier's colour and an iron plate on top where the item rests. Its Copper Ducts SHALL be drawn as one copper pipe from a socket of the tower into each tank, turning down into the tank's top, or into the tank's side when it is stacked that high. The ducts of a formed Athanor SHALL collide like their pipe, low enough to jump onto from the ground, and the formed Athanor's collision SHALL follow the tower up to its plate, so a player walks from a pipe onto the plate. Unformed, the Athanor SHALL keep its plain block and the ducts their straight pipe.
+A formed Athanor SHALL be drawn as a stone brick tower furnace about one and a half blocks tall, turned by its front, with an iron fire door showing the flame in the tier's colour and an iron plate on top where the item rests. Its Copper Ducts SHALL be drawn as one copper pipe from a socket of the tower into each tank, turning down into the tank's top, or into the tank's side when it is stacked that high. The ducts of a formed Athanor SHALL collide like their pipe, low enough to jump onto from the ground, and the formed Athanor's collision SHALL follow the tower up to its plate, so a player walks from a pipe onto the plate. A formed Athanor SHALL be targeted two blocks tall, its own block and the space above where the item lies, for the outline, Jade and use; breaking it there breaks the Athanor. Unformed, the Athanor SHALL keep its plain block and the ducts their straight pipe.
 
 #### Scenario: Formed look
 - **WHEN** a player forms an Athanor
 - **THEN** it shows as a stone brick tower with a fire door and its Copper Ducts as three pipes running into its tanks
+
+#### Scenario: Looking at the item on top
+- **WHEN** a player looks at the item lying on the plate of a formed Athanor
+- **THEN** the Athanor is targeted, its outline two blocks tall, Jade shows its tooltip and using it acts on the Athanor
 
 #### Scenario: Standing on it
 - **WHEN** a player jumps onto a pipe of a formed Athanor and walks along it to the tower

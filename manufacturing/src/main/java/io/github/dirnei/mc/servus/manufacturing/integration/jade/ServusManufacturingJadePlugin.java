@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.integration.jade;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorCrownBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
@@ -58,6 +59,15 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(PurifierProvider.INSTANCE, PurifierBlock.class);
         registration.registerBlockComponent(PurifierProvider.INSTANCE, PurifierSideBlock.class);
         registration.registerBlockComponent(AthanorProvider.INSTANCE, AthanorBlock.class);
+        // The space above a formed Athanor, where its item lies, shows the Athanor.
+        registration.addRayTraceCallback((hit, accessor, original) -> {
+            if (accessor instanceof BlockAccessor block && block.getBlock() instanceof AthanorCrownBlock) {
+                BlockPos below = block.getPosition().below();
+                return registration.blockAccessor().from(block).blockState(block.getLevel().getBlockState(below))
+                        .blockEntity(block.getLevel().getBlockEntity(below)).hit(block.getHitResult().withPosition(below)).build();
+            }
+            return accessor;
+        });
     }
 
     /** The Athanor has no GUI: its stage, its work and what its tanks hold. */

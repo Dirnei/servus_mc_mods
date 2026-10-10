@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.registry;
 
+import net.minecraft.world.level.material.PushReaction;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorCrownBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
@@ -67,6 +69,10 @@ public final class ServusManufacturingBlocks {
     public static final DeferredBlock<AthanorBlock> ATHANOR = BLOCKS.registerBlock("athanor", AthanorBlock::new,
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F, 6.0F).requiresCorrectToolForDrops()
                     .sound(SoundType.STONE).noOcclusion().lightLevel(state -> state.getValue(MachineBlock.LIT) ? 13 : 0));
+    /** The invisible space above a formed Athanor; no item, no drop. */
+    public static final DeferredBlock<AthanorCrownBlock> ATHANOR_CROWN = BLOCKS.registerBlock("athanor_crown", AthanorCrownBlock::new,
+            BlockBehaviour.Properties.of().mapColor(MapColor.NONE).strength(2.0F, 6.0F).sound(SoundType.STONE).noOcclusion().noLootTable()
+                    .pushReaction(PushReaction.BLOCK));
 
     public static final DeferredBlock<GnomeHollowBlock> GNOME_HOLLOW = BLOCKS.registerBlock("gnome_hollow", GnomeHollowBlock::new,
             BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(1.5F, 6.0F).requiresCorrectToolForDrops().sound(SoundType.STONE));

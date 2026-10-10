@@ -81,16 +81,25 @@ public class AthanorBlock extends MachineBlock {
     private static final VoxelShape TOWER = Shapes.or(Block.box(0, 0, 0, 16, 2, 16), Block.box(1, 2, 1, 15, 16, 15),
             Block.box(1.5, 16, 1.5, 14.5, 20, 14.5), Block.box(2, 20, 2, 14, 23, 14));
 
+    /** Formed, it is looked at two blocks tall, its own block and the space above where the item lies (see {@link AthanorCrownBlock}). */
+    private static final VoxelShape OUTLINE = Block.box(0, 0, 0, 16, 32, 16);
+
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return state.getValue(FORMED) ? OUTLINE : Shapes.block();
+    }
+
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return state.getValue(FORMED) ? TOWER : Shapes.block();
     }
 
-    /** A broken Athanor gives its ducts back their straight look. */
+    /** A broken Athanor gives its ducts back their straight look and takes its crown away. */
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide() && !state.is(newState.getBlock()) && state.getValue(FORMED)) {
             AthanorBlockEntity.setDucts(level, pos, state.getValue(FACING), false);
+            AthanorBlockEntity.setCrown(level, pos, false);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

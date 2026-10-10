@@ -28,6 +28,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         new CalcinerModels(this).register();
         simpleBlockWithItem(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get(), cubeAll(ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get()));
         athanor();
+        athanorCrown();
         gnomeHollow();
         // Liquid blocks are drawn by the fluid renderer; the model only gives the particle.
         for (Principle principle : Principle.values()) {
@@ -60,6 +61,12 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         simpleBlockItem(ServusManufacturingBlocks.ATHANOR.get(), models[0][0]);
     }
 
+    /** The invisible crown above a formed Athanor: no faces, only the particle of its stone. */
+    private void athanorCrown() {
+        simpleBlock(ServusManufacturingBlocks.ATHANOR_CROWN.get(),
+                models().getBuilder("athanor_crown").texture("particle", mcLoc("block/stone_bricks")));
+    }
+
     /** The tower, front to the north; the player's right is west. The door shows the arch of the front texture. */
     private ModelFile athanorTower(String name, ResourceLocation front) {
         BlockModelBuilder model = models().withExistingParent(name, mcLoc("block/block"))
@@ -81,10 +88,11 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
         CalcinerModels.uvBox(model, 3.25F, 2.5F, 0.25F, 4, 13.75F, 1, "#iron");
         CalcinerModels.uvBox(model, 12, 2.5F, 0.25F, 12.75F, 13.75F, 1, "#iron");
         CalcinerModels.uvBox(model, 4, 13, 0.25F, 12, 13.75F, 1, "#iron");
-        // Sockets for the Copper Ducts, whose pipe lies at the bottom of the block above.
-        CalcinerModels.uvBox(model, 0, 16, 6, 2.5F, 20, 10, "#copper");
-        CalcinerModels.uvBox(model, 13.5F, 16, 6, 16, 20, 10, "#copper");
-        CalcinerModels.uvBox(model, 6, 16, 13.5F, 10, 20, 16, "#copper");
+        // Collars for the Copper Ducts, whose pipe lies at the bottom of the block above; a bit larger
+        // than the pipe so no face lies in the plane of the shoulder's, which would flicker.
+        CalcinerModels.uvBox(model, 0, 15.5F, 5.5F, 2.5F, 20.5F, 10.5F, "#copper");
+        CalcinerModels.uvBox(model, 13.5F, 15.5F, 5.5F, 16, 20.5F, 10.5F, "#copper");
+        CalcinerModels.uvBox(model, 5.5F, 15.5F, 13.5F, 10.5F, 20.5F, 16, "#copper");
         return model;
     }
 

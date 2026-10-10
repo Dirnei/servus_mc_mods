@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
+import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Blocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
@@ -295,11 +296,30 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         }
     }
 
+    /** Unforms a formed Athanor, as when the space above it was taken. */
+    public void unform() {
+        if (level != null && !level.isClientSide()) {
+            setFormed(false);
+        }
+    }
+
     private void setFormed(boolean formed) {
         BlockState state = level.getBlockState(worldPosition);
         if (state.getBlock() instanceof AthanorBlock && state.getValue(AthanorBlock.FORMED) != formed) {
             level.setBlock(worldPosition, state.setValue(AthanorBlock.FORMED, formed), Block.UPDATE_ALL);
             setDucts(level, worldPosition, state.getValue(MachineBlock.FACING), formed);
+            setCrown(level, worldPosition, formed);
+        }
+    }
+
+    /** Places the crown in the free space above a formed Athanor, or takes it away. */
+    public static void setCrown(Level level, BlockPos pos, boolean formed) {
+        BlockPos above = pos.above();
+        BlockState state = level.getBlockState(above);
+        if (formed && (state.isAir() || state.canBeReplaced())) {
+            level.setBlock(above, ServusManufacturingBlocks.ATHANOR_CROWN.get().defaultBlockState(), Block.UPDATE_ALL);
+        } else if (!formed && state.getBlock() instanceof AthanorCrownBlock) {
+            level.setBlock(above, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         }
     }
 

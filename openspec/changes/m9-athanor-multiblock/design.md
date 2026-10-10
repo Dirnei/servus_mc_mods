@@ -57,6 +57,11 @@ Forming checks the ducts after the tanks and names the side of a missing one (`m
 
 `AthanorRenderer` draws only the item; its render box shrinks back to the block and the space above. Collision: an Athanor duct's shape is its pipe, 4 px wide and 4 px high, along the run (other duct states keep the full block). The formed Athanor's shape follows the tower (plinth, body, shoulder, plate) up to 23 px. A player jumps onto a pipe (1.25 blocks) and steps up onto the plate (1.44 blocks, within the step height).
 
+### Two blocks tall to look at (play check 2026-10-10)
+The item lies in the cell above the Athanor, where a look hits nothing, so Jade showed nothing and a click missed. Vanilla picking tests only the shape of the block in each cell the ray passes, so a taller shape on the Athanor alone is not enough. A formed Athanor places an invisible `AthanorCrownBlock` (`athanor_crown`, no item, no loot, invisible render shape, an empty model with a particle texture) in the cell above when that cell is air or replaceable, and removes it when it unforms or is broken. The crown has no collision; its outline reaches one block down and the formed Athanor's outline one block up, so either shows the same two block box. The crown hands `useItemOn` and `useWithoutItem` to the Athanor below with the hit moved there; breaking the crown breaks the Athanor (drops unless creative); a crown without a formed Athanor below removes itself. Jade gets a ray trace callback that turns a crown accessor into the Athanor's below (`IWailaClientRegistration.addRayTraceCallback`, `blockAccessor().from(...)`), so the Athanor provider shows.
+
+The tower's pipe sockets shared their top face with the shoulder (both at 20 px) and flickered; they become collars 15.5 to 20.5 px high and 5 px wide around the 4 px pipe.
+
 ### Pure vs Minecraft
 Pure: `AthanorLayout` with JUnit `AthanorLayoutTest` (13 hearth cells in a diamond, Nigredo pattern, Albedo pattern with the ring in the Athanor layer, mapping). GameTests: forming, missing brick named, not formed does not craft, hearth brick broken unforms at the next check, schematics accept the builds. Existing Athanor GameTests build the hearth and form first.
 

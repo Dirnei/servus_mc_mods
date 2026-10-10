@@ -570,6 +570,33 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
+    /** A formed Athanor gets its crown above; using the crown lays the item on the Athanor; unforming takes the crown away. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorCrownTakesTheLook(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        helper.assertBlockPresent(ServusManufacturingBlocks.ATHANOR_CROWN.get(), MACHINE.above());
+        Player player = CalcinerGameTests.player(helper, new ItemStack(Items.GUNPOWDER));
+        CalcinerGameTests.use(helper, player, MACHINE.above());
+        helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).is(Items.GUNPOWDER), "the crown hands the item to the Athanor");
+        helper.setBlock(athanorTank(AthanorLayout.TankSide.RIGHT), Blocks.AIR);
+        athanor.checkTier();
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.assertBlockNotPresent(ServusManufacturingBlocks.ATHANOR_CROWN.get(), MACHINE.above());
+        helper.succeed();
+    }
+
+    /** Breaking the crown breaks the Athanor below. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void breakingTheCrownBreaksTheAthanor(GameTestHelper helper) {
+        athanor(helper);
+        Player player = CalcinerGameTests.player(helper, ItemStack.EMPTY);
+        BlockPos crown = helper.absolutePos(MACHINE.above());
+        helper.getLevel().getBlockState(crown).getBlock().playerWillDestroy(helper.getLevel(), crown, helper.getLevel().getBlockState(crown), player);
+        helper.assertBlockNotPresent(ServusManufacturingBlocks.ATHANOR.get(), MACHINE);
+        helper.assertBlockNotPresent(ServusManufacturingBlocks.ATHANOR_CROWN.get(), MACHINE.above());
+        helper.succeed();
+    }
+
     /** A craft on an Albedo Athanor counts for Schwaz once the team finished Villach. */
     @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void albedoCraftCountsForSchwaz(GameTestHelper helper) {
