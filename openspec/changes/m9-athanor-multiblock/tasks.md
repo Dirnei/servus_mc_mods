@@ -19,6 +19,11 @@
 - [x] 4.2 `AthanorBlockEntity` reads and drains the three tanks, `PrincipleTanks` removed (save, bucket use, `fluidHandler` registration), forming and the slow check include the tanks with a named missing tank (lang), menu data from the tanks; GameTests: craft from a piped tank, any principle in any tank, missing tank named, removed tank unforms, existing Athanor tests fill tanks; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
 - [x] 4.3 Schematic pages with the tanks, Athanor journal text, PLAN.md item 6d; no em dashes; schematic GameTests accept the builds; `gradlew build` and `:manufacturing:runGameTestServer` green
 
-## 5. Integration
+## 5. Look and no GUI
 
-- [ ] 5.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches, and the user play checks the Athanor hearth and the schematics
+- [ ] 5.1 No GUI: `AthanorBlock` hand use (result by empty hand, input back by sneaking), `AthanorMenu`, `AthanorScreen`, the menu type and tier data removed, renderer shows input or result with sync on both, Jade Athanor provider (lang); GameTests: result taken by hand, item placed by hand; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
+- [ ] 5.2 Formed tower models per tier and lit state with the fire door and sockets, blockstates by `FORMED` and facing, `noOcclusion` on the block; `AthanorRenderer` pipes to the tanks (over the ring, down into the top or into the side of a stacked tank) and the item on the plate; journal text; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
+
+## 6. Integration
+
+- [ ] 6.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches, and the user play checks the Athanor hearth and the schematics

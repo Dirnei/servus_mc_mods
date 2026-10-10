@@ -14,11 +14,11 @@ A craft SHALL run only while the Athanor is formed, its tier is at least the cra
 - **THEN** no Blaze Powder is made
 
 ### Requirement: Tier is checked on interaction and slowly
-The Athanor SHALL check its tier when it is placed, when a player uses it, when a craft starts, and otherwise at a slow interval (example every 5 seconds). The slow check SHALL also check the hearth and unform the Athanor when it is incomplete. It SHALL never check every tick. The tier SHALL show as the flame colour and in the GUI.
+The Athanor SHALL check its tier when it is placed, when a player uses it, when a craft starts, and otherwise at a slow interval (example every 5 seconds). The slow check SHALL also check the hearth and unform the Athanor when it is incomplete. It SHALL never check every tick. The tier SHALL show as the flame colour and, with Jade installed, in its tooltip. The Athanor SHALL have no GUI.
 
 #### Scenario: Ring placed
 - **WHEN** a player completes the Salt Crystal ring and right clicks the Athanor
-- **THEN** the GUI shows Albedo and the flame turns white
+- **THEN** the flame turns white and Jade shows Albedo
 
 #### Scenario: Hearth brick taken
 - **WHEN** a corner brick of the hearth of a formed Athanor is broken
@@ -46,6 +46,17 @@ The Athanor SHALL expose the production capability with one recipe per craft its
 - **WHEN** the production capability of a tier 0 Athanor is queried
 - **THEN** it reports Blaze Powder but not the Bottle o' Enchanting
 
+### Requirement: The item rests on top
+The item to burn SHALL be drawn lying on top of the Athanor, and the result SHALL lie there once it is made and no item waits. A player SHALL put an item there by using it on the Athanor, take the result with an empty hand, and take the item back with an empty hand while sneaking. Hoppers and Item Pipes SHALL put items in and take results out on every side but the top.
+
+#### Scenario: Place gunpowder
+- **WHEN** a player uses gunpowder on the Athanor
+- **THEN** the gunpowder lies on top of the Athanor
+
+#### Scenario: Take the result
+- **WHEN** Blaze Powder was made and the player uses the Athanor with an empty hand
+- **THEN** the player receives the Blaze Powder
+
 ## ADDED Requirements
 
 ### Requirement: Athanor hearth
@@ -69,3 +80,14 @@ The hearth cells, the tank positions for each facing and the schematic of a stag
 #### Scenario: Albedo schematic
 - **WHEN** the schematic of a tier with eight Salt Crystal Blocks around the Athanor is computed
 - **THEN** it has the hearth layer below and the ring around the Athanor in the layer above
+
+### Requirement: Formed Athanor look
+A formed Athanor SHALL be drawn as a brick tower furnace about one and a half blocks tall, turned by its front, with an iron fire door showing the flame in the tier's colour and an iron plate on top where the item rests. Copper pipes SHALL run from the tower over the ring into each of its three tanks; when a tank is stacked higher, the pipe SHALL enter its side. Unformed, the Athanor SHALL keep its plain block.
+
+#### Scenario: Formed look
+- **WHEN** a player forms an Athanor
+- **THEN** it shows as a brick tower with a fire door and three copper pipes arching into its tanks
+
+#### Scenario: Unformed look
+- **WHEN** a tank of a formed Athanor is taken away and the Athanor unforms
+- **THEN** the tower and the pipes give way to the plain block

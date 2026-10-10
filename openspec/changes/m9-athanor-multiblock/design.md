@@ -34,6 +34,13 @@ The Athanor reaches the tanks through `Capabilities.FluidHandler.BLOCK` at those
 
 Risk: a datapack tier whose blocks use the tank positions would clash; the shipped Albedo ring stays one block from the Athanor.
 
+### Look and no GUI (play check 2026-10-10)
+The user wanted a real model, pipes to the tanks and no GUI. Formed models `athanor_formed_<tier>` and `_lit` (in `ServusManufacturingBlockStateProvider`, from vanilla bricks, stone bricks, iron and copper): a stone brick plinth, a brick tower up to 20 px, a shoulder, an iron plate at 23 px, an iron framed fire door at the front whose face is the middle of the existing `athanor_front_<tier>[_lit]` texture (uv 4,5 to 12,15), and copper sockets high on the left, back and right walls. Turned by `MachineBlock.FACING`; unformed states keep the orientable block. The block gets `noOcclusion`, since faces of the tall model have no cull face and would take the light of an occluding block, which is black.
+
+A block model reaches at most one block out, and the tanks stand two out, so `AthanorRenderer` draws the pipes: for each tank of `tankLayout()` a copper box from the socket out over the ring cell at 1.1 to 1.35 blocks, then down into the tank's top; when the block above the tank is a Fluid Tank too, the pipe ends in that block's side instead. It reads only block states on the client; its render box grows by two blocks around and one up. The item rests on the plate at 1.46 blocks when formed.
+
+No GUI: `AthanorBlock.useWithoutItem` never opens a menu; an empty hand takes the output slot, sneaking takes the input back. `AthanorMenu`, `AthanorScreen`, the menu type and the tier container data go; `createMenu` returns null. The renderer shows the input, or the output when no input waits; the update packet is sent when either changes. Jade gets an Athanor provider (tier name, progress, item, result and what the tanks hold per principle). The item capability by side stays as it is.
+
 ### Pure vs Minecraft
 Pure: `AthanorLayout` with JUnit `AthanorLayoutTest` (nine hearth cells, Nigredo pattern, Albedo pattern with the ring in the Athanor layer, mapping). GameTests: forming, missing brick named, not formed does not craft, hearth brick broken unforms at the next check, schematics accept the builds. Existing Athanor GameTests build the hearth and form first.
 
