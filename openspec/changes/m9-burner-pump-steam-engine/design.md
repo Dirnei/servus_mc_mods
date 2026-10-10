@@ -105,6 +105,10 @@ The item model is a datagen model with the lower and upper elements stacked to y
 
 `MachineBlockLoot` stops using `dropSelf` for the Burner Pump. It uses `createSinglePropConditionTable(block, DOUBLE_BLOCK_HALF, DoubleBlockHalf.LOWER)`, the vanilla door helper in `BlockLootSubProvider`, so only the lower half drops the item.
 
+### D8. Pump items place on the water surface
+
+Both pumps work only on top of a water source, but a normal click passes through water and lands on the pond floor. `PumpItem` extends `BlockItem` and follows the 1.21.1 `PlaceOnWaterBlockItem`: `Item.getPlayerPOVHitResult(level, player, ClipContext.Fluid.SOURCE_ONLY)` and `BlockHitResult.withPosition(pos.above())`. Unlike the lily pad it keeps the normal `useOn` when no water source is the nearest hit, so pumps still place on land. `use` covers clicks into the air above water out of block reach. Sneaking is not required; it only skips the clicked block's own interaction as usual.
+
 ### PLAN.md open decisions
 
 None of section 5's open decisions are touched. This change adds M9 item 1b and updates the pumps paragraph.
@@ -112,7 +116,7 @@ None of section 5's open decisions are touched. This change adds M9 item 1b and 
 ### Pure versus Minecraft
 
 - Pure Java with JUnit: `BeamStroke` (angle bounds, period, rod offset sign and size, zero at phase 0).
-- GameTests in `PumpGameTests`: two block placement, no room above, breaking either half drops one pump, the upper half has no capabilities, the closed top face, the GUI opening from the top.
+- GameTests in `PumpGameTests`: placement on the water surface for both pumps, two block placement, no room above, breaking either half drops one pump, the upper half has no capabilities, the closed top face, the GUI opening from the top.
 - Manual in game: the look, the beam motion, the smoke and the item icon.
 
 ## Risks / Trade-offs

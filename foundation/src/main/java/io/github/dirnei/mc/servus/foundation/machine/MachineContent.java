@@ -17,6 +17,7 @@ import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.ElectricPumpBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.pump.PumpItem;
 import java.util.List;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -56,7 +57,8 @@ public final class MachineContent {
     public static final DeferredBlock<BurnerPumpBlock> BURNER_PUMP =
             BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new,
                     machine().noOcclusion().pushReaction(PushReaction.BLOCK));
-    public static final DeferredItem<BlockItem> BURNER_PUMP_ITEM = ITEMS.registerSimpleBlockItem(BURNER_PUMP);
+    public static final DeferredItem<PumpItem> BURNER_PUMP_ITEM =
+            ITEMS.registerItem("burner_pump", properties -> new PumpItem(BURNER_PUMP.get(), properties));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BurnerPumpBlockEntity>> BURNER_PUMP_ENTITY =
             BLOCK_ENTITIES.register("burner_pump", () -> BlockEntityType.Builder
                     .of(BurnerPumpBlockEntity::new, BURNER_PUMP.get())
@@ -66,7 +68,8 @@ public final class MachineContent {
 
     public static final DeferredBlock<ElectricPumpBlock> ELECTRIC_PUMP =
             BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new, machine().noOcclusion());
-    public static final DeferredItem<BlockItem> ELECTRIC_PUMP_ITEM = ITEMS.registerSimpleBlockItem(ELECTRIC_PUMP);
+    public static final DeferredItem<PumpItem> ELECTRIC_PUMP_ITEM =
+            ITEMS.registerItem("electric_pump", properties -> new PumpItem(ELECTRIC_PUMP.get(), properties));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricPumpBlockEntity>> ELECTRIC_PUMP_ENTITY =
             BLOCK_ENTITIES.register("electric_pump", () -> BlockEntityType.Builder
                     .of(ElectricPumpBlockEntity::new, ELECTRIC_PUMP.get())

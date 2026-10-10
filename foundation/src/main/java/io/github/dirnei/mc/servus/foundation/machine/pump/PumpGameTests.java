@@ -424,6 +424,44 @@ public final class PumpGameTests {
         helper.succeed();
     }
 
+    /**
+     * A player above a pond looks straight down at the water at {@code pos.below()} and
+     * uses the item on the pond floor, as the client reports a click through water.
+     */
+    private static ItemStack placeOnWater(GameTestHelper helper, BlockPos pos, ItemStack stack) {
+        helper.setBlock(pos.below(2), Blocks.STONE.defaultBlockState());
+        helper.setBlock(pos.below(), Blocks.WATER.defaultBlockState());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Vec3 feet = Vec3.atBottomCenterOf(helper.absolutePos(pos.above(2)));
+        player.moveTo(feet.x, feet.y, feet.z, 0, 90);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        BlockPos floor = helper.absolutePos(pos.below(2));
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(floor).add(0, 0.5, 0), Direction.UP, floor, false);
+        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack, hit));
+        return stack;
+    }
+
+    /** Clicking through the water puts the Burner Pump on the surface, not on the pond floor. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void burnerPumpPlacesOnWaterSurface(GameTestHelper helper) {
+        ItemStack left = placeOnWater(helper, ENGINE, new ItemStack(MachineContent.BURNER_PUMP_ITEM.get()));
+        helper.assertTrue(left.isEmpty(), "the item is used up");
+        helper.assertTrue(isHalf(helper, ENGINE, DoubleBlockHalf.LOWER), "the lower half sits on the water");
+        helper.assertTrue(isHalf(helper, ENGINE.above(), DoubleBlockHalf.UPPER), "the upper half is placed above");
+        helper.assertTrue(helper.getBlockState(ENGINE.below()).is(Blocks.WATER), "the water source stays");
+        helper.succeed();
+    }
+
+    /** The Electric Pump lands on the water surface the same way. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void electricPumpPlacesOnWaterSurface(GameTestHelper helper) {
+        ItemStack left = placeOnWater(helper, ENGINE, new ItemStack(MachineContent.ELECTRIC_PUMP_ITEM.get()));
+        helper.assertTrue(left.isEmpty(), "the item is used up");
+        helper.assertTrue(helper.getBlockState(ENGINE).is(MachineContent.ELECTRIC_PUMP.get()), "the pump sits on the water");
+        helper.assertTrue(helper.getBlockState(ENGINE.below()).is(Blocks.WATER), "the water source stays");
+        helper.succeed();
+    }
+
     private static List<ItemEntity> drops(GameTestHelper helper, BlockPos pos) {
         return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(pos)).inflate(2));
     }

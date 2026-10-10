@@ -13,6 +13,7 @@ This is a play feel follow-up to PLAN.md M9 item 1, `m9-foundation-utilities`, w
 - The upper half carries the chimney, the cylinder and the beam pivot. It has no inventory, no buffer and no connections. Right clicking it or using the carrot on it acts on the lower half.
 - While the pump burns fuel and works, the beam rocks and the pump rod moves with it, and smoke rises from the chimney top. When idle, the beam stands still and no smoke rises.
 - The Burner Pump no longer has a top outlet and no pipe stub on top. The Electric Pump is unchanged, including its top outlet.
+- Both pump items place on top of the water source the player looks at, like a lily pad, instead of sinking to the pond floor.
 - PLAN.md gets M9 item 1b and the pump paragraph describes the Burner Pump's new look. The docs page for Foundation is updated the same way.
 
 ## Capabilities

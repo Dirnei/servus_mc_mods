@@ -44,6 +44,21 @@ One Burner Pump item SHALL place both halves, facing the same way. Placing SHALL
 - **WHEN** a piston pushes against either half
 - **THEN** neither half moves
 
+### Requirement: Pumps place on the water surface
+Both pump items SHALL place on top of the water source the player looks at, like a lily pad, when that water source is the nearest thing in the line of sight. Without a water source in the line of sight they SHALL place like any block.
+
+#### Scenario: Click through the water
+- **WHEN** a player looks down at a pond and uses a Burner Pump or an Electric Pump
+- **THEN** the pump is placed on the block above the water source and the water source stays
+
+#### Scenario: Out of block reach
+- **WHEN** the pond floor is too far away to click but the water surface is within reach
+- **THEN** the pump is still placed on the water surface
+
+#### Scenario: On land
+- **WHEN** a player uses a pump on stone with no water in the line of sight
+- **THEN** it places on the stone as before
+
 ### Requirement: Upper half forwards to the engine
 Right clicking the upper half SHALL open the Burner Pump's GUI. The upper half SHALL have no inventory, no buffer and no fluid, item, energy or upkeep capability on any face, so ducts and tanks next to it SHALL neither connect to it nor show an arm or stub toward it.
 
