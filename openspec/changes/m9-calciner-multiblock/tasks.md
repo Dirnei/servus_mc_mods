@@ -39,4 +39,4 @@
 
 ## 8. Integration
 
-- [ ] 8.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks the build from the Journal schematic to a working Calciner
+- [x] 8.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks the build from the Journal schematic to a working Calciner

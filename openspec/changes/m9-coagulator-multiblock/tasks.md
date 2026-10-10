@@ -17,4 +17,4 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, and the user play checks the Coagulator build
+- [x] 4.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, and the user play checks the Coagulator build

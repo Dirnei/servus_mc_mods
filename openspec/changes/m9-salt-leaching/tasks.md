@@ -36,4 +36,4 @@
 
 ## 7. Integration
 
-- [ ] 7.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks Ash from the Calciner through the Purifier into Salt in the Basin and Caput Mortuum in the Crock, the formed looks, and the forming effect on all four builds
+- [x] 7.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks Ash from the Calciner through the Purifier into Salt in the Basin and Caput Mortuum in the Crock, the formed looks, and the forming effect on all four builds
