@@ -4,7 +4,6 @@
     {
       "faces": {
         "down": {
-          "cullface": "down",
           "texture": "#top"
         },
         "east": {
@@ -37,13 +36,7 @@
     {
       "faces": {
         "down": {
-          "texture": "#top",
-          "uv": [
-            3.0,
-            4.0,
-            13.0,
-            14.0
-          ]
+          "texture": "#top"
         },
         "east": {
           "texture": "#side"
@@ -74,47 +67,83 @@
       ],
       "to": [
         13,
-        12,
+        14,
         13
       ]
     },
     {
       "faces": {
         "down": {
-          "texture": "#top"
+          "texture": "#copper"
         },
         "east": {
-          "texture": "#side"
+          "texture": "#copper"
         },
         "north": {
-          "texture": "#side"
+          "texture": "#copper"
         },
         "south": {
-          "texture": "#side"
+          "texture": "#copper"
         },
         "up": {
-          "texture": "#top"
+          "texture": "#copper"
         },
         "west": {
-          "texture": "#side"
+          "texture": "#copper"
         }
       },
       "from": [
-        6,
-        12,
-        6
+        4,
+        14,
+        4
       ],
       "to": [
-        10,
-        15,
-        10
+        12,
+        16,
+        12
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron"
+        },
+        "east": {
+          "texture": "#iron"
+        },
+        "north": {
+          "texture": "#iron"
+        },
+        "south": {
+          "texture": "#iron"
+        },
+        "up": {
+          "texture": "#iron"
+        },
+        "west": {
+          "texture": "#iron"
+        }
+      },
+      "from": [
+        0.5,
+        2,
+        2.5
+      ],
+      "to": [
+        3.5,
+        4,
+        5.5
       ]
     }
   ],
   "textures": {
+    "brick": "minecraft:block/bricks",
+    "copper": "minecraft:block/copper_block",
     "front": "servus_foundation:block/burner_pump_front_lit",
+    "iron": "minecraft:block/iron_block",
     "particle": "servus_foundation:block/machine_side",
     "side": "servus_foundation:block/machine_side",
-    "top": "servus_foundation:block/machine_top"
+    "top": "servus_foundation:block/machine_top",
+    "wood": "minecraft:block/stripped_dark_oak_log"
   }
 }

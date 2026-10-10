@@ -33,7 +33,7 @@ final class MachineDataParts {
     static void blockStates(BlockStateProvider provider) {
         machine(provider, MachineContent.COAL_GENERATOR.get(), "coal_generator");
         machine(provider, MachineContent.CHUNK_LOADER.get(), "chunk_loader");
-        pump(provider, MachineContent.BURNER_PUMP.get(), "burner_pump");
+        BurnerPumpModels.burnerPump(provider);
         pump(provider, MachineContent.ELECTRIC_PUMP.get(), "electric_pump");
         SinkModels.sink(provider);
         SinkModels.chimney(provider);
@@ -167,7 +167,7 @@ final class MachineDataParts {
     }
 
     /** A short pipe from the pump body to the block edge, as thick as a duct arm with {@code size} lines; shared by both pumps. */
-    private static ModelFile pumpStub(BlockStateProvider provider, Direction direction, int size) {
+    static ModelFile pumpStub(BlockStateProvider provider, Direction direction, int size) {
         BlockModelBuilder model = provider.models()
                 .withExistingParent("pump_stub_" + direction.getSerializedName() + "_" + size, provider.mcLoc("block/block"))
                 .texture("particle", provider.modLoc("block/machine_side"))

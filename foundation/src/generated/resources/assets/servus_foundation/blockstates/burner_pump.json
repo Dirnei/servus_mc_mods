@@ -2,80 +2,127 @@
   "multipart": [
     {
       "apply": {
-        "model": "servus_foundation:block/burner_pump"
+        "model": "servus_foundation:block/burner_pump_lower"
       },
       "when": {
         "facing": "north",
+        "half": "lower",
         "lit": "false"
       }
     },
     {
       "apply": {
-        "model": "servus_foundation:block/burner_pump_lit"
+        "model": "servus_foundation:block/burner_pump_lower_lit"
       },
       "when": {
         "facing": "north",
+        "half": "lower",
         "lit": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_foundation:block/burner_pump",
+        "model": "servus_foundation:block/burner_pump_upper"
+      },
+      "when": {
+        "facing": "north",
+        "half": "upper"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_foundation:block/burner_pump_lower",
         "y": 90
       },
       "when": {
         "facing": "east",
+        "half": "lower",
         "lit": "false"
       }
     },
     {
       "apply": {
-        "model": "servus_foundation:block/burner_pump_lit",
+        "model": "servus_foundation:block/burner_pump_lower_lit",
         "y": 90
       },
       "when": {
         "facing": "east",
+        "half": "lower",
         "lit": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_foundation:block/burner_pump",
+        "model": "servus_foundation:block/burner_pump_upper",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "half": "upper"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_foundation:block/burner_pump_lower",
         "y": 180
       },
       "when": {
         "facing": "south",
+        "half": "lower",
         "lit": "false"
       }
     },
     {
       "apply": {
-        "model": "servus_foundation:block/burner_pump_lit",
+        "model": "servus_foundation:block/burner_pump_lower_lit",
         "y": 180
       },
       "when": {
         "facing": "south",
+        "half": "lower",
         "lit": "true"
       }
     },
     {
       "apply": {
-        "model": "servus_foundation:block/burner_pump",
+        "model": "servus_foundation:block/burner_pump_upper",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "half": "upper"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_foundation:block/burner_pump_lower",
         "y": 270
       },
       "when": {
         "facing": "west",
+        "half": "lower",
         "lit": "false"
       }
     },
     {
       "apply": {
-        "model": "servus_foundation:block/burner_pump_lit",
+        "model": "servus_foundation:block/burner_pump_lower_lit",
         "y": 270
       },
       "when": {
         "facing": "west",
+        "half": "lower",
         "lit": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_foundation:block/burner_pump_upper",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "half": "upper"
       }
     },
     {
@@ -83,6 +130,7 @@
         "model": "servus_foundation:block/pump_stub_up_1"
       },
       "when": {
+        "half": "lower",
         "up": "1"
       }
     },
@@ -91,6 +139,7 @@
         "model": "servus_foundation:block/pump_stub_up_2"
       },
       "when": {
+        "half": "lower",
         "up": "2"
       }
     },
@@ -99,6 +148,7 @@
         "model": "servus_foundation:block/pump_stub_north_1"
       },
       "when": {
+        "half": "lower",
         "north": "1"
       }
     },
@@ -107,6 +157,7 @@
         "model": "servus_foundation:block/pump_stub_north_2"
       },
       "when": {
+        "half": "lower",
         "north": "2"
       }
     },
@@ -115,6 +166,7 @@
         "model": "servus_foundation:block/pump_stub_south_1"
       },
       "when": {
+        "half": "lower",
         "south": "1"
       }
     },
@@ -123,6 +175,7 @@
         "model": "servus_foundation:block/pump_stub_south_2"
       },
       "when": {
+        "half": "lower",
         "south": "2"
       }
     },
@@ -131,6 +184,7 @@
         "model": "servus_foundation:block/pump_stub_west_1"
       },
       "when": {
+        "half": "lower",
         "west": "1"
       }
     },
@@ -139,6 +193,7 @@
         "model": "servus_foundation:block/pump_stub_west_2"
       },
       "when": {
+        "half": "lower",
         "west": "2"
       }
     },
@@ -147,7 +202,8 @@
         "model": "servus_foundation:block/pump_stub_east_1"
       },
       "when": {
-        "east": "1"
+        "east": "1",
+        "half": "lower"
       }
     },
     {
@@ -155,7 +211,8 @@
         "model": "servus_foundation:block/pump_stub_east_2"
       },
       "when": {
-        "east": "2"
+        "east": "2",
+        "half": "lower"
       }
     }
   ]

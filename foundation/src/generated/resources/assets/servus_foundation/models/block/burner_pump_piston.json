@@ -1,0 +1,82 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron",
+          "uv": [
+            7.0,
+            7.0,
+            8.0,
+            8.0
+          ]
+        },
+        "east": {
+          "texture": "#iron",
+          "uv": [
+            7.0,
+            0.0,
+            8.0,
+            16.0
+          ]
+        },
+        "north": {
+          "texture": "#iron",
+          "uv": [
+            7.0,
+            0.0,
+            8.0,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#iron",
+          "uv": [
+            7.0,
+            0.0,
+            8.0,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#iron",
+          "uv": [
+            7.0,
+            7.0,
+            8.0,
+            8.0
+          ]
+        },
+        "west": {
+          "texture": "#iron",
+          "uv": [
+            7.0,
+            0.0,
+            8.0,
+            16.0
+          ]
+        }
+      },
+      "from": [
+        11.5,
+        9,
+        3.5
+      ],
+      "to": [
+        12.5,
+        12.75,
+        4.5
+      ]
+    }
+  ],
+  "textures": {
+    "brick": "minecraft:block/bricks",
+    "copper": "minecraft:block/copper_block",
+    "iron": "minecraft:block/iron_block",
+    "particle": "servus_foundation:block/machine_side",
+    "side": "servus_foundation:block/machine_side",
+    "top": "servus_foundation:block/machine_top",
+    "wood": "minecraft:block/stripped_dark_oak_log"
+  }
+}
