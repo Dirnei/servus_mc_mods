@@ -193,7 +193,7 @@ final class CalcinerModels {
      * them from the position, and outside the block (below 0 or above 16) they leave the sprite and
      * show its neighbours in the atlas.
      */
-    private static void uvBox(BlockModelBuilder model, float x1, float y1, float z1, float x2, float y2, float z2, String texture) {
+    static void uvBox(BlockModelBuilder model, float x1, float y1, float z1, float x2, float y2, float z2, String texture) {
         float dx = Math.min(16, x2 - x1);
         float dy = Math.min(16, y2 - y1);
         float dz = Math.min(16, z2 - z1);

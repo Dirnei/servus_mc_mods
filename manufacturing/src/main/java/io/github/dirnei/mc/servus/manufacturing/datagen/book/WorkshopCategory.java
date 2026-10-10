@@ -168,13 +168,15 @@ final class WorkshopCategory extends CategoryProvider {
             e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":athanor", "Bricks, a cauldron and a blast furnace.");
             e.text("hearth", "Its Hearth",
                     "The Athanor burns only on a hearth: nine Bricks in a square right below it, with its three tanks around it. "
-                            + "When all is laid, use this journal on the Athanor to light it for good. Take a brick or a tank away and its fire goes out.");
+                            + "When all is laid, use this journal on the Athanor: it rises into a brick tower and copper pipes reach out to its tanks. "
+                            + "Take a brick or a tank away and its fire goes out.");
             e.text("tanks", "Its Tanks",
                     "The Athanor keeps no principles of its own. It drinks them from its three Fluid Tanks, two blocks out to its left, "
                             + "behind it and to its right, so they never touch and never run together.\n\n"
                             + "Any tank may hold any principle. Lead pipes to them or pour buckets in; stack more tanks on one to make it bigger.");
             e.text("fire", "Its Fire",
-                    "Use an item on it to lay it on top. It burns what its tanks hold.\n\n"
+                    "Use an item on it to lay it on top. It burns what its tanks hold, and the work lies on top when it is done: "
+                            + "take it with an empty hand, or sneak to take the item back. Hoppers and pipes may do both.\n\n"
                             + "Alone its flame is black: Nigredo. Eight Salt Crystal Blocks in a ring around it, on its own level, "
                             + "turn the flame white: Albedo. Some works need the white fire.");
             e.list("works", "Its Works", AlchemyRecipeTable.athanor().stream()

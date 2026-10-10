@@ -66,7 +66,7 @@ public final class ServusManufacturingBlocks {
 
     public static final DeferredBlock<AthanorBlock> ATHANOR = BLOCKS.registerBlock("athanor", AthanorBlock::new,
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F, 6.0F).requiresCorrectToolForDrops()
-                    .sound(SoundType.STONE).lightLevel(state -> state.getValue(MachineBlock.LIT) ? 13 : 0));
+                    .sound(SoundType.STONE).noOcclusion().lightLevel(state -> state.getValue(MachineBlock.LIT) ? 13 : 0));
 
     public static final DeferredBlock<GnomeHollowBlock> GNOME_HOLLOW = BLOCKS.registerBlock("gnome_hollow", GnomeHollowBlock::new,
             BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(1.5F, 6.0F).requiresCorrectToolForDrops().sound(SoundType.STONE));
