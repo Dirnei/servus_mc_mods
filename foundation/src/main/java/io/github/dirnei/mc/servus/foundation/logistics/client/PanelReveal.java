@@ -38,11 +38,13 @@ public final class PanelReveal {
             return;
         }
         revealing = now;
-        if (minecraft.levelRenderer == null) {
+        // Without a world (leaving it, or before it is set up) the renderer has no sections to mark;
+        // the next world builds its chunks with the current state anyway.
+        if (minecraft.level == null || minecraft.player == null) {
             return;
         }
         for (UtilityDuctBlockEntity duct : DuctTracker.ducts()) {
-            if (!duct.isRemoved() && duct.hasPanels()) {
+            if (!duct.isRemoved() && duct.getLevel() == minecraft.level && duct.hasPanels()) {
                 BlockPos pos = duct.getBlockPos();
                 minecraft.levelRenderer.setBlocksDirty(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
             }
