@@ -4,22 +4,22 @@
     {
       "faces": {
         "down": {
-          "texture": "#top"
+          "texture": "#stone"
         },
         "east": {
-          "texture": "#side"
+          "texture": "#stone"
         },
         "north": {
-          "texture": "#side"
+          "texture": "#stone"
         },
         "south": {
-          "texture": "#side"
+          "texture": "#stone"
         },
         "up": {
-          "texture": "#top"
+          "texture": "#stone"
         },
         "west": {
-          "texture": "#side"
+          "texture": "#stone"
         }
       },
       "from": [
@@ -36,28 +36,22 @@
     {
       "faces": {
         "down": {
-          "texture": "#top"
+          "texture": "#oxidized_cut"
         },
         "east": {
-          "texture": "#side"
+          "texture": "#brick"
         },
         "north": {
-          "texture": "#front",
-          "uv": [
-            0.0,
-            0.0,
-            16.0,
-            16.0
-          ]
+          "texture": "#front"
         },
         "south": {
-          "texture": "#side"
+          "texture": "#brick"
         },
         "up": {
-          "texture": "#top"
+          "texture": "#oxidized_cut"
         },
         "west": {
-          "texture": "#side"
+          "texture": "#brick"
         }
       },
       "from": [
@@ -106,22 +100,22 @@
     {
       "faces": {
         "down": {
-          "texture": "#iron"
+          "texture": "#oxidized"
         },
         "east": {
-          "texture": "#iron"
+          "texture": "#oxidized"
         },
         "north": {
-          "texture": "#iron"
+          "texture": "#oxidized"
         },
         "south": {
-          "texture": "#iron"
+          "texture": "#oxidized"
         },
         "up": {
-          "texture": "#iron"
+          "texture": "#oxidized"
         },
         "west": {
-          "texture": "#iron"
+          "texture": "#oxidized"
         }
       },
       "from": [
@@ -141,9 +135,10 @@
     "copper": "minecraft:block/copper_block",
     "front": "servus_foundation:block/burner_pump_front",
     "iron": "minecraft:block/iron_block",
-    "particle": "servus_foundation:block/machine_side",
-    "side": "servus_foundation:block/machine_side",
-    "top": "servus_foundation:block/machine_top",
+    "oxidized": "minecraft:block/oxidized_copper",
+    "oxidized_cut": "minecraft:block/oxidized_cut_copper",
+    "particle": "minecraft:block/bricks",
+    "stone": "minecraft:block/stone_bricks",
     "wood": "minecraft:block/stripped_dark_oak_log"
   }
 }

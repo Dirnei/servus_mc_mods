@@ -134,9 +134,10 @@
     "brick": "minecraft:block/bricks",
     "copper": "minecraft:block/copper_block",
     "iron": "minecraft:block/iron_block",
-    "particle": "servus_foundation:block/machine_side",
-    "side": "servus_foundation:block/machine_side",
-    "top": "servus_foundation:block/machine_top",
+    "oxidized": "minecraft:block/oxidized_copper",
+    "oxidized_cut": "minecraft:block/oxidized_cut_copper",
+    "particle": "minecraft:block/bricks",
+    "stone": "minecraft:block/stone_bricks",
     "wood": "minecraft:block/stripped_dark_oak_log"
   }
 }

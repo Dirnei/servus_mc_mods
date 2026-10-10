@@ -17,7 +17,8 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 
 /**
- * The Burner Pump's models: a lower half (firebox, drum, rod socket) per lit
+ * The Burner Pump's models: a lower half (stone brick plinth, brick firebox
+ * with an oxidized copper fire door, drum, rod socket) per lit
  * state, an upper half (drum top, cylinder, post, chimney), the moving beam,
  * pump rod and piston rod for the renderer, and an item model with the whole
  * engine. Everything is built facing north from {@link BurnerPumpParts}.
@@ -59,11 +60,12 @@ final class BurnerPumpModels {
 
     private static BlockModelBuilder base(BlockStateProvider provider, String name) {
         return provider.models().withExistingParent(name, provider.mcLoc("block/block"))
-                .texture("particle", provider.modLoc("block/machine_side"))
-                .texture("side", provider.modLoc("block/machine_side"))
-                .texture("top", provider.modLoc("block/machine_top"))
+                .texture("particle", provider.mcLoc("block/bricks"))
+                .texture("stone", provider.mcLoc("block/stone_bricks"))
                 .texture("brick", provider.mcLoc("block/bricks"))
                 .texture("copper", provider.mcLoc("block/copper_block"))
+                .texture("oxidized", provider.mcLoc("block/oxidized_copper"))
+                .texture("oxidized_cut", provider.mcLoc("block/oxidized_cut_copper"))
                 .texture("iron", provider.mcLoc("block/iron_block"))
                 .texture("wood", provider.mcLoc("block/stripped_dark_oak_log"));
     }
@@ -75,11 +77,12 @@ final class BurnerPumpModels {
     }
 
     private static void addLower(BlockModelBuilder model, float dy) {
-        box(model, BurnerPumpParts.BASE, dy, "#side", "#top");
-        box(model, BurnerPumpParts.FIREBOX, dy, "#side", "#top")
-                .face(Direction.NORTH).texture("#front").uvs(0, 0, 16, 16).end();
+        box(model, BurnerPumpParts.BASE, dy, "#stone", "#stone");
+        // The front keeps the box UVs so its bricks line up with the vanilla bricks on the sides.
+        box(model, BurnerPumpParts.FIREBOX, dy, "#brick", "#oxidized_cut")
+                .face(Direction.NORTH).texture("#front").end();
         box(model, BurnerPumpParts.DRUM_LOWER, dy, "#copper", "#copper");
-        box(model, BurnerPumpParts.SOCKET, dy, "#iron", "#iron");
+        box(model, BurnerPumpParts.SOCKET, dy, "#oxidized", "#oxidized");
     }
 
     private static ModelFile upper(BlockStateProvider provider) {
