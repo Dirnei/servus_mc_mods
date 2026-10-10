@@ -124,7 +124,8 @@ Progression:
 2. **Warehouse Controller + Storage Terminal.** Search and request items at the terminal and hand items in through its input row; deliveries land in its output row. Vanilla and modded inventories in the network are indexed too.
 3. **Shuttles on rails.** Requests and put-away are done by shuttles that travel along rails to a inbound station. Throughput depends on shuttle count, rails and layout. Put-away rules ("all ores to aisle 3"): a Zone Label carries a name and an item filter and is stamped onto racks; stamped racks take matching items first, unzoned racks take everything and act as the overflow.
 4. **Data cable and on-demand autocrafting.** The warehouse joins the data cable through Packing Stations, and the Storage Terminal, Crafting CPU and Pattern Storage live on the cable (see 2.4).
-5. **Wireless.** Wireless Terminal with range tiers and a Wireless Packing Station that links remote places without a cable. Orders queue real picks. Delivery through an outbound dock: teleport for FE per item and distance, or courier drone to a landing pad.
+5. **Field work.** Shuttles with modules leave the warehouse on Farm Rails and tend fields: they till, plant and harvest, and the harvest comes home through put-away.
+6. **Wireless.** Wireless Terminal with range tiers and a Wireless Packing Station that links remote places without a cable. Orders queue real picks. Delivery through an outbound dock: teleport for FE per item and distance, or courier drone to a landing pad.
 
 **Rails or cable (decided rule):** only storage touches rails, so shuttles can reach it: racks, crates, Shuttle Garages, Rail Elevators, Inbound and Outbound Stations and Packing Stations. Everything else sits on the data cable: terminals, Crafting CPU, Pattern Storage, Crafting Stations, machines and Machine Adapters. The Warehouse Controller sits on the rails and is connected to the cable.
 
@@ -137,6 +138,13 @@ Progression:
 Shuttles are **simulated as data** on the warehouse network and only rendered moving on the client. No real entities. Decided: Shuttle items go into Shuttle Garages, a few per garage, and park on the rail touching their garage; more garages mean more shuttles. Heavy Duty Racks are served only by shuttles, so a rack warehouse needs a garage; crates and foreign inventories stay instant when no shuttle reaches them. Players request items at the Storage Terminal with an amount and collect the delivery from its output slots.
 
 Decided: every elevator shaft has one simulated **lift car**. A shuttle that changes level stops on the rail beside the shaft, calls the car and waits; the car serves calls in the order they were made and carries one shuttle per trip at `lift_speed` from `warehouse.json`, then stays parked where it stopped. A shuttle that only crosses a shaft on one floor does not call the car; it drives over the floor's deck, two flaps hinged between the corner posts that fold up while the car is at or passing that floor, and the car waits for it. A floor without a rail beside it shows only its posts, and the top segment carries a head with the motor beam. Segments work like scaffolding: players walk into them from the side and climb inside, stand on every level from above and sneak to sink down, and a click with an elevator on any segment places the next one on top of the shaft. Breaking a segment under a riding shuttle drops its cargo at its garage.
+
+Decided (field work): everything stays in Storage.
+- **Shuttle Workshop:** a block that fits modules into a shuttle item. A shuttle has two module slots, a tool slot (Harvester, later Lumber and more) and a utility slot (Cargo Hold). Modules are a data component on the shuttle item, so the fleet tracks every shuttle stack in its garages instead of a count per garage and matches a job to a shuttle with the modules it needs. A plain shuttle carries one stack; a Cargo Hold carries N stacks (N from `warehouse.json`).
+- **Farm Rail:** a Warehouse Rail variant that joins the warehouse rail graph like any rail. One connected run of farm rails is one field. It is not waterlogged; while its field has water it hydrates farmland 4 blocks to each side through NeoForge `FarmlandWaterManager` tickets (not saved, re-added on load).
+- **Field Head:** one block per field. Water comes in through the fluid pipe into a buffer; a GUI shows the field and sets one crop for the field or a harvest only mode. The head learns which plots are ripe from `CropGrowEvent.Post` and `BonemealEvent`, plus one pass over the field when it loads, never by scanning per tick. It sends a harvest run once a share of the field is ripe (threshold from JSON).
+- **Harvester shuttles** serve fields only, never warehouse jobs. A run tills dirt and grass inside the 4 block strip at farmland height, plants, harvests until the cargo is full, then puts the harvest away and comes back. Replanting takes seeds from the harvest first and picks them from the warehouse only when short.
+- Trees come later as their own change with a Lumber module.
 
 ### 2.4 Integration: Storage + Manufacturing (autocrafting)
 
@@ -319,7 +327,14 @@ One change per item, in this order. Nothing is released, so the old content is r
 
 **Checkpoint: play it.** Is Nigredo to Albedo fun for a casual player and for a planner? Adjust before Citrinitas.
 
-### M10: Wireless and scale
+### M10: Field work
+One change per item, in this order. Decided on 2026-10-11 that M10 may start before the M9 balance pass:
+1. `m10-shuttle-workshop`: the Shuttle Workshop with a tool slot and a utility slot per shuttle, modules as a data component, the Cargo Hold module, and a fleet that tracks every shuttle stack and matches jobs by module.
+2. `m10-farm-rail-field-head`: the Farm Rail on the warehouse rail graph, fields as connected farm rail runs, the Field Head with water from the pipe, a buffer, a GUI with one crop or harvest only, hydration tickets, and ripeness from crop and bonemeal events.
+3. `m10-harvester`: the Harvester module and field jobs: till, plant and harvest in batches, put-away of the harvest, seeds from the harvest first and the warehouse second.
+- Later: `m10-lumber` with a Lumber module for tree fields.
+
+### M11: Wireless and scale
 - Wireless Packing Station (replaces the Warehouse Relay idea)
 - Wireless Terminal with range tiers
 - Outbound dock: teleport delivery and courier drone
@@ -333,6 +348,7 @@ One change per item, in this order. Nothing is released, so the old content is r
 - A converter between principles (surplus Sulfur to Salt and so on), or only the Sink
 - Whether too much Elixir of Sight hurts ("the dose makes the poison")
 - Alchemist's Spectacles as a permanent Elemental Sight in a later stage
+- Field kinds beyond crops (trees first, then others) and which modules they need
 - Art style and texture direction (shared look across the family)
 - Final name for the storage mod (Servus: Storage vs Servus: Warehouse)
 
