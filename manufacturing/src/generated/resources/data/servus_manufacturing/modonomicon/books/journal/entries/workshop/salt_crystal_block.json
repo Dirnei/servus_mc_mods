@@ -27,15 +27,15 @@
       "title": "book.servus_manufacturing.journal.workshop.salt_crystal_block.block.title"
     },
     {
-      "type": "modonomicon:crafting_recipe",
+      "type": "modonomicon:text",
       "anchor": "",
       "condition": {
         "type": "modonomicon:none"
       },
-      "recipe_id_1": "servus_manufacturing:salt_crystal_block",
-      "text": "book.servus_manufacturing.journal.workshop.salt_crystal_block.recipe.text",
-      "title1": "",
-      "title2": ""
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.salt_crystal_block.grow.text",
+      "title": "book.servus_manufacturing.journal.workshop.salt_crystal_block.grow.title",
+      "use_markdown_in_title": false
     },
     {
       "type": "modonomicon:multiblock",

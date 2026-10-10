@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -292,10 +293,8 @@ public final class AlchemyGameTests {
 
     /** An Athanor facing north on a complete hearth with its three tanks that nobody formed. */
     static AthanorBlockEntity unformedAthanor(GameTestHelper helper) {
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                helper.setBlock(MACHINE.offset(dx, -1, dz), Blocks.BRICKS);
-            }
+        for (AthanorTiers.BlockAt brick : AthanorLayout.hearth()) {
+            helper.setBlock(MACHINE.offset(brick.dx(), brick.dy(), brick.dz()), Blocks.BRICKS);
         }
         helper.setBlock(MACHINE, ServusManufacturingBlocks.ATHANOR.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
         for (AthanorLayout.Tank tank : AthanorLayout.tanks(Facing.NORTH)) {
@@ -384,14 +383,34 @@ public final class AlchemyGameTests {
         });
     }
 
+    /** The Albedo ring: twelve Salt Crystal Blocks filling the hearth layer out to a 5 by 5 square. */
     static void saltRing(GameTestHelper helper) {
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                if (dx != 0 || dz != 0) {
-                    helper.setBlock(MACHINE.offset(dx, 0, dz), ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get().defaultBlockState());
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                if (Math.abs(dx) + Math.abs(dz) > 2) {
+                    helper.setBlock(MACHINE.offset(dx, -1, dz), ServusManufacturingBlocks.SALT_CRYSTAL_BLOCK.get().defaultBlockState());
                 }
             }
         }
+    }
+
+    /** A Salt Crystal and Salt grow into a Salt Crystal Block on the Athanor; no crafting table recipe makes or splits one. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void athanorGrowsASaltCrystalBlock(GameTestHelper helper) {
+        helper.assertTrue(helper.getLevel().getRecipeManager()
+                .byKey(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "salt_crystal_block")).isEmpty(), "no crafting table block");
+        helper.assertTrue(helper.getLevel().getRecipeManager()
+                .byKey(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "salt_crystal_from_block")).isEmpty(), "no split");
+        AthanorBlockEntity athanor = athanor(helper);
+        helper.runAfterDelay(2, () -> {
+            pour(helper, new Principles(1000, 0, 0));
+            athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get()));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get()),
+                        "a Salt Crystal Block should grow");
+                helper.assertTrue(athanor.principles().get(Principle.SALT) == 0, "the Salt is burned");
+            });
+        });
     }
 
     /** Gunpowder and Sulfur become Blaze Powder on a bare Athanor. */
@@ -422,7 +441,7 @@ public final class AlchemyGameTests {
             helper.runAfterDelay(120, () -> {
                 helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(Items.EXPERIENCE_BOTTLE),
                         "the Albedo craft should run");
-                helper.setBlock(MACHINE.east(), Blocks.AIR.defaultBlockState());
+                helper.setBlock(MACHINE.offset(2, -1, 1), Blocks.AIR.defaultBlockState());
                 athanor.checkTier();
                 helper.assertTrue(athanor.tier() == 0, "a gap in the ring is Nigredo again");
                 helper.succeed();

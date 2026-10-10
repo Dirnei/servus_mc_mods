@@ -164,19 +164,6 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_copper", has(Items.COPPER_INGOT))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get())
-                .pattern("SSS")
-                .pattern("SSS")
-                .pattern("SSS")
-                .define('S', ServusManufacturingItems.SALT_CRYSTAL.get())
-                .unlockedBy("has_salt_crystal", has(ServusManufacturingItems.SALT_CRYSTAL.get()))
-                .save(output);
-
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ServusManufacturingItems.SALT_CRYSTAL.get(), 9)
-                .requires(ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get())
-                .unlockedBy("has_salt_crystal_block", has(ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get()))
-                .save(output, ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "salt_crystal_from_block"));
-
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.ATHANOR.get())
                 .pattern("BCB")
                 .pattern("BFB")

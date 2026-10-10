@@ -163,11 +163,11 @@ final class WorkshopCategory extends CategoryProvider {
             e.spotlight("machine", ServusManufacturingItems.ATHANOR.get(), "The Athanor",
                     "Lay an item on it, feed it principles, and it burns them into something new.");
             e.multiblock("build", ServusManufacturingMultiblockProvider.athanor("nigredo"), "The Athanor on its Hearth",
-                    "Set it on 3 by 3 Bricks, stand three Fluid Tanks two blocks out to its left, behind it and to its right, and use this journal on it. "
+                    "Set it on a diamond of 13 Bricks, stand three Fluid Tanks on its tips to its left, behind it and to its right, and use this journal on it. "
                             + "Press Visualize, then click the ground.");
             e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":athanor", "Bricks, a cauldron and a blast furnace.");
             e.text("hearth", "Its Hearth",
-                    "The Athanor burns only on a hearth: nine Bricks in a square right below it, with its three tanks around it. "
+                    "The Athanor burns only on a hearth: 13 Bricks in a diamond right below it, reaching two blocks out, with its three tanks on the tips. "
                             + "When all is laid, use this journal on the Athanor: it rises into a brick tower and copper pipes reach out to its tanks. "
                             + "Take a brick or a tank away and its fire goes out.");
             e.text("tanks", "Its Tanks",
@@ -177,7 +177,7 @@ final class WorkshopCategory extends CategoryProvider {
             e.text("fire", "Its Fire",
                     "Use an item on it to lay it on top. It burns what its tanks hold, and the work lies on top when it is done: "
                             + "take it with an empty hand, or sneak to take the item back. Hoppers and pipes may do both.\n\n"
-                            + "Alone its flame is black: Nigredo. Eight Salt Crystal Blocks in a ring around it, on its own level, "
+                            + "Alone its flame is black: Nigredo. Twelve Salt Crystal Blocks around its hearth, filling it out to a square, "
                             + "turn the flame white: Albedo. Some works need the white fire.");
             e.list("works", "Its Works", AlchemyRecipeTable.athanor().stream()
                     .map(craft -> PrincipleText.line(craft.resultLabel() + " from " + craft.inputLabel(), craft.principles())
@@ -205,10 +205,13 @@ final class WorkshopCategory extends CategoryProvider {
         return new WorkshopEntry(this, "salt_crystal_block", "Salt Crystal Block", "Albedo: the white ring",
                 ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get(), e -> {
             e.spotlight("block", ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get(), "Salt Crystal Block",
-                    "Nine Salt Crystals pressed together. Eight of them around the Athanor make its flame white.");
-            e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":salt_crystal_block", "Nine Salt Crystals from the Coagulator.");
+                    "A Salt Crystal grown whole on the Athanor. Twelve of them around its hearth make its flame white.");
+            e.text("grow", "Growing It",
+                    "No hand can press Salt into a block. Lay a Salt Crystal from the Coagulator on the Athanor and give its tanks "
+                            + PrincipleText.amounts(AlchemyRecipeTable.athanor().getFirst().principles())
+                            + ": the fire grows the crystal into a block.");
             e.multiblock("ring", ServusManufacturingMultiblockProvider.athanor("albedo"), "The White Ring",
-                    "Eight Salt Crystal Blocks around the Athanor on its own level. Press Visualize, then click the ground.");
+                    "Twelve Salt Crystal Blocks in the hearth layer, filling the diamond out to a 5 by 5 square. Press Visualize, then click the ground.");
         });
     }
 

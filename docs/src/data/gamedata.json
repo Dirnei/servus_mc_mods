@@ -480,6 +480,12 @@
       "inputs": [],
       "outputs": []
     },
+    "servus_manufacturing:athanor/salt_crystal_block": {
+      "type": "servus_manufacturing:athanor",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
     "servus_manufacturing:calciner": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["BIB", "BCB"],

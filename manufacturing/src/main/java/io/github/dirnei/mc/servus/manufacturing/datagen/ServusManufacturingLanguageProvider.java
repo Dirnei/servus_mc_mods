@@ -50,7 +50,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add("message.servus_manufacturing.athanor.tank.back", "behind it");
         add("message.servus_manufacturing.athanor.tank.right", "right of it");
         add("message.servus_manufacturing.athanor.missing",
-                "The Athanor needs a hearth: 3 by 3 Bricks right below it. The Athanor page of Paracelsus' Journal shows it.");
+                "The Athanor needs a hearth: a diamond of 13 Bricks right below it. The Athanor page of Paracelsus' Journal shows it.");
         add("message.servus_manufacturing.coagulator.missing",
                 "The Coagulator is not complete: %s needed %s. The Coagulator page of Paracelsus' Journal shows the build.");
         add("message.servus_manufacturing.coagulator.at.left_of_the_coagulator", "left of the Coagulator");

@@ -81,6 +81,8 @@ public final class AlchemyRecipeTable {
     /** Crafts on the Athanor. */
     public static List<AthanorCraft> athanor() {
         return List.of(
+                new AthanorCraft("salt_crystal_block", "Salt Crystal", "Salt Crystal Block", Ingredient.of(ServusManufacturingItems.SALT_CRYSTAL.get()),
+                        new Principles(1000, 0, 0), 0, new ItemStack(ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get()), AthanorRecipe.DEFAULT_TIME),
                 new AthanorCraft("blaze_powder", "Gunpowder", "Blaze Powder", Ingredient.of(Items.GUNPOWDER),
                         new Principles(0, 200, 0), 0, new ItemStack(Items.BLAZE_POWDER), AthanorRecipe.DEFAULT_TIME),
                 new AthanorCraft("experience_bottle", "Glass Bottle", "Bottle o' Enchanting", Ingredient.of(Items.GLASS_BOTTLE),
