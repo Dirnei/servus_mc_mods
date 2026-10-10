@@ -23,7 +23,7 @@
 
 - [x] 5.1 Pure `PurifierLayout` with JUnit `PurifierLayoutTest`; Caput Mortuum item (texture, lang); `PurificationRecipe` residue and the shipped 4 Ash recipe; `gradlew :manufacturing:test` and `:manufacturing:runData` green
 - [x] 5.2 `CatchBasinBlock` (item, recipe, loot, tag, lang, model), `FORMED` and `HORIZONTAL_AXIS` on the Purifier, `PurifierStructure` (check both axes, form, unform, neighbour checks, Journal message), works only formed, residue slot and item port, Basin Salt port and push, hand use (residue, Ash back, buckets on Vat and Basin), Basin Salt drawn, Jade on the Basin; `PurifierGameTests` build and form first and cover the residue, the Basin port, forming and unforming; `:manufacturing:runGameTestServer` green
-- [ ] 5.3 Schematic and journal page (multiblock, Vat and Basin recipes, text), PROGRESSION.md diamond path, GameTest that the schematic accepts the build; `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
+- [x] 5.3 Schematic and journal page (multiblock, Vat and Basin recipes, text), PROGRESSION.md diamond path, GameTest that the schematic accepts the build; `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
 
 ## 6. Integration
 

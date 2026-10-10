@@ -23,12 +23,24 @@
       "title": "book.servus_manufacturing.journal.workshop.purifier.machine.title"
     },
     {
+      "type": "modonomicon:multiblock",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "multiblock_id": "purifier",
+      "multiblock_name": "book.servus_manufacturing.journal.workshop.purifier.build.title",
+      "show_visualize_button": true,
+      "text": "book.servus_manufacturing.journal.workshop.purifier.build.text"
+    },
+    {
       "type": "modonomicon:crafting_recipe",
       "anchor": "",
       "condition": {
         "type": "modonomicon:none"
       },
       "recipe_id_1": "servus_manufacturing:purifier",
+      "recipe_id_2": "servus_manufacturing:catch_basin",
       "text": "book.servus_manufacturing.journal.workshop.purifier.recipe.text",
       "title1": "",
       "title2": ""
@@ -52,6 +64,28 @@
       },
       "show_title_separator": true,
       "text": "book.servus_manufacturing.journal.workshop.purifier.leaching_2.text",
+      "title": "",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.purifier.leaching_3.text",
+      "title": "",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.purifier.leaching_4.text",
       "title": "",
       "use_markdown_in_title": false
     },

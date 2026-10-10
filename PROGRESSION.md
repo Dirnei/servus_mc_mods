@@ -17,7 +17,7 @@ Conventions, as in PLAN.md:
 
 **Built today**
 - Calciner build: brick furnace, Firebox, Ash Pan (Ash), Alembic with spout to the Receiver over the Mercury tank, Sulfur Hood and duct into the Sulfur tank.
-- Purifier: Ash and water into liquid Salt.
+- Purifier build: a Leaching Vat over a Catch Basin between planks and logs. Ash and water into liquid Salt, Caput Mortuum left behind.
 - Coagulator build: three Principle Vats over the casting table. It makes Salt Crystal, Sulfur, Quicksilver, gunpowder and other first goods.
 - Athanor on its brick hearth. Nigredo crafts such as Blaze Powder from gunpowder and Sulfur.
 - Journal tasks: calcine 100 things, gather 1,000 mB Salt, purify once, coagulate the first Salt Crystal.
@@ -89,6 +89,7 @@ Conventions, as in PLAN.md:
 - **Undines and Sylphs**, the water and air spirits. Undines: fluids without pumps, infinite principle springs at a slow rate, or a fluid network without pipes. Sylphs: item movement through the air, or speed for builds.
 - Seeds of this stage: diamond, emerald, ancient debris (by tag) and modded late ores.
 - **Transmutation** at the Athanor with the Stone: base metals into noble ones at a fixed, planned ratio.
+- **Caput Mortuum to diamond.** The Purifier's residue, collected since Nigredo, finally has its use: burned at the Athanor into carbon, and carbon pressed into a diamond at the red stage. Nothing in the Great Work is worthless forever.
 - **Homunculus** (Paracelsus wrote of it) as a late worker or a capstone curiosity, if it fits the tone.
 
 **Your ideas**
