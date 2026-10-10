@@ -195,7 +195,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         return state.getBlock() instanceof AthanorBlock && state.getValue(AthanorBlock.FORMED);
     }
 
-    /** The first hearth position that is not Bricks, or null when the hearth is complete. Nine block reads. */
+    /** The first hearth position that is not Bricks, or null when the hearth is complete. 13 block reads. */
     private BlockPos missingHearthBrick() {
         for (AthanorTiers.BlockAt brick : AthanorLayout.hearth()) {
             BlockPos at = worldPosition.offset(brick.dx(), brick.dy(), brick.dz());

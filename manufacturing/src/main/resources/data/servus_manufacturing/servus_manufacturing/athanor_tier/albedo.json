@@ -4,65 +4,97 @@
   "blocks": [
     {
       "offset": [
+        -2,
         -1,
-        0,
+        -2
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        -2,
+        -1,
         -1
       ],
       "block": "servus_manufacturing:salt_crystal_block"
     },
     {
       "offset": [
+        -2,
         -1,
-        0,
-        0
-      ],
-      "block": "servus_manufacturing:salt_crystal_block"
-    },
-    {
-      "offset": [
-        -1,
-        0,
         1
       ],
       "block": "servus_manufacturing:salt_crystal_block"
     },
     {
       "offset": [
-        0,
-        0,
+        -2,
+        -1,
+        2
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        -1,
+        -1,
+        -2
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        -1,
+        -1,
+        2
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        1,
+        -1,
+        -2
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        1,
+        -1,
+        2
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        2,
+        -1,
+        -2
+      ],
+      "block": "servus_manufacturing:salt_crystal_block"
+    },
+    {
+      "offset": [
+        2,
+        -1,
         -1
       ],
       "block": "servus_manufacturing:salt_crystal_block"
     },
     {
       "offset": [
-        0,
-        0,
+        2,
+        -1,
         1
       ],
       "block": "servus_manufacturing:salt_crystal_block"
     },
     {
       "offset": [
-        1,
-        0,
-        -1
-      ],
-      "block": "servus_manufacturing:salt_crystal_block"
-    },
-    {
-      "offset": [
-        1,
-        0,
-        0
-      ],
-      "block": "servus_manufacturing:salt_crystal_block"
-    },
-    {
-      "offset": [
-        1,
-        0,
-        1
+        2,
+        -1,
+        2
       ],
       "block": "servus_manufacturing:salt_crystal_block"
     }

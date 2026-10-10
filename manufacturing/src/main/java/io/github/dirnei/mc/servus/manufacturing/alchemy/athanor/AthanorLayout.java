@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The Athanor's build: a hearth of 3 by 3 Bricks right below it, three Fluid Tanks two blocks
- * out behind it and to its left and right, and the schematic of a stage, the hearth, the Athanor
+ * The Athanor's build: a diamond hearth of 13 Bricks right below it, three Fluid Tanks two blocks
+ * out behind it and to its left and right, standing on the tips of the diamond, and the schematic of a stage, the hearth, the Athanor
  * and its tanks with the blocks of its tiers around. Pure Java.
  */
 public final class AthanorLayout {
@@ -27,14 +27,16 @@ public final class AthanorLayout {
     public record Tank(TankSide side, int dx, int dz) {
     }
 
-    /** The hearth: nine Bricks, one layer below the Athanor. */
+    /** The hearth: 13 Bricks in a diamond reaching two blocks out, one layer below the Athanor. */
     private static final List<BlockAt> HEARTH;
 
     static {
         List<BlockAt> hearth = new ArrayList<>();
-        for (int dz = -1; dz <= 1; dz++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                hearth.add(new BlockAt(dx, -1, dz, BRICKS));
+        for (int dz = -2; dz <= 2; dz++) {
+            for (int dx = -2; dx <= 2; dx++) {
+                if (Math.abs(dx) + Math.abs(dz) <= 2) {
+                    hearth.add(new BlockAt(dx, -1, dz, BRICKS));
+                }
             }
         }
         HEARTH = List.copyOf(hearth);
