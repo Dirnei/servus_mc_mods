@@ -30,10 +30,6 @@ public final class DuctBlockColor implements BlockColor {
         }
         Line line = DuctParts.ringLine(tintIndex);
         if (line == null) {
-            BlockState facade = duct.facade();
-            if (facade != null) {
-                return Minecraft.getInstance().getBlockColors().getColor(facade, level, pos, tintIndex);
-            }
             return WHITE;
         }
         if (line == Line.DATA) {

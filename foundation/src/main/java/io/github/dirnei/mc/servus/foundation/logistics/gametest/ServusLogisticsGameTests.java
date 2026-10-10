@@ -205,12 +205,12 @@ public final class ServusLogisticsGameTests {
         helper.setBlock(DUCT, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
         UtilityDuctBlockEntity duct = helper.getBlockEntity(DUCT);
         duct.addLine(Line.ITEM);
-        duct.setFacade(Blocks.STONE.defaultBlockState());
-        helper.assertTrue(duct.facade() != null && duct.facade().is(Blocks.STONE), "duct should carry the stone facade");
-        ItemStack removed = duct.removeFacade();
+        duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
+        helper.assertTrue(duct.panel(Direction.NORTH) != null && duct.panel(Direction.NORTH).is(Blocks.STONE), "duct should carry the stone panel");
+        ItemStack removed = duct.removePanel(Direction.NORTH);
         helper.assertTrue(removed.is(ServusLogisticsItems.FACADE.get()) && FacadeItem.blockOf(removed) == Blocks.STONE,
                 "removing should give the stone facade back");
-        helper.assertTrue(duct.facade() == null, "duct should have no facade after removal");
+        helper.assertTrue(!duct.hasPanels(), "duct should have no panel after removal");
         helper.succeed();
     }
 

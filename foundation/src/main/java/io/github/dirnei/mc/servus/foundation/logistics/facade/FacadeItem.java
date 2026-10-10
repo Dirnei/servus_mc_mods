@@ -24,12 +24,25 @@ public class FacadeItem extends Item {
     public static final List<Block> EXAMPLES =
             List.of(Blocks.STONE, Blocks.STONE_BRICKS, Blocks.OAK_PLANKS, Blocks.BRICKS, Blocks.DEEPSLATE_TILES);
 
-    public FacadeItem(Properties properties) {
+    private final boolean hollow;
+
+    public FacadeItem(Properties properties, boolean hollow) {
         super(properties);
+        this.hollow = hollow;
+    }
+
+    /** Whether this item places hollow panels. */
+    public boolean hollow() {
+        return hollow;
     }
 
     public static ItemStack of(Block block, int count) {
-        ItemStack stack = new ItemStack(ServusLogisticsItems.FACADE.get(), count);
+        return of(block, count, false);
+    }
+
+    public static ItemStack of(Block block, int count, boolean hollow) {
+        Item item = hollow ? ServusLogisticsItems.HOLLOW_FACADE.get() : ServusLogisticsItems.FACADE.get();
+        ItemStack stack = new ItemStack(item, count);
         stack.set(ServusLogisticsComponents.FACADE_BLOCK.get(), block);
         return stack;
     }
@@ -46,7 +59,8 @@ public class FacadeItem extends Item {
 
     @Override
     public Component getName(ItemStack stack) {
-        return Component.translatable("item.servus_foundation.facade.named", blockOf(stack).getName());
+        return Component.translatable(hollow ? "item.servus_foundation.hollow_facade.named" : "item.servus_foundation.facade.named",
+                blockOf(stack).getName());
     }
 
     @Override
@@ -62,10 +76,9 @@ public class FacadeItem extends Item {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
-            if (duct.facade() != null) {
+            if (!duct.setPanel(context.getClickedFace(), blockOf(context.getItemInHand()).defaultBlockState(), hollow)) {
                 return InteractionResult.FAIL;
             }
-            duct.setFacade(blockOf(context.getItemInHand()).defaultBlockState());
             Player player = context.getPlayer();
             if (player == null || !player.getAbilities().instabuild) {
                 context.getItemInHand().shrink(1);

@@ -31,7 +31,10 @@ public final class ServusLogisticsItems {
     public static final DeferredItem<FluidTankItem> FLUID_TANK = ITEMS.registerItem("fluid_tank",
             properties -> new FluidTankItem(ServusLogisticsBlocks.FLUID_TANK.get(), properties));
 
-    public static final DeferredItem<FacadeItem> FACADE = ITEMS.registerItem("facade", FacadeItem::new, new Item.Properties());
+    public static final DeferredItem<FacadeItem> FACADE = ITEMS.registerItem("facade",
+            properties -> new FacadeItem(properties, false));
+    public static final DeferredItem<FacadeItem> HOLLOW_FACADE = ITEMS.registerItem("hollow_facade",
+            properties -> new FacadeItem(properties, true));
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(ITEM_PIPE, POWER_CABLE, FLUID_PIPE, DATA_CABLE,

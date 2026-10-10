@@ -65,10 +65,6 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
     @Override
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand,
                                     ModelData extraData, @Nullable RenderType renderType) {
-        BlockState facade = extraData.get(DuctModelData.FACADE);
-        if (facade != null) {
-            return modelOf(facade).getQuads(facade, side, rand, ModelData.EMPTY, renderType);
-        }
         Integer lines = extraData.get(DuctModelData.LINES);
         if (lines == null) {
             return base.getQuads(state, side, rand, extraData, renderType);
@@ -156,19 +152,11 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
 
     @Override
     public ChunkRenderTypeSet getRenderTypes(BlockState state, RandomSource rand, ModelData data) {
-        BlockState facade = data.get(DuctModelData.FACADE);
-        if (facade != null) {
-            return modelOf(facade).getRenderTypes(facade, rand, ModelData.EMPTY);
-        }
         return base.getRenderTypes(state, rand, data);
     }
 
     @Override
     public TextureAtlasSprite getParticleIcon(ModelData data) {
-        BlockState facade = data.get(DuctModelData.FACADE);
-        if (facade != null) {
-            return modelOf(facade).getParticleIcon(ModelData.EMPTY);
-        }
         Integer lines = data.get(DuctModelData.LINES);
         if (lines != null && DuctParts.normalize(lines) != DuctParts.ITEM) {
             return part(DuctParts.centerName(lines)).getParticleIcon(ModelData.EMPTY);

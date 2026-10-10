@@ -74,7 +74,7 @@ public final class DuctOverlayRenderer {
                         (colour >> 16) & 0xFF, (colour >> 8) & 0xFF, colour & 0xFF);
                 poseStack.popPose();
             }
-            if (duct.facade() == null) {
+            if (!duct.hasPanels()) {
                 continue;
             }
             any = true;

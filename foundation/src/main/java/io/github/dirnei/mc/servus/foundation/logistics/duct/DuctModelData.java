@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
-import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
 
 /**
@@ -10,8 +9,8 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
  */
 public final class DuctModelData {
 
-    /** The facade block state, absent without a facade. */
-    public static final ModelProperty<BlockState> FACADE = new ModelProperty<>();
+    /** The panels on the duct's faces, absent without panels. */
+    public static final ModelProperty<PanelSet> PANELS = new ModelProperty<>();
 
     /** Bitmask of the present lines, {@code 1 << line.ordinal()}. */
     public static final ModelProperty<Integer> LINES = new ModelProperty<>();

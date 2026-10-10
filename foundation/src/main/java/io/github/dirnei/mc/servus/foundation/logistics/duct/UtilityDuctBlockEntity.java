@@ -19,9 +19,11 @@ import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwo
 import io.github.dirnei.mc.servus.foundation.logistics.network.ItemChannelNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -87,7 +89,10 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     private final Map<Line, NetworkNode<?>> nodes = new EnumMap<>(Line.class);
     private final Map<Direction, DuctItemHandler> itemHandlers = new EnumMap<>(Direction.class);
     private final Map<Direction, DuctFluidHandler> fluidHandlers = new EnumMap<>(Direction.class);
-    private BlockState facade;
+    /** Panel block per side, null without a panel. */
+    private final BlockState[] panels = new BlockState[SIDES];
+    /** Six bit mask of the sides whose panel is hollow. */
+    private int hollowPanels;
     /** The data line's tier: the id of the data cable item that placed it. */
     private ResourceLocation dataTier = CableTiersManager.BASE_TIER;
 
@@ -336,27 +341,87 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
     }
 
-    // Facade
+    // Panels
 
-    /** The block this duct looks like, or null. */
-    public BlockState facade() {
-        return facade;
+    /** The panel block on a side, or null. */
+    public BlockState panel(Direction side) {
+        return panels[side.ordinal()];
     }
 
-    public void setFacade(BlockState facade) {
-        this.facade = facade;
+    public boolean isHollow(Direction side) {
+        return (hollowPanels & DuctModelData.bit(side)) != 0;
+    }
+
+    public boolean hasPanels() {
+        for (BlockState panel : panels) {
+            if (panel != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether a solid panel closes the side for every line. */
+    public boolean closed(Direction side) {
+        return panels[side.ordinal()] != null && !isHollow(side);
+    }
+
+    /** Six bit mask of the sides with a solid panel. */
+    public int solidPanelMask() {
+        int mask = 0;
+        for (Direction side : DIRECTIONS) {
+            if (closed(side)) {
+                mask |= DuctModelData.bit(side);
+            }
+        }
+        return mask;
+    }
+
+    /** Six bit mask of the sides with a hollow panel. */
+    public int hollowPanelMask() {
+        return hollowPanels;
+    }
+
+    /**
+     * Puts a panel on a free side.
+     *
+     * @return false when the side already has a panel
+     */
+    public boolean setPanel(Direction side, BlockState block, boolean hollow) {
+        if (panels[side.ordinal()] != null) {
+            return false;
+        }
+        panels[side.ordinal()] = block;
+        hollowPanels = hollow ? hollowPanels | DuctModelData.bit(side) : hollowPanels & ~DuctModelData.bit(side);
         changed();
+        return true;
     }
 
-    /** Takes the facade off and returns its item, empty when there was none. */
-    public ItemStack removeFacade() {
-        if (facade == null) {
+    /** Takes the panel off a side and returns its item, empty when there was none. */
+    public ItemStack removePanel(Direction side) {
+        BlockState panel = panels[side.ordinal()];
+        if (panel == null) {
             return ItemStack.EMPTY;
         }
-        ItemStack item = FacadeItem.of(facade.getBlock(), 1);
-        facade = null;
+        ItemStack item = FacadeItem.of(panel.getBlock(), 1, isHollow(side));
+        panels[side.ordinal()] = null;
+        hollowPanels &= ~DuctModelData.bit(side);
         changed();
         return item;
+    }
+
+    /** The items of every panel, taken off without updates; for a duct being removed. */
+    public List<ItemStack> dropPanels() {
+        List<ItemStack> items = new ArrayList<>();
+        for (Direction side : DIRECTIONS) {
+            BlockState panel = panels[side.ordinal()];
+            if (panel != null) {
+                items.add(FacadeItem.of(panel.getBlock(), 1, isHollow(side)));
+                panels[side.ordinal()] = null;
+            }
+        }
+        hollowPanels = 0;
+        return items;
     }
 
     @Override
@@ -372,8 +437,8 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
                 .with(DuctModelData.ARMS, arms.clone())
                 .with(DuctModelData.ENDPOINTS, endpoints)
                 .with(DuctModelData.CHANNELS, channelData);
-        if (facade != null) {
-            builder.with(DuctModelData.FACADE, facade);
+        if (hasPanels()) {
+            builder.with(DuctModelData.PANELS, new PanelSet(panels, hollowPanels));
         }
         if (has(Line.DATA) && lineItem(Line.DATA) instanceof DataCableItem cable && !cable.skin().isEmpty()) {
             builder.with(DuctModelData.DATA_SKIN, cable.skin());
@@ -688,8 +753,18 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         tag.put("Priorities", priorityTag);
         tag.putIntArray("Arms", arms.clone());
         tag.putInt("Endpoints", endpoints);
-        if (facade != null) {
-            tag.put("Facade", NbtUtils.writeBlockState(facade));
+        if (hasPanels()) {
+            CompoundTag panelTag = new CompoundTag();
+            for (Direction side : DIRECTIONS) {
+                BlockState panel = panels[side.ordinal()];
+                if (panel != null) {
+                    CompoundTag entry = new CompoundTag();
+                    entry.put("State", NbtUtils.writeBlockState(panel));
+                    entry.putBoolean("Hollow", isHollow(side));
+                    panelTag.put(side.getSerializedName(), entry);
+                }
+            }
+            tag.put("Panels", panelTag);
         }
         if (has(Line.DATA) && !dataTier.equals(CableTiersManager.BASE_TIER)) {
             tag.putString("DataTier", dataTier.toString());
@@ -750,9 +825,20 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             arms[i] = savedArms[i];
         }
         endpoints = tag.getInt("Endpoints");
-        facade = tag.contains("Facade") ? NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound("Facade")) : null;
-        if (facade != null && facade.isAir()) {
-            facade = null;
+        Arrays.fill(panels, null);
+        hollowPanels = 0;
+        CompoundTag panelTag = tag.getCompound("Panels");
+        for (Direction side : DIRECTIONS) {
+            if (panelTag.contains(side.getSerializedName())) {
+                CompoundTag entry = panelTag.getCompound(side.getSerializedName());
+                BlockState panel = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), entry.getCompound("State"));
+                if (!panel.isAir()) {
+                    panels[side.ordinal()] = panel;
+                    if (entry.getBoolean("Hollow")) {
+                        hollowPanels |= DuctModelData.bit(side);
+                    }
+                }
+            }
         }
         ResourceLocation savedTier = tag.contains("DataTier") ? ResourceLocation.tryParse(tag.getString("DataTier")) : null;
         dataTier = savedTier == null ? CableTiersManager.BASE_TIER : savedTier;

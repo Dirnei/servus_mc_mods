@@ -114,9 +114,6 @@ public class UtilityDuctBlock extends ConnectableBlock {
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
-            if (duct.facade() != null) {
-                return Shapes.block();
-            }
             return shape(duct.linesMask(), duct.armMasks());
         }
         return super.getShape(state, level, pos, context);
@@ -161,8 +158,8 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     @Override
     public BlockState getAppearance(BlockState state, BlockAndTintGetter level, BlockPos pos, Direction side, BlockState queryState, BlockPos queryPos) {
-        if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && duct.facade() != null) {
-            return duct.facade();
+        if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && duct.closed(side)) {
+            return duct.panel(side);
         }
         return state;
     }
@@ -189,19 +186,19 @@ public class UtilityDuctBlock extends ConnectableBlock {
             for (Line line : duct.lines()) {
                 Block.popResource(level, pos, new ItemStack(duct.lineItem(line)));
             }
-            ItemStack facade = duct.removeFacade();
-            if (!facade.isEmpty()) {
-                Block.popResource(level, pos, facade);
+            for (ItemStack panel : duct.dropPanels()) {
+                Block.popResource(level, pos, panel);
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     /**
-     * Sneak wrench takes the facade off first, then removes the duct; lines
-     * drop through {@link #onRemove}. Without sneaking, a click on an arm that
-     * ends at an inventory or machine opens that side's endpoint GUI; the
-     * centre, an arm toward another duct and a facaded duct open nothing.
+     * Sneak wrench on a panel takes that panel off; anywhere else it removes
+     * the duct, whose lines and panels drop through {@link #onRemove}. Without
+     * sneaking, a click on an arm that ends at an inventory or machine opens
+     * that side's endpoint GUI; the centre, an arm toward another duct and a
+     * panel open nothing.
      */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
@@ -210,15 +207,18 @@ public class UtilityDuctBlock extends ConnectableBlock {
         BlockPos pos = context.getClickedPos();
         if (player != null && player.isShiftKeyDown()) {
             if (!level.isClientSide()) {
-                if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && duct.facade() != null) {
-                    Block.popResource(level, pos, duct.removeFacade());
+                Direction panel = level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct
+                        ? hitPanel(duct, context.getClickLocation(), pos, context.getClickedFace()) : null;
+                if (panel != null && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
+                    Block.popResource(level, pos, duct.removePanel(panel));
                 } else {
                     level.removeBlock(pos, false);
                 }
             }
             return InteractionResult.sidedSuccess(level.isClientSide());
         }
-        if (player == null || !(level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) || duct.facade() != null) {
+        if (player == null || !(level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct)
+                || hitPanel(duct, context.getClickLocation(), pos, context.getClickedFace()) != null) {
             return InteractionResult.PASS;
         }
         Direction side = hitArm(duct, context.getClickLocation(), pos);
@@ -229,6 +229,13 @@ public class UtilityDuctBlock extends ConnectableBlock {
             player.openMenu(duct.menuProvider(side), buf -> buf.writeBlockPos(pos).writeEnum(side));
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    /** The side whose panel contains the click location, or null. */
+    private static Direction hitPanel(UtilityDuctBlockEntity duct, Vec3 location, BlockPos pos, Direction clickedFace) {
+        int side = PanelHit.face((location.x - pos.getX()) * 16, (location.y - pos.getY()) * 16, (location.z - pos.getZ()) * 16,
+                clickedFace.ordinal(), duct.solidPanelMask(), duct.hollowPanelMask());
+        return side == PanelHit.NONE ? null : Direction.values()[side];
     }
 
     /** The side whose arm box contains the click location, or null for the centre or nothing. */
