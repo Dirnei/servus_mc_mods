@@ -167,6 +167,8 @@ final class CalcinerModels {
             box(model, 15, y, 1, 15.25F, y + 1, 15, "#iron");
         }
         if (formed) {
+            // The spouts reach far outside the block, where ambient occlusion samples the wrong neighbours and turns them black.
+            model.ao(false);
             // One spout out of each side wall, through the open cell beside the vat, down into the Basin or the Crock.
             for (boolean west : new boolean[] {true, false}) {
                 spoutBox(model, west, -9, 9, 7, 1, 11, 9, "#spout");
@@ -180,10 +182,29 @@ final class CalcinerModels {
     /** A box on the west side of the vat, or its mirror on the east side. */
     private static void spoutBox(BlockModelBuilder model, boolean west, float x1, float y1, float z1, float x2, float y2, float z2, String texture) {
         if (west) {
-            box(model, x1, y1, z1, x2, y2, z2, texture);
+            uvBox(model, x1, y1, z1, x2, y2, z2, texture);
         } else {
-            box(model, 16 - x2, y1, z1, 16 - x1, y2, z2, texture);
+            uvBox(model, 16 - x2, y1, z1, 16 - x1, y2, z2, texture);
         }
+    }
+
+    /**
+     * A box with its UVs pinned to the texture's corner. Without explicit UVs Minecraft derives
+     * them from the position, and outside the block (below 0 or above 16) they leave the sprite and
+     * show its neighbours in the atlas.
+     */
+    private static void uvBox(BlockModelBuilder model, float x1, float y1, float z1, float x2, float y2, float z2, String texture) {
+        float dx = Math.min(16, x2 - x1);
+        float dy = Math.min(16, y2 - y1);
+        float dz = Math.min(16, z2 - z1);
+        model.element().from(x1, y1, z1).to(x2, y2, z2).allFaces((direction, face) -> {
+            switch (direction.getAxis()) {
+                case X -> face.uvs(0, 0, dz, dy);
+                case Y -> face.uvs(0, 0, dx, dz);
+                case Z -> face.uvs(0, 0, dx, dy);
+            }
+            face.texture(texture);
+        }).end();
     }
 
     /** The Catch Basin: a low oak trough on the stand, where the Salt gathers. */
