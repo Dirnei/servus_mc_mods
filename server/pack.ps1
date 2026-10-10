@@ -1,5 +1,5 @@
 # Builds the Servus mods, collects every jar the play test needs into server/mods
-# and writes server/dist/servus-playtest-<version>.mrpack for the players' launcher.
+# and writes the player packs plus a download page to server/dist.
 #   .\server\pack.ps1            build and pack
 #   .\server\pack.ps1 -NoBuild   pack the jars that are already built
 param([switch]$NoBuild)
@@ -112,6 +112,14 @@ Write-Pack $cfpack @{ 'manifest.json' = ($cfManifest | ConvertTo-Json -Depth 5) 
 # Bare jars, for a hand made NeoForge $neo instance when an import fails
 $modsZip = Join-Path $dist "servus-playtest-$version-mods.zip"
 Write-Pack $modsZip @{} 'mods'
+
+# Download page served by the web sidecar in docker-compose.yml
+$page = (Get-Content (Join-Path $server 'site\index.html') -Raw -Encoding utf8).
+    Replace('{{VERSION}}', $version).Replace('{{MC}}', $mc).Replace('{{NEO}}', $neo).
+    Replace('{{MRPACK}}', (Split-Path $mrpack -Leaf)).
+    Replace('{{CFZIP}}', (Split-Path $cfpack -Leaf)).
+    Replace('{{MODSZIP}}', (Split-Path $modsZip -Leaf))
+[IO.File]::WriteAllText((Join-Path $dist 'index.html'), $page, [Text.UTF8Encoding]::new($false))
 
 Write-Host "Mods for the server: $mods"
 $jars | ForEach-Object { Write-Host "  $($_.Name)" }

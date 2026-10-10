@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Servus Play Test</title>
+<style>
+  :root {
+    --bg: #f6f3ee; --card: #fffdf9; --text: #2b2620; --muted: #6f665b;
+    --accent: #3f7a4f; --accent-text: #fff; --border: #e3dccf; --code: #efe9df;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1a17; --card: #262320; --text: #ece6dc; --muted: #a59c8f;
+      --accent: #6dbb7f; --accent-text: #10210f; --border: #3a352f; --code: #312d28;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.9rem; margin: 0 0 4px; }
+  h2 { font-size: 1.2rem; margin: 0 0 12px; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  section {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; margin-bottom: 18px;
+  }
+  ol { padding-left: 1.3em; margin: 0; }
+  li { margin: 6px 0; }
+  .btn {
+    display: inline-block; background: var(--accent); color: var(--accent-text);
+    text-decoration: none; font-weight: 600; padding: 10px 16px; border-radius: 8px;
+    margin: 4px 0 12px;
+  }
+  .btn.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  code { background: var(--code); padding: 1px 6px; border-radius: 4px; font-size: 0.95em; }
+  .addr { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+  .addr code { font-size: 1.15rem; padding: 6px 10px; }
+  button {
+    font: inherit; background: var(--code); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 10px; cursor: pointer;
+  }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: var(--muted); }
+  .note { color: var(--muted); font-size: 0.93rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Servus Play Test</h1>
+  <p class="sub">Version {{VERSION}} &middot; Minecraft {{MC}} with NeoForge {{NEO}}</p>
+
+  <section>
+    <h2>1. Set up the game in the FTB App</h2>
+    <a class="btn" href="{{CFZIP}}" download>Download pack for the FTB App</a>
+    <ol>
+      <li>Open the FTB App and click <b>Create Instance</b>.</li>
+      <li>Choose <b>Curse Import</b> and pick the file you just downloaded.</li>
+      <li>Wait until the instance appears in your library.</li>
+    </ol>
+    <details>
+      <summary>The import fails or nothing happens?</summary>
+      <p>Set it up by hand instead. This always works.</p>
+      <a class="btn secondary" href="{{MODSZIP}}" download>Download mods only</a>
+      <ol>
+        <li><b>Create Instance</b>, <b>Vanilla</b>, pick Minecraft <b>{{MC}}</b> and the
+          mod loader <b>NeoForge {{NEO}}</b>.</li>
+        <li>Open the instance's folder (the folder icon in the instance view).</li>
+        <li>Unpack everything from the downloaded zip into the <code>mods</code> folder there.</li>
+      </ol>
+    </details>
+    <details>
+      <summary>Using Prism Launcher or the Modrinth App?</summary>
+      <a class="btn secondary" href="{{MRPACK}}" download>Download .mrpack</a>
+      <p>Add Instance, Import, pick the <code>.mrpack</code>.</p>
+    </details>
+  </section>
+
+  <section>
+    <h2>2. Give it enough memory</h2>
+    <p>In the instance settings, set the memory (RAM) to <b>4 GB</b> or more.</p>
+  </section>
+
+  <section>
+    <h2>3. Join the server</h2>
+    <ol>
+      <li>Start the instance and choose <b>Multiplayer</b>, <b>Add Server</b>.</li>
+      <li>Use this server address:
+        <div class="addr"><code id="addr">this-computer</code><button id="copy" type="button">Copy</button></div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>When there is a new version</h2>
+    <p>Come back here, download <b>mods only</b>, empty the instance's <code>mods</code> folder and
+      unpack the new zip into it. The world lives on the server, so nothing is lost.</p>
+    <p class="note">If the game says the mods do not match the server, you have an old version.</p>
+  </section>
+</main>
+<script>
+  const addr = document.getElementById('addr');
+  addr.textContent = location.hostname || 'localhost';
+  document.getElementById('copy').addEventListener('click', async (e) => {
+    try { await navigator.clipboard.writeText(addr.textContent); e.target.textContent = 'Copied'; }
+    catch {
+      // Plain http on the LAN has no clipboard API, so select the text for Ctrl+C instead
+      getSelection().selectAllChildren(addr);
+      e.target.textContent = 'Press Ctrl+C';
+    }
+  });
+</script>
+</body>
+</html>

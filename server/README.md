@@ -18,6 +18,10 @@ same jars as the new pack. Players need the new pack too, or they cannot join. T
 
 ## Players
 
+Send players to the download page at `http://<host>:8095` (the `web` service, port set by
+`WEB_PORT` in `.env`). It has the downloads, the FTB App steps and the server address. The page
+is rendered from `site\index.html` by `pack.ps1`, so it always links the latest pack.
+
 `pack.ps1` writes three files to `server\dist`, all with the same jars:
 
 | File | For |
@@ -47,5 +51,5 @@ only on the server, so nothing is lost.
 ## Address
 
 - Same network: the host's LAN IP, for example `192.168.1.20`.
-- Elsewhere: forward TCP 25565 on the router, or put both machines on Tailscale and use the
+- Elsewhere: forward TCP 25565 (and the download page port) on the router, or put both machines on Tailscale and use the
   host's Tailscale IP.
