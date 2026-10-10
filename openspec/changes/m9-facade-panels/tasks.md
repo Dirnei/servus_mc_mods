@@ -18,7 +18,7 @@
 
 ## 4. Examples, JEI, plan and docs
 
-- [ ] 4.1 `FacadeItem.hollowExamples()`, the creative tab in `ServusLogisticsEvents`, and in `ServusFoundationJeiPlugin` the hollow subtype interpreter, one ring example recipe per block and the hollow stacks on the information page; the info text in `LogisticsDataParts` gains the solid and hollow sentence (design D8). Verify: `gradlew runData`, then `gradlew build`.
+- [x] 4.1 `FacadeItem.hollowExamples()`, the creative tab in `ServusLogisticsEvents`, and in `ServusFoundationJeiPlugin` the hollow subtype interpreter, one ring example recipe per block and the hollow stacks on the information page; the info text in `LogisticsDataParts` gains the solid and hollow sentence (design D8). Verify: `gradlew runData`, then `gradlew build`.
 - [ ] 4.2 `PLAN.md`: M9 item 1d `m9-facade-panels` and the facade line in section 2 describes per face panels, solid closing and hollow passing. `docs/src/content/docs/mods/foundation.md`: the Facade entry describes panels and the Hollow Facade. Verify: `openspec validate m9-facade-panels` and `npm run build` in `docs/`.
 - [ ] 4.3 Play check by the user from main: panels on clicked faces, solid panel splits two ducts and cuts a chest, hollow panel passes, carrot removes one panel, outlines, overlay with goggles, JEI shows both kinds with their recipes. Verify: the user confirms in game.
 

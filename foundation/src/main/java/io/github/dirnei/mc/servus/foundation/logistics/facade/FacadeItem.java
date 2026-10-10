@@ -52,6 +52,11 @@ public class FacadeItem extends Item {
         return EXAMPLES.stream().map(block -> of(block, 1)).toList();
     }
 
+    /** One Hollow Facade of each example block. */
+    public static List<ItemStack> hollowExamples() {
+        return EXAMPLES.stream().map(block -> of(block, 1, true)).toList();
+    }
+
     public static Block blockOf(ItemStack stack) {
         Block block = stack.get(ServusLogisticsComponents.FACADE_BLOCK.get());
         return block == null ? Blocks.STONE : block;

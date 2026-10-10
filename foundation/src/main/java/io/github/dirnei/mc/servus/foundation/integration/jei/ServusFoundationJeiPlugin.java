@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.foundation.integration.jei;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
+import io.github.dirnei.mc.servus.foundation.logistics.facade.HollowFacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankItem;
 import java.util.ArrayList;
@@ -45,10 +46,10 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
         return UID;
     }
 
-    /** Facades differ only by their block component; tell them apart by that block. */
+    /** Facades and Hollow Facades differ only by their block component; tell them apart by that block. */
     @Override
     public void registerItemSubtypes(ISubtypeRegistration registration) {
-        registration.registerSubtypeInterpreter(ServusLogisticsItems.FACADE.get(), new ISubtypeInterpreter<ItemStack>() {
+        ISubtypeInterpreter<ItemStack> byBlock = new ISubtypeInterpreter<>() {
             @Override
             public Object getSubtypeData(ItemStack stack, UidContext context) {
                 return FacadeItem.blockOf(stack);
@@ -58,7 +59,9 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
             public String getLegacyStringSubtypeInfo(ItemStack stack, UidContext context) {
                 return BuiltInRegistries.BLOCK.getKey(FacadeItem.blockOf(stack)).toString();
             }
-        });
+        };
+        registration.registerSubtypeInterpreter(ServusLogisticsItems.FACADE.get(), byBlock);
+        registration.registerSubtypeInterpreter(ServusLogisticsItems.HOLLOW_FACADE.get(), byBlock);
     }
 
     @Override
@@ -81,9 +84,15 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
                     FacadeItem.of(block, FacadeRecipe.RESULT_COUNT),
                     NonNullList.of(Ingredient.EMPTY, Ingredient.of(block), Ingredient.of(Items.IRON_INGOT)));
             recipes.add(new RecipeHolder<>(id("facade_" + BuiltInRegistries.BLOCK.getKey(block).getPath()), facade));
+            ShapedRecipePattern ring = ShapedRecipePattern.of(Map.of('F', Ingredient.of(FacadeItem.of(block, 1))), "FFF", "F F", "FFF");
+            ShapedRecipe hollow = new ShapedRecipe("", CraftingBookCategory.MISC, ring,
+                    FacadeItem.of(block, HollowFacadeRecipe.RESULT_COUNT, true));
+            recipes.add(new RecipeHolder<>(id("hollow_facade_" + BuiltInRegistries.BLOCK.getKey(block).getPath()), hollow));
         }
         registration.addRecipes(RecipeTypes.CRAFTING, recipes);
-        registration.addItemStackInfo(FacadeItem.examples(), Component.translatable("jei.servus_foundation.facade.info"));
+        List<ItemStack> facades = new ArrayList<>(FacadeItem.examples());
+        facades.addAll(FacadeItem.hollowExamples());
+        registration.addItemStackInfo(facades, Component.translatable("jei.servus_foundation.facade.info"));
     }
 
     private static ResourceLocation id(String path) {

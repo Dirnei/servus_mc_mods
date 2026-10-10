@@ -42,6 +42,7 @@ public final class ServusLogisticsEvents {
             if (event.getTabKey().equals(ServusFoundationCreativeTabs.SERVUS_KEY)) {
                 ServusLogisticsItems.CREATIVE_TAB_ORDER.forEach(event::accept);
                 FacadeItem.examples().forEach(event::accept);
+                FacadeItem.hollowExamples().forEach(event::accept);
             }
         }
 

@@ -133,7 +133,10 @@ public final class LogisticsDataParts {
         provider.add(ServusLogisticsItems.HOLLOW_FACADE.get(), "Hollow Facade");
         provider.add("item.servus_foundation.hollow_facade.named", "Hollow Facade (%s)");
         provider.add("jei.servus_foundation.facade.info", "Craft any full block without a block entity with one iron ingot to get six facades of that block. "
-                + "Use a facade on a Utility Duct to hide it; sneak with the Configuration Carrot to take it off.");
+                + "Eight facades of one block around an empty centre give eight hollow facades. "
+                + "Use a facade on a face of a Utility Duct to cover that face: a solid facade also closes the face, "
+                + "so nothing connects through it, while a hollow facade lets the duct pass through its hole. "
+                + "Sneak with the Configuration Carrot on a facade to take it off.");
         provider.add(ServusLogisticsBlocks.FLUID_TANK.get(), "Fluid Tank");
         provider.add("tooltip.servus_foundation.fluid_tank.empty", "Empty");
         provider.add("tooltip.servus_foundation.fluid_tank.fluid", "%s: %s mB");
