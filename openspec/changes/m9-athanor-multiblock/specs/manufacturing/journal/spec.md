@@ -7,4 +7,4 @@ The Athanor entry SHALL show the Athanor on its hearth with its three Fluid Tank
 
 #### Scenario: Albedo page
 - **WHEN** a player opens the Salt Crystal Block entry and presses Visualize
-- **THEN** a ghost of the hearth, the Athanor and the ring of eight Salt Crystal Blocks stands on the clicked ground
+- **THEN** a ghost of the diamond hearth with the twelve Salt Crystal Blocks around it, the Athanor and its tanks stands on the clicked ground

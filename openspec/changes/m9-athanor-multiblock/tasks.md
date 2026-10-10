@@ -24,6 +24,11 @@
 - [x] 5.1 No GUI: `AthanorBlock` hand use (result by empty hand, input back by sneaking), `AthanorMenu`, `AthanorScreen`, the menu type and tier data removed, renderer shows input or result with sync on both, Jade Athanor provider (lang); GameTests: result taken by hand, item placed by hand; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
 - [x] 5.2 Formed tower models per tier and lit state with the fire door and sockets, blockstates by `FORMED` and facing, `noOcclusion` on the block; `AthanorRenderer` pipes to the tanks (over the ring, down into the top or into the side of a stacked tank) and the item on the plate; journal text; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
 
-## 6. Integration
+## 6. Diamond hearth and grown Salt Crystal Block
 
-- [ ] 6.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches, and the user play checks the Athanor hearth and the schematics
+- [ ] 6.1 `AthanorLayout.hearth()` as the 13 cell diamond, `athanor_tier/albedo.json` as the twelve cells around it in the hearth layer, `AthanorLayoutTest` (13 cells, tanks on the tips, Nigredo and Albedo patterns) and `AthanorTiersTest` as needed; `gradlew :manufacturing:test` green
+- [ ] 6.2 Salt Crystal Block crafting and split recipes removed, Athanor craft `salt_crystal_block` in `AlchemyRecipeTable`, journal text for the hearth and the Salt Crystal Block page, PLAN.md item 6d; GameTests build the diamond and the new ring, a Salt Crystal grows into a block; no em dashes; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches
+
+## 7. Integration
+
+- [ ] 7.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches, and the user play checks the Athanor hearth and the schematics

@@ -41,8 +41,15 @@ A block model reaches at most one block out, and the tanks stand two out, so `At
 
 No GUI: `AthanorBlock.useWithoutItem` never opens a menu; an empty hand takes the output slot, sneaking takes the input back. `AthanorMenu`, `AthanorScreen`, the menu type and the tier container data go; `createMenu` returns null. The renderer shows the input, or the output when no input waits; the update packet is sent when either changes. Jade gets an Athanor provider (tier name, progress, item, result and what the tanks hold per principle). The item capability by side stays as it is.
 
+### Diamond hearth and grown Salt Crystal Block (play check 2026-10-10)
+The user saw the tanks float beside a 3 by 3 hearth, the Albedo ring hide the formed tower, and the Athanor not needed for Albedo at all. `AthanorLayout.hearth()` becomes the 13 cells with `|dx| + |dz| <= 2` at `dy = -1`; the tanks of `tanks(Facing)` stand on three of its four tips, the front tip stays free. The diamond is the same in every facing, so the hearth needs no rotation. Forming and the slow check read 13 bricks instead of 9.
+
+`athanor_tier/albedo.json` lists the twelve cells of the 5 by 5 square at `dy = -1` outside the diamond (`|dx| + |dz| > 2`), also the same in every facing. Nothing of the ring stands at the Athanor's level any more, so the tower and its pipes are free; the pipes keep their height.
+
+The Salt Crystal Block's shaped recipe and the shapeless split back into nine go away; a split would make one grown block nine crystals. A new Athanor craft in `AlchemyRecipeTable.athanor()`, `salt_crystal_block`: one Salt Crystal and 1,000 mB Salt at tier 0 give one Salt Crystal Block. Twelve blocks then cost twelve crystals and 12,000 mB Salt, the work that makes Albedo. The journal's Salt Crystal Block page shows the Athanor craft instead of the crafting recipe.
+
 ### Pure vs Minecraft
-Pure: `AthanorLayout` with JUnit `AthanorLayoutTest` (nine hearth cells, Nigredo pattern, Albedo pattern with the ring in the Athanor layer, mapping). GameTests: forming, missing brick named, not formed does not craft, hearth brick broken unforms at the next check, schematics accept the builds. Existing Athanor GameTests build the hearth and form first.
+Pure: `AthanorLayout` with JUnit `AthanorLayoutTest` (13 hearth cells in a diamond, Nigredo pattern, Albedo pattern with the ring in the Athanor layer, mapping). GameTests: forming, missing brick named, not formed does not craft, hearth brick broken unforms at the next check, schematics accept the builds. Existing Athanor GameTests build the hearth and form first.
 
 ### PLAN.md
 M9 item 6d text.
