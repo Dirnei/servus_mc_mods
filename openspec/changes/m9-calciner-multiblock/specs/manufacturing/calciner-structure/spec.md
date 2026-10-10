@@ -7,11 +7,11 @@ The Calciner is built in the world as a calcining furnace with an alembic: vanil
 ## ADDED Requirements
 
 ### Requirement: Calciner layout
-The Calciner structure SHALL be one block deep, 5 wide and 5 tall, standing on the ground, seen from its front with the Calciner block in the middle of the third row from the bottom. The middle three columns are the furnace: Bricks on both sides of the Ash Pan, the Firebox and the Calciner, the Alembic above the Calciner and the Sulfur Hood above the Alembic. The outer columns are a Mercury tank of three Fluid Tanks on the right, with the Receiver on top, and a Sulfur tank of three Fluid Tanks on the left, with the Sulfur Duct running from the Hood across and down into it. The cell between the Alembic and the Receiver SHALL be air for the spout. Bricks SHALL be vanilla Bricks, tanks the Foundation Fluid Tank.
+The Calciner structure SHALL be one block deep, 5 wide and 5 tall, standing on the ground, seen from its front with the Calciner block in the middle of the third row from the bottom. The middle three columns are the furnace: Bricks on both sides of the Ash Pan, the Firebox and the Calciner, the Alembic above the Calciner and the Sulfur Hood above the Alembic. The outer columns are a Mercury tank of three Fluid Tanks on the right, with the Receiver on top, and a Sulfur tank of three Fluid Tanks on the left, with the Copper Duct running from the Hood across and down into it. The cell between the Alembic and the Receiver SHALL be air for the spout. Bricks SHALL be vanilla Bricks, tanks the Foundation Fluid Tank.
 
 #### Scenario: Layout from the front
 - **WHEN** a player looks at the front of a complete Calciner structure
-- **THEN** they see, top to bottom: `D D H . .`, `D . L _ R`, `T B C B T`, `T B F B T`, `T B A B T` (H Hood, L Alembic, R Receiver, D Sulfur Duct, T Fluid Tank, B Bricks, C Calciner, F Firebox, A Ash Pan, `_` air, `.` any block)
+- **THEN** they see, top to bottom: `D D H . .`, `D . L _ R`, `T B C B T`, `T B F B T`, `T B A B T` (H Hood, L Alembic, R Receiver, D Copper Duct, T Fluid Tank, B Bricks, C Calciner, F Firebox, A Ash Pan, `_` air, `.` any block)
 
 #### Scenario: Corners are free
 - **WHEN** a torch stands left of the Alembic and stone blocks stand right of the Hood
@@ -22,7 +22,7 @@ The Calciner structure SHALL be one block deep, 5 wide and 5 tall, standing on t
 - **THEN** the structure does not form, and a formed Calciner unforms when the block is placed there
 
 ### Requirement: Calciner parts
-Manufacturing SHALL add the Firebox, Ash Pan, Alembic, Receiver, Sulfur Hood and Sulfur Duct as blocks, each crafted at a crafting table from vanilla materials without research. The Calciner block itself SHALL be the furnace mouth.
+Manufacturing SHALL add the Firebox, Ash Pan, Alembic, Receiver, Sulfur Hood and Copper Duct as blocks, each crafted at a crafting table from vanilla materials without research. The Calciner block itself SHALL be the furnace mouth.
 
 #### Scenario: Alembic recipe
 - **WHEN** the player crafts the Alembic pattern of copper ingots and glass
@@ -47,7 +47,7 @@ When the structure does not match in any facing, forming SHALL fail and SHALL te
 - **THEN** nothing forms and the player is told that the Receiver is missing right of the Alembic
 
 ### Requirement: Formed Calciner looks like one machine
-A formed Calciner SHALL be drawn as one model covering the whole structure instead of its single blocks, with the Alembic's spout reaching the Receiver and the Sulfur Duct joining Hood and tank. The model SHALL show the matter being calcined in the crucible of the mouth, the fire glowing and the Firebox giving light while it burns, smoke rising from the Hood while it works, and the Salt in the Ash Pan and the Mercury in the Receiver by fill. The Fluid Tanks show their own level. The blocks of a formed Calciner SHALL keep their collision and SHALL be mined like bricks.
+A formed Calciner SHALL be drawn as one model covering the whole structure instead of its single blocks, with the Alembic's spout reaching the Receiver and the Copper Duct joining Hood and tank. The model SHALL show the matter being calcined in the crucible of the mouth, the fire glowing and the Firebox giving light while it burns, smoke rising from the Hood while it works, and the Salt in the Ash Pan and the Mercury in the Receiver by fill. The Fluid Tanks show their own level. The blocks of a formed Calciner SHALL keep their collision and SHALL be mined like bricks.
 
 #### Scenario: Burning
 - **WHEN** a formed Calciner burns fuel and calcines
@@ -95,7 +95,7 @@ A formed Calciner SHALL accept calcinable items through the item capability on e
 - **THEN** the coal goes into the fuel slot
 
 ### Requirement: Principle ports
-A formed Calciner SHALL offer only Salt through the fluid capability on the faces of the Ash Pan, only Mercury on the faces of the Receiver and only Sulfur on the faces of the lowest Sulfur Duct, and SHALL push each into touching fluid handlers outside the furnace: the Mercury down into the Mercury tank, the Sulfur down into the Sulfur tank, the Salt into whatever touches the Ash Pan. It SHALL never accept fluid. No other block of its own SHALL expose a fluid capability; pipes take Mercury and Sulfur from the tanks.
+A formed Calciner SHALL offer only Salt through the fluid capability on the faces of the Ash Pan, only Mercury on the faces of the Receiver and only Sulfur on the faces of the lowest Copper Duct, and SHALL push each into touching fluid handlers outside the furnace: the Mercury down into the Mercury tank, the Sulfur down into the Sulfur tank, the Salt into whatever touches the Ash Pan. It SHALL never accept fluid. No other block of its own SHALL expose a fluid capability; pipes take Mercury and Sulfur from the tanks.
 
 #### Scenario: Pipe at the Ash Pan
 - **WHEN** a Fluid Pipe touches the Ash Pan of a working Calciner and leads to a Fluid Tank

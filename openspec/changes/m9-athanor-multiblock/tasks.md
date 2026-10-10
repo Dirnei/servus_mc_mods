@@ -29,6 +29,12 @@
 - [x] 6.1 `AthanorLayout.hearth()` as the 13 cell diamond, `athanor_tier/albedo.json` as the twelve cells around it in the hearth layer, `AthanorLayoutTest` (13 cells, tanks on the tips, Nigredo and Albedo patterns) and `AthanorTiersTest` as needed; `gradlew :manufacturing:test` green
 - [x] 6.2 Salt Crystal Block crafting and split recipes removed, Athanor craft `salt_crystal_block` in `AlchemyRecipeTable`, journal text for the hearth and the Salt Crystal Block page, PLAN.md item 6d; GameTests build the diamond and the new ring, a Salt Crystal grows into a block; no em dashes; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches
 
-## 7. Integration
+## 7. Copper Ducts
 
-- [ ] 7.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches, and the user play checks the Athanor hearth and the schematics
+- [ ] 7.1 Rename `SULFUR_DUCT` to `COPPER_DUCT` (id, models, lang, recipe, loot, tags, journal, capability, Jade) and `CalcinerDuctBlock` to `structure/CopperDuctBlock`; Calciner GameTests still green; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
+- [ ] 7.2 `AthanorLayout.ducts(Facing)` and the ducts in `schematic` with `AthanorLayoutTest` (two cells per tank, over the tank, patterns with `D`); `gradlew :manufacturing:test` green
+- [ ] 7.3 Athanor duct pieces 3 and 4 with models, forming and unforming the ducts, missing duct named (lang), stacked tank in the far cell, Calciner code ignores pieces 3 and 4, duct breaks unform the Athanor at once, renderer pipes removed, sockets at 19 to 23 px, formed collision shape of the tower, journal text; GameTests: ducts formed with the Athanor, missing duct named, broken duct unforms, stacked tank forms without the far duct, all Athanor tests build ducts; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
+
+## 8. Integration
+
+- [ ] 8.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches, and the user play checks the Athanor hearth and the schematics

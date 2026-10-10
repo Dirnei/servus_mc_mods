@@ -11,4 +11,4 @@ The Calciner entry SHALL show the Calciner structure as a multiblock page: a tur
 
 #### Scenario: Parts listed
 - **WHEN** a player pages through the Calciner entry
-- **THEN** they find the recipes of the Calciner, Firebox, Ash Pan, Alembic, Receiver, Sulfur Hood and Sulfur Duct
+- **THEN** they find the recipes of the Calciner, Firebox, Ash Pan, Alembic, Receiver, Sulfur Hood and Copper Duct

@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Formed Calciner looks like one machine
-A formed Calciner SHALL be drawn as one model covering the whole structure instead of its single blocks, with the Alembic's spout reaching the Receiver and the Sulfur Duct joining Hood and tank. The model SHALL show the matter being calcined in the crucible of the mouth, the fire glowing and the Firebox giving light while it burns, smoke rising from the Hood while it works, the ash heap in the Ash Pan growing with the Ash it holds and the Mercury in the Receiver by fill. The Fluid Tanks show their own level. The blocks of a formed Calciner SHALL keep their collision and SHALL be mined like bricks.
+A formed Calciner SHALL be drawn as one model covering the whole structure instead of its single blocks, with the Alembic's spout reaching the Receiver and the Copper Duct joining Hood and tank. The model SHALL show the matter being calcined in the crucible of the mouth, the fire glowing and the Firebox giving light while it burns, smoke rising from the Hood while it works, the ash heap in the Ash Pan growing with the Ash it holds and the Mercury in the Receiver by fill. The Fluid Tanks show their own level. The blocks of a formed Calciner SHALL keep their collision and SHALL be mined like bricks.
 
 #### Scenario: Burning
 - **WHEN** a formed Calciner burns fuel and calcines
@@ -33,7 +33,7 @@ A formed Calciner SHALL accept calcinable items through the item capability on e
 - **THEN** the hopper receives 3 Ash (one Ash for each 100 mB the Purifier makes from one Ash)
 
 ### Requirement: Principle ports
-A formed Calciner SHALL offer only Mercury through the fluid capability on the faces of the Receiver and only Sulfur on the faces of the lowest Sulfur Duct, and SHALL push each into touching fluid handlers outside the furnace: the Mercury down into the Mercury tank, the Sulfur down into the Sulfur tank. The Salt stays in the Ash Pan as Ash. It SHALL never accept fluid. No other block of its own SHALL expose a fluid capability; pipes take Mercury and Sulfur from the tanks.
+A formed Calciner SHALL offer only Mercury through the fluid capability on the faces of the Receiver and only Sulfur on the faces of the lowest Copper Duct, and SHALL push each into touching fluid handlers outside the furnace: the Mercury down into the Mercury tank, the Sulfur down into the Sulfur tank. The Salt stays in the Ash Pan as Ash. It SHALL never accept fluid. No other block of its own SHALL expose a fluid capability; pipes take Mercury and Sulfur from the tanks.
 
 #### Scenario: No Salt by pipe
 - **WHEN** a Fluid Pipe touches the Ash Pan of a working Calciner

@@ -48,6 +48,15 @@ The user saw the tanks float beside a 3 by 3 hearth, the Albedo ring hide the fo
 
 The Salt Crystal Block's shaped recipe and the shapeless split back into nine go away; a split would make one grown block nine crystals. A new Athanor craft in `AlchemyRecipeTable.athanor()`, `salt_crystal_block`: one Salt Crystal and 1,000 mB Salt at tier 0 give one Salt Crystal Block. Twelve blocks then cost twelve crystals and 12,000 mB Salt, the work that makes Albedo. The journal's Salt Crystal Block page shows the Athanor craft instead of the crafting recipe.
 
+### Copper Ducts instead of drawn pipes (play check 2026-10-10)
+The user wanted the pipes to be solid and to jump on the Athanor. `SULFUR_DUCT` becomes `COPPER_DUCT` (`copper_duct`, "Copper Duct", models `copper_duct*`), and `CalcinerDuctBlock` becomes `CopperDuctBlock` in `alchemy/structure`, shared by both builds. Nothing is released, so the old id is not kept.
+
+`AthanorLayout.ducts(Facing)` (pure) gives two cells per tank at `dy = 1`: the near one at the unit step `u` toward the tank, the far one at `2u`, over the tank. `PIECE` grows from 0..2 to 0..4: 3 is the Athanor's near duct (straight, low in the block), 4 its far duct (straight, then down into the tank). `FACING` is set so the Athanor lies to the model's -x, as the Hood does for the Calciner pieces. The far cell accepts a `FluidTankBlock` instead (a stacked tank); then the near duct ends in the tank's side. The pipe sits at 3 to 7 px in the duct block, so the tower's sockets move to 19 to 23 px.
+
+Forming checks the ducts after the tanks and names the side of a missing one (`message.servus_manufacturing.athanor.missing_duct`). Only an unformed duct, or one already formed as an Athanor piece, counts; a Calciner's duct does not. Forming sets the ducts' `FORMED`, `PIECE` and `FACING`; unforming and breaking the Athanor set them back. A duct with piece 3 or 4 calls the Athanor's check on removal and neighbour change (the Athanor lies one block down and one or two back along its -x), so a broken duct unforms it at once; the slow check reads the ducts too. `CalcinerStructure` and `CalcinerPorts` treat only pieces 0..2 as Calciner ducts.
+
+`AthanorRenderer` draws only the item; its render box shrinks back to the block and the space above. Collision: the duct keeps its full block, a solid step to climb on. The formed Athanor's shape follows the tower (plinth, body, shoulder, plate) up to 23 px, so its plate can be stood on; a player reaches it from a duct.
+
 ### Pure vs Minecraft
 Pure: `AthanorLayout` with JUnit `AthanorLayoutTest` (13 hearth cells in a diamond, Nigredo pattern, Albedo pattern with the ring in the Athanor layer, mapping). GameTests: forming, missing brick named, not formed does not craft, hearth brick broken unforms at the next check, schematics accept the builds. Existing Athanor GameTests build the hearth and form first.
 

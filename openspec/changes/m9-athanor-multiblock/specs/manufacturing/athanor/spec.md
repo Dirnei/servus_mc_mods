@@ -82,7 +82,15 @@ The item to burn SHALL be drawn lying on top of the Athanor, and the result SHAL
 ## ADDED Requirements
 
 ### Requirement: Athanor hearth
-The Athanor SHALL stand on a hearth of 13 vanilla Bricks in a diamond directly below it, centred under it and reaching two blocks out, with three Foundation Fluid Tanks two blocks from it on its own level, standing on the tips of the diamond: behind it, to its left and to its right, seen from its front. Right clicking the Athanor with Paracelsus' Journal SHALL check the hearth and the tanks and form the Athanor when they are complete, making the player its owner, and SHALL NOT open the book; when a brick or a tank is missing it SHALL name it. Breaking the brick right under a formed Athanor SHALL unform it at once; a missing tank SHALL unform it at the next check.
+The Athanor SHALL stand on a hearth of 13 vanilla Bricks in a diamond directly below it, centred under it and reaching two blocks out, with three Foundation Fluid Tanks two blocks from it on its own level, standing on the tips of the diamond: behind it, to its left and to its right, seen from its front. Each tank SHALL be joined by two Copper Ducts one block above the Athanor's level: one right beside the Athanor and one over the tank; when the tank is stacked that high, the block over it is a Fluid Tank and the second duct is left out. Right clicking the Athanor with Paracelsus' Journal SHALL check the hearth, the tanks and the ducts and form the Athanor when they are complete, making the player its owner, and SHALL NOT open the book; when a brick, a tank or a duct is missing it SHALL name it. A Copper Duct formed into a Calciner SHALL NOT count. Breaking the brick right under a formed Athanor or one of its ducts SHALL unform it at once; a missing tank SHALL unform it at the next check.
+
+#### Scenario: Duct missing
+- **WHEN** a player right clicks an Athanor on a complete hearth with its tanks but without the duct over the tank behind it with the Journal
+- **THEN** nothing forms and the player is told that a Copper Duct is needed behind the Athanor
+
+#### Scenario: Duct broken
+- **WHEN** a Copper Duct of a formed Athanor is broken
+- **THEN** the Athanor unforms at once
 
 #### Scenario: Formed
 - **WHEN** a player right clicks an Athanor standing on a complete hearth with the Journal
@@ -104,11 +112,15 @@ The hearth cells, the tank positions for each facing and the schematic of a stag
 - **THEN** its lower layer is the diamond hearth with the twelve Salt Crystal Blocks around it, a 5 by 5 square, and its upper layer holds only the Athanor and its tanks
 
 ### Requirement: Formed Athanor look
-A formed Athanor SHALL be drawn as a brick tower furnace about one and a half blocks tall, turned by its front, with an iron fire door showing the flame in the tier's colour and an iron plate on top where the item rests. Copper pipes SHALL run from the tower into each of its three tanks; when a tank is stacked higher, the pipe SHALL enter its side. Unformed, the Athanor SHALL keep its plain block.
+A formed Athanor SHALL be drawn as a brick tower furnace about one and a half blocks tall, turned by its front, with an iron fire door showing the flame in the tier's colour and an iron plate on top where the item rests. Its Copper Ducts SHALL be drawn as one copper pipe from a socket of the tower into each tank, turning down into the tank's top, or into the tank's side when it is stacked that high. The ducts SHALL keep their block collision, so a player can stand on them, and the formed Athanor's collision SHALL follow the tower up to its plate, so a player stands on the plate. Unformed, the Athanor SHALL keep its plain block and the ducts their straight pipe.
 
 #### Scenario: Formed look
 - **WHEN** a player forms an Athanor
-- **THEN** it shows as a brick tower with a fire door and three copper pipes running into its tanks
+- **THEN** it shows as a brick tower with a fire door and its Copper Ducts as three pipes running into its tanks
+
+#### Scenario: Standing on it
+- **WHEN** a player jumps from a duct onto the formed Athanor
+- **THEN** the player stands on its iron plate, about one and a half blocks above its floor
 
 #### Scenario: Unformed look
 - **WHEN** a tank of a formed Athanor is taken away and the Athanor unforms
