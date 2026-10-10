@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
@@ -90,6 +91,9 @@ public final class MachineBaseGameTests {
         for (int i = 0; i < burners.size(); i++) {
             BlockPos pos = new BlockPos(2 + 2 * i, 2, 3);
             helper.setBlock(pos, burners.get(i).defaultBlockState());
+            if (burners.get(i) instanceof BurnerPumpBlock pump) {
+                helper.setBlock(pos.above(), pump.upperOf(pump.defaultBlockState()));
+            }
             for (Direction side : Direction.values()) {
                 UpkeepHolder holder = upkeep(helper, pos, side);
                 helper.assertTrue(holder != null, burners.get(i) + " should expose upkeep on " + side);
