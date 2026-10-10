@@ -66,7 +66,7 @@ Tint: a tinted source quad gets the tint index `PANEL_TINT_BASE + face.ordinal()
 
 ### D6. Overlay
 
-`DuctOverlayRenderer` draws ducts where `hasPanels()` instead of `facade() != null`.
+`DuctOverlayRenderer` no longer draws ducts behind facades at all; only the data load centre stays. Changed after the first play check: the orange box on partly covered ducts was noise, and on covered ducts the player wants to see the panel.
 
 ### D7. Hollow Facade recipe
 
@@ -76,6 +76,10 @@ Tint: a tinted source quad gets the tint index `PANEL_TINT_BASE + face.ordinal()
 
 `FacadeItem.hollowExamples()` gives one Hollow Facade per `EXAMPLES` block. The creative tab adds them after the Facades. The JEI plugin registers the subtype interpreter for `HOLLOW_FACADE` too, adds one `ShapedRecipe` example per block (`"FFF", "F F", "FFF"` with that block's Facade stack as an ingredient via `DataComponentIngredient` or a strict `Ingredient.of(stack)`), and includes the hollow stacks in the information page. The info text gains a sentence on solid closing and hollow passing.
 
+### D9. A nugget instead of an iron ingot
+
+Asked for during the apply of this change. `FacadeRecipe` takes one item of `Tags.Items.NUGGETS` (`c:nuggets`, NeoForge common tag) instead of `Items.IRON_INGOT`, so iron, gold and any mod's copper nugget work and packs can widen the set through the tag. The result stays six. The JEI example recipes show the tag as a cycling ingredient, and the info text, PLAN.md and the docs say "nugget".
+
 ### PLAN.md open decisions
 
 None of section 5's decisions are touched. Section 2's "Solid or hollow variants" is settled: per face panels, solid closes the side, hollow passes. M9 gets item 1d.
@@ -84,7 +88,7 @@ None of section 5's decisions are touched. Section 2's "Solid or hollow variants
 
 - Pure Java with JUnit: `PanelHit` (slab picking, clicked face preferred, no panel gives none) and `DuctShapes.panel` (solid slab extent per face, hollow frame leaves the 4 to 12 hole open, boxes inside the block).
 - GameTests in `ServusLogisticsGameTests`: panel on the clicked face and no second panel; solid panel between two item ducts splits the item network and removes both arms, removing it joins them again; solid panel toward a chest removes the endpoint and the item handler on that side; hollow panel keeps the network; sneak carrot removes one panel; breaking drops lines and both panel kinds; the hollow ring recipe and a mixed ring; `facadeRecipeAndApplication` rewritten for panels.
-- Manual in game: panel looks (stone, grass tint, glass not allowed), hollow arm through the hole, overlay, outlines.
+- Manual in game: panel looks (stone, grass tint, glass not allowed), hollow arm through the hole, no orange box on covered ducts, outlines.
 
 ## Risks / Trade-offs
 

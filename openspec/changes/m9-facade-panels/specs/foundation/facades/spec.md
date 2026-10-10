@@ -81,6 +81,25 @@ Each panel SHALL render with the textures and tint of its block's matching face,
 
 ## MODIFIED Requirements
 
+### Requirement: Facade crafting
+Crafting any full, block entity free block together with one nugget SHALL give six Facades of that block. Any item in the common nuggets tag SHALL count, such as an iron or gold nugget or a copper nugget from another mod. The facade item SHALL name its block.
+
+#### Scenario: Stone facade
+- **WHEN** stone and an iron nugget are in the crafting grid
+- **THEN** six "Facade (Stone)" result
+
+#### Scenario: Any nugget
+- **WHEN** stone and a gold nugget are in the crafting grid
+- **THEN** six "Facade (Stone)" result
+
+#### Scenario: Not a full block
+- **WHEN** a slab and an iron nugget are in the grid
+- **THEN** nothing results
+
+#### Scenario: Ingot no longer works
+- **WHEN** stone and an iron ingot are in the grid
+- **THEN** nothing results
+
 ### Requirement: Applying and removing
 Using a Facade or Hollow Facade on a duct SHALL place a panel on the clicked face as described above. Sneaking with the Configuration Carrot on a panel SHALL take off that panel only, drop its item and keep the duct and its other panels. Sneaking with the carrot on a part of the duct that is not a panel SHALL remove the duct as before. Breaking the duct SHALL drop every panel's item too.
 
@@ -92,14 +111,11 @@ Using a Facade or Hollow Facade on a duct SHALL place a panel on the clicked fac
 - **WHEN** a player breaks a duct with a solid and a hollow panel
 - **THEN** the duct's lines, one Facade and one Hollow Facade drop
 
-### Requirement: Hidden duct overlay
-While a player wears Engineer Goggles or holds the wrench, ducts that carry at least one panel within 32 blocks SHALL be drawn as a translucent overlay visible through blocks, showing the centre and the connected arms.
-
-#### Scenario: Reveal
-- **WHEN** a player puts on the goggles next to a duct row covered by panels in a wall
-- **THEN** the ducts show through the wall; taking the goggles off hides them again
-
 ## REMOVED Requirements
+
+### Requirement: Hidden duct overlay
+**Reason**: With panels on single faces the glow only covered ducts the player could already see, or drew a box behind a panel the player wanted to see instead. The user found it useless during the play check. The data line's load colour in the overlay is unchanged.
+**Migration**: None.
 
 ### Requirement: Rendering as the block
 **Reason**: A facade no longer turns the whole duct into its block. Each panel renders on its own face, see "Panels render with their block".

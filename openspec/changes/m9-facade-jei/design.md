@@ -44,7 +44,7 @@ Both signatures were checked with `javap` against `jei-1.21.1-common-api-19.57.0
 
 ### D4. One example recipe per facade
 
-`registerRecipes` builds one `ShapelessRecipe` per example block, with the inputs `Ingredient.of(block)` and `Ingredient.of(Items.IRON_INGOT)` and the result `FacadeItem.of(block, FacadeRecipe.RESULT_COUNT)`. The id is `jei/facade_<block path>`. They are registered with `RecipeTypes.CRAFTING` like today.
+`registerRecipes` builds one `ShapelessRecipe` per example block, with the inputs `Ingredient.of(block)` and `Ingredient.of(Tags.Items.NUGGETS)` (changed by `m9-facade-panels`) and the result `FacadeItem.of(block, FacadeRecipe.RESULT_COUNT)`. The id is `jei/facade_<block path>`. They are registered with `RecipeTypes.CRAFTING` like today.
 
 **Alternative:** one recipe with a cycling ingredient. Rejected because the result would not cycle with the input, and the recipe would show oak planks giving stone brick facades.
 
@@ -52,7 +52,7 @@ Both signatures were checked with `javap` against `jei-1.21.1-common-api-19.57.0
 
 `registration.addItemStackInfo(FacadeItem.examples(), Component.translatable("jei.servus_foundation.facade.info"))`, through `IRecipeRegistration.addItemStackInfo(List<ItemStack>, Component...)`, also checked with `javap`.
 
-The English text comes from language datagen in `LogisticsDataParts`: "Craft any full block without a block entity with one iron ingot to get six facades of that block. Use a facade on a Utility Duct to hide it; sneak with the Configuration Carrot to take it off."
+The English text comes from language datagen in `LogisticsDataParts`: "Craft any full block without a block entity with one nugget to get six facades of that block. Use a facade on a Utility Duct to hide it; sneak with the Configuration Carrot to take it off."
 
 ### PLAN.md open decisions
 

@@ -11,7 +11,7 @@ This is a play feel follow-up to PLAN.md M5 (facades and goggles) found during M
 - The Servus creative tab lists a few example facades (stone, stone bricks, oak planks, bricks, deepslate tiles), so JEI lists them too.
 - JEI tells facades apart by their block, so each example is its own entry and shows its own name.
 - JEI shows one example crafting recipe per listed facade instead of only the Stone Bricks one.
-- Each facade gets a JEI information page saying that any full block without a block entity plus one iron ingot gives six facades of that block, and that the facade is used on a Utility Duct.
+- Each facade gets a JEI information page saying that any full block without a block entity plus one nugget gives six facades of that block, and that the facade is used on a Utility Duct.
 - PLAN.md gets M9 item 1c.
 
 ## Capabilities

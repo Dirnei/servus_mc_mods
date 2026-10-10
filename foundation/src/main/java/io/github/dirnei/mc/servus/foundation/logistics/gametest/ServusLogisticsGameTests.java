@@ -186,21 +186,28 @@ public final class ServusLogisticsGameTests {
         helper.succeed();
     }
 
-    /** Stone plus iron gives six stone facades, a slab gives nothing, and a duct takes and returns a facade. */
+    /** Stone plus a nugget gives six stone facades, an ingot does not, a slab gives nothing, and a duct takes and returns a facade. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void facadeRecipeAndApplication(GameTestHelper helper) {
         Optional<RecipeHolder<CraftingRecipe>> stone = helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING,
-                CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.IRON_INGOT))), helper.getLevel());
-        helper.assertTrue(stone.isPresent(), "stone plus iron should match the facade recipe");
+                CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.IRON_NUGGET))), helper.getLevel());
+        helper.assertTrue(stone.isPresent(), "stone plus a nugget should match the facade recipe");
         ItemStack result = stone.get().value().assemble(
-                CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.IRON_INGOT))),
+                CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.IRON_NUGGET))),
                 helper.getLevel().registryAccess());
         helper.assertTrue(result.is(ServusLogisticsItems.FACADE.get()) && result.getCount() == 6,
                 "result should be six facades");
         helper.assertTrue(FacadeItem.blockOf(result) == Blocks.STONE, "facade should remember stone");
+        helper.assertTrue(helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING,
+                        CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.GOLD_NUGGET))), helper.getLevel()).isPresent(),
+                "a gold nugget works too");
+        Optional<RecipeHolder<CraftingRecipe>> ingot = helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING,
+                CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.IRON_INGOT))), helper.getLevel());
+        helper.assertTrue(ingot.isEmpty() || !(ingot.get().value() instanceof io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe),
+                "an iron ingot no longer makes facades");
 
         Optional<RecipeHolder<CraftingRecipe>> slab = helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING,
-                CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE_SLAB), new ItemStack(Items.IRON_INGOT))), helper.getLevel());
+                CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE_SLAB), new ItemStack(Items.IRON_NUGGET))), helper.getLevel());
         helper.assertTrue(slab.isEmpty() || !(slab.get().value() instanceof io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe),
                 "a slab must not make a facade");
 
@@ -220,7 +227,7 @@ public final class ServusLogisticsGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void facadeExamplesAreCraftable(GameTestHelper helper) {
         for (Block block : FacadeItem.EXAMPLES) {
-            CraftingInput input = CraftingInput.of(2, 1, List.of(new ItemStack(block), new ItemStack(Items.IRON_INGOT)));
+            CraftingInput input = CraftingInput.of(2, 1, List.of(new ItemStack(block), new ItemStack(Items.IRON_NUGGET)));
             Optional<RecipeHolder<CraftingRecipe>> recipe =
                     helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
             helper.assertTrue(recipe.isPresent(), "no facade recipe for " + block);

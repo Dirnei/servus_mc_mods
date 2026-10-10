@@ -11,10 +11,10 @@ PLAN.md section 2 already promises "Solid or hollow variants", and hollow facade
 - A Facade becomes a 1 pixel thick panel on one face of a Utility Duct, placed on the face the player clicks. A duct can carry up to six panels, one per face, each of its own block. The whole-block facade is removed; six solid panels give the same look.
 - A solid panel closes its side: the duct draws no arm there and connects to nothing through that face, neither to a neighbouring duct nor to a machine or inventory. Item, energy, fluid and data networks split at a solid panel.
 - A new Hollow Facade is a panel with a hole in the middle. The duct's arm passes through the hole and the side keeps connecting as before.
-- Eight Facades of the same block in a ring around an empty centre craft eight Hollow Facades of that block. The Facade recipe (full block plus iron ingot gives six) is unchanged.
+- Eight Facades of the same block in a ring around an empty centre craft eight Hollow Facades of that block. The Facade recipe takes one nugget of any kind (the common `c:nuggets` tag) instead of an iron ingot and still gives six.
 - Sneaking with the Configuration Carrot on a panel takes that one panel off. On a duct without a panel at the clicked spot it removes the duct as today, dropping the duct's panels as well.
 - Panels have their own outline and collision on top of the duct's shape.
-- The Engineer Goggles overlay shows every duct that carries at least one panel.
+- The goggles and carrot overlay no longer draws ducts behind facades; the player sees the panels. The data load colour stays.
 - The creative tab and JEI also list hollow examples of the example blocks, with the ring recipe as their JEI example.
 - PLAN.md gets M9 item 1d, and the facade line in section 2 describes the panels.
 
@@ -26,7 +26,7 @@ None.
 
 ### Modified Capabilities
 
-- `foundation/facades`: placing and removing per face, solid panels closing a side, hollow panels and their recipe, panel rendering and shape, the overlay rule, hollow examples in the creative tab.
+- `foundation/facades`: placing and removing per face, solid panels closing a side, hollow panels and their recipe, panel rendering and shape, the overlay dropped for facades, hollow examples in the creative tab.
 - `foundation/duct-appearance`: "Facades cover everything" becomes per side panels drawn next to the duct's own parts.
 
 ## Non-goals

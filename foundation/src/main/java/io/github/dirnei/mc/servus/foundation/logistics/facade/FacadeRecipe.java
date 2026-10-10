@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.common.Tags;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -15,7 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** One full block plus one iron ingot gives six facades of that block. */
+/** One full block plus one nugget (any item in {@code c:nuggets}) gives six facades of that block. */
 public class FacadeRecipe extends CustomRecipe {
 
     public static final int RESULT_COUNT = 6;
@@ -34,21 +34,21 @@ public class FacadeRecipe extends CustomRecipe {
 
     private static Block facadeBlock(CraftingInput input) {
         Block block = null;
-        boolean iron = false;
+        boolean nugget = false;
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
             if (stack.isEmpty()) {
                 continue;
             }
-            if (stack.is(Items.IRON_INGOT) && !iron) {
-                iron = true;
+            if (stack.is(Tags.Items.NUGGETS) && !nugget) {
+                nugget = true;
             } else if (block == null && stack.getItem() instanceof BlockItem blockItem && isFacadeable(blockItem.getBlock())) {
                 block = blockItem.getBlock();
             } else {
                 return null;
             }
         }
-        return iron ? block : null;
+        return nugget ? block : null;
     }
 
     @Override

@@ -31,6 +31,7 @@ import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.common.Tags;
 
 /**
  * Shows Foundation's special crafting recipes in JEI as example recipes, since JEI cannot
@@ -82,7 +83,7 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
         for (Block block : FacadeItem.EXAMPLES) {
             ShapelessRecipe facade = new ShapelessRecipe("", CraftingBookCategory.MISC,
                     FacadeItem.of(block, FacadeRecipe.RESULT_COUNT),
-                    NonNullList.of(Ingredient.EMPTY, Ingredient.of(block), Ingredient.of(Items.IRON_INGOT)));
+                    NonNullList.of(Ingredient.EMPTY, Ingredient.of(block), Ingredient.of(Tags.Items.NUGGETS)));
             recipes.add(new RecipeHolder<>(id("facade_" + BuiltInRegistries.BLOCK.getKey(block).getPath()), facade));
             ShapedRecipePattern ring = ShapedRecipePattern.of(Map.of('F', Ingredient.of(FacadeItem.of(block, 1))), "FFF", "F F", "FFF");
             ShapedRecipe hollow = new ShapedRecipe("", CraftingBookCategory.MISC, ring,

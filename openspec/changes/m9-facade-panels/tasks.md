@@ -12,15 +12,18 @@
 - [x] 2.4 `UtilityDuctBlock` (design D3, D4, D5): panel boxes in the shape with a `long` cache key, sneak carrot removes the panel picked by `PanelHit` or else the duct, `onRemove` drops every panel, `getAppearance` per face. Verify: `gradlew build`.
 - [x] 2.5 GameTests in `foundation/.../logistics/gametest/ServusLogisticsGameTests.java`, replacing the facade half of `facadeRecipeAndApplication`: `panelOnClickedFace` (second panel on that face refused, other faces free), `solidPanelSplitsDucts` (two item ducts, two networks and no arms, removal joins them), `solidPanelClosesEndpoint` (no endpoint and no item handler toward a chest), `hollowPanelKeepsNetwork`, `carrotRemovesOnePanel`, `breakingDropsPanels`, `hollowRingRecipe` (eight stone facades give eight hollow; a mixed ring gives nothing). Verify: `gradlew runGameTestServer` green.
 
+- [x] 2.6 Nugget recipe (design D9): `FacadeRecipe` takes one `Tags.Items.NUGGETS` item instead of an iron ingot; the JEI facade examples use `Ingredient.of(Tags.Items.NUGGETS)`; the info text in `LogisticsDataParts`, `PLAN.md` section 2 and `docs/.../mods/foundation.md` say nugget; `facadeRecipeAndApplication` and `facadeExamplesAreCraftable` in `ServusLogisticsGameTests` use nuggets and check that an iron ingot no longer works. Verify: `gradlew runData`, `gradlew build`, `gradlew runGameTestServer` green.
+
 ## 3. Rendering
 
 - [x] 3.1 `UtilityDuctModel` and `DuctBlockColor` in `foundation/.../logistics/client/` (design D5): baked panel quads per face from the panel block's quads with `FaceBakery`, cached per state, face and hollow; render type union and per type quads; panel tint indices from 200 decoded by `DuctBlockColor`. `DuctOverlayRenderer` picks ducts with panels (design D6). Verify: `gradlew build`, then the client from main: stone and grass block panels, a hollow panel with an arm through it, six stone panels look like stone.
+- [x] 3.2 Overlay (design D6, changed after the first play check): `DuctOverlayRenderer` draws no box for ducts with panels, only the data load centre. Verify: `gradlew build`.
 
 ## 4. Examples, JEI, plan and docs
 
 - [x] 4.1 `FacadeItem.hollowExamples()`, the creative tab in `ServusLogisticsEvents`, and in `ServusFoundationJeiPlugin` the hollow subtype interpreter, one ring example recipe per block and the hollow stacks on the information page; the info text in `LogisticsDataParts` gains the solid and hollow sentence (design D8). Verify: `gradlew runData`, then `gradlew build`.
 - [x] 4.2 `PLAN.md`: M9 item 1d `m9-facade-panels` and the facade line in section 2 describes per face panels, solid closing and hollow passing. `docs/src/content/docs/mods/foundation.md`: the Facade entry describes panels and the Hollow Facade. Verify: `openspec validate m9-facade-panels` and `npm run build` in `docs/`.
-- [ ] 4.3 Play check by the user from main: panels on clicked faces, solid panel splits two ducts and cuts a chest, hollow panel passes, carrot removes one panel, outlines, overlay with goggles, JEI shows both kinds with their recipes. Verify: the user confirms in game.
+- [ ] 4.3 Play check by the user from main: panels on clicked faces, solid panel splits two ducts and cuts a chest, hollow panel passes, carrot removes one panel and mining breaks the duct with its panels, outlines, no orange box with goggles or carrot, any nugget crafts facades, JEI shows both kinds with their recipes. Verify: the user confirms in game.
 
 ## 5. Integration
 
