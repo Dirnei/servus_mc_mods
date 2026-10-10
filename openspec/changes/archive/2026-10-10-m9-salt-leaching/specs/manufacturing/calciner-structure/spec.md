@@ -35,7 +35,7 @@ A formed Calciner SHALL accept calcinable items through the item capability on e
 ### Requirement: Principle ports
 A formed Calciner SHALL offer only Mercury through the fluid capability on the faces of the Receiver and only Sulfur on the faces of the lowest Copper Duct, and SHALL push each into touching fluid handlers outside the furnace: the Mercury down into the Mercury tank, the Sulfur down into the Sulfur tank. The Salt stays in the Ash Pan as Ash. It SHALL never accept fluid. No other block of its own SHALL expose a fluid capability; pipes take Mercury and Sulfur from the tanks.
 
-#### Scenario: No Salt by pipe
+#### Scenario: Pipe at the Ash Pan
 - **WHEN** a Fluid Pipe touches the Ash Pan of a working Calciner
 - **THEN** the pipe finds no fluid handler there
 

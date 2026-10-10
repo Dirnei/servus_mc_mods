@@ -13,7 +13,7 @@ A journal chapter SHALL be a JSON file at `data/<namespace>/servus_manufacturing
 - **THEN** Villach is the first chapter and every team starts with it open
 
 ### Requirement: Tasks count events
-A task SHALL name an event (`calcine`, `principle`, `coagulate`), an optional item or tag filter (for `principle`, a principle name) and a count. Machines SHALL report their work as events for their owner's team; a task SHALL add the event's amount while its chapter is open and its parent chapter is finished, and SHALL be done when it reaches its count. A task with count 1 is a "first time" task.
+A task SHALL name an event (`calcine`, `principle`, `coagulate`, `purify`), an optional item or tag filter (for `principle`, a principle name) and a count. Machines SHALL report their work as events for their owner's team; a task SHALL add the event's amount while its chapter is open and its parent chapter is finished, and SHALL be done when it reaches its count. A task with count 1 is a "first time" task.
 
 #### Scenario: Calcine one hundred things
 - **WHEN** a team's Calciner calcines 100 items while Villach is open
@@ -22,6 +22,10 @@ A task SHALL name an event (`calcine`, `principle`, `coagulate`), an optional it
 #### Scenario: First Salt Crystal
 - **WHEN** a team's Coagulator makes its first Salt Crystal
 - **THEN** the task "coagulate a Salt Crystal" is done
+
+#### Scenario: First purification
+- **WHEN** a team's Purifier finishes its first cycle while Villach is open
+- **THEN** the task "purify Ash" of Villach is done
 
 #### Scenario: Before the chapter opens
 - **WHEN** a team calcines items while the parent of a chapter is not finished
@@ -74,11 +78,15 @@ The journal SHALL be Manufacturing's own item `servus_manufacturing:paracelsus_j
 - **THEN** it shows Villach with "calcine: 40 / 100"
 
 ### Requirement: Workshop tutorial
-The journal SHALL have a Workshop category beside the story with an entry per alchemy machine and topic: the Principles, the Calciner, the Coagulator, the Athanor, pipes and fluid sides, and for Albedo the Salt Crystal Block, the Elixir of Sight and the Gnome Hollow. A machine entry SHALL show the machine, its crafting recipe and how to use it. Nigredo entries SHALL be open from the start; Albedo entries SHALL unlock with the Schwaz chapter.
+The journal SHALL have a Workshop category beside the story with an entry per alchemy machine and topic: the Principles, the Calciner, the Purifier, the Coagulator, the Athanor, pipes and fluid sides, and for Albedo the Salt Crystal Block, the Elixir of Sight and the Gnome Hollow. A machine entry SHALL show the machine, its crafting recipe and how to use it. Nigredo entries SHALL be open from the start; Albedo entries SHALL unlock with the Schwaz chapter.
 
 #### Scenario: Calciner entry
 - **WHEN** a new player opens the Workshop category
 - **THEN** the Calciner entry shows the Calciner, its crafting recipe and how to fuel and empty it
+
+#### Scenario: Purifier entry
+- **WHEN** a new player opens the Workshop category
+- **THEN** the Purifier entry shows the Purifier build, the crafting recipes of the Vat, the Basin and the Residue Crock, how Ash and water become Salt and Caput Mortuum, and the purification recipes
 
 #### Scenario: Albedo entries locked
 - **WHEN** a player has not finished Villach
@@ -115,3 +123,32 @@ Binding a gnome SHALL report a `bind` event for the vein's yield to the journal 
 #### Scenario: First gnome
 - **WHEN** a team with Schwaz open binds its first gnome
 - **THEN** Schwaz's task "bind a gnome" is done
+
+### Requirement: Calciner schematic
+The Calciner entry SHALL show the Calciner structure as a multiblock page: a turnable 3D view of the build with a Visualize button that projects the build into the world standing on the block the player clicks, marking blocks still missing. The entry SHALL show the crafting recipe of every part and SHALL tell the player to form the build by using the Journal on the Calciner.
+
+#### Scenario: Visualize
+- **WHEN** a player opens the Calciner entry, presses Visualize and looks at the ground
+- **THEN** a ghost of the Calciner structure appears standing on that ground and the player can build into it
+
+#### Scenario: Parts listed
+- **WHEN** a player pages through the Calciner entry
+- **THEN** they find the recipes of the Calciner, Firebox, Ash Pan, Alembic, Receiver, Sulfur Hood and Copper Duct
+
+### Requirement: Athanor schematics
+The Athanor entry SHALL show the Athanor on its hearth with its three Fluid Tanks and six Copper Ducts as a multiblock page with Visualize and SHALL tell the player to form it with the Journal. Every shipped tier SHALL have its own multiblock page, on the entry of its stage (Albedo on the Salt Crystal Block entry), showing the hearth, the Athanor, its tanks, its Copper Ducts and the blocks of that tier and the tiers below. The schematics SHALL stand on the clicked ground.
+
+#### Scenario: Albedo page
+- **WHEN** a player opens the Salt Crystal Block entry and presses Visualize
+- **THEN** a ghost of the diamond hearth with the twelve Salt Crystal Blocks around it, the Athanor and its tanks stands on the clicked ground
+
+### Requirement: Forming shows itself
+When Paracelsus' Journal forms an alchemy build (Calciner, Purifier, Coagulator, Athanor), a sound SHALL play at the build's controller and particles SHALL rise from every block of the build. A failed attempt SHALL show no effect, only the message naming the missing block.
+
+#### Scenario: Formed with effect
+- **WHEN** a player right clicks the controller of a complete build with the Journal
+- **THEN** the build forms, a sound plays and particles rise from every block of it
+
+#### Scenario: Missing block
+- **WHEN** a player right clicks the controller of an incomplete build with the Journal
+- **THEN** no sound plays, no particles rise and the player sees the missing block
