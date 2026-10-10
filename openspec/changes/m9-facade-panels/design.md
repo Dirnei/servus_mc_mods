@@ -68,6 +68,10 @@ Tint: a tinted source quad gets the tint index `PANEL_TINT_BASE + face.ordinal()
 
 `DuctOverlayRenderer` no longer draws ducts behind facades at all; only the data load centre stays. Changed after the first play check: the orange box on partly covered ducts was noise, and on covered ducts the player wants to see the panel.
 
+### D10. See-through panels while revealing
+
+Asked for in the play check after the orange box was dropped. Panels are part of the chunk mesh, so a client tick handler (`PanelReveal`, `ClientTickEvent.Post`) tracks `GogglesItem.reveals(player)` and, when it flips, marks every loaded duct with panels dirty through `LevelRenderer.setBlocksDirty`. While revealing, `UtilityDuctModel` emits the panel quads only in `RenderType.translucent()` with the vertex colour `0x80FFFFFF` (`QuadTransformers.applyingColor`), cached as a second variant in `PanelQuads`. NeoForge's `VertexConsumer.putBulkData` keeps the baked vertex alpha when `readExistingColor` is true, which `ModelBlockRenderer.putQuadData` passes (checked in `neoforge-21.1.255-sources.jar`). A rebuild happens only on the switch, never per frame.
+
 ### D7. Hollow Facade recipe
 
 `HollowFacadeRecipe extends CustomRecipe`, registered beside `FacadeRecipe` in `ServusLogisticsRecipes` and saved by `SpecialRecipeBuilder` in `LogisticsDataParts`. It matches a three by three input whose centre is empty and whose other eight slots hold solid Facades of one block, and assembles eight Hollow Facades of that block. Counts stay in the recipe class like `FacadeRecipe.RESULT_COUNT`; they are a crafting shape, not balance.

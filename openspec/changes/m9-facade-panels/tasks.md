@@ -18,12 +18,13 @@
 
 - [x] 3.1 `UtilityDuctModel` and `DuctBlockColor` in `foundation/.../logistics/client/` (design D5): baked panel quads per face from the panel block's quads with `FaceBakery`, cached per state, face and hollow; render type union and per type quads; panel tint indices from 200 decoded by `DuctBlockColor`. `DuctOverlayRenderer` picks ducts with panels (design D6). Verify: `gradlew build`, then the client from main: stone and grass block panels, a hollow panel with an arm through it, six stone panels look like stone.
 - [x] 3.2 Overlay (design D6, changed after the first play check): `DuctOverlayRenderer` draws no box for ducts with panels, only the data load centre. Verify: `gradlew build`.
+- [x] 3.3 See-through panels (design D10): `PanelReveal` in `foundation/.../logistics/client/` tracks reveal on the client tick and marks ducts with panels dirty on a switch; `UtilityDuctModel` and `PanelQuads` draw panels half transparent in the translucent pass while revealing. Verify: `gradlew build`, then the client from main.
 
 ## 4. Examples, JEI, plan and docs
 
 - [x] 4.1 `FacadeItem.hollowExamples()`, the creative tab in `ServusLogisticsEvents`, and in `ServusFoundationJeiPlugin` the hollow subtype interpreter, one ring example recipe per block and the hollow stacks on the information page; the info text in `LogisticsDataParts` gains the solid and hollow sentence (design D8). Verify: `gradlew runData`, then `gradlew build`.
 - [x] 4.2 `PLAN.md`: M9 item 1d `m9-facade-panels` and the facade line in section 2 describes per face panels, solid closing and hollow passing. `docs/src/content/docs/mods/foundation.md`: the Facade entry describes panels and the Hollow Facade. Verify: `openspec validate m9-facade-panels` and `npm run build` in `docs/`.
-- [ ] 4.3 Play check by the user from main: panels on clicked faces, solid panel splits two ducts and cuts a chest, hollow panel passes, carrot removes one panel and mining breaks the duct with its panels, outlines, no orange box with goggles or carrot, any nugget crafts facades, JEI shows both kinds with their recipes. Verify: the user confirms in game.
+- [ ] 4.3 Play check by the user from main: panels on clicked faces, solid panel splits two ducts and cuts a chest, hollow panel passes, carrot removes one panel and mining breaks the duct with its panels, outlines, no orange box but half transparent panels with goggles or carrot, any nugget crafts facades, JEI shows both kinds with their recipes. Verify: the user confirms in game.
 
 ## 5. Integration
 

@@ -79,7 +79,15 @@ Each panel SHALL render with the textures and tint of its block's matching face,
 - **WHEN** a grass block panel covers the top face of a duct
 - **THEN** the panel's top is tinted like the grass around it
 
+### Requirement: Panels turn see-through while revealing
+While a player wears Engineer Goggles or holds the Configuration Carrot, every panel the player's client has loaded SHALL render half transparent, so the duct behind it shows. When the player stops revealing, the panels SHALL render opaque again. The duct itself SHALL render unchanged.
+
+#### Scenario: Carrot in hand
+- **WHEN** a player takes the Configuration Carrot into the hand next to a wall of stone panels over ducts
+- **THEN** the panels turn half transparent and the ducts behind them show; putting the carrot away makes the panels opaque again
+
 ## MODIFIED Requirements
+
 
 ### Requirement: Facade crafting
 Crafting any full, block entity free block together with one nugget SHALL give six Facades of that block. Any item in the common nuggets tag SHALL count, such as an iron or gold nugget or a copper nugget from another mod. The facade item SHALL name its block.

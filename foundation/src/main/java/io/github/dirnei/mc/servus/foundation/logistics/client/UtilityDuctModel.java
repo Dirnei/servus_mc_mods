@@ -75,9 +75,17 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
                 ? ductQuads(state, rand, extraData, renderType, lines) : new ArrayList<>();
         PanelSet panels = extraData.get(DuctModelData.PANELS);
         if (panels != null) {
+            boolean seeThrough = PanelReveal.revealing();
             for (Direction face : Direction.values()) {
                 BlockState panel = panels.state(face);
-                if (panel != null && (renderType == null || renderType == PanelQuads.renderType(panel, rand))) {
+                if (panel == null) {
+                    continue;
+                }
+                if (seeThrough) {
+                    if (renderType == null || renderType == RenderType.translucent()) {
+                        quads.addAll(panelQuads.seeThroughQuads(panel, face, panels.isHollow(face)));
+                    }
+                } else if (renderType == null || renderType == PanelQuads.renderType(panel, rand)) {
                     quads.addAll(panelQuads.quads(panel, face, panels.isHollow(face)));
                 }
             }
@@ -177,7 +185,7 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
         for (Direction face : Direction.values()) {
             BlockState panel = panels.state(face);
             if (panel != null) {
-                panelTypes.add(PanelQuads.renderType(panel, rand));
+                panelTypes.add(PanelReveal.revealing() ? RenderType.translucent() : PanelQuads.renderType(panel, rand));
             }
         }
         return ChunkRenderTypeSet.union(types, ChunkRenderTypeSet.of(panelTypes));

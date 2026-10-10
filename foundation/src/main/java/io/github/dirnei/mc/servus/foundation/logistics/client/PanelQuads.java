@@ -17,6 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
+import net.neoforged.neoforge.client.model.QuadTransformers;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Vector3f;
 
@@ -42,7 +43,11 @@ final class PanelQuads {
     private record Key(BlockState state, Direction side, boolean hollow) {
     }
 
+    /** Vertex colour of see-through panels: white at half alpha. */
+    private static final int SEE_THROUGH = 0x80FFFFFF;
+
     private final Map<Key, List<BakedQuad>> cache = new ConcurrentHashMap<>();
+    private final Map<Key, List<BakedQuad>> seeThrough = new ConcurrentHashMap<>();
 
     /** The render type a panel of the block is drawn in: the first one its model uses, solid without any. */
     static RenderType renderType(BlockState state, RandomSource rand) {
@@ -56,6 +61,12 @@ final class PanelQuads {
     /** The quads of a panel of {@code state} on {@code side}. */
     List<BakedQuad> quads(BlockState state, Direction side, boolean hollow) {
         return cache.computeIfAbsent(new Key(state, side, hollow), PanelQuads::bake);
+    }
+
+    /** The same quads at half alpha, for the translucent pass while the player reveals ducts. */
+    List<BakedQuad> seeThroughQuads(BlockState state, Direction side, boolean hollow) {
+        return seeThrough.computeIfAbsent(new Key(state, side, hollow),
+                key -> QuadTransformers.applyingColor(SEE_THROUGH).process(quads(state, side, hollow)));
     }
 
     private static BakedModel modelOf(BlockState state) {
