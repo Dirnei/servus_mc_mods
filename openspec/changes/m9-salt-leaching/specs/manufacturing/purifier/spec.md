@@ -28,18 +28,18 @@ A purification recipe SHALL be a datapack recipe of type `servus_manufacturing:p
 - **THEN** a formed Purifier with 4 Ash and 400 mB water makes 400 mB Salt and one Caput Mortuum in 8 seconds
 
 ### Requirement: Purifier layout
-The Purifier structure SHALL be one block deep, 3 wide and 2 tall, seen from its front: the Leaching Vat (the Purifier block) in the middle of the top row with planks of any wood left and right of it, a log of any wood below the Vat, and below the two planks the Catch Basin on one side and the Residue Crock on the other. The Basin and the Crock MAY stand on either side.
+The Purifier structure SHALL be one block deep, 3 wide and 2 tall, seen from its front: the Leaching Vat (the Purifier block) in the middle of the top row with nothing required beside it, a log of any wood below the Vat, and beside the log the Catch Basin on one side and the Residue Crock on the other. The Basin and the Crock MAY stand on either side.
 
 #### Scenario: Layout from the front
 - **WHEN** a player looks at a complete Purifier structure
-- **THEN** they see, top to bottom: `P V P`, `B L R` (V Leaching Vat, P planks, B Catch Basin, L log, R Residue Crock)
+- **THEN** they see, top to bottom: `_ V _`, `B L R` (V Leaching Vat, B Catch Basin, L log, R Residue Crock, `_` anything)
 
 #### Scenario: Mirrored build
-- **WHEN** a player builds `P V P` over `R L B` and right clicks the Vat with the Journal
+- **WHEN** a player builds `_ V _` over `R L B` and right clicks the Vat with the Journal
 - **THEN** the Purifier forms
 
 ### Requirement: Forming the Purifier
-Right clicking the Leaching Vat with Paracelsus' Journal SHALL check the structure along both horizontal axes and form it along the first that matches, making the player its owner, and SHALL NOT open the book; when nothing matches it SHALL name the first missing block. Breaking the Vat, the Basin, the Crock, a plank or the log of a formed Purifier SHALL unform it. Only a formed Purifier SHALL work.
+Right clicking the Leaching Vat with Paracelsus' Journal SHALL check the structure along both horizontal axes and form it along the first that matches, making the player its owner, and SHALL NOT open the book; when nothing matches it SHALL name the first missing block. Breaking the Vat, the Basin, the Crock or the log of a formed Purifier SHALL unform it. Only a formed Purifier SHALL work.
 
 #### Scenario: Formed
 - **WHEN** a player right clicks the Vat of a complete Purifier with the Journal
@@ -61,7 +61,7 @@ The Leaching Vat SHALL hold one item slot for the ingredient, a water tank, a Sa
 - **THEN** it makes nothing
 
 ### Requirement: Purifier ports
-A formed Purifier SHALL take only its ingredient through the item capability and accept only water through the fluid capability on every face of the Vat, and SHALL give nothing there. It SHALL give only Salt through the fluid capability on every face of the Catch Basin and push its Salt into touching fluid handlers outside the build. It SHALL give only the residue through the item capability on every face of the Residue Crock. The planks and the log SHALL expose nothing.
+A formed Purifier SHALL take only its ingredient through the item capability and accept only water through the fluid capability on every face of the Vat, and SHALL give nothing there. It SHALL give only Salt through the fluid capability on every face of the Catch Basin and push its Salt into touching fluid handlers outside the build. It SHALL give only the residue through the item capability on every face of the Residue Crock. The log SHALL expose nothing.
 
 #### Scenario: Pump and tank
 - **WHEN** a Fluid Pipe brings water from a pump to the Vat and another pipe leads from the Basin to a Fluid Tank
@@ -98,11 +98,11 @@ The Vat SHALL show the Ash still to wash as a layer on its floor and the water a
 - **THEN** the Basin shows Salt at half its height
 
 ### Requirement: Formed Purifier looks like one build
-A formed Vat SHALL show spouts reaching over both planks toward the Basin and the Crock, and the formed Basin and Crock SHALL show formed models facing the Vat, so the build reads as one object. The pieces SHALL follow the build's axis and side, and the brine, Salt and residue SHALL stay visible. Unformed, the Vat, the Basin and the Crock SHALL show their plain models.
+A formed Vat SHALL show spouts running out of its sides down into the Basin and the Crock, and the formed Basin and Crock SHALL show formed models facing the Vat, so the build reads as one object. The pieces SHALL follow the build's axis and side, and the brine, Salt and residue SHALL stay visible. Unformed, the Vat, the Basin and the Crock SHALL show their plain models.
 
 #### Scenario: Formed look
 - **WHEN** a player forms a Purifier
-- **THEN** the Vat shows spouts over both planks and the Basin and the Crock show their formed models facing the Vat
+- **THEN** the Vat shows spouts down to the Basin and the Crock, and the Basin and the Crock show their formed models facing the Vat
 
 #### Scenario: Unformed look
 - **WHEN** a player breaks the log of a formed Purifier

@@ -32,6 +32,7 @@
 - [x] 6.3 Formed models and blockstates for the Vat, the Basin and the Crock in `CalcinerModels`; GameTest that forming sets the formed states with axis and facing and unforming clears them; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
 - [x] 6.4 `alchemy/structure/FormingEffect` called after a successful Journal form in `CalcinerStructure`, `PurifierStructure`, `CoagulatorStructure` and the Athanor; `gradlew build` and `:manufacturing:runGameTestServer` green
 - [x] 6.5 Schematic (`ServusManufacturingMultiblockProvider`) and Purifier journal page for the new layout and the Crock recipe, PLAN.md item text; schematic GameTest accepts the build; no em dashes; `gradlew build` and `:manufacturing:runGameTestServer` green
+- [ ] 6.6 Drop the planks (play check): `PurifierLayout` `_ V _` over `B L R` with `PurifierLayoutTest`, placements and lang, side spouts in `purifier_formed`, schematic, journal page, PLAN.md and PROGRESSION.md text, `PurifierGameTests` build without planks and unform by the log; `gradlew :manufacturing:test`, `:manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
 
 ## 7. Integration
 
