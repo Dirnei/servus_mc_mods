@@ -19,6 +19,12 @@
 - [x] 4.1 Villach task `purify` in `journal/villach.json` and the Villach book text; Workshop Purifier entry (machine, recipe, how to use, purification list) after the Calciner; Calciner and Principles pages explain Ash; lang; `gradlew :manufacturing:runData` and `gradlew build` green, the journal GameTest still lists every entry
 - [x] 4.2 PLAN.md M9: item 6b2, Tria Prima paragraph, Nigredo table; no em dashes; `gradlew build` green
 
-## 5. Integration
+## 5. Purifier build
 
-- [ ] 5.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks Ash from the Calciner through the Purifier into liquid Salt
+- [ ] 5.1 Pure `PurifierLayout` with JUnit `PurifierLayoutTest`; Caput Mortuum item (texture, lang); `PurificationRecipe` residue and the shipped 4 Ash recipe; `gradlew :manufacturing:test` and `:manufacturing:runData` green
+- [ ] 5.2 `CatchBasinBlock` (item, recipe, loot, tag, lang, model), `FORMED` and `HORIZONTAL_AXIS` on the Purifier, `PurifierStructure` (check both axes, form, unform, neighbour checks, Journal message), works only formed, residue slot and item port, Basin Salt port and push, hand use (residue, Ash back, buckets on Vat and Basin), Basin Salt drawn, Jade on the Basin; `PurifierGameTests` build and form first and cover the residue, the Basin port, forming and unforming; `:manufacturing:runGameTestServer` green
+- [ ] 5.3 Schematic and journal page (multiblock, Vat and Basin recipes, text), PROGRESSION.md diamond path, GameTest that the schematic accepts the build; `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches without model errors
+
+## 6. Integration
+
+- [ ] 6.1 Full `gradlew build`, `gradlew test` and `:manufacturing:runGameTestServer` green, the game launches with all three mods, and the user play checks Ash from the Calciner through the Purifier into liquid Salt

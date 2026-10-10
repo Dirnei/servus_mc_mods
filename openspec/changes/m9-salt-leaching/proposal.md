@@ -10,7 +10,7 @@ PLAN.md milestone: M9 (Manufacturing becomes alchemy), new item 6b2 `m9-salt-lea
 
 - New item **Ash**. The Calciner's Ash Pan gives Ash instead of liquid Salt: one Ash for each portion of Salt the Purifier makes from one Ash (example 100 mB). The calcination recipes keep their Salt numbers.
 - The Ash Pan becomes an item port: hoppers, Item Pipes and an empty hand take the Ash out. It has no fluid port any more, and buckets do nothing there. The Ash Pan shows an ash heap.
-- New block **Purifier**, a wooden leaching vat: takes Ash and water and makes liquid Salt after a time, from a datapack recipe of type `servus_manufacturing:purification` (example 1 Ash and 100 mB water into 100 mB Salt in 2 seconds). No fuel, no power, no GUI. Ash by hand, hopper or pipe; water by pipe or bucket; Salt out to pipes, touching tanks and buckets. Jade shows its contents.
+- New build **Purifier**: a Leaching Vat over a Catch Basin between planks and logs, formed with the Journal. It washes Ash with water into liquid Salt and leaves **Caput Mortuum**, a residue item for a later stage (carbon, diamond), from a datapack recipe of type `servus_manufacturing:purification` (example 4 Ash and 400 mB water into 400 mB Salt and one Caput Mortuum in 8 seconds). No fuel, no power, no GUI. Ash and water go into the Vat by hand, hopper or pipe; Salt comes out of the Basin to pipes, touching tanks and buckets. Jade shows its contents.
 - The Purifier reports a `purify` event to the journal; Villach asks to purify once.
 - The journal gets a Purifier entry in the Workshop, and the Calciner and Principles pages explain the Ash.
 - JEI shows the purification recipe.
@@ -18,7 +18,7 @@ PLAN.md milestone: M9 (Manufacturing becomes alchemy), new item 6b2 `m9-salt-lea
 ## Capabilities
 
 ### New Capabilities
-- `manufacturing/purifier`: the Ash item and the Purifier: leaching Ash with water into liquid Salt.
+- `manufacturing/purifier`: the Ash and Caput Mortuum items and the Purifier build: leaching Ash with water into liquid Salt.
 
 ### Modified Capabilities
 - `manufacturing/calciner-structure`: the Ash Pan gives Ash items instead of liquid Salt (ports, buckets, look). This capability is created by `m9-calciner-multiblock`, which is archived first.
@@ -32,6 +32,6 @@ PLAN.md milestone: M9 (Manufacturing becomes alchemy), new item 6b2 `m9-salt-lea
 
 ## Non-goals
 
-- The Purifier as a multiblock. It starts as one block; a build can follow with the Coagulator and Athanor multiblocks if wanted.
+- Any use of Caput Mortuum (planned for Rubedo).
 - Making Sulfur or Mercury items.
 - A balance pass of the Salt numbers.

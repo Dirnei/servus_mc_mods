@@ -32,6 +32,13 @@ The Ash Pan port (`CalcinerPorts.AshPort`) is a one slot `IItemHandler` that sho
 - Jade: the Calciner plugin becomes `ServusManufacturingJadePlugin` with a second provider for the Purifier.
 - JEI: `PurificationRecipeCategory` like the calcination one, with the Purifier as catalyst.
 
+### Purifier as a build (play check, 2026-10-10)
+The user asked for a small build and a waste product. Layout (`alchemy/purifier/PurifierLayout`, pure): Leaching Vat (the Purifier block, controller) at (0,0) with planks of any wood at (-1,0) and (1,0), the Catch Basin (`CatchBasinBlock`) at (0,-1) with logs of any wood at (-1,-1) and (1,-1). It reads the same from front and back, so forming tries the X and Z axes and stores the axis on the Vat (`HORIZONTAL_AXIS`); the Basin's controller is simply the block above it. Planks and logs stay vanilla and are checked from the Vat and the Basin in `neighborChanged` (both touch them), matched by the block tags `minecraft:planks` and `minecraft:logs`. In the schematic the Basin, the bottom middle, is the `0` anchor.
+
+The waste is the item Caput Mortuum, the alchemical name for the residue left after the useful part is drawn out; an item rather than a slurry fluid because it stacks, hoppers and counts for the Crafting CPU with nothing new. `PurificationRecipe` gains an optional `residue` item stack. The shipped recipe washes 4 Ash with 400 mB water into 400 mB Salt and 1 Caput Mortuum in 160 ticks, so the Salt per Ash stays 100. Its later use (carbon, diamond) is a Rubedo proposal in PROGRESSION.md.
+
+Ports by block: the Vat's item handler (slot 0 ingredient insert only, slot 1 residue extract only) and fluid handler (water fill only) are on the Vat's block entity; the Salt drain only view is registered by block on the Basin and pushes from the Basin into touching handlers outside the build. Renderers: the Vat draws the ash layer and the water; the Salt is drawn in the Basin below.
+
 ### Ash texture
 A 16x16 grey speckled PNG written with the session's `png.py` helper, used by the item model and the Ash Pan heap.
 
