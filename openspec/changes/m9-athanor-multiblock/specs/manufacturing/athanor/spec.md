@@ -27,6 +27,10 @@ The Athanor SHALL check its tier when it is placed, when a player uses it, when 
 ### Requirement: Principles by pipe or bucket
 The Athanor SHALL hold no principles itself and SHALL offer no fluid capability. It SHALL read the principles from the Fluid Tanks of its build, whatever principle each tank holds, and drain them when a craft completes. Pipes and buckets SHALL fill the tanks. A bucket on the Athanor SHALL do nothing.
 
+#### Scenario: Bucket of Sulfur
+- **WHEN** a player right clicks a tank of a formed Athanor with a Sulfur bucket
+- **THEN** that tank gains 1,000 mB Sulfur, the player holds an empty bucket, and the Athanor can burn it
+
 #### Scenario: Sulfur from a tank
 - **WHEN** Sulfur is piped into the tank left of a formed Athanor and gunpowder lies on it
 - **THEN** Blaze Powder is made and the Sulfur in that tank goes down
