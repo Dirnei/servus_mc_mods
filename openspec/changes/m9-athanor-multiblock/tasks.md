@@ -27,7 +27,7 @@
 ## 6. Diamond hearth and grown Salt Crystal Block
 
 - [x] 6.1 `AthanorLayout.hearth()` as the 13 cell diamond, `athanor_tier/albedo.json` as the twelve cells around it in the hearth layer, `AthanorLayoutTest` (13 cells, tanks on the tips, Nigredo and Albedo patterns) and `AthanorTiersTest` as needed; `gradlew :manufacturing:test` green
-- [ ] 6.2 Salt Crystal Block crafting and split recipes removed, Athanor craft `salt_crystal_block` in `AlchemyRecipeTable`, journal text for the hearth and the Salt Crystal Block page, PLAN.md item 6d; GameTests build the diamond and the new ring, a Salt Crystal grows into a block; no em dashes; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches
+- [x] 6.2 Salt Crystal Block crafting and split recipes removed, Athanor craft `salt_crystal_block` in `AlchemyRecipeTable`, journal text for the hearth and the Salt Crystal Block page, PLAN.md item 6d; GameTests build the diamond and the new ring, a Salt Crystal grows into a block; no em dashes; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green and the client launches
 
 ## 7. Integration
 
