@@ -4,7 +4,6 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
-import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
@@ -40,8 +39,8 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
     private record Fill(Role role, Principle principle, float x0, float y0, float z0, float x1, float rise, float z1, ResourceLocation sprite) {
     }
 
-    /** The Salt lies in the Ash Pan as ash, drawn with the Ash texture. */
-    private static final ResourceLocation ASH = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "item/ash");
+    /** The Salt lies in the Ash Pan as ash: light grey powder, tiled like a block. */
+    private static final ResourceLocation ASH = ResourceLocation.withDefaultNamespace("block/light_gray_concrete_powder");
 
     private static final Fill[] FILLS = {
             new Fill(Role.ASH_PAN, Principle.SALT, 4, 3, 0.5F, 12, 4, 3, ASH),
@@ -119,20 +118,26 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
         return new float[] {x0, z0, x1, z1};
     }
 
+    /**
+     * Draws a box inside one block, the sprite tiled to the size of each face as a block model would,
+     * so a low heap or a shallow liquid shows a slice of the texture instead of the whole texture squashed.
+     */
     static void drawBox(VertexConsumer consumer, PoseStack.Pose pose, float x0, float y0, float z0, float x1, float y1, float z1,
-                                TextureAtlasSprite sprite, int color, int light) {
-        float u0 = sprite.getU0();
-        float u1 = sprite.getU1();
-        float v0 = sprite.getV0();
-        float v1 = sprite.getV1();
-        // Top and bottom
-        quad(consumer, pose, x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0, u0, v0, u1, v1, color, light, Direction.UP);
-        quad(consumer, pose, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, u0, v0, u1, v1, color, light, Direction.DOWN);
-        // Sides
-        quad(consumer, pose, x1, y1, z0, x1, y0, z0, x0, y0, z0, x0, y1, z0, u0, v0, u1, v1, color, light, Direction.NORTH);
-        quad(consumer, pose, x0, y1, z1, x0, y0, z1, x1, y0, z1, x1, y1, z1, u0, v0, u1, v1, color, light, Direction.SOUTH);
-        quad(consumer, pose, x0, y1, z0, x0, y0, z0, x0, y0, z1, x0, y1, z1, u0, v0, u1, v1, color, light, Direction.WEST);
-        quad(consumer, pose, x1, y1, z1, x1, y0, z1, x1, y0, z0, x1, y1, z0, u0, v0, u1, v1, color, light, Direction.EAST);
+                        TextureAtlasSprite sprite, int color, int light) {
+        float top = sprite.getV(1 - y1);
+        float bottom = sprite.getV(1 - y0);
+        quad(consumer, pose, x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0,
+                sprite.getU(x0), sprite.getV(z0), sprite.getU(x1), sprite.getV(z1), color, light, Direction.UP);
+        quad(consumer, pose, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1,
+                sprite.getU(z0), sprite.getV(x0), sprite.getU(z1), sprite.getV(x1), color, light, Direction.DOWN);
+        quad(consumer, pose, x1, y1, z0, x1, y0, z0, x0, y0, z0, x0, y1, z0,
+                sprite.getU(1 - x1), top, sprite.getU(1 - x0), bottom, color, light, Direction.NORTH);
+        quad(consumer, pose, x0, y1, z1, x0, y0, z1, x1, y0, z1, x1, y1, z1,
+                sprite.getU(x0), top, sprite.getU(x1), bottom, color, light, Direction.SOUTH);
+        quad(consumer, pose, x0, y1, z0, x0, y0, z0, x0, y0, z1, x0, y1, z1,
+                sprite.getU(z0), top, sprite.getU(z1), bottom, color, light, Direction.WEST);
+        quad(consumer, pose, x1, y1, z1, x1, y0, z1, x1, y0, z0, x1, y1, z0,
+                sprite.getU(1 - z1), top, sprite.getU(1 - z0), bottom, color, light, Direction.EAST);
     }
 
     private static void quad(VertexConsumer consumer, PoseStack.Pose pose,
