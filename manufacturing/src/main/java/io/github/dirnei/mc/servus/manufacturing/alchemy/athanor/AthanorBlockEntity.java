@@ -15,6 +15,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleTanks;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -156,6 +157,9 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
             return;
         }
         setFormed(true);
+        List<BlockPos> cells = new ArrayList<>(List.of(worldPosition));
+        AthanorLayout.hearth().forEach(brick -> cells.add(worldPosition.offset(brick.dx(), brick.dy(), brick.dz())));
+        FormingEffect.play(level, worldPosition, cells);
         setOwner(player.getUUID());
         checkTier();
         player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.formed"), true);

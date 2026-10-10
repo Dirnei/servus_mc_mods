@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
@@ -133,6 +134,7 @@ public final class CalcinerStructure {
             return false;
         }
         form(level, controller, check.facing());
+        FormingEffect.play(level, controller, CalcinerLayout.cells().stream().map(cell -> pos(controller, cell, check.facing())).toList());
         if (level.getBlockEntity(controller) instanceof CalcinerBlockEntity calciner) {
             calciner.setOwner(player.getUUID());
         }

@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import java.util.List;
@@ -75,6 +76,7 @@ public final class PurifierStructure {
             Optional<Cell> wrong = firstWrong(level, vat, facing, false);
             if (wrong.isEmpty()) {
                 form(level, vat, facing);
+                FormingEffect.play(level, vat, cells(vat, facing));
                 if (level.getBlockEntity(vat) instanceof PurifierBlockEntity purifier) {
                     purifier.setOwner(player.getUUID());
                 }

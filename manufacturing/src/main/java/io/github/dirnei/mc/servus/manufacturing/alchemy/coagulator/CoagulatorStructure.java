@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import java.util.ArrayList;
@@ -102,6 +103,7 @@ public final class CoagulatorStructure {
             return false;
         }
         form(level, controller, check.facing());
+        FormingEffect.play(level, controller, CoagulatorLayout.cells().stream().map(cell -> pos(controller, cell, check.facing())).toList());
         if (level.getBlockEntity(controller) instanceof CoagulatorBlockEntity coagulator) {
             coagulator.setOwner(player.getUUID());
         }
