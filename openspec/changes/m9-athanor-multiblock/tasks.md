@@ -16,7 +16,7 @@
 ## 4. Tanks
 
 - [x] 4.1 `AthanorLayout.tanks(Facing)` and the tanks in `schematic`, with `AthanorLayoutTest` (three offsets per facing, none touching, Nigredo pattern with tanks); `gradlew :manufacturing:test` green
-- [ ] 4.2 `AthanorBlockEntity` reads and drains the three tanks, `PrincipleTanks` removed (save, bucket use, `fluidHandler` registration), forming and the slow check include the tanks with a named missing tank (lang), menu data from the tanks; GameTests: craft from a piped tank, any principle in any tank, missing tank named, removed tank unforms, existing Athanor tests fill tanks; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
+- [x] 4.2 `AthanorBlockEntity` reads and drains the three tanks, `PrincipleTanks` removed (save, bucket use, `fluidHandler` registration), forming and the slow check include the tanks with a named missing tank (lang), menu data from the tanks; GameTests: craft from a piped tank, any principle in any tank, missing tank named, removed tank unforms, existing Athanor tests fill tanks; `gradlew :manufacturing:runData`, `gradlew build` and `:manufacturing:runGameTestServer` green
 - [ ] 4.3 Schematic pages with the tanks, Athanor journal text, PLAN.md item 6d; no em dashes; schematic GameTests accept the builds; `gradlew build` and `:manufacturing:runGameTestServer` green
 
 ## 5. Integration

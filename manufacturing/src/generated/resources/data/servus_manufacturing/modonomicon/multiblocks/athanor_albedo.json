@@ -16,18 +16,24 @@
     "C": {
       "type": "modonomicon:block",
       "block": "servus_manufacturing:salt_crystal_block"
+    },
+    "T": {
+      "type": "modonomicon:block",
+      "block": "servus_foundation:fluid_tank"
     }
   },
   "pattern": [
     [
-      "CCC",
-      "CAC",
-      "CCC"
+      "_CCC_",
+      "TCACT",
+      "_CCC_",
+      "__T__"
     ],
     [
-      "BBB",
-      "B0B",
-      "BBB"
+      "_BBB_",
+      "_B0B_",
+      "_BBB_",
+      "_____"
     ]
   ]
 }

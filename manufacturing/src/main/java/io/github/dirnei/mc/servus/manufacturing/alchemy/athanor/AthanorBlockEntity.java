@@ -11,7 +11,13 @@ import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.TeamOwnership;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.AlchemyMachines;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleTanks;
+import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlock;
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout.Tank;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Structures;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
@@ -36,9 +42,14 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
-/** The alchemist's furnace: burns principles for the craft of the item lying on it, as far as its structure allows. */
+/**
+ * The alchemist's furnace: burns principles for the craft of the item lying on it, as far as its
+ * structure allows. It holds no principles itself; it reads and drains the three Fluid Tanks of its build.
+ */
 public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachine {
 
     public static final int SLOT_INPUT = 0;
@@ -51,7 +62,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
     /** Ticks between tier checks while nothing else asks for one. */
     private static final int TIER_INTERVAL = 100;
 
-    private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
     private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
     private int tier;
     private int tierCooldown;
@@ -59,10 +69,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
 
     public AthanorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusManufacturingBlockEntities.ATHANOR.get(), pos, state, 2);
-    }
-
-    public PrincipleTanks tanks() {
-        return tanks;
     }
 
     public int tier() {
@@ -73,12 +79,82 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         return AthanorTiers.nameOf(AthanorTierData.INSTANCE.tiers(), tier);
     }
 
-    /** What a neighbour sees on {@code side}: the tanks to fill on every side but the top, where the item lies. */
-    public IFluidHandler fluidHandler(Direction side) {
-        if (side == Direction.UP) {
-            return null;
+    // Tanks
+
+    /** Where the tank on {@code tank}'s side stands, by the Athanor's front. */
+    public BlockPos tankPos(Tank tank) {
+        return worldPosition.offset(tank.dx(), 0, tank.dz());
+    }
+
+    public List<Tank> tankLayout() {
+        return AthanorLayout.tanks(Structures.facing(getBlockState().getValue(MachineBlock.FACING)));
+    }
+
+    /** The first tank position without a Fluid Tank, or null when all three stand. Three block reads. */
+    private Tank missingTank() {
+        for (Tank tank : tankLayout()) {
+            if (!(level.getBlockState(tankPos(tank)).getBlock() instanceof FluidTankBlock)) {
+                return tank;
+            }
         }
-        return side == null || sideMode(side).allowsInsert() ? tanks : null;
+        return null;
+    }
+
+    /** The fluid handlers of the three tanks that stand. Server thread only. */
+    private List<IFluidHandler> tankHandlers() {
+        List<IFluidHandler> handlers = new ArrayList<>();
+        if (level == null || level.isClientSide()) {
+            return handlers;
+        }
+        for (Tank tank : tankLayout()) {
+            IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, tankPos(tank), Direction.UP);
+            if (handler != null) {
+                handlers.add(handler);
+            }
+        }
+        return handlers;
+    }
+
+    /** What the three tanks hold, by principle; any tank may hold any principle. */
+    public Principles principles() {
+        Principles held = Principles.NONE;
+        for (IFluidHandler handler : tankHandlers()) {
+            for (int i = 0; i < handler.getTanks(); i++) {
+                FluidStack fluid = handler.getFluidInTank(i);
+                for (Principle principle : Principle.values()) {
+                    if (!fluid.isEmpty() && fluid.getFluid().isSame(PrincipleFluids.fluid(principle))) {
+                        held = held.with(principle, held.get(principle) + fluid.getAmount());
+                    }
+                }
+            }
+        }
+        return held;
+    }
+
+    /** The largest of the three tanks, for the GUI's bars. */
+    private int tankCapacity() {
+        int capacity = 0;
+        for (IFluidHandler handler : tankHandlers()) {
+            for (int i = 0; i < handler.getTanks(); i++) {
+                capacity = Math.max(capacity, handler.getTankCapacity(i));
+            }
+        }
+        return capacity;
+    }
+
+    /** Drains {@code amounts} from the tanks, each principle from whichever tanks hold it. */
+    private void drain(Principles amounts) {
+        List<IFluidHandler> handlers = tankHandlers();
+        for (Principle principle : Principle.values()) {
+            int left = amounts.get(principle);
+            for (IFluidHandler handler : handlers) {
+                if (left <= 0) {
+                    break;
+                }
+                FluidStack wanted = new FluidStack(PrincipleFluids.fluid(principle), left);
+                left -= handler.drain(wanted, IFluidHandler.FluidAction.EXECUTE).getAmount();
+            }
+        }
     }
 
     // Owner
@@ -126,7 +202,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
 
     // Hearth
 
-    /** Whether the Athanor stands formed on its hearth. */
+    /** Whether the Athanor stands formed on its hearth with its tanks. */
     public boolean formed() {
         BlockState state = getBlockState();
         return state.getBlock() instanceof AthanorBlock && state.getValue(AthanorBlock.FORMED);
@@ -143,7 +219,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         return null;
     }
 
-    /** The Journal's click: forms the Athanor on a complete hearth and makes the player its owner, else says what is missing. */
+    /** The Journal's click: forms the Athanor on a complete hearth with its tanks and makes the player its owner, else says what is missing. */
     public void tryForm(Player player) {
         if (level == null || level.isClientSide()) {
             return;
@@ -156,18 +232,25 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
             player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.missing"), false);
             return;
         }
+        Tank tank = missingTank();
+        if (tank != null) {
+            player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.missing_tank",
+                    Component.translatable("message.servus_manufacturing.athanor.tank." + tank.side().name().toLowerCase(java.util.Locale.ROOT))), false);
+            return;
+        }
         setFormed(true);
         List<BlockPos> cells = new ArrayList<>(List.of(worldPosition));
         AthanorLayout.hearth().forEach(brick -> cells.add(worldPosition.offset(brick.dx(), brick.dy(), brick.dz())));
+        tankLayout().forEach(each -> cells.add(tankPos(each)));
         FormingEffect.play(level, worldPosition, cells);
         setOwner(player.getUUID());
         checkTier();
         player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.formed"), true);
     }
 
-    /** Unforms a formed Athanor whose hearth lost a brick. */
+    /** Unforms a formed Athanor whose hearth lost a brick or that lost a tank. */
     public void checkHearth() {
-        if (level != null && !level.isClientSide() && formed() && missingHearthBrick() != null) {
+        if (level != null && !level.isClientSide() && formed() && (missingHearthBrick() != null || missingTank() != null)) {
             setFormed(false);
         }
     }
@@ -196,13 +279,12 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
     private boolean canCraft(AthanorRecipe recipe) {
         return formed()
                 && recipe.tier() <= tier
-                && tanks.contents().covers(recipe.principles())
+                && principles().covers(recipe.principles())
                 && canInsertOutput(SLOT_OUTPUT, recipe.result());
     }
 
     @Override
     protected boolean tick() {
-        tanks.setCapacity(stats().fluidCapacity());
         syncInputIfChanged();
         if (++tierCooldown >= TIER_INTERVAL) {
             checkTier();
@@ -229,7 +311,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
     }
 
     private void finishCraft(AthanorRecipe recipe) {
-        tanks.take(recipe.principles());
+        drain(recipe.principles());
         inventory.extractItem(SLOT_INPUT, recipe.input().count(), false);
         insertOutput(SLOT_OUTPUT, recipe.result().copy());
         if (level instanceof ServerLevel server) {
@@ -292,11 +374,16 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         if (index == DATA_TIER) {
             return tier;
         }
-        int tank = AlchemyMachines.tankData(tanks, index);
-        return tank >= 0 ? tank : super.getData(index);
+        if (index >= AlchemyMachines.DATA_PRINCIPLE_FIRST && index < AlchemyMachines.DATA_TANK_CAPACITY) {
+            return principles().get(Principle.values()[index - AlchemyMachines.DATA_PRINCIPLE_FIRST]);
+        }
+        if (index == AlchemyMachines.DATA_TANK_CAPACITY) {
+            return tankCapacity();
+        }
+        return super.getData(index);
     }
 
-    /** The Foundation production view: one recipe per craft the current tier allows; principles come by pipe. */
+    /** The Foundation production view: one recipe per craft the current tier allows; principles come into the build's tanks. */
     public ProductionProvider production() {
         return new ProductionProvider() {
             @Override
@@ -330,7 +417,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.put("Principles", tanks.save(registries));
         tag.putInt("Tier", tier);
         ownership.save(tag);
     }
@@ -338,7 +424,6 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        tanks.load(tag.getCompound("Principles"));
         tier = tag.getInt("Tier");
         ownership.load(tag);
     }

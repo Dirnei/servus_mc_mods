@@ -44,6 +44,11 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.VAT.get(), "Principle Vat");
         add("message.servus_manufacturing.coagulator.formed", "The Coagulator is ready.");
         add("message.servus_manufacturing.athanor.formed", "The Athanor is ready.");
+        add("message.servus_manufacturing.athanor.missing_tank",
+                "The Athanor is not complete: a Fluid Tank is needed %s, two blocks out. The Athanor page of Paracelsus' Journal shows the build.");
+        add("message.servus_manufacturing.athanor.tank.left", "left of it");
+        add("message.servus_manufacturing.athanor.tank.back", "behind it");
+        add("message.servus_manufacturing.athanor.tank.right", "right of it");
         add("message.servus_manufacturing.athanor.missing",
                 "The Athanor needs a hearth: 3 by 3 Bricks right below it. The Athanor page of Paracelsus' Journal shows it.");
         add("message.servus_manufacturing.coagulator.missing",

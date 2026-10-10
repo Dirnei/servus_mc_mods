@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import net.minecraft.core.registries.BuiltInRegistries;
 import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
@@ -289,7 +290,7 @@ public final class AlchemyGameTests {
         return athanor;
     }
 
-    /** An Athanor on a complete hearth that nobody formed. */
+    /** An Athanor facing north on a complete hearth with its three tanks that nobody formed. */
     static AthanorBlockEntity unformedAthanor(GameTestHelper helper) {
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
@@ -297,7 +298,33 @@ public final class AlchemyGameTests {
             }
         }
         helper.setBlock(MACHINE, ServusManufacturingBlocks.ATHANOR.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
+        for (AthanorLayout.Tank tank : AthanorLayout.tanks(Facing.NORTH)) {
+            helper.setBlock(athanorTank(tank.side()), ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
+        }
         return helper.getBlockEntity(MACHINE);
+    }
+
+    /** Where the Athanor's tank on {@code side} stands in the test. */
+    static BlockPos athanorTank(AthanorLayout.TankSide side) {
+        AthanorLayout.Tank tank = AthanorLayout.tanks(Facing.NORTH).stream().filter(each -> each.side() == side).findFirst().orElseThrow();
+        return MACHINE.offset(tank.dx(), 0, tank.dz());
+    }
+
+    static IFluidHandler athanorTankHandler(GameTestHelper helper, AthanorLayout.TankSide side) {
+        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(athanorTank(side)), Direction.UP);
+    }
+
+    /** Pipes the principles into the tanks: Salt left, Sulfur behind, Mercury right. Call once the tanks had two ticks to join. */
+    static void pour(GameTestHelper helper, Principles principles) {
+        AthanorLayout.TankSide[] sides = {AthanorLayout.TankSide.LEFT, AthanorLayout.TankSide.BACK, AthanorLayout.TankSide.RIGHT};
+        for (Principle principle : Principle.values()) {
+            int amount = principles.get(principle);
+            if (amount > 0) {
+                int filled = athanorTankHandler(helper, sides[principle.ordinal()])
+                        .fill(new FluidStack(PrincipleFluids.fluid(principle), amount), IFluidHandler.FluidAction.EXECUTE);
+                helper.assertTrue(filled == amount, "the tank should take " + amount + " mB " + principle + ", took " + filled);
+            }
+        }
     }
 
     /** Without its hearth the Journal forms nothing; on a complete one it does, and a missing corner brick unforms it at the next check. */
@@ -350,7 +377,7 @@ public final class AlchemyGameTests {
     public static void unformedAthanorCraftsNothing(GameTestHelper helper) {
         AthanorBlockEntity athanor = unformedAthanor(helper);
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GUNPOWDER));
-        athanor.tanks().insert(new Principles(0, 500, 0));
+        helper.runAfterDelay(2, () -> pour(helper, new Principles(0, 500, 0)));
         helper.runAfterDelay(120, () -> {
             helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no Blaze Powder unformed");
             helper.succeed();
@@ -371,11 +398,13 @@ public final class AlchemyGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void athanorMakesBlazePowderAtNigredo(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
-        athanor.tanks().insert(new Principles(0, 200, 0));
-        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GUNPOWDER));
-        helper.succeedWhen(() -> {
-            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(Items.BLAZE_POWDER), "Blaze Powder should be made");
-            helper.assertTrue(athanor.tanks().amount(Principle.SULFUR) == 0, "the Sulfur is burned");
+        helper.runAfterDelay(2, () -> {
+            pour(helper, new Principles(0, 200, 0));
+            athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GUNPOWDER));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(Items.BLAZE_POWDER), "Blaze Powder should be made");
+                helper.assertTrue(athanor.principles().get(Principle.SULFUR) == 0, "the Sulfur is burned");
+            });
         });
     }
 
@@ -383,8 +412,8 @@ public final class AlchemyGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 300)
     public static void athanorTierFollowsTheRing(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
-        athanor.tanks().insert(new Principles(50, 0, 100));
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GLASS_BOTTLE));
+        helper.runAfterDelay(2, () -> pour(helper, new Principles(50, 0, 100)));
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no Albedo craft at Nigredo");
             saltRing(helper);
@@ -401,14 +430,52 @@ public final class AlchemyGameTests {
         });
     }
 
-    /** A Sulfur bucket empties into the Athanor's Sulfur tank. */
+    /** A Sulfur bucket emptied into a tank of the build is there for the Athanor. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void athanorTakesABucket(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
-        FluidActionResult result = FluidUtil.tryEmptyContainer(new ItemStack(PrincipleFluids.entry(Principle.SULFUR).bucket().get()),
-                athanor.tanks(), 1000, null, true);
-        helper.assertTrue(result.isSuccess() && result.getResult().is(Items.BUCKET), "the bucket should be emptied");
-        helper.assertTrue(athanor.tanks().amount(Principle.SULFUR) == 1000, "the Sulfur tank should hold 1000 mB");
+        helper.runAfterDelay(2, () -> {
+            FluidActionResult result = FluidUtil.tryEmptyContainer(new ItemStack(PrincipleFluids.entry(Principle.SULFUR).bucket().get()),
+                    athanorTankHandler(helper, AthanorLayout.TankSide.LEFT), 1000, null, true);
+            helper.assertTrue(result.isSuccess() && result.getResult().is(Items.BUCKET), "the bucket should be emptied");
+            helper.assertTrue(athanor.principles().get(Principle.SULFUR) == 1000, "the Athanor should see 1000 mB Sulfur");
+            helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(MACHINE), Direction.NORTH) == null,
+                    "the Athanor itself takes no fluid");
+            helper.succeed();
+        });
+    }
+
+    /** Any tank may hold any principle: Sulfur in the tank behind burns the same and leaves that tank lower. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void athanorBurnsFromAnyTank(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        helper.runAfterDelay(2, () -> {
+            athanorTankHandler(helper, AthanorLayout.TankSide.RIGHT)
+                    .fill(new FluidStack(PrincipleFluids.fluid(Principle.SULFUR), 300), IFluidHandler.FluidAction.EXECUTE);
+            athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GUNPOWDER));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(Items.BLAZE_POWDER), "Blaze Powder should be made");
+                helper.assertTrue(athanorTankHandler(helper, AthanorLayout.TankSide.RIGHT).getFluidInTank(0).getAmount() == 100,
+                        "100 mB Sulfur stay in the right tank");
+            });
+        });
+    }
+
+    /** Without its left tank the Journal forms nothing; a formed Athanor that loses a tank unforms at the next check. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void athanorNeedsItsTanks(GameTestHelper helper) {
+        unformedAthanor(helper);
+        helper.setBlock(athanorTank(AthanorLayout.TankSide.LEFT), Blocks.AIR);
+        Player player = CalcinerGameTests.player(helper, new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get()));
+        CalcinerGameTests.use(helper, player, MACHINE);
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
+        helper.setBlock(athanorTank(AthanorLayout.TankSide.LEFT), ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
+        CalcinerGameTests.use(helper, player, MACHINE);
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
+        helper.setBlock(athanorTank(AthanorLayout.TankSide.BACK), Blocks.AIR);
+        AthanorBlockEntity athanor = helper.getBlockEntity(MACHINE);
+        athanor.checkTier();
+        helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
         helper.succeed();
     }
 
@@ -424,7 +491,7 @@ public final class AlchemyGameTests {
         AthanorBlockEntity athanor = athanor(helper);
         athanor.setTeam(team);
         saltRing(helper);
-        athanor.tanks().insert(new Principles(50, 0, 100));
+        helper.runAfterDelay(2, () -> pour(helper, new Principles(50, 0, 100)));
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GLASS_BOTTLE));
         helper.succeedWhen(() -> {
             JournalLedger.TeamJournal journal = Journal.journalOf(level.getServer(), team);
@@ -450,8 +517,8 @@ public final class AlchemyGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 400)
     public static void elixirNeedsAnAlbedoAthanor(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
-        athanor.tanks().insert(new Principles(100, 100, 250));
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(ServusManufacturingItems.QUICKSILVER.get()));
+        helper.runAfterDelay(2, () -> pour(helper, new Principles(100, 100, 250)));
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "no elixir at Nigredo");
             saltRing(helper);

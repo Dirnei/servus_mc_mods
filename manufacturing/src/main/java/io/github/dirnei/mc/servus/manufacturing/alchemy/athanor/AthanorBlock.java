@@ -88,12 +88,6 @@ public class AthanorBlock extends MachineBlock {
         if (!level.isClientSide()) {
             athanor.checkTier();
         }
-        if (FluidUtil.getFluidContained(stack).isPresent()) {
-            if (!level.isClientSide()) {
-                FluidUtil.interactWithFluidHandler(player, hand, athanor.tanks());
-            }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
-        }
         if (athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).isEmpty() && athanor.isItemValid(AthanorBlockEntity.SLOT_INPUT, stack)) {
             if (!level.isClientSide()) {
                 athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, stack.split(stack.getCount()));
