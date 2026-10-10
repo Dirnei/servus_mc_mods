@@ -24,4 +24,4 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Full gradle build, tests green, game launches with all three mods.
+- [x] 5.1 Full gradle build, tests green, game launches with all three mods.
