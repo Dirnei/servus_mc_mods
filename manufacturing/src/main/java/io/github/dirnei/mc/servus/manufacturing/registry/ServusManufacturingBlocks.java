@@ -10,7 +10,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.CatchBasinBlock
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.ResidueCrockBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.GnomeHollowBlock;
@@ -37,7 +37,7 @@ public final class ServusManufacturingBlocks {
     public static final DeferredBlock<CalcinerPartBlock> RECEIVER = calcinerPart("receiver", Role.RECEIVER,
             BlockBehaviour.Properties.of().mapColor(MapColor.NONE).strength(1.0F).sound(SoundType.GLASS).noOcclusion());
     public static final DeferredBlock<CalcinerPartBlock> SULFUR_HOOD = calcinerPart("sulfur_hood", Role.HOOD, copper());
-    public static final DeferredBlock<CalcinerDuctBlock> SULFUR_DUCT = BLOCKS.registerBlock("sulfur_duct", CalcinerDuctBlock::new, copper());
+    public static final DeferredBlock<CopperDuctBlock> COPPER_DUCT = BLOCKS.registerBlock("copper_duct", CopperDuctBlock::new, copper());
 
     /** A brick of a formed Calciner; mined like Bricks and dropping them. */
     public static final DeferredBlock<CalcinerShellBlock> CALCINER_SHELL = BLOCKS.registerBlock("calciner_shell",

@@ -63,15 +63,15 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     /** The tower, front to the north; the player's right is west. The door shows the arch of the front texture. */
     private ModelFile athanorTower(String name, ResourceLocation front) {
         BlockModelBuilder model = models().withExistingParent(name, mcLoc("block/block"))
-                .texture("bricks", mcLoc("block/bricks")).texture("stone", mcLoc("block/stone_bricks"))
+                .texture("stone", mcLoc("block/stone_bricks"))
                 .texture("iron", mcLoc("block/iron_block")).texture("copper", mcLoc("block/cut_copper"))
-                .texture("front", front).texture("particle", mcLoc("block/bricks"));
+                .texture("front", front).texture("particle", mcLoc("block/stone_bricks"));
         // The tall faces have no neighbour to take light from; ambient occlusion would darken them.
         model.ao(false);
         CalcinerModels.uvBox(model, 0, 0, 0, 16, 2, 16, "#stone");
-        CalcinerModels.uvBox(model, 1, 2, 1, 15, 16, 15, "#bricks");
-        CalcinerModels.uvBox(model, 1.5F, 16, 1.5F, 14.5F, 20, 14.5F, "#bricks");
-        CalcinerModels.uvBox(model, 2.5F, 20, 2.5F, 13.5F, 22, 13.5F, "#bricks");
+        CalcinerModels.uvBox(model, 1, 2, 1, 15, 16, 15, "#stone");
+        CalcinerModels.uvBox(model, 1.5F, 16, 1.5F, 14.5F, 20, 14.5F, "#stone");
+        CalcinerModels.uvBox(model, 2.5F, 20, 2.5F, 13.5F, 22, 13.5F, "#stone");
         CalcinerModels.uvBox(model, 2, 22, 2, 14, 23, 14, "#iron");
         // The fire door: an iron frame around the flame arch of the tier's front texture.
         model.element().from(4, 3, 0.5F).to(12, 13, 1)

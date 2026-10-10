@@ -112,11 +112,11 @@ The hearth cells, the tank positions for each facing and the schematic of a stag
 - **THEN** its lower layer is the diamond hearth with the twelve Salt Crystal Blocks around it, a 5 by 5 square, and its upper layer holds only the Athanor and its tanks
 
 ### Requirement: Formed Athanor look
-A formed Athanor SHALL be drawn as a brick tower furnace about one and a half blocks tall, turned by its front, with an iron fire door showing the flame in the tier's colour and an iron plate on top where the item rests. Its Copper Ducts SHALL be drawn as one copper pipe from a socket of the tower into each tank, turning down into the tank's top, or into the tank's side when it is stacked that high. The ducts SHALL keep their block collision, so a player can stand on them, and the formed Athanor's collision SHALL follow the tower up to its plate, so a player stands on the plate. Unformed, the Athanor SHALL keep its plain block and the ducts their straight pipe.
+A formed Athanor SHALL be drawn as a stone brick tower furnace about one and a half blocks tall, turned by its front, with an iron fire door showing the flame in the tier's colour and an iron plate on top where the item rests. Its Copper Ducts SHALL be drawn as one copper pipe from a socket of the tower into each tank, turning down into the tank's top, or into the tank's side when it is stacked that high. The ducts SHALL keep their block collision, so a player can stand on them, and the formed Athanor's collision SHALL follow the tower up to its plate, so a player stands on the plate. Unformed, the Athanor SHALL keep its plain block and the ducts their straight pipe.
 
 #### Scenario: Formed look
 - **WHEN** a player forms an Athanor
-- **THEN** it shows as a brick tower with a fire door and its Copper Ducts as three pipes running into its tanks
+- **THEN** it shows as a stone brick tower with a fire door and its Copper Ducts as three pipes running into its tanks
 
 #### Scenario: Standing on it
 - **WHEN** a player jumps from a duct onto the formed Athanor

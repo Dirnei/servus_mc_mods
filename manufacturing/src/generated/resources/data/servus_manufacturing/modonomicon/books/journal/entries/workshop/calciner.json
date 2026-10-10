@@ -108,7 +108,7 @@
       "condition": {
         "type": "modonomicon:none"
       },
-      "recipe_id_1": "servus_manufacturing:sulfur_duct",
+      "recipe_id_1": "servus_manufacturing:copper_duct",
       "text": "book.servus_manufacturing.journal.workshop.calciner.recipe_duct.text",
       "title1": "",
       "title2": ""

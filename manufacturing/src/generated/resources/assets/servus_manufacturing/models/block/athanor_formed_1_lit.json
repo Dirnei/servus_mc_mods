@@ -61,7 +61,7 @@
     {
       "faces": {
         "down": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -70,7 +70,7 @@
           ]
         },
         "east": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -79,7 +79,7 @@
           ]
         },
         "north": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -88,7 +88,7 @@
           ]
         },
         "south": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -97,7 +97,7 @@
           ]
         },
         "up": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -106,7 +106,7 @@
           ]
         },
         "west": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -129,7 +129,7 @@
     {
       "faces": {
         "down": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -138,7 +138,7 @@
           ]
         },
         "east": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -147,7 +147,7 @@
           ]
         },
         "north": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -156,7 +156,7 @@
           ]
         },
         "south": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -165,7 +165,7 @@
           ]
         },
         "up": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -174,7 +174,7 @@
           ]
         },
         "west": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -197,7 +197,7 @@
     {
       "faces": {
         "down": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -206,7 +206,7 @@
           ]
         },
         "east": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -215,7 +215,7 @@
           ]
         },
         "north": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -224,7 +224,7 @@
           ]
         },
         "south": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -233,7 +233,7 @@
           ]
         },
         "up": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -242,7 +242,7 @@
           ]
         },
         "west": {
-          "texture": "#bricks",
+          "texture": "#stone",
           "uv": [
             0.0,
             0.0,
@@ -808,11 +808,10 @@
     }
   ],
   "textures": {
-    "bricks": "minecraft:block/bricks",
     "copper": "minecraft:block/cut_copper",
     "front": "servus_manufacturing:block/athanor_front_1_lit",
     "iron": "minecraft:block/iron_block",
-    "particle": "minecraft:block/bricks",
+    "particle": "minecraft:block/stone_bricks",
     "stone": "minecraft:block/stone_bricks"
   }
 }

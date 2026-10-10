@@ -74,7 +74,7 @@ public final class ServusManufacturingEvents {
             event.registerBlock(ServusFoundationCapabilities.UPKEEP, (level, pos, state, entity, side) -> CalcinerPorts.upkeep(level, pos, state),
                     ServusManufacturingBlocks.FIREBOX.get());
             event.registerBlock(Capabilities.FluidHandler.BLOCK, (level, pos, state, entity, side) -> CalcinerPorts.fluid(level, pos, state),
-                    ServusManufacturingBlocks.RECEIVER.get(), ServusManufacturingBlocks.SULFUR_DUCT.get());
+                    ServusManufacturingBlocks.RECEIVER.get(), ServusManufacturingBlocks.COPPER_DUCT.get());
             // The Coagulator build: items at the casting table while formed, each principle into its Vat.
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusManufacturingBlockEntities.COAGULATOR.get(),
                     (machine, side) -> machine.formed() ? machine.itemPort() : null);

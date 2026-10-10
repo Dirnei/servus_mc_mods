@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.VatBlock;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
@@ -256,14 +256,14 @@ final class CalcinerModels {
         box(model, 5, 3, 0, 11, 5, 1, "#spout");
     }
 
-    /** The Sulfur Duct: a straight copper pipe while unformed, its piece of the run from Hood to tank when formed. */
+    /** The Copper Duct: a straight copper pipe while unformed, its piece of the run from Hood to tank when formed. */
     private void duct() {
-        ModelFile straight = ductModel("sulfur_duct", -1);
-        ModelFile[] pieces = {ductModel("sulfur_duct_across", 0), ductModel("sulfur_duct_elbow", 1), ductModel("sulfur_duct_down", 2)};
-        Block block = ServusManufacturingBlocks.SULFUR_DUCT.get();
+        ModelFile straight = ductModel("copper_duct", -1);
+        ModelFile[] pieces = {ductModel("copper_duct_across", 0), ductModel("copper_duct_elbow", 1), ductModel("copper_duct_down", 2)};
+        Block block = ServusManufacturingBlocks.COPPER_DUCT.get();
         states.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(state.getValue(CalcinerDuctBlock.FORMED) ? pieces[state.getValue(CalcinerDuctBlock.PIECE)] : straight)
-                .rotationY(rotation(state.getValue(CalcinerDuctBlock.FACING)))
+                .modelFile(state.getValue(CopperDuctBlock.FORMED) ? pieces[state.getValue(CopperDuctBlock.PIECE)] : straight)
+                .rotationY(rotation(state.getValue(CopperDuctBlock.FACING)))
                 .build());
         states.simpleBlockItem(block, straight);
     }

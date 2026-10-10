@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlock;
@@ -73,13 +74,13 @@ public final class CalcinerPorts {
         return calciner == null ? null : calciner.upkeep();
     }
 
-    /** The drain only tank of the port's principle on the Ash Pan, the Receiver or the lowest Sulfur Duct of a formed Calciner. */
+    /** The drain only tank of the port's principle on the Ash Pan, the Receiver or the lowest Copper Duct of a formed Calciner. */
     public static IFluidHandler fluid(Level level, BlockPos pos, BlockState state) {
         Cell cell;
         if (state.getBlock() instanceof CalcinerPartBlock part) {
             cell = CalcinerLayout.part(part.role());
-        } else if (state.getBlock() instanceof CalcinerDuctBlock && state.getValue(CalcinerDuctBlock.FORMED)) {
-            cell = CalcinerDuctBlock.cell(state);
+        } else if (state.getBlock() instanceof CopperDuctBlock && state.getValue(CopperDuctBlock.FORMED)) {
+            cell = CopperDuctBlock.cell(state);
         } else {
             return null;
         }

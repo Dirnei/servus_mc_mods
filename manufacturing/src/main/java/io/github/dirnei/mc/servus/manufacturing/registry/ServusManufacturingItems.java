@@ -18,7 +18,7 @@ public final class ServusManufacturingItems {
     public static final DeferredItem<BlockItem> ALEMBIC = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.ALEMBIC);
     public static final DeferredItem<BlockItem> RECEIVER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.RECEIVER);
     public static final DeferredItem<BlockItem> SULFUR_HOOD = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.SULFUR_HOOD);
-    public static final DeferredItem<BlockItem> SULFUR_DUCT = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.SULFUR_DUCT);
+    public static final DeferredItem<BlockItem> COPPER_DUCT = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.COPPER_DUCT);
     public static final DeferredItem<BlockItem> PURIFIER = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.PURIFIER);
     public static final DeferredItem<BlockItem> CATCH_BASIN = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.CATCH_BASIN);
     public static final DeferredItem<BlockItem> RESIDUE_CROCK = ITEMS.registerSimpleBlockItem(ServusManufacturingBlocks.RESIDUE_CROCK);
@@ -40,7 +40,7 @@ public final class ServusManufacturingItems {
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,
-            ALEMBIC, RECEIVER, SULFUR_HOOD, SULFUR_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
+            ALEMBIC, RECEIVER, SULFUR_HOOD, COPPER_DUCT, PURIFIER, CATCH_BASIN, RESIDUE_CROCK, COAGULATOR, VAT, ATHANOR, GNOME_HOLLOW,
             ASH, CAPUT_MORTUUM, SALT_CRYSTAL, SALT_CRYSTAL_BLOCK, SULFUR, QUICKSILVER);
 
     private ServusManufacturingItems() {

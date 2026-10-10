@@ -29,7 +29,7 @@ final class ServusManufacturingLanguageProvider extends LanguageProvider {
         add(ServusManufacturingBlocks.ALEMBIC.get(), "Alembic");
         add(ServusManufacturingBlocks.RECEIVER.get(), "Receiver");
         add(ServusManufacturingBlocks.SULFUR_HOOD.get(), "Sulfur Hood");
-        add(ServusManufacturingBlocks.SULFUR_DUCT.get(), "Sulfur Duct");
+        add(ServusManufacturingBlocks.COPPER_DUCT.get(), "Copper Duct");
         add(ServusManufacturingBlocks.PURIFIER.get(), "Purifier");
         add(ServusManufacturingBlocks.CATCH_BASIN.get(), "Catch Basin");
         add(ServusManufacturingBlocks.RESIDUE_CROCK.get(), "Residue Crock");

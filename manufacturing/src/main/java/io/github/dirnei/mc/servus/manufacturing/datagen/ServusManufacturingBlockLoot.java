@@ -19,7 +19,7 @@ final class ServusManufacturingBlockLoot extends BlockLootSubProvider {
             ServusManufacturingBlocks.ALEMBIC.get(),
             ServusManufacturingBlocks.RECEIVER.get(),
             ServusManufacturingBlocks.SULFUR_HOOD.get(),
-            ServusManufacturingBlocks.SULFUR_DUCT.get(),
+            ServusManufacturingBlocks.COPPER_DUCT.get(),
             ServusManufacturingBlocks.PURIFIER.get(),
             ServusManufacturingBlocks.CATCH_BASIN.get(),
             ServusManufacturingBlocks.RESIDUE_CROCK.get(),

@@ -151,7 +151,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .define('C', Items.COPPER_INGOT)
                 .unlockedBy("has_glass_bottle", has(Items.GLASS_BOTTLE))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.SULFUR_DUCT.get(), 3)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.COPPER_DUCT.get(), 3)
                 .pattern("CCC")
                 .define('C', Items.COPPER_INGOT)
                 .unlockedBy("has_copper", has(Items.COPPER_INGOT))

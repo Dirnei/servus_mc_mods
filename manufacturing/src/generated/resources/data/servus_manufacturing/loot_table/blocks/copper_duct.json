@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "servus_manufacturing:sulfur_duct"
+          "name": "servus_manufacturing:copper_duct"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "servus_manufacturing:blocks/sulfur_duct"
+  "random_sequence": "servus_manufacturing:blocks/copper_duct"
 }

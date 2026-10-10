@@ -1,6 +1,9 @@
-package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
+package io.github.dirnei.mc.servus.manufacturing.alchemy.structure;
 
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -17,17 +20,17 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 
 /**
- * The copper Sulfur Duct of the Calciner, placed three times: from the Hood across and down
+ * The copper Copper Duct of the Calciner, placed three times: from the Hood across and down
  * into the Sulfur tank. While formed, {@link #PIECE} says which of the three it is.
  */
-public class CalcinerDuctBlock extends Block implements Wrenchable {
+public class CopperDuctBlock extends Block implements Wrenchable {
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty FORMED = CalcinerPartBlock.FORMED;
     /** The duct cell of {@link CalcinerLayout}, counted from {@link CalcinerLayout#FIRST_DUCT}. */
     public static final IntegerProperty PIECE = IntegerProperty.create("piece", 0, 2);
 
-    public CalcinerDuctBlock(Properties properties) {
+    public CopperDuctBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(FORMED, false).setValue(PIECE, 0));
     }

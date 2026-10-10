@@ -85,11 +85,11 @@ final class WorkshopCategory extends CategoryProvider {
                             + "and the Calciner, the mouth, above that.\n\n"
                             + "On top of the mouth sits the Alembic, the copper still, and the Sulfur Hood crowns it. Beside the furnace stand two "
                             + "columns of three Fluid Tanks. The Receiver sits on the right column and catches what drips from the still's spout; "
-                            + "keep the gap under the spout free. The Sulfur Duct leads from the Hood down into the left column.");
+                            + "keep the gap under the spout free. The Copper Duct leads from the Hood down into the left column.");
             e.crafting("recipe", mod + "calciner", mod + "calciner_firebox", "The mouth with its cauldron, and the Firebox.");
             e.crafting("recipe_pan", mod + "calciner_ash_pan", mod + "alembic", "The Ash Pan and the Alembic.");
             e.crafting("recipe_receiver", mod + "receiver", mod + "sulfur_hood", "The Receiver and the Sulfur Hood.");
-            e.crafting("recipe_duct", mod + "sulfur_duct", "The Sulfur Duct, three at once.");
+            e.crafting("recipe_duct", mod + "copper_duct", "The Copper Duct, three at once.");
             e.text("waking", "Waking It",
                     "When every block stands, use this journal on the Calciner. The bricks join and the furnace becomes one thing. "
                             + "If something is missing, the journal tells you what and where.\n\n"
@@ -168,7 +168,7 @@ final class WorkshopCategory extends CategoryProvider {
             e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":athanor", "Bricks, a cauldron and a blast furnace.");
             e.text("hearth", "Its Hearth",
                     "The Athanor burns only on a hearth: 13 Bricks in a diamond right below it, reaching two blocks out, with its three tanks on the tips. "
-                            + "When all is laid, use this journal on the Athanor: it rises into a brick tower and copper pipes reach out to its tanks. "
+                            + "When all is laid, use this journal on the Athanor: it rises into a stone brick tower and copper pipes reach out to its tanks. "
                             + "Take a brick or a tank away and its fire goes out.");
             e.text("tanks", "Its Tanks",
                     "The Athanor keeps no principles of its own. It drinks them from its three Fluid Tanks, two blocks out to its left, "

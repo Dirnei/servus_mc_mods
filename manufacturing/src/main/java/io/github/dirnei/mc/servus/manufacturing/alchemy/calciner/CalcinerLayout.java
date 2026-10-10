@@ -10,7 +10,7 @@ import java.util.Optional;
  * described from its front with the Calciner (the furnace mouth) in the middle.
  *
  * <pre>
- *  D D H _ _     H Sulfur Hood, D Sulfur Duct
+ *  D D H _ _     H Sulfur Hood, D Copper Duct
  *  D _ L   R     L Alembic, R Receiver, the gap is air for the spout
  *  T B 0 B T     0 Calciner, B Bricks, T Fluid Tank
  *  T B F B T     F Firebox
@@ -66,7 +66,7 @@ public final class CalcinerLayout {
             new Cell(15, Role.TANK, 2, 0),
             new Cell(16, Role.TANK, 2, -1),
             new Cell(17, Role.TANK, 2, -2),
-            // The Sulfur Duct from the Hood across and down into the Sulfur tank.
+            // The Copper Duct from the Hood across and down into the Sulfur tank.
             new Cell(18, Role.DUCT, -1, 2),
             new Cell(19, Role.DUCT, -2, 2),
             new Cell(20, Role.DUCT, -2, 1),

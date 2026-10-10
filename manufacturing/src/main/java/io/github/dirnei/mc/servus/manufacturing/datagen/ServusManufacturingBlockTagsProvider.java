@@ -27,7 +27,7 @@ final class ServusManufacturingBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusManufacturingBlocks.ALEMBIC.get())
                 .add(ServusManufacturingBlocks.RECEIVER.get())
                 .add(ServusManufacturingBlocks.SULFUR_HOOD.get())
-                .add(ServusManufacturingBlocks.SULFUR_DUCT.get())
+                .add(ServusManufacturingBlocks.COPPER_DUCT.get())
                 .add(ServusManufacturingBlocks.VAT.get())
                 .add(ServusManufacturingBlocks.CALCINER_SHELL.get())
                 .add(ServusManufacturingBlocks.COAGULATOR.get())

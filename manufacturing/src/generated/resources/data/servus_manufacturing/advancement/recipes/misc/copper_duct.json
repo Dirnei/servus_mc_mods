@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "servus_manufacturing:sulfur_duct"
+        "recipe": "servus_manufacturing:copper_duct"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "servus_manufacturing:sulfur_duct"
+      "servus_manufacturing:copper_duct"
     ]
   }
 }

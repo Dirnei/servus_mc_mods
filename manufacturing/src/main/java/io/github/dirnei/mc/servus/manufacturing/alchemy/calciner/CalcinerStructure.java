@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.FormingEffect;
@@ -70,7 +71,7 @@ public final class CalcinerStructure {
             case RECEIVER -> ServusManufacturingBlocks.RECEIVER.get();
             case HOOD -> ServusManufacturingBlocks.SULFUR_HOOD.get();
             case TANK -> ServusLogisticsBlocks.FLUID_TANK.get();
-            case DUCT -> ServusManufacturingBlocks.SULFUR_DUCT.get();
+            case DUCT -> ServusManufacturingBlocks.COPPER_DUCT.get();
             case AIR -> Blocks.AIR;
         };
     }
@@ -113,7 +114,7 @@ public final class CalcinerStructure {
         }
         return switch (cell.role()) {
             case CALCINER, BRICK, TANK -> true;
-            case DUCT -> !state.getValue(CalcinerDuctBlock.FORMED);
+            case DUCT -> !state.getValue(CopperDuctBlock.FORMED);
             default -> !state.getValue(CalcinerPartBlock.FORMED);
         };
     }
@@ -164,8 +165,8 @@ public final class CalcinerStructure {
                     case CALCINER -> state.setValue(MachineBlock.FACING, direction).setValue(CalcinerBlock.FORMED, true);
                     case BRICK -> ServusManufacturingBlocks.CALCINER_SHELL.get().defaultBlockState()
                             .setValue(CalcinerShellBlock.FACING, direction).setValue(CalcinerShellBlock.CELL, cell.index());
-                    case DUCT -> state.setValue(CalcinerDuctBlock.FACING, direction).setValue(CalcinerDuctBlock.FORMED, true)
-                            .setValue(CalcinerDuctBlock.PIECE, cell.index() - CalcinerLayout.FIRST_DUCT);
+                    case DUCT -> state.setValue(CopperDuctBlock.FACING, direction).setValue(CopperDuctBlock.FORMED, true)
+                            .setValue(CopperDuctBlock.PIECE, cell.index() - CalcinerLayout.FIRST_DUCT);
                     default -> state.setValue(CalcinerPartBlock.FACING, direction).setValue(CalcinerPartBlock.FORMED, true);
                 };
                 level.setBlock(pos, formed, Block.UPDATE_ALL);
@@ -206,8 +207,8 @@ public final class CalcinerStructure {
                 } else if (cell.role() == Role.TANK || cell.role() == Role.AIR) {
                     continue;
                 } else if (cell.role() == Role.DUCT) {
-                    if (state.getBlock() instanceof CalcinerDuctBlock && state.getValue(CalcinerDuctBlock.FORMED)) {
-                        unformed = state.setValue(CalcinerDuctBlock.FORMED, false).setValue(CalcinerDuctBlock.PIECE, 0);
+                    if (state.getBlock() instanceof CopperDuctBlock && state.getValue(CopperDuctBlock.FORMED)) {
+                        unformed = state.setValue(CopperDuctBlock.FORMED, false).setValue(CopperDuctBlock.PIECE, 0);
                     }
                 } else if (state.getBlock() instanceof CalcinerPartBlock && state.getValue(CalcinerPartBlock.FORMED)) {
                     unformed = state.setValue(CalcinerPartBlock.FORMED, false).setValue(CalcinerPartBlock.LIT, false);
@@ -254,8 +255,8 @@ public final class CalcinerStructure {
         if (state.getBlock() instanceof CalcinerPartBlock part && state.getValue(CalcinerPartBlock.FORMED)) {
             return Optional.of(controller(pos, CalcinerLayout.part(part.role()), state.getValue(CalcinerPartBlock.FACING)));
         }
-        if (state.getBlock() instanceof CalcinerDuctBlock && state.getValue(CalcinerDuctBlock.FORMED)) {
-            return Optional.of(controller(pos, CalcinerDuctBlock.cell(state), state.getValue(CalcinerDuctBlock.FACING)));
+        if (state.getBlock() instanceof CopperDuctBlock && state.getValue(CopperDuctBlock.FORMED)) {
+            return Optional.of(controller(pos, CopperDuctBlock.cell(state), state.getValue(CopperDuctBlock.FACING)));
         }
         if (state.getBlock() instanceof CalcinerBlock && state.getValue(CalcinerBlock.FORMED)) {
             return Optional.of(pos);
@@ -284,8 +285,8 @@ public final class CalcinerStructure {
         if (state.getBlock() instanceof CalcinerPartBlock) {
             return state.getValue(CalcinerPartBlock.FACING);
         }
-        if (state.getBlock() instanceof CalcinerDuctBlock) {
-            return state.getValue(CalcinerDuctBlock.FACING);
+        if (state.getBlock() instanceof CopperDuctBlock) {
+            return state.getValue(CopperDuctBlock.FACING);
         }
         return state.getValue(MachineBlock.FACING);
     }

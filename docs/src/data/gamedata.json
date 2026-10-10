@@ -569,6 +569,19 @@
         {"item": "servus_manufacturing:coagulator", "count": 1}
       ]
     },
+    "servus_manufacturing:copper_duct": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["CCC"],
+      "key": {
+        "C": {"item": "minecraft:copper_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:copper_ingot", "count": 3}
+      ],
+      "outputs": [
+        {"item": "servus_manufacturing:copper_duct", "count": 3}
+      ]
+    },
     "servus_manufacturing:journal": {
       "type": "minecraft:crafting_shapeless",
       "inputs": [
@@ -649,41 +662,6 @@
       ],
       "outputs": [
         {"item": "servus_manufacturing:residue_crock", "count": 1}
-      ]
-    },
-    "servus_manufacturing:salt_crystal_block": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["SSS", "SSS", "SSS"],
-      "key": {
-        "S": {"item": "servus_manufacturing:salt_crystal"}
-      },
-      "inputs": [
-        {"item": "servus_manufacturing:salt_crystal", "count": 9}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:salt_crystal_block", "count": 1}
-      ]
-    },
-    "servus_manufacturing:salt_crystal_from_block": {
-      "type": "minecraft:crafting_shapeless",
-      "inputs": [
-        {"item": "servus_manufacturing:salt_crystal_block", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:salt_crystal", "count": 9}
-      ]
-    },
-    "servus_manufacturing:sulfur_duct": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["CCC"],
-      "key": {
-        "C": {"item": "minecraft:copper_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:copper_ingot", "count": 3}
-      ],
-      "outputs": [
-        {"item": "servus_manufacturing:sulfur_duct", "count": 3}
       ]
     },
     "servus_manufacturing:sulfur_hood": {
@@ -1171,6 +1149,9 @@
     "servus_manufacturing:coagulator": {
       "name": "Coagulator"
     },
+    "servus_manufacturing:copper_duct": {
+      "name": "Copper Duct"
+    },
     "servus_manufacturing:gnome_hollow": {
       "name": "Gnome Hollow"
     },
@@ -1188,15 +1169,6 @@
     },
     "servus_manufacturing:residue_crock": {
       "name": "Residue Crock"
-    },
-    "servus_manufacturing:salt_crystal": {
-      "name": "Salt Crystal"
-    },
-    "servus_manufacturing:salt_crystal_block": {
-      "name": "Salt Crystal Block"
-    },
-    "servus_manufacturing:sulfur_duct": {
-      "name": "Sulfur Duct"
     },
     "servus_manufacturing:sulfur_hood": {
       "name": "Sulfur Hood"

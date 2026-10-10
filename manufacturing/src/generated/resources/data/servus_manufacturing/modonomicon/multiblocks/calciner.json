@@ -15,7 +15,7 @@
     },
     "D": {
       "type": "modonomicon:block",
-      "block": "servus_manufacturing:sulfur_duct"
+      "block": "servus_manufacturing:copper_duct"
     },
     "F": {
       "type": "modonomicon:block",

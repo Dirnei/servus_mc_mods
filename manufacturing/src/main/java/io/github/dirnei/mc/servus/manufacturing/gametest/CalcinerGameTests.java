@@ -9,7 +9,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerDuctBlock;
+import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerPartBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerShellBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
@@ -123,7 +123,7 @@ public final class CalcinerGameTests {
                 case TANK -> helper.assertTrue(state.is(ServusLogisticsBlocks.FLUID_TANK.get()), "the tanks stay tanks");
                 case AIR -> {
                 }
-                case DUCT -> helper.assertTrue(state.getValue(CalcinerDuctBlock.FORMED) == formed, "duct formed should be " + formed);
+                case DUCT -> helper.assertTrue(state.getValue(CopperDuctBlock.FORMED) == formed, "duct formed should be " + formed);
                 default -> helper.assertTrue(state.getValue(CalcinerPartBlock.FORMED) == formed,
                         cell.role() + " formed should be " + formed);
             }
@@ -211,7 +211,7 @@ public final class CalcinerGameTests {
                 case BRICK -> state.is(Blocks.BRICKS);
                 case TANK -> state.is(ServusLogisticsBlocks.FLUID_TANK.get());
                 case AIR -> true;
-                case DUCT -> !state.getValue(CalcinerDuctBlock.FORMED);
+                case DUCT -> !state.getValue(CopperDuctBlock.FORMED);
                 default -> !state.getValue(CalcinerPartBlock.FORMED);
             }, "cell " + cell.index() + " should be unformed, is " + state);
         }
