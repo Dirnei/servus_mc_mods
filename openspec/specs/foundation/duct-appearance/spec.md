@@ -98,9 +98,13 @@ An arm that touches an inventory or machine SHALL carry a thin ring at its outer
 - **WHEN** a data duct touches a Warehouse Controller
 - **THEN** the data arm toward it ends in a teal ring
 
-### Requirement: Facades cover everything
-A duct with a facade SHALL render as the facade block regardless of lines and channels, and SHALL show its lines, arms and rings again when the facade comes off. The hidden duct overlay SHALL draw the arms of the facaded duct.
+### Requirement: Panels sit next to the duct's parts
+A duct with panels SHALL render its lines, arms, bands and rings as without panels, and each panel on its face in addition. An arm toward a hollow panel SHALL show through the hole. A face closed by a solid panel SHALL show no arm and no ring. The hidden duct overlay SHALL NOT draw ducts behind panels; the player sees the panels.
 
-#### Scenario: Facade on a two line duct
-- **WHEN** a stone facade is applied to a duct carrying both lines
-- **THEN** it renders as a full stone block; after sneak carrot the two line look returns
+#### Scenario: Hollow panel on a two line duct
+- **WHEN** a hollow stone panel covers the east face of a duct carrying both lines with an arm to the east
+- **THEN** the two line arm shows through the hole of the stone frame
+
+#### Scenario: Solid panel on an endpoint
+- **WHEN** a solid panel covers the face of a duct toward a chest
+- **THEN** that face shows the panel and no arm or ring
