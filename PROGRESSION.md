@@ -17,7 +17,7 @@ Conventions, as in PLAN.md:
 
 **Built today**
 - Calciner build: brick furnace, Firebox, Ash Pan (Ash), Alembic with spout to the Receiver over the Mercury tank, Sulfur Hood and duct into the Sulfur tank.
-- Purifier build: a Leaching Vat over a Catch Basin between planks and logs. Ash and water into liquid Salt, Caput Mortuum left behind.
+- Purifier build: a Leaching Vat between planks on a log, a Catch Basin and a Residue Crock below the planks. Ash and water into liquid Salt in the Basin, Caput Mortuum in the Crock.
 - Coagulator build: three Principle Vats over the casting table. It makes Salt Crystal, Sulfur, Quicksilver, gunpowder and other first goods.
 - Athanor on its brick hearth. Nigredo crafts such as Blaze Powder from gunpowder and Sulfur.
 - Journal tasks: calcine 100 things, gather 1,000 mB Salt, purify once, coagulate the first Salt Crystal.

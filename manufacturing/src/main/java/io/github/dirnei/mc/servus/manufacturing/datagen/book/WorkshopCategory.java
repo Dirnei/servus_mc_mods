@@ -114,17 +114,19 @@ final class WorkshopCategory extends CategoryProvider {
         return new WorkshopEntry(this, "purifier", "The Purifier", "Wash the Salt out of the Ash",
                 ServusManufacturingItems.PURIFIER.get(), e -> {
             e.spotlight("machine", ServusManufacturingItems.PURIFIER.get(), "The Purifier",
-                    "A leaching vat over a catch basin. Water washes the Salt out of the Ash and drips through as the Salt the Coagulator needs; "
-                            + "what stays behind is Caput Mortuum, the dead head.");
+                    "A leaching vat on a log between two planks. Water washes the Salt out of the Ash and runs down into the catch basin as "
+                            + "the Salt the Coagulator needs; what stays behind is Caput Mortuum, the dead head, and it falls into the residue crock.");
             e.multiblock("build", ServusManufacturingMultiblockProvider.PURIFIER, "The Purifier",
-                    "The Vat between two planks over the Basin between two logs, any wood. Press Visualize, then click the ground.");
+                    "The Vat between two planks on a log, any wood; the Basin below one plank, the Crock below the other, either way round. "
+                            + "Press Visualize, then click the ground.");
             e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":purifier", ServusManufacturingIds.MOD_ID + ":catch_basin",
                     "The Leaching Vat and the Catch Basin.");
+            e.crafting("crock", ServusManufacturingIds.MOD_ID + ":residue_crock", "The Residue Crock.");
             e.text("leaching", "Leaching",
                     "Use this journal on the Vat to bring the build together. Give the Vat Ash by hand, by hopper or by pipe, and water by "
-                            + "bucket or by pipe from a pump. Four Ash at a time give up their Salt, and it drips into the Basin.\n\n"
-                            + "Take the Salt from the Basin with an empty bucket, or pipe it away. An empty hand on the Vat takes the "
-                            + "Caput Mortuum; sneak with an empty hand to take the Ash back. Keep the Caput Mortuum: nothing in the "
+                            + "bucket or by pipe from a pump. Four Ash at a time give up their Salt, and it runs into the Basin.\n\n"
+                            + "Take the Salt from the Basin with an empty bucket, or pipe it away. Take the Caput Mortuum from the Crock "
+                            + "with an empty hand, or set a hopper under it. Sneak with an empty hand on the Vat to take the Ash back. Keep the Caput Mortuum: nothing in the "
                             + "Great Work is worthless forever.");
             e.list("washes", "What It Washes", AlchemyRecipeTable.purification().stream()
                     .map(row -> row.count() + " " + row.label() + " and " + row.water() + " mB water: " + row.salt() + " Salt"

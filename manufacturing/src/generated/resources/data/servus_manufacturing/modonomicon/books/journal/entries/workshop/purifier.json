@@ -46,6 +46,17 @@
       "title2": ""
     },
     {
+      "type": "modonomicon:crafting_recipe",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "recipe_id_1": "servus_manufacturing:residue_crock",
+      "text": "book.servus_manufacturing.journal.workshop.purifier.crock.text",
+      "title1": "",
+      "title2": ""
+    },
+    {
       "type": "modonomicon:text",
       "anchor": "",
       "condition": {
@@ -75,17 +86,6 @@
       },
       "show_title_separator": true,
       "text": "book.servus_manufacturing.journal.workshop.purifier.leaching_3.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.purifier.leaching_4.text",
       "title": "",
       "use_markdown_in_title": false
     },
