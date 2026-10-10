@@ -62,6 +62,39 @@
         "type": "modonomicon:none"
       },
       "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.athanor.hearth_2.text",
+      "title": "",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.athanor.tanks.text",
+      "title": "book.servus_manufacturing.journal.workshop.athanor.tanks.title",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.servus_manufacturing.journal.workshop.athanor.tanks_2.text",
+      "title": "",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
       "text": "book.servus_manufacturing.journal.workshop.athanor.fire.text",
       "title": "book.servus_manufacturing.journal.workshop.athanor.fire.title",
       "use_markdown_in_title": false

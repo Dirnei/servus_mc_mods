@@ -163,13 +163,18 @@ final class WorkshopCategory extends CategoryProvider {
             e.spotlight("machine", ServusManufacturingItems.ATHANOR.get(), "The Athanor",
                     "Lay an item on it, feed it principles, and it burns them into something new.");
             e.multiblock("build", ServusManufacturingMultiblockProvider.athanor("nigredo"), "The Athanor on its Hearth",
-                    "Set it on 3 by 3 Bricks and use this journal on it. Press Visualize, then click the ground.");
+                    "Set it on 3 by 3 Bricks, stand three Fluid Tanks two blocks out to its left, behind it and to its right, and use this journal on it. "
+                            + "Press Visualize, then click the ground.");
             e.crafting("recipe", ServusManufacturingIds.MOD_ID + ":athanor", "Bricks, a cauldron and a blast furnace.");
             e.text("hearth", "Its Hearth",
-                    "The Athanor burns only on a hearth: nine Bricks in a square right below it. When the hearth is laid, "
-                            + "use this journal on the Athanor to light it for good. Take a brick away and its fire goes out.");
+                    "The Athanor burns only on a hearth: nine Bricks in a square right below it, with its three tanks around it. "
+                            + "When all is laid, use this journal on the Athanor to light it for good. Take a brick or a tank away and its fire goes out.");
+            e.text("tanks", "Its Tanks",
+                    "The Athanor keeps no principles of its own. It drinks them from its three Fluid Tanks, two blocks out to its left, "
+                            + "behind it and to its right, so they never touch and never run together.\n\n"
+                            + "Any tank may hold any principle. Lead pipes to them or pour buckets in; stack more tanks on one to make it bigger.");
             e.text("fire", "Its Fire",
-                    "Use an item on it to lay it on top. Pour principle buckets on it, or lead pipes to it.\n\n"
+                    "Use an item on it to lay it on top. It burns what its tanks hold.\n\n"
                             + "Alone its flame is black: Nigredo. Eight Salt Crystal Blocks in a ring around it, on its own level, "
                             + "turn the flame white: Albedo. Some works need the white fire.");
             e.list("works", "Its Works", AlchemyRecipeTable.athanor().stream()
