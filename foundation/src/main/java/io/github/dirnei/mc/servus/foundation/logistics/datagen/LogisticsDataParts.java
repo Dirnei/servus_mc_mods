@@ -127,6 +127,8 @@ public final class LogisticsDataParts {
         provider.add(ServusLogisticsItems.FACADE.get(), "Facade");
         provider.add("item.servus_foundation.facade.named", "Facade (%s)");
         provider.add("item.servus_foundation.facade.hint", "Use on a utility duct to hide it");
+        provider.add("jei.servus_foundation.facade.info", "Craft any full block without a block entity with one iron ingot to get six facades of that block. "
+                + "Use a facade on a Utility Duct to hide it; sneak with the Configuration Carrot to take it off.");
         provider.add(ServusLogisticsBlocks.FLUID_TANK.get(), "Fluid Tank");
         provider.add("tooltip.servus_foundation.fluid_tank.empty", "Empty");
         provider.add("tooltip.servus_foundation.fluid_tank.fluid", "%s: %s mB");

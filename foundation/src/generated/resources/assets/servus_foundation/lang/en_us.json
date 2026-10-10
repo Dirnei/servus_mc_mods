@@ -100,6 +100,7 @@
   "item.servus_foundation.power_cable": "Power Cable",
   "item.servus_foundation.speed_upgrade": "Speed Upgrade",
   "itemGroup.servus": "Servus",
+  "jei.servus_foundation.facade.info": "Craft any full block without a block entity with one iron ingot to get six facades of that block. Use a facade on a Utility Duct to hide it; sneak with the Configuration Carrot to take it off.",
   "message.servus_foundation.carrot_layer": "Layer: %s",
   "message.servus_foundation.data_cable.summary": "Data network: %s cables, %s producers, %s stock",
   "message.servus_foundation.data_cable.summary_load": "Data network: %s cables, %s producers, %s stock; this duct %s of %s items/s",
