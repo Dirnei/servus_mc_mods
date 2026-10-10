@@ -14,6 +14,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEnti
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -21,6 +22,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -226,6 +228,150 @@ public final class ServusLogisticsGameTests {
             helper.assertTrue(result.is(ServusLogisticsItems.FACADE.get()) && result.getCount() == 6 && FacadeItem.blockOf(result) == block,
                     "six facades of " + block + " expected, got " + result);
         }
+        helper.succeed();
+    }
+
+    // Facade panels
+
+    /** Uses a facade stack on a face of the duct at {@code pos} as a survival player; returns what is left. */
+    private static ItemStack usePanel(GameTestHelper helper, BlockPos pos, Direction face, ItemStack stack) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        BlockPos absolute = helper.absolutePos(pos);
+        Vec3 point = Vec3.atCenterOf(absolute).relative(face, 0.5);
+        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
+                new BlockHitResult(point, face, absolute, false)));
+        return stack;
+    }
+
+    private static int itemNetworkId(UtilityDuctBlockEntity duct) {
+        return duct.network(Line.ITEM).map(network -> network.id()).orElse(-1);
+    }
+
+    /** A facade covers the clicked face only, and a covered face takes no second panel. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void panelOnClickedFace(GameTestHelper helper) {
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        ItemStack left = usePanel(helper, DUCT, Direction.NORTH, FacadeItem.of(Blocks.STONE, 2));
+        helper.assertTrue(left.getCount() == 1, "one facade is used");
+        helper.assertTrue(duct.panel(Direction.NORTH) != null && duct.panel(Direction.NORTH).is(Blocks.STONE), "north carries stone");
+        for (Direction side : Direction.values()) {
+            helper.assertTrue(side == Direction.NORTH || duct.panel(side) == null, "only the clicked face is covered, not " + side);
+        }
+        usePanel(helper, DUCT, Direction.NORTH, left);
+        helper.assertTrue(left.getCount() == 1, "a covered face takes no second panel");
+        helper.assertTrue(duct.panel(Direction.NORTH).is(Blocks.STONE), "the first panel stays");
+        usePanel(helper, DUCT, Direction.UP, FacadeItem.of(Blocks.OAK_PLANKS, 1, true));
+        helper.assertTrue(duct.panel(Direction.UP) != null && duct.isHollow(Direction.UP), "a hollow panel goes on top");
+        helper.succeed();
+    }
+
+    /** A solid panel between two item ducts removes both arms and splits the network; taking it off joins them. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void solidPanelSplitsDucts(GameTestHelper helper) {
+        UtilityDuctBlockEntity west = duct(helper, DUCT, Line.ITEM);
+        UtilityDuctBlockEntity east = duct(helper, DUCT.east(), Line.ITEM);
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(itemNetworkId(west) >= 0 && itemNetworkId(west) == itemNetworkId(east), "one network before the panel");
+            west.setPanel(Direction.EAST, Blocks.STONE.defaultBlockState(), false);
+        });
+        helper.runAfterDelay(4, () -> {
+            helper.assertTrue(!west.hasArm(Line.ITEM, Direction.EAST) && !east.hasArm(Line.ITEM, Direction.WEST), "no arms through the panel");
+            helper.assertTrue(itemNetworkId(west) != itemNetworkId(east), "two networks behind a solid panel");
+            west.removePanel(Direction.EAST);
+        });
+        helper.runAfterDelay(6, () -> {
+            helper.assertTrue(west.hasArm(Line.ITEM, Direction.EAST) && east.hasArm(Line.ITEM, Direction.WEST), "the arms come back");
+            helper.assertTrue(itemNetworkId(west) == itemNetworkId(east), "one network again");
+            helper.succeed();
+        });
+    }
+
+    /** A solid panel toward a chest removes the endpoint and the item handler on that side. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void solidPanelClosesEndpoint(GameTestHelper helper) {
+        chest(helper, DUCT.north());
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        helper.assertTrue(duct.isEndpoint(Direction.NORTH), "the chest is an endpoint");
+        duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
+        helper.assertTrue(!duct.isEndpoint(Direction.NORTH), "no endpoint behind the panel");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(DUCT), Direction.NORTH) == null,
+                "no item handler on the covered side");
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(DUCT), Direction.SOUTH) != null,
+                "the other sides keep theirs");
+        helper.succeed();
+    }
+
+    /** A hollow panel between two ducts keeps the arms and the network. */
+    @GameTest(template = EMPTY, timeoutTicks = 40)
+    public static void hollowPanelKeepsNetwork(GameTestHelper helper) {
+        UtilityDuctBlockEntity west = duct(helper, DUCT, Line.ITEM);
+        UtilityDuctBlockEntity east = duct(helper, DUCT.east(), Line.ITEM);
+        helper.runAfterDelay(2, () -> west.setPanel(Direction.EAST, Blocks.STONE.defaultBlockState(), true));
+        helper.runAfterDelay(4, () -> {
+            helper.assertTrue(west.hasArm(Line.ITEM, Direction.EAST) && east.hasArm(Line.ITEM, Direction.WEST), "the arms pass the hole");
+            helper.assertTrue(itemNetworkId(west) >= 0 && itemNetworkId(west) == itemNetworkId(east), "still one network");
+            helper.succeed();
+        });
+    }
+
+    /** Sneaking with the carrot on a panel takes off that panel only and keeps the duct. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void carrotRemovesOnePanel(GameTestHelper helper) {
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
+        duct.setPanel(Direction.UP, Blocks.OAK_PLANKS.defaultBlockState(), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setShiftKeyDown(true);
+        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+        BlockPos absolute = helper.absolutePos(DUCT);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).relative(Direction.NORTH, 0.5), Direction.NORTH, absolute, false);
+        ServusLogisticsBlocks.UTILITY_DUCT.get().onWrench(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot, hit),
+                helper.getBlockState(DUCT));
+        helper.assertTrue(helper.getBlockState(DUCT).is(ServusLogisticsBlocks.UTILITY_DUCT.get()), "the duct stays");
+        helper.assertTrue(duct.panel(Direction.NORTH) == null, "the clicked panel is gone");
+        helper.assertTrue(duct.panel(Direction.UP) != null, "the other panel stays");
+        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(absolute).inflate(2));
+        helper.assertTrue(drops.size() == 1 && drops.get(0).getItem().is(ServusLogisticsItems.FACADE.get())
+                && FacadeItem.blockOf(drops.get(0).getItem()) == Blocks.STONE, "a stone facade drops, got " + drops);
+        helper.succeed();
+    }
+
+    /** Breaking a duct drops its line and both kinds of panel. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void breakingDropsPanels(GameTestHelper helper) {
+        UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
+        duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
+        duct.setPanel(Direction.SOUTH, Blocks.BRICKS.defaultBlockState(), true);
+        helper.destroyBlock(DUCT);
+        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(DUCT)).inflate(2));
+        helper.assertTrue(drops.stream().anyMatch(e -> e.getItem().is(ServusLogisticsItems.ITEM_PIPE.get())), "the item pipe drops");
+        helper.assertTrue(drops.stream().anyMatch(e -> e.getItem().is(ServusLogisticsItems.FACADE.get())
+                && FacadeItem.blockOf(e.getItem()) == Blocks.STONE), "the stone facade drops");
+        helper.assertTrue(drops.stream().anyMatch(e -> e.getItem().is(ServusLogisticsItems.HOLLOW_FACADE.get())
+                && FacadeItem.blockOf(e.getItem()) == Blocks.BRICKS), "the hollow brick facade drops");
+        helper.succeed();
+    }
+
+    /** Eight stone facades around an empty centre give eight hollow stone facades; a mixed ring gives nothing. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void hollowRingRecipe(GameTestHelper helper) {
+        List<ItemStack> ring = new java.util.ArrayList<>();
+        for (int i = 0; i < 9; i++) {
+            ring.add(i == 4 ? ItemStack.EMPTY : FacadeItem.of(Blocks.STONE, 1));
+        }
+        CraftingInput input = CraftingInput.of(3, 3, ring);
+        Optional<RecipeHolder<CraftingRecipe>> recipe =
+                helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
+        helper.assertTrue(recipe.isPresent(), "the ring matches");
+        ItemStack result = recipe.get().value().assemble(input, helper.getLevel().registryAccess());
+        helper.assertTrue(result.is(ServusLogisticsItems.HOLLOW_FACADE.get()) && result.getCount() == 8 && FacadeItem.blockOf(result) == Blocks.STONE,
+                "eight hollow stone facades expected, got " + result);
+        ring.set(0, FacadeItem.of(Blocks.OAK_PLANKS, 1));
+        Optional<RecipeHolder<CraftingRecipe>> mixed =
+                helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, ring), helper.getLevel());
+        helper.assertTrue(mixed.isEmpty(), "a mixed ring makes nothing");
         helper.succeed();
     }
 
