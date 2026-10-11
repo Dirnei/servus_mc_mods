@@ -1,6 +1,6 @@
 ## 1. Pure rules
 
-- [ ] 1.1 Add `storage/.../field/FieldCorrosion.java` (stages, next, previous, join, age, progress, axeCanScrape; no Minecraft imports) and JUnit `storage/src/test/.../field/FieldCorrosionTest.java` (stepsAndBounds, joinPrefersHead, joinTakesYoungest, joinOfLooseRailsStaysLoose, agingCountsWater, agingUsesUpkeepFirst, agingStopsAtCorroded, agingOffWithoutStep, progressPercent, axeDurabilityCheck); `gradlew :storage:test`
+- [x] 1.1 Add `storage/.../field/FieldCorrosion.java` (stages, next, previous, join, age, progress, axeCanScrape; no Minecraft imports) and JUnit `storage/src/test/.../field/FieldCorrosionTest.java` (stepsAndBounds, joinPrefersHead, joinTakesYoungest, joinOfLooseRailsStaysLoose, agingCountsWater, agingUsesUpkeepFirst, agingStopsAtCorroded, agingOffWithoutStep, progressPercent, axeDurabilityCheck); `gradlew :storage:test`
 
 ## 2. Model swap and textures
 
