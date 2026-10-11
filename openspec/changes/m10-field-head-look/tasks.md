@@ -10,7 +10,7 @@
 ## 3. Textures and datagen
 
 - [x] 3.1 Draw `field_head_side`, `field_head_top`, `field_head_bottom` and `field_head_front_0` .. `_5` overlays with a Python generator in the job tmp dir (frame pixels from `inbound_station_side` and `_top`); `gradlew build`
-- [ ] 3.2 Datagen: `ServusStorageBlockStateProvider` (layered models per RIPE step, rotated by FACING, item model step 0), `ServusStorageBlockLoot` (head in `WOODEN`), `ServusStorageRecipeProvider` (planks recipe through `WoodRecipes.output`); `gradlew :storage:runData`, `gradlew build`
+- [x] 3.2 Datagen: `ServusStorageBlockStateProvider` (layered models per RIPE step, rotated by FACING, item model step 0), `ServusStorageBlockLoot` (head in `WOODEN`), `ServusStorageRecipeProvider` (planks recipe through `WoodRecipes.output`); `gradlew :storage:runData`, `gradlew build`
 
 ## 4. Renderer
 

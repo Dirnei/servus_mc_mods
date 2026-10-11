@@ -1,7 +1,94 @@
 {
   "variants": {
-    "": {
-      "model": "servus_storage:block/field_head"
+    "facing=east,ripe=0": {
+      "model": "servus_storage:block/field_head_0",
+      "y": 90
+    },
+    "facing=east,ripe=1": {
+      "model": "servus_storage:block/field_head_1",
+      "y": 90
+    },
+    "facing=east,ripe=2": {
+      "model": "servus_storage:block/field_head_2",
+      "y": 90
+    },
+    "facing=east,ripe=3": {
+      "model": "servus_storage:block/field_head_3",
+      "y": 90
+    },
+    "facing=east,ripe=4": {
+      "model": "servus_storage:block/field_head_4",
+      "y": 90
+    },
+    "facing=east,ripe=5": {
+      "model": "servus_storage:block/field_head_5",
+      "y": 90
+    },
+    "facing=north,ripe=0": {
+      "model": "servus_storage:block/field_head_0"
+    },
+    "facing=north,ripe=1": {
+      "model": "servus_storage:block/field_head_1"
+    },
+    "facing=north,ripe=2": {
+      "model": "servus_storage:block/field_head_2"
+    },
+    "facing=north,ripe=3": {
+      "model": "servus_storage:block/field_head_3"
+    },
+    "facing=north,ripe=4": {
+      "model": "servus_storage:block/field_head_4"
+    },
+    "facing=north,ripe=5": {
+      "model": "servus_storage:block/field_head_5"
+    },
+    "facing=south,ripe=0": {
+      "model": "servus_storage:block/field_head_0",
+      "y": 180
+    },
+    "facing=south,ripe=1": {
+      "model": "servus_storage:block/field_head_1",
+      "y": 180
+    },
+    "facing=south,ripe=2": {
+      "model": "servus_storage:block/field_head_2",
+      "y": 180
+    },
+    "facing=south,ripe=3": {
+      "model": "servus_storage:block/field_head_3",
+      "y": 180
+    },
+    "facing=south,ripe=4": {
+      "model": "servus_storage:block/field_head_4",
+      "y": 180
+    },
+    "facing=south,ripe=5": {
+      "model": "servus_storage:block/field_head_5",
+      "y": 180
+    },
+    "facing=west,ripe=0": {
+      "model": "servus_storage:block/field_head_0",
+      "y": 270
+    },
+    "facing=west,ripe=1": {
+      "model": "servus_storage:block/field_head_1",
+      "y": 270
+    },
+    "facing=west,ripe=2": {
+      "model": "servus_storage:block/field_head_2",
+      "y": 270
+    },
+    "facing=west,ripe=3": {
+      "model": "servus_storage:block/field_head_3",
+      "y": 270
+    },
+    "facing=west,ripe=4": {
+      "model": "servus_storage:block/field_head_4",
+      "y": 270
+    },
+    "facing=west,ripe=5": {
+      "model": "servus_storage:block/field_head_5",
+      "y": 270
     }
   }
 }

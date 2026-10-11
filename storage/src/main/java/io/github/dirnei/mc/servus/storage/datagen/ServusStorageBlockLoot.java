@@ -16,13 +16,14 @@ final class ServusStorageBlockLoot extends BlockLootSubProvider {
 
     private static final List<Block> SELF_DROPPING = List.of(ServusStorageBlocks.CRATE.get(), ServusStorageBlocks.DOUBLE_CRATE.get(),
             ServusStorageBlocks.QUAD_CRATE.get(), ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.ELEVATOR.get(),
-            ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), ServusStorageBlocks.FARM_RAIL.get(), ServusStorageBlocks.FIELD_HEAD.get());
+            ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), ServusStorageBlocks.FARM_RAIL.get());
 
     /** Blocks that keep the wood of their recipe. */
     private static final List<Block> WOODEN = List.of(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(),
             ServusStorageBlocks.STORAGE_TERMINAL.get(), ServusStorageBlocks.INBOUND_STATION.get(), ServusStorageBlocks.PACKING_STATION.get(),
             ServusStorageBlocks.SHUTTLE_GARAGE.get(), ServusStorageBlocks.OUTBOUND_STATION.get(), ServusStorageBlocks.CRAFTING_STATION.get(),
-            ServusStorageBlocks.CRAFTING_CPU.get(), ServusStorageBlocks.PRODUCTION_TERMINAL.get());
+            ServusStorageBlocks.CRAFTING_CPU.get(), ServusStorageBlocks.PRODUCTION_TERMINAL.get(),
+            ServusStorageBlocks.FIELD_HEAD.get());
 
     ServusStorageBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

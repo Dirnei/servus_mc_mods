@@ -227,14 +227,15 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.FIELD_HEAD.get())
                 .pattern("IBI")
-                .pattern("ICI")
-                .pattern("IRI")
+                .pattern("PCP")
+                .pattern("PRP")
                 .define('I', Items.IRON_INGOT)
                 .define('B', Items.BUCKET)
                 .define('C', Items.COMPOSTER)
+                .define('P', ItemTags.PLANKS)
                 .define('R', ServusStorageItems.FARM_RAIL.get())
                 .unlockedBy("has_farm_rail", has(ServusStorageItems.FARM_RAIL.get()))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.HANDLING_UPGRADE.get())
                 .pattern("CRC")

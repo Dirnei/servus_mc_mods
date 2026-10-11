@@ -15,6 +15,8 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import io.github.dirnei.mc.servus.foundation.datagen.LayeredModels;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
+import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
+import io.github.dirnei.mc.servus.storage.field.FieldHeadLook;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.cpu.CpuTiles;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLights;
@@ -41,10 +43,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         patternStorage(ServusStorageBlocks.PATTERN_STORAGE.get(), "pattern_storage");
         RailModels.rail(this, ServusStorageBlocks.RAIL.get(), "rail");
         RailModels.rail(this, ServusStorageBlocks.FARM_RAIL.get(), "farm_rail");
-        ModelFile fieldHead = models().cubeBottomTop("field_head", modLoc("block/field_head_side"),
-                modLoc("block/field_head_bottom"), modLoc("block/field_head_top"));
-        simpleBlock(ServusStorageBlocks.FIELD_HEAD.get(), fieldHead);
-        simpleBlockItem(ServusStorageBlocks.FIELD_HEAD.get(), fieldHead);
+        fieldHead(ServusStorageBlocks.FIELD_HEAD.get(), "field_head");
         ElevatorModels.elevator(this, ServusStorageBlocks.ELEVATOR.get(), "elevator");
         HeavyRackModels.rack(this, ServusStorageBlocks.HEAVY_RACK.get(), "heavy_rack");
         station(ServusStorageBlocks.INBOUND_STATION.get(), "inbound_station");
@@ -132,6 +131,31 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
                 .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
                 .build());
         simpleBlockItem(block, models[0][0]);
+    }
+
+    /**
+     * The Field Head: station boards and frame, a glass window in the upper
+     * panel of every side, the ripe bar of its {@link FieldHeadBlock#RIPE} step
+     * on the front, the crop plate on top and a plain frame below.
+     */
+    private void fieldHead(Block block, String name) {
+        ModelFile[] models = new ModelFile[FieldHeadLook.READY + 1];
+        for (int step = 0; step <= FieldHeadLook.READY; step++) {
+            ResourceLocation side = modLoc("block/" + name + "_side");
+            Map<Direction, ResourceLocation> faces = new EnumMap<>(Direction.class);
+            faces.put(Direction.NORTH, modLoc("block/" + name + "_front_" + step));
+            faces.put(Direction.SOUTH, side);
+            faces.put(Direction.EAST, side);
+            faces.put(Direction.WEST, side);
+            faces.put(Direction.UP, modLoc("block/" + name + "_top"));
+            faces.put(Direction.DOWN, modLoc("block/" + name + "_bottom"));
+            models[step] = LayeredModels.cube(this, name + "_" + step, faces);
+        }
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(models[state.getValue(FieldHeadBlock.RIPE)])
+                .rotationY(((int) state.getValue(FieldHeadBlock.FACING).toYRot() + 180) % 360)
+                .build());
+        simpleBlockItem(block, models[0]);
     }
 
     /** Like {@link #oriented} with an activity lamp: idle, working and blocked fronts while online. */
