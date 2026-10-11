@@ -30,8 +30,8 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
     private static final float CARGO_SCALE = 0.35F;
     /** Height of the cargo's centre above the shuttle's bottom: standing on the crate floor. */
     private static final double CARGO_Y = 4.0 / 16.0 + 0.5 * CARGO_SCALE;
-    /** The rail is a thin strip in the middle; the wheels straddle it and stand on the floor. */
-    private static final double FLOOR = 0.0;
+    /** The wheels stand on the two rail heads, 2 pixels above the ground (or the lift car deck). */
+    private static final double FLOOR = 2.0 / 16.0;
     /** The shuttle is drawn a little below block scale. */
     private static final float SHUTTLE_SCALE = 0.8F;
     private static final double PARK_SPACING = 0.25 * SHUTTLE_SCALE;

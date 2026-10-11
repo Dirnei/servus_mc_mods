@@ -14,7 +14,7 @@
 ## 4. Renderers
 
 - [x] 4.1 `client/ElevatorRenderer.java`: deck, car and ground floor rail from `RailLook` boxes with `rail_head` and oak planks, sleepers clipped to the shaft area; `gradlew build`
-- [ ] 4.2 `client/ShuttleGarageRenderer.java`: `FLOOR` 2/16 so wheels stand on the heads, also on a lift car; `gradlew build`
+- [x] 4.2 `client/ShuttleGarageRenderer.java`: `FLOOR` 2/16 so wheels stand on the heads, also on a lift car; `gradlew build`
 
 ## 5. Tests and docs
 
