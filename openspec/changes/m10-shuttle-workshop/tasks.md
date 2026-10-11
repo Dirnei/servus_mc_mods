@@ -22,7 +22,7 @@
 
 ## 5. Plan and docs
 
-- [ ] 5.1 `PLAN.md` M10 item 1 notes what was built; `docs/src/content/docs/mods/storage.md` gets the Shuttle Workshop and the Cargo Hold. Verify: `openspec validate m10-shuttle-workshop`.
+- [x] 5.1 `PLAN.md` M10 item 1 notes what was built; `docs/src/content/docs/mods/storage.md` gets the Shuttle Workshop and the Cargo Hold. Verify: `openspec validate m10-shuttle-workshop`.
 
 ## 6. Integration
 
