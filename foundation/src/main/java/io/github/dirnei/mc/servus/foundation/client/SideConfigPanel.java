@@ -12,7 +12,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -174,7 +174,7 @@ public final class SideConfigPanel {
         return layer == SideLayer.FLUIDS ? fluidColor(fluidValues.applyAsInt(side), tanks) : color(modes.apply(side));
     }
 
-    public void render(GuiGraphics graphics, Font font, int mouseX, int mouseY) {
+    public void render(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
         if (hasFluids()) {
             SideLayer hoveredTab = tabAt(mouseX, mouseY);
             for (SideLayer tab : SideLayer.values()) {
@@ -185,7 +185,7 @@ public final class SideConfigPanel {
                 int fill = selected ? 0xFFC6C6C6 : tab == hoveredTab ? 0xFFB0B0B0 : 0xFF8B8B8B;
                 graphics.fill(tx + 1, ty + 1, tx + TAB_WIDTH - 1, y + (selected ? 1 : 0), fill);
                 ItemStack icon = new ItemStack(tab == SideLayer.FLUIDS ? Items.WATER_BUCKET : Items.CHEST);
-                graphics.renderItem(icon, tx + (TAB_WIDTH - 16) / 2, ty + 1);
+                graphics.item(icon, tx + (TAB_WIDTH - 16) / 2, ty + 1);
             }
         }
         graphics.fill(x, y, x + SIZE, y + SIZE, 0xFF373737);
@@ -202,15 +202,15 @@ public final class SideConfigPanel {
             boolean fixed = isLocked(side);
             graphics.fill(cx, cy, cx + CELL, cy + CELL, side == hovered && !fixed ? 0xFFFFFFFF : 0xFF555555);
             graphics.fill(cx + 1, cy + 1, cx + CELL - 1, cy + CELL - 1, fixed ? 0xFF6E6E6E : cellColor(side));
-            graphics.drawString(font, side.name().substring(0, 1), cx + 4, cy + 3, fixed ? 0xFF9A9A9A : 0xFF202020, false);
+            graphics.text(font, side.name().substring(0, 1), cx + 4, cy + 3, fixed ? 0xFF9A9A9A : 0xFF202020, false);
         }
     }
 
     /** Draws the hovered side's or tab's tooltip; returns whether one was drawn. */
-    public boolean renderTooltip(GuiGraphics graphics, Font font, int mouseX, int mouseY) {
+    public boolean renderTooltip(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
         SideLayer tab = tabAt(mouseX, mouseY);
         if (tab != null) {
-            graphics.renderTooltip(font, Component.translatable("gui.servus_foundation.side_tab", SideConfigWrench.layerName(tab)),
+            graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_foundation.side_tab", SideConfigWrench.layerName(tab)),
                     mouseX, mouseY);
             return true;
         }
@@ -224,7 +224,7 @@ public final class SideConfigPanel {
         if (isLocked(side)) {
             text = text.copy().append(" ").append(Component.translatable("gui.servus_foundation.side_fixed"));
         }
-        graphics.renderTooltip(font, text, mouseX, mouseY);
+        graphics.setTooltipForNextFrame(font, text, mouseX, mouseY);
         return true;
     }
 

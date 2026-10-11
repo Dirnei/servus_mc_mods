@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -15,16 +15,14 @@ import net.minecraft.world.item.ItemStack;
  */
 public class AdapterScreen extends AbstractContainerScreen<AdapterMenu> {
 
-    private static final int TEXT = 0x404040;
+    private static final int TEXT = 0xFF404040;
     private static final int PANEL = 0xFFC6C6C6;
     private static final int DARK = 0xFF373737;
     private static final int LIGHT = 0xFFFFFFFF;
     private static final int SLOT = 0xFF8B8B8B;
 
     public AdapterScreen(AdapterMenu menu, Inventory inventory, Component title) {
-        super(menu, inventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        super(menu, inventory, title, 176, 166);
         this.inventoryLabelY = AdapterMenu.INVENTORY_Y - 11;
     }
 
@@ -45,7 +43,8 @@ public class AdapterScreen extends AbstractContainerScreen<AdapterMenu> {
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         int x = leftPos;
         int y = topPos;
         graphics.fill(x, y, x + imageWidth, y + imageHeight, PANEL);
@@ -65,26 +64,25 @@ public class AdapterScreen extends AbstractContainerScreen<AdapterMenu> {
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        super.renderLabels(graphics, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractLabels(graphics, mouseX, mouseY);
         Component machine = menu.adapter().machineName();
         Component line = !menu.hasProfile()
                 ? Component.translatable("gui.servus_foundation.machine_adapter.no_profile")
                 : Component.translatable("gui.servus_foundation.machine_adapter.machine", machine);
-        graphics.drawString(font, line, 8, 18, TEXT, false);
-        graphics.drawString(font, Component.translatable("gui.servus_foundation.machine_adapter.upkeep"), 8, AdapterMenu.GHOST_Y - 10, TEXT, false);
+        graphics.text(font, line, 8, 18, TEXT, false);
+        graphics.text(font, Component.translatable("gui.servus_foundation.machine_adapter.upkeep"), 8, AdapterMenu.GHOST_Y - 10, TEXT, false);
         String level = Integer.toString(menu.level());
-        graphics.drawString(font, level, 136 - font.width(level) / 2, AdapterMenu.GHOST_Y + 4, TEXT, false);
+        graphics.text(font, level, 136 - font.width(level) / 2, AdapterMenu.GHOST_Y + 4, TEXT, false);
         ItemStack upkeep = menu.adapter().upkeepItem();
         Component count = upkeep.isEmpty()
                 ? Component.translatable("gui.servus_foundation.machine_adapter.no_upkeep")
                 : Component.translatable("gui.servus_foundation.machine_adapter.count", menu.count(), menu.level());
-        graphics.drawString(font, count, 8, AdapterMenu.GHOST_Y + 22, TEXT, false);
+        graphics.text(font, count, 8, AdapterMenu.GHOST_Y + 22, TEXT, false);
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 }

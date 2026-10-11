@@ -1,12 +1,11 @@
 package io.github.dirnei.mc.servus.foundation.client;
 
-import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import java.util.Optional;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
@@ -16,6 +15,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 /**
  * A small indicator beside the crosshair while a sneak click would place:
@@ -39,7 +39,7 @@ public final class PlacementAssistHud {
                 Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "placement_assist"), PlacementAssistHud::render);
     }
 
-    private static void render(GuiGraphics graphics, DeltaTracker deltaTracker) {
+    private static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.options.hideGui || !minecraft.options.getCameraType().isFirstPerson()) {
             return;
@@ -52,28 +52,28 @@ public final class PlacementAssistHud {
         BlockPos target = preview.target().pos();
         Vec3 toTarget = Vec3.atCenterOf(target).subtract(preview.hit().getLocation());
         Camera camera = minecraft.gameRenderer.getMainCamera();
-        Vector3f look = camera.getLookVector();
-        Vector3f up = camera.getUpVector();
+        Vector3fc look = camera.forwardVector();
+        Vector3fc up = camera.upVector();
         Vector3f right = new Vector3f(look).cross(up);
         double screenX = toTarget.x * right.x() + toTarget.y * right.y() + toTarget.z * right.z();
         double screenY = toTarget.x * up.x() + toTarget.y * up.y() + toTarget.z * up.z();
 
         int centerX = graphics.guiWidth() / 2;
         int centerY = graphics.guiHeight() / 2;
-        graphics.pose().pushPose();
-        graphics.pose().translate(centerX, centerY, 0.0F);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(centerX, centerY);
         if (Math.hypot(screenX, screenY) < STRAIGHT_AHEAD * toTarget.length()) {
             ring(graphics);
         } else {
-            graphics.pose().mulPose(Axis.ZP.rotation((float) Math.atan2(-screenY, screenX)));
+            graphics.pose().rotate((float) Math.atan2(-screenY, screenX));
             arrow(graphics);
         }
-        graphics.pose().popPose();
-        graphics.drawString(minecraft.font, Integer.toString(preview.distance()), centerX + 9, centerY + 7, COLOR, true);
+        graphics.pose().popMatrix();
+        graphics.text(minecraft.font, Integer.toString(preview.distance()), centerX + 9, centerY + 7, COLOR, true);
     }
 
     /** An arrow pointing along +x, starting a little way out from the crosshair. */
-    private static void arrow(GuiGraphics graphics) {
+    private static void arrow(GuiGraphicsExtractor graphics) {
         graphics.fill(9, -1, 15, 1, COLOR);
         for (int i = 0; i < 4; i++) {
             graphics.fill(15 + i, -4 + i, 16 + i, 4 - i, COLOR);
@@ -81,7 +81,7 @@ public final class PlacementAssistHud {
     }
 
     /** A square ring around the crosshair. */
-    private static void ring(GuiGraphics graphics) {
+    private static void ring(GuiGraphicsExtractor graphics) {
         graphics.fill(-7, -7, 7, -6, COLOR);
         graphics.fill(-7, 6, 7, 7, COLOR);
         graphics.fill(-7, -6, -6, 6, COLOR);

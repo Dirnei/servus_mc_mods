@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.foundation.client;
 
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -71,7 +71,7 @@ public final class RecipeEditorPopup {
      * @param existing whether an existing recipe is edited, which shows Delete
      * @param preview  the matched result, empty when the grid matches nothing
      */
-    public void render(GuiGraphics graphics, Font font, int left, int top, int mouseX, int mouseY, Component title,
+    public void render(GuiGraphicsExtractor graphics, Font font, int left, int top, int mouseX, int mouseY, Component title,
                        boolean existing, ItemStack preview, Component save, Component delete, Component cancel) {
         graphics.fill(left, top, left + dimWidth, top + dimHeight, DIM);
         int px = left + x;
@@ -80,7 +80,7 @@ public final class RecipeEditorPopup {
         graphics.fill(px, py, px + WIDTH, py + HEIGHT, 0xFF1E1E1E);
         graphics.fill(px + 1, py + 1, px + WIDTH - 1, py + HEIGHT - 1, 0xFFFFFFFF);
         graphics.fill(px + 2, py + 2, px + WIDTH - 2, py + HEIGHT - 2, 0xFFC6C6C6);
-        graphics.drawString(font, title, px + 6, py + 4, 0xFF404040, false);
+        graphics.text(font, title, px + 6, py + 4, 0xFF404040, false);
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 int sx = left + gridX() + col * CELL - 1;
@@ -93,10 +93,10 @@ public final class RecipeEditorPopup {
         int vy = py + PREVIEW_OFFSET_Y;
         graphics.fill(vx - 1, vy - 1, vx + CELL - 1, vy + CELL - 1, 0xFF373737);
         graphics.fill(vx, vy, vx + CELL - 2, vy + CELL - 2, 0xFF8B8B8B);
-        graphics.drawString(font, "=", vx - 8, vy + 4, 0xFF404040, false);
+        graphics.text(font, "=", vx - 8, vy + 4, 0xFF404040, false);
         if (!preview.isEmpty()) {
-            graphics.renderItem(preview, vx, vy);
-            graphics.renderItemDecorations(font, preview, vx, vy);
+            graphics.item(preview, vx, vy);
+            graphics.itemDecorations(font, preview, vx, vy);
         }
         int bx = x + BUTTON_OFFSET_X;
         drawButton(graphics, font, left + bx, top + y + SAVE_OFFSET_Y, BUTTON_W, BUTTON_H, save.getString(),
@@ -125,10 +125,10 @@ public final class RecipeEditorPopup {
     }
 
     /** A flat button in the editor's style, at absolute screen coordinates. */
-    public static void drawButton(GuiGraphics graphics, Font font, int x, int y, int w, int h, String label, boolean hovered) {
+    public static void drawButton(GuiGraphicsExtractor graphics, Font font, int x, int y, int w, int h, String label, boolean hovered) {
         graphics.fill(x, y, x + w, y + h, 0xFF373737);
         graphics.fill(x + 1, y + 1, x + w - 1, y + h - 1, hovered ? 0xFFDDDDDD : 0xFFA0A0A0);
-        graphics.drawString(font, label, x + (w - font.width(label)) / 2, y + (h - 8) / 2, 0xFF202020, false);
+        graphics.text(font, label, x + (w - font.width(label)) / 2, y + (h - 8) / 2, 0xFF202020, false);
     }
 
     private static boolean in(int left, int top, double mouseX, double mouseY, int x, int y, int w, int h) {

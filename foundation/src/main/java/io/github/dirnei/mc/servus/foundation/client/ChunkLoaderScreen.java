@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.foundation.client;
 import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
 import io.github.dirnei.mc.servus.foundation.machine.menu.ChunkLoaderMenu;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -17,10 +17,10 @@ public class ChunkLoaderScreen extends MachineScreen {
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        super.renderLabels(guiGraphics, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+        super.extractLabels(guiGraphics, mouseX, mouseY);
         int status = ((ChunkLoaderMenu) menu).status();
         String key = STATUS_KEYS[Math.max(0, Math.min(status, STATUS_KEYS.length - 1))];
-        guiGraphics.drawString(font, Component.translatable("gui.servus_foundation.chunk_loader." + key), 8, 40, 0x404040, false);
+        guiGraphics.text(font, Component.translatable("gui.servus_foundation.chunk_loader." + key), 8, 40, 0xFF404040, false);
     }
 }

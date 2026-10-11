@@ -1,8 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
+import net.minecraft.client.input.InputWithModifiers;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import java.util.function.BooleanSupplier;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -27,12 +28,12 @@ public final class ChannelButton extends AbstractButton {
     }
 
     @Override
-    public void onPress() {
+    public void onPress(InputWithModifiers input) {
         onPress.run();
     }
 
     @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         int x0 = getX();
         int y0 = getY();
         int x1 = x0 + width;

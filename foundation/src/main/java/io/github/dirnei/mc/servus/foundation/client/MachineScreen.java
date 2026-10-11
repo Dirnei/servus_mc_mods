@@ -1,12 +1,14 @@
 package io.github.dirnei.mc.servus.foundation.client;
 
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.client.FluidGauge;
 import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.foundation.side.SideLayer;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -67,10 +69,8 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     }
 
     public MachineScreen(MachineMenu menu, Inventory playerInventory, Component title, Layout layout) {
-        super(menu, playerInventory, title);
+        super(menu, playerInventory, title, 176, 166);
         this.layout = layout;
-        this.imageWidth = 176;
-        this.imageHeight = 166;
     }
 
     public static MachineScreen burner(MachineMenu menu, Inventory playerInventory, Component title) {
@@ -95,11 +95,10 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        renderTooltip(guiGraphics, mouseX, mouseY);
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         if (layout.energy() && isHovering(energyX(), ENERGY_Y, ENERGY_WIDTH, ENERGY_HEIGHT, mouseX, mouseY)) {
-            guiGraphics.renderTooltip(font,
+            guiGraphics.setTooltipForNextFrame(font,
                     Component.literal(menu.energyStored() + " / " + menu.energyCapacity() + " FE"), mouseX, mouseY);
         }
         if (layout.fluid()) {
@@ -112,46 +111,50 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     /** Pumps show their source status where other machines show the inventory label. */
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         if (!layout.fluid()) {
-            super.renderLabels(guiGraphics, mouseX, mouseY);
+            super.extractLabels(guiGraphics, mouseX, mouseY);
             return;
         }
-        guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 0xFF404040, false);
+        guiGraphics.text(font, title, titleLabelX, titleLabelY, 0xFF404040, false);
         Component status = Component.translatable(menu.sourceValid()
                 ? "gui.servus_foundation.pump.source_ok" : "gui.servus_foundation.pump.source_missing");
         int available = imageWidth - 2 * inventoryLabelX;
         int width = font.width(status);
         float scale = width > available ? (float) available / width : 1F;
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(inventoryLabelX, inventoryLabelY + (1F - scale) * font.lineHeight / 2F, 0F);
-        guiGraphics.pose().scale(scale, scale, 1F);
-        guiGraphics.drawString(font, status, 0, 0, menu.sourceValid() ? STATUS_OK : STATUS_MISSING, false);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(inventoryLabelX, inventoryLabelY + (1F - scale) * font.lineHeight / 2F);
+        guiGraphics.pose().scale(scale, scale);
+        guiGraphics.text(font, status, 0, 0, menu.sourceValid() ? STATUS_OK : STATUS_MISSING, false);
+        guiGraphics.pose().popMatrix();
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (showsSidePanel() && panel.mouseClicked(mouseX, mouseY)) {
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(layout.texture(), leftPos, topPos, 0, 0, imageWidth, imageHeight);
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, layout.texture(), leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
         if (showsSidePanel()) {
             panel.render(guiGraphics, font, mouseX, mouseY);
         }
         if (layout.flame() && menu.isBurning()) {
             int flame = menu.burnScaled(13) + 1;
-            guiGraphics.blitSprite(LIT_PROGRESS_SPRITE, 14, 14, 0, 14 - flame, leftPos + 56, topPos + 36 + 14 - flame, 14, flame);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, LIT_PROGRESS_SPRITE, 14, 14, 0, 14 - flame, leftPos + 56, topPos + 36 + 14 - flame, 14, flame);
         }
         if (layout.arrow()) {
             int arrow = menu.progressScaled(24);
             if (arrow > 0) {
-                guiGraphics.blitSprite(BURN_PROGRESS_SPRITE, 24, 16, 0, 0, leftPos + 79, topPos + 34, arrow, 16);
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, BURN_PROGRESS_SPRITE, 24, 16, 0, 0, leftPos + 79, topPos + 34, arrow, 16);
             }
         }
         if (layout.fluid()) {

@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.foundation.client;
 
 import java.util.List;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -43,16 +43,16 @@ public final class RecipePickerPopup {
         }
     }
 
-    public void render(GuiGraphics graphics, Font font, int dimLeft, int dimTop, int dimWidth, int dimHeight,
+    public void render(GuiGraphicsExtractor graphics, Font font, int dimLeft, int dimTop, int dimWidth, int dimHeight,
                        Component title, List<ItemStack> results, int selected, int mouseX, int mouseY) {
-        graphics.pose().pushPose();
-        graphics.pose().translate(0, 0, 400);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(0, 0);
         graphics.fill(dimLeft, dimTop, dimLeft + dimWidth, dimTop + dimHeight, DIM);
         graphics.fill(x + 2, y + 2, x + WIDTH + 2, y + HEIGHT + 2, DIM);
         graphics.fill(x, y, x + WIDTH, y + HEIGHT, 0xFF1E1E1E);
         graphics.fill(x + 1, y + 1, x + WIDTH - 1, y + HEIGHT - 1, 0xFFFFFFFF);
         graphics.fill(x + 2, y + 2, x + WIDTH - 2, y + HEIGHT - 2, 0xFFC6C6C6);
-        graphics.drawString(font, title, x + PAD, y + 5, 0xFF404040, false);
+        graphics.text(font, title, x + PAD, y + 5, 0xFF404040, false);
         int gx = gridX();
         int gy = gridY();
         int hovered = indexAt(mouseX, mouseY, results.size());
@@ -64,7 +64,7 @@ public final class RecipePickerPopup {
                 graphics.fill(sx, sy, sx + CELL, sy + CELL, 0xFF373737);
                 graphics.fill(sx + 1, sy + 1, sx + CELL - 1, sy + CELL - 1, index == selected ? SELECTED : 0xFF8B8B8B);
                 if (index < results.size()) {
-                    graphics.renderItem(results.get(index), sx + 1, sy + 1);
+                    graphics.item(results.get(index), sx + 1, sy + 1);
                     if (index == hovered) {
                         graphics.fill(sx + 1, sy + 1, sx + CELL - 1, sy + CELL - 1, HOVERED);
                     }
@@ -79,7 +79,7 @@ public final class RecipePickerPopup {
             int ky = gy + (ROWS * CELL - knob) * scroll / max;
             graphics.fill(bx + 1, ky + 1, bx + BAR_WIDTH - 1, ky + knob - 1, 0xFFDDDDDD);
         }
-        graphics.pose().popPose();
+        graphics.pose().popMatrix();
     }
 
     /** Index of the recipe under the mouse, or -1. */
