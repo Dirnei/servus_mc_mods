@@ -84,6 +84,8 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         public String remote;
         /** Whether the other site was asked once; a transfer ends with its shipments after that. */
         public boolean shipped;
+        /** Retries a just woken site gets before its missing stock counts; not saved. */
+        public int tries;
 
         Request(int id, ItemKey key, int requested) {
             this.id = id;

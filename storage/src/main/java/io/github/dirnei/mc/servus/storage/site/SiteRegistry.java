@@ -105,6 +105,24 @@ public final class SiteRegistry extends SavedData {
         }
     }
 
+    /**
+     * Writes a record without a controller, for GameTests and tools: a site
+     * as it is remembered while it sleeps.
+     */
+    public SiteRecord remember(ResourceKey<Level> dimension, BlockPos pos, String name, UUID team, Set<Long> span, int upgrades,
+                               Map<ItemKey, Long> stock, Set<UUID> wireless) {
+        SiteRecord record = new SiteRecord(dimension, pos);
+        record.name = name;
+        record.team = team;
+        record.span.addAll(span);
+        record.upgrades = upgrades;
+        record.stock.putAll(stock);
+        record.wireless.addAll(wireless);
+        sites.put(record.key(), record);
+        setDirty();
+        return record;
+    }
+
     public void remove(ResourceKey<Level> dimension, BlockPos pos) {
         if (sites.remove(SiteRecord.key(dimension, pos)) != null) {
             setDirty();

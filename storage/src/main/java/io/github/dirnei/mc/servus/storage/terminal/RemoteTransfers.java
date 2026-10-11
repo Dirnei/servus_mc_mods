@@ -35,6 +35,9 @@ public final class RemoteTransfers {
     public record Hold(BlockPos terminal, int requestId) {
     }
 
+    /** Retries for a site that answers out of stock right after it came online. */
+    private static final int WAKE_TRIES = 3;
+
     private RemoteTransfers() {
     }
 
@@ -122,9 +125,16 @@ public final class RemoteTransfers {
         if (!state(level, site.get()).orderable()) {
             return "site_asleep";
         }
+        if (network(level, site.get()).filter(network -> network.available(key) <= 0).isPresent()) {
+            return "out_of_stock";
+        }
         Request request = terminal.newRequest(level, key, amount);
         request.remote = siteKey;
         request.missing = amount;
+        if (network(level, site.get()).isPresent()) {
+            // An online site answers now; only a site that still has to wake gets retries.
+            request.tries = WAKE_TRIES;
+        }
         String refusal = ship(level, terminal, request);
         if (request.shipped && request.shipments.isEmpty()) {
             terminal.removeRequest(request.id);
@@ -164,9 +174,14 @@ public final class RemoteTransfers {
             // Keeps the site loaded for the shuttles and the wireless station until the request leaves the list.
             SiteWakes.hold(level, site.get().pos(), hold);
         }
-        request.shipped = true;
         WarehouseNetwork.Shipping shipping = remote.get().shipWireless(receiver.get().getBlockPos(), request.key, request.missing,
                 request.id, team.get());
+        if (!shipping.shipped() && request.tries < WAKE_TRIES) {
+            // A site that just woke may not have joined its stations or indexed its storage yet: ask again with the next retry.
+            request.tries++;
+            return "";
+        }
+        request.shipped = true;
         if (!shipping.shipped()) {
             return shipping.refusal();
         }

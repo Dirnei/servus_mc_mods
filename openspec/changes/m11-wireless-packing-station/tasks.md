@@ -20,7 +20,7 @@
 
 ## 5. GameTests
 
-- [ ] 5.1 `storage/.../gametest/WirelessPackingStationGameTests.java`: `wirelessStationIsNoDataMember`, `transferMovesItemsAndCostsEnergy` (two sites in one area, same team: crate to crate, FE taken by the receiver, ledger done), `noPowerNoTransfer`, `otherTeamRefused`, `terminalListsSitesAndRemoteStock` (site rows, live stock of the other site, greyed last known stock of a recorded sleeping site), `remoteRequestArrivesInStorage` (terminal request on the other site: listed, items put away at this site, row gone), `sleepingSiteWithoutUpgradeRefused`, `wakeableSiteHeldForRequest` (hold while open, released on cancel), `dataShipmentIgnoresWirelessStation`. Run `gradlew :storage:runGameTestServer`; all storage GameTests stay green.
+- [x] 5.1 `storage/.../gametest/WirelessPackingStationGameTests.java`: `wirelessStationIsNoDataMember`, `transferMovesItemsAndCostsEnergy` (two sites in one area, same team: crate to crate, FE taken by the receiver, ledger done), `noPowerNoTransfer`, `otherTeamRefused`, `terminalListsSitesAndRemoteStock` (site rows, live stock of the other site, greyed last known stock of a recorded sleeping site), `remoteRequestArrivesInStorage` (terminal request on the other site: listed, items put away at this site, row gone), `sleepingSiteWithoutUpgradeRefused`, `wakeableSiteHeldForRequest` (hold while open, released on cancel), `dataShipmentIgnoresWirelessStation`. Run `gradlew :storage:runGameTestServer`; all storage GameTests stay green.
 
 ## 6. Docs and plan
 
