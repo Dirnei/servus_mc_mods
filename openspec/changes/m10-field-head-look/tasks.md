@@ -18,7 +18,7 @@
 
 ## 5. Tests and docs
 
-- [ ] 5.1 GameTests `storage/.../gametest/FieldLookGameTests.java`: placementFacesPlayer, woodSurvivesPlaceAndBreak, recipeRecordsWood, ripeStateFollowsRipeness, ripeStateFollowsThreshold, updateTagCarriesWaterAndCrop; keep `FieldGameTests` and `HarvesterGameTests` green; `gradlew :storage:runGameTestServer`
+- [x] 5.1 GameTests `storage/.../gametest/FieldLookGameTests.java`: placementFacesPlayer, woodSurvivesPlaceAndBreak, recipeRecordsWood, ripeStateFollowsRipeness, ripeStateFollowsThreshold, updateTagCarriesWaterAndCrop; keep `FieldGameTests` and `HarvesterGameTests` green; `gradlew :storage:runGameTestServer`
 - [ ] 5.2 Docs `docs/src/content/docs/mods/storage.md` Field Head entry and `PLAN.md` M10 list the change; `gradlew build`
 
 ## 6. Verification
