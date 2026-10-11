@@ -34,7 +34,7 @@ public final class ServusStorage {
         for (var block : java.util.List.of(ServusStorageBlocks.CRAFTING_CPU, ServusStorageBlocks.PACKING_STATION,
                 ServusStorageBlocks.INBOUND_STATION, ServusStorageBlocks.OUTBOUND_STATION, ServusStorageBlocks.STORAGE_TERMINAL,
                 ServusStorageBlocks.PRODUCTION_TERMINAL, ServusStorageBlocks.PATTERN_STORAGE, ServusStorageBlocks.CRAFTING_STATION,
-                ServusStorageBlocks.WAREHOUSE_CONTROLLER, ServusStorageBlocks.SHUTTLE_GARAGE)) {
+                ServusStorageBlocks.WAREHOUSE_CONTROLLER, ServusStorageBlocks.SHUTTLE_GARAGE, ServusStorageBlocks.FIELD_HEAD)) {
             Wood.register(block.getId());
         }
         LOGGER.info("Servus: Storage loaded");

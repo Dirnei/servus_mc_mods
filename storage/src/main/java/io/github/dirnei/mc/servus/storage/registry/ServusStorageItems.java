@@ -37,7 +37,8 @@ public final class ServusStorageItems {
             properties -> new AssistedBlockItem(ServusStorageBlocks.RAIL.get(), RailAssist.INSTANCE, properties));
     public static final DeferredItem<AssistedBlockItem> FARM_RAIL = ITEMS.registerItem("farm_rail",
             properties -> new AssistedBlockItem(ServusStorageBlocks.FARM_RAIL.get(), RailAssist.INSTANCE, properties));
-    public static final DeferredItem<BlockItem> FIELD_HEAD = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.FIELD_HEAD);
+    public static final DeferredItem<WoodBlockItem> FIELD_HEAD = ITEMS.registerItem("field_head",
+            properties -> new WoodBlockItem(ServusStorageBlocks.FIELD_HEAD.get(), properties));
     public static final DeferredItem<ElevatorItem> ELEVATOR = ITEMS.registerItem("elevator",
             properties -> new ElevatorItem(ServusStorageBlocks.ELEVATOR.get(), properties));
     public static final DeferredItem<WoodBlockItem> INBOUND_STATION = ITEMS.registerItem("inbound_station",
