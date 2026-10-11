@@ -58,6 +58,11 @@ public final class ServusStorageBlockEntities {
                     .of(InboundStationBlockEntity::new, ServusStorageBlocks.INBOUND_STATION.get())
                     .build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity>> WIRELESS_PACKING_STATION =
+            BLOCK_ENTITIES.register("wireless_packing_station", () -> BlockEntityType.Builder
+                    .of(io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity::new, ServusStorageBlocks.WIRELESS_PACKING_STATION.get())
+                    .build(null));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackingStationBlockEntity>> PACKING_STATION =
             BLOCK_ENTITIES.register("packing_station", () -> BlockEntityType.Builder
                     .of(PackingStationBlockEntity::new, ServusStorageBlocks.PACKING_STATION.get())

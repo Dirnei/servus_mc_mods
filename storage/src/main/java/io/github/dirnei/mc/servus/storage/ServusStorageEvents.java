@@ -102,6 +102,11 @@ public final class ServusStorageEvents {
                     (station, side) -> station.handlerFor(side));
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point.handlerFor(side));
+            // The Wireless Packing Station takes packets and hoppers like the Packing Station and FE, but never joins a data line.
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.WIRELESS_PACKING_STATION.get(),
+                    (point, side) -> point.handlerFor(side));
+            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusStorageBlockEntities.WIRELESS_PACKING_STATION.get(),
+                    (point, side) -> point.energy());
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point);
             event.registerBlockEntity(ServusFoundationCapabilities.TRANSFER_GATE, ServusStorageBlockEntities.PACKING_STATION.get(),

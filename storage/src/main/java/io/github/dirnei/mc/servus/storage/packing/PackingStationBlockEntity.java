@@ -123,6 +123,11 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         super(ServusStorageBlockEntities.PACKING_STATION.get(), pos, state);
     }
 
+    /** For the Wireless Packing Station, which keeps this warehouse side with its own type. */
+    protected PackingStationBlockEntity(net.minecraft.world.level.block.entity.BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
+    }
+
     @Override
     public ItemStackHandler deliveries() {
         return outgoing;
@@ -254,7 +259,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     /** Refills both budgets by one tick, following the rate from data and upgrades. */
-    private void tickBudgets() {
+    protected void tickBudgets() {
         usedIn.tick();
         usedOut.tick();
         double rate = rate();
@@ -392,6 +397,35 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         return sending() && runningFor != null && runningFor.id() == shipmentId;
     }
 
+    // Hooks for the Wireless Packing Station, which moves the items of its shipments itself
+
+    /** The open shipments, oldest first, after saved ones were found in the ledger again. */
+    protected List<Shipment> liveShipments() {
+        if (!unresolved.isEmpty()) {
+            resolve();
+        }
+        shipments.removeIf(Shipment::ended);
+        return shipments;
+    }
+
+    /** How many items a shipment still waits for. */
+    protected static int missingOf(Shipment shipment) {
+        return shipment.missing();
+    }
+
+    /** Books items of a shipment that arrived; the shipment ends once nothing is missing. */
+    protected void credit(Shipment shipment, int count) {
+        ledger().delivered(shipment.transfer, count);
+        endIfComplete(shipment);
+        setChanged();
+    }
+
+    /** Ends a shipment that cannot go on; what still waits in the outgoing buffer goes back into storage. */
+    protected void endShipment(Shipment shipment) {
+        ledger().end(shipment.transfer);
+        setChanged();
+    }
+
     private void endIfComplete(Shipment shipment) {
         if (shipment.missing() == 0) {
             ledger().end(shipment.transfer);
@@ -421,7 +455,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     /** Starts the next delivery when none runs, and hands items nobody waits for to the intake. */
-    private void ship(ServerLevel server) {
+    protected void ship(ServerLevel server) {
         if (!unresolved.isEmpty()) {
             resolve();
         }
@@ -466,7 +500,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     /** Moves items in the outgoing buffer that no open shipment wants into the intake, to be put away. */
-    private void returnOrphans() {
+    protected void returnOrphans() {
         for (int slot = 0; slot < outgoing.getSlots(); slot++) {
             ItemStack stack = outgoing.getStackInSlot(slot);
             if (stack.isEmpty() || wanted(ItemKey.of(stack))) {
@@ -517,7 +551,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         setChanged();
     }
 
-    private int outgoingCount(ItemKey key) {
+    protected int outgoingCount(ItemKey key) {
         int count = 0;
         for (int slot = 0; slot < outgoing.getSlots(); slot++) {
             ItemStack stack = outgoing.getStackInSlot(slot);
@@ -528,7 +562,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         return count;
     }
 
-    private void setActivity(boolean working) {
+    protected void setActivity(boolean working) {
         if (level == null || level.isClientSide() || !isEmpty()) {
             return;
         }

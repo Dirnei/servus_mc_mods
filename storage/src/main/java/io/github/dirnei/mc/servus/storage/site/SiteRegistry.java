@@ -95,6 +95,16 @@ public final class SiteRegistry extends SavedData {
         }
     }
 
+    /** The teams with a Wireless Packing Station at the controller's site; written only when they changed. */
+    public void updateWireless(WarehouseControllerBlockEntity controller, Set<UUID> teams) {
+        SiteRecord record = update(controller);
+        if (!record.wireless.equals(teams)) {
+            record.wireless.clear();
+            record.wireless.addAll(teams);
+            setDirty();
+        }
+    }
+
     public void remove(ResourceKey<Level> dimension, BlockPos pos) {
         if (sites.remove(SiteRecord.key(dimension, pos)) != null) {
             setDirty();

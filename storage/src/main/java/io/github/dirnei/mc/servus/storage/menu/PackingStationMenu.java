@@ -224,7 +224,8 @@ public class PackingStationMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ServusStorageBlocks.PACKING_STATION.get());
+        return stillValid(access, player, ServusStorageBlocks.PACKING_STATION.get())
+                || stillValid(access, player, ServusStorageBlocks.WIRELESS_PACKING_STATION.get());
     }
 
     // Sync

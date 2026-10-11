@@ -37,6 +37,10 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS = 4;
     public static final int DEFAULT_CHUNKS_PER_UPGRADE = 9;
     public static final int DEFAULT_WAKE_GRACE_SECONDS = 30;
+    public static final double DEFAULT_WIRELESS_ITEMS_PER_SECOND = 8.0;
+    public static final int DEFAULT_WIRELESS_ENERGY_CAPACITY = 100000;
+    public static final double DEFAULT_WIRELESS_FE_PER_ITEM = 4.0;
+    public static final double DEFAULT_WIRELESS_FE_PER_ITEM_PER_BLOCK = 0.02;
     public static final int DEFAULT_SITE_SNAPSHOT_INTERVAL = 100;
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
     public static final int DEFAULT_INBOUND_BUFFER_SLOTS = 9;
@@ -72,6 +76,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private static final ResourceLocation PATTERN_STORAGE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
     private static final ResourceLocation SHUTTLE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "shuttle");
     private static final ResourceLocation FIELD = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field");
+    private static final ResourceLocation WIRELESS = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "wireless_packing_station");
 
     public static final StorageStatsManager INSTANCE = new StorageStatsManager();
 
@@ -97,6 +102,10 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int chunksPerUpgrade = DEFAULT_CHUNKS_PER_UPGRADE;
     private volatile int wakeGraceTicks = DEFAULT_WAKE_GRACE_SECONDS * 20;
     private volatile int siteSnapshotInterval = DEFAULT_SITE_SNAPSHOT_INTERVAL;
+    private volatile double wirelessItemsPerSecond = DEFAULT_WIRELESS_ITEMS_PER_SECOND;
+    private volatile int wirelessEnergyCapacity = DEFAULT_WIRELESS_ENERGY_CAPACITY;
+    private volatile double wirelessFePerItem = DEFAULT_WIRELESS_FE_PER_ITEM;
+    private volatile double wirelessFePerItemPerBlock = DEFAULT_WIRELESS_FE_PER_ITEM_PER_BLOCK;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
     private volatile int inboundBufferSlots = DEFAULT_INBOUND_BUFFER_SLOTS;
     private volatile int putAwayPerTick = DEFAULT_PUT_AWAY_PER_TICK;
@@ -148,6 +157,10 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         chunksPerUpgrade = intField(files.get(WAREHOUSE), "chunks_per_upgrade", DEFAULT_CHUNKS_PER_UPGRADE);
         wakeGraceTicks = countField(files.get(WAREHOUSE), "wake_grace_seconds", DEFAULT_WAKE_GRACE_SECONDS) * 20;
         siteSnapshotInterval = intField(files.get(WAREHOUSE), "site_snapshot_interval", DEFAULT_SITE_SNAPSHOT_INTERVAL);
+        wirelessItemsPerSecond = doubleField(files.get(WIRELESS), "items_per_second", DEFAULT_WIRELESS_ITEMS_PER_SECOND);
+        wirelessEnergyCapacity = intField(files.get(WIRELESS), "energy_capacity", DEFAULT_WIRELESS_ENERGY_CAPACITY);
+        wirelessFePerItem = costField(files.get(WIRELESS), "fe_per_item", DEFAULT_WIRELESS_FE_PER_ITEM);
+        wirelessFePerItemPerBlock = costField(files.get(WIRELESS), "fe_per_item_per_block", DEFAULT_WIRELESS_FE_PER_ITEM_PER_BLOCK);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
         inboundBufferSlots = intField(files.get(WAREHOUSE), "inbound_buffer_slots", DEFAULT_INBOUND_BUFFER_SLOTS);
         putAwayPerTick = intField(files.get(WAREHOUSE), "put_away_per_tick", DEFAULT_PUT_AWAY_PER_TICK);
@@ -178,6 +191,14 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private static double doubleField(JsonElement element, String field, double fallback) {
         if (element instanceof JsonObject object && object.has(field)) {
             return Math.max(0.01, object.get(field).getAsDouble());
+        }
+        return fallback;
+    }
+
+    /** A cost: 0 or more, fractions allowed. */
+    private static double costField(JsonElement element, String field, double fallback) {
+        if (element instanceof JsonObject object && object.has(field)) {
+            return Math.max(0, object.get(field).getAsDouble());
         }
         return fallback;
     }
@@ -305,6 +326,32 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     /** Chunks one Chunk Loader Upgrade covers. */
     public int chunksPerUpgrade() {
         return chunksPerUpgrade;
+    }
+
+    /** Items per second a Wireless Packing Station converts per direction, before upgrades. */
+    public double wirelessItemsPerSecond() {
+        return wirelessItemsPerSecond;
+    }
+
+    /** FE a Wireless Packing Station holds. */
+    public int wirelessEnergyCapacity() {
+        return wirelessEnergyCapacity;
+    }
+
+    /** FE every item of a wireless transfer costs. */
+    public double wirelessFePerItem() {
+        return wirelessFePerItem;
+    }
+
+    /** FE every item costs per block between the two stations. */
+    public double wirelessFePerItemPerBlock() {
+        return wirelessFePerItemPerBlock;
+    }
+
+    /** For GameTests: the two FE numbers of wireless transfers. */
+    public void setWirelessCost(double perItem, double perItemPerBlock) {
+        wirelessFePerItem = Math.max(0, perItem);
+        wirelessFePerItemPerBlock = Math.max(0, perItemPerBlock);
     }
 
     /** Ticks a woken site stays loaded after its work is done. */

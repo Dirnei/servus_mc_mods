@@ -6,7 +6,7 @@
 
 ## 2. Block and data
 
-- [ ] 2.1 `storage/.../packing/WirelessPackingStationBlock.java`, `WirelessPackingStationBlockEntity.java` (team, FE buffer, rate from data, status), `PackingStationBlockEntity.java` (protected shipping hook and helpers), `PackingStationMenu.java` (valid for both blocks), registries (block, item, block entity, creative tab, wood registration), `ServusStorageEvents` (item handler and energy capabilities), `StorageStatsManager` and `storage/src/main/resources/data/servus_storage/storage/wireless_packing_station.json`, textures. Run `gradlew build`.
+- [x] 2.1 `storage/.../packing/WirelessPackingStationBlock.java`, `WirelessPackingStationBlockEntity.java` (team, FE buffer, rate from data, status), `PackingStationBlockEntity.java` (protected shipping hook and helpers), `PackingStationMenu.java` (valid for both blocks), registries (block, item, block entity, creative tab, wood registration), `ServusStorageEvents` (item handler and energy capabilities), `StorageStatsManager` and `storage/src/main/resources/data/servus_storage/storage/wireless_packing_station.json`, textures. Run `gradlew build`.
 - [ ] 2.2 Datagen: block state (station lamps), loot (wooden), mineable tag, recipe, lang (block, tooltip, status lines). Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 3. Transfers

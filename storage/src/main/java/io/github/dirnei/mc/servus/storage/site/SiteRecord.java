@@ -30,6 +30,8 @@ public final class SiteRecord {
     final Set<Long> span = new LinkedHashSet<>();
     int upgrades;
     final Map<ItemKey, Long> stock = new LinkedHashMap<>();
+    /** Teams with a Wireless Packing Station at the site. */
+    final Set<UUID> wireless = new LinkedHashSet<>();
     long lastSeen;
 
     public SiteRecord(ResourceKey<Level> dimension, BlockPos pos) {
@@ -86,6 +88,15 @@ public final class SiteRecord {
         return Collections.unmodifiableMap(stock);
     }
 
+    /** Whether a Wireless Packing Station of that team stands at the site. */
+    public boolean hasWireless(UUID team) {
+        return team != null && wireless.contains(team);
+    }
+
+    public Set<UUID> wireless() {
+        return Collections.unmodifiableSet(wireless);
+    }
+
     /** Game time of the last stock report. */
     public long lastSeen() {
         return lastSeen;
@@ -110,6 +121,9 @@ public final class SiteRecord {
             items.add(entry);
         });
         tag.put("Stock", items);
+        ListTag teams = new ListTag();
+        wireless.forEach(id -> teams.add(net.minecraft.nbt.NbtUtils.createUUID(id)));
+        tag.put("Wireless", teams);
         return tag;
     }
 
@@ -126,6 +140,9 @@ public final class SiteRecord {
         }
         record.upgrades = tag.getInt("Upgrades");
         record.lastSeen = tag.getLong("Seen");
+        for (Tag raw : tag.getList("Wireless", Tag.TAG_INT_ARRAY)) {
+            record.wireless.add(net.minecraft.nbt.NbtUtils.loadUUID(raw));
+        }
         ListTag items = tag.getList("Stock", Tag.TAG_COMPOUND);
         for (int i = 0; i < items.size(); i++) {
             CompoundTag entry = items.getCompound(i);
