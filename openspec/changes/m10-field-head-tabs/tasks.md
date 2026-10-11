@@ -2,11 +2,11 @@
 
 ## 1. Menu
 
-- [ ] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/menu/FieldHeadMenu.java`: `Page` enum, client page state with `page()` and `setPage`, `pageOf(int)`, slot subclasses inactive off their page on the client, new slot positions (crop and range 8,18, anti-corrosion 8,58), inventory 96 and hotbar 154. Run `gradlew build`.
+- [x] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/menu/FieldHeadMenu.java`: `Page` enum, client page state with `page()` and `setPage`, `pageOf(int)`, slot subclasses inactive off their page on the client, new slot positions (crop and range 8,18, anti-corrosion 8,58), inventory 96 and hotbar 154. Run `gradlew build`.
 
 ## 2. Screen and lang
 
-- [ ] 2.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/client/FieldHeadScreen.java`: tabs in the duct look with icons and tooltips, red markers, Field, Water and Upgrades pages per design.md, 176 by 178 panel in one blit. Run `gradlew build`.
+- [x] 2.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/client/FieldHeadScreen.java`: tabs in the duct look with icons and tooltips, red markers, Field, Water and Upgrades pages per design.md, 176 by 178 panel in one blit. Run `gradlew build`.
 - [ ] 2.2 `storage/src/main/java/io/github/dirnei/mc/servus/storage/datagen/ServusStorageLanguageProvider.java`: tab names, `radius`, `size` without the radius. Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 3. Tests
