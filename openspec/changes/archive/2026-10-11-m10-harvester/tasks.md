@@ -36,4 +36,4 @@
 ## 7. Integration
 
 - [x] 7.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch happens in the user's play check (7.2).
-- [ ] 7.2 Play check in game by the user from main: craft a Harvester, fit it with a Cargo Hold, put it into a garage of a warehouse with a field, set wheat, watch it till, plant, come back for ripe wheat, the wheat lands in storage and seeds are replanted; try harvest only, a full warehouse and breaking the head mid run. Verify: the user confirms in game.
+- [x] 7.2 Play check in game by the user from main: craft a Harvester, fit it with a Cargo Hold, put it into a garage of a warehouse with a field, set wheat, watch it till, plant, come back for ripe wheat, the wheat lands in storage and seeds are replanted; try harvest only, a full warehouse and breaking the head mid run. Verify: the user confirms in game.

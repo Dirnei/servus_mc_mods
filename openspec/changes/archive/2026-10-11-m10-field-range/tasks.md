@@ -23,4 +23,4 @@
 ## 5. Integration
 
 - [x] 5.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch with all three mods happens in the user's play check (5.2).
-- [ ] 5.2 Play check in game by the user from main: a new Field Head reaches 2 blocks, two Range Upgrades reach 4 and the farmland stays wet that far, a third upgrade is refused, the radius shows in the GUI; a harvester drives through a shaft on its floor, refuses a field one floor up with the new reason, and puts its harvest only into storage on its floor; the Harvester tooltip warns about lifts. Verify: the user confirms in game.
+- [x] 5.2 Play check in game by the user from main: a new Field Head reaches 2 blocks, two Range Upgrades reach 4 and the farmland stays wet that far, a third upgrade is refused, the radius shows in the GUI; a harvester drives through a shaft on its floor, refuses a field one floor up with the new reason, and puts its harvest only into storage on its floor; the Harvester tooltip warns about lifts. Verify: the user confirms in game.

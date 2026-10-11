@@ -25,4 +25,4 @@
 ## 6. Integration
 
 - [x] 6.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`.
-- [ ] 6.2 Play check in game by the user from main: open the GUI from an upper segment, fit Speed upgrades, see the car run faster, place a segment under the shaft and break the bottom and find the upgrades still in the shaft, break the whole shaft and pick them up. Verify: the user confirms in game.
+- [x] 6.2 Play check in game by the user from main: open the GUI from an upper segment, fit Speed upgrades, see the car run faster, place a segment under the shaft and break the bottom and find the upgrades still in the shaft, break the whole shaft and pick them up. Verify: the user confirms in game.

@@ -7,7 +7,7 @@ The Shuttle Garage is where a warehouse keeps its shuttles: each garage holds a 
 ## Requirements
 
 ### Requirement: Garage block and capacity
-The Shuttle Garage SHALL be a block with a horizontal facing that holds up to `garage_capacity` shuttles (example 4, from `data/<ns>/storage/warehouse.json`). Right clicking it SHALL open a GUI with one slot per shuttle place and the player inventory. A Shuttle item in a slot is a shuttle of the garage; taking it out removes the shuttle. Only Shuttle items fit the slots, one per slot. The GUI SHALL say how many shuttles the garage has and how many are out.
+The Shuttle Garage SHALL be a block with a horizontal facing that holds up to `garage_capacity` shuttles (example 4, from `data/<ns>/storage/warehouse.json`). Right clicking it SHALL open a GUI with one slot per shuttle place and the player inventory. A Shuttle item in a slot is a shuttle of the garage; taking it out removes the shuttle. Only Shuttle items fit the slots, one per slot, with or without modules. A slot SHALL keep its shuttle's modules. The GUI SHALL say how many shuttles the garage has and how many are out.
 
 #### Scenario: Add and take back
 - **WHEN** a player puts two Shuttle items into the garage slots and then takes one out again
@@ -23,7 +23,11 @@ The Shuttle Garage SHALL be a block with a horizontal facing that holds up to `g
 
 #### Scenario: Shuttle out on a job
 - **WHEN** one of three shuttles is out on a job
-- **THEN** the GUI says three shuttles, one out, and the first slot cannot be emptied until it is back
+- **THEN** the GUI says three shuttles, one out, and the slot of that shuttle cannot be emptied until it is back, while the other two can
+
+#### Scenario: Slot of the shuttle that left
+- **WHEN** a garage has only its second slot filled, that shuttle goes out on a job and the player then puts a shuttle into the first slot
+- **THEN** the second slot stays locked and the first slot can be emptied
 
 ### Requirement: Garage is a warehouse node without stock
 The garage SHALL be a member of the warehouse network only through the rail on its back, following the rail only rule for shuttle served blocks: it SHALL NOT link to touching controllers, storage blocks, racks, stations, other garages or elevator segments. It SHALL hold no stock, SHALL NOT make inventories beside it part of the warehouse, and SHALL show the connection lamp like storage blocks, lit only while its back rail links it to an online warehouse. The rail behind it SHALL render a plain arm towards the garage, not a dock piece.

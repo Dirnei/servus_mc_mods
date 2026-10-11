@@ -7,7 +7,7 @@ Shuttles are the warehouse's pickers: small carts that live on the controller, t
 ## Requirements
 
 ### Requirement: Shuttle item and fleet
-A Shuttle SHALL be a craftable item. Shuttles SHALL be kept in Shuttle Garages, each up to `garage_capacity` (in `data/<ns>/storage/warehouse.json`, example 4); the fleet of a warehouse is every shuttle of every garage in its network. The Warehouse Controller SHALL NOT take shuttles.
+A shuttle SHALL be a Shuttle Mk1, Mk2 or Mk3 item; Mk1 is craftable. Shuttles SHALL be kept in Shuttle Garages, each up to `garage_capacity` (in `data/<ns>/storage/warehouse.json`, example 4); the fleet of a warehouse is every shuttle of every garage in its network. Each shuttle item in a garage slot SHALL be one shuttle of the fleet with the tier, upgrades and tool of that item, so shuttles that differ are told apart. The Warehouse Controller SHALL NOT take shuttles.
 
 #### Scenario: Add and take back
 - **WHEN** a player right clicks a garage twice with shuttles and then sneak right clicks it with an empty hand
@@ -18,15 +18,19 @@ A Shuttle SHALL be a craftable item. Shuttles SHALL be kept in Shuttle Garages, 
 - **THEN** another shuttle item is refused and stays in hand
 
 #### Scenario: Controller refuses shuttles
-- **WHEN** a player right clicks the Warehouse Controller with a Shuttle item
+- **WHEN** a player right clicks the Warehouse Controller with a shuttle item
 - **THEN** the shuttle stays in hand and the controller shows its summary
 
+#### Scenario: Mixed garage
+- **WHEN** a garage holds a Mk1 shuttle and a Mk3 shuttle
+- **THEN** the warehouse has two shuttles, one that carries two stacks and one that carries eight
+
 ### Requirement: Shuttles move on the rail graph
-Each shuttle SHALL park on the home rail of its garage, the rail touching that garage. It SHALL travel only along rails and elevator segments at a speed from `warehouse.json` (`shuttle_speed`, example 0.25 blocks per tick). It SHALL change level only by riding a shaft's lift car. Stock in crates and foreign inventories that no shuttle can reach SHALL be served instantly. Stock in Heavy Duty Racks SHALL be served only by shuttles.
+Each shuttle SHALL park on the home rail of its garage, the rail touching that garage. It SHALL travel only along rails and elevator segments at its own speed, the base speed plus its Speed upgrades (in `shuttle.json`, example 0.15 blocks per tick without upgrades). It SHALL change level only by riding a shaft's lift car. Stock in crates and foreign inventories that no shuttle can reach SHALL be served instantly. Stock in Heavy Duty Racks SHALL be served only by shuttles.
 
 #### Scenario: Round trip
-- **WHEN** a shuttle is sent to a crate eight rails away at a quarter block per tick
-- **THEN** it reaches the rail beside the crate after about 32 ticks and is back at its garage after about 64
+- **WHEN** a shuttle without Speed upgrades is sent to a crate six rails away at 0.15 blocks per tick
+- **THEN** it reaches the rail beside the crate after about 40 ticks, stands there for its stop, and is back at its garage about 40 ticks after leaving the crate
 
 #### Scenario: No home rail
 - **WHEN** a garage holds shuttles but no rail touches it
@@ -41,7 +45,7 @@ Each shuttle SHALL park on the home rail of its garage, the rail touching that g
 - **THEN** a request for an item that only sits in the rack is refused with the reason that it needs a shuttle
 
 ### Requirement: Pick jobs
-A request at the storage terminal, or a shipment to a data member, SHALL be split into pick jobs of up to one stack each, one per source block and stack. A job SHALL ride a shuttle when the source touches a rail or segment some garage's home rail reaches and the warehouse has a shuttle; a job for a crate or foreign inventory no shuttle can reach SHALL be served instantly; a job for a rack SHALL only ever ride a shuttle. The free shuttle with the shortest way SHALL take a job, drive to the source rail, take the stack, drive to the rail of the Packing Station that ships the request and deliver. Pick jobs and put-away jobs SHALL share one queue and SHALL be taken in the order they were made.
+A request at the storage terminal, or a shipment to a data member, SHALL be split into pick jobs of up to one stack each, one per source block and stack. A job SHALL ride a shuttle when the source touches a rail or segment some garage's home rail reaches and the warehouse has a shuttle; a job for a crate or foreign inventory no shuttle can reach SHALL be served instantly; a job for a rack SHALL only ever ride a shuttle. Among the free shuttles whose modules fit the job, the one with the shortest way SHALL take it, drive to the source rail, take the stack, drive to the rail of the Packing Station that ships the request and deliver. Pick jobs and put-away jobs SHALL share one queue and SHALL be taken in the order they were made.
 
 #### Scenario: Pick by shuttle
 - **WHEN** a player requests a stack of cobblestone and the only crate holding it stands beside a rail five blocks from a garage
@@ -87,19 +91,23 @@ A shuttle SHALL deliver its cargo into the delivery buffer of the block the job 
 - **THEN** the shuttle unloads the ingots into the station's buffer
 
 ### Requirement: Shuttles are drawn moving
-Every player who can see a garage SHALL see its shuttles that are out on a job as small carts on the rails, moving smoothly along their paths with their cargo shown on top. Idle shuttles SHALL sit inside their garage and SHALL NOT be drawn on the rail; a cart appears on the garage's home rail when it leaves and disappears into the garage when it is back. A shuttle SHALL show its cargo only on the legs where it carries something.
+Every player who can see a garage SHALL see its shuttles that are out on a job on the rails, each drawn with its own look (see `storage/shuttle-looks`), moving smoothly along their paths. A shuttle with an open hold SHALL show its cargo on top; a shuttle with a closed hold SHALL NOT show its cargo. Idle shuttles SHALL sit inside their garage and SHALL NOT be drawn on the rail; a shuttle appears on the garage's home rail when it leaves and disappears into the garage when it is back. A shuttle SHALL show its cargo only on the legs where it carries something.
 
 #### Scenario: Watching a pick
-- **WHEN** a player stands in the aisle while a pick runs
-- **THEN** a cart drives past along the rail, with the picked item visible on its way to the terminal
+- **WHEN** a player stands in the aisle while a Mk1 shuttle runs a pick
+- **THEN** the shuttle drives past along the rail, with the picked item visible in its open crate on its way to the terminal
+
+#### Scenario: Closed hold
+- **WHEN** a Mk2 shuttle carries iron ingots past the player
+- **THEN** the shuttle shows its closed iron hold and no ingots
 
 #### Scenario: Idle fleet
 - **WHEN** a garage holds three idle shuttles
-- **THEN** no cart is drawn on its rail and the garage's right click says three shuttles, none out
+- **THEN** no shuttle is drawn on its rail and the garage's right click says three shuttles, none out
 
 #### Scenario: Watching a put-away
-- **WHEN** a shuttle carries cobblestone from the station to a crate
-- **THEN** the cart shows cobblestone on that leg and nothing on the way home
+- **WHEN** a Mk1 shuttle carries cobblestone from the station to a crate
+- **THEN** the shuttle shows cobblestone on that leg and nothing on the way home
 
 ### Requirement: Shuttles ride the lift car between floors
 A shuttle whose way leads up or down a shaft SHALL stop on the rail beside the shaft and call the car. It SHALL wait there until the car stands at its floor and its call is first in line. Then it drives onto the car, rides to the floor where its way leaves the shaft, and drives off. A shuttle that waits SHALL be drawn standing still.
@@ -141,3 +149,62 @@ When a segment of a shaft is removed, every shuttle riding that shaft's car or w
 #### Scenario: Empty ride
 - **WHEN** the shaft breaks while the car carries an empty shuttle on its way to a source
 - **THEN** the pick job goes back to the front of the queue and nothing drops
+
+### Requirement: Jobs go to shuttles whose modules fit
+Every job SHALL name the modules a shuttle needs for it and whether it is field work. Warehouse picks and put-aways SHALL need no module and SHALL NOT be field work. A free shuttle SHALL take a job only when it has every module the job needs and, for a job that is not field work, is not field only. A warehouse job that no shuttle of the warehouse fits SHALL be served as if the warehouse had no shuttle; a field job that no shuttle fits, or that no free fitting shuttle can drive to, SHALL be dropped, because field work needs a shuttle. A job that only busy shuttles fit SHALL wait in the queue while later jobs that free shuttles fit go ahead.
+
+#### Scenario: Only field only shuttles
+- **WHEN** every shuttle of a warehouse is field only and a player requests cobblestone from a crate beside a rail
+- **THEN** the cobblestone is served instantly as without shuttles
+
+#### Scenario: Shuttles of different tiers share the queue
+- **WHEN** a warehouse has a Mk1 shuttle and a Mk2 shuttle and two picks from different racks are made
+- **THEN** each takes one of them
+
+### Requirement: A shuttle carries several jobs that share a way
+A shuttle that takes a job SHALL also take further queued jobs that share its way, in queue order, until it carries as many jobs as its tier's stacks: picks from the same source to the same destination, put-aways from the same station to the same target. Each job SHALL be loaded, delivered and accounted on its own, and a job that is not loaded when its shuttle is recalled SHALL go back to the queue.
+
+#### Scenario: Two stacks in one trip
+- **WHEN** a player requests 100 cobblestone held in one rack and the only shuttle is a Mk1 with two stacks
+- **THEN** the shuttle takes both pick jobs, of 64 and 36, drives once and delivers all 100
+
+#### Scenario: More than the tier holds
+- **WHEN** a player requests 200 cobblestone held in one rack and the only shuttle is a Mk1 with two stacks
+- **THEN** the shuttle takes the jobs of 64 and 64 first and the rest wait in the queue for its next trip
+
+#### Scenario: Put-away in one trip
+- **WHEN** an inbound station holds three stacks of cobblestone that go to the same rack and the only shuttle is a Mk2 with four stacks
+- **THEN** the shuttle loads all three at the station and puts them into the rack on one trip
+
+#### Scenario: Different ways
+- **WHEN** two picks wait, one from rack A and one from rack B, and the only shuttle is a Mk2
+- **THEN** the shuttle takes the pick from rack A first and the one from rack B on its next trip
+
+### Requirement: Shuttles pause at a lift handover
+A shuttle that rides a lift car SHALL drive into the car, stand still for a short handover time, and only then be carried; when the car reaches its floor, the shuttle SHALL stand still for the same time before it drives off. The time SHALL come from the warehouse stats file (example `lift_handover_ticks` 10). A shuttle SHALL never be drawn moving up or down a shaft by itself: between syncs a client SHALL not move it past the start of a vertical step, so only the car moves it vertically.
+
+#### Scenario: Ride with pauses
+- **WHEN** a shuttle with full Speed rides the car from the ground floor to the second floor
+- **THEN** it drives into the car, stands still, rides up with the car, stands still at the second floor and then drives off, and it is never drawn above the car
+
+### Requirement: Shuttles speed up and brake
+A shuttle SHALL start every leg from standing, speed up by its acceleration each tick until it reaches its top speed, and brake at the same rate so it comes to a stop at the end of its leg and before a lift ride, never past it. The acceleration SHALL come from the shuttle stats file as a base plus a share per Speed upgrade (examples `accel` 0.01 and `accel_per_upgrade` 0.0025 blocks per tick per tick), so a faster shuttle accelerates harder but still needs a longer run to reach its top speed. A shuttle stopped by a gate (waiting for the car or a deck) SHALL start again from standing. Clients SHALL draw the same speeding up and braking.
+
+#### Scenario: Plain shuttle starts
+- **WHEN** a shuttle without Speed upgrades leaves its garage
+- **THEN** it reaches its top speed after about 15 ticks and about one block
+
+#### Scenario: Fast shuttle needs a longer run
+- **WHEN** a Mk3 shuttle with eight Speed upgrades leaves its garage
+- **THEN** it accelerates harder than a plain shuttle and reaches its top speed after about four blocks
+
+#### Scenario: Braking for the end of the leg
+- **WHEN** a shuttle at top speed nears the rail beside the rack it picks from
+- **THEN** it slows down and stands still on that rail without overshooting it
+
+### Requirement: The lift car speeds up and brakes
+The lift car SHALL start each trip from standing, speed up by the lift acceleration each tick up to the lift speed, and brake at the same rate so it stops exactly on its floor. The acceleration SHALL come from the warehouse stats file (example `lift_accel` 0.005 blocks per tick per tick). A car held by a crossing deck SHALL start again from standing. Clients SHALL draw the same speeding up and braking.
+
+#### Scenario: Car trip
+- **WHEN** the car carries a shuttle two floors up
+- **THEN** it starts slowly, reaches its full speed, and slows down before it stops on the second floor
