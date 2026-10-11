@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "servus_foundation:wood",
+    "model": "servus_storage:item/crafting_station"
+  }
+}

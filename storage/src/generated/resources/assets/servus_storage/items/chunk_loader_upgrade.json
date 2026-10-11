@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "servus_storage:item/chunk_loader_upgrade"
+  }
+}

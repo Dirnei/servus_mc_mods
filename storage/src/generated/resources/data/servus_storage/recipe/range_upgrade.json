@@ -2,18 +2,10 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "C": {
-      "item": "minecraft:composter"
-    },
-    "I": {
-      "item": "minecraft:copper_ingot"
-    },
-    "S": {
-      "item": "minecraft:wheat_seeds"
-    },
-    "W": {
-      "item": "minecraft:bone_meal"
-    }
+    "C": "minecraft:composter",
+    "I": "minecraft:copper_ingot",
+    "S": "minecraft:wheat_seeds",
+    "W": "minecraft:bone_meal"
   },
   "pattern": [
     "ISI",
@@ -21,7 +13,6 @@
     "ISI"
   ],
   "result": {
-    "count": 1,
     "id": "servus_storage:range_upgrade"
   }
 }

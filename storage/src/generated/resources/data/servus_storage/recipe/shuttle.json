@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "B": {
-      "item": "servus_storage:rail"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "B": "servus_storage:rail",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone"
   },
   "pattern": [
     "I I",
@@ -18,7 +12,6 @@
     "III"
   ],
   "result": {
-    "count": 1,
     "id": "servus_storage:shuttle"
   }
 }

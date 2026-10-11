@@ -2,18 +2,10 @@
   "type": "servus_foundation:wood_shaped",
   "category": "misc",
   "key": {
-    "C": {
-      "item": "minecraft:chest"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "P": {
-      "tag": "minecraft:planks"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "C": "minecraft:chest",
+    "I": "minecraft:iron_ingot",
+    "P": "#minecraft:planks",
+    "R": "minecraft:redstone"
   },
   "pattern": [
     "III",
@@ -21,7 +13,6 @@
     "PPP"
   ],
   "result": {
-    "count": 1,
     "id": "servus_storage:warehouse_controller"
   }
 }

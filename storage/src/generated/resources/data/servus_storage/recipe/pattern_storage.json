@@ -2,21 +2,11 @@
   "type": "servus_foundation:wood_shaped",
   "category": "misc",
   "key": {
-    "A": {
-      "item": "minecraft:paper"
-    },
-    "C": {
-      "item": "minecraft:chest"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "P": {
-      "tag": "minecraft:planks"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "A": "minecraft:paper",
+    "C": "minecraft:chest",
+    "I": "minecraft:iron_ingot",
+    "P": "#minecraft:planks",
+    "R": "minecraft:redstone"
   },
   "pattern": [
     "IAI",
@@ -24,7 +14,6 @@
     "PPP"
   ],
   "result": {
-    "count": 1,
     "id": "servus_storage:pattern_storage"
   }
 }

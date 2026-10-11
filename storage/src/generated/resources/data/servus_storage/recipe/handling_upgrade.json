@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "C": {
-      "item": "minecraft:copper_ingot"
-    },
-    "P": {
-      "item": "minecraft:piston"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "C": "minecraft:copper_ingot",
+    "P": "minecraft:piston",
+    "R": "minecraft:redstone"
   },
   "pattern": [
     "CRC",
@@ -18,7 +12,6 @@
     "CRC"
   ],
   "result": {
-    "count": 1,
     "id": "servus_storage:handling_upgrade"
   }
 }

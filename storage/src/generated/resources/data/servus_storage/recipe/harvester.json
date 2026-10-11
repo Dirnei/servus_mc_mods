@@ -2,18 +2,10 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "H": {
-      "item": "minecraft:iron_hoe"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "P": {
-      "item": "minecraft:hopper"
-    },
-    "S": {
-      "item": "minecraft:shears"
-    }
+    "H": "minecraft:iron_hoe",
+    "I": "minecraft:iron_ingot",
+    "P": "minecraft:hopper",
+    "S": "minecraft:shears"
   },
   "pattern": [
     "ISI",
@@ -21,7 +13,6 @@
     " P "
   ],
   "result": {
-    "count": 1,
     "id": "servus_storage:harvester"
   }
 }

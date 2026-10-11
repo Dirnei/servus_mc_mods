@@ -2,18 +2,10 @@
   "type": "servus_foundation:wood_shaped",
   "category": "misc",
   "key": {
-    "C": {
-      "item": "minecraft:chest"
-    },
-    "G": {
-      "item": "minecraft:glass"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "P": {
-      "tag": "minecraft:planks"
-    }
+    "C": "minecraft:chest",
+    "G": "minecraft:glass",
+    "I": "minecraft:iron_ingot",
+    "P": "#minecraft:planks"
   },
   "pattern": [
     "GGG",
@@ -21,7 +13,6 @@
     "PPP"
   ],
   "result": {
-    "count": 1,
     "id": "servus_storage:storage_terminal"
   }
 }

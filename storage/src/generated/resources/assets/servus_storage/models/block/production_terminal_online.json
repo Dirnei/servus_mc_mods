@@ -78,7 +78,6 @@
       ]
     }
   ],
-  "render_type": "minecraft:cutout",
   "textures": {
     "board": "servus_foundation:block/wood_board",
     "down": "servus_storage:block/production_terminal_top",

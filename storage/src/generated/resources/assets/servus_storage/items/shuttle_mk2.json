@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "servus_storage:shuttle",
+    "model": "servus_storage:item/shuttle_mk2"
+  }
+}
