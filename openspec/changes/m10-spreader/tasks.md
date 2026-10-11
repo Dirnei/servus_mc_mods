@@ -29,7 +29,7 @@
 
 ## 7. Docs and plan
 
-- [ ] 7.1 `docs/src/content/docs/mods/storage.md` (Spreader, Fertilizer tab) and `PLAN.md` (section 2.3 field work and the M10 list with `m10-spreader`). Run `gradlew :manufacturing:runData` for the docs gamedata, `npx vitest run` in `docs/`, and `openspec validate m10-spreader`.
+- [x] 7.1 `docs/src/content/docs/mods/storage.md` (Spreader, Fertilizer tab) and `PLAN.md` (section 2.3 field work and the M10 list with `m10-spreader`). Run `gradlew :manufacturing:runData` for the docs gamedata, `npx vitest run` in `docs/`, and `openspec validate m10-spreader`.
 
 ## 8. Verification
 

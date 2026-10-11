@@ -1048,6 +1048,25 @@
         {"item": "servus_storage:shuttle_workshop", "count": 1}
       ]
     },
+    "servus_storage:spreader": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IHI", "IDI", " B "],
+      "key": {
+        "B": {"item": "minecraft:bone_block"},
+        "D": {"item": "minecraft:dispenser"},
+        "H": {"item": "minecraft:hopper"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:bone_block", "count": 1},
+        {"item": "minecraft:dispenser", "count": 1},
+        {"item": "minecraft:hopper", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_storage:spreader", "count": 1}
+      ]
+    },
     "servus_storage:storage_terminal": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["GGG", "ICI", "PPP"],
@@ -1110,6 +1129,9 @@
     "minecraft:blast_furnace": {
       "name": "Blast Furnace"
     },
+    "minecraft:bone_block": {
+      "name": "Bone Block"
+    },
     "minecraft:bone_meal": {
       "name": "Bone Meal"
     },
@@ -1154,6 +1176,9 @@
     },
     "minecraft:crafting_table": {
       "name": "Crafting Table"
+    },
+    "minecraft:dispenser": {
+      "name": "Dispenser"
     },
     "minecraft:dropper": {
       "name": "Dropper"
@@ -1370,6 +1395,9 @@
     },
     "servus_storage:shuttle_workshop": {
       "name": "Shuttle Workshop"
+    },
+    "servus_storage:spreader": {
+      "name": "Spreader"
     },
     "servus_storage:storage_terminal": {
       "name": "Storage Terminal"
