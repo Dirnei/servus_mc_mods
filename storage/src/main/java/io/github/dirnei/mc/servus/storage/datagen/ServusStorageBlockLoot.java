@@ -15,7 +15,8 @@ import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 final class ServusStorageBlockLoot extends BlockLootSubProvider {
 
     private static final List<Block> SELF_DROPPING = List.of(ServusStorageBlocks.CRATE.get(), ServusStorageBlocks.DOUBLE_CRATE.get(),
-            ServusStorageBlocks.QUAD_CRATE.get(), ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.ELEVATOR.get());
+            ServusStorageBlocks.QUAD_CRATE.get(), ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.ELEVATOR.get(),
+            ServusStorageBlocks.SHUTTLE_WORKSHOP.get());
 
     /** Blocks that keep the wood of their recipe. */
     private static final List<Block> WOODEN = List.of(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(),

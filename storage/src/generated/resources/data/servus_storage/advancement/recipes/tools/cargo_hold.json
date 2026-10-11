@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_shuttle": {
+      "conditions": {
+        "items": [
+          {
+            "items": "servus_storage:shuttle"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "servus_storage:cargo_hold"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_shuttle"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "servus_storage:cargo_hold"
+    ]
+  }
+}
