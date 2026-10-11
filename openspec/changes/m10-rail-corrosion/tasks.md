@@ -5,7 +5,7 @@
 ## 2. Model swap and textures
 
 - [x] 2.1 Foundation `wood/Wood.java` (`SWAPS` model property) and `wood/client/WoodModel.java` (swap quads by sprite name, cache key with swaps); `gradlew build`
-- [ ] 2.2 Generate `farm_rail_head_exposed`, `_weathered`, `_oxidized`, `_corroded` and `field_head_top_corroded` with a PIL generator in the job tmp dir from vanilla copper textures; `gradlew build`
+- [x] 2.2 Generate `farm_rail_head_exposed`, `_weathered`, `_oxidized`, `_corroded` and `field_head_top_corroded` with a PIL generator in the job tmp dir from vanilla copper textures; `gradlew build`
 
 ## 3. Stage on rails and the head
 
