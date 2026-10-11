@@ -4,9 +4,9 @@ package io.github.dirnei.mc.servus.storage.field;
 public enum PlotState {
     /** Something else is there: a block on the plot, or no soil to till or plant under it. */
     BLOCKED,
-    /** Empty, on dirt or a grass block that a hoe turns into farmland. */
+    /** Empty or overgrown with short grass, on dirt or a grass block that a hoe turns into farmland. */
     TILLABLE,
-    /** Empty, on farmland. */
+    /** Empty or overgrown, on farmland. */
     PLANTABLE,
     /** An age crop that is not ripe yet. */
     GROWING,

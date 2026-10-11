@@ -26,3 +26,18 @@ The Field Head SHALL show in its GUI, and the field command SHALL print, what it
 - **WHEN** the warehouse is online, a Harvester shuttle sits in its garage, wheat is set, the head has water and grass plots lie in the strip
 - **THEN** the GUI says work is ready and a harvester is coming
 
+### Requirement: Plots in sight of the rails
+A field's plots SHALL be the positions at rail level within 4 blocks of a farm rail that are joined to a rail through a chain of open plots, stepping north, east, south and west. A plot is open when it holds air, a crop or a replaceable plant such as short grass, over dirt, a grass block or farmland. A path, a block, water or a gap between rail and soil ends the field there; filling the gap brings the plots behind it back. The harvester clears a replaceable plant before it tills or plants.
+
+#### Scenario: Dirt behind a gap
+- **WHEN** dirt lies two plots beside a rail and the plot between holds no soil
+- **THEN** the far dirt is not part of the field and is not counted to till
+
+#### Scenario: Gap filled
+- **WHEN** the player puts dirt into the gap
+- **THEN** the far plot joins the field and counts to till
+
+#### Scenario: Overgrown grass
+- **WHEN** a grass block beside a rail has short grass on it
+- **THEN** the plot counts to till and the harvester clears the grass and tills it
+

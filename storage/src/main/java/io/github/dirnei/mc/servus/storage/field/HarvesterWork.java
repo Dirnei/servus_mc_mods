@@ -28,7 +28,7 @@ public final class HarvesterWork {
         if (state.getBlock() instanceof CropBlock crop) {
             return crop.isMaxAge(state) ? PlotState.RIPE : PlotState.GROWING;
         }
-        if (!state.isAir()) {
+        if (!isClear(state)) {
             return PlotState.BLOCKED;
         }
         BlockState below = level.getBlockState(plot.below());
@@ -41,6 +41,18 @@ public final class HarvesterWork {
     /** The plot's state as it is in the world now. */
     public static PlotState classify(Level level, BlockPos plot) {
         return classify(level, plot, level.getBlockState(plot));
+    }
+
+    /** Air, or a plant a harvester clears away, such as short grass or a fern. */
+    public static boolean isClear(BlockState state) {
+        return state.isAir() || state.canBeReplaced() && state.getFluidState().isEmpty();
+    }
+
+    /** Clears a plant off the plot, dropping nothing. */
+    private static void clear(ServerLevel level, BlockPos plot) {
+        if (!level.getBlockState(plot).isAir()) {
+            level.destroyBlock(plot, false);
+        }
     }
 
     /** Only dirt and grass blocks are tilled. */
@@ -61,9 +73,10 @@ public final class HarvesterWork {
     /** Turns the dirt or grass block under an empty plot into farmland; false when the ground is not tillable. */
     public static boolean till(ServerLevel level, BlockPos plot) {
         BlockPos ground = plot.below();
-        if (!level.getBlockState(plot).isAir() || !isTillable(level.getBlockState(ground))) {
+        if (!isClear(level.getBlockState(plot)) || !isTillable(level.getBlockState(ground))) {
             return false;
         }
+        clear(level, plot);
         level.setBlockAndUpdate(ground, Blocks.FARMLAND.defaultBlockState());
         level.playSound(null, ground, SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0F, 1.0F);
         return true;
@@ -75,9 +88,10 @@ public final class HarvesterWork {
             return false;
         }
         BlockState state = crop.defaultBlockState();
-        if (!level.getBlockState(plot).isAir() || !state.canSurvive(level, plot)) {
+        if (!isClear(level.getBlockState(plot)) || !state.canSurvive(level, plot)) {
             return false;
         }
+        clear(level, plot);
         level.setBlockAndUpdate(plot, state);
         level.playSound(null, plot, SoundEvents.CROP_PLANTED, SoundSource.BLOCKS, 1.0F, 1.0F);
         return true;

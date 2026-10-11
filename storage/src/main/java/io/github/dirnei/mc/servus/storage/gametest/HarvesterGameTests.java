@@ -171,7 +171,7 @@ public final class HarvesterGameTests {
     /** Ripe wheat is harvested into the crate and every plot is planted again with seeds from the harvest. */
     @GameTest(template = EMPTY, timeoutTicks = 600)
     public static void harvesterHarvestsIntoStorage(GameTestHelper helper) {
-        BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 2), new BlockPos(6, 1, RAIL_Z + 2), new BlockPos(4, 1, RAIL_Z + 3), new BlockPos(9, 1, RAIL_Z - 1)};
+        BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1), new BlockPos(7, 1, RAIL_Z - 1)};
         for (BlockPos plot : plots) {
             crop(helper, plot, Blocks.WHEAT, 7);
         }
@@ -199,8 +199,8 @@ public final class HarvesterGameTests {
     /** Dirt and grass under empty plots in the strip become farmland with wheat; dirt five blocks out and stone stay. */
     @GameTest(template = EMPTY, timeoutTicks = 600)
     public static void harvesterTillsInsideStripOnly(GameTestHelper helper) {
-        BlockPos dirt = new BlockPos(5, 1, RAIL_Z - 2);
-        BlockPos grass = new BlockPos(6, 1, RAIL_Z + 2);
+        BlockPos dirt = new BlockPos(5, 1, RAIL_Z - 1);
+        BlockPos grass = new BlockPos(6, 1, RAIL_Z + 1);
         BlockPos stone = new BlockPos(7, 1, RAIL_Z + 3);
         BlockPos outside = new BlockPos(5, 1, RAIL_Z + 5);
         helper.setBlock(dirt.below(), Blocks.DIRT.defaultBlockState());
@@ -229,7 +229,7 @@ public final class HarvesterGameTests {
     /** Harvest only: ripe wheat is harvested and the farmland stays empty, an empty farmland plot is left alone. */
     @GameTest(template = EMPTY, timeoutTicks = 600)
     public static void harvestOnlyDoesNotPlant(GameTestHelper helper) {
-        BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 2), new BlockPos(6, 1, RAIL_Z + 2)};
+        BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1)};
         for (BlockPos plot : plots) {
             crop(helper, plot, Blocks.WHEAT, 7);
         }
@@ -255,7 +255,7 @@ public final class HarvesterGameTests {
     /** A plain shuttle never drives onto the field, however ripe it is. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void plainShuttleTakesNoFieldJob(GameTestHelper helper) {
-        BlockPos plot = new BlockPos(5, 1, RAIL_Z - 2);
+        BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         crop(helper, plot, Blocks.WHEAT, 7);
         Farm farm = farm(helper, new ItemStack(ServusStorageItems.SHUTTLE.get()));
         helper.runAfterDelay(2, () -> {
@@ -295,7 +295,7 @@ public final class HarvesterGameTests {
     /** Nothing ripe and empty farmland: the harvester picks seeds from the crate and plants. */
     @GameTest(template = EMPTY, timeoutTicks = 600)
     public static void seedsFromStorage(GameTestHelper helper) {
-        BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 2), new BlockPos(6, 1, RAIL_Z + 2), new BlockPos(9, 1, RAIL_Z + 1)};
+        BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(7, 1, RAIL_Z + 1)};
         for (BlockPos plot : plots) {
             helper.setBlock(plot.below(), Blocks.FARMLAND.defaultBlockState());
         }
@@ -349,7 +349,7 @@ public final class HarvesterGameTests {
     /** Wheat goes into the crate zoned for wheat, the seeds into general storage. */
     @GameTest(template = EMPTY, timeoutTicks = 600)
     public static void harvestFollowsZones(GameTestHelper helper) {
-        BlockPos plot = new BlockPos(5, 1, RAIL_Z - 2);
+        BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         crop(helper, plot, Blocks.WHEAT, 7);
         Farm farm = farm(helper, harvester());
         helper.setBlock(SECOND_CRATE, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.SOUTH));
@@ -397,7 +397,7 @@ public final class HarvesterGameTests {
     /** A full warehouse: the harvester waits at its garage with the carrots and stores them once there is room. */
     @GameTest(template = EMPTY, timeoutTicks = 800)
     public static void warehouseFullWaits(GameTestHelper helper) {
-        BlockPos plot = new BlockPos(5, 1, RAIL_Z - 2);
+        BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         crop(helper, plot, Blocks.CARROTS, 7);
         Farm farm = farm(helper, harvester(), ServusStorageBlocks.CRATE.get());
         farm.crate().insert(new ItemStack(Items.COBBLESTONE, farm.crate().capacity()), false);

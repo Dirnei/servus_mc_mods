@@ -8,9 +8,11 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
@@ -71,7 +73,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
     // Rebuilt after a load or change, never saved.
     private FieldStatus status = FieldStatus.NO_FIELD;
     private Set<BlockPos> rails = Set.of();
+    /** Every position within reach of a rail; events on these update {@link #ground}. */
+    private Set<BlockPos> candidates = Set.of();
+    /** The candidates the rails can see, see {@link FieldReach}; the field's plots. */
     private Set<BlockPos> plots = Set.of();
+    /** What every loaded candidate holds, blocked ones included. */
+    private final Map<BlockPos, PlotState> ground = new HashMap<>();
     private List<FieldStrip.Box> boxes = List.of();
     private int minX;
     private int maxX;
@@ -235,11 +242,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         for (BlockPos rail : members) {
             railPositions.add(new FieldPos(rail.getX(), rail.getY(), rail.getZ()));
         }
-        Set<BlockPos> plotSet = new HashSet<>();
+        Set<BlockPos> candidateSet = new HashSet<>();
         for (FieldPos plot : FieldStrip.plots(railPositions)) {
-            plotSet.add(new BlockPos(plot.x(), plot.y(), plot.z()));
+            candidateSet.add(new BlockPos(plot.x(), plot.y(), plot.z()));
         }
-        plots = Collections.unmodifiableSet(plotSet);
+        candidates = Collections.unmodifiableSet(candidateSet);
+        plots = Set.of();
         boxes = FieldStrip.boxes(railPositions);
         minX = Integer.MAX_VALUE;
         minZ = Integer.MAX_VALUE;
@@ -262,7 +270,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
     private void unserve(FieldStatus why, Set<BlockPos> members) {
         status = why;
         rails = members;
+        candidates = Set.of();
         plots = Set.of();
+        ground.clear();
         boxes = List.of();
         ripeness.clear();
         rechecks.clear();
@@ -323,16 +333,39 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
 
     // Ripeness
 
-    /** Reads every loaded plot again. */
+    /** Reads every loaded plot again and works out what the rails can see. */
     public void recheckAll() {
-        ripeness.clear();
+        ground.clear();
         if (level == null) {
             return;
         }
-        for (BlockPos plot : plots) {
+        for (BlockPos plot : candidates) {
             if (level.isLoaded(plot)) {
-                update(plot, level.getBlockState(plot));
+                ground.put(plot, HarvesterWork.classify(level, plot, level.getBlockState(plot)));
             }
+        }
+        refreshReach();
+    }
+
+    /** The plots the rails see now, and their ripeness rebuilt from {@link #ground}. */
+    private void refreshReach() {
+        List<FieldPos> railPositions = new ArrayList<>(rails.size());
+        for (BlockPos rail : rails) {
+            railPositions.add(new FieldPos(rail.getX(), rail.getY(), rail.getZ()));
+        }
+        Set<FieldPos> candidatePositions = new HashSet<>();
+        for (BlockPos plot : candidates) {
+            candidatePositions.add(new FieldPos(plot.getX(), plot.getY(), plot.getZ()));
+        }
+        Set<BlockPos> seen = new HashSet<>();
+        for (FieldPos plot : FieldReach.connected(railPositions, candidatePositions,
+                pos -> ground.getOrDefault(new BlockPos(pos.x(), pos.y(), pos.z()), PlotState.BLOCKED) != PlotState.BLOCKED)) {
+            seen.add(new BlockPos(plot.x(), plot.y(), plot.z()));
+        }
+        plots = Collections.unmodifiableSet(seen);
+        ripeness.clear();
+        for (BlockPos plot : plots) {
+            ripeness.update(plot, ground.get(plot));
         }
     }
 
@@ -351,12 +384,19 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
 
     /** Records what a plot holds now, the block on it being that state. */
     void update(BlockPos plot, BlockState state) {
-        ripeness.update(plot.immutable(), HarvesterWork.classify(level, plot, state));
+        BlockPos key = plot.immutable();
+        PlotState now = HarvesterWork.classify(level, key, state);
+        PlotState before = ground.put(key, now);
+        if ((before == null || before == PlotState.BLOCKED) != (now == PlotState.BLOCKED)) {
+            refreshReach();
+        } else if (plots.contains(key)) {
+            ripeness.update(key, now);
+        }
     }
 
-    /** Whether the head serves a field whose plots hold that position. */
+    /** Whether the head serves a field that reaches that position, seen by the rails or not. */
     public boolean covers(BlockPos pos) {
-        return status == FieldStatus.SERVING && plots.contains(pos);
+        return status == FieldStatus.SERVING && candidates.contains(pos);
     }
 
     /** Whether the field holds that rail or one of its neighbours. */
@@ -431,7 +471,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         return rails;
     }
 
-    /** The plots of the served field, empty when not serving. */
+    /** The plots the rails of the served field can see, empty when not serving. */
     public Set<BlockPos> plots() {
         return plots;
     }

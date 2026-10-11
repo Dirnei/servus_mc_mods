@@ -339,7 +339,7 @@ public final class FieldGameTests {
     /** A crop growing to its last stage counts as ripe at once. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void ripeAfterGrowth(GameTestHelper helper) {
-        BlockPos plot = new BlockPos(4, 1, RAIL_Z + 2);
+        BlockPos plot = new BlockPos(4, 1, RAIL_Z + 1);
         crop(helper, plot, Blocks.WHEAT, 3);
         FieldHeadBlockEntity head = field(helper, 3, 5);
         helper.runAfterDelay(3, () -> {
@@ -357,7 +357,7 @@ public final class FieldGameTests {
     /** Bone meal up to the last stage: ripe a tick later. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void ripeAfterBonemeal(GameTestHelper helper) {
-        BlockPos plot = new BlockPos(4, 1, RAIL_Z - 2);
+        BlockPos plot = new BlockPos(4, 1, RAIL_Z - 1);
         crop(helper, plot, Blocks.CARROTS, 0);
         FieldHeadBlockEntity head = field(helper, 3, 5);
         helper.runAfterDelay(3, () -> {
@@ -449,8 +449,8 @@ public final class FieldGameTests {
     /** Dirt under an empty plot is to till, farmland to plant; hoeing and planting by hand move the plots along. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void openPlotsCounted(GameTestHelper helper) {
-        BlockPos dirtPlot = new BlockPos(4, 1, RAIL_Z + 2);
-        BlockPos farmPlot = new BlockPos(5, 1, RAIL_Z - 2);
+        BlockPos dirtPlot = new BlockPos(4, 1, RAIL_Z + 1);
+        BlockPos farmPlot = new BlockPos(5, 1, RAIL_Z - 1);
         helper.setBlock(dirtPlot.below(), Blocks.DIRT.defaultBlockState());
         helper.setBlock(farmPlot.below(), Blocks.FARMLAND.defaultBlockState());
         FieldHeadBlockEntity head = field(helper, 3, 5);
@@ -473,6 +473,39 @@ public final class FieldGameTests {
                 helper.assertTrue(head.tillableCount() == 0 && head.plantableCount() == 1,
                         "the hoed plot is to plant now, got " + head.tillableCount() + " to till and " + head.plantableCount() + " to plant");
                 helper.assertTrue(head.plantedCount() == 1, "the seeded plot counts as planted, got " + head.plantedCount());
+                helper.succeed();
+            });
+        });
+    }
+
+    /**
+     * The rails see only soil joined to them: dirt behind a gap stays out of
+     * the field until the gap is filled, grass with short grass on it counts.
+     */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void plotsBehindAGapAreOutOfSight(GameTestHelper helper) {
+        BlockPos near = new BlockPos(4, 1, RAIL_Z + 1);
+        BlockPos gap = new BlockPos(4, 1, RAIL_Z + 2);
+        BlockPos far = new BlockPos(4, 1, RAIL_Z + 3);
+        BlockPos overgrown = new BlockPos(5, 1, RAIL_Z - 1);
+        helper.setBlock(near.below(), Blocks.DIRT.defaultBlockState());
+        helper.setBlock(far.below(), Blocks.DIRT.defaultBlockState());
+        helper.setBlock(overgrown.below(), Blocks.GRASS_BLOCK.defaultBlockState());
+        helper.setBlock(overgrown, Blocks.SHORT_GRASS.defaultBlockState());
+        FieldHeadBlockEntity head = field(helper, 3, 5);
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(head.tillableCount() == 2, "near and overgrown plots to till, the far one out of sight, got " + head.tillableCount());
+            helper.assertTrue(!head.plots().contains(helper.absolutePos(far)), "the plot behind the gap is not part of the field");
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            ItemStack dirt = new ItemStack(Items.DIRT);
+            player.setItemInHand(InteractionHand.MAIN_HAND, dirt);
+            BlockPos floor = helper.absolutePos(gap.below(2));
+            helper.setBlock(gap.below(2), Blocks.STONE.defaultBlockState());
+            dirt.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, dirt,
+                    new BlockHitResult(Vec3.atCenterOf(floor).add(0, 0.5, 0), Direction.UP, floor, false)));
+            helper.assertBlockPresent(Blocks.DIRT, gap.below());
+            helper.runAfterDelay(2, () -> {
+                helper.assertTrue(head.tillableCount() == 4, "filling the gap brings the far plot into sight, got " + head.tillableCount());
                 helper.succeed();
             });
         });
