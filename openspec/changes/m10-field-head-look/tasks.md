@@ -23,5 +23,5 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Full `gradlew build`, unit tests and storage GameTests green
+- [x] 6.1 Full `gradlew build`, unit tests and storage GameTests green
 - [ ] 6.2 Play check by the user in game with all three mods: wood per recipe, facing, ripe bar steps and green, water window rising and biome tint, crop icon size on the plate

@@ -676,7 +676,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         if (level == null || level.isClientSide()) {
             return;
         }
-        if (FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity()) != sentWaterLevel) {
+        int water = FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity());
+        if (water != sentWaterLevel) {
+            sentWaterLevel = water;
             syncClients();
         }
     }
@@ -745,9 +747,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         woodSlot.save(tag);
         tag.put("Crop", crop.serializeNBT(registries));
         tag.putBoolean("HarvestOnly", harvestOnly);
-        int water = FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity());
-        tag.putByte("WaterLevel", (byte) water);
-        sentWaterLevel = water;
+        tag.putByte("WaterLevel", (byte) FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity()));
         return tag;
     }
 
