@@ -24,7 +24,7 @@ After `m10-shuttle-tiers` and `m10-shuttle-looks`:
 ## Decisions
 
 ### D1. Steps in the stats file
-`ShuttleTiers.Tier` gains `List<Step> steps` with `record Step(Kind kind, int count)` and `enum StepKind { BOLTS, WIRES, WELD }` (pure). A four argument `Tier` constructor stays for the code and tests that have no steps; a tier with a build and no steps gets `DEFAULT_STEPS` (bolts 4, wires 4, weld 1, bolts 3). JSON, beside `build`:
+`ShuttleTiers.Tier` gains `List<BuildStep> steps` with `record BuildStep(StepKind kind, int count)` and `enum StepKind { BOLTS, WIRES, WELD }` (pure, in `shuttle/module/build/`). A four argument `Tier` constructor stays for the code and tests that have no steps; a tier with a build and no steps gets `BuildStep.DEFAULTS` (bolts 4, wires 4, weld 1, bolts 3); `ShuttleTiers.nextSteps(tier)` gives the steps of the build into the tier above. JSON, beside `build`:
 ```
 "steps": [ { "kind": "bolts", "count": 4 }, { "kind": "wires", "count": 4 }, { "kind": "weld", "count": 1 }, { "kind": "bolts", "count": 3 } ]
 ```

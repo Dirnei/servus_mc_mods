@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module;
 
+import io.github.dirnei.mc.servus.storage.shuttle.module.build.BuildStep;
 import java.util.List;
 
 /**
@@ -27,14 +28,21 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, int stopTicks
      * One tier.
      *
      * @param build the supplies that make this tier from the one below; empty for Mk1
+     * @param steps the steps of a build by hand of this tier; a tier with a build and no steps gets {@link BuildStep#DEFAULTS}
      */
-    public record Tier(int stacks, int maxSpeed, int maxHandling, List<Supply> build) {
+    public record Tier(int stacks, int maxSpeed, int maxHandling, List<Supply> build, List<BuildStep> steps) {
 
         public Tier {
             stacks = Math.max(1, stacks);
             maxSpeed = Math.max(0, maxSpeed);
             maxHandling = Math.max(0, maxHandling);
             build = List.copyOf(build);
+            steps = build.isEmpty() ? List.of() : steps.isEmpty() ? BuildStep.DEFAULTS : List.copyOf(steps);
+        }
+
+        /** A tier whose build by hand has the default steps. */
+        public Tier(int stacks, int maxSpeed, int maxHandling, List<Supply> build) {
+            this(stacks, maxSpeed, maxHandling, build, List.of());
         }
 
         public int max(Kind kind) {
@@ -104,5 +112,10 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, int stopTicks
     /** The build sheet that makes the tier above, or empty at the top tier. */
     public List<Supply> nextBuild(int tier) {
         return tier >= topTier() ? List.of() : tier(tier + 1).build();
+    }
+
+    /** The steps of a build by hand into the tier above, or empty at the top tier. */
+    public List<BuildStep> nextSteps(int tier) {
+        return tier >= topTier() ? List.of() : tier(tier + 1).steps();
     }
 }

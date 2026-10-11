@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers.Kind;
+import io.github.dirnei.mc.servus.storage.shuttle.module.build.BuildStep;
+import io.github.dirnei.mc.servus.storage.shuttle.module.build.StepKind;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class ShuttleTiersTest {
@@ -69,5 +72,19 @@ class ShuttleTiersTest {
     void nextBuildIsTheSheetOfTheTierAbove() {
         assertEquals(TIERS.tier(2).build(), TIERS.nextBuild(1));
         assertTrue(TIERS.nextBuild(3).isEmpty());
+    }
+
+    @Test
+    void buildsWithoutStepsGetTheDefaults() {
+        assertEquals(BuildStep.DEFAULTS, TIERS.nextSteps(1));
+        assertTrue(TIERS.tier(1).steps().isEmpty(), "Mk1 has no build, so no steps");
+        assertTrue(TIERS.nextSteps(3).isEmpty());
+    }
+
+    @Test
+    void givenStepsAreKeptAndClamped() {
+        ShuttleTiers.Tier tier = new ShuttleTiers.Tier(4, 4, 4, List.of(new ShuttleTiers.Supply("minecraft:stone", 1)),
+                List.of(new BuildStep(StepKind.BOLTS, 20), new BuildStep(StepKind.WELD, 0)));
+        assertEquals(List.of(new BuildStep(StepKind.BOLTS, 8), new BuildStep(StepKind.WELD, 1)), tier.steps());
     }
 }

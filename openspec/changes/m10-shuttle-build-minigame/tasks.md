@@ -2,7 +2,7 @@
 
 ## 1. Pure build logic
 
-- [ ] 1.1 `HandBuild`, `BoltBoard`, `WireBoard`, `WeldBoard` and `NamePlate` in `storage/src/main/java/.../storage/shuttle/module/build/`, no Minecraft imports (design D2, D4). `ShuttleTiers.Tier` gains `steps` with `Step`, `StepKind`, `DEFAULT_STEPS`, the four argument constructor kept (design D1). JUnit in `storage/src/test/java/.../storage/shuttle/module/build/`: `HandBuildTest`, `BoltBoardTest`, `WireBoardTest`, `WeldBoardTest`, `NamePlateTest`; `ShuttleTiersTest` gets the default steps and clamps. Verify: `gradlew test`.
+- [x] 1.1 `HandBuild`, `BoltBoard`, `WireBoard`, `WeldBoard` and `NamePlate` in `storage/src/main/java/.../storage/shuttle/module/build/`, no Minecraft imports (design D2, D4). `ShuttleTiers.Tier` gains `steps` with `BuildStep`, `StepKind`, `BuildStep.DEFAULTS`, the four argument constructor kept (design D1). JUnit in `storage/src/test/java/.../storage/shuttle/module/build/`: `HandBuildTest`, `BoltBoardTest`, `WireBoardTest`, `WeldBoardTest`, `NamePlateTest`; `ShuttleTiersTest` gets the default steps and clamps. Verify: `gradlew test`.
 
 ## 2. Data and component
 
