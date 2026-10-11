@@ -22,6 +22,12 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int COLOUR_DUE = 0x2E7D32;
     private static final int COLOUR_WARN = 0xA04000;
     private static final int COLOUR_WATER = 0xFF3F76E4;
+    private static final int COLOUR_DRY = 0xFF9A8F80;
+    private static final int COLOUR_RIPE = 0xFFD8B33A;
+    private static final int COLOUR_MARK = 0xFF202020;
+    private static final int RIPE_X = 72;
+    private static final int RIPE_W = 74;
+    private static final int RIPE_H = 7;
     private static final int BAR_X = 156;
     private static final int BAR_Y = 18;
     private static final int BAR_W = 12;
@@ -29,6 +35,8 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int LINES_Y = 42;
 
     private Button toggle;
+    private Button down;
+    private Button up;
 
     public FieldHeadScreen(FieldHeadMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -45,17 +53,39 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 minecraft.gameMode.handleInventoryButtonClick(menu.containerId, FieldHeadMenu.BUTTON_HARVEST_ONLY);
             }
         }).bounds(leftPos + 30, topPos + FieldHeadMenu.CROP_Y + 1, 110, 14).build());
+        down = addRenderableWidget(Button.builder(Component.literal("-"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_DOWN))
+                .bounds(leftPos + 116, topPos + LINES_Y + 20, 14, 11).build());
+        up = addRenderableWidget(Button.builder(Component.literal("+"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_UP))
+                .bounds(leftPos + 132, topPos + LINES_Y + 20, 14, 11).build());
+    }
+
+    private void press(int id) {
+        if (minecraft != null && minecraft.gameMode != null) {
+            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
+        }
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         toggle.setMessage(Component.translatable(menu.harvestOnly()
                 ? "gui.servus_storage.field_head.harvest_only_on" : "gui.servus_storage.field_head.harvest_only_off"));
+        boolean serving = menu.status() == FieldStatus.SERVING;
+        down.visible = serving;
+        up.visible = serving;
         super.render(graphics, mouseX, mouseY, partialTick);
         int barLeft = leftPos + BAR_X;
         int barTop = topPos + BAR_Y;
         if (mouseX >= barLeft && mouseX < barLeft + BAR_W && mouseY >= barTop && mouseY < barTop + BAR_H) {
-            graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.water", menu.water(), menu.capacity()), mouseX, mouseY);
+            graphics.renderComponentTooltip(font, java.util.List.of(
+                    Component.translatable("gui.servus_storage.field_head.water", menu.water(), menu.capacity()),
+                    Component.translatable(menu.hydrated() ? "gui.servus_storage.field_head.hydrated" : "gui.servus_storage.field_head.dry")),
+                    mouseX, mouseY);
+        }
+        int ripeLeft = leftPos + RIPE_X;
+        int ripeTop = topPos + LINES_Y + 10;
+        if (serving && mouseX >= ripeLeft && mouseX < ripeLeft + RIPE_W && mouseY >= ripeTop && mouseY < ripeTop + RIPE_H) {
+            graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.ripe_tooltip",
+                    menu.ripe(), menu.planted(), percent(menu.ripe(), menu.planted()), menu.threshold()), mouseX, mouseY);
         }
         renderTooltip(graphics, mouseX, mouseY);
     }
@@ -70,8 +100,23 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         int capacity = Math.max(1, menu.capacity());
         int filled = (int) ((long) BAR_H * Math.min(menu.water(), capacity) / capacity);
         if (filled > 0) {
-            graphics.fill(barLeft, barTop + BAR_H - filled, barLeft + BAR_W, barTop + BAR_H, COLOUR_WATER);
+            graphics.fill(barLeft, barTop + BAR_H - filled, barLeft + BAR_W, barTop + BAR_H, menu.hydrated() ? COLOUR_WATER : COLOUR_DRY);
         }
+        if (menu.status() == FieldStatus.SERVING) {
+            int ripeLeft = leftPos + RIPE_X;
+            int ripeTop = topPos + LINES_Y + 10;
+            sunken(graphics, ripeLeft - 1, ripeTop - 1, RIPE_W + 2, RIPE_H + 2);
+            int ripeFill = menu.planted() <= 0 ? 0 : RIPE_W * Math.min(menu.ripe(), menu.planted()) / menu.planted();
+            if (ripeFill > 0) {
+                graphics.fill(ripeLeft, ripeTop, ripeLeft + ripeFill, ripeTop + RIPE_H, menu.harvestDue() ? 0xFF000000 | COLOUR_DUE : COLOUR_RIPE);
+            }
+            int mark = ripeLeft + Math.min(RIPE_W - 1, RIPE_W * menu.threshold() / 100);
+            graphics.fill(mark, ripeTop - 2, mark + 1, ripeTop + RIPE_H + 2, COLOUR_MARK);
+        }
+    }
+
+    private static int percent(int ripe, int planted) {
+        return planted <= 0 ? 0 : 100 * ripe / planted;
     }
 
     private static void sunken(GuiGraphics graphics, int x, int y, int width, int height) {
@@ -93,9 +138,8 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             return;
         }
         graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.size", menu.rails(), menu.plots()), 8, y, COLOUR_TEXT, false);
-        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.crops", menu.planted(), menu.ripe()), 8, y + 10, COLOUR_TEXT, false);
-        graphics.drawString(font, Component.translatable(menu.hydrated() ? "gui.servus_storage.field_head.hydrated" : "gui.servus_storage.field_head.dry"),
-                8, y + 20, menu.hydrated() ? COLOUR_TEXT : COLOUR_WARN, false);
+        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.ripe", menu.ripe(), menu.planted()), 8, y + 10, COLOUR_TEXT, false);
+        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.harvest_at", menu.threshold()), 8, y + 22, COLOUR_TEXT, false);
         FieldWork work = menu.work();
         if (work != null) {
             int colour = switch (work) {
@@ -104,7 +148,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 default -> COLOUR_WARN;
             };
             graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.work." + work.name().toLowerCase(Locale.ROOT)),
-                    8, y + 30, colour, false);
+                    8, y + 34, colour, false);
         }
     }
 }

@@ -69,6 +69,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         }
     };
     private boolean harvestOnly;
+    /** The ripe percent that calls a harvest; 0 follows {@code harvest_share} from {@code field.json}. */
+    private int harvestPercent;
 
     // Rebuilt after a load or change, never saved.
     private FieldStatus status = FieldStatus.NO_FIELD;
@@ -451,6 +453,17 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         return harvestOnly;
     }
 
+    /** The ripe percent of the planted plots that calls a harvest. */
+    public int harvestPercent() {
+        return harvestPercent > 0 ? harvestPercent : FieldThreshold.fromShare(StorageStatsManager.INSTANCE.fieldHarvestShare());
+    }
+
+    /** Moves the harvest threshold by whole steps of {@link FieldThreshold#STEP} percent. */
+    public void stepHarvestPercent(int steps) {
+        harvestPercent = FieldThreshold.step(harvestPercent(), steps);
+        setChanged();
+    }
+
     /** Harvest without planting; turning it on clears the crop. */
     public void setHarvestOnly(boolean on) {
         harvestOnly = on;
@@ -515,7 +528,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
     /** Whether the field has a crop or harvest only set and its ripe share reached the threshold from {@code field.json}. */
     public boolean harvestDue() {
         return status == FieldStatus.SERVING && (harvestOnly || !crop.getStackInSlot(0).isEmpty())
-                && ripeness.due(StorageStatsManager.INSTANCE.fieldHarvestShare());
+                && ripeness.due(harvestPercent() / 100.0);
     }
 
     /**
@@ -570,6 +583,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         tag.put("Water", tank.writeToNBT(registries, new CompoundTag()));
         tag.put("Crop", crop.serializeNBT(registries));
         tag.putBoolean("HarvestOnly", harvestOnly);
+        if (harvestPercent > 0) {
+            tag.putInt("HarvestPercent", harvestPercent);
+        }
     }
 
     @Override
@@ -580,6 +596,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
             crop.deserializeNBT(registries, tag.getCompound("Crop"));
         }
         harvestOnly = tag.getBoolean("HarvestOnly");
+        harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(tag.getInt("HarvestPercent")) : 0;
     }
 
     /** Fills the tank with water; never drains. */

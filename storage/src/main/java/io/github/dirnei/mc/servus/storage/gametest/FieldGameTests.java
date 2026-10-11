@@ -394,6 +394,29 @@ public final class FieldGameTests {
         });
     }
 
+    /** Each head keeps its own harvest threshold: a quarter ripe is due once the head waits for 20 percent. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void harvestThresholdPerHead(GameTestHelper helper) {
+        BlockPos[] plots = {new BlockPos(3, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1), new BlockPos(5, 1, RAIL_Z + 1), new BlockPos(6, 1, RAIL_Z + 1)};
+        crop(helper, plots[0], Blocks.WHEAT, 7);
+        for (int i = 1; i < plots.length; i++) {
+            crop(helper, plots[i], Blocks.WHEAT, 2);
+        }
+        FieldHeadBlockEntity head = field(helper, 3, 5);
+        helper.runAfterDelay(3, () -> {
+            head.setCrop(new ItemStack(Items.WHEAT_SEEDS));
+            helper.assertTrue(head.harvestPercent() == 50, "a new head follows field.json, got " + head.harvestPercent());
+            helper.assertTrue(!head.harvestDue(), "a quarter ripe is not due at 50 percent");
+            head.stepHarvestPercent(-3);
+            helper.assertTrue(head.harvestPercent() == 20 && head.harvestDue(), "a quarter ripe is due at 20 percent");
+            head.stepHarvestPercent(-5);
+            helper.assertTrue(head.harvestPercent() == 10, "the threshold stops at 10 percent");
+            head.stepHarvestPercent(20);
+            helper.assertTrue(head.harvestPercent() == 100 && !head.harvestDue(), "the threshold stops at 100 percent");
+            helper.succeed();
+        });
+    }
+
     /** Harvest due needs a crop or harvest only and half of the planted plots ripe. */
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void harvestDueNeedsCropAndShare(GameTestHelper helper) {

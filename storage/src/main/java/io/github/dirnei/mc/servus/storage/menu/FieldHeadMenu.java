@@ -28,6 +28,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     public static final int HOTBAR_Y = 154;
     public static final int INVENTORY_START = 1;
     public static final int BUTTON_HARVEST_ONLY = 0;
+    public static final int BUTTON_THRESHOLD_DOWN = 1;
+    public static final int BUTTON_THRESHOLD_UP = 2;
     private static final int COLUMNS = 9;
     private static final int FLAG_HYDRATED = 1;
     private static final int FLAG_HARVEST_ONLY = 2;
@@ -48,6 +50,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     private final DataSlot flags = DataSlot.standalone();
     /** The head's work reason plus one; zero while it serves no field. */
     private final DataSlot work = DataSlot.standalone();
+    private final DataSlot threshold = DataSlot.standalone();
 
     public FieldHeadMenu(int containerId, Inventory playerInventory, FieldHeadBlockEntity head) {
         super(ServusStorageMenus.FIELD_HEAD.get(), containerId);
@@ -63,7 +66,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         for (int column = 0; column < COLUMNS; column++) {
             addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
         }
-        for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags, work}) {
+        for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags, work, threshold}) {
             addDataSlot(slot);
         }
         update();
@@ -93,6 +96,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         status.set(head.status().ordinal());
         FieldWork reason = head.work();
         work.set(reason == null ? 0 : reason.ordinal() + 1);
+        threshold.set(head.harvestPercent());
         flags.set((head.hydrated() ? FLAG_HYDRATED : 0) | (head.harvestOnly() ? FLAG_HARVEST_ONLY : 0) | (head.harvestDue() ? FLAG_DUE : 0));
     }
 
@@ -148,6 +152,11 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return work.get() == 0 ? null : FieldWork.byId(work.get() - 1);
     }
 
+    /** The ripe percent that calls a harvest. */
+    public int threshold() {
+        return threshold.get();
+    }
+
     public boolean hydrated() {
         return (flags.get() & FLAG_HYDRATED) != 0;
     }
@@ -165,14 +174,18 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return slots.get(0).getItem();
     }
 
-    /** The toggle turns harvest only on or off. */
+    /** The toggle turns harvest only on or off, the arrows move the harvest threshold. */
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (id != BUTTON_HARVEST_ONLY) {
+        if (id != BUTTON_HARVEST_ONLY && id != BUTTON_THRESHOLD_DOWN && id != BUTTON_THRESHOLD_UP) {
             return false;
         }
         if (!player.level().isClientSide()) {
-            head.setHarvestOnly(!head.harvestOnly());
+            switch (id) {
+                case BUTTON_HARVEST_ONLY -> head.setHarvestOnly(!head.harvestOnly());
+                case BUTTON_THRESHOLD_DOWN -> head.stepHarvestPercent(-1);
+                default -> head.stepHarvestPercent(1);
+            }
             update();
         }
         return true;

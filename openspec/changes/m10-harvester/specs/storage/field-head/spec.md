@@ -41,3 +41,14 @@ A field's plots SHALL be the positions at rail level within 4 blocks of a farm r
 - **WHEN** a grass block beside a rail has short grass on it
 - **THEN** the plot counts to till and the harvester clears the grass and tills it
 
+### Requirement: Harvest threshold per head
+Each Field Head SHALL keep its own harvest threshold, the ripe share of the planted plots that makes a harvest due, set in its GUI with down and up buttons in steps of 10 percent from 10 to 100 percent and saved with the head. A head that was never set follows `harvest_share` from `field.json`. The GUI SHALL show the ripe and planted counts with a bar of the ripe share and a mark at the threshold; the bar turns green once the harvest is due.
+
+#### Scenario: Lower threshold
+- **WHEN** one of four planted plots is ripe and the player lowers the threshold from 50 to 20 percent
+- **THEN** the harvest becomes due
+
+#### Scenario: Default threshold
+- **WHEN** a Field Head is placed and `harvest_share` is 0.5
+- **THEN** its GUI shows "Harvest at 50%"
+

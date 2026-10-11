@@ -113,7 +113,9 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.harvest_only_off", "Harvest only: off");
         add("gui.servus_storage.field_head.water", "Water %s / %s mB");
         add("gui.servus_storage.field_head.size", "Field: %s rails, %s plots");
-        add("gui.servus_storage.field_head.crops", "Planted %s, ripe %s");
+        add("gui.servus_storage.field_head.ripe", "Ripe %s/%s");
+        add("gui.servus_storage.field_head.ripe_tooltip", "%s of %s planted ripe (%s%%), harvest at %s%%");
+        add("gui.servus_storage.field_head.harvest_at", "Harvest at %s%%");
         add("gui.servus_storage.field_head.hydrated", "Hydrated");
         add("gui.servus_storage.field_head.dry", "Dry: needs water");
         add("gui.servus_storage.field_head.work.not_linked", "Rails not linked to a warehouse");

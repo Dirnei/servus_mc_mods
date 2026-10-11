@@ -30,6 +30,7 @@
 
 - [x] 6b.1 The Field Head shows why a field is idle: pure `FieldWork` reason (`storage/.../field/FieldWork.java`, `FieldWorkTest`), `FieldHeadBlockEntity.work()` from the rails' warehouse, synced by `FieldHeadMenu`, a status line in `FieldHeadScreen`, a Work line in `/servus_warehouse field`. Verify: `gradlew build test`.
 - [x] 6b.2 Plots in sight of the rails: pure `FieldReach` flood from the rails through open plots (`FieldReachTest`); the head keeps every candidate's state and rebuilds plots and ripeness when a plot opens or closes; short grass and other replaceable plants count as open and are cleared by the harvester; GameTest `plotsBehindAGapAreOutOfSight`, field test plots moved beside the rails. Verify: `gradlew build test`, `:storage:runGameTestServer`.
+- [x] 6b.3 Harvest threshold per head and a ripe progress bar: pure `FieldThreshold` (`FieldThresholdTest`), `harvestPercent` saved on the head, threshold buttons and data slot in `FieldHeadMenu`, ripe bar with threshold mark in `FieldHeadScreen`, hydration moved into the water bar tooltip and colour; GameTest `harvestThresholdPerHead`. Verify: `gradlew build test`, `:storage:runGameTestServer`.
 
 ## 7. Integration
 
