@@ -80,6 +80,32 @@ public final class ClientStock {
         return shown == null ? List.of() : shown.entries();
     }
 
+    /** The other sites of the team the terminal can show. */
+    public static List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites() {
+        return shown == null ? List.of() : shown.sites();
+    }
+
+    /** The key of the site the grid shows, empty for this site. */
+    public static String view() {
+        return shown == null ? "" : shown.view();
+    }
+
+    /** The state of the site shown, null for this site. */
+    public static io.github.dirnei.mc.servus.storage.site.RemoteSite.State viewState() {
+        if (shown == null || shown.viewState() < 0) {
+            return null;
+        }
+        io.github.dirnei.mc.servus.storage.site.RemoteSite.State[] states = io.github.dirnei.mc.servus.storage.site.RemoteSite.State.values();
+        return shown.viewState() < states.length ? states[shown.viewState()] : null;
+    }
+
+    /** The name of the site shown, empty for this site. */
+    public static String viewName() {
+        String view = view();
+        return sites().stream().filter(row -> row.key().equals(view)).map(io.github.dirnei.mc.servus.storage.terminal.SiteRow::name)
+                .findFirst().orElse("");
+    }
+
     public static List<RequestRow> requests() {
         return shown == null ? List.of() : shown.requests();
     }

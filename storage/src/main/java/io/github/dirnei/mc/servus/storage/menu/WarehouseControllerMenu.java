@@ -8,6 +8,7 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -166,7 +167,24 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         Component summary = network.map(WarehouseNetwork::summary).orElse(Component.empty());
         return new SiteStatusPayload(controller.siteName(), controller.displayName(), online, summary,
                 new ArrayList<>(controller.span()), controller.homeChunk(), controller.upgrades().count(), controller.capacity(),
-                controller.siteState().ordinal(), controller.wakeLine(), controller.wakeAlert());
+                controller.siteState().ordinal(), controller.wakeLine(), controller.wakeAlert(), sites(controller));
+    }
+
+    /** The team's other sites in the controller's dimension, by name. */
+    private static List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites(WarehouseControllerBlockEntity controller) {
+        if (!(controller.getLevel() instanceof net.minecraft.server.level.ServerLevel level) || controller.team().isEmpty()) {
+            return List.of();
+        }
+        java.util.UUID team = controller.team().get();
+        String self = io.github.dirnei.mc.servus.storage.site.SiteRecord.key(level.dimension(), controller.getBlockPos());
+        List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> rows = new ArrayList<>();
+        for (var site : io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).ofTeam(team, level.dimension())) {
+            if (!site.key().equals(self)) {
+                rows.add(new io.github.dirnei.mc.servus.storage.terminal.SiteRow(site.key(), site.name(),
+                        io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.state(level, site).ordinal(), site.hasWireless(team)));
+            }
+        }
+        return rows;
     }
 
     @Override

@@ -660,7 +660,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         renderGrid(graphics, mouseX, mouseY);
         Optional<Cell> hovered = cellUnder(mouseX, mouseY);
         Component tag = tagTooltip(mouseX - leftPos, mouseY - topPos);
-        if (hovered.isPresent()) {
+        if (siteSelector() && overTitle(mouseX, mouseY)) {
+            graphics.renderTooltip(font, font.split(Component.translatable("gui.servus_storage.terminal.site_tooltip"), 200), mouseX, mouseY);
+        } else if (hovered.isPresent()) {
             graphics.renderTooltip(font, cellTooltip(hovered.get()), Optional.empty(), mouseX, mouseY);
         } else if (tag != null) {
             graphics.renderTooltip(font, tag, mouseX, mouseY);
@@ -728,6 +730,14 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 graphics.fill(x - 1, y - 1, x + 17, y + 17, 0xFF5868A8);
             }
             graphics.renderItem(cell.stack(), x, y);
+            if (!cell.isRequest() && greyed()) {
+                // The last known stock of a sleeping site.
+                graphics.pose().pushPose();
+                // Above the item model, below the count drawn at 200.
+                graphics.pose().translate(0, 0, 180);
+                graphics.fill(x, y, x + 16, y + 16, 0xA0707070);
+                graphics.pose().popPose();
+            }
             if (cell.isRequest()) {
                 RequestRow row = cell.request();
                 smallText(graphics, Component.literal(row.delivered() + "/" + row.requested()), x + 16, y + 11, 0xFFFFFFFF);
@@ -767,7 +777,21 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         graphics.pose().popPose();
     }
 
+    /** Whether the grid shows the last known stock of a sleeping site. */
+    private static boolean greyed() {
+        io.github.dirnei.mc.servus.storage.site.RemoteSite.State state = ClientStock.viewState();
+        return state != null && state != io.github.dirnei.mc.servus.storage.site.RemoteSite.State.ONLINE;
+    }
+
     private void renderMessage(GuiGraphics graphics) {
+        io.github.dirnei.mc.servus.storage.site.RemoteSite.State state = ClientStock.viewState();
+        if (ClientStock.message().isEmpty() && state != null) {
+            Component text = Component.translatable("gui.servus_storage.terminal.view." + state.name().toLowerCase(Locale.ROOT), ClientStock.viewName());
+            int colour = state == io.github.dirnei.mc.servus.storage.site.RemoteSite.State.UNREACHABLE ? COLOUR_ALERT : 0x404040;
+            graphics.drawString(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
+                    leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, colour, false);
+            return;
+        }
         if (!ClientStock.message().isEmpty()) {
             Component text = Component.translatable("gui.servus_storage.terminal.message." + ClientStock.message());
             graphics.drawString(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
@@ -872,8 +896,50 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return !panel && !side;
     }
 
+    /** Whether the title is the site selector: the team has other sites to show. */
+    private boolean siteSelector() {
+        return ClientStock.loaded() && !ClientStock.sites().isEmpty();
+    }
+
+    private boolean overTitle(double mouseX, double mouseY) {
+        Rect title = layout.title();
+        double x = mouseX - leftPos;
+        double y = mouseY - topPos;
+        return x >= title.x() && x < title.right() && y >= title.y() - 2 && y < title.bottom() + 2;
+    }
+
+    /** The key of the next (or previous) site after the one shown; this site is the empty key, first in the cycle. */
+    private String nextSite(int step) {
+        List<String> keys = new ArrayList<>();
+        keys.add("");
+        ClientStock.sites().forEach(row -> keys.add(row.key()));
+        int at = Math.max(0, keys.indexOf(ClientStock.view()));
+        return keys.get(Math.floorMod(at + step, keys.size()));
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        if (!siteSelector()) {
+            super.renderLabels(graphics, mouseX, mouseY);
+            return;
+        }
+        String name = ClientStock.view().isEmpty() ? Component.translatable("gui.servus_storage.terminal.this_site").getString()
+                : ClientStock.viewName();
+        String text = font.plainSubstrByWidth("< " + name, layout.title().w() - font.width(" >")) + " >";
+        int colour = overTitle(mouseX, mouseY) ? 0x2050A0 : 0x404040;
+        graphics.drawString(font, text, titleLabelX, titleLabelY, colour, false);
+        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0x404040, false);
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (!dialogOpen() && siteSelector() && overTitle(mouseX, mouseY)
+                && (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
+            PacketDistributor.sendToServer(new io.github.dirnei.mc.servus.storage.terminal.SelectSitePayload(
+                    nextSite(button == GLFW.GLFW_MOUSE_BUTTON_LEFT ? 1 : -1)));
+            scrollRow = 0;
+            return true;
+        }
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && search != null && search.visible && search.isMouseOver(mouseX, mouseY)) {
             search.setValue("");
             scrollRow = 0;

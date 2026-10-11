@@ -25,9 +25,11 @@ import net.minecraft.resources.ResourceLocation;
  * @param state    the {@link SiteCapacity.State} ordinal
  * @param wake     the wake line, empty when there is nothing to say
  * @param wakeAlert whether the wake line explains a problem (drawn red)
+ * @param sites    the team's other sites in the dimension
  */
 public record SiteStatusPayload(String name, String title, int online, Component summary, List<Long> chunks, long home,
-                                int upgrades, int capacity, int state, Component wake, boolean wakeAlert) implements CustomPacketPayload {
+                                int upgrades, int capacity, int state, Component wake, boolean wakeAlert,
+                                List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites) implements CustomPacketPayload {
 
     public static final Type<SiteStatusPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "site_status"));
@@ -36,7 +38,7 @@ public record SiteStatusPayload(String name, String title, int online, Component
             StreamCodec.ofMember(SiteStatusPayload::write, SiteStatusPayload::read);
 
     public static final SiteStatusPayload EMPTY =
-            new SiteStatusPayload("", "", 1, Component.empty(), List.of(), 0L, 0, 0, 0, Component.empty(), false);
+            new SiteStatusPayload("", "", 1, Component.empty(), List.of(), 0L, 0, 0, 0, Component.empty(), false, List.of());
 
     public SiteCapacity.State capacityState() {
         SiteCapacity.State[] states = SiteCapacity.State.values();
@@ -56,6 +58,9 @@ public record SiteStatusPayload(String name, String title, int online, Component
         buf.writeVarInt(state);
         ComponentSerialization.STREAM_CODEC.encode(buf, wake);
         buf.writeBoolean(wakeAlert);
+        List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sent = sites.subList(0, Math.min(sites.size(), 256));
+        buf.writeVarInt(sent.size());
+        sent.forEach(row -> io.github.dirnei.mc.servus.storage.terminal.SiteRow.STREAM_CODEC.encode(buf, row));
     }
 
     private static SiteStatusPayload read(RegistryFriendlyByteBuf buf) {
@@ -74,7 +79,12 @@ public record SiteStatusPayload(String name, String title, int online, Component
         int state = buf.readVarInt();
         Component wake = ComponentSerialization.STREAM_CODEC.decode(buf);
         boolean wakeAlert = buf.readBoolean();
-        return new SiteStatusPayload(name, title, online, summary, chunks, home, upgrades, capacity, state, wake, wakeAlert);
+        int siteCount = Math.min(buf.readVarInt(), 256);
+        List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites = new ArrayList<>(siteCount);
+        for (int i = 0; i < siteCount; i++) {
+            sites.add(io.github.dirnei.mc.servus.storage.terminal.SiteRow.STREAM_CODEC.decode(buf));
+        }
+        return new SiteStatusPayload(name, title, online, summary, chunks, home, upgrades, capacity, state, wake, wakeAlert, sites);
     }
 
     @Override

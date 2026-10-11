@@ -30,6 +30,11 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     private static final int CELL_HOME = 0xFFE0B040;
     private static final int MAP_BACKGROUND = 0xFF2A2D33;
     private static final int STATUS_WIDTH = WarehouseControllerMenu.WIDTH - WarehouseControllerMenu.STATUS_X - 6;
+    /** The side panel with the team's other sites, right of the GUI. */
+    private static final int SITES_GAP = 2;
+    private static final int SITES_WIDTH = 120;
+    private static final int SITE_ROW = 11;
+    private static final int SITES_MAX = 16;
 
     private EditBox name;
     private boolean nameWasFocused;
@@ -122,6 +127,12 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             graphics.renderTooltip(font, font.split(Component.translatable("gui.servus_storage.controller.upgrades.tooltip"), 180), mouseX, mouseY);
         } else if (x >= map.x() && x < map.right() && y >= map.y() && y < map.bottom()) {
             graphics.renderTooltip(font, font.split(Component.translatable("gui.servus_storage.controller.map.tooltip"), 180), mouseX, mouseY);
+        } else if (siteUnder(mouseX, mouseY, status) != null) {
+            io.github.dirnei.mc.servus.storage.terminal.SiteRow site = siteUnder(mouseX, mouseY, status);
+            graphics.renderComponentTooltip(font, List.of(Component.literal(site.name()),
+                    Component.translatable("gui.servus_storage.site.state." + site.remoteState().name().toLowerCase(java.util.Locale.ROOT)),
+                    Component.translatable(site.wireless() ? "gui.servus_storage.site.wireless" : "gui.servus_storage.site.no_wireless")),
+                    mouseX, mouseY);
         } else if (onlineLineY >= 0 && x >= WarehouseControllerMenu.STATUS_X && y >= onlineLineY && y < onlineLineY + 9
                 && !status.summary().getString().isEmpty()) {
             graphics.renderTooltip(font, font.split(status.summary(), 200), mouseX, mouseY);
@@ -139,6 +150,52 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         PanelPainter.slots(graphics, leftPos, topPos, new Rect(8, WarehouseControllerMenu.INVENTORY_Y, 9 * 18, 3 * 18), 9, 27);
         PanelPainter.slots(graphics, leftPos, topPos, new Rect(8, menu.hotbarY(), 9 * 18, 18), 9, 9);
         renderMap(graphics, ClientSiteStatus.status());
+        renderSites(graphics, ClientSiteStatus.status());
+    }
+
+    private int sitesLeft() {
+        return leftPos + imageWidth + SITES_GAP;
+    }
+
+    /** The side panel: a title, then one row per site with a state mark, its name and a mark for a wireless station. */
+    private void renderSites(GuiGraphics graphics, SiteStatusPayload status) {
+        if (status == SiteStatusPayload.EMPTY) {
+            return;
+        }
+        int rows = Math.max(1, Math.min(SITES_MAX, status.sites().size()));
+        int left = sitesLeft();
+        PanelPainter.panel(graphics, left, topPos, SITES_WIDTH, 18 + rows * SITE_ROW + 4);
+        graphics.drawString(font, Component.translatable("gui.servus_storage.controller.sites"), left + 6, topPos + 6, COLOUR_TEXT, false);
+        if (status.sites().isEmpty()) {
+            graphics.drawString(font, Component.translatable("gui.servus_storage.controller.sites.none"), left + 6, topPos + 19, COLOUR_DIM, false);
+            return;
+        }
+        for (int i = 0; i < rows; i++) {
+            io.github.dirnei.mc.servus.storage.terminal.SiteRow site = status.sites().get(i);
+            int y = topPos + 18 + i * SITE_ROW;
+            int mark = switch (site.remoteState()) {
+                case ONLINE -> 0xFF40B040;
+                case SLEEPING -> 0xFFE0B040;
+                case UNREACHABLE -> 0xFFC03030;
+            };
+            graphics.fill(left + 6, y + 1, left + 12, y + 7, mark);
+            String name = font.plainSubstrByWidth(site.name(), SITES_WIDTH - 30);
+            graphics.drawString(font, name, left + 15, y, COLOUR_TEXT, false);
+            if (site.wireless()) {
+                graphics.fill(left + SITES_WIDTH - 10, y + 1, left + SITES_WIDTH - 8, y + 7, 0xFF9050C0);
+                graphics.fill(left + SITES_WIDTH - 12, y + 1, left + SITES_WIDTH - 6, y + 2, 0xFF9050C0);
+            }
+        }
+    }
+
+    private io.github.dirnei.mc.servus.storage.terminal.SiteRow siteUnder(int mouseX, int mouseY, SiteStatusPayload status) {
+        int x = mouseX - sitesLeft();
+        int y = mouseY - topPos - 18;
+        if (x < 0 || x >= SITES_WIDTH || y < 0) {
+            return null;
+        }
+        int row = y / SITE_ROW;
+        return row < Math.min(SITES_MAX, status.sites().size()) ? status.sites().get(row) : null;
     }
 
     private void renderMap(GuiGraphics graphics, SiteStatusPayload status) {
