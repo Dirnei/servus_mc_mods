@@ -1,42 +1,45 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
+import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
-import io.github.dirnei.mc.servus.storage.shuttle.module.ModuleSlot;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
-import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
-import net.minecraft.core.Direction;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModules;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleWorkshopBlockEntity;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
+import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
-/** The Shuttle Workshop, shuttle modules and how the fleet uses them. */
+/** The Shuttle Workshop, shuttle tiers and upgrades, and how the fleet uses them. */
 @GameTestHolder(ServusStorageIds.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class ShuttleModuleGameTests {
@@ -49,93 +52,152 @@ public final class ShuttleModuleGameTests {
     private ShuttleModuleGameTests() {
     }
 
+    /** A workshop at the position and its menu as the server opens it. */
+    static ShuttleWorkshopMenu menu(GameTestHelper helper, Player player, BlockPos pos) {
+        helper.setBlock(pos, ServusStorageBlocks.SHUTTLE_WORKSHOP.get().defaultBlockState());
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(pos);
+        return new ShuttleWorkshopMenu(1, player.getInventory(), workshop, StorageStatsManager.INSTANCE.shuttleTiers());
+    }
+
     private static ShuttleWorkshopMenu workshop(GameTestHelper helper, Player player) {
-        helper.setBlock(WS_POS, ServusStorageBlocks.SHUTTLE_WORKSHOP.get().defaultBlockState());
-        return new ShuttleWorkshopMenu(1, player.getInventory(), ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(WS_POS)));
+        return menu(helper, player, WS_POS);
     }
 
-    private static boolean hasCargoHold(ItemStack shuttle) {
-        return shuttle.is(ServusStorageItems.SHUTTLE.get())
-                && ShuttleModules.of(shuttle).utility().equals(Optional.of(ServusStorageItems.CARGO_HOLD.get()));
+    private static ItemStack speedUpgrades(int count) {
+        return new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get(), count);
     }
 
-    /** Fit a Cargo Hold, carry the shuttle out and back in, take the module out again. */
+    private static ItemStack shuttle(Item tier, int speed, int handling, Optional<Item> tool) {
+        ItemStack shuttle = new ItemStack(tier);
+        ShuttleModules.set(shuttle, new ShuttleModules(tool, speed, handling));
+        return shuttle;
+    }
+
+    private static int count(Player player, Item item) {
+        return player.getInventory().countItem(item);
+    }
+
+    /** A stack of five Speed upgrades on a Mk1 shuttle: two go in, three stay with the player. */
     @GameTest(template = EMPTY)
-    public static void workshopFitsCargoHold(GameTestHelper helper) {
+    public static void installStackUpToMax(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
-        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE.get()));
-        player.getInventory().setItem(1, new ItemStack(ServusStorageItems.CARGO_HOLD.get()));
-
+        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
+        player.getInventory().setItem(1, speedUpgrades(5));
         menu.quickMoveStack(player, HOTBAR);
-        helper.assertTrue(menu.shuttle().is(ServusStorageItems.SHUTTLE.get()), "the shuttle goes into the shuttle slot");
         menu.quickMoveStack(player, HOTBAR + 1);
-        helper.assertTrue(hasCargoHold(menu.shuttle()), "the Cargo Hold is fitted into the shuttle");
-        helper.assertTrue(player.getInventory().getItem(1).isEmpty(), "the Cargo Hold item left the inventory");
-        helper.assertTrue(menu.getSlot(ShuttleWorkshopMenu.UTILITY_SLOT).getItem().is(ServusStorageItems.CARGO_HOLD.get()), "the utility slot shows it");
-        helper.assertTrue(menu.getSlot(ShuttleWorkshopMenu.TOOL_SLOT).getItem().isEmpty(), "the tool slot stays empty");
+        helper.assertTrue(ShuttleModules.of(menu.shuttle()).speed() == 2, "Mk1 takes two Speed upgrades");
+        helper.assertTrue(player.getInventory().getItem(1).getCount() == 3, "three stay with the player");
 
-        menu.quickMoveStack(player, ShuttleWorkshopMenu.SHUTTLE_SLOT);
-        helper.assertTrue(menu.shuttle().isEmpty(), "the shuttle left the workshop");
-        helper.assertTrue(menu.getSlot(ShuttleWorkshopMenu.UTILITY_SLOT).getItem().isEmpty(), "no shuttle, no modules shown");
-        int at = -1;
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            if (hasCargoHold(player.getInventory().getItem(i))) {
-                at = i;
-            }
-        }
-        helper.assertTrue(at >= 0, "the player holds a shuttle with a Cargo Hold");
-
-        int menuIndex = at < 9 ? HOTBAR + at : ShuttleWorkshopMenu.INVENTORY_START + at - 9;
-        menu.quickMoveStack(player, menuIndex);
-        helper.assertTrue(menu.getSlot(ShuttleWorkshopMenu.UTILITY_SLOT).getItem().is(ServusStorageItems.CARGO_HOLD.get()),
-                "back in the workshop the utility slot shows the Cargo Hold");
-
-        menu.quickMoveStack(player, ShuttleWorkshopMenu.UTILITY_SLOT);
-        helper.assertTrue(ShuttleModules.of(menu.shuttle()).isEmpty(), "the module is removed from the shuttle");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(menu.shuttle(), new ItemStack(ServusStorageItems.SHUTTLE.get())),
-                "a shuttle without modules is a plain shuttle again");
-        helper.assertTrue(player.getInventory().countItem(ServusStorageItems.CARGO_HOLD.get()) == 1, "the Cargo Hold is back in the inventory");
+        ItemStack handling = new ItemStack(ServusStorageItems.HANDLING_UPGRADE.get(), 4);
+        ItemStack rest = menu.getSlot(ShuttleWorkshopMenu.INSTALL_SLOT).safeInsert(handling);
+        helper.assertTrue(ShuttleModules.of(menu.shuttle()).handling() == 2, "a click installs up to the max too");
+        helper.assertTrue(rest.getCount() == 2, "the rest stays on the cursor, got " + rest.getCount());
+        helper.assertTrue(menu.getSlot(ShuttleWorkshopMenu.INSTALL_SLOT).getItem().isEmpty(), "the install slot stays empty");
         helper.succeed();
     }
 
-    /** Modules need a shuttle and the slot of their kind; only one shuttle goes in. */
+    /** Nothing installs without a shuttle, and only upgrades and tools install at all. */
     @GameTest(template = EMPTY)
-    public static void workshopRefusesWrongModules(GameTestHelper helper) {
+    public static void installRefusesWithoutShuttleOrUpgrade(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
-        ItemStack cargo = new ItemStack(ServusStorageItems.CARGO_HOLD.get());
-        helper.assertFalse(menu.getSlot(ShuttleWorkshopMenu.UTILITY_SLOT).mayPlace(cargo), "no module without a shuttle");
-        player.getInventory().setItem(1, cargo);
-        menu.quickMoveStack(player, HOTBAR + 1);
-        helper.assertTrue(player.getInventory().getItem(1).getCount() == 1, "shift click leaves the module in the inventory without a shuttle");
-
-        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE.get(), 5));
+        helper.assertFalse(menu.getSlot(ShuttleWorkshopMenu.INSTALL_SLOT).mayPlace(speedUpgrades(1)), "no install without a shuttle");
+        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get(), 5));
         menu.quickMoveStack(player, HOTBAR);
         helper.assertTrue(menu.shuttle().getCount() == 1, "one shuttle goes in");
         helper.assertTrue(player.getInventory().getItem(0).getCount() == 4, "four stay in the inventory");
-        helper.assertFalse(menu.getSlot(ShuttleWorkshopMenu.TOOL_SLOT).mayPlace(cargo), "a Cargo Hold does not fit the tool slot");
-        helper.assertTrue(menu.getSlot(ShuttleWorkshopMenu.UTILITY_SLOT).mayPlace(cargo), "it fits the utility slot");
+        helper.assertFalse(menu.getSlot(ShuttleWorkshopMenu.INSTALL_SLOT).mayPlace(new ItemStack(Items.COBBLESTONE)), "cobblestone is no upgrade");
+        player.getInventory().setItem(1, new ItemStack(Items.COBBLESTONE, 10));
+        menu.quickMoveStack(player, HOTBAR + 1);
+        helper.assertTrue(ShuttleModules.of(menu.shuttle()).isEmpty(), "the shuttle got nothing");
+        helper.assertTrue(menu.supplied("minecraft:cobblestone") == 10, "other items go to the supplies");
         helper.succeed();
     }
 
-    /** The workshop keeps nothing: closing hands the shuttle back with its modules. */
+    /** A tool goes in once; the same tool again does not, and the remove button gives it back. */
     @GameTest(template = EMPTY)
-    public static void workshopReturnsShuttleOnClose(GameTestHelper helper) {
-        // Vanilla hands container items back only to a server player.
+    public static void toolInstallsOnce(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ShuttleWorkshopMenu menu = workshop(helper, player);
+        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
+        player.getInventory().setItem(1, new ItemStack(ServusStorageItems.HARVESTER.get(), 2));
+        menu.quickMoveStack(player, HOTBAR);
+        menu.quickMoveStack(player, HOTBAR + 1);
+        helper.assertTrue(ShuttleModules.of(menu.shuttle()).tool().equals(Optional.of(ServusStorageItems.HARVESTER.get())), "the Harvester is in");
+        helper.assertTrue(count(player, ServusStorageItems.HARVESTER.get()) == 1, "one Harvester went in");
+        helper.assertFalse(menu.getSlot(ShuttleWorkshopMenu.INSTALL_SLOT).mayPlace(new ItemStack(ServusStorageItems.HARVESTER.get())),
+                "the same tool does not go in twice");
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_REMOVE_TOOL);
+        helper.assertTrue(ShuttleModules.of(menu.shuttle()).tool().isEmpty(), "the tool is out");
+        helper.assertTrue(count(player, ServusStorageItems.HARVESTER.get()) == 2, "the Harvester is back");
+        helper.succeed();
+    }
+
+    /** The remove buttons take one count at a time and hand the item back; a bare shuttle stacks with a new one. */
+    @GameTest(template = EMPTY)
+    public static void removeButtonsGiveItemsBack(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ShuttleWorkshopMenu menu = workshop(helper, player);
+        player.getInventory().setItem(0, shuttle(ServusStorageItems.SHUTTLE_MK1.get(), 2, 1, Optional.empty()));
+        menu.quickMoveStack(player, HOTBAR);
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_REMOVE_SPEED);
+        helper.assertTrue(ShuttleModules.of(menu.shuttle()).speed() == 1, "one Speed upgrade left");
+        helper.assertTrue(count(player, ServusFoundationItems.SPEED_UPGRADE.get()) == 1, "one Speed Upgrade item back");
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_REMOVE_SPEED);
+        menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_REMOVE_HANDLING);
+        helper.assertFalse(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_REMOVE_HANDLING), "nothing left to take");
+        helper.assertTrue(count(player, ServusStorageItems.HANDLING_UPGRADE.get()) == 1, "the Handling Upgrade is back");
+        helper.assertTrue(ItemStack.isSameItemSameComponents(menu.shuttle(), new ItemStack(ServusStorageItems.SHUTTLE_MK1.get())),
+                "a shuttle without upgrades is a plain Mk1 again");
+        helper.succeed();
+    }
+
+    /** Build now waits for every supply, then turns Mk1 into Mk2 with its upgrades and tool and leaves extras. */
+    @GameTest(template = EMPTY)
+    public static void buildNowNeedsSuppliesAndKeepsUpgrades(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ShuttleWorkshopMenu menu = workshop(helper, player);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS);
+        workshop.shuttle().setStackInSlot(0, shuttle(ServusStorageItems.SHUTTLE_MK1.get(), 2, 1, Optional.of(ServusStorageItems.HARVESTER.get())));
+        ShuttleTiers.Tier mk2 = StorageStatsManager.INSTANCE.shuttleTiers().tier(2);
+        int slot = 0;
+        for (ShuttleTiers.Supply supply : mk2.build()) {
+            Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.parse(supply.id()));
+            int amount = slot == 0 ? supply.count() - 1 : supply.count();
+            workshop.supplies().setStackInSlot(slot++, new ItemStack(item, amount));
+        }
+        helper.assertFalse(menu.canBuild(), "one supply is short");
+        helper.assertFalse(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_NOW), "Build now does nothing while short");
+        workshop.supplies().getStackInSlot(0).grow(5);
+        helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_NOW), "Build now builds once complete");
+        ItemStack built = menu.shuttle();
+        helper.assertTrue(built.is(ServusStorageItems.SHUTTLE_MK2.get()), "the shuttle is a Mk2 now");
+        ShuttleModules modules = ShuttleModules.of(built);
+        helper.assertTrue(modules.speed() == 2 && modules.handling() == 1 && modules.tool().isPresent(), "upgrades and tool stay");
+        helper.assertTrue(workshop.supplies().getStackInSlot(0).getCount() == 4, "the extra supplies stay, got "
+                + workshop.supplies().getStackInSlot(0).getCount());
+        helper.assertTrue(workshop.supplies().getStackInSlot(1).isEmpty(), "the used supplies are gone");
+        helper.assertTrue(menu.install(speedUpgrades(4)) == 2, "a Mk2 takes up to four Speed upgrades");
+        helper.succeed();
+    }
+
+    /** The workshop keeps its shuttle and supplies after the GUI closes and drops them when broken. */
+    @GameTest(template = EMPTY)
+    public static void workshopKeepsAndDropsContents(GameTestHelper helper) {
         Player player = helper.makeMockServerPlayerInLevel();
         ShuttleWorkshopMenu menu = workshop(helper, player);
-        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE.get()));
-        player.getInventory().setItem(1, new ItemStack(ServusStorageItems.CARGO_HOLD.get()));
+        player.getInventory().setItem(0, shuttle(ServusStorageItems.SHUTTLE_MK1.get(), 1, 0, Optional.empty()));
+        player.getInventory().setItem(1, new ItemStack(Items.GOLD_INGOT, 7));
         menu.quickMoveStack(player, HOTBAR);
         menu.quickMoveStack(player, HOTBAR + 1);
         menu.removed(player);
-        boolean back = false;
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            back |= hasCargoHold(player.getInventory().getItem(i));
-        }
-        helper.assertTrue(back, "the shuttle with its Cargo Hold is back in the inventory");
-        helper.assertTrue(menu.shuttle().isEmpty(), "the workshop is empty");
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS);
+        helper.assertFalse(workshop.shuttle().getStackInSlot(0).isEmpty(), "the shuttle stays in the workshop");
+        helper.assertTrue(ShuttleWorkshopBlockEntity.countSupplies(workshop.supplies()).get("minecraft:gold_ingot") == 7, "the gold stays");
+        helper.destroyBlock(WS_POS);
+        helper.assertItemEntityPresent(ServusStorageItems.SHUTTLE_MK1.get(), WS_POS, 2);
+        helper.assertItemEntityPresent(Items.GOLD_INGOT, WS_POS, 2);
         helper.succeed();
     }
 
@@ -147,14 +209,8 @@ public final class ShuttleModuleGameTests {
     private static final BlockPos FL_GARAGE = new BlockPos(2, 1, 5);
     private static final BlockPos FL_RACK = new BlockPos(9, 1, 5);
 
-    private static ItemStack cargoShuttle() {
-        ItemStack shuttle = new ItemStack(ServusStorageItems.SHUTTLE.get());
-        ShuttleModules.set(shuttle, ShuttleModules.EMPTY.with(ModuleSlot.UTILITY, Optional.of(ServusStorageItems.CARGO_HOLD.get())));
-        return shuttle;
-    }
-
-    /** The warehouse above with 100 cobblestone in the rack; the shuttle goes into the garage's given slot. */
-    private static ShuttleGarageBlockEntity fleetSetup(GameTestHelper helper, ItemStack shuttle, int slot) {
+    /** The warehouse above with the given stacks of cobblestone in the rack; the shuttle goes into the garage's given slot. */
+    private static ShuttleGarageBlockEntity fleetSetup(GameTestHelper helper, ItemStack shuttle, int slot, int... stacks) {
         helper.setBlock(FL_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, FL_TERMINAL);
@@ -167,8 +223,10 @@ public final class ShuttleModuleGameTests {
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(FL_GARAGE);
         garage.shuttles().setStackInSlot(slot, shuttle);
         HeavyRackBlockEntity rack = helper.getBlockEntity(FL_RACK);
-        rack.items().insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
-        rack.items().insertItem(1, new ItemStack(Items.COBBLESTONE, 36), false);
+        int[] amounts = stacks.length == 0 ? new int[] {64, 36} : stacks;
+        for (int i = 0; i < amounts.length; i++) {
+            rack.items().insertItem(i, new ItemStack(Items.COBBLESTONE, amounts[i]), false);
+        }
         return garage;
     }
 
@@ -180,10 +238,10 @@ public final class ShuttleModuleGameTests {
         return controller.network().orElseThrow();
     }
 
-    /** A Cargo Hold shuttle takes both pick jobs of a request for 100 and delivers them on one trip. */
-    @GameTest(template = EMPTY, timeoutTicks = 700)
-    public static void cargoHoldPicksTwoStacks(GameTestHelper helper) {
-        fleetSetup(helper, cargoShuttle(), 0);
+    /** A Mk1 shuttle carries two stacks: both pick jobs of a request for 100 ride on one trip. */
+    @GameTest(template = EMPTY, timeoutTicks = 800)
+    public static void mk1PicksTwoStacks(GameTestHelper helper) {
+        fleetSetup(helper, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()), 0);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = requestCobblestone(helper, 100);
             helper.runAfterDelay(8, () -> {
@@ -191,35 +249,65 @@ public final class ShuttleModuleGameTests {
                 helper.assertTrue(network.ridingJobs() == 2 && network.queuedJobs() == 0,
                         "both jobs ride the one shuttle, riding " + network.ridingJobs() + ", queued " + network.queuedJobs());
                 StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, FL_TERMINAL);
-                TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 100, 600,
+                TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 100, 700,
                         () -> "all 100 should arrive, got " + terminal.outputCount(Items.COBBLESTONE), helper::succeed);
             });
         });
     }
 
-    /** A plain shuttle carries one stack: the second job of the request waits in the queue. */
+    /** More than the tier holds: a Mk1 shuttle takes two of four jobs, the other two wait. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
-    public static void plainShuttleTakesOneJob(GameTestHelper helper) {
-        fleetSetup(helper, new ItemStack(ServusStorageItems.SHUTTLE.get()), 0);
+    public static void mk1LeavesTheRestQueued(GameTestHelper helper) {
+        fleetSetup(helper, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()), 0, 64, 64, 64, 8);
         helper.runAfterDelay(10, () -> {
-            WarehouseNetwork network = requestCobblestone(helper, 100);
+            WarehouseNetwork network = requestCobblestone(helper, 200);
             helper.runAfterDelay(8, () -> {
-                helper.assertTrue(network.ridingJobs() == 1 && network.queuedJobs() == 1,
-                        "one job rides, one waits, riding " + network.ridingJobs() + ", queued " + network.queuedJobs());
+                helper.assertTrue(network.ridingJobs() == 2 && network.queuedJobs() == 2,
+                        "two jobs ride, two wait, riding " + network.ridingJobs() + ", queued " + network.queuedJobs());
                 helper.succeed();
             });
         });
     }
 
+    /**
+     * Seven rails out and back with a stop at each end. Without Speed the
+     * trip takes about 94 ticks of driving and 28 of stops, with two Speed
+     * upgrades about 62 and 28, so at 106 ticks only the fast one is done.
+     */
+    private static void timedTrip(GameTestHelper helper, int speed, boolean doneAt106) {
+        fleetSetup(helper, shuttle(ServusStorageItems.SHUTTLE_MK1.get(), speed, 0, Optional.empty()), 0, 30);
+        helper.runAfterDelay(10, () -> {
+            WarehouseNetwork network = requestCobblestone(helper, 30);
+            helper.runAfterDelay(106, () -> {
+                int riding = network.ridingJobs();
+                helper.assertTrue(doneAt106 ? riding == 0 : riding == 1,
+                        (doneAt106 ? "the fast shuttle should have delivered" : "the slow shuttle should still carry the pick") + ", riding " + riding);
+                TerminalWiring.when(helper, () -> network.ridingJobs() == 0, 200, () -> "the pick should be delivered", helper::succeed);
+            });
+        });
+    }
+
+    /** A plain shuttle takes its stops: travel alone would be done by tick 106, with both stops it is not. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void stopsDelayTheDelivery(GameTestHelper helper) {
+        timedTrip(helper, 0, false);
+    }
+
+    /** Two Speed upgrades bring the same pick back well before a plain shuttle. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void speedShortensTheTrip(GameTestHelper helper) {
+        timedTrip(helper, 2, true);
+    }
+
     /** The garage locks the slot of the shuttle that is out, not the first filled slot. */
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void garageLocksSlotOfShuttleOut(GameTestHelper helper) {
-        ShuttleGarageBlockEntity garage = fleetSetup(helper, new ItemStack(ServusStorageItems.SHUTTLE.get()), 1);
+        ShuttleGarageBlockEntity garage = fleetSetup(helper, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()), 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             requestCobblestone(helper, 30);
             helper.runAfterDelay(8, () -> {
-                garage.shuttles().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE.get()));
+                garage.shuttles().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
                 ShuttleGarageMenu menu = new ShuttleGarageMenu(1, player.getInventory(), garage);
                 menu.broadcastChanges();
                 helper.assertTrue(menu.out() == 1, "one shuttle is out");
@@ -239,9 +327,9 @@ public final class ShuttleModuleGameTests {
     private static final BlockPos PW_CRATE = new BlockPos(6, 1, 2);
     private static final BlockPos PW_GARAGE = new BlockPos(10, 1, 2);
 
-    /** A Cargo Hold shuttle loads every stack of the station at once and puts them away on one trip. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
-    public static void cargoHoldPutAwayLoadsAll(GameTestHelper helper) {
+    /** A Mk2 shuttle loads three stacks of the station at once and puts them away on one trip. */
+    @GameTest(template = EMPTY, timeoutTicks = 500)
+    public static void mk2PutAwayLoadsThree(GameTestHelper helper) {
         helper.setBlock(PW_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         for (int x = 2; x <= 10; x++) {
@@ -253,16 +341,16 @@ public final class ShuttleModuleGameTests {
         helper.setBlock(PW_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(PW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(PW_GARAGE);
-        helper.assertTrue(garage.addShuttle(cargoShuttle()), "the garage takes the Cargo Hold shuttle");
+        helper.assertTrue(garage.addShuttle(new ItemStack(ServusStorageItems.SHUTTLE_MK2.get())), "the garage takes the Mk2 shuttle");
         InboundStationBlockEntity station = helper.getBlockEntity(PW_STATION);
         CrateBlockEntity crate = helper.getBlockEntity(PW_CRATE);
         helper.runAfterDelay(10, () -> {
             for (int i = 0; i < 3; i++) {
                 ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
             }
-            TerminalWiring.when(helper, station::isEmpty, 150, () -> "the shuttle should load the station", () -> {
+            TerminalWiring.when(helper, station::isEmpty, 250, () -> "the shuttle should load the station", () -> {
                 helper.assertTrue(crate.count() == 0, "all three stacks left on one shuttle before any reached the crate, crate has " + crate.count());
-                TerminalWiring.when(helper, () -> crate.count() == 192, 150,
+                TerminalWiring.when(helper, () -> crate.count() == 192, 200,
                         () -> "all three stacks should reach the crate, it has " + crate.count(), helper::succeed);
             });
         });

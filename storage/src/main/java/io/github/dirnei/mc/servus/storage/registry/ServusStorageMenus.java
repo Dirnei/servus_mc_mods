@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
-import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -49,7 +48,7 @@ public final class ServusStorageMenus {
             MENUS.register("crafting_station", () -> IMenuTypeExtension.create(CraftingStationMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ShuttleWorkshopMenu>> SHUTTLE_WORKSHOP =
-            MENUS.register("shuttle_workshop", () -> new MenuType<>(ShuttleWorkshopMenu::new, FeatureFlags.DEFAULT_FLAGS));
+            MENUS.register("shuttle_workshop", () -> IMenuTypeExtension.create(ShuttleWorkshopMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu>> FIELD_HEAD =
             MENUS.register("field_head", () -> IMenuTypeExtension.create(io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu::fromNetwork));

@@ -15,7 +15,6 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
-import io.github.dirnei.mc.servus.storage.shuttle.module.ModuleSlot;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
@@ -28,7 +27,6 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -71,8 +69,8 @@ public final class HarvesterGameTests {
 
     /** A shuttle with a Harvester in its tool slot. */
     private static ItemStack harvester() {
-        ItemStack shuttle = new ItemStack(ServusStorageItems.SHUTTLE.get());
-        ShuttleModules.set(shuttle, ShuttleModules.EMPTY.with(ModuleSlot.TOOL, Optional.of(ServusStorageItems.HARVESTER.get())));
+        ItemStack shuttle = new ItemStack(ServusStorageItems.SHUTTLE_MK1.get());
+        ShuttleModules.set(shuttle, ShuttleModules.EMPTY.withTool(Optional.of(ServusStorageItems.HARVESTER.get())));
         return shuttle;
     }
 
@@ -147,21 +145,21 @@ public final class HarvesterGameTests {
 
     // Module
 
-    /** The Harvester goes into the tool slot of a shuttle in the workshop. */
+    /** The Harvester goes into a shuttle in the workshop through the install slot. */
     @GameTest(template = EMPTY)
     public static void workshopFitsHarvester(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos at = new BlockPos(5, 1, 5);
         helper.setBlock(at, ServusStorageBlocks.SHUTTLE_WORKSHOP.get().defaultBlockState());
-        ShuttleWorkshopMenu menu = new ShuttleWorkshopMenu(1, player.getInventory(), ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(at)));
-        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE.get()));
+        ShuttleWorkshopMenu menu = ShuttleModuleGameTests.menu(helper, player, at);
+        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
         player.getInventory().setItem(1, new ItemStack(ServusStorageItems.HARVESTER.get()));
         int hotbar = ShuttleWorkshopMenu.INVENTORY_START + 27;
         menu.quickMoveStack(player, hotbar);
         menu.quickMoveStack(player, hotbar + 1);
         helper.assertTrue(ShuttleModules.of(menu.shuttle()).tool().equals(Optional.of(ServusStorageItems.HARVESTER.get())),
-                "the Harvester is fitted into the tool slot");
-        helper.assertTrue(menu.getSlot(ShuttleWorkshopMenu.UTILITY_SLOT).getItem().isEmpty(), "the utility slot stays empty");
+                "the Harvester is the shuttle's tool");
+        helper.assertTrue(menu.getSlot(ShuttleWorkshopMenu.INSTALL_SLOT).getItem().isEmpty(), "the install slot stays empty");
         helper.assertTrue(player.getInventory().getItem(1).isEmpty(), "the Harvester item left the inventory");
         helper.succeed();
     }
@@ -257,7 +255,7 @@ public final class HarvesterGameTests {
     public static void plainShuttleTakesNoFieldJob(GameTestHelper helper) {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         crop(helper, plot, Blocks.WHEAT, 7);
-        Farm farm = farm(helper, new ItemStack(ServusStorageItems.SHUTTLE.get()));
+        Farm farm = farm(helper, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
         helper.runAfterDelay(2, () -> {
             water(farm);
             farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));

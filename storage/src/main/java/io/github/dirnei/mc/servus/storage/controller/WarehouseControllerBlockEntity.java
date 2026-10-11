@@ -49,7 +49,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     public void onLoad() {
         super.onLoad();
         if (legacyShuttles > 0 && level instanceof ServerLevel) {
-            Block.popResource(level, worldPosition, new ItemStack(ServusStorageItems.SHUTTLE.get(), legacyShuttles));
+            Block.popResource(level, worldPosition, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get(), legacyShuttles));
             legacyShuttles = 0;
             setChanged();
         }

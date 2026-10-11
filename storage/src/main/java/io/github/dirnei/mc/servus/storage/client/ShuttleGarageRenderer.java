@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Draws every shuttle of this garage: a cart on the rail at the position
+ * Draws every shuttle of this garage: its own item as a cart on the rail at the position
  * extrapolated from the last sync, with its cargo on top. A shuttle riding a
  * lift car is drawn at the car's height.
  */
@@ -55,7 +55,7 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
         }
         long now = garage.getLevel().getGameTime();
         double elapsed = (now - fleet.receivedTick()) + partialTick;
-        ItemStack cart = new ItemStack(ServusStorageItems.SHUTTLE.get());
+        ItemStack plain = new ItemStack(ServusStorageItems.SHUTTLE_MK1.get());
         BlockPos origin = garage.getBlockPos();
         int parked = 0;
 
@@ -83,6 +83,7 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
             poseStack.mulPose(Axis.YP.rotationDegrees((float) yaw));
             poseStack.pushPose();
             poseStack.scale(CART_SCALE, CART_SCALE, CART_SCALE);
+            ItemStack cart = view.shuttle().isEmpty() ? plain : view.shuttle();
             Minecraft.getInstance().getItemRenderer().renderStatic(cart, ItemDisplayContext.NONE, light, packedOverlay,
                     poseStack, bufferSource, garage.getLevel(), 0);
             poseStack.popPose();

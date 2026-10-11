@@ -156,7 +156,7 @@ public final class FieldGameTests {
         helper.setBlock(garagePos, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         helper.setBlock(rackPos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(garagePos);
-        garage.shuttles().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE.get()));
+        garage.shuttles().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
         HeavyRackBlockEntity rack = helper.getBlockEntity(rackPos);
         rack.items().insertItem(0, new ItemStack(Items.COBBLESTONE, 36), false);
         helper.runAfterDelay(10, () -> {

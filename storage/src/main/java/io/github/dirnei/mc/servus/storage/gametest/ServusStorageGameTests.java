@@ -1177,11 +1177,11 @@ public final class ServusStorageGameTests {
         helper.runAfterDelay(10, () -> {
             ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
             helper.runAfterDelay(2, () -> helper.assertTrue(!station.isEmpty(), "the stack waits in the buffer until the shuttle arrives"));
-            helper.runAfterDelay(12, () -> {
+            helper.runAfterDelay(30, () -> {
                 helper.assertTrue(station.isEmpty(), "the shuttle should have loaded the stack by now");
                 helper.assertTrue(crate.isEmpty(), "the crate must still be empty while the shuttle travels");
             });
-            helper.runAfterDelay(70, () -> {
+            helper.runAfterDelay(140, () -> {
                 helper.assertTrue(crate.count() == 40, "the shuttle should have delivered 40 cobblestone, crate has " + crate.count());
                 helper.assertTrue(station.isEmpty(), "nothing should ride back");
                 helper.assertTrue(controller.network().orElseThrow().summary().getString().contains("0 busy"),
@@ -1258,7 +1258,7 @@ public final class ServusStorageGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         int capacity = garage.capacity();
         io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu menu = new io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu(1, player.getInventory(), garage);
-        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE.get(), capacity + 1));
+        player.getInventory().setItem(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get(), capacity + 1));
         for (int i = 0; i <= capacity; i++) {
             menu.quickMoveStack(player, menu.inventoryStart() + 27);
         }
@@ -1345,7 +1345,7 @@ public final class ServusStorageGameTests {
                 helper.assertTrue(a.isEmpty(), "garage A's shuttle should stay inside its garage and not be drawn");
                 helper.assertTrue(b.size() == 1 && b.get(0).moving(), "garage B's shuttle, the nearer one, should be on its way");
             });
-            helper.runAfterDelay(120, () -> {
+            helper.runAfterDelay(220, () -> {
                 helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 30, "the cobblestone should have been delivered into the output slots");
                 helper.assertTrue(network.shuttleViews(helper.absolutePos(TG_GARAGE_B)).isEmpty(), "garage B's shuttle should be back inside its garage");
                 helper.assertTrue(network.summary().getString().contains("2 shuttles, 0 busy"), "both shuttles idle: " + network.summary().getString());
@@ -1468,7 +1468,7 @@ public final class ServusStorageGameTests {
                 menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
                 helper.assertTrue(menu.stock().message().isEmpty(), "the request should go through now, got " + menu.stock().message());
                 helper.assertTrue(terminal.outputCount(Items.BREAD) == 0, "nothing arrives at once from a rack");
-                helper.runAfterDelay(120, () -> {
+                helper.runAfterDelay(220, () -> {
                     helper.assertTrue(terminal.outputCount(Items.BREAD) == 30, "the shuttle should have brought 30 bread, output has " + terminal.outputCount(Items.BREAD));
                     helper.assertTrue(rack.isEmpty(), "the rack should be empty");
                     helper.assertTrue(menu.stock().requests().isEmpty(), "the request should be settled");
@@ -2071,7 +2071,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Recall brings a shuttle that is out on a pick back inside at once; the pick is queued again. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @GameTest(template = EMPTY, timeoutTicks = 400)
     public static void garageRecallBringsShuttlesHome(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = recallSetup(helper);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -2086,7 +2086,7 @@ public final class ServusStorageGameTests {
                 network.recallGarage(garagePos);
                 helper.assertTrue(network.garageOut(garagePos) == 0, "after the recall nothing is out");
                 helper.assertTrue(network.shuttleViews(garagePos).isEmpty(), "the recalled shuttle sits inside and is not drawn");
-                helper.runAfterDelay(160, () -> {
+                helper.runAfterDelay(280, () -> {
                     helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 30, "the queued pick is taken up again and delivered, got " + terminal.outputCount(Items.COBBLESTONE));
                     helper.succeed();
                 });
@@ -2235,7 +2235,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Two shuttles call the car at the same floor: the first caller rides first, the second waits for the car. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @GameTest(template = EMPTY, timeoutTicks = 600)
     public static void shuttlesQueueForCar(GameTestHelper helper) {
         liftBase(helper, 2);
         HeavyRackBlockEntity top = liftRack(helper, new BlockPos(3, 3, 3), Items.BREAD, 10);
@@ -2246,10 +2246,10 @@ public final class ServusStorageGameTests {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 10);
             menu.request(ItemKey.of(new ItemStack(Items.APPLE)), 10);
-            helper.runAfterDelay(40, () -> {
+            helper.runAfterDelay(65, () -> {
                 helper.assertTrue(top.isEmpty(), "the first caller rode up first and loaded the top rack");
                 helper.assertTrue(!middle.isEmpty(), "the second caller is still waiting for the car, although its floor is nearer");
-                helper.runAfterDelay(200, () -> {
+                helper.runAfterDelay(300, () -> {
                     helper.assertTrue(terminal.outputCount(Items.BREAD) == 10 && terminal.outputCount(Items.APPLE) == 10,
                             "both loads arrive, output has " + terminal.outputCount(Items.BREAD) + " bread and " + terminal.outputCount(Items.APPLE) + " apples");
                     helper.succeed();
@@ -2282,7 +2282,7 @@ public final class ServusStorageGameTests {
                 StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
                 menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 16);
                 helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0, "the crate behind the shaft is served by the shuttle");
-                helper.runAfterDelay(60, () -> {
+                helper.runAfterDelay(160, () -> {
                     helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 16,
                             "the shuttle crossed both ways without waiting, output has " + terminal.outputCount(Items.COBBLESTONE));
                     helper.assertTrue(network.lift(bottom).y() == bottom.getY() + 2 && !network.lift(bottom).moving(), "the car did not move");

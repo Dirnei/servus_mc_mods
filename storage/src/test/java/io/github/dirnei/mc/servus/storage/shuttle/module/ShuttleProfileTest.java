@@ -4,38 +4,45 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class ShuttleProfileTest {
 
-    static final ModuleSpec CARGO_HOLD = new ModuleSpec("cargo_hold", ModuleSlot.UTILITY, false, true);
-    static final ModuleSpec HARVESTER = new ModuleSpec("harvester", ModuleSlot.TOOL, true, false);
-    static final ModuleSpec PROBE = new ModuleSpec("probe", ModuleSlot.TOOL, false, false);
+    static final ModuleSpec HARVESTER = new ModuleSpec("harvester", true);
+    static final ModuleSpec PROBE = new ModuleSpec("probe", false);
 
-    @Test
-    void plainShuttleCarriesOneStack() {
-        ShuttleProfile profile = ShuttleProfile.of(List.of(), 4);
-        assertEquals(ShuttleProfile.PLAIN, profile);
-        assertEquals(1, profile.stacks());
+    private static ShuttleProfile profile(int tier, Optional<ModuleSpec> tool, int speed, int handling) {
+        return ShuttleProfile.of(ShuttleTiers.DEFAULT, tier, tool, speed, handling);
     }
 
     @Test
-    void cargoHoldTakesTheGivenStackCount() {
-        assertEquals(4, ShuttleProfile.of(List.of(CARGO_HOLD), 4).stacks());
-        assertEquals(6, ShuttleProfile.of(List.of(CARGO_HOLD), 6).stacks());
-        assertEquals(1, ShuttleProfile.of(List.of(CARGO_HOLD), 0).stacks(), "never less than one stack");
+    void stacksComeFromTheTier() {
+        assertEquals(2, profile(1, Optional.empty(), 0, 0).stacks());
+        assertEquals(4, profile(2, Optional.empty(), 0, 0).stacks());
+        assertEquals(8, profile(3, Optional.empty(), 0, 0).stacks());
     }
 
     @Test
-    void anyFieldOnlyModuleMakesTheShuttleFieldOnly() {
-        assertTrue(ShuttleProfile.of(List.of(HARVESTER, CARGO_HOLD), 4).fieldOnly());
-        assertFalse(ShuttleProfile.of(List.of(PROBE, CARGO_HOLD), 4).fieldOnly());
+    void fieldOnlyComesFromTheTool() {
+        assertTrue(profile(1, Optional.of(HARVESTER), 0, 0).fieldOnly());
+        assertFalse(profile(1, Optional.of(PROBE), 0, 0).fieldOnly());
+        assertFalse(profile(1, Optional.empty(), 0, 0).fieldOnly());
     }
 
     @Test
-    void collectsModuleIds() {
-        assertEquals(Set.of("harvester", "cargo_hold"), ShuttleProfile.of(List.of(HARVESTER, CARGO_HOLD), 4).modules());
+    void toolIdIsTheModuleSet() {
+        assertEquals(Set.of("harvester"), profile(2, Optional.of(HARVESTER), 0, 0).modules());
+        assertEquals(Set.of(), ShuttleProfile.plain().modules());
+    }
+
+    @Test
+    void speedAndHandlingComeFromCounts() {
+        ShuttleProfile fast = profile(1, Optional.empty(), 2, 2);
+        assertEquals(0.23, fast.speed(), 1e-9);
+        assertEquals(0.64, fast.handling(), 1e-9);
+        assertEquals(0.15, ShuttleProfile.plain().speed(), 1e-9);
+        assertEquals(1.0, ShuttleProfile.plain().handling(), 1e-9);
     }
 }

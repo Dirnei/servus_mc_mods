@@ -15,6 +15,7 @@ import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleWorkshopBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import io.github.dirnei.mc.servus.storage.production.ProductionTerminalBlockEntity;
@@ -100,6 +101,11 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FieldHeadBlockEntity>> FIELD_HEAD =
             BLOCK_ENTITIES.register("field_head", () -> BlockEntityType.Builder
                     .of(FieldHeadBlockEntity::new, ServusStorageBlocks.FIELD_HEAD.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShuttleWorkshopBlockEntity>> SHUTTLE_WORKSHOP =
+            BLOCK_ENTITIES.register("shuttle_workshop", () -> BlockEntityType.Builder
+                    .of(ShuttleWorkshopBlockEntity::new, ServusStorageBlocks.SHUTTLE_WORKSHOP.get())
                     .build(null));
 
     private ServusStorageBlockEntities() {

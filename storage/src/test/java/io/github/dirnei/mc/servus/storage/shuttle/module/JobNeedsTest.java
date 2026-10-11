@@ -3,20 +3,20 @@ package io.github.dirnei.mc.servus.storage.shuttle.module;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class JobNeedsTest {
 
-    private static final ShuttleProfile CARGO = ShuttleProfile.of(List.of(ShuttleProfileTest.CARGO_HOLD), 4);
-    private static final ShuttleProfile FIELD = ShuttleProfile.of(List.of(ShuttleProfileTest.HARVESTER), 4);
-    private static final ShuttleProfile PROBE = ShuttleProfile.of(List.of(ShuttleProfileTest.PROBE), 4);
+    private static final ShuttleProfile BIG = ShuttleProfile.of(ShuttleTiers.DEFAULT, 3, Optional.empty(), 0, 0);
+    private static final ShuttleProfile FIELD = ShuttleProfile.of(ShuttleTiers.DEFAULT, 1, Optional.of(ShuttleProfileTest.HARVESTER), 0, 0);
+    private static final ShuttleProfile PROBE = ShuttleProfile.of(ShuttleTiers.DEFAULT, 1, Optional.of(ShuttleProfileTest.PROBE), 0, 0);
 
     @Test
-    void warehouseJobsFitPlainAndCargoHold() {
-        assertTrue(JobNeeds.WAREHOUSE.fits(ShuttleProfile.PLAIN));
-        assertTrue(JobNeeds.WAREHOUSE.fits(CARGO));
+    void warehouseJobsFitShuttlesWithoutFieldTools() {
+        assertTrue(JobNeeds.WAREHOUSE.fits(ShuttleProfile.plain()));
+        assertTrue(JobNeeds.WAREHOUSE.fits(BIG));
         assertTrue(JobNeeds.WAREHOUSE.fits(PROBE), "a tool that is not field only still takes warehouse jobs");
     }
 
@@ -29,8 +29,8 @@ class JobNeedsTest {
     void neededModuleMustBeFitted() {
         JobNeeds harvest = JobNeeds.HARVESTER;
         assertTrue(harvest.fits(FIELD));
-        assertFalse(harvest.fits(CARGO));
-        assertFalse(harvest.fits(ShuttleProfile.PLAIN));
+        assertFalse(harvest.fits(BIG));
+        assertFalse(harvest.fits(ShuttleProfile.plain()));
     }
 
     @Test

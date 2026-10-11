@@ -8,8 +8,7 @@ import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
-import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModules;
-import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleProfile;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -52,7 +51,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return stack.is(ServusStorageItems.SHUTTLE.get());
+            return ShuttleItem.isShuttle(stack);
         }
 
         @Override
@@ -125,7 +124,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
 
     /** Puts a plain shuttle into the first free slot. @return false when full */
     public boolean addShuttle() {
-        return addShuttle(new ItemStack(ServusStorageItems.SHUTTLE.get()));
+        return addShuttle(new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
     }
 
     /** Puts one shuttle like the given one, modules and all, into the first free slot. @return false when full */
@@ -139,15 +138,13 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         return false;
     }
 
-    /** What each slot's shuttle can do, null for an empty slot; the fleet keeps one shuttle per entry. */
-    public List<ShuttleProfile> profiles() {
-        List<ShuttleProfile> profiles = new ArrayList<>();
-        int cargoHoldStacks = StorageStatsManager.INSTANCE.cargoHoldStacks();
+    /** The shuttle of each slot, an empty stack for an empty slot; the fleet keeps one shuttle per entry. */
+    public List<ItemStack> slots() {
+        List<ItemStack> slots = new ArrayList<>();
         for (int i = 0; i < shuttles.getSlots(); i++) {
-            ItemStack stack = shuttles.getStackInSlot(i);
-            profiles.add(stack.isEmpty() ? null : ShuttleModules.profile(stack, cargoHoldStacks));
+            slots.add(shuttles.getStackInSlot(i).copy());
         }
-        return profiles;
+        return slots;
     }
 
     /** Slots whose shuttle is out on a job, one bit per slot. */
@@ -214,7 +211,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
             // Older saves kept a plain count.
             int count = Math.min(tag.getInt("Shuttles"), shuttles.getSlots());
             for (int i = 0; i < count; i++) {
-                shuttles.setStackInSlot(i, new ItemStack(ServusStorageItems.SHUTTLE.get()));
+                shuttles.setStackInSlot(i, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
             }
         }
     }

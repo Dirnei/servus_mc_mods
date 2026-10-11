@@ -1,48 +1,58 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module;
 
 import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
- * A work bench for shuttles. Like the crafting table it keeps nothing: the
- * GUI fits modules into the shuttle the player brings and hands it back.
+ * A work bench for shuttles. It keeps the shuttle and the supplies a player
+ * leaves in it, installs upgrades and tools, and builds the next tier.
  */
-public class ShuttleWorkshopBlock extends Block {
+public class ShuttleWorkshopBlock extends BaseEntityBlock {
 
     public static final MapCodec<ShuttleWorkshopBlock> CODEC = simpleCodec(ShuttleWorkshopBlock::new);
-    private static final Component TITLE = Component.translatable("container.servus_storage.shuttle_workshop");
 
     public ShuttleWorkshopBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    protected MapCodec<? extends Block> codec() {
+    protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
     @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
+
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new ShuttleWorkshopBlockEntity(pos, state);
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide()) {
-            player.openMenu(state.getMenuProvider(level, pos));
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ShuttleWorkshopBlockEntity workshop) {
+            player.openMenu(workshop, buf -> ShuttleWorkshopMenu.writeOpening(buf, pos, StorageStatsManager.INSTANCE.shuttleTiers()));
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     @Override
-    protected MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
-        return new SimpleMenuProvider((containerId, inventory, player) ->
-                new ShuttleWorkshopMenu(containerId, inventory, ContainerLevelAccess.create(level, pos)), TITLE);
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof ShuttleWorkshopBlockEntity workshop) {
+            workshop.dropContents();
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }

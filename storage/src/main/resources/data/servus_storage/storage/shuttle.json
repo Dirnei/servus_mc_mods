@@ -1,0 +1,23 @@
+{
+  "speed": { "base": 0.15, "per_upgrade": 0.04 },
+  "stops": { "stop_ticks": 10, "stack_ticks": 4, "handling_factor": 0.8 },
+  "tiers": [
+    { "stacks": 2, "max_speed": 2, "max_handling": 2 },
+    {
+      "stacks": 4, "max_speed": 4, "max_handling": 4,
+      "build": [
+        { "item": "minecraft:gold_ingot", "count": 16 },
+        { "item": "minecraft:chest", "count": 2 },
+        { "item": "minecraft:redstone", "count": 16 }
+      ]
+    },
+    {
+      "stacks": 8, "max_speed": 8, "max_handling": 8,
+      "build": [
+        { "item": "minecraft:diamond", "count": 8 },
+        { "item": "minecraft:gold_block", "count": 2 },
+        { "item": "minecraft:ender_chest", "count": 1 }
+      ]
+    }
+  ]
+}

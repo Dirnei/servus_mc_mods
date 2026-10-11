@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.storage.ServusStorage;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers;
 import java.util.Map;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -20,14 +21,12 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_SOURCES_PER_TICK = 4;
     public static final int DEFAULT_RACK_SLOTS = 27;
     public static final int DEFAULT_GARAGE_CAPACITY = 4;
-    public static final int DEFAULT_CARGO_HOLD_STACKS = 4;
     public static final int DEFAULT_RAIL_MAX_SPAN = 3;
     public static final int DEFAULT_TERMINAL_OUTPUT_SLOTS = 9;
     public static final int DEFAULT_PUSH_INTERVAL = 8;
     public static final int DEFAULT_OUTBOUND_CHECK_INTERVAL = 40;
     public static final int DEFAULT_CRAFTING_STATION_TICKS = 40;
     public static final int DEFAULT_STOCK_RULE_INTERVAL = 100;
-    public static final double DEFAULT_SHUTTLE_SPEED = 0.25;
     public static final double DEFAULT_LIFT_SPEED = 0.1;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
@@ -44,7 +43,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_FIELD_MAX_RAILS = 128;
     public static final double DEFAULT_FIELD_HARVEST_SHARE = 0.5;
     public static final int DEFAULT_FIELD_WORK_TICKS = 10;
-    public static final int DEFAULT_HARVESTER_STACKS = 2;
     public static final int DEFAULT_FIELD_CHECK_INTERVAL = 40;
 
     private static final Gson GSON = new GsonBuilder().create();
@@ -55,6 +53,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private static final ResourceLocation CPU = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "cpu");
     private static final ResourceLocation PACKING_STATION = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "packing_station");
     private static final ResourceLocation PATTERN_STORAGE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
+    private static final ResourceLocation SHUTTLE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "shuttle");
     private static final ResourceLocation FIELD = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field");
 
     public static final StorageStatsManager INSTANCE = new StorageStatsManager();
@@ -63,14 +62,13 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int sourcesPerTick = DEFAULT_SOURCES_PER_TICK;
     private volatile int rackSlots = DEFAULT_RACK_SLOTS;
     private volatile int garageCapacity = DEFAULT_GARAGE_CAPACITY;
-    private volatile int cargoHoldStacks = DEFAULT_CARGO_HOLD_STACKS;
+    private volatile ShuttleTiers shuttleTiers = ShuttleTiers.DEFAULT;
     private volatile int railMaxSpan = DEFAULT_RAIL_MAX_SPAN;
     private volatile int terminalOutputSlots = DEFAULT_TERMINAL_OUTPUT_SLOTS;
     private volatile int pushInterval = DEFAULT_PUSH_INTERVAL;
     private volatile int outboundCheckInterval = DEFAULT_OUTBOUND_CHECK_INTERVAL;
     private volatile int craftingStationTicks = DEFAULT_CRAFTING_STATION_TICKS;
     private volatile int stockRuleInterval = DEFAULT_STOCK_RULE_INTERVAL;
-    private volatile double shuttleSpeed = DEFAULT_SHUTTLE_SPEED;
     private volatile double liftSpeed = DEFAULT_LIFT_SPEED;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
@@ -87,7 +85,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int fieldMaxRails = DEFAULT_FIELD_MAX_RAILS;
     private volatile double fieldHarvestShare = DEFAULT_FIELD_HARVEST_SHARE;
     private volatile int fieldWorkTicks = DEFAULT_FIELD_WORK_TICKS;
-    private volatile int harvesterStacks = DEFAULT_HARVESTER_STACKS;
     private volatile int fieldCheckInterval = DEFAULT_FIELD_CHECK_INTERVAL;
 
     private StorageStatsManager() {
@@ -100,14 +97,12 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         sourcesPerTick = intField(files.get(WAREHOUSE), "sources_per_tick", DEFAULT_SOURCES_PER_TICK);
         rackSlots = intField(files.get(RACK), "slots", DEFAULT_RACK_SLOTS);
         garageCapacity = intField(files.get(WAREHOUSE), "garage_capacity", DEFAULT_GARAGE_CAPACITY);
-        cargoHoldStacks = intField(files.get(WAREHOUSE), "cargo_hold_stacks", DEFAULT_CARGO_HOLD_STACKS);
         railMaxSpan = intField(files.get(WAREHOUSE), "rail_max_span", DEFAULT_RAIL_MAX_SPAN);
         terminalOutputSlots = intField(files.get(WAREHOUSE), "terminal_output_slots", DEFAULT_TERMINAL_OUTPUT_SLOTS);
         pushInterval = intField(files.get(WAREHOUSE), "push_interval", DEFAULT_PUSH_INTERVAL);
         outboundCheckInterval = intField(files.get(WAREHOUSE), "outbound_check_interval", DEFAULT_OUTBOUND_CHECK_INTERVAL);
         craftingStationTicks = intField(files.get(CRAFTING_STATION), "work_ticks", DEFAULT_CRAFTING_STATION_TICKS);
         stockRuleInterval = intField(files.get(WAREHOUSE), "stock_rule_interval", DEFAULT_STOCK_RULE_INTERVAL);
-        shuttleSpeed = doubleField(files.get(WAREHOUSE), "shuttle_speed", DEFAULT_SHUTTLE_SPEED);
         liftSpeed = doubleField(files.get(WAREHOUSE), "lift_speed", DEFAULT_LIFT_SPEED);
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
@@ -124,8 +119,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         fieldMaxRails = intField(files.get(FIELD), "max_rails", DEFAULT_FIELD_MAX_RAILS);
         fieldHarvestShare = Math.min(1.0, doubleField(files.get(FIELD), "harvest_share", DEFAULT_FIELD_HARVEST_SHARE));
         fieldWorkTicks = intField(files.get(FIELD), "work_ticks", DEFAULT_FIELD_WORK_TICKS);
-        harvesterStacks = intField(files.get(FIELD), "harvester_stacks", DEFAULT_HARVESTER_STACKS);
         fieldCheckInterval = intField(files.get(FIELD), "field_check_interval", DEFAULT_FIELD_CHECK_INTERVAL);
+        shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
 
@@ -155,10 +150,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         return garageCapacity;
     }
 
-    /** How many stacks a shuttle with a Cargo Hold carries per trip. */
-    public int cargoHoldStacks() {
-        return cargoHoldStacks;
-    }
 
     /** How many free and hung rails a gap between two holds may span. */
     public int railMaxSpan() {
@@ -215,9 +206,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         packingItemsPerSecond = itemsPerSecond;
     }
 
-    public double shuttleSpeed() {
-        return shuttleSpeed;
-    }
 
     /** Blocks per tick the lift car of an elevator shaft moves. */
     public double liftSpeed() {
@@ -284,10 +272,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         fieldWorkTicks = ticks;
     }
 
-    /** Stacks a harvester carries on a field run at least, so a crop and its seeds fit without a Cargo Hold. */
-    public int harvesterStacks() {
-        return harvesterStacks;
-    }
 
     /** Ticks between two looks of a warehouse at the Field Heads of its fields. */
     public int fieldCheckInterval() {
@@ -297,5 +281,15 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     /** For tests: sets the field check interval as if a datapack had been loaded. */
     public void setFieldCheckInterval(int ticks) {
         fieldCheckInterval = ticks;
+    }
+
+    /** Shuttle speed, stop times and tiers from {@code shuttle.json}. */
+    public ShuttleTiers shuttleTiers() {
+        return shuttleTiers;
+    }
+
+    /** For tests: sets the shuttle stats as if a datapack had been loaded. */
+    public void setShuttleTiers(ShuttleTiers tiers) {
+        shuttleTiers = tiers;
     }
 }

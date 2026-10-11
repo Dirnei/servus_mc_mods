@@ -7,7 +7,9 @@ import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.storage.shuttle.Shafts.Shaft;
 import io.github.dirnei.mc.servus.storage.shuttle.module.CargoBatch;
 import io.github.dirnei.mc.servus.storage.shuttle.module.JobNeeds;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleProfile;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -94,8 +96,6 @@ public final class ShuttleFleet {
 
         /** Puts an instant load into the output slots, holding what does not fit until there is room. */
         void deliverInstant(PickJob job, ItemStack stack);
-
-        double shuttleSpeed();
 
         /** Blocks per tick the lift car of a shaft moves. */
         double liftSpeed();
@@ -191,28 +191,35 @@ public final class ShuttleFleet {
 
     /**
      * Called when a garage joins or its slots or pause state change: one
-     * entry per slot, null for an empty one. A slot whose shuttle is unchanged
-     * keeps it; an emptied slot loses it; a changed shuttle is recalled first.
+     * stack per slot, empty for an empty one. A slot whose shuttle does the
+     * same keeps it; an emptied slot loses it; a shuttle that does something
+     * else now is recalled first.
      */
-    public void adoptGarage(BlockPos pos, List<ShuttleProfile> slots, boolean active) {
+    public void adoptGarage(BlockPos pos, List<ItemStack> slots, boolean active) {
         Garage garage = garages.computeIfAbsent(pos, Garage::new);
         garage.active = active;
         refreshHome(garage);
+        ShuttleTiers tiers = StorageStatsManager.INSTANCE.shuttleTiers();
         for (Shuttle shuttle : new ArrayList<>(garage.shuttles)) {
-            ShuttleProfile profile = shuttle.slot < slots.size() ? slots.get(shuttle.slot) : null;
-            if (profile == null) {
+            ItemStack stack = shuttle.slot < slots.size() ? slots.get(shuttle.slot) : ItemStack.EMPTY;
+            if (stack.isEmpty()) {
                 garage.shuttles.remove(shuttle);
                 releaseLift(shuttle);
                 dropCargo(shuttle);
-            } else if (!profile.equals(shuttle.profile)) {
+                continue;
+            }
+            ShuttleProfile profile = ShuttleModules.profile(stack, tiers);
+            if (!profile.equals(shuttle.profile)) {
                 recallShuttle(shuttle);
                 shuttle.profile = profile;
             }
+            shuttle.item = stack.copyWithCount(1);
         }
         for (int slot = 0; slot < slots.size(); slot++) {
-            ShuttleProfile profile = slots.get(slot);
-            if (profile != null && garage.inSlot(slot) == null) {
-                Shuttle shuttle = new Shuttle(garage, slot, profile);
+            ItemStack stack = slots.get(slot);
+            if (!stack.isEmpty() && garage.inSlot(slot) == null) {
+                Shuttle shuttle = new Shuttle(garage, slot, ShuttleModules.profile(stack, tiers));
+                shuttle.item = stack.copyWithCount(1);
                 shuttle.motion = garage.home == null ? null : ShuttleMotion.parked(garage.home);
                 garage.shuttles.add(shuttle);
             }
@@ -433,6 +440,17 @@ public final class ShuttleFleet {
                 if (shuttle.motion == null) {
                     continue;
                 }
+                if (shuttle.stop > 0 && shuttle.stopAt != shuttle.motion) {
+                    // Sent elsewhere mid stop (a recall): the stop is over.
+                    shuttle.stop = 0;
+                }
+                if (shuttle.stop > 0) {
+                    // Loading or unloading: the stop ends with the arrival it held back.
+                    if (--shuttle.stop == 0) {
+                        arrive(shuttle);
+                    }
+                    continue;
+                }
                 if (shuttle.riding) {
                     moving = true;
                     if (!rideOver(shuttle)) {
@@ -446,7 +464,7 @@ public final class ShuttleFleet {
                 if (!shuttle.motion.arrived()) {
                     moving = true;
                     boolean wasHeld = shuttle.motion.held();
-                    boolean done = shuttle.motion.advance(host.shuttleSpeed(), segment -> mayStart(shuttle, segment));
+                    boolean done = shuttle.motion.advance(shuttle.profile.speed(), segment -> mayStart(shuttle, segment));
                     observeLift(shuttle, shuttle.motion.currentNode());
                     if (wasHeld != shuttle.motion.held()) {
                         syncPending = true;
@@ -624,6 +642,9 @@ public final class ShuttleFleet {
             syncPending = true;
             return;
         }
+        if (holdForStop(shuttle)) {
+            return;
+        }
         if (shuttle.lead() instanceof PickJob pick) {
             arrivePick(shuttle, pick);
         } else if (shuttle.lead() instanceof PutAwayJob putAway) {
@@ -634,6 +655,32 @@ public final class ShuttleFleet {
             return;
         }
         syncPending = true;
+    }
+
+    /**
+     * Starts the stop at a source, terminal, station or target the first time
+     * the shuttle arrives there: it stands for the stop time of the stacks it
+     * moves, then arrives for real. True while the stop holds the arrival back.
+     */
+    private boolean holdForStop(Shuttle shuttle) {
+        boolean stopLeg = switch (shuttle.leg) {
+            case TO_SOURCE -> shuttle.lead() instanceof PickJob || shuttle.lead() instanceof PutAwayJob;
+            case TO_TERMINAL -> shuttle.lead() instanceof PickJob;
+            case TO_TARGET -> shuttle.lead() instanceof PutAwayJob;
+            default -> false;
+        };
+        if (!stopLeg) {
+            return false;
+        }
+        if (shuttle.stopAt == shuttle.motion) {
+            // The stop on this leg is over: arrive for real.
+            shuttle.stopAt = null;
+            return false;
+        }
+        shuttle.stopAt = shuttle.motion;
+        shuttle.stop = StorageStatsManager.INSTANCE.shuttleTiers().stopTicks(shuttle.profile.handling(), shuttle.loads.size());
+        syncPending = true;
+        return true;
     }
 
     /** Hands each pick load to its destination; loads that went in completely are done. */
@@ -857,8 +904,7 @@ public final class ShuttleFleet {
     }
 
     private void startRun(Shuttle shuttle, FieldJob job) {
-        int slots = Math.max(shuttle.profile.stacks(), StorageStatsManager.INSTANCE.harvesterStacks());
-        shuttle.run = new HarvestRun(job.head(), slots);
+        shuttle.run = new HarvestRun(job.head(), shuttle.profile.stacks());
         turn(shuttle);
     }
 
@@ -1044,9 +1090,14 @@ public final class ShuttleFleet {
         run.queue.clear();
         run.queue.addAll(run.reach(head.rails(), head.plots()).getOrDefault(rail, List.of()));
         run.stopPlants = plants(head);
-        run.countdown = StorageStatsManager.INSTANCE.fieldWorkTicks();
+        run.countdown = workTicks(shuttle);
         shuttle.leg = Leg.WORKING;
         syncPending = true;
+    }
+
+    /** Ticks one plot takes for this shuttle: the field's work time shortened by its Handling. */
+    private static int workTicks(Shuttle shuttle) {
+        return ShuttleTiers.workTicks(StorageStatsManager.INSTANCE.fieldWorkTicks(), shuttle.profile.handling());
     }
 
     /** One tick at a rail: wait out the work time, then work the next plot that needs something. */
@@ -1081,7 +1132,7 @@ public final class ShuttleFleet {
             head.recheck(plot);
             if (result == PlotResult.CHANGED) {
                 run.worked = true;
-                run.countdown = StorageStatsManager.INSTANCE.fieldWorkTicks();
+                run.countdown = workTicks(shuttle);
                 syncPending = true;
                 if (nextPlot(run, head) != null) {
                     return;
@@ -1574,7 +1625,6 @@ public final class ShuttleFleet {
         if (garage == null) {
             return list;
         }
-        float speed = (float) host.shuttleSpeed();
         for (Shuttle shuttle : garage.shuttles) {
             ShuttleMotion motion = shuttle.motion;
             if (motion == null || (!shuttle.busy() && motion.arrived())) {
@@ -1584,9 +1634,9 @@ public final class ShuttleFleet {
             for (NodePos node : motion.path()) {
                 path.add(Conversions.toBlockPos(node));
             }
-            float shown = shuttle.riding || motion.held() ? 0 : speed;
+            float shown = shuttle.riding || motion.held() || shuttle.stop > 0 ? 0 : (float) shuttle.profile.speed();
             Optional<BlockPos> lift = shuttle.riding && shuttle.lift != null ? Optional.of(shuttle.lift) : Optional.empty();
-            list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.shownCargo(), lift));
+            list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.shownCargo(), lift, shuttle.item.copy()));
         }
         return list;
     }
@@ -1720,7 +1770,13 @@ public final class ShuttleFleet {
         final Garage garage;
         final int slot;
         ShuttleProfile profile;
+        /** The shuttle's item as it sits in the garage, for drawing it. */
+        ItemStack item = ItemStack.EMPTY;
         ShuttleMotion motion;
+        /** Ticks left of the stop the shuttle stands in, 0 when it is not stopping. */
+        int stop;
+        /** The leg whose stop has started; its next arrival goes on without stopping again. */
+        ShuttleMotion stopAt;
         final List<Load> loads = new ArrayList<>();
         /** The field run of a harvester out on a field job, else null. */
         HarvestRun run;

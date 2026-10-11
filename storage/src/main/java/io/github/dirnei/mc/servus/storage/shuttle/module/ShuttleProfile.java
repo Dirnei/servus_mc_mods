@@ -1,35 +1,34 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 
 /**
- * What one shuttle can do, resolved from its modules once when its garage
- * slot changes, so the fleet never looks at items while it ticks.
+ * What one shuttle can do, resolved from its tier, tool and upgrade counts
+ * once when its garage slot changes, so the fleet never looks at items while
+ * it ticks.
  *
  * @param modules   ids of the fitted modules
  * @param fieldOnly whether the shuttle serves fields only
  * @param stacks    how many stacks, and so how many jobs, it carries per trip
+ * @param speed     blocks per tick between stops
+ * @param handling  the factor its Handling upgrades put on stop and work times
  */
-public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks) {
-
-    public static final ShuttleProfile PLAIN = new ShuttleProfile(Set.of(), false, 1);
+public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks, double speed, double handling) {
 
     public ShuttleProfile {
         modules = Set.copyOf(modules);
     }
 
-    /** The profile of a shuttle with these modules; a Cargo Hold carries cargoHoldStacks stacks, at least one. */
-    public static ShuttleProfile of(Collection<ModuleSpec> fitted, int cargoHoldStacks) {
-        Set<String> ids = new LinkedHashSet<>();
-        boolean fieldOnly = false;
-        boolean cargoHold = false;
-        for (ModuleSpec spec : fitted) {
-            ids.add(spec.id());
-            fieldOnly |= spec.fieldOnly();
-            cargoHold |= spec.cargoHold();
-        }
-        return new ShuttleProfile(ids, fieldOnly, cargoHold ? Math.max(1, cargoHoldStacks) : 1);
+    /** The profile of a shuttle of that tier with this tool and these counts, by the given stats. */
+    public static ShuttleProfile of(ShuttleTiers tiers, int tier, Optional<ModuleSpec> tool, int speed, int handling) {
+        Set<String> ids = tool.map(spec -> Set.of(spec.id())).orElse(Set.of());
+        boolean fieldOnly = tool.map(ModuleSpec::fieldOnly).orElse(false);
+        return new ShuttleProfile(ids, fieldOnly, tiers.tier(tier).stacks(), tiers.speed(tier, speed), tiers.factor(tier, handling));
+    }
+
+    /** A Mk1 shuttle without tool or upgrades by the default stats. */
+    public static ShuttleProfile plain() {
+        return of(ShuttleTiers.DEFAULT, 1, Optional.empty(), 0, 0);
     }
 }

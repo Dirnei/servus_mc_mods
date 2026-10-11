@@ -6,7 +6,6 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackItem;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorItem;
 import io.github.dirnei.mc.servus.storage.rail.RailAssist;
-import io.github.dirnei.mc.servus.storage.shuttle.module.ModuleSlot;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ModuleSpec;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModuleItem;
@@ -54,17 +53,20 @@ public final class ServusStorageItems {
     public static final DeferredItem<WoodBlockItem> CRAFTING_CPU = ITEMS.registerItem("crafting_cpu",
             properties -> new WoodBlockItem(ServusStorageBlocks.CRAFTING_CPU.get(), properties));
     public static final DeferredItem<BlockItem> SHUTTLE_WORKSHOP = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.SHUTTLE_WORKSHOP);
-    public static final DeferredItem<ShuttleItem> SHUTTLE = ITEMS.registerItem("shuttle", ShuttleItem::new, new Item.Properties().stacksTo(16));
-    public static final DeferredItem<ShuttleModuleItem> CARGO_HOLD = ITEMS.registerItem("cargo_hold",
-            properties -> new ShuttleModuleItem(new ModuleSpec("cargo_hold", ModuleSlot.UTILITY, false, true), properties),
-            new Item.Properties().stacksTo(16));
+    public static final DeferredItem<ShuttleItem> SHUTTLE_MK1 = ITEMS.registerItem("shuttle",
+            properties -> new ShuttleItem(1, properties), new Item.Properties().stacksTo(16));
+    public static final DeferredItem<ShuttleItem> SHUTTLE_MK2 = ITEMS.registerItem("shuttle_mk2",
+            properties -> new ShuttleItem(2, properties), new Item.Properties().stacksTo(16));
+    public static final DeferredItem<ShuttleItem> SHUTTLE_MK3 = ITEMS.registerItem("shuttle_mk3",
+            properties -> new ShuttleItem(3, properties), new Item.Properties().stacksTo(16));
+    public static final DeferredItem<Item> HANDLING_UPGRADE = ITEMS.registerSimpleItem("handling_upgrade");
     public static final DeferredItem<ShuttleModuleItem> HARVESTER = ITEMS.registerItem("harvester",
-            properties -> new ShuttleModuleItem(new ModuleSpec(ModuleSpec.HARVESTER, ModuleSlot.TOOL, true, false), properties),
+            properties -> new ShuttleModuleItem(new ModuleSpec(ModuleSpec.HARVESTER, true), properties),
             new Item.Properties().stacksTo(16));
     public static final DeferredItem<ZoneLabelItem> ZONE_LABEL = ITEMS.registerItem("zone_label", ZoneLabelItem::new, new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE, CARGO_HOLD, HARVESTER, FARM_RAIL, FIELD_HEAD, ZONE_LABEL);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, HARVESTER, FARM_RAIL, FIELD_HEAD, ZONE_LABEL);
 
     private ServusStorageItems() {
     }

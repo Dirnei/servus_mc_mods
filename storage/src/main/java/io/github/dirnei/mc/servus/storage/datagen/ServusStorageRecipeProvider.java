@@ -196,7 +196,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_paper", has(Items.PAPER))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.SHUTTLE.get())
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.SHUTTLE_MK1.get())
                 .pattern("I I")
                 .pattern("RBR")
                 .pattern("III")
@@ -213,7 +213,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('I', Items.IRON_INGOT)
                 .define('C', Items.CRAFTING_TABLE)
                 .define('P', ItemTags.PLANKS)
-                .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE.get()))
+                .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE_MK1.get()))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.FARM_RAIL.get(), 8)
@@ -236,13 +236,14 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_farm_rail", has(ServusStorageItems.FARM_RAIL.get()))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.CARGO_HOLD.get())
-                .pattern("I I")
-                .pattern("ICI")
-                .pattern("III")
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.HANDLING_UPGRADE.get())
+                .pattern("IRI")
+                .pattern("RPR")
+                .pattern("IRI")
                 .define('I', Items.IRON_INGOT)
-                .define('C', Items.CHEST)
-                .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE.get()))
+                .define('R', Items.REDSTONE)
+                .define('P', Items.PISTON)
+                .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE_MK1.get()))
                 .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.HARVESTER.get())
@@ -253,7 +254,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('S', Items.SHEARS)
                 .define('H', Items.IRON_HOE)
                 .define('P', Items.HOPPER)
-                .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE.get()))
+                .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE_MK1.get()))
                 .save(output);
     }
 

@@ -1,11 +1,9 @@
 {
   "sources_per_tick": 4,
-  "shuttle_speed": 0.25,
   "lift_speed": 0.1,
   "inbound_buffer_slots": 9,
   "put_away_per_tick": 1,
   "garage_capacity": 4,
-  "cargo_hold_stacks": 4,
   "rail_max_span": 3,
   "terminal_output_slots": 9,
   "stock_rule_interval": 100,

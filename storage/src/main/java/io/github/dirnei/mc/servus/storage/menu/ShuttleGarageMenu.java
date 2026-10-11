@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.menu;
 
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
 import net.minecraft.core.BlockPos;
@@ -155,7 +155,7 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
             }
             moved = moveItemStackTo(stack, inventoryStart, slots.size(), true);
         } else {
-            if (!stack.is(ServusStorageItems.SHUTTLE.get())) {
+            if (!ShuttleItem.isShuttle(stack)) {
                 return ItemStack.EMPTY;
             }
             moved = moveItemStackTo(stack, 0, capacity, false);
