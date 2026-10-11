@@ -11,7 +11,7 @@
 
 ## 3. Client
 
-- [ ] 3.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/client/ItemPicker.java`: the reusable picker widget per design.md. Run `gradlew build`.
+- [x] 3.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/client/ItemPicker.java`: the reusable picker widget per design.md. Run `gradlew build`.
 - [ ] 3.2 `storage/src/main/java/io/github/dirnei/mc/servus/storage/client/CropPickerEntries.java` and `FieldHeadScreen.java`: the crop picker on the Field tab, sends the choice, shows counts and the zero hint. Run `gradlew build`.
 - [ ] 3.3 `storage/src/main/java/io/github/dirnei/mc/servus/storage/datagen/ServusStorageLanguageProvider.java`: picker keys, toggle keys removed. Run `gradlew :storage:runData`, then `gradlew build`.
 
