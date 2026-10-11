@@ -5,6 +5,8 @@ import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleLook;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -17,16 +19,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Draws every shuttle of this garage: its own item as a cart on the rail at the position
- * extrapolated from the last sync, with its cargo on top. A shuttle riding a
- * lift car is drawn at the car's height.
+ * Draws every shuttle of this garage: its own item, whose model shows the
+ * shuttle's parts, at full block scale on the rail at the position
+ * extrapolated from the last sync, with its cargo in the crate when the hold
+ * is open. A shuttle riding a lift car is drawn at the car's height.
  */
 public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageBlockEntity> {
 
-    private static final float CART_SCALE = 0.6F;
-    private static final float CARGO_SCALE = 0.3F;
+    private static final float CARGO_SCALE = 0.35F;
+    /** Height of the cargo's centre above the shuttle's bottom: standing on the crate floor. */
+    private static final double CARGO_Y = 4.0 / 16.0 + 0.5 * CARGO_SCALE;
     private static final double RAIL_TOP = 2.0 / 16.0;
-    private static final double PARK_SPACING = 0.15;
+    private static final double PARK_SPACING = 0.25;
 
     public ShuttleGarageRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -78,17 +82,15 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
             int light = LevelRenderer.getLightColor(garage.getLevel(), railPos.above());
 
             poseStack.pushPose();
-            poseStack.translate(pos[0] - origin.getX() + 0.5 + offset, pos[1] - origin.getY() + RAIL_TOP + 0.5 * CART_SCALE,
+            // The model's bottom stands on the rail top; NONE draws it around its centre at block scale.
+            poseStack.translate(pos[0] - origin.getX() + 0.5 + offset, pos[1] - origin.getY() + RAIL_TOP + 0.5,
                     pos[2] - origin.getZ() + 0.5);
             poseStack.mulPose(Axis.YP.rotationDegrees((float) yaw));
-            poseStack.pushPose();
-            poseStack.scale(CART_SCALE, CART_SCALE, CART_SCALE);
             ItemStack cart = view.shuttle().isEmpty() ? plain : view.shuttle();
             Minecraft.getInstance().getItemRenderer().renderStatic(cart, ItemDisplayContext.NONE, light, packedOverlay,
                     poseStack, bufferSource, garage.getLevel(), 0);
-            poseStack.popPose();
-            if (!view.cargo().isEmpty()) {
-                poseStack.translate(0.0, 0.5 * CART_SCALE * (3.0 / 16.0) + 0.5 * CARGO_SCALE, 0.0);
+            if (!view.cargo().isEmpty() && ShuttleLook.openHold(ShuttleItem.tier(cart))) {
+                poseStack.translate(0.0, CARGO_Y - 0.5, 0.0);
                 poseStack.scale(CARGO_SCALE, CARGO_SCALE, CARGO_SCALE);
                 Minecraft.getInstance().getItemRenderer().renderStatic(view.cargo(), ItemDisplayContext.FIXED, light, packedOverlay,
                         poseStack, bufferSource, garage.getLevel(), 1);
@@ -157,6 +159,7 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
     private static double yaw(List<BlockPos> path, int segment) {
         BlockPos from = path.get(segment);
         BlockPos to = path.get(segment + 1);
-        return Math.toDegrees(Math.atan2(-(to.getX() - from.getX()), to.getZ() - from.getZ()));
+        // Model +z is the front: yaw 0 drives south, 90 east.
+        return Math.toDegrees(Math.atan2(to.getX() - from.getX(), to.getZ() - from.getZ()));
     }
 }
