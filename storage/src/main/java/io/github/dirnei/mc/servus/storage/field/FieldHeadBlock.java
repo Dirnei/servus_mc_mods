@@ -3,7 +3,10 @@ package io.github.dirnei.mc.servus.storage.field;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -41,6 +44,14 @@ public class FieldHeadBlock extends BaseEntityBlock {
             return null;
         }
         return createTickerHelper(type, ServusStorageBlockEntities.FIELD_HEAD.get(), FieldHeadBlockEntity::serverTick);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FieldHeadBlockEntity head) {
+            player.openMenu(head, pos);
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     @Override

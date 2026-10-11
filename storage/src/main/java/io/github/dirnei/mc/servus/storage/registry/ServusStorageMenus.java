@@ -51,6 +51,9 @@ public final class ServusStorageMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<ShuttleWorkshopMenu>> SHUTTLE_WORKSHOP =
             MENUS.register("shuttle_workshop", () -> new MenuType<>(ShuttleWorkshopMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu>> FIELD_HEAD =
+            MENUS.register("field_head", () -> IMenuTypeExtension.create(io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu::fromNetwork));
+
     private ServusStorageMenus() {
     }
 }

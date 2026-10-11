@@ -12,7 +12,7 @@
 
 - [x] 3.1 `FieldStatus`, `FieldHeadBlock`, `FieldHeadBlockEntity` (water tank, field refresh, hydration tickets, ripeness, NBT) and `FieldHeads` in `storage/.../field/`; `FIELD_HEAD` block, item and block entity type; fluid capability in `ServusStorageEvents`; farm rail change hooks (design D3, D4, D5). Verify: `gradlew build`.
 - [x] 3.2 `FieldEvents` (crop growth, bone meal, break, place, trample, chunk load) in `storage/.../field/` (design D4). Verify: `gradlew build`.
-- [ ] 3.3 `FieldHeadMenu` in `storage/.../menu/`, `FIELD_HEAD` in `ServusStorageMenus`, `FieldHeadScreen` in `storage/.../client/` registered in `ServusStorageClient` (design D6). Verify: `gradlew build`.
+- [x] 3.3 `FieldHeadMenu` in `storage/.../menu/`, `FIELD_HEAD` in `ServusStorageMenus`, `FieldHeadScreen` in `storage/.../client/` registered in `ServusStorageClient` (design D6). Verify: `gradlew build`.
 - [ ] 3.4 `/servus_warehouse field <pos>` and `field <pos> recheck` in `ServusStorageCommands`. Verify: `gradlew build`.
 
 ## 4. Data

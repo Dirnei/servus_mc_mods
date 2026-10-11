@@ -14,6 +14,12 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.FluidTags;
+import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
@@ -36,7 +42,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * ripeness and tickets are rebuilt after a load or a change, never scanned
  * per tick; events from {@link FieldEvents} keep the ripeness current.
  */
-public class FieldHeadBlockEntity extends BlockEntity {
+public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
 
     private final FluidTank tank = new FluidTank(StorageStatsManager.INSTANCE.fieldCapacity(), stack -> stack.is(FluidTags.WATER)) {
         @Override
@@ -461,6 +467,18 @@ public class FieldHeadBlockEntity extends BlockEntity {
     /** The fluid handler other blocks and pipes see: takes water, gives nothing back. */
     public IFluidHandler fluidHandler() {
         return fillOnly;
+    }
+
+    // Menu
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new FieldHeadMenu(containerId, playerInventory, this);
     }
 
     // Saving
