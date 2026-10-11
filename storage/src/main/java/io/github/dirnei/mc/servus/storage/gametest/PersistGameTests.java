@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
@@ -19,20 +19,14 @@ import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /** Requests, CPU orders, station jobs and shipments survive their block entities being saved and loaded again. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class PersistGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -76,11 +70,11 @@ public final class PersistGameTests {
     }
 
     private static CraftingStationBlockEntity station(GameTestHelper helper, BlockPos pos) {
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
     }
 
     /** Open requests come back with their amounts, and a new request gets an id above the saved one. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void terminalRequestsSurviveReload(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
         StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
@@ -103,7 +97,7 @@ public final class PersistGameTests {
      * stations are saved and loaded again. The order is still open, the job is still there, and the
      * sticks land in the terminal.
      */
-    @GameTest(template = EMPTY, timeoutTicks = 1200)
+    @ServusGameTest(timeoutTicks = 1200)
     public static void orderFinishesAfterReload(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 8);
         // A second crate beside the controller takes the crafted sticks; a compartment holds one item type.
@@ -141,7 +135,7 @@ public final class PersistGameTests {
     }
 
     /** A job whose CPU is loaded but has no such order ends by itself. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void orphanedJobEnds(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
         CraftingStationBlockEntity station = station(helper, STATION_A);
@@ -154,12 +148,12 @@ public final class PersistGameTests {
      * A shipment saved while only half its items sit in the outgoing buffer waits only for those after
      * loading; the rest ends as a shortfall.
      */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void shipmentCappedAfterReload(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
-        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS));
+        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS), PackingStationBlockEntity.class);
         PackingStationBlockEntity.Shipment shipment = point.addShipment(helper.absolutePos(STATION_A), STICK, 16);
-        ItemHandlerHelper.insertItemStacked(point.outgoing(), new ItemStack(Items.STICK, 8), false);
+        point.outgoing().insertItemStacked(new ItemStack(Items.STICK, 8), false);
         long id = shipment.id();
         PackingStationBlockEntity loaded = reload(helper, TerminalWiring.packingStationPos(ACCESS));
         helper.assertTrue(loaded.shipments().isEmpty() || loaded.shipments().get(0).id() == id, "no other shipment appears");

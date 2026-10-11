@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.station;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigWrench;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
@@ -13,7 +15,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -26,14 +27,14 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 /** The inbound dock of a warehouse. Right click opens its GUI; the carrot turns or dismantles it. */
 public class InboundStationBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<InboundStationBlock> CODEC = simpleCodec(InboundStationBlock::new);
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
     public InboundStationBlock(Properties properties) {
         super(properties);
@@ -67,12 +68,12 @@ public class InboundStationBlock extends BaseEntityBlock implements Wrenchable {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem) {
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
@@ -80,12 +81,13 @@ public class InboundStationBlock extends BaseEntityBlock implements Wrenchable {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof InboundStationBlockEntity station) {
             player.openMenu(station, pos);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         StorageNodeBlockEntity.neighborsChanged(level, pos);
     }
 
@@ -105,7 +107,7 @@ public class InboundStationBlock extends BaseEntityBlock implements Wrenchable {
         if (level.getBlockEntity(pos) instanceof InboundStationBlockEntity station) {
             return SideConfigWrench.use(context, this, station, () -> station.dropContents(level, pos));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override

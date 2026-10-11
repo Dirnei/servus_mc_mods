@@ -32,7 +32,7 @@ public class CrateRenderer implements BlockEntityRenderer<CrateBlockEntity> {
             return;
         }
         Direction facing = crate.getBlockState().getValue(CrateBlock.FACING);
-        int light = LevelRenderer.getLightColor(crate.getLevel(), crate.getBlockPos().relative(facing));
+        int light = LevelRenderer.getLightCoords(crate.getLevel(), crate.getBlockPos().relative(facing));
         Font font = Minecraft.getInstance().font;
         int compartments = crate.compartments();
         float itemScale = compartments == 1 ? 0.5F : 0.3F;

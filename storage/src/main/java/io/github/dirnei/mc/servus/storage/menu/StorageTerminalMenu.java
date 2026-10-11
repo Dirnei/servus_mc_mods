@@ -39,7 +39,7 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
@@ -80,7 +80,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         this.access = ContainerLevelAccess.create(terminal.getLevel(), terminal.getBlockPos());
         this.outputSlots = terminal.output().getSlots();
         for (int slot = 0; slot < outputSlots; slot++) {
-            addSlot(new SlotItemHandler(terminal.output(), slot, Storage.outputX(slot), Storage.outputY(slot)) {
+            addSlot(new ResourceHandlerSlot(terminal.output(), terminal.output()::set, slot, Storage.outputX(slot), Storage.outputY(slot)) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return false;
@@ -89,7 +89,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         }
         inputStart = slots.size();
         for (int slot = 0; slot < terminal.input().getSlots(); slot++) {
-            addSlot(new SlotItemHandler(terminal.input(), slot, Storage.inputX(slot), Storage.inputY(slot)));
+            addSlot(new ResourceHandlerSlot(terminal.input(), terminal.input()::set, slot, Storage.inputX(slot), Storage.inputY(slot)));
         }
         inventoryStart = slots.size();
         for (int row = 0; row < 3; row++) {
@@ -176,12 +176,12 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     /** Vanilla CraftingMenu.slotChangedCraftingGrid, written out for this menu's result slot index. */
     private void updateResult(Level level) {
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
         CraftingInput input = craftSlots.asCraftInput();
         ItemStack result = ItemStack.EMPTY;
-        Optional<RecipeHolder<CraftingRecipe>> recipe = level.getServer().getRecipeManager()
+        Optional<RecipeHolder<CraftingRecipe>> recipe = level.getServer().recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level, (RecipeHolder<CraftingRecipe>) null);
         // Players that are not ServerPlayers (GameTest mock players) skip the limited crafting check.
         if (recipe.isPresent() && (!(player instanceof ServerPlayer serverPlayer) || resultSlots.setRecipeUsed(level, serverPlayer, recipe.get()))) {
@@ -231,7 +231,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     /** After a craft, every grid slot that lost an ingredient gets one more of it from instant stock. */
     private void refill(ItemStack[] before) {
-        if (player.level().isClientSide) {
+        if (player.level().isClientSide()) {
             return;
         }
         for (int slot = 0; slot < before.length; slot++) {
@@ -268,7 +268,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     /** Moves every grid stack into the warehouse; the rest goes to the player. */
     public void clearGrid() {
-        if (player.level().isClientSide) {
+        if (player.level().isClientSide()) {
             return;
         }
         for (int slot = 0; slot < craftSlots.getContainerSize(); slot++) {
@@ -291,7 +291,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
      * With max, a slot takes up to a stack instead of one item.
      */
     public void fillGrid(List<List<ItemStack>> options, boolean max) {
-        if (player.level().isClientSide) {
+        if (player.level().isClientSide()) {
             return;
         }
         clearGrid();
@@ -555,7 +555,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             lastSignature = signature(payload);
             syncTimer = 0;
             if (firstSyncTick < 0) {
-                firstSyncTick = serverPlayer.serverLevel().getGameTime();
+                firstSyncTick = serverPlayer.level().getGameTime();
             }
             PacketDistributor.sendToPlayer(serverPlayer, payload);
         }

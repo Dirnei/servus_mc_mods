@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.storage.shuttle.module.EngraveShuttlePayload;
@@ -19,16 +22,15 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.build.WireBoard;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.Util;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -87,9 +89,7 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     private int reported = -1;
 
     public ShuttleWorkshopScreen(ShuttleWorkshopMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = 320;
-        this.imageHeight = 204;
+        super(menu, playerInventory, title, 320, 204);
     }
 
     @Override
@@ -127,7 +127,7 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
 
     private void sendEngrave() {
         if (menu.building() && done()) {
-            PacketDistributor.sendToServer(new EngraveShuttlePayload(name.getValue()));
+            ClientPacketDistributor.sendToServer(new EngraveShuttlePayload(name.getValue()));
             name.setValue("");
             name.setFocused(false);
         }
@@ -194,18 +194,18 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         boolean finished = bolts != null ? bolts.done() : wires != null ? wires.done() : weld != null && weld.done();
         if (finished && reported != step) {
             reported = step;
-            PacketDistributor.sendToServer(new ShuttleBuildStepPayload(step));
+            ClientPacketDistributor.sendToServer(new ShuttleBuildStepPayload(step));
         }
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         graphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, COLOUR_PANEL);
         graphics.fill(leftPos + PANEL_X - 3, topPos + 4, leftPos + PANEL_X - 2, topPos + imageHeight - 4, 0xFF8B8B8B);
         frame(graphics, ShuttleWorkshopMenu.SHUTTLE_X, ShuttleWorkshopMenu.SHUTTLE_Y);
@@ -228,21 +228,21 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         ItemStack shuttle = menu.shuttle();
         if (!shuttle.isEmpty()) {
             // The composed item model, five times its size, so the shuttle's look shows.
-            graphics.pose().pushPose();
-            graphics.pose().translate(boardLeft + BOARD_W / 2.0F - 8 * MODEL_SCALE, boardTop + BOARD_H / 2.0F - 8 * MODEL_SCALE, 0);
-            graphics.pose().scale(MODEL_SCALE, MODEL_SCALE, 1);
-            graphics.renderItem(shuttle, 0, 0);
-            graphics.pose().popPose();
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(boardLeft + BOARD_W / 2.0F - 8 * MODEL_SCALE, boardTop + BOARD_H / 2.0F - 8 * MODEL_SCALE);
+            graphics.pose().scale(MODEL_SCALE, MODEL_SCALE);
+            graphics.item(shuttle, 0, 0);
+            graphics.pose().popMatrix();
         }
         if (menu.building() && !done()) {
-            graphics.pose().pushPose();
-            graphics.pose().translate(boardLeft, boardTop, 300);
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(boardLeft, boardTop);
             drawBoard(graphics, mouseX - boardLeft, mouseY - boardTop);
-            graphics.pose().popPose();
+            graphics.pose().popMatrix();
         }
     }
 
-    private void drawBoard(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void drawBoard(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (bolts != null) {
             boolean bright = (Util.getMillis() / 300) % 2 == 0;
             List<Spot> spots = bolts.spots();
@@ -291,18 +291,18 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         return new Spot(left ? CONTACT : BOARD_W - CONTACT, y);
     }
 
-    private static void dot(GuiGraphics graphics, Spot spot, int radius, int colour) {
+    private static void dot(GuiGraphicsExtractor graphics, Spot spot, int radius, int colour) {
         graphics.fill(spot.x() - radius, spot.y() - radius, spot.x() + radius + 1, spot.y() + radius + 1, colour);
     }
 
-    private static void square(GuiGraphics graphics, Spot spot, int colour, boolean picked) {
+    private static void square(GuiGraphicsExtractor graphics, Spot spot, int colour, boolean picked) {
         int half = CONTACT / 2;
         graphics.fill(spot.x() - half - 1, spot.y() - half - 1, spot.x() + half + 1, spot.y() + half + 1, picked ? 0xFFFFFFFF : 0xFF000000);
         graphics.fill(spot.x() - half, spot.y() - half, spot.x() + half, spot.y() + half, colour);
     }
 
     /** A two pixel wide line drawn as small squares along the way. */
-    private static void line(GuiGraphics graphics, Spot from, Spot to, int colour) {
+    private static void line(GuiGraphicsExtractor graphics, Spot from, Spot to, int colour) {
         int steps = Math.max(Math.abs(to.x() - from.x()), Math.abs(to.y() - from.y()));
         for (int i = 0; i <= steps; i++) {
             double t = steps == 0 ? 0 : i / (double) steps;
@@ -312,7 +312,7 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         }
     }
 
-    private void frame(GuiGraphics graphics, int slotX, int slotY) {
+    private void frame(GuiGraphicsExtractor graphics, int slotX, int slotY) {
         int x = leftPos + slotX - 1;
         int y = topPos + slotY - 1;
         graphics.fill(x, y, x + 18, y + 18, 0xFF8B8B8B);
@@ -323,20 +323,26 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (button == 0 && onBoard(mouseX, mouseY) && play((int) mouseX - leftPos - BOARD_X, (int) mouseY - topPos - BOARD_Y, true)) {
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (button == 0 && weld != null && onBoard(mouseX, mouseY)) {
             play((int) mouseX - leftPos - BOARD_X, (int) mouseY - topPos - BOARD_Y, false);
             return true;
         }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(event, dragX, dragY);
     }
 
     private boolean onBoard(double mouseX, double mouseY) {
@@ -377,7 +383,10 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
         if (keyCode != GLFW.GLFW_KEY_ESCAPE && name.visible && name.isFocused()) {
             if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
                 sendEngrave();
@@ -387,22 +396,22 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
                 return true;
             }
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        super.renderLabels(graphics, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractLabels(graphics, mouseX, mouseY);
         // The install slot never holds anything; a plus marks it.
-        graphics.drawString(font, "+", ShuttleWorkshopMenu.INSTALL_X + 5, ShuttleWorkshopMenu.INSTALL_Y + 4, 0x707070, false);
-        graphics.drawString(font, Component.translatable("gui.servus_storage.workshop.supplies"), ShuttleWorkshopMenu.SUPPLY_X,
+        graphics.text(font, "+", ShuttleWorkshopMenu.INSTALL_X + 5, ShuttleWorkshopMenu.INSTALL_Y + 4, 0xFF707070, false);
+        graphics.text(font, Component.translatable("gui.servus_storage.workshop.supplies"), ShuttleWorkshopMenu.SUPPLY_X,
                 ShuttleWorkshopMenu.SUPPLY_Y - 10, COLOUR_TEXT, false);
         drawPanelLabels(graphics);
         ItemStack shuttle = menu.shuttle();
         if (shuttle.isEmpty()) {
             graphics.fill(ShuttleWorkshopMenu.INSTALL_X, ShuttleWorkshopMenu.INSTALL_Y, ShuttleWorkshopMenu.INSTALL_X + 16,
                     ShuttleWorkshopMenu.INSTALL_Y + 16, COLOUR_CLOSED);
-            graphics.drawString(font, Component.translatable("gui.servus_storage.workshop.hint"), INFO_X, ShuttleWorkshopMenu.SHUTTLE_Y + 4,
+            graphics.text(font, Component.translatable("gui.servus_storage.workshop.hint"), INFO_X, ShuttleWorkshopMenu.SHUTTLE_Y + 4,
                     COLOUR_TEXT, false);
             return;
         }
@@ -410,68 +419,68 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         int tier = ShuttleItem.tier(shuttle);
         ShuttleModules modules = ShuttleModules.of(shuttle);
         int y = ShuttleWorkshopMenu.SHUTTLE_Y;
-        graphics.drawString(font, Component.translatable("gui.servus_storage.workshop.tier", tier, tiers.tier(tier).stacks()), INFO_X, y,
+        graphics.text(font, Component.translatable("gui.servus_storage.workshop.tier", tier, tiers.tier(tier).stacks()), INFO_X, y,
                 COLOUR_TEXT, false);
         y += LINE;
-        graphics.drawString(font, Component.translatable("gui.servus_storage.workshop.speed", modules.speed(), tiers.tier(tier).max(Kind.SPEED)),
+        graphics.text(font, Component.translatable("gui.servus_storage.workshop.speed", modules.speed(), tiers.tier(tier).max(Kind.SPEED)),
                 INFO_X, y, COLOUR_TEXT, false);
         y += LINE;
-        graphics.drawString(font, Component.translatable("gui.servus_storage.workshop.handling", modules.handling(),
+        graphics.text(font, Component.translatable("gui.servus_storage.workshop.handling", modules.handling(),
                 tiers.tier(tier).max(Kind.HANDLING)), INFO_X, y, COLOUR_TEXT, false);
         y += LINE;
         Component tool = modules.tool().map(item -> (Component) item.getDescription())
                 .orElse(Component.translatable("gui.servus_storage.workshop.no_tool"));
-        graphics.drawString(font, font.plainSubstrByWidth(Component.translatable("gui.servus_storage.workshop.tool", tool).getString(), 60),
+        graphics.text(font, font.plainSubstrByWidth(Component.translatable("gui.servus_storage.workshop.tool", tool).getString(), 60),
                 INFO_X, y, COLOUR_TEXT, false);
         drawSheet(graphics, tier);
     }
 
     /** The panel's header over the board and the line under it: the step and what to do, or the shuttle's plate. */
-    private void drawPanelLabels(GuiGraphics graphics) {
+    private void drawPanelLabels(GuiGraphicsExtractor graphics) {
         ItemStack shuttle = menu.shuttle();
         if (menu.building()) {
             List<BuildStep> steps = menu.steps();
             int step = menu.buildStep();
             if (done()) {
-                graphics.drawString(font, Component.translatable("gui.servus_storage.workshop.name"), BOARD_X, 6, COLOUR_TEXT, false);
+                graphics.text(font, Component.translatable("gui.servus_storage.workshop.name"), BOARD_X, 6, COLOUR_TEXT, false);
             } else if (step < steps.size()) {
-                graphics.drawString(font, Component.translatable("gui.servus_storage.workshop.step", step + 1, steps.size()), BOARD_X, 6,
+                graphics.text(font, Component.translatable("gui.servus_storage.workshop.step", step + 1, steps.size()), BOARD_X, 6,
                         COLOUR_TEXT, false);
                 Component hint = Component.translatable("gui.servus_storage.workshop.step." + steps.get(step).kind().id());
-                graphics.drawString(font, font.plainSubstrByWidth(hint.getString(), BOARD_W), BOARD_X, BOARD_Y + BOARD_H + 4, COLOUR_TEXT, false);
+                graphics.text(font, font.plainSubstrByWidth(hint.getString(), BOARD_W), BOARD_X, BOARD_Y + BOARD_H + 4, COLOUR_TEXT, false);
             }
         } else if (!shuttle.isEmpty()) {
-            graphics.drawString(font, font.plainSubstrByWidth(shuttle.getHoverName().getString(), BOARD_W), BOARD_X, 6, COLOUR_TEXT, false);
+            graphics.text(font, font.plainSubstrByWidth(shuttle.getHoverName().getString(), BOARD_W), BOARD_X, 6, COLOUR_TEXT, false);
         }
         if (!shuttle.isEmpty() && !(menu.building() && done())) {
-            ShuttleItem.plate(shuttle).ifPresent(plate -> graphics.drawString(font,
+            ShuttleItem.plate(shuttle).ifPresent(plate -> graphics.text(font,
                     font.plainSubstrByWidth(Component.translatable("gui.servus_storage.workshop.plate", plate).getString(), BOARD_W),
                     BOARD_X, BOARD_Y + BOARD_H + 16, COLOUR_TEXT, false));
         }
     }
 
     /** The next tier's supplies, each as have and need, green when complete. */
-    private void drawSheet(GuiGraphics graphics, int tier) {
+    private void drawSheet(GuiGraphicsExtractor graphics, int tier) {
         List<ShuttleTiers.Supply> sheet = menu.sheet();
         int y = ShuttleWorkshopMenu.SHUTTLE_Y;
         if (sheet.isEmpty()) {
-            graphics.drawString(font, Component.translatable("gui.servus_storage.workshop.top_tier"), SHEET_X, y, COLOUR_TEXT, false);
+            graphics.text(font, Component.translatable("gui.servus_storage.workshop.top_tier"), SHEET_X, y, COLOUR_TEXT, false);
             return;
         }
-        graphics.drawString(font, Component.translatable("gui.servus_storage.workshop.next", tier + 1), SHEET_X, y, COLOUR_TEXT, false);
+        graphics.text(font, Component.translatable("gui.servus_storage.workshop.next", tier + 1), SHEET_X, y, COLOUR_TEXT, false);
         for (Map.Entry<String, Integer> need : ShuttleBuild.needs(sheet).entrySet()) {
             y += LINE;
             if (y > ShuttleWorkshopMenu.SUPPLY_Y - 22) {
                 break;
             }
-            ItemStack icon = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(need.getKey())));
+            ItemStack icon = new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.parse(need.getKey())));
             int have = Math.min(menu.supplied(need.getKey()), need.getValue());
-            graphics.pose().pushPose();
-            graphics.pose().translate(SHEET_X, y - 1, 0);
-            graphics.pose().scale(0.6F, 0.6F, 1);
-            graphics.renderItem(icon, 0, 0);
-            graphics.pose().popPose();
-            graphics.drawString(font, have + "/" + need.getValue(), SHEET_X + 12, y, have >= need.getValue() ? COLOUR_DONE : COLOUR_MISSING, false);
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(SHEET_X, y - 1);
+            graphics.pose().scale(0.6F, 0.6F);
+            graphics.item(icon, 0, 0);
+            graphics.pose().popMatrix();
+            graphics.text(font, have + "/" + need.getValue(), SHEET_X + 12, y, have >= need.getValue() ? COLOUR_DONE : COLOUR_MISSING, false);
         }
     }
 }

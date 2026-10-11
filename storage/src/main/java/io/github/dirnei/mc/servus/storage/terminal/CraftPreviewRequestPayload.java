@@ -5,14 +5,14 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /** Client to server: preview crafting this many of the item at the open terminal. */
 public record CraftPreviewRequestPayload(ItemStack item, int amount) implements CustomPacketPayload {
 
     public static final Type<CraftPreviewRequestPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "craft_preview_request"));
+            new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "craft_preview_request"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, CraftPreviewRequestPayload> STREAM_CODEC = StreamCodec.composite(
             ItemStack.STREAM_CODEC, CraftPreviewRequestPayload::item,

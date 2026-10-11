@@ -10,7 +10,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -40,7 +40,7 @@ public class HeavyRackRecipe extends ShapedRecipe {
         }
         String wood = RackWood.pick(planks);
         if (wood != null) {
-            result.set(ServusStorageComponents.RACK_WOOD.get(), ResourceLocation.parse(wood));
+            result.set(ServusStorageComponents.RACK_WOOD.get(), Identifier.parse(wood));
         }
         return result;
     }

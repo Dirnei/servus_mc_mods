@@ -15,4 +15,4 @@ include 'foundation'
 // Port to Minecraft 26.1.2 (change m0-port-minecraft-26-1-2): Manufacturing and Storage
 // stay out of the build until their port sections in tasks.md are done.
 // include 'manufacturing'
-// include 'storage'
+include 'storage'

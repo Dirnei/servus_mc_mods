@@ -1,8 +1,9 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
@@ -14,7 +15,6 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -31,13 +31,9 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.FarmlandWaterManager;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /** Copper corrosion of farm rail fields: aging, upkeep, the corroded field, axe scraping and joins (m10-rail-corrosion). */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class RailCorrosionGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -84,8 +80,8 @@ public final class RailCorrosionGameTests {
         return StorageStatsManager.INSTANCE.fieldCorrosionWater();
     }
 
-    private static IFluidHandler fluid(GameTestHelper helper) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(HEAD), null);
+    private static FluidView fluid(GameTestHelper helper) {
+        return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(HEAD), null));
     }
 
     private static boolean wet(GameTestHelper helper, int x) {
@@ -108,7 +104,7 @@ public final class RailCorrosionGameTests {
     // Aging
 
     /** A served field starts at copper on every rail and goes to exposed after one step of water without upkeep. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void agingWithoutUpkeep(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
@@ -124,7 +120,7 @@ public final class RailCorrosionGameTests {
     }
 
     /** Honeycomb in the slot holds the stage for one step each. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void honeycombHoldsStage(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
@@ -140,11 +136,11 @@ public final class RailCorrosionGameTests {
     }
 
     /** Hydration water counts toward aging. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void waterUseCountsForAging(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
-            fluid(helper).fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
+            fluid(helper).fill(new FluidStack(Fluids.WATER, 1000), false);
             helper.succeedWhen(() -> {
                 helper.assertTrue(head.hydrated(), "the head should hydrate");
                 long need = FieldWater.use(RAILS, StorageStatsManager.INSTANCE.fieldWaterPerRail());
@@ -156,11 +152,11 @@ public final class RailCorrosionGameTests {
     // Corroded
 
     /** A corroded field is no longer watered, uses no water and shows the rust rim. */
-    @GameTest(template = EMPTY, timeoutTicks = 80)
+    @ServusGameTest(timeoutTicks = 80)
     public static void corrodedStopsHydration(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
-            fluid(helper).fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
+            fluid(helper).fill(new FluidStack(Fluids.WATER, 1000), false);
             helper.runAfterDelay(3, () -> {
                 helper.assertTrue(head.hydrated() && wet(helper, 4), "the field should be watered first");
                 head.setStage(FieldCorrosion.OXIDIZED);
@@ -182,12 +178,12 @@ public final class RailCorrosionGameTests {
     // Axe
 
     /** An axe scrapes every rail back one stage and loses one durability per rail; the field is watered again. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void axeScrapesField(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
             head.setStage(FieldCorrosion.CORRODED);
-            fluid(helper).fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
+            fluid(helper).fill(new FluidStack(Fluids.WATER, 1000), false);
             ItemStack axe = new ItemStack(Items.IRON_AXE);
             Player player = playerHolding(helper, axe);
             useOnRail(helper, player, 5);
@@ -203,7 +199,7 @@ public final class RailCorrosionGameTests {
     }
 
     /** An axe with less durability left than the field has rails does nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void wornAxeRefused(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
@@ -221,7 +217,7 @@ public final class RailCorrosionGameTests {
     }
 
     /** Fresh copper is not scraped. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void freshCopperNotScraped(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
@@ -236,7 +232,7 @@ public final class RailCorrosionGameTests {
     // Joins
 
     /** A rail placed at the end of a headed field takes the field's stage. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void placedRailAdoptsStage(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
@@ -248,7 +244,7 @@ public final class RailCorrosionGameTests {
     }
 
     /** A broken rail's drop places a loose, fresh rail. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void droppedRailIsFresh(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
@@ -274,7 +270,7 @@ public final class RailCorrosionGameTests {
     }
 
     /** Without a head, a rail joining a weathered and an exposed run makes all of them exposed. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void headlessJoinTakesYoungest(GameTestHelper helper) {
         for (int x : new int[] {3, 4, 6, 7}) {
             rail(helper, x);
@@ -294,12 +290,12 @@ public final class RailCorrosionGameTests {
     // Upkeep
 
     /** A hopper fills the anti-corrosion slot with honeycomb and keeps other items; the head is an upkeep holder. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void hopperFillsUpkeep(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         BlockPos hopperPos = HEAD.above();
         helper.setBlock(hopperPos, Blocks.HOPPER.defaultBlockState());
-        HopperBlockEntity hopper = helper.getBlockEntity(hopperPos);
+        HopperBlockEntity hopper = helper.getBlockEntity(hopperPos, HopperBlockEntity.class);
         hopper.setItem(0, new ItemStack(Items.HONEYCOMB, 2));
         hopper.setItem(1, new ItemStack(Items.WHEAT_SEEDS, 1));
         UpkeepHolder upkeep = helper.getLevel().getCapability(ServusFoundationCapabilities.UPKEEP, helper.absolutePos(HEAD), Direction.UP);

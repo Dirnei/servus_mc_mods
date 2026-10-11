@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.storage.packing;
 
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.production.TransferGate;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -8,20 +13,16 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.site.WirelessCost;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.energy.EnergyStorage;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 
 /**
  * A Packing Station whose far side is a wireless line instead of the data
@@ -87,7 +88,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
         network().ifPresent(WarehouseNetwork::wirelessChanged);
     }
 
-    public IEnergyStorage energy() {
+    public EnergyView energy() {
         return energy;
     }
 
@@ -147,7 +148,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
         if (max <= 0) {
             return 0;
         }
-        return max - ItemHandlerHelper.insertItemStacked(intake(), key.stack(max), true).getCount();
+        return max - intake().insertItemStacked(key.stack(max), true).getCount();
     }
 
     /**
@@ -191,10 +192,10 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
                 return;
             }
             ItemStack taken = takeOutgoing(shipment.key(), moved);
-            ItemStack left = ItemHandlerHelper.insertItemStacked(to.intake(), taken, false);
+            ItemStack left = to.intake().insertItemStacked(taken, false);
             int arrived = taken.getCount() - left.getCount();
             if (!left.isEmpty()) {
-                ItemHandlerHelper.insertItemStacked(outgoing(), left, false);
+                outgoing().insertItemStacked(left, false);
             }
             if (arrived > 0) {
                 to.energy.spend(WirelessCost.cost(arrived, perItem));
@@ -289,18 +290,21 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
     // Persistence
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
         if (team != null) {
-            tag.putUUID("Team", team);
+            tag.store("Team", UUIDUtil.CODEC, team);
         }
-        tag.putInt("Energy", energy.getEnergyStored());
+        output.putInt("Energy", energy.getEnergyStored());
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        team = tag.hasUUID("Team") ? tag.getUUID("Team") : null;
-        energy.set(tag.getInt("Energy"));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        team = tag.read("Team", UUIDUtil.CODEC).isPresent() ? tag.read("Team", UUIDUtil.CODEC).orElseThrow() : null;
+        energy.set(input.getIntOr("Energy", 0));
     }
 }

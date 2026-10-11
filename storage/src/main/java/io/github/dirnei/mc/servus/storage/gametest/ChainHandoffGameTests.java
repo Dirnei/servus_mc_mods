@@ -1,11 +1,12 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import net.minecraft.world.level.block.entity.BlockEntity;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
@@ -25,19 +26,14 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FurnaceBlock;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** Intermediates of a chain go straight from one producer to the next instead of through storage. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class ChainHandoffGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -54,7 +50,7 @@ public final class ChainHandoffGameTests {
         CraftingCpuGameTests.setup(helper, true);
         helper.setBlock(STATION_B, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState()
                 .setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(CraftingCpuGameTests.PATTERNS);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(CraftingCpuGameTests.PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, StationJobs.planks());
         CraftingCpuGameTests.crate(helper, CraftingCpuGameTests.CRATE_A, Items.OAK_LOG, 2);
     }
@@ -70,7 +66,7 @@ public final class ChainHandoffGameTests {
     private static int[] watch(GameTestHelper helper, BlockPos controller, ItemKey key) {
         int[] seen = {0};
         helper.onEachTick(() -> {
-            if (helper.getBlockEntity(controller) instanceof WarehouseControllerBlockEntity block) {
+            if (helper.getBlockEntity(controller, BlockEntity.class) instanceof WarehouseControllerBlockEntity block) {
                 block.network().ifPresent(network -> seen[0] = Math.max(seen[0], (int) network.available(key)));
             }
         });
@@ -84,7 +80,7 @@ public final class ChainHandoffGameTests {
     }
 
     /** Planks from one station go straight to the second station's sticks job; the warehouse never holds planks. */
-    @GameTest(template = EMPTY, timeoutTicks = 1400)
+    @ServusGameTest(timeoutTicks = 1400)
     public static void planksHandedToSecondStation(GameTestHelper helper) {
         twoStations(helper);
         int[] planks = watch(helper, CraftingCpuGameTests.CONTROLLER, CraftingCpuGameTests.PLANKS);
@@ -110,7 +106,7 @@ public final class ChainHandoffGameTests {
     }
 
     /** Stone smelted by a furnace adapter goes straight to a station that makes stone bricks. */
-    @GameTest(template = EMPTY, timeoutTicks = 2400)
+    @ServusGameTest(timeoutTicks = 2400)
     public static void stoneHandedFromFurnaceToStation(GameTestHelper helper) {
         BlockPos controller = new BlockPos(2, 1, 2);
         helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
@@ -121,9 +117,9 @@ public final class ChainHandoffGameTests {
         for (BlockPos pos : List.of(cobbleCrate, coalCrate, spareCrate)) {
             helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         }
-        CrateBlockEntity cobble = helper.getBlockEntity(cobbleCrate);
+        CrateBlockEntity cobble = helper.getBlockEntity(cobbleCrate, CrateBlockEntity.class);
         cobble.insert(new ItemStack(Items.COBBLESTONE, 16), false);
-        CrateBlockEntity coal = helper.getBlockEntity(coalCrate);
+        CrateBlockEntity coal = helper.getBlockEntity(coalCrate, CrateBlockEntity.class);
         coal.insert(new ItemStack(Items.COAL, 32), false);
         BlockPos access = new BlockPos(2, 1, 3);
         TerminalWiring.place(helper, access);
@@ -138,9 +134,9 @@ public final class ChainHandoffGameTests {
         BlockPos patternsPos = new BlockPos(4, 3, 3);
         helper.setBlock(patternsPos, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState()
                 .setValue(PatternStorageBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(patternsPos);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(patternsPos, PatternStorageBlockEntity.class);
         ItemStack stone = new ItemStack(Items.STONE);
-        patterns.set(0, new EncodedPattern(ResourceLocation.withDefaultNamespace("stone_bricks"),
+        patterns.set(0, new EncodedPattern(Identifier.withDefaultNamespace("stone_bricks"),
                 List.of(stone, stone, ItemStack.EMPTY, stone, stone), new ItemStack(Items.STONE_BRICKS, 4)));
         BlockPos cpuPos = new BlockPos(6, 1, 1);
         for (int part = 0; part < CpuShape.PARTS; part++) {
@@ -166,10 +162,10 @@ public final class ChainHandoffGameTests {
     }
 
     /** The second station is held by another job past the wait: the planks go to storage and the order still finishes. */
-    @GameTest(template = EMPTY, timeoutTicks = 1600)
+    @ServusGameTest(timeoutTicks = 1600)
     public static void busyNextProducerFallsBack(GameTestHelper helper) {
         twoStations(helper);
-        CraftingStationBlockEntity second = helper.getBlockEntity(STATION_B);
+        CraftingStationBlockEntity second = helper.getBlockEntity(STATION_B, CraftingStationBlockEntity.class);
         Object owner = StationJobs.sticksJob(second, 1);
         int[] planks = watch(helper, CraftingCpuGameTests.CONTROLLER, CraftingCpuGameTests.PLANKS);
         TerminalWiring.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
@@ -189,7 +185,7 @@ public final class ChainHandoffGameTests {
     }
 
     /** CPU and both stations are reloaded while planks travel between the stations; nothing is lost or counted twice. */
-    @GameTest(template = EMPTY, timeoutTicks = 1600)
+    @ServusGameTest(timeoutTicks = 1600)
     public static void reloadMidHandoffCompletes(GameTestHelper helper) {
         twoStations(helper);
         TerminalWiring.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {

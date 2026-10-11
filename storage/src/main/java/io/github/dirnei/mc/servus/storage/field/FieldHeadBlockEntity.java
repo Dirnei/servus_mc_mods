@@ -1,5 +1,11 @@
 package io.github.dirnei.mc.servus.storage.field;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
@@ -33,7 +39,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -53,14 +59,14 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 import net.neoforged.neoforge.common.FarmlandWaterManager;
 import net.neoforged.neoforge.common.ticket.AABBTicket;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * Serves the field of the farm rail beside it: buffers water from a pipe,
@@ -74,21 +80,21 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, WoodHolder {
 
     /** Items that hold a field's copper stage for one aging step. */
-    public static final TagKey<Item> ANTI_CORROSION = ItemTags.create(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "anti_corrosion"));
+    public static final TagKey<Item> ANTI_CORROSION = ItemTags.create(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "anti_corrosion"));
     /** Items a Spreader doses fields with, each one bone meal application. */
-    public static final TagKey<Item> FERTILIZER = ItemTags.create(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "fertilizer"));
+    public static final TagKey<Item> FERTILIZER = ItemTags.create(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "fertilizer"));
 
     private final WoodSlot woodSlot = new WoodSlot(this);
 
-    private final FluidTank tank = new FluidTank(StorageStatsManager.INSTANCE.fieldCapacity(), stack -> stack.is(FluidTags.WATER)) {
+    private final FluidSlot tank = new FluidSlot(StorageStatsManager.INSTANCE.fieldCapacity(), stack -> stack.is(FluidTags.WATER)) {
         @Override
         protected void onContentsChanged() {
             setChanged();
             syncWaterLevel();
         }
     };
-    private final IFluidHandler fillOnly = new FillOnly();
-    private final ItemStackHandler crop = new ItemStackHandler(1) {
+    private final FluidView fillOnly = new FillOnly();
+    private final ItemSlots crop = new ItemSlots(1) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -102,7 +108,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         }
     };
     /** Range Upgrades: each widens the field by one block, up to {@code max_radius}. */
-    private final ItemStackHandler rangeUpgrades = new ItemStackHandler(1) {
+    private final ItemSlots rangeUpgrades = new ItemSlots(1) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -120,7 +126,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         }
     };
     /** Anti-corrosion upkeep: one item holds the stage for one aging step. */
-    private final ItemStackHandler antiCorrosion = new ItemStackHandler(1) {
+    private final ItemSlots antiCorrosion = new ItemSlots(1) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -131,7 +137,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             return isAntiCorrosion(stack);
         }
     };
-    private final IItemHandler insertOnly = new InsertOnly();
+    private final ItemView insertOnly = new InsertOnly();
     private final UpkeepHolder upkeep = new AntiCorrosionUpkeep();
     /** The corrosion stage of the served field; meaningful while {@link #stageKnown}. */
     private int stage = FieldCorrosion.COPPER;
@@ -412,7 +418,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         int need = FieldWater.use(rails.size(), StorageStatsManager.INSTANCE.fieldWaterPerRail());
         if (!hydrated) {
             if (tank.getFluidAmount() >= need) {
-                tank.drain(need, IFluidHandler.FluidAction.EXECUTE);
+                tank.drain(need, false);
                 age(need);
                 hydrated = true;
                 countdown = StorageStatsManager.INSTANCE.fieldWaterInterval();
@@ -424,7 +430,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             return;
         }
         if (tank.getFluidAmount() >= need) {
-            tank.drain(need, IFluidHandler.FluidAction.EXECUTE);
+            tank.drain(need, false);
             countdown = StorageStatsManager.INSTANCE.fieldWaterInterval();
             renewTickets();
             age(need);
@@ -519,12 +525,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     /** The anti-corrosion slot. */
-    public ItemStackHandler antiCorrosion() {
+    public ItemSlots antiCorrosion() {
         return antiCorrosion;
     }
 
     /** What hoppers and ducts see: anti-corrosion items go in, nothing comes out. */
-    public IItemHandler itemHandler() {
+    public ItemView itemHandler() {
         return insertOnly;
     }
 
@@ -664,7 +670,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     /** The one slot handler that stores the crop item. */
-    public ItemStackHandler cropHandler() {
+    public ItemSlots cropHandler() {
         return crop;
     }
 
@@ -702,12 +708,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
      * item id; empty while the head serves no field on a warehouse with its
      * one controller. Server side.
      */
-    public Optional<Map<ResourceLocation, Long>> cropStock() {
+    public Optional<Map<Identifier, Long>> cropStock() {
         if (status != FieldStatus.SERVING || rails.isEmpty()) {
             return Optional.empty();
         }
         return network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).map(warehouse -> {
-            Map<ResourceLocation, Long> counts = new HashMap<>();
+            Map<Identifier, Long> counts = new HashMap<>();
             for (Item item : cropItems()) {
                 long count = warehouse.stockCount(ItemKey.of(new ItemStack(item)));
                 if (count > 0) {
@@ -875,12 +881,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
      * keyed by item id; empty while the head serves no field on a warehouse
      * with its one controller. Server side.
      */
-    public Optional<Map<ResourceLocation, Long>> fertilizerStock() {
+    public Optional<Map<Identifier, Long>> fertilizerStock() {
         if (status != FieldStatus.SERVING || rails.isEmpty()) {
             return Optional.empty();
         }
         return network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).map(warehouse -> {
-            Map<ResourceLocation, Long> counts = new HashMap<>();
+            Map<Identifier, Long> counts = new HashMap<>();
             BuiltInRegistries.ITEM.getTagOrEmpty(FERTILIZER).forEach(holder -> {
                 long count = warehouse.stockCount(ItemKey.of(new ItemStack(holder.value())));
                 if (count > 0) {
@@ -918,7 +924,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     /** The one slot handler of the Range Upgrades. */
-    public ItemStackHandler rangeUpgrades() {
+    public ItemSlots rangeUpgrades() {
         return rangeUpgrades;
     }
 
@@ -1022,7 +1028,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     /** The fluid handler other blocks and pipes see: takes water, gives nothing back. */
-    public IFluidHandler fluidHandler() {
+    public FluidView fluidHandler() {
         return fillOnly;
     }
 
@@ -1084,33 +1090,36 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     // Saving
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        woodSlot.save(output);
         tag.put("Water", tank.writeToNBT(registries, new CompoundTag()));
         tag.put("Crop", crop.serializeNBT(registries));
-        tag.putBoolean("HarvestOnly", harvestOnly);
+        output.putBoolean("HarvestOnly", harvestOnly);
         tag.put("RangeUpgrades", rangeUpgrades.serializeNBT(registries));
         if (harvestPercent > 0) {
-            tag.putInt("HarvestPercent", harvestPercent);
+            output.putInt("HarvestPercent", harvestPercent);
         }
         tag.put("AntiCorrosion", antiCorrosion.serializeNBT(registries));
         if (stageKnown) {
-            tag.putInt("Corrosion", stage);
+            output.putInt("Corrosion", stage);
         }
-        tag.putLong("CorrosionWater", agedWater);
+        output.putLong("CorrosionWater", agedWater);
         if (fertilizer != null) {
-            tag.putString("Fertilizer", BuiltInRegistries.ITEM.getKey(fertilizer).toString());
+            output.putString("Fertilizer", BuiltInRegistries.ITEM.getKey(fertilizer).toString());
         }
-        tag.putInt("FertilizeMode", fertilizeMode.ordinal());
+        output.putInt("FertilizeMode", fertilizeMode.ordinal());
         if (fertilizePercent > 0) {
-            tag.putInt("FertilizePercent", fertilizePercent);
+            output.putInt("FertilizePercent", fertilizePercent);
         }
         if (reserve >= 0) {
-            tag.putInt("Reserve", reserve);
+            output.putInt("Reserve", reserve);
         }
         tag.putLongArray("Unfed", unfed.stream().mapToLong(BlockPos::asLong).toArray());
-        tag.putLong("FertilizeCalled", lastFertilizeCall);
+        output.putLong("FertilizeCalled", lastFertilizeCall);
+        output.store(tag);
     }
 
     /** The fertilizer saved in the tag, null for none or an item no longer in the fertilizer tag. */
@@ -1118,41 +1127,43 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         if (!tag.contains("Fertilizer")) {
             return null;
         }
-        ResourceLocation id = ResourceLocation.tryParse(tag.getString("Fertilizer"));
+        Identifier id = Identifier.tryParse(tag.getStringOr("Fertilizer", ""));
         Optional<Item> item = id == null ? Optional.empty() : BuiltInRegistries.ITEM.getOptional(id);
         return item.filter(found -> isFertilizer(new ItemStack(found))).orElse(null);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
-        tank.readFromNBT(registries, tag.getCompound("Water"));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        woodSlot.load(input);
+        tank.readFromNBT(registries, tag.getCompoundOrEmpty("Water"));
         if (tag.contains("Crop", CompoundTag.TAG_COMPOUND)) {
-            crop.deserializeNBT(registries, tag.getCompound("Crop"));
+            crop.deserializeNBT(registries, tag.getCompoundOrEmpty("Crop"));
         }
-        harvestOnly = tag.getBoolean("HarvestOnly");
+        harvestOnly = input.getBooleanOr("HarvestOnly", false);
         if (tag.contains("RangeUpgrades", CompoundTag.TAG_COMPOUND)) {
-            rangeUpgrades.deserializeNBT(registries, tag.getCompound("RangeUpgrades"));
+            rangeUpgrades.deserializeNBT(registries, tag.getCompoundOrEmpty("RangeUpgrades"));
         }
-        harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(tag.getInt("HarvestPercent")) : 0;
+        harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(input.getIntOr("HarvestPercent", 0)) : 0;
         if (tag.contains("AntiCorrosion", CompoundTag.TAG_COMPOUND)) {
-            antiCorrosion.deserializeNBT(registries, tag.getCompound("AntiCorrosion"));
+            antiCorrosion.deserializeNBT(registries, tag.getCompoundOrEmpty("AntiCorrosion"));
         }
         stageKnown = tag.contains("Corrosion");
-        stage = stageKnown ? FieldCorrosion.clamp(tag.getInt("Corrosion")) : FieldCorrosion.COPPER;
-        agedWater = Math.max(0, tag.getLong("CorrosionWater"));
+        stage = stageKnown ? FieldCorrosion.clamp(input.getIntOr("Corrosion", 0)) : FieldCorrosion.COPPER;
+        agedWater = Math.max(0, input.getLongOr("CorrosionWater", 0L));
         fertilizer = readFertilizer(tag);
-        fertilizeMode = FertilizeMode.byId(tag.getInt("FertilizeMode"));
-        fertilizePercent = tag.contains("FertilizePercent") ? FieldThreshold.clamp(tag.getInt("FertilizePercent")) : 0;
-        reserve = tag.contains("Reserve") ? FertilizePlan.clampReserve(tag.getInt("Reserve")) : -1;
+        fertilizeMode = FertilizeMode.byId(input.getIntOr("FertilizeMode", 0));
+        fertilizePercent = tag.contains("FertilizePercent") ? FieldThreshold.clamp(input.getIntOr("FertilizePercent", 0)) : 0;
+        reserve = tag.contains("Reserve") ? FertilizePlan.clampReserve(input.getIntOr("Reserve", 0)) : -1;
         unfed.clear();
-        for (long packed : tag.getLongArray("Unfed")) {
+        for (long packed : tag.getLongArray("Unfed").orElse(new long[0])) {
             unfed.add(BlockPos.of(packed));
         }
-        lastFertilizeCall = tag.contains("FertilizeCalled") ? tag.getLong("FertilizeCalled") : -1;
+        lastFertilizeCall = tag.contains("FertilizeCalled") ? input.getLongOr("FertilizeCalled", 0L) : -1;
         if (tag.contains("WaterLevel")) {
-            clientWaterLevel = tag.getByte("WaterLevel");
+            clientWaterLevel = input.getByteOr("WaterLevel", (byte) 0);
         }
     }
 
@@ -1182,7 +1193,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
     }
@@ -1195,9 +1206,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
     }
 
     @Override
@@ -1206,7 +1217,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     /** Takes anti-corrosion items into the upkeep slot; gives nothing out. */
-    private final class InsertOnly implements IItemHandler {
+    private final class InsertOnly extends LegacyItemHandler {
 
         @Override
         public int getSlots() {
@@ -1266,7 +1277,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     /** Fills the tank with water; never drains. */
-    private final class FillOnly implements IFluidHandler {
+    private final class FillOnly extends LegacyFluidHandler {
 
         @Override
         public int getTanks() {
@@ -1289,17 +1300,17 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         }
 
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            return tank.fill(resource, action);
+        public int fill(FluidStack resource, boolean simulate) {
+            return tank.fill(resource, simulate);
         }
 
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
+        public FluidStack drain(FluidStack resource, boolean simulate) {
             return FluidStack.EMPTY;
         }
 
         @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
+        public FluidStack drain(int maxDrain, boolean simulate) {
             return FluidStack.EMPTY;
         }
     }

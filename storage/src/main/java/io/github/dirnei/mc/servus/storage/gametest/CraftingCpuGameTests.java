@@ -1,8 +1,10 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import net.minecraft.world.level.block.entity.BlockEntity;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionHand;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
@@ -10,7 +12,6 @@ import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
@@ -35,7 +36,6 @@ import io.github.dirnei.mc.servus.storage.terminal.RuleRow;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -45,8 +45,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -56,8 +54,6 @@ import net.minecraft.world.level.block.state.BlockState;
  * from the Packing Station east to a Crafting Station at (4,1,2) and on to the
  * CPU cube at x 6 to 8, z 1 to 3; a second cube can stand at z 5 to 7.
  */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class CraftingCpuGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -103,7 +99,7 @@ public final class CraftingCpuGameTests {
     private static CraftingStationBlockEntity sticksStation(GameTestHelper helper) {
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
         helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(0, StationJobs.sticks());
         return helper.getBlockEntity(STATION);
     }
@@ -127,7 +123,7 @@ public final class CraftingCpuGameTests {
     }
 
     static WarehouseNetwork warehouse(GameTestHelper helper) {
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
         return controller.network().orElseThrow();
     }
 
@@ -136,7 +132,7 @@ public final class CraftingCpuGameTests {
     }
 
     static CrateBlockEntity crate(GameTestHelper helper, BlockPos pos, Item item, int count) {
-        CrateBlockEntity crate = helper.getBlockEntity(pos);
+        CrateBlockEntity crate = helper.getBlockEntity(pos, CrateBlockEntity.class);
         if (count > 0) {
             crate.insert(new ItemStack(item, count), false);
         }
@@ -159,7 +155,7 @@ public final class CraftingCpuGameTests {
     // Forming
 
     /** 27 blocks form a cube with the master at the lowest corner; breaking one unforms the rest. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void cpuFormsAndUnforms(GameTestHelper helper) {
         cube(helper, CPU_A, -1);
         helper.assertTrue(form(helper, CPU_A.offset(1, 1, 1)), "clicking the middle block should form the cube");
@@ -176,7 +172,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** A cube with one block missing does not form. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void cpuIncompleteCubeDoesNotForm(GameTestHelper helper) {
         cube(helper, CPU_A, 13);
         helper.assertTrue(!form(helper, CPU_A), "26 blocks do not form");
@@ -185,7 +181,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** A formed CPU touching a data duct is a link member; the duct shows an arm toward it. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void cpuJoinsTheDataLine(GameTestHelper helper) {
         setup(helper, true);
         TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40,
@@ -198,7 +194,7 @@ public final class CraftingCpuGameTests {
     // Orders
 
     /** A request that stock cannot fill becomes an order on the CPU; the sticks are crafted over the line and reach the terminal. */
-    @GameTest(template = EMPTY, timeoutTicks = 1000)
+    @ServusGameTest(timeoutTicks = 1000)
     public static void cpuOrderCraftsShortfallOverTheLine(GameTestHelper helper) {
         setup(helper, true);
         CrateBlockEntity planks = crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
@@ -229,7 +225,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** Nothing makes bread: the request is refused as out of stock and a manual order says no producer. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void orderWithoutProducerIsRefused(GameTestHelper helper) {
         setup(helper, true);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -245,10 +241,10 @@ public final class CraftingCpuGameTests {
     }
 
     /** Sticks from planks from logs: the planks step runs first, then the sticks step, on the same station. */
-    @GameTest(template = EMPTY, timeoutTicks = 1400)
+    @ServusGameTest(timeoutTicks = 1400)
     public static void twoLevelOrderRunsLeavesFirst(GameTestHelper helper) {
         setup(helper, true);
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, StationJobs.planks());
         CrateBlockEntity logs = crate(helper, CRATE_A, Items.OAK_LOG, 2);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -274,7 +270,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** A second order finds the first order's planks reserved; cancelling the first frees them. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void cancelReleasesReservation(GameTestHelper helper) {
         setup(helper, true);
         crate(helper, CRATE_A, Items.OAK_PLANKS, 4);
@@ -296,7 +292,7 @@ public final class CraftingCpuGameTests {
     // Slots and choice
 
     /** One CPU with two slots: the third order waits, and the summary says so. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void cpuSlotsQueueThirdOrder(GameTestHelper helper) {
         setup(helper, true);
         helper.runAfterDelay(10, () -> {
@@ -320,7 +316,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** Two CPUs with two slots each share four orders without a wait. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void twoCpusShareOrders(GameTestHelper helper) {
         setup(helper, true);
         cube(helper, CPU_B, -1);
@@ -343,7 +339,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** Breaking a block of the CPU cancels its orders and releases their reservations. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void cpuUnformCancelsOrders(GameTestHelper helper) {
         setup(helper, true);
         crate(helper, CRATE_A, Items.OAK_PLANKS, 4);
@@ -360,7 +356,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** Without a CPU on the line the shortfall stays missing while the rest is delivered. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void noCpuLeavesShortfallMissing(GameTestHelper helper) {
         setup(helper, false);
         crate(helper, CRATE_B, Items.STICK, 3);
@@ -384,7 +380,7 @@ public final class CraftingCpuGameTests {
     // Stock rules
 
     /** A rule below its minimum orders up to the maximum through the CPU and reads ok once the sticks are in stock. */
-    @GameTest(template = EMPTY, timeoutTicks = 1200)
+    @ServusGameTest(timeoutTicks = 1200)
     public static void stockRuleOrdersThroughCpu(GameTestHelper helper) {
         setup(helper, true);
         crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
@@ -407,7 +403,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** A rule above its minimum orders nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void stockRuleIgnoresWhenEnough(GameTestHelper helper) {
         setup(helper, true);
         crate(helper, CRATE_B, Items.STICK, 10);
@@ -424,7 +420,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** A rule for an item nothing makes reads no producer and orders nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void stockRuleWithoutProducerShowsReason(GameTestHelper helper) {
         setup(helper, true);
         helper.runAfterDelay(10, () -> {
@@ -442,7 +438,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** Without a CPU on the warehouse's line a low rule reads no CPU. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void stockRuleWithoutCpu(GameTestHelper helper) {
         setup(helper, false);
         crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
@@ -458,11 +454,11 @@ public final class CraftingCpuGameTests {
     }
 
     /** Rules survive a save and load of the controller. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void stockRulesPersist(GameTestHelper helper) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
         controller.rules().set(new StockRule(STICK, 8, 16));
         net.minecraft.nbt.CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());
         WarehouseControllerBlockEntity copy = new WarehouseControllerBlockEntity(helper.absolutePos(CONTROLLER), controller.getBlockState());
@@ -473,7 +469,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** Any held item but the carrot falls through to the CPU summary; the carrot keeps forming the cube. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void cpuSummaryWithAnyItem(GameTestHelper helper) {
         BlockPos at = new BlockPos(3, 1, 3);
         helper.setBlock(at, ServusStorageBlocks.CRAFTING_CPU.get().defaultBlockState());
@@ -483,16 +479,16 @@ public final class CraftingCpuGameTests {
         ItemStack cobble = new ItemStack(Items.COBBLESTONE);
         player.setItemInHand(InteractionHand.MAIN_HAND, cobble);
         ItemInteractionResult withBlock = helper.getBlockState(at).useItemOn(cobble, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
-        helper.assertTrue(withBlock == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION, "cobblestone should reach the summary, got " + withBlock);
+        helper.assertTrue(withBlock == InteractionResult.TRY_WITH_EMPTY_HAND, "cobblestone should reach the summary, got " + withBlock);
         ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
         ItemInteractionResult withCarrot = helper.getBlockState(at).useItemOn(carrot, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
-        helper.assertTrue(withCarrot == ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION, "the carrot should keep its own use, got " + withCarrot);
+        helper.assertTrue(withCarrot == InteractionResult.PASS, "the carrot should keep its own use, got " + withCarrot);
         helper.succeed();
     }
 
     /** Every block of a formed cube knows its part; breaking one returns the rest to the casing. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void cpuPartsFollowForming(GameTestHelper helper) {
         cube(helper, CPU_A, -1);
         helper.assertTrue(form(helper, CPU_A), "the cube should form");
@@ -510,7 +506,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** The cube's lights run while its CPU has open orders and glow when it has none. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void cpuLightsFollowOrders(GameTestHelper helper) {
         setup(helper, true);
         helper.runAfterDelay(10, () -> {
@@ -531,14 +527,14 @@ public final class CraftingCpuGameTests {
     // Direct delivery
 
     /** Sticks crafted for a request travel straight from the station to the terminal and never enter the warehouse. */
-    @GameTest(template = EMPTY, timeoutTicks = 1000)
+    @ServusGameTest(timeoutTicks = 1000)
     public static void sticksGoStraightToTerminal(GameTestHelper helper) {
         setup(helper, true);
         crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         int[] stockedSticks = {0};
         helper.onEachTick(() -> {
-            if (helper.getBlockEntity(CONTROLLER) instanceof WarehouseControllerBlockEntity controller) {
+            if (helper.getBlockEntity(CONTROLLER, BlockEntity.class) instanceof WarehouseControllerBlockEntity controller) {
                 controller.network().ifPresent(network -> stockedSticks[0] = Math.max(stockedSticks[0], (int) network.available(STICK)));
             }
         });
@@ -562,7 +558,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** Two sticks for a request: one craft gives four, two go to the terminal and two are put away. */
-    @GameTest(template = EMPTY, timeoutTicks = 1000)
+    @ServusGameTest(timeoutTicks = 1000)
     public static void surplusIsPutAway(GameTestHelper helper) {
         setup(helper, true);
         crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
@@ -583,16 +579,16 @@ public final class CraftingCpuGameTests {
     }
 
     /** Sticks from planks from logs: the planks go to storage, only the sticks go straight to the terminal. */
-    @GameTest(template = EMPTY, timeoutTicks = 1400)
+    @ServusGameTest(timeoutTicks = 1400)
     public static void chainDeliversOnlyFinal(GameTestHelper helper) {
         setup(helper, true);
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, StationJobs.planks());
         crate(helper, CRATE_A, Items.OAK_LOG, 2);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         int[] seen = {0, 0};
         helper.onEachTick(() -> {
-            if (helper.getBlockEntity(CONTROLLER) instanceof WarehouseControllerBlockEntity controller) {
+            if (helper.getBlockEntity(CONTROLLER, BlockEntity.class) instanceof WarehouseControllerBlockEntity controller) {
                 controller.network().ifPresent(network -> {
                     seen[0] = Math.max(seen[0], (int) network.available(PLANKS));
                     seen[1] = Math.max(seen[1], (int) network.available(STICK));
@@ -615,7 +611,7 @@ public final class CraftingCpuGameTests {
     }
 
     /** The terminal link and the direct count are saved with the order. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void deliverToSaved(GameTestHelper helper) {
         setup(helper, true);
         crate(helper, CRATE_A, Items.OAK_PLANKS, 10);

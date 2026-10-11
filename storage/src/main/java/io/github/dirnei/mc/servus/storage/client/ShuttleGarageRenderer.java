@@ -84,7 +84,7 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
                 parked++;
             }
             BlockPos railPos = BlockPos.containing(pos[0], pos[1], pos[2]);
-            int light = LevelRenderer.getLightColor(garage.getLevel(), railPos.above());
+            int light = LevelRenderer.getLightCoords(garage.getLevel(), railPos.above());
 
             poseStack.pushPose();
             // The model's bottom stands on the floor; NONE draws it around its centre.

@@ -28,90 +28,56 @@ public final class ServusStorageBlockEntities {
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ServusStorageIds.MOD_ID);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CrateBlockEntity>> CRATE =
-            BLOCK_ENTITIES.register("crate", () -> BlockEntityType.Builder
-                    .of(CrateBlockEntity::new, ServusStorageBlocks.CRATE.get(), ServusStorageBlocks.DOUBLE_CRATE.get(),
-                            ServusStorageBlocks.QUAD_CRATE.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("crate", () -> new BlockEntityType<>(CrateBlockEntity::new, ServusStorageBlocks.CRATE.get(), ServusStorageBlocks.DOUBLE_CRATE.get(),
+                            ServusStorageBlocks.QUAD_CRATE.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WarehouseControllerBlockEntity>> WAREHOUSE_CONTROLLER =
-            BLOCK_ENTITIES.register("warehouse_controller", () -> BlockEntityType.Builder
-                    .of(WarehouseControllerBlockEntity::new, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("warehouse_controller", () -> new BlockEntityType<>(WarehouseControllerBlockEntity::new, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StorageTerminalBlockEntity>> STORAGE_TERMINAL =
-            BLOCK_ENTITIES.register("storage_terminal", () -> BlockEntityType.Builder
-                    .of(StorageTerminalBlockEntity::new, ServusStorageBlocks.STORAGE_TERMINAL.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("storage_terminal", () -> new BlockEntityType<>(StorageTerminalBlockEntity::new, ServusStorageBlocks.STORAGE_TERMINAL.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ProductionTerminalBlockEntity>> PRODUCTION_TERMINAL =
-            BLOCK_ENTITIES.register("production_terminal", () -> BlockEntityType.Builder
-                    .of(ProductionTerminalBlockEntity::new, ServusStorageBlocks.PRODUCTION_TERMINAL.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("production_terminal", () -> new BlockEntityType<>(ProductionTerminalBlockEntity::new, ServusStorageBlocks.PRODUCTION_TERMINAL.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PatternStorageBlockEntity>> PATTERN_STORAGE =
-            BLOCK_ENTITIES.register("pattern_storage", () -> BlockEntityType.Builder
-                    .of(PatternStorageBlockEntity::new, ServusStorageBlocks.PATTERN_STORAGE.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("pattern_storage", () -> new BlockEntityType<>(PatternStorageBlockEntity::new, ServusStorageBlocks.PATTERN_STORAGE.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<InboundStationBlockEntity>> INBOUND_STATION =
-            BLOCK_ENTITIES.register("inbound_station", () -> BlockEntityType.Builder
-                    .of(InboundStationBlockEntity::new, ServusStorageBlocks.INBOUND_STATION.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("inbound_station", () -> new BlockEntityType<>(InboundStationBlockEntity::new, ServusStorageBlocks.INBOUND_STATION.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity>> WIRELESS_PACKING_STATION =
-            BLOCK_ENTITIES.register("wireless_packing_station", () -> BlockEntityType.Builder
-                    .of(io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity::new, ServusStorageBlocks.WIRELESS_PACKING_STATION.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("wireless_packing_station", () -> new BlockEntityType<>(io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity::new, ServusStorageBlocks.WIRELESS_PACKING_STATION.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackingStationBlockEntity>> PACKING_STATION =
-            BLOCK_ENTITIES.register("packing_station", () -> BlockEntityType.Builder
-                    .of(PackingStationBlockEntity::new, ServusStorageBlocks.PACKING_STATION.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("packing_station", () -> new BlockEntityType<>(PackingStationBlockEntity::new, ServusStorageBlocks.PACKING_STATION.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShuttleGarageBlockEntity>> SHUTTLE_GARAGE =
-            BLOCK_ENTITIES.register("shuttle_garage", () -> BlockEntityType.Builder
-                    .of(ShuttleGarageBlockEntity::new, ServusStorageBlocks.SHUTTLE_GARAGE.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("shuttle_garage", () -> new BlockEntityType<>(ShuttleGarageBlockEntity::new, ServusStorageBlocks.SHUTTLE_GARAGE.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<OutboundStationBlockEntity>> OUTBOUND_STATION =
-            BLOCK_ENTITIES.register("outbound_station", () -> BlockEntityType.Builder
-                    .of(OutboundStationBlockEntity::new, ServusStorageBlocks.OUTBOUND_STATION.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("outbound_station", () -> new BlockEntityType<>(OutboundStationBlockEntity::new, ServusStorageBlocks.OUTBOUND_STATION.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CraftingStationBlockEntity>> CRAFTING_STATION =
-            BLOCK_ENTITIES.register("crafting_station", () -> BlockEntityType.Builder
-                    .of(CraftingStationBlockEntity::new, ServusStorageBlocks.CRAFTING_STATION.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("crafting_station", () -> new BlockEntityType<>(CraftingStationBlockEntity::new, ServusStorageBlocks.CRAFTING_STATION.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CpuBlockEntity>> CRAFTING_CPU =
-            BLOCK_ENTITIES.register("crafting_cpu", () -> BlockEntityType.Builder
-                    .of(CpuBlockEntity::new, ServusStorageBlocks.CRAFTING_CPU.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("crafting_cpu", () -> new BlockEntityType<>(CpuBlockEntity::new, ServusStorageBlocks.CRAFTING_CPU.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RailBlockEntity>> RAIL =
-            BLOCK_ENTITIES.register("rail", () -> BlockEntityType.Builder
-                    .of(RailBlockEntity::new, ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.FARM_RAIL.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("rail", () -> new BlockEntityType<>(RailBlockEntity::new, ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.FARM_RAIL.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElevatorBlockEntity>> ELEVATOR =
-            BLOCK_ENTITIES.register("elevator", () -> BlockEntityType.Builder
-                    .of(ElevatorBlockEntity::new, ServusStorageBlocks.ELEVATOR.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("elevator", () -> new BlockEntityType<>(ElevatorBlockEntity::new, ServusStorageBlocks.ELEVATOR.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HeavyRackBlockEntity>> HEAVY_RACK =
-            BLOCK_ENTITIES.register("heavy_rack", () -> BlockEntityType.Builder
-                    .of(HeavyRackBlockEntity::new, ServusStorageBlocks.HEAVY_RACK.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("heavy_rack", () -> new BlockEntityType<>(HeavyRackBlockEntity::new, ServusStorageBlocks.HEAVY_RACK.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FieldHeadBlockEntity>> FIELD_HEAD =
-            BLOCK_ENTITIES.register("field_head", () -> BlockEntityType.Builder
-                    .of(FieldHeadBlockEntity::new, ServusStorageBlocks.FIELD_HEAD.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("field_head", () -> new BlockEntityType<>(FieldHeadBlockEntity::new, ServusStorageBlocks.FIELD_HEAD.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShuttleWorkshopBlockEntity>> SHUTTLE_WORKSHOP =
-            BLOCK_ENTITIES.register("shuttle_workshop", () -> BlockEntityType.Builder
-                    .of(ShuttleWorkshopBlockEntity::new, ServusStorageBlocks.SHUTTLE_WORKSHOP.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("shuttle_workshop", () -> new BlockEntityType<>(ShuttleWorkshopBlockEntity::new, ServusStorageBlocks.SHUTTLE_WORKSHOP.get()));
 
     private ServusStorageBlockEntities() {
     }

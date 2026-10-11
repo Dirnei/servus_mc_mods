@@ -65,6 +65,13 @@ public final class WoodSlot {
         }
     }
 
+    /** For update tags built by hand; read back by {@link #load}. */
+    public void save(net.minecraft.nbt.CompoundTag tag) {
+        if (wood != null) {
+            tag.putString(KEY, wood.toString());
+        }
+    }
+
     /** From {@code loadAdditional}; a changed wood redraws the block on the client. */
     public void load(ValueInput input) {
         Identifier loaded = input.getString(KEY).map(Identifier::tryParse).orElse(null);

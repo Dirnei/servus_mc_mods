@@ -6,7 +6,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -37,9 +36,9 @@ public class ZoneLabelItem extends Item {
         ZoneDefinition definition = ZoneDefinition.of(stack);
         if (!clear && definition == null) {
             if (!level.isClientSide() && player != null) {
-                player.displayClientMessage(Component.translatable("message.servus_storage.zone_label.unnamed"), true);
+                player.sendOverlayMessage(Component.translatable("message.servus_storage.zone_label.unnamed"));
             }
-            return InteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         if (!level.isClientSide()) {
             node.setZone(clear ? null : definition);
@@ -47,20 +46,20 @@ public class ZoneLabelItem extends Item {
                 Component message = node.zone().isEmpty()
                         ? Component.translatable("message.servus_storage.zone_label.cleared")
                         : Component.translatable("message.servus_storage.zone_label.stamped", node.zone());
-                player.displayClientMessage(message, true);
+                player.sendOverlayMessage(message);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /** Right click in the air, or on a block that takes no zone: open the label's GUI. */
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(new SimpleMenuProvider((id, inventory, p) -> new ZoneLabelMenu(id, inventory, hand),
                     Component.translatable("gui.servus_storage.zone_label.title")), buf -> buf.writeEnum(hand));
         }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

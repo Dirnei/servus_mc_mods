@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.production;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
@@ -25,7 +28,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /** The production overview on the data line. Holds nothing; it only reads the CPUs and producers of its line. */
 public class ProductionTerminalBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, DataLink {
@@ -75,15 +78,15 @@ public class ProductionTerminalBlockEntity extends BlockEntity implements WoodHo
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        woodSlot.save(output);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        woodSlot.load(input);
     }
 
     @Override
@@ -99,7 +102,7 @@ public class ProductionTerminalBlockEntity extends BlockEntity implements WoodHo
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
     }
@@ -112,9 +115,9 @@ public class ProductionTerminalBlockEntity extends BlockEntity implements WoodHo
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
     }
 
     @Override

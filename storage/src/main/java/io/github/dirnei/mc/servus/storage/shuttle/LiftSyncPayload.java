@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Server to client: the lift car of the shaft whose lowest segment is at
@@ -17,7 +17,7 @@ public record LiftSyncPayload(BlockPos bottom, int topY, float y, int target, Sh
         implements CustomPacketPayload {
 
     public static final Type<LiftSyncPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "lift_sync"));
+            new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "lift_sync"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, LiftSyncPayload> STREAM_CODEC = StreamCodec.composite(
             BlockPos.STREAM_CODEC, LiftSyncPayload::bottom,

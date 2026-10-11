@@ -15,9 +15,9 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
  * Chest style menu for a whole rack section: the slots of every bay, bay
@@ -38,7 +38,7 @@ public class HeavyRackMenu extends AbstractContainerMenu {
     private final int rackSlots;
 
     private HeavyRackMenu(int containerId, Inventory playerInventory, BlockPos clicked, List<BlockPos> bays,
-                          List<HeavyRackBlockEntity> racks, List<IItemHandler> handlers) {
+                          List<HeavyRackBlockEntity> racks, List<ItemView> handlers) {
         super(ServusStorageMenus.HEAVY_RACK.get(), containerId);
         this.level = playerInventory.player.level();
         this.clicked = clicked;
@@ -46,9 +46,9 @@ public class HeavyRackMenu extends AbstractContainerMenu {
         this.bays = List.copyOf(bays);
         this.racks = new ArrayList<>(racks);
         int index = 0;
-        for (IItemHandler handler : handlers) {
+        for (ItemView handler : handlers) {
             for (int slot = 0; slot < handler.getSlots(); slot++, index++) {
-                addSlot(new SlotItemHandler(handler, slot, 8 + (index % COLUMNS) * 18, 18 + (index / COLUMNS) * 18));
+                addSlot(new ResourceHandlerSlot(handler, handler::set, slot, 8 + (index % COLUMNS) * 18, 18 + (index / COLUMNS) * 18));
             }
         }
         this.rackSlots = index;
@@ -69,7 +69,7 @@ public class HeavyRackMenu extends AbstractContainerMenu {
         BlockPos clicked = clickedRack.getBlockPos();
         List<BlockPos> bays = new ArrayList<>();
         List<HeavyRackBlockEntity> racks = new ArrayList<>();
-        List<IItemHandler> handlers = new ArrayList<>();
+        List<ItemView> handlers = new ArrayList<>();
         for (BlockPos bay : sectionOf(level, clicked)) {
             if (level.getBlockEntity(bay) instanceof HeavyRackBlockEntity rack) {
                 bays.add(bay);
@@ -125,7 +125,7 @@ public class HeavyRackMenu extends AbstractContainerMenu {
         int count = buf.readVarInt();
         List<BlockPos> bays = new ArrayList<>(count);
         List<HeavyRackBlockEntity> racks = new ArrayList<>(count);
-        List<IItemHandler> handlers = new ArrayList<>(count);
+        List<ItemView> handlers = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             BlockPos bay = buf.readBlockPos();
             int size = buf.readVarInt();
@@ -135,7 +135,7 @@ public class HeavyRackMenu extends AbstractContainerMenu {
                 handlers.add(rack.items());
             } else {
                 racks.add(null);
-                handlers.add(new ItemStackHandler(size));
+                handlers.add(new ItemSlots(size));
             }
         }
         return new HeavyRackMenu(containerId, playerInventory, clicked, bays, racks, handlers);

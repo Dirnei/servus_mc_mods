@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
@@ -15,18 +15,12 @@ import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** Shuttle served blocks join the warehouse only through rails. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class StationRailGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -53,22 +47,22 @@ public final class StationRailGameTests {
     }
 
     private static boolean sameWarehouse(GameTestHelper helper, WarehouseControllerBlockEntity controller, BlockPos pos) {
-        StorageNodeBlockEntity node = helper.getBlockEntity(pos);
+        StorageNodeBlockEntity node = helper.getBlockEntity(pos, StorageNodeBlockEntity.class);
         return node.network().isPresent() && node.network().equals(controller.network());
     }
 
     /** A station touching the controller stays out until a rail links it, and leaves again when the rail breaks. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void stationJoinsOnlyByRail(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = controller(helper);
         CrateBlockEntity crate = crate(helper, CRATE);
         helper.setBlock(STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(STATION);
+        InboundStationBlockEntity station = helper.getBlockEntity(STATION, InboundStationBlockEntity.class);
         helper.runAfterDelay(5, () -> {
             helper.assertTrue(!sameWarehouse(helper, controller, STATION), "touching the controller is not enough");
             helper.assertTrue(!lit(helper, STATION), "the lamp is dark without a rail");
-            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
+            station.intake().insertItem(new ItemStack(Items.COBBLESTONE, 64), false);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty() && crate.count() == 0, "the cobblestone waits in the buffer");
                 TerminalWiring.railUnder(helper, STATION);
@@ -87,7 +81,7 @@ public final class StationRailGameTests {
     }
 
     /** A crate touching only a rail linked station does not join through it. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void crateBesideStationNotLinked(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = controller(helper);
         helper.setBlock(STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
@@ -106,7 +100,7 @@ public final class StationRailGameTests {
     }
 
     /** Packing Station, Outbound Station and Shuttle Garage pressed against the controller stay out without a rail. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void shuttleBlocksNeedARail(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = controller(helper);
         BlockPos access = CONTROLLER.east();

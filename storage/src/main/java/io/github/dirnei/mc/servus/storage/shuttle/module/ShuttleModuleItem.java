@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module;
 
-import java.util.List;
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -22,12 +23,12 @@ public class ShuttleModuleItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        tooltip.add(Component.translatable("tooltip.servus_storage.module.tool").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.servus_storage.module." + spec.id()).withStyle(ChatFormatting.GRAY));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
+        tooltip.accept(Component.translatable("tooltip.servus_storage.module.tool").withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Component.translatable("tooltip.servus_storage.module." + spec.id()).withStyle(ChatFormatting.GRAY));
         if (spec.wide()) {
-            tooltip.add(Component.translatable("tooltip.servus_storage.module.wide").withStyle(ChatFormatting.GOLD));
+            tooltip.accept(Component.translatable("tooltip.servus_storage.module.wide").withStyle(ChatFormatting.GOLD));
         }
     }
 }

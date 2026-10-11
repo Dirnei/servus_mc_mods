@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.storage.picker.PickerList;
 import io.github.dirnei.mc.servus.storage.picker.PickerStock;
 import java.util.ArrayList;
@@ -9,7 +12,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -204,7 +207,7 @@ public final class ItemPicker {
     // Rendering
 
     /** The button with the current choice; call from {@code renderBg}. */
-    public void renderButton(GuiGraphics graphics, Font font, int mouseX, int mouseY) {
+    public void renderButton(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
         boolean hovered = !open && overButton(mouseX, mouseY);
         int right = buttonX + buttonWidth;
         int bottom = buttonY + BUTTON_HEIGHT;
@@ -214,7 +217,7 @@ public final class ItemPicker {
         Entry entry = current();
         int textX = buttonX + 4;
         if (entry != null && !entry.icon().isEmpty()) {
-            graphics.renderItem(entry.icon(), buttonX + 1, buttonY + 1);
+            graphics.item(entry.icon(), buttonX + 1, buttonY + 1);
             textX = buttonX + 20;
         }
         int textRight = right - 10;
@@ -223,27 +226,27 @@ public final class ItemPicker {
             if (count >= 0) {
                 String text = PickerStock.shortCount(count);
                 textRight -= font.width(text) + 4;
-                graphics.drawString(font, text, right - 10 - font.width(text), buttonY + 5, count == 0 ? GREY : TEXT, false);
+                graphics.text(font, text, right - 10 - font.width(text), buttonY + 5, count == 0 ? GREY : TEXT, false);
             }
             String name = font.plainSubstrByWidth(entry.name().getString(), textRight - textX);
-            graphics.drawString(font, name, textX, buttonY + 5, count == 0 ? GREY : TEXT, false);
+            graphics.text(font, name, textX, buttonY + 5, count == 0 ? GREY : TEXT, false);
         }
-        graphics.drawString(font, "v", right - 8, buttonY + 5, TEXT, false);
+        graphics.text(font, "v", right - 8, buttonY + 5, TEXT, false);
     }
 
     /** The popup, while open, over everything; call at the end of {@code render}. */
-    public void renderPopup(GuiGraphics graphics, Font font, int mouseX, int mouseY, float partialTick) {
+    public void renderPopup(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY, float partialTick) {
         if (!open) {
             return;
         }
-        graphics.pose().pushPose();
-        graphics.pose().translate(0, 0, 400);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(0, 0);
         graphics.fill(areaLeft, areaTop, areaLeft + areaWidth, areaTop + areaHeight, DIM);
         graphics.fill(x + 2, y + 2, x + WIDTH + 2, y + HEIGHT + 2, DIM);
         graphics.fill(x, y, x + WIDTH, y + HEIGHT, 0xFF1E1E1E);
         graphics.fill(x + 1, y + 1, x + WIDTH - 1, y + HEIGHT - 1, 0xFFFFFFFF);
         graphics.fill(x + 2, y + 2, x + WIDTH - 2, y + HEIGHT - 2, 0xFFC6C6C6);
-        graphics.drawString(font, title, x + PAD, y + 5, 0xFF404040, false);
+        graphics.text(font, title, x + PAD, y + 5, 0xFF404040, false);
         search.render(graphics, mouseX, mouseY, partialTick);
         int lx = listX();
         int ly = listY();
@@ -261,7 +264,7 @@ public final class ItemPicker {
                 graphics.fill(lx, top, lx + LIST_WIDTH, top + ROW, SELECTED);
             }
             if (!entry.icon().isEmpty()) {
-                graphics.renderItem(entry.icon(), lx + 1, top + 1);
+                graphics.item(entry.icon(), lx + 1, top + 1);
             }
             long count = count(entry);
             int colour = count == 0 ? GREY : TEXT;
@@ -269,10 +272,10 @@ public final class ItemPicker {
             if (count >= 0) {
                 String text = PickerStock.shortCount(count);
                 nameRight -= font.width(text) + 4;
-                graphics.drawString(font, text, lx + LIST_WIDTH - 3 - font.width(text), top + 5, colour, false);
+                graphics.text(font, text, lx + LIST_WIDTH - 3 - font.width(text), top + 5, colour, false);
             }
             int textX = lx + 20;
-            graphics.drawString(font, font.plainSubstrByWidth(entry.name().getString(), nameRight - textX), textX, top + 5, colour, false);
+            graphics.text(font, font.plainSubstrByWidth(entry.name().getString(), nameRight - textX), textX, top + 5, colour, false);
             if (index == hovered) {
                 graphics.fill(lx, top, lx + LIST_WIDTH, top + ROW, HOVERED);
             }
@@ -285,7 +288,7 @@ public final class ItemPicker {
             int ky = ly + (ROWS * ROW - knob) * scroll / max;
             graphics.fill(bx + 1, ky + 1, bx + BAR_WIDTH - 1, ky + knob - 1, 0xFFDDDDDD);
         }
-        graphics.pose().popPose();
+        graphics.pose().popMatrix();
     }
 
     /**
@@ -293,7 +296,7 @@ public final class ItemPicker {
      * no stock), or of the button when its choice has no stock. Returns whether
      * one was drawn.
      */
-    public boolean renderTooltip(GuiGraphics graphics, Font font, int mouseX, int mouseY) {
+    public boolean renderTooltip(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
         Entry entry = null;
         if (open) {
             int index = indexAt(mouseX, mouseY);
@@ -309,17 +312,20 @@ public final class ItemPicker {
         if (count(entry) == 0) {
             lines.add(zeroHint.copy().withColor(0xA04000));
         }
-        graphics.pose().pushPose();
-        graphics.pose().translate(0, 0, 400);
-        graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
-        graphics.pose().popPose();
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(0, 0);
+        graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+        graphics.pose().popMatrix();
         return true;
     }
 
     // Input
 
     /** Opens on a button click; while open, picks, drags the bar, focuses the search or closes on a click outside. */
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (!open) {
             if (button == 0 && overButton(mouseX, mouseY)) {
                 open();
@@ -373,7 +379,10 @@ public final class ItemPicker {
     }
 
     /** Escape closes the popup only; every other key goes to the search while open. */
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
         if (!open) {
             return false;
         }
@@ -385,7 +394,9 @@ public final class ItemPicker {
         return true;
     }
 
-    public boolean charTyped(char codePoint, int modifiers) {
+    public boolean charTyped(CharacterEvent event) {
+        char codePoint = (char) event.codepoint();
+        int modifiers = 0;
         if (!open) {
             return false;
         }

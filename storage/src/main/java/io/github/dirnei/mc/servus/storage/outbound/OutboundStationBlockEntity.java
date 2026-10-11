@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.outbound;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
@@ -30,15 +34,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * The outbound dock: the warehouse keeps the buffer stocked at the keep
@@ -52,7 +54,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
 
     public static final int KEEP_LIMIT = 4096;
 
-    private final ItemStackHandler buffer = new ItemStackHandler(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
+    private final ItemSlots buffer = new ItemSlots(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -61,7 +63,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     };
 
     /** Ghost stacks whose count is the amount to keep. */
-    private final ItemStackHandler keep = new ItemStackHandler(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
+    private final ItemSlots keep = new ItemSlots(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -74,7 +76,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     };
 
     /** The outside view on Output sides: takes only, never inserts. */
-    private final IItemHandler extractOnly = new IItemHandler() {
+    private final ItemView extractOnly = new ItemView() {
         @Override
         public int getSlots() {
             return buffer.getSlots();
@@ -134,16 +136,16 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         return worldPosition.relative(facing().getOpposite());
     }
 
-    public ItemStackHandler buffer() {
+    public ItemSlots buffer() {
         return buffer;
     }
 
-    public ItemStackHandler keep() {
+    public ItemSlots keep() {
         return keep;
     }
 
     @Override
-    public ItemStackHandler deliveries() {
+    public ItemSlots deliveries() {
         return buffer;
     }
 
@@ -155,7 +157,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     }
 
     /** The item handler a neighbour on that side sees: the extract view where extraction is allowed, nothing elsewhere. */
-    public IItemHandler handlerFor(Direction side) {
+    public ItemView handlerFor(Direction side) {
         if (side == null || sideMode(side).allowsExtract()) {
             return extractOnly;
         }
@@ -250,7 +252,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
             if (!station.sideMode(direction).pushes()) {
                 continue;
             }
-            IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK, pos.relative(direction), direction.getOpposite());
+            ItemView neighbour = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, pos.relative(direction), direction.getOpposite()));
             if (neighbour == null) {
                 continue;
             }
@@ -259,7 +261,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
                 if (stack.isEmpty()) {
                     continue;
                 }
-                ItemStack left = ItemHandlerHelper.insertItem(neighbour, stack.copy(), false);
+                ItemStack left = neighbour.insertItem(stack.copy(), false);
                 if (left.getCount() != stack.getCount()) {
                     station.buffer.setStackInSlot(i, left);
                 }
@@ -293,26 +295,31 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     // Persistence and sync
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        woodSlot.save(output);
         tag.put("Items", buffer.serializeNBT(registries));
         tag.put("Keep", keep.serializeNBT(registries));
         tag.putByteArray("Sides", sides.toBytes());
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        woodSlot.load(input);
         if (tag.contains("Items")) {
-            load(buffer, tag.getCompound("Items"), registries);
+            load(buffer, tag.getCompoundOrEmpty("Items"), registries);
         }
         if (tag.contains("Keep")) {
-            load(keep, tag.getCompound("Keep"), registries);
+            load(keep, tag.getCompoundOrEmpty("Keep"), registries);
         }
         if (tag.contains("Sides")) {
-            sides.fromBytes(tag.getByteArray("Sides"));
+            sides.fromBytes(tag.getByteArray("Sides").orElse(new byte[0]));
         }
     }
 
@@ -329,8 +336,8 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    private static void load(ItemStackHandler into, CompoundTag tag, HolderLookup.Provider registries) {
-        ItemStackHandler saved = new ItemStackHandler() {
+    private static void load(ItemSlots into, CompoundTag tag, HolderLookup.Provider registries) {
+        ItemSlots saved = new ItemSlots() {
             @Override
             public int getSlotLimit(int slot) {
                 return KEEP_LIMIT;
@@ -350,7 +357,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
     }
@@ -363,9 +370,9 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
     }
 
     @Override

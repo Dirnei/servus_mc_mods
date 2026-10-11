@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.outbound;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigWrench;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
@@ -11,7 +13,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -26,14 +27,14 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 /** Right click opens the station GUI; the carrot cycles the clicked side, sneak carrot dismantles. */
 public class OutboundStationBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<OutboundStationBlock> CODEC = simpleCodec(OutboundStationBlock::new);
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
     public OutboundStationBlock(Properties properties) {
         super(properties);
@@ -75,12 +76,12 @@ public class OutboundStationBlock extends BaseEntityBlock implements Wrenchable 
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem) {
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
@@ -88,7 +89,7 @@ public class OutboundStationBlock extends BaseEntityBlock implements Wrenchable 
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station) {
             player.openMenu(station, pos);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -100,8 +101,9 @@ public class OutboundStationBlock extends BaseEntityBlock implements Wrenchable 
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         StorageNodeBlockEntity.neighborsChanged(level, pos);
     }
 
@@ -113,6 +115,6 @@ public class OutboundStationBlock extends BaseEntityBlock implements Wrenchable 
         if (level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station) {
             return SideConfigWrench.use(context, this, station, () -> station.dropContents(level, pos));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

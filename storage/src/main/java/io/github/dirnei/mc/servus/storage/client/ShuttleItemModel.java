@@ -20,13 +20,13 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -78,7 +78,7 @@ public final class ShuttleItemModel extends BakedModelWrapper<BakedModel> {
     }
 
     private static ModelResourceLocation part(String name) {
-        return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "shuttle/" + name));
+        return ModelResourceLocation.standalone(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "shuttle/" + name));
     }
 
     @Override

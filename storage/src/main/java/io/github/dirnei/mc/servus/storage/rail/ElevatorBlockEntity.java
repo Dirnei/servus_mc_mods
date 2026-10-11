@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
@@ -19,7 +22,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * Connector node: joins the warehouse graph but holds no stock. The lowest
@@ -107,20 +110,25 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
         tag.put(UPGRADES, upgrades.serializeNBT(registries));
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
         if (tag.contains(LIFT_Y)) {
-            liftY = tag.getFloat(LIFT_Y);
+            liftY = input.getFloatOr(LIFT_Y, 0F);
         }
         if (tag.contains(UPGRADES)) {
-            ItemStackHandler saved = new ItemStackHandler();
-            saved.deserializeNBT(registries, tag.getCompound(UPGRADES));
+            ItemSlots saved = new ItemSlots();
+            saved.deserializeNBT(registries, tag.getCompoundOrEmpty(UPGRADES));
             loading = true;
             for (int i = 0; i < upgrades.getSlots(); i++) {
                 upgrades.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);

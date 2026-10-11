@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
@@ -23,10 +23,9 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -40,17 +39,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
  * Spreader shuttles on the small farm of the harvester tests: a controller,
  * Warehouse Rails x 1 to 3 and farm rails x 4 to 7 along z 6, a garage and a
  * quad crate on the Warehouse Rails and the Field Head east of the farm rails.
  */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class SpreaderGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -98,14 +92,14 @@ public final class SpreaderGameTests {
         helper.setBlock(GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         helper.setBlock(CRATE, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class);
         garage.shuttles().setStackInSlot(0, shuttle);
         return new Farm(helper.getBlockEntity(HEAD), helper.getBlockEntity(CRATE));
     }
 
     /** Water, bone meal as the fertilizer, that mode and that reserve. */
     private static void fertilize(Farm farm, FertilizeMode mode, int reserve) {
-        farm.head().fluidHandler().fill(new FluidStack(Fluids.WATER, 4000), IFluidHandler.FluidAction.EXECUTE);
+        farm.head().fluidHandler().fill(new FluidStack(Fluids.WATER, 4000), false);
         farm.head().setFertilizer(new ItemStack(Items.BONE_MEAL));
         farm.head().setFertilizeMode(mode);
         farm.head().stepReserve(reserve - farm.head().reserve());
@@ -153,7 +147,7 @@ public final class SpreaderGameTests {
     // Module
 
     /** The Spreader goes in as the shuttle's tool; it makes the shuttle field only and fits only fertilize runs. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void workshopFitsSpreader(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos at = new BlockPos(5, 1, 5);
@@ -174,14 +168,14 @@ public final class SpreaderGameTests {
     }
 
     /** With only a Spreader, a due harvest stays on the field and the warehouse counts no shuttle for its jobs. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void spreaderTakesNoWarehouseOrHarvestJob(GameTestHelper helper) {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         crop(helper, plot, 7);
         Farm farm = farm(helper, spreader());
         farm.crate().insert(new ItemStack(Items.COBBLESTONE, 10), false);
         helper.runAfterDelay(2, () -> {
-            farm.head().fluidHandler().fill(new FluidStack(Fluids.WATER, 4000), IFluidHandler.FluidAction.EXECUTE);
+            farm.head().fluidHandler().fill(new FluidStack(Fluids.WATER, 4000), false);
             farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));
             helper.runAfterDelay(120, () -> {
                 helper.assertTrue(farm.head().harvestDue(), "the harvest should be due");
@@ -200,7 +194,7 @@ public final class SpreaderGameTests {
      * each from the crate; an older growing wheat gets none, so the crate
      * holds exactly four bone meal less.
      */
-    @GameTest(template = EMPTY, timeoutTicks = 600)
+    @ServusGameTest(timeoutTicks = 600)
     public static void afterPlantingDosesFreshPlots(GameTestHelper helper) {
         BlockPos old = new BlockPos(5, 1, RAIL_Z - 1);
         BlockPos[] fresh = {new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1)};
@@ -225,7 +219,7 @@ public final class SpreaderGameTests {
     }
 
     /** Stock equal to the reserve: no run, the crate keeps its bone meal and the status says below reserve. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void reserveRespected(GameTestHelper helper) {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         Farm farm = farm(helper, spreader());
@@ -245,7 +239,7 @@ public final class SpreaderGameTests {
     }
 
     /** Until ripe share at 50 percent: one ripe of four, doses go out until two are ripe, then they stop. */
-    @GameTest(template = EMPTY, timeoutTicks = 900)
+    @ServusGameTest(timeoutTicks = 900)
     public static void untilRipeShareStopsAtThreshold(GameTestHelper helper) {
         BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1), new BlockPos(7, 1, RAIL_Z - 1)};
         crop(helper, plots[0], 7);
@@ -276,7 +270,7 @@ public final class SpreaderGameTests {
      * from ripe, two doses per plot: the ripe plot gets nothing, the other
      * takes one dose and the bone meal left goes back into the crate.
      */
-    @GameTest(template = EMPTY, timeoutTicks = 600)
+    @ServusGameTest(timeoutTicks = 600)
     public static void ripePlotsUntouchedAndLeftoverPutAway(GameTestHelper helper) {
         BlockPos ripe = new BlockPos(5, 1, RAIL_Z - 1);
         BlockPos almost = new BlockPos(6, 1, RAIL_Z + 1);
@@ -302,12 +296,12 @@ public final class SpreaderGameTests {
     // Menu
 
     /** The fertilizer is chosen by id from the tag only; mode, threshold and reserve buttons work and the settings are saved. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void menuChoosesFertilizerAndSettings(GameTestHelper helper) {
         Farm farm = farm(helper, spreader());
         FieldHeadBlockEntity head = farm.head();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.moveTo(Vec3.atBottomCenterOf(helper.absolutePos(HEAD).east()));
+        player.snapTo(Vec3.atBottomCenterOf(helper.absolutePos(HEAD).east()));
         FieldHeadMenu menu = new FieldHeadMenu(1, player.getInventory(), head);
         player.containerMenu = menu;
         helper.assertTrue(head.fertilizer().isEmpty() && head.fertilizeMode() == FertilizeMode.OFF && !head.fertilizing(),
@@ -316,7 +310,7 @@ public final class SpreaderGameTests {
         helper.assertTrue(FieldHeadMenu.chooseFertilizer(player, id(Items.BONE_MEAL)), "bone meal should be taken");
         helper.assertTrue(head.fertilizer().is(Items.BONE_MEAL), "bone meal is the fertilizer");
         helper.assertTrue(!FieldHeadMenu.chooseFertilizer(player, id(Items.COBBLESTONE)), "cobblestone should be refused");
-        helper.assertTrue(!FieldHeadMenu.chooseFertilizer(player, Optional.of(ResourceLocation.fromNamespaceAndPath("servus_storage", "no_such_item"))),
+        helper.assertTrue(!FieldHeadMenu.chooseFertilizer(player, Optional.of(Identifier.fromNamespaceAndPath("servus_storage", "no_such_item"))),
                 "an unknown id should be refused");
         helper.assertTrue(head.fertilizer().is(Items.BONE_MEAL), "refused ids change nothing");
         menu.clickMenuButton(player, FieldHeadMenu.BUTTON_FERTILIZE_MODE + FertilizeMode.UNTIL_RIPE.ordinal());
@@ -345,7 +339,7 @@ public final class SpreaderGameTests {
         helper.succeed();
     }
 
-    private static Optional<ResourceLocation> id(Item item) {
+    private static Optional<Identifier> id(Item item) {
         return Optional.of(BuiltInRegistries.ITEM.getKey(item));
     }
 }

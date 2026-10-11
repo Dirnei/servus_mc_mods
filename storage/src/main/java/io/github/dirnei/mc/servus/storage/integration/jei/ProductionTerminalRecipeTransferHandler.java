@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.integration.jei;
 
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import io.github.dirnei.mc.servus.storage.pattern.OpenRecipeEditorPayload;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
@@ -13,7 +14,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * JEI plus button on crafting recipes while a Production Terminal is open:
@@ -40,7 +40,7 @@ public final class ProductionTerminalRecipeTransferHandler implements IRecipeTra
     public IRecipeTransferError transferRecipe(ProductionTerminalMenu menu, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView slots,
                                                Player player, boolean maxTransfer, boolean doTransfer) {
         if (doTransfer) {
-            PacketDistributor.sendToServer(new OpenRecipeEditorPayload(recipe.id()));
+            ClientPacketDistributor.sendToServer(new OpenRecipeEditorPayload(recipe.id()));
         }
         return null;
     }

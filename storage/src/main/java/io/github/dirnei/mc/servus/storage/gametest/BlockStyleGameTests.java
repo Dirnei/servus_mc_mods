@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
@@ -15,9 +16,8 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -35,30 +35,26 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** The wood from the recipe and the Pattern Storage lights (m8-block-style). */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class BlockStyleGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos AT = new BlockPos(5, 1, 5);
-    private static final ResourceLocation BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
-    private static final ResourceLocation SPRUCE = BuiltInRegistries.BLOCK.getKey(Blocks.SPRUCE_PLANKS);
+    private static final Identifier BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
+    private static final Identifier SPRUCE = BuiltInRegistries.BLOCK.getKey(Blocks.SPRUCE_PLANKS);
 
     private BlockStyleGameTests() {
     }
 
     private static ItemStack craft(GameTestHelper helper, String recipe, int width, int height, List<ItemStack> grid) {
-        RecipeHolder<?> holder = helper.getLevel().getRecipeManager()
-                .byKey(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, recipe))
+        RecipeHolder<?> holder = helper.getLevel().recipeAccess()
+                .byKey(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, recipe))
                 .orElseThrow(() -> new AssertionError("no recipe " + recipe));
         CraftingRecipe crafting = (CraftingRecipe) holder.value();
         CraftingInput input = CraftingInput.of(width, height, grid);
         helper.assertTrue(crafting.matches(input, helper.getLevel()), recipe + " should match its grid");
-        return crafting.assemble(input, helper.getLevel().registryAccess());
+        return crafting.assemble(input);
     }
 
     private static List<ItemStack> grid(Item... items) {
@@ -70,7 +66,7 @@ public final class BlockStyleGameTests {
     }
 
     /** The Storage Terminal crafted with birch planks carries birch. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void woodRecipeRecordsBirch(GameTestHelper helper) {
         ItemStack result = craft(helper, "storage_terminal", 3, 3, grid(
                 Items.GLASS, Items.GLASS, Items.GLASS,
@@ -82,7 +78,7 @@ public final class BlockStyleGameTests {
     }
 
     /** Two spruce and one oak plank give spruce. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void woodRecipeTakesTheMajority(GameTestHelper helper) {
         ItemStack result = craft(helper, "shuttle_garage", 3, 2, grid(
                 Items.IRON_INGOT, ServusStorageItems.RAIL.get(), Items.IRON_INGOT,
@@ -92,7 +88,7 @@ public final class BlockStyleGameTests {
     }
 
     /** A birch item places a birch block, and its drop keeps birch. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void woodSurvivesPlaceAndBreak(GameTestHelper helper) {
         helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -114,7 +110,7 @@ public final class BlockStyleGameTests {
     }
 
     /** Dismantling a Packing Station with the carrot drops it with its wood. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void woodSurvivesDismantle(GameTestHelper helper) {
         helper.setBlock(AT, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         ((WoodHolder) helper.getLevel().getBlockEntity(helper.absolutePos(AT))).woodSlot().set(SPRUCE);
@@ -133,10 +129,10 @@ public final class BlockStyleGameTests {
     }
 
     /** The Pattern Storage lights follow saved and deleted patterns. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void patternLightsFollowPatterns(GameTestHelper helper) {
         helper.setBlock(AT, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity storage = helper.getBlockEntity(AT);
+        PatternStorageBlockEntity storage = helper.getBlockEntity(AT, PatternStorageBlockEntity.class);
         helper.assertTrue(lights(helper) == 0, "an empty storage is dark");
         storage.set(0, StationJobs.sticks());
         storage.set(1, StationJobs.sticks());

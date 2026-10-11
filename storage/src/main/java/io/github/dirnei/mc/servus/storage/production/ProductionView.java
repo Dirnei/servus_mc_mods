@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 
@@ -163,10 +163,10 @@ public final class ProductionView {
     }
 
     /** crafting, smelting, ... from the recipe's type, working when the recipe is not a known one. */
-    private static String verb(ServerLevel level, ResourceLocation recipe) {
-        return level.getRecipeManager().byKey(recipe)
+    private static String verb(ServerLevel level, Identifier recipe) {
+        return level.recipeAccess().byKey(recipe)
                 .map(holder -> BuiltInRegistries.RECIPE_TYPE.getKey(holder.value().getType()))
-                .map(ResourceLocation::getPath)
+                .map(Identifier::getPath)
                 .orElse("working");
     }
 
@@ -222,7 +222,7 @@ public final class ProductionView {
                 ? level.getCapability(ServusFoundationCapabilities.PRODUCTION, pos, null) : null;
         List<ProductionRecipe> recipes = provider == null ? List.of() : provider.recipes();
         ItemStack working = ItemStack.EMPTY;
-        Optional<ResourceLocation> active = provider == null ? Optional.empty() : provider.active();
+        Optional<Identifier> active = provider == null ? Optional.empty() : provider.active();
         if (active.isPresent()) {
             for (ProductionRecipe recipe : recipes) {
                 if (recipe.id().equals(active.get()) && !recipe.outputs().isEmpty()) {

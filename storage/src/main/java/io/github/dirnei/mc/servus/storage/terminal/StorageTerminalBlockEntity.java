@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.storage.terminal;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
@@ -23,7 +28,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -37,9 +41,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
@@ -47,7 +50,7 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * The pickup desk on the data line: opens the stock GUI of the warehouses it
@@ -100,7 +103,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     }
 
     /** Output slots shown in one row: at most {@link TerminalLayout.Storage#ROW_SLOTS}. */
-    private final ItemStackHandler output = new ItemStackHandler(Math.max(1,
+    private final ItemSlots output = new ItemSlots(Math.max(1,
             Math.min(TerminalLayout.Storage.ROW_SLOTS, StorageStatsManager.INSTANCE.terminalOutputSlots()))) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -108,17 +111,17 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         }
     };
     /** Items handed in; stored into the warehouse on the next tick, leftovers retried. */
-    private final ItemStackHandler input = new ItemStackHandler(TerminalLayout.Storage.ROW_SLOTS) {
+    private final ItemSlots input = new ItemSlots(TerminalLayout.Storage.ROW_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
             storeSoon = true;
         }
     };
-    private final IItemHandler packets = new RoutingHandler();
+    private final ItemView packets = new RoutingHandler();
     /** The running move of each input slot, or null. */
     private final Delivery[] inputMoves = new Delivery[TerminalLayout.Storage.ROW_SLOTS];
-    private final IItemHandler[] inputViews = new IItemHandler[TerminalLayout.Storage.ROW_SLOTS];
+    private final ItemView[] inputViews = new ItemView[TerminalLayout.Storage.ROW_SLOTS];
     private boolean storeSoon;
     private String inputRefusal;
     private final List<Request> requests = new ArrayList<>();
@@ -133,17 +136,17 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     }
 
     /** The slots deliveries land in. */
-    public ItemStackHandler output() {
+    public ItemSlots output() {
         return output;
     }
 
     /** The slots the player and automation hand items in through. */
-    public ItemStackHandler input() {
+    public ItemSlots input() {
         return input;
     }
 
     /** What automation and packets see: items a request waits for go to the output, the rest to the input. */
-    public IItemHandler packetHandler() {
+    public ItemView packetHandler() {
         return packets;
     }
 
@@ -276,7 +279,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
      * One input slot as a delivery source: items can be taken out (and given
      * back) only by the move, and only while this terminal exists.
      */
-    private final class InputSlotView implements IItemHandler {
+    private final class InputSlotView extends LegacyItemHandler {
 
         private final int slot;
 
@@ -320,7 +323,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         if (stack.isEmpty()) {
             return stack;
         }
-        ItemStack rest = ItemHandlerHelper.insertItemStacked(input, stack.copy(), false);
+        ItemStack rest = input.insertItemStacked(stack.copy(), false);
         storeSoon = true;
         return rest;
     }
@@ -369,7 +372,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
 
     /** Drops every stack in the output and input slots at the terminal. */
     public void dropOutput(Level level, BlockPos pos) {
-        for (ItemStackHandler handler : List.of(output, input)) {
+        for (ItemSlots handler : List.of(output, input)) {
             for (int i = 0; i < handler.getSlots(); i++) {
                 ItemStack stack = handler.getStackInSlot(i);
                 if (!stack.isEmpty()) {
@@ -395,21 +398,23 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     // Persistence
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        woodSlot.save(output);
         tag.put("Output", output.serializeNBT(registries));
         tag.put("Input", input.serializeNBT(registries));
         ListTag list = new ListTag();
         for (Request request : requests) {
             CompoundTag entry = new CompoundTag();
             entry.putInt("Id", request.id);
-            entry.put("Item", request.key.stack(1).save(registries));
+            entry.put("Item", ValueIo.saveStack(registries, request.key.stack(1)));
             entry.putInt("Requested", request.requested);
             entry.putInt("Delivered", request.delivered);
             entry.putInt("Missing", request.missing);
             if (request.orderCpu != null) {
-                entry.put("OrderCpu", NbtUtils.writeBlockPos(request.orderCpu));
+                entry.put("OrderCpu", ValueIo.posTag(request.orderCpu));
             }
             if (request.remote != null) {
                 entry.putString("Remote", request.remote);
@@ -418,7 +423,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             ListTag shipments = new ListTag();
             for (Tracked tracked : request.shipments) {
                 CompoundTag shipment = new CompoundTag();
-                shipment.put("PackingStation", NbtUtils.writeBlockPos(tracked.packingStation()));
+                shipment.put("PackingStation", ValueIo.posTag(tracked.packingStation()));
                 shipment.putLong("Id", tracked.shipmentId());
                 shipment.putInt("Asked", tracked.asked());
                 shipments.add(shipment);
@@ -427,44 +432,47 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             list.add(entry);
         }
         tag.put("Requests", list);
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        woodSlot.load(input);
         if (tag.contains("Output")) {
-            ItemStackHandler saved = new ItemStackHandler();
-            saved.deserializeNBT(registries, tag.getCompound("Output"));
+            ItemSlots saved = new ItemSlots();
+            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Output"));
             for (int i = 0; i < output.getSlots(); i++) {
                 output.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         }
         if (tag.contains("Input")) {
-            ItemStackHandler saved = new ItemStackHandler();
-            saved.deserializeNBT(registries, tag.getCompound("Input"));
+            ItemSlots saved = new ItemSlots();
+            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Input"));
             for (int i = 0; i < input.getSlots(); i++) {
                 input.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         }
         requests.clear();
         idsSeen = false;
-        for (Tag raw : tag.getList("Requests", Tag.TAG_COMPOUND)) {
+        for (Tag raw : tag.getListOrEmpty("Requests")) {
             CompoundTag entry = (CompoundTag) raw;
-            ItemStack item = ItemStack.parseOptional(registries, entry.getCompound("Item"));
+            ItemStack item = ValueIo.parseStack(registries, entry.getCompoundOrEmpty("Item"));
             if (item.isEmpty()) {
                 continue;
             }
-            Request request = new Request(entry.getInt("Id"), ItemKey.of(item), entry.getInt("Requested"));
-            request.delivered = entry.getInt("Delivered");
-            request.missing = entry.getInt("Missing");
-            request.orderCpu = NbtUtils.readBlockPos(entry, "OrderCpu").orElse(null);
-            request.remote = entry.contains("Remote") ? entry.getString("Remote") : null;
-            request.shipped = entry.getBoolean("Shipped");
-            for (Tag rawShipment : entry.getList("Shipments", Tag.TAG_COMPOUND)) {
+            Request request = new Request(entry.getIntOr("Id", 0), ItemKey.of(item), entry.getIntOr("Requested", 0));
+            request.delivered = entry.getIntOr("Delivered", 0);
+            request.missing = entry.getIntOr("Missing", 0);
+            request.orderCpu = ValueIo.readPos(entry, "OrderCpu").orElse(null);
+            request.remote = entry.contains("Remote") ? entry.getStringOr("Remote", "") : null;
+            request.shipped = entry.getBooleanOr("Shipped", false);
+            for (Tag rawShipment : entry.getListOrEmpty("Shipments")) {
                 CompoundTag shipment = (CompoundTag) rawShipment;
-                NbtUtils.readBlockPos(shipment, "PackingStation").ifPresent(point -> request.shipments.add(
-                        new Tracked(point, shipment.getLong("Id"), shipment.getInt("Asked"))));
+                ValueIo.readPos(shipment, "PackingStation").ifPresent(point -> request.shipments.add(
+                        new Tracked(point, shipment.getLongOr("Id", 0L), shipment.getIntOr("Asked", 0))));
             }
             requests.add(request);
         }
@@ -476,7 +484,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
      * where it is credited; every other item only into the input, which
      * stores it. Nothing can be taken out.
      */
-    private final class RoutingHandler implements IItemHandler {
+    private final class RoutingHandler extends LegacyItemHandler {
 
         @Override
         public int getSlots() {
@@ -544,7 +552,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
     }
@@ -557,9 +565,9 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
     }
 
     @Override

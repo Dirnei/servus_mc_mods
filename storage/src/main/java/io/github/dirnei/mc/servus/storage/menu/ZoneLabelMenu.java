@@ -14,10 +14,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * Edits the Zone Label in one hand: its name, nine ghost filter items and a
@@ -32,7 +32,7 @@ public class ZoneLabelMenu extends AbstractContainerMenu {
 
     private final InteractionHand hand;
     private final Player player;
-    private final ItemStackHandler filter = new ItemStackHandler(ZoneFilter.SLOTS) {
+    private final ItemSlots filter = new ItemSlots(ZoneFilter.SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             writeBack();
@@ -157,7 +157,7 @@ public class ZoneLabelMenu extends AbstractContainerMenu {
 
     /** Ghost slots take a copy of the cursor and never hand anything out. */
     @Override
-    public void clicked(int slotId, int button, ClickType clickType, Player player) {
+    public void clicked(int slotId, int button, ContainerInput clickType, Player player) {
         if (slotId >= 0 && slotId < inventoryStart && slots.get(slotId) instanceof GhostSlot ghost) {
             if (!player.level().isClientSide()) {
                 ghost.setGhost(getCarried());

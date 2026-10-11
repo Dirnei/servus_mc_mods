@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.storage.crate;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
 
 /** One virtual slot per compartment, each holding that compartment's whole content. */
-final class CrateItemHandler implements IItemHandler {
+final class CrateItemHandler extends LegacyItemHandler {
 
     private final CrateBlockEntity crate;
 

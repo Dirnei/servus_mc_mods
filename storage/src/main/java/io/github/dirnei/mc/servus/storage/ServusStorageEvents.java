@@ -17,11 +17,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import io.github.dirnei.mc.servus.storage.gametest.ServusStorageGameTests;
 
 /** Game bus hooks of Servus: Storage. */
 @EventBusSubscriber(modid = ServusStorageIds.MOD_ID)
@@ -31,8 +29,8 @@ public final class ServusStorageEvents {
     }
 
     @SubscribeEvent
-    public static void onAddReloadListeners(AddReloadListenerEvent event) {
-        event.addListener(StorageStatsManager.INSTANCE);
+    public static void onAddReloadListeners(AddServerReloadListenersEvent event) {
+        event.addListener(StorageStatsManager.LISTENER_ID, StorageStatsManager.INSTANCE);
     }
 
     /** Left click on a crate with items takes a stack (one when sneaking) instead of breaking. A garage with shuttles stays put. */
@@ -41,7 +39,7 @@ public final class ServusStorageEvents {
         if (ShuttleGarageBlock.occupied(event.getLevel(), event.getPos())) {
             event.setCanceled(true);
             if (!event.getLevel().isClientSide() && event.getAction() == PlayerInteractEvent.LeftClickBlock.Action.START) {
-                event.getEntity().displayClientMessage(Component.translatable("message.servus_storage.garage.occupied"), true);
+                event.getEntity().sendOverlayMessage(Component.translatable("message.servus_storage.garage.occupied"));
             }
             return;
         }
@@ -82,30 +80,25 @@ public final class ServusStorageEvents {
         }
 
         @SubscribeEvent
-        public static void onRegisterGameTests(RegisterGameTestsEvent event) {
-            event.register(ServusStorageGameTests.class);
-        }
-
-        @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusStorageBlockEntities.FIELD_HEAD.get(),
+            event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusStorageBlockEntities.FIELD_HEAD.get(),
                     (head, side) -> head.fluidHandler());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.FIELD_HEAD.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.FIELD_HEAD.get(),
                     (head, side) -> head.itemHandler());
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusStorageBlockEntities.FIELD_HEAD.get(),
                     (head, side) -> head.upkeep());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.CRATE.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.CRATE.get(),
                     (crate, side) -> crate.handler());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.HEAVY_RACK.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.HEAVY_RACK.get(),
                     (rack, side) -> rack.items());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.INBOUND_STATION.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.PACKING_STATION.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point.handlerFor(side));
             // The Wireless Packing Station takes packets and hoppers like the Packing Station and FE, but never joins a data line.
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.WIRELESS_PACKING_STATION.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.WIRELESS_PACKING_STATION.get(),
                     (point, side) -> point.handlerFor(side));
-            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ServusStorageBlockEntities.WIRELESS_PACKING_STATION.get(),
+            event.registerBlockEntity(Capabilities.Energy.BLOCK, ServusStorageBlockEntities.WIRELESS_PACKING_STATION.get(),
                     (point, side) -> point.energy());
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point);
@@ -119,11 +112,11 @@ public final class ServusStorageEvents {
                     (storage, side) -> storage);
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.STORAGE_TERMINAL.get(),
                     (terminal, side) -> terminal);
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.STORAGE_TERMINAL.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.STORAGE_TERMINAL.get(),
                     (terminal, side) -> terminal.packetHandler());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.OUTBOUND_STATION.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.OUTBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.CRAFTING_STATION.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.CRAFTING_STATION.get(),
                     (station, side) -> station.handlerFor(side));
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusStorageBlockEntities.CRAFTING_STATION.get(),
                     (station, side) -> station.production());

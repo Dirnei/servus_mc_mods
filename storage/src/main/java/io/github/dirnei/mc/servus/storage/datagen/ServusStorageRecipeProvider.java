@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackRecipe;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.concurrent.CompletableFuture;
@@ -13,7 +12,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
@@ -311,7 +310,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
     private static RecipeOutput heavyRack(RecipeOutput output) {
         return new RecipeOutput() {
             @Override
-            public void accept(ResourceLocation id, Recipe<?> recipe, AdvancementHolder advancement, ICondition... conditions) {
+            public void accept(Identifier id, Recipe<?> recipe, AdvancementHolder advancement, ICondition... conditions) {
                 output.accept(id, new HeavyRackRecipe((ShapedRecipe) recipe), advancement, conditions);
             }
 

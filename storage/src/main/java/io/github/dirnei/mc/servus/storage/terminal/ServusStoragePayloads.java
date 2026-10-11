@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.storage.production.ProductionPayload;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.client.ClientStock;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
-import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.outbound.KeepSlotPayload;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;

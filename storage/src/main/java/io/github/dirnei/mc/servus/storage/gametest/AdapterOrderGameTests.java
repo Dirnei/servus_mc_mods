@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlockEntity;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
@@ -19,19 +19,14 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FurnaceBlock;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** A Machine Adapter on a vanilla furnace as a producer of the CPU, with its fuel refilled from the warehouse. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class AdapterOrderGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -60,9 +55,9 @@ public final class AdapterOrderGameTests {
         for (BlockPos pos : List.of(COBBLE_CRATE, COAL_CRATE)) {
             helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         }
-        CrateBlockEntity cobble = helper.getBlockEntity(COBBLE_CRATE);
+        CrateBlockEntity cobble = helper.getBlockEntity(COBBLE_CRATE, CrateBlockEntity.class);
         cobble.insert(material, false);
-        CrateBlockEntity coal = helper.getBlockEntity(COAL_CRATE);
+        CrateBlockEntity coal = helper.getBlockEntity(COAL_CRATE, CrateBlockEntity.class);
         coal.insert(new ItemStack(Items.COAL, 32), false);
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(FURNACE, Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
@@ -89,14 +84,14 @@ public final class AdapterOrderGameTests {
     }
 
     private static AbstractFurnaceBlockEntity furnace(GameTestHelper helper) {
-        return helper.getBlockEntity(FURNACE);
+        return helper.getBlockEntity(FURNACE, AbstractFurnaceBlockEntity.class);
     }
 
     /** The adapter asks the warehouse for its coal until the furnace holds the profile's level of 16. */
-    @GameTest(template = EMPTY, timeoutTicks = 600)
+    @ServusGameTest(timeoutTicks = 600)
     public static void adapterUpkeepFromWarehouse(GameTestHelper helper) {
         setup(helper);
-        MachineAdapterBlockEntity adapter = helper.getBlockEntity(ADAPTER);
+        MachineAdapterBlockEntity adapter = helper.getBlockEntity(ADAPTER, MachineAdapterBlockEntity.class);
         TerminalWiring.when(helper, () -> furnace(helper).getItem(1).is(Items.COAL) && furnace(helper).getItem(1).getCount() == 16, 500,
                 () -> "the furnace should get 16 coal, has " + furnace(helper).getItem(1) + ", expected " + adapter.expected(), () -> {
             helper.assertTrue(adapter.upkeepItem().is(Items.COAL) && adapter.upkeepLevel() == 16, "coal at 16 from the profile");
@@ -105,7 +100,7 @@ public final class AdapterOrderGameTests {
     }
 
     /** An order for stone runs on the adapter: cobblestone in, stone back, no coal in the step. */
-    @GameTest(template = EMPTY, timeoutTicks = 2400)
+    @ServusGameTest(timeoutTicks = 2400)
     public static void adapterSmeltsAnOrder(GameTestHelper helper) {
         setup(helper);
         TerminalWiring.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
@@ -128,7 +123,7 @@ public final class AdapterOrderGameTests {
     private static final ItemKey CHARCOAL = ItemKey.of(new ItemStack(Items.CHARCOAL));
 
     /** Charcoal with only birch logs in stock runs on birch, not on the first log the furnace knows. */
-    @GameTest(template = EMPTY, timeoutTicks = 2400)
+    @ServusGameTest(timeoutTicks = 2400)
     public static void charcoalFromBirchOnly(GameTestHelper helper) {
         setup(helper, new ItemStack(Items.BIRCH_LOG, 8));
         TerminalWiring.when(helper, () -> ready(helper) && CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 4).missing().isEmpty(),
@@ -147,11 +142,11 @@ public final class AdapterOrderGameTests {
     }
 
     /** With 6 oak and 4 birch logs the preview for 10 charcoal takes both from stock and misses nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void charcoalPreviewSplitsLogs(GameTestHelper helper) {
         setup(helper, new ItemStack(Items.OAK_LOG, 6));
         helper.setBlock(SECOND_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity birch = helper.getBlockEntity(SECOND_CRATE);
+        CrateBlockEntity birch = helper.getBlockEntity(SECOND_CRATE, CrateBlockEntity.class);
         birch.insert(new ItemStack(Items.BIRCH_LOG, 4), false);
         TerminalWiring.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
             TerminalWiring.when(helper, () -> CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10).missing().isEmpty(), 100,

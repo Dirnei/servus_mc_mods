@@ -1,14 +1,16 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigMenus;
 import io.github.dirnei.mc.servus.foundation.client.SideConfigPanel;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
@@ -18,8 +20,8 @@ import net.minecraft.world.item.ItemStack;
  */
 public class CraftingStationScreen extends AbstractContainerScreen<CraftingStationMenu> {
 
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/crafting_station.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/crafting_station.png");
     private static final int CELL = 18;
     private static final int PANEL = 0xFFC6C6C6;
     private static final int TEXT = 0xFF404040;
@@ -54,19 +56,19 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         ItemStack result = menu.station().clientJobResult();
         if (!result.isEmpty() && inJobCell(mouseX, mouseY)) {
-            graphics.renderTooltip(font, result, mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, result, mouseX, mouseY);
         } else if (!panel.renderTooltip(graphics, font, mouseX, mouseY)) {
-            renderTooltip(graphics, mouseX, mouseY);
         }
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
         panel.render(graphics, font, mouseX, mouseY);
 
         int px = leftPos + CraftingStationMenu.PROGRESS_X;
@@ -86,28 +88,31 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
         graphics.fill(jx, jy, jx + CELL, jy + CELL, 0xFF373737);
         graphics.fill(jx + 1, jy + 1, jx + CELL - 1, jy + CELL - 1, result.isEmpty() ? 0xFF8B8B8B : 0xFF60C060);
         if (!result.isEmpty()) {
-            graphics.renderItem(result, jx + 1, jy + 1);
-            graphics.renderItemDecorations(font, result, jx + 1, jy + 1);
+            graphics.item(result, jx + 1, jy + 1);
+            graphics.itemDecorations(font, result, jx + 1, jy + 1);
         }
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        super.renderLabels(graphics, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractLabels(graphics, mouseX, mouseY);
         ItemStack result = menu.station().clientJobResult();
         int x = CraftingStationMenu.JOB_X;
         int y = CraftingStationMenu.JOB_Y + CELL + 4;
         Component text = result.isEmpty()
                 ? Component.translatable("gui.servus_storage.crafting_station.idle")
                 : Component.translatable("gui.servus_storage.crafting_station.left", menu.station().clientJobLeft());
-        graphics.drawString(font, text, x, y, TEXT, false);
+        graphics.text(font, text, x, y, TEXT, false);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (panel.mouseClicked(mouseX, mouseY)) {
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 }

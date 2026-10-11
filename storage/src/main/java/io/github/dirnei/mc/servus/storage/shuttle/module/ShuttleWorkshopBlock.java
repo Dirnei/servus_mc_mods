@@ -45,7 +45,7 @@ public class ShuttleWorkshopBlock extends BaseEntityBlock {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ShuttleWorkshopBlockEntity workshop) {
             player.openMenu(workshop, buf -> ShuttleWorkshopMenu.writeOpening(buf, pos, StorageStatsManager.INSTANCE.shuttleTiers()));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override

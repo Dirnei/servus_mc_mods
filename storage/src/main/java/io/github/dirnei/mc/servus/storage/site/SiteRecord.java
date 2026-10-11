@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.site;
 
+import net.minecraft.core.UUIDUtil;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.Collections;
@@ -16,7 +18,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
@@ -108,7 +110,7 @@ public final class SiteRecord {
         tag.putLong("Pos", pos.asLong());
         tag.putString("Name", name);
         if (team != null) {
-            tag.putUUID("Team", team);
+            tag.store("Team", UUIDUtil.CODEC, team);
         }
         tag.putLongArray("Span", span.stream().mapToLong(Long::longValue).toArray());
         tag.putInt("Upgrades", upgrades);
@@ -116,7 +118,7 @@ public final class SiteRecord {
         ListTag items = new ListTag();
         stock.forEach((key, count) -> {
             CompoundTag entry = new CompoundTag();
-            entry.put("Item", key.stack(1).save(registries));
+            entry.put("Item", ValueIo.saveStack(registries, key.stack(1)));
             entry.putLong("Count", count);
             items.add(entry);
         });
@@ -128,27 +130,27 @@ public final class SiteRecord {
     }
 
     static SiteRecord load(CompoundTag tag, HolderLookup.Provider registries) {
-        ResourceLocation dim = ResourceLocation.tryParse(tag.getString("Dim"));
+        Identifier dim = Identifier.tryParse(tag.getStringOr("Dim", ""));
         if (dim == null) {
             return null;
         }
-        SiteRecord record = new SiteRecord(ResourceKey.create(Registries.DIMENSION, dim), BlockPos.of(tag.getLong("Pos")));
-        record.name = tag.getString("Name");
-        record.team = tag.hasUUID("Team") ? tag.getUUID("Team") : null;
-        for (long key : tag.getLongArray("Span")) {
+        SiteRecord record = new SiteRecord(ResourceKey.create(Registries.DIMENSION, dim), BlockPos.of(tag.getLongOr("Pos", 0L)));
+        record.name = tag.getStringOr("Name", "");
+        record.team = tag.read("Team", UUIDUtil.CODEC).isPresent() ? tag.read("Team", UUIDUtil.CODEC).orElseThrow() : null;
+        for (long key : tag.getLongArray("Span").orElse(new long[0])) {
             record.span.add(key);
         }
-        record.upgrades = tag.getInt("Upgrades");
-        record.lastSeen = tag.getLong("Seen");
-        for (Tag raw : tag.getList("Wireless", Tag.TAG_INT_ARRAY)) {
+        record.upgrades = tag.getIntOr("Upgrades", 0);
+        record.lastSeen = tag.getLongOr("Seen", 0L);
+        for (Tag raw : tag.getListOrEmpty("Wireless")) {
             record.wireless.add(net.minecraft.nbt.NbtUtils.loadUUID(raw));
         }
-        ListTag items = tag.getList("Stock", Tag.TAG_COMPOUND);
+        ListTag items = tag.getListOrEmpty("Stock");
         for (int i = 0; i < items.size(); i++) {
-            CompoundTag entry = items.getCompound(i);
-            ItemStack stack = ItemStack.parseOptional(registries, entry.getCompound("Item"));
+            CompoundTag entry = items.getCompoundOrEmpty(i);
+            ItemStack stack = ValueIo.parseStack(registries, entry.getCompoundOrEmpty("Item"));
             if (!stack.isEmpty()) {
-                record.stock.merge(ItemKey.of(stack), entry.getLong("Count"), Long::sum);
+                record.stock.merge(ItemKey.of(stack), entry.getLongOr("Count", 0L), Long::sum);
             }
         }
         return record;

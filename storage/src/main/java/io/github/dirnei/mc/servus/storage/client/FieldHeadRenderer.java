@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -16,7 +17,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -64,13 +64,13 @@ public final class FieldHeadRenderer implements BlockEntityRenderer<FieldHeadBlo
 
     private static void renderWater(Level level, BlockPos pos, int water, PoseStack poseStack, MultiBufferSource buffers) {
         IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(Fluids.WATER);
-        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
+        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
                 .apply(extensions.getStillTexture());
         int color = extensions.getTintColor(Fluids.WATER.defaultFluidState(), level, pos);
         float top = WINDOW_Y0 + (WINDOW_Y1 - WINDOW_Y0) * water / FieldHeadLook.WATER_LEVELS;
         VertexConsumer consumer = buffers.getBuffer(Sheets.translucentCullBlockSheet());
         for (Direction face : Direction.Plane.HORIZONTAL) {
-            int light = LevelRenderer.getLightColor(level, pos.relative(face));
+            int light = LevelRenderer.getLightCoords(level, pos.relative(face));
             poseStack.pushPose();
             facePose(poseStack, face);
             // x runs to the viewer's right from -0.5 to 0.5, y up, the viewer on +z.
@@ -111,7 +111,7 @@ public final class FieldHeadRenderer implements BlockEntityRenderer<FieldHeadBlo
     private static void renderCrop(FieldHeadBlockEntity head, Level level, BlockPos pos, ItemStack crop, PoseStack poseStack,
                                    MultiBufferSource buffers, int packedOverlay) {
         Direction facing = head.getBlockState().getValue(FieldHeadBlock.FACING);
-        int light = LevelRenderer.getLightColor(level, pos.above());
+        int light = LevelRenderer.getLightCoords(level, pos.above());
         poseStack.pushPose();
         poseStack.translate(0.5, 1.0 + OFFSET * 2, 0.5);
         // The item's up points away from a player standing in front of the head.

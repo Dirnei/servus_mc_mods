@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
@@ -14,21 +15,15 @@ import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The Storage Terminal's Input and Output rows, automation inserts, the crafting popup and its id. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class StorageTerminalRowsGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -46,7 +41,7 @@ public final class StorageTerminalRowsGameTests {
     /** A crate full of planks, optionally an empty crate, the controller and the terminal wiring. */
     private static void setup(GameTestHelper helper, boolean freeCrate, java.util.function.Consumer<Fixture> test) {
         helper.setBlock(FULL_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity planks = helper.getBlockEntity(FULL_CRATE);
+        CrateBlockEntity planks = helper.getBlockEntity(FULL_CRATE, CrateBlockEntity.class);
         planks.insert(new ItemStack(Items.OAK_PLANKS, planks.capacity()), false);
         if (freeCrate) {
             helper.setBlock(FREE_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
@@ -64,12 +59,12 @@ public final class StorageTerminalRowsGameTests {
     }
 
     private static int cobble(GameTestHelper helper) {
-        CrateBlockEntity crate = helper.getBlockEntity(FREE_CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(FREE_CRATE, CrateBlockEntity.class);
         return crate.count(0);
     }
 
     /** Cobblestone put into an input slot is stored over a few seconds and the slot empties. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void inputStores(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             fixture.terminal().input().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 20));
@@ -79,13 +74,13 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** Without a Packing Station on the data line the stack stays in the input slot and the message says why. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void inputWaitsWithoutPackingStation(GameTestHelper helper) {
         BlockPos lone = new BlockPos(9, 1, 9);
         helper.setBlock(lone, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
                 .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
         helper.runAfterDelay(5, () -> {
-            StorageTerminalBlockEntity terminal = helper.getBlockEntity(lone);
+            StorageTerminalBlockEntity terminal = helper.getBlockEntity(lone, StorageTerminalBlockEntity.class);
             terminal.input().setStackInSlot(0, new ItemStack(Items.BREAD, 5));
             helper.runAfterDelay(30, () -> {
                 ItemStack left = terminal.input().getStackInSlot(0);
@@ -98,7 +93,7 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** Clicking the grid with a carried stack moves it into the input row, which stores it. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void gridPushGoesThroughInput(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             fixture.menu().setCarried(new ItemStack(Items.COBBLESTONE, 20));
@@ -110,7 +105,7 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** Shift clicking an inventory slot moves it into the input row, which stores it. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void shiftClickToInput(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             fixture.player().getInventory().setItem(0, new ItemStack(Items.COBBLESTONE, 20));
@@ -122,16 +117,16 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** Automation: an item no request waits for goes through the input; a waited for item lands in the output. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void automationRouting(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             BlockPos pos = helper.absolutePos(TerminalWiring.terminalPos(TERMINAL));
-            IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, pos, Direction.UP);
+            ItemView handler = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP));
             helper.assertTrue(handler != null, "the terminal should take items from automation");
-            ItemStack rest = ItemHandlerHelper.insertItemStacked(handler, new ItemStack(Items.COBBLESTONE, 10), false);
+            ItemStack rest = handler.insertItemStacked(new ItemStack(Items.COBBLESTONE, 10), false);
             helper.assertTrue(rest.isEmpty(), "the cobblestone should be taken, left " + rest);
             fixture.terminal().newRequest(helper.getLevel(), ItemKey.of(new ItemStack(Items.STICK)), 4);
-            ItemStack sticks = ItemHandlerHelper.insertItemStacked(handler, new ItemStack(Items.STICK, 4), false);
+            ItemStack sticks = handler.insertItemStacked(new ItemStack(Items.STICK, 4), false);
             helper.assertTrue(sticks.isEmpty(), "the sticks should be taken, left " + sticks);
             int inOutput = fixture.terminal().outputCount(Items.STICK);
             helper.assertTrue(inOutput == 4, "the requested sticks should land in the output, got " + inOutput);
@@ -141,7 +136,7 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** The Output row has its slots in one row below the Input row. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void outputRowDelivers(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             StorageTerminalMenu menu = fixture.menu();
@@ -156,7 +151,7 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** The popup's slots only take part while it is open; crafting works through them. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void popupCrafts(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             StorageTerminalMenu menu = fixture.menu();
@@ -175,7 +170,7 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** The block and item are registered as storage_terminal. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void storageTerminalId(GameTestHelper helper) {
         helper.assertTrue(BuiltInRegistries.BLOCK.getKey(ServusStorageBlocks.STORAGE_TERMINAL.get()).getPath().equals("storage_terminal"),
                 "block id should be storage_terminal");
@@ -193,7 +188,7 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** A stack in the Input row leaves at the Packing Station's 8 per second, not all at once. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void inputDrainsGradually(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             long start = helper.getTick();
@@ -214,12 +209,12 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** A To storage buffer with room for 16 takes 16 of the Input row; the rest waits until there is room again. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void fullToStorageKeepsInput(GameTestHelper helper) {
         setup(helper, false, fixture -> {
             io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point =
                     helper.getBlockEntity(TerminalWiring.packingStationPos(TERMINAL));
-            net.neoforged.neoforge.items.ItemStackHandler buffer = point.buffer();
+            net.neoforged.neoforge.items.ItemSlots buffer = point.buffer();
             // Nothing can be put away (no crate takes cobblestone or diamonds), so the buffer stays as it is.
             for (int slot = 0; slot < buffer.getSlots(); slot++) {
                 buffer.setStackInSlot(slot, slot == 0 ? new ItemStack(Items.COBBLESTONE, 48) : new ItemStack(Items.DIAMOND, 64));

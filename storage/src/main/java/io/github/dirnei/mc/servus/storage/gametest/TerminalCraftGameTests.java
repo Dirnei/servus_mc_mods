@@ -1,13 +1,12 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
-import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
@@ -16,7 +15,6 @@ import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -24,12 +22,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** Crafting from the Storage Terminal: craftable items, previews, starting a craft, instant content, Packing Station GUI. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class TerminalCraftGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -63,7 +57,7 @@ public final class TerminalCraftGameTests {
     }
 
     /** With no sticks in stock, the sticks pattern on the line makes sticks a craftable entry. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void craftablesListSticks(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -75,7 +69,7 @@ public final class TerminalCraftGameTests {
     }
 
     /** Eight sticks take four planks from stock. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void craftPreviewFromStock(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -90,7 +84,7 @@ public final class TerminalCraftGameTests {
     }
 
     /** Without planks the preview lists them as missing and cannot start. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void craftPreviewMissing(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 0);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -106,7 +100,7 @@ public final class TerminalCraftGameTests {
     }
 
     /** Once the CPU cube is broken the preview says there is no CPU. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void craftPreviewNoCpu(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -123,7 +117,7 @@ public final class TerminalCraftGameTests {
     }
 
     /** Start makes a producing request, and the crafted sticks land in the output slots. */
-    @GameTest(template = EMPTY, timeoutTicks = 1400)
+    @ServusGameTest(timeoutTicks = 1400)
     public static void craftStartDeliversSticks(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
         // A crate compartment holds one item; the planks crate cannot take the crafted sticks.
@@ -139,7 +133,7 @@ public final class TerminalCraftGameTests {
     }
 
     /** Opening the screen sends the content in the same tick. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void terminalSendsOnOpen(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
         TerminalWiring.when(helper, () -> ready(helper), 100, () -> "stations and CPU should join the line", () -> {
@@ -157,13 +151,13 @@ public final class TerminalCraftGameTests {
     }
 
     /** The buffer GUI of a Packing Station stays valid for a player in reach. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void packingStationMenuStaysValid(GameTestHelper helper) {
         TerminalWiring.place(helper, ACCESS);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos absolute = helper.absolutePos(TerminalWiring.packingStationPos(ACCESS));
-        player.moveTo(absolute.getX() + 0.5, absolute.getY() + 1, absolute.getZ() + 1.5);
-        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS));
+        player.snapTo(absolute.getX() + 0.5, absolute.getY() + 1, absolute.getZ() + 1.5);
+        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS), PackingStationBlockEntity.class);
         io.github.dirnei.mc.servus.storage.menu.PackingStationMenu menu =
                 new io.github.dirnei.mc.servus.storage.menu.PackingStationMenu(1, player.getInventory(), point);
         helper.assertTrue(menu.stillValid(player), "the Packing Station GUI should stay open");

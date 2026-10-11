@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.crate;
 
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.util.ExtraCodecs;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -8,13 +10,16 @@ import io.github.dirnei.mc.servus.storage.ServusStorage;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers;
 import java.util.Map;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 /** Loads storage block stats from {@code data/<ns>/storage/<name>.json}. */
-public final class StorageStatsManager extends SimpleJsonResourceReloadListener {
+public final class StorageStatsManager extends SimpleJsonResourceReloadListener<JsonElement> {
+
+    /** Key of this listener in the reload event. */
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_storage", "storage_stats_manager");
 
     public static final String DIRECTORY = "storage";
     public static final int DEFAULT_CRATE_CAPACITY = 4096;
@@ -67,16 +72,16 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final double DEFAULT_FERTILIZE_SHARE = 0.5;
 
     private static final Gson GSON = new GsonBuilder().create();
-    private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
-    private static final ResourceLocation WAREHOUSE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
-    private static final ResourceLocation RACK = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack");
-    private static final ResourceLocation CRAFTING_STATION = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crafting_station");
-    private static final ResourceLocation CPU = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "cpu");
-    private static final ResourceLocation PACKING_STATION = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "packing_station");
-    private static final ResourceLocation PATTERN_STORAGE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
-    private static final ResourceLocation SHUTTLE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "shuttle");
-    private static final ResourceLocation FIELD = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field");
-    private static final ResourceLocation WIRELESS = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "wireless_packing_station");
+    private static final Identifier CRATE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
+    private static final Identifier WAREHOUSE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
+    private static final Identifier RACK = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack");
+    private static final Identifier CRAFTING_STATION = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crafting_station");
+    private static final Identifier CPU = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "cpu");
+    private static final Identifier PACKING_STATION = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "packing_station");
+    private static final Identifier PATTERN_STORAGE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
+    private static final Identifier SHUTTLE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "shuttle");
+    private static final Identifier FIELD = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field");
+    private static final Identifier WIRELESS = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "wireless_packing_station");
 
     public static final StorageStatsManager INSTANCE = new StorageStatsManager();
 
@@ -131,11 +136,11 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile double fertilizeShare = DEFAULT_FERTILIZE_SHARE;
 
     private StorageStatsManager() {
-        super(GSON, DIRECTORY);
+        super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
         crateCapacity = intField(files.get(CRATE), "capacity", DEFAULT_CRATE_CAPACITY);
         sourcesPerTick = intField(files.get(WAREHOUSE), "sources_per_tick", DEFAULT_SOURCES_PER_TICK);
         rackSlots = intField(files.get(RACK), "slots", DEFAULT_RACK_SLOTS);

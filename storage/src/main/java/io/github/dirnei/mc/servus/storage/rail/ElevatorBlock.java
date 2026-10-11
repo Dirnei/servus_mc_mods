@@ -1,12 +1,13 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import java.util.OptionalInt;
 import java.util.List;
 import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
 import io.github.dirnei.mc.servus.storage.shuttle.LiftUpgrades;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
@@ -60,9 +61,9 @@ public class ElevatorBlock extends ConnectableBlock {
 
     /** An item in hand keeps its own use: an elevator builds the shaft up, the carrot dismantles. */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        return stack.isEmpty() ? ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION : ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        return stack.isEmpty() ? InteractionResult.TRY_WITH_EMPTY_HAND : InteractionResult.PASS;
     }
 
     /** An empty hand opens the shaft's upgrades, which the lowest segment keeps. */
@@ -74,7 +75,7 @@ public class ElevatorBlock extends ConnectableBlock {
                 player.openMenu(bottom, buf -> ElevatorMenu.writeOpening(buf, bottom));
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /** The lowest segment of the shaft the segment at pos belongs to, which keeps the upgrades; null when there is none. */
@@ -113,8 +114,9 @@ public class ElevatorBlock extends ConnectableBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         if (!level.isClientSide() && !state.canSurvive(level, pos)) {
             dropResources(state, level, pos, level.getBlockEntity(pos));
             level.removeBlock(pos, false);

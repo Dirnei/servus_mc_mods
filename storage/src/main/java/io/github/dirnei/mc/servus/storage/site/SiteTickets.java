@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.site;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import java.util.ArrayList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
@@ -16,7 +16,7 @@ import net.neoforged.neoforge.common.world.chunk.TicketController;
 public final class SiteTickets {
 
     public static final TicketController CONTROLLER = new TicketController(
-            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "site_wake"),
+            Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "site_wake"),
             (level, helper) -> new ArrayList<>(helper.getBlockTickets().keySet()).forEach(helper::removeAllTickets));
 
     private SiteTickets() {

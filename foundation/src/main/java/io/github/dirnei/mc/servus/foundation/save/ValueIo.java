@@ -1,9 +1,14 @@
 package io.github.dirnei.mc.servus.foundation.save;
 
 import com.mojang.logging.LogUtils;
+import com.mojang.serialization.MapCodec;
 import java.util.UUID;
 import java.util.function.Consumer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.TagValueOutput;
@@ -66,6 +71,45 @@ public final class ValueIo {
             writer.accept(output);
             return output.buildResult();
         }
+    }
+
+    /**
+     * Everything saved in {@code input} as one compound tag, for loading code
+     * that still reads tags (store with {@code output.store(tag)}).
+     */
+    @SuppressWarnings("deprecation")
+    public static CompoundTag whole(ValueInput input) {
+        return input.read(MapCodec.assumeMapUnsafe(CompoundTag.CODEC)).orElseGet(CompoundTag::new);
+    }
+
+    /** The registries for saving code that still writes tags with item stacks: those of the block entity's level. */
+    public static HolderLookup.Provider registries(BlockEntity blockEntity) {
+        if (blockEntity.getLevel() == null) {
+            throw new IllegalStateException("Saving " + blockEntity + " without a level");
+        }
+        return blockEntity.getLevel().registryAccess();
+    }
+
+    /** An item stack as a tag (empty compound for an empty stack), what {@code ItemStack#save} did. */
+    public static CompoundTag saveStack(HolderLookup.Provider registries, ItemStack stack) {
+        return (CompoundTag) ItemStack.OPTIONAL_CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), stack)
+                .getOrThrow();
+    }
+
+    /** The item stack in a tag written by {@link #saveStack}, empty when missing or broken. */
+    public static ItemStack parseStack(HolderLookup.Provider registries, Tag tag) {
+        return ItemStack.OPTIONAL_CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), tag).result()
+                .orElse(ItemStack.EMPTY);
+    }
+
+    /** A block position as a tag, what {@code NbtUtils#writeBlockPos} did. */
+    public static Tag posTag(BlockPos pos) {
+        return BlockPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).getOrThrow();
+    }
+
+    /** The block position under {@code key}, what {@code NbtUtils#readBlockPos} did. */
+    public static java.util.Optional<BlockPos> readPos(CompoundTag tag, String key) {
+        return tag.read(key, BlockPos.CODEC);
     }
 
     public static void putTag(ValueOutput output, String key, CompoundTag tag) {

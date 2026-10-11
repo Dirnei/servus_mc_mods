@@ -1,8 +1,9 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module;
 
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.function.Consumer;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
-import java.util.List;
 import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -66,20 +67,20 @@ public class ShuttleItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         ShuttleModules modules = ShuttleModules.of(stack);
         if (modules.isEmpty()) {
-            tooltip.add(Component.translatable("tooltip.servus_storage.shuttle.plain").withStyle(ChatFormatting.GRAY));
+            tooltip.accept(Component.translatable("tooltip.servus_storage.shuttle.plain").withStyle(ChatFormatting.GRAY));
             return;
         }
-        modules.tool().ifPresent(item -> tooltip.add(Component.translatable("tooltip.servus_storage.shuttle.tool", item.getDescription())
+        modules.tool().ifPresent(item -> tooltip.accept(Component.translatable("tooltip.servus_storage.shuttle.tool", item.getDescription())
                 .withStyle(ChatFormatting.GRAY)));
         if (modules.speed() > 0) {
-            tooltip.add(Component.translatable("tooltip.servus_storage.shuttle.speed", modules.speed()).withStyle(ChatFormatting.GRAY));
+            tooltip.accept(Component.translatable("tooltip.servus_storage.shuttle.speed", modules.speed()).withStyle(ChatFormatting.GRAY));
         }
         if (modules.handling() > 0) {
-            tooltip.add(Component.translatable("tooltip.servus_storage.shuttle.handling", modules.handling()).withStyle(ChatFormatting.GRAY));
+            tooltip.accept(Component.translatable("tooltip.servus_storage.shuttle.handling", modules.handling()).withStyle(ChatFormatting.GRAY));
         }
     }
 }

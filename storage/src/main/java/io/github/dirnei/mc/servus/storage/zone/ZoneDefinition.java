@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.zone;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
@@ -43,7 +44,7 @@ public record ZoneDefinition(String name, ZoneFilter filter) {
 
     /** Reads a zone, or null when the tag has no name. */
     public static ZoneDefinition load(CompoundTag tag, HolderLookup.Provider registries) {
-        String name = ZoneNames.display(tag.getString("Name"));
+        String name = ZoneNames.display(tag.getStringOr("Name", ""));
         if (name.isEmpty()) {
             return null;
         }

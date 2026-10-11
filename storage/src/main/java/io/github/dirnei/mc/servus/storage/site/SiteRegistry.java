@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.site;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayList;
@@ -16,7 +17,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -131,9 +131,9 @@ public final class SiteRegistry extends SavedData {
 
     private static SiteRegistry load(CompoundTag tag, HolderLookup.Provider registries) {
         SiteRegistry registry = new SiteRegistry();
-        ListTag list = tag.getList("Sites", Tag.TAG_COMPOUND);
+        ListTag list = tag.getListOrEmpty("Sites");
         for (int i = 0; i < list.size(); i++) {
-            SiteRecord record = SiteRecord.load(list.getCompound(i), registries);
+            SiteRecord record = SiteRecord.load(list.getCompoundOrEmpty(i), registries);
             if (record != null) {
                 registry.sites.put(record.key(), record);
             }

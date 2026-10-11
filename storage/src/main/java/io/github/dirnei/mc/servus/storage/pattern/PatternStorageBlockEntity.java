@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.pattern;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.production.ProductionView;
@@ -27,7 +31,7 @@ import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 import net.minecraft.world.level.block.Block;
 
 /**
@@ -198,17 +202,22 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        woodSlot.save(output);
         StoredPatterns.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), stored())
                 .ifSuccess(saved -> tag.put("Patterns", saved));
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        woodSlot.load(input);
         StoredPatterns saved = tag.contains("Patterns")
                 ? StoredPatterns.CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), tag.get("Patterns"))
                         .result().orElse(null)
@@ -219,7 +228,7 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
     // Item components: the patterns travel with the dropped block
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
         restore(input.get(ServusStorageComponents.PATTERNS.get()));
@@ -237,10 +246,10 @@ public class PatternStorageBlockEntity extends BlockEntity implements WoodHolder
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
-        tag.remove("Patterns");
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
+        output.discard("Patterns");
     }
 
     // Wood: the planks the block was crafted from, shown as its boards

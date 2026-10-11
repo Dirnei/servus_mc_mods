@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
@@ -14,10 +15,9 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -37,21 +37,16 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /** The Field Head look: wood, facing, ripe bar state and what clients learn (m10-field-head-look). */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class FieldLookGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
     private static final int RAIL_Z = 5;
     private static final BlockPos HEAD = new BlockPos(2, 1, RAIL_Z);
     private static final BlockPos AT = new BlockPos(5, 1, 5);
-    private static final ResourceLocation BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
+    private static final Identifier BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
 
     private FieldLookGameTests() {
     }
@@ -107,7 +102,7 @@ public final class FieldLookGameTests {
     // Wood and facing
 
     /** A player looking north places a head whose front faces south, toward the player. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void placementFacesPlayer(GameTestHelper helper) {
         helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
         ItemStack stack = new ItemStack(ServusStorageItems.FIELD_HEAD.get());
@@ -121,7 +116,7 @@ public final class FieldLookGameTests {
     }
 
     /** A birch head places birch boards and drops a birch head. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void woodSurvivesPlaceAndBreak(GameTestHelper helper) {
         helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
         ItemStack stack = new ItemStack(ServusStorageItems.FIELD_HEAD.get());
@@ -139,10 +134,10 @@ public final class FieldLookGameTests {
     }
 
     /** The recipe takes planks and a Fluid Tank, and the head remembers the planks. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void recipeRecordsWood(GameTestHelper helper) {
-        RecipeHolder<?> holder = helper.getLevel().getRecipeManager()
-                .byKey(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field_head"))
+        RecipeHolder<?> holder = helper.getLevel().recipeAccess()
+                .byKey(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field_head"))
                 .orElseThrow(() -> new AssertionError("no field_head recipe"));
         CraftingRecipe recipe = (CraftingRecipe) holder.value();
         List<ItemStack> grid = new ArrayList<>();
@@ -154,7 +149,7 @@ public final class FieldLookGameTests {
         }
         CraftingInput input = CraftingInput.of(3, 3, grid);
         helper.assertTrue(recipe.matches(input, helper.getLevel()), "the recipe should take birch planks");
-        ItemStack result = recipe.assemble(input, helper.getLevel().registryAccess());
+        ItemStack result = recipe.assemble(input);
         helper.assertTrue(result.is(ServusStorageItems.FIELD_HEAD.get()) && BIRCH.equals(result.get(WoodContent.WOOD.get())),
                 "a birch Field Head, got " + result + " " + result.get(WoodContent.WOOD.get()));
         helper.succeed();
@@ -163,7 +158,7 @@ public final class FieldLookGameTests {
     // Ripe bar
 
     /** The bar starts empty, turns gold part way with one of four ripe at 50 percent, and green at two of four. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void ripeStateFollowsRipeness(GameTestHelper helper) {
         FieldHeadBlockEntity head = wheatField(helper);
         helper.runAfterDelay(3, () -> {
@@ -189,7 +184,7 @@ public final class FieldLookGameTests {
     }
 
     /** Lowering the threshold to the ripe share turns the bar green without any crop changing. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void ripeStateFollowsThreshold(GameTestHelper helper) {
         FieldHeadBlockEntity head = wheatField(helper);
         helper.runAfterDelay(3, () -> {
@@ -218,23 +213,23 @@ public final class FieldLookGameTests {
     // Client sync
 
     /** The update tag carries the water level in steps, the crop and the mode. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void updateTagCarriesWaterAndCrop(GameTestHelper helper) {
         helper.setBlock(AT, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        FieldHeadBlockEntity head = helper.getBlockEntity(AT);
+        FieldHeadBlockEntity head = helper.getBlockEntity(AT, FieldHeadBlockEntity.class);
         CompoundTag empty = head.getUpdateTag(helper.getLevel().registryAccess());
-        helper.assertTrue(empty.getByte("WaterLevel") == 0, "an empty head sends level 0");
+        helper.assertTrue(empty.getByteOr("WaterLevel", (byte) 0) == 0, "an empty head sends level 0");
         int half = head.capacity() / 2;
-        head.fluidHandler().fill(new FluidStack(Fluids.WATER, half), IFluidHandler.FluidAction.EXECUTE);
+        head.fluidHandler().fill(new FluidStack(Fluids.WATER, half), false);
         head.setCrop(new ItemStack(Items.CARROT));
         CompoundTag tag = head.getUpdateTag(helper.getLevel().registryAccess());
         int expected = FieldHeadLook.waterLevel(half, head.capacity());
-        helper.assertTrue(tag.getByte("WaterLevel") == expected && expected == FieldHeadLook.WATER_LEVELS / 2,
-                "half full sends half the levels, got " + tag.getByte("WaterLevel"));
-        ItemStackHandler crop = new ItemStackHandler(1);
-        crop.deserializeNBT(helper.getLevel().registryAccess(), tag.getCompound("Crop"));
+        helper.assertTrue(tag.getByteOr("WaterLevel", (byte) 0) == expected && expected == FieldHeadLook.WATER_LEVELS / 2,
+                "half full sends half the levels, got " + tag.getByteOr("WaterLevel", (byte) 0));
+        ItemSlots crop = new ItemSlots(1);
+        crop.deserializeNBT(helper.getLevel().registryAccess(), tag.getCompoundOrEmpty("Crop"));
         helper.assertTrue(crop.getStackInSlot(0).is(Items.CARROT), "the crop goes to clients, got " + crop.getStackInSlot(0));
-        helper.assertTrue(!tag.getBoolean("HarvestOnly"), "harvest only is off");
+        helper.assertTrue(!tag.getBooleanOr("HarvestOnly", false), "harvest only is off");
         helper.succeed();
     }
 }

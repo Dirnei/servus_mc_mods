@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.zone;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -16,7 +17,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -94,7 +95,7 @@ public record ZoneFilter(List<ItemStack> items, List<String> tags) {
             if (text.isEmpty()) {
                 continue;
             }
-            ResourceLocation id = ResourceLocation.tryParse(text);
+            Identifier id = Identifier.tryParse(text);
             if (id != null) {
                 parsed.add(id.toString());
             }
@@ -109,7 +110,7 @@ public record ZoneFilter(List<ItemStack> items, List<String> tags) {
         ListTag itemList = new ListTag();
         for (ItemStack stack : items) {
             if (!stack.isEmpty()) {
-                itemList.add(stack.save(registries));
+                itemList.add(ValueIo.saveStack(registries, stack));
             }
         }
         tag.put("Items", itemList);
@@ -123,15 +124,15 @@ public record ZoneFilter(List<ItemStack> items, List<String> tags) {
 
     public static ZoneFilter load(CompoundTag tag, HolderLookup.Provider registries) {
         List<ItemStack> items = new ArrayList<>();
-        for (Tag entry : tag.getList("Items", Tag.TAG_COMPOUND)) {
-            ItemStack stack = ItemStack.parseOptional(registries, (CompoundTag) entry);
+        for (Tag entry : tag.getListOrEmpty("Items")) {
+            ItemStack stack = ValueIo.parseStack(registries, (CompoundTag) entry);
             if (!stack.isEmpty()) {
                 items.add(stack);
             }
         }
         List<String> tags = new ArrayList<>();
-        for (Tag entry : tag.getList("Tags", Tag.TAG_STRING)) {
-            tags.add(entry.getAsString());
+        for (Tag entry : tag.getListOrEmpty("Tags")) {
+            tags.add(entry.asString().orElse(""));
         }
         return new ZoneFilter(items, tags);
     }

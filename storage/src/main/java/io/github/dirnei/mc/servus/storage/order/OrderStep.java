@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.order;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayList;
@@ -14,9 +16,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /** One recipe run a number of times on one producer of the data line. */
@@ -289,7 +290,7 @@ public final class OrderStep {
 
     CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        tag.put("Producer", NbtUtils.writeBlockPos(producer));
+        tag.put("Producer", ValueIo.posTag(producer));
         tag.putString("Recipe", recipe.id().toString());
         tag.put("Inputs", Saving.stacks(recipe.inputs(), registries));
         tag.put("Outputs", Saving.stacks(recipe.outputs(), registries));
@@ -315,7 +316,7 @@ public final class OrderStep {
             entry.putLong("Transfer", one.transfer());
             entry.putInt("Sent", one.sent());
             if (one.target() != null) {
-                entry.put("Target", NbtUtils.writeBlockPos(one.target()));
+                entry.put("Target", ValueIo.posTag(one.target()));
             }
             collectingList.add(entry);
         }
@@ -324,25 +325,25 @@ public final class OrderStep {
     }
 
     static OrderStep load(CompoundTag tag, HolderLookup.Provider registries) {
-        BlockPos producer = NbtUtils.readBlockPos(tag, "Producer").orElse(BlockPos.ZERO);
-        ProductionRecipe recipe = new ProductionRecipe(ResourceLocation.parse(tag.getString("Recipe")),
-                Saving.stacks(tag.getList("Inputs", Tag.TAG_COMPOUND), registries),
-                Saving.stacks(tag.getList("Outputs", Tag.TAG_COMPOUND), registries), tag.getInt("Ticks"));
-        OrderStep step = new OrderStep(producer, recipe, tag.getInt("Batches"));
-        step.state = Saving.state(State.class, tag.getString("State"), State.WAITING_STATION);
-        step.reason = tag.getString("Reason");
-        step.fed.putAll(Saving.counts(tag.getList("Fed", Tag.TAG_COMPOUND), registries));
-        step.collected.putAll(Saving.counts(tag.getList("Collected", Tag.TAG_COMPOUND), registries));
-        for (Tag raw : tag.getList("Feedings", Tag.TAG_COMPOUND)) {
+        BlockPos producer = ValueIo.readPos(tag, "Producer").orElse(BlockPos.ZERO);
+        ProductionRecipe recipe = new ProductionRecipe(Identifier.parse(tag.getStringOr("Recipe", "")),
+                Saving.stacks(tag.getListOrEmpty("Inputs"), registries),
+                Saving.stacks(tag.getListOrEmpty("Outputs"), registries), tag.getIntOr("Ticks", 0));
+        OrderStep step = new OrderStep(producer, recipe, tag.getIntOr("Batches", 0));
+        step.state = Saving.state(State.class, tag.getStringOr("State", ""), State.WAITING_STATION);
+        step.reason = tag.getStringOr("Reason", "");
+        step.fed.putAll(Saving.counts(tag.getListOrEmpty("Fed"), registries));
+        step.collected.putAll(Saving.counts(tag.getListOrEmpty("Collected"), registries));
+        for (Tag raw : tag.getListOrEmpty("Feedings")) {
             CompoundTag entry = (CompoundTag) raw;
-            Saving.key(entry.getCompound("Item"), registries).ifPresent(key ->
-                    step.feedings.add(new Feeding(key, entry.getLong("Transfer"), entry.getInt("Asked"))));
+            Saving.key(entry.getCompoundOrEmpty("Item"), registries).ifPresent(key ->
+                    step.feedings.add(new Feeding(key, entry.getLongOr("Transfer", 0L), entry.getIntOr("Asked", 0))));
         }
-        for (Tag raw : tag.getList("Collecting", Tag.TAG_COMPOUND)) {
+        for (Tag raw : tag.getListOrEmpty("Collecting")) {
             CompoundTag entry = (CompoundTag) raw;
-            Saving.key(entry.getCompound("Item"), registries).ifPresent(key ->
-                    step.collecting(key, entry.getLong("Transfer"), entry.getInt("Sent"),
-                            NbtUtils.readBlockPos(entry, "Target").orElse(null)));
+            Saving.key(entry.getCompoundOrEmpty("Item"), registries).ifPresent(key ->
+                    step.collecting(key, entry.getLongOr("Transfer", 0L), entry.getIntOr("Sent", 0),
+                            ValueIo.readPos(entry, "Target").orElse(null)));
         }
         return step;
     }

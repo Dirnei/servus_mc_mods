@@ -2,11 +2,11 @@ package io.github.dirnei.mc.servus.storage.datagen;
 
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
 
 /**
  * Datagen for the heavy duty rack. Every box is disjoint from every other so
@@ -21,8 +21,8 @@ final class HeavyRackModels {
     }
 
     static void rack(BlockStateProvider provider, Block block, String name) {
-        ResourceLocation iron = provider.modLoc("block/" + name + "_iron");
-        ResourceLocation board = provider.modLoc("block/" + name + "_board");
+        Identifier iron = provider.modLoc("block/" + name + "_iron");
+        Identifier board = provider.modLoc("block/" + name + "_board");
 
         BlockModelBuilder core = model(provider, name + "_core", iron, board);
         core(core);
@@ -110,7 +110,7 @@ final class HeavyRackModels {
         box(builder, "#iron", x1, y, 13, x2, y + 1, 15);
     }
 
-    private static BlockModelBuilder model(BlockStateProvider provider, String name, ResourceLocation iron, ResourceLocation board) {
+    private static BlockModelBuilder model(BlockStateProvider provider, String name, Identifier iron, Identifier board) {
         return provider.models().getBuilder(name)
                 .texture("particle", iron).texture("iron", iron).texture("board", board);
     }

@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
@@ -34,7 +34,7 @@ public class FieldHeadBlock extends BaseEntityBlock {
 
     public static final MapCodec<FieldHeadBlock> CODEC = simpleCodec(FieldHeadBlock::new);
 
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     /** The step of the ripe share bar on the front: empty, gold steps, or green when a harvest is due. */
     public static final IntegerProperty RIPE = IntegerProperty.create("ripe", FieldHeadLook.EMPTY, FieldHeadLook.READY);
     /** The served field's rails are corroded: a rust rim on the top plate. */
@@ -93,7 +93,7 @@ public class FieldHeadBlock extends BaseEntityBlock {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FieldHeadBlockEntity head) {
             player.openMenu(head, pos);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override

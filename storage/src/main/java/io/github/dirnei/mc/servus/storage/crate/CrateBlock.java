@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.crate;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
+import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
@@ -11,7 +14,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -27,7 +29,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -39,7 +41,7 @@ import net.minecraft.world.phys.Vec3;
 public class CrateBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<CrateBlock> CODEC = simpleCodec(CrateBlock::new);
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
     private final int compartments;
 
@@ -101,20 +103,20 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof ZoneLabelItem) {
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
         if (stack.isEmpty() || !(level.getBlockEntity(pos) instanceof CrateBlockEntity crate)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         int compartment = compartmentAt(state, pos, hitResult.getDirection(), hitResult.getLocation());
         if (hitResult.getDirection() != state.getValue(FACING)) {
             compartment = crate.preferredCompartment(stack);
         }
         if (compartment < 0 || !crate.matches(compartment, stack)) {
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         if (!level.isClientSide()) {
             boolean doubleClick = crate.registerRightClick(player, level, compartment);
@@ -123,7 +125,7 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
                 insertAllMatching(crate, compartment, player);
             }
         }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     private static void insertHeld(CrateBlockEntity crate, int compartment, Player player, InteractionHand hand, ItemStack stack) {
@@ -150,8 +152,9 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         StorageNodeBlockEntity.neighborsChanged(level, pos);
     }
 
@@ -177,7 +180,7 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
             if (dismantle) {
                 ItemStack drop = new ItemStack(this);
                 if (level.getBlockEntity(pos) instanceof CrateBlockEntity crate) {
-                    crate.saveToItem(drop, level.registryAccess());
+                    BlockEntityItems.saveToItem(crate, drop, level.registryAccess());
                     // Empty the crate first so onRemove does not spill the contents we just saved.
                     crate.clear();
                 }
@@ -187,6 +190,6 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
                 level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

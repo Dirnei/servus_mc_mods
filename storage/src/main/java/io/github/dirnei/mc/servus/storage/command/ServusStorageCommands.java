@@ -39,7 +39,7 @@ public final class ServusStorageCommands {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("servus_warehouse")
-                .requires(source -> source.hasPermission(2))
+                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(Commands.literal("info")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .executes(ServusStorageCommands::info)))
@@ -164,7 +164,7 @@ public final class ServusStorageCommands {
         if (network.isEmpty()) {
             return 0;
         }
-        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1);
         int count = IntegerArgumentType.getInteger(context, "count");
         ItemStack taken = network.get().extract(ItemKey.of(wanted), count);
         if (taken.isEmpty()) {
@@ -214,7 +214,7 @@ public final class ServusStorageCommands {
         if (network.isEmpty()) {
             return 0;
         }
-        ItemStack item = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        ItemStack item = ItemArgument.getItem(context, "item").createItemStack(1);
         int min = IntegerArgumentType.getInteger(context, "min");
         int max = IntegerArgumentType.getInteger(context, "max");
         network.get().setStockRule(ItemKey.of(item), min, max);
@@ -229,7 +229,7 @@ public final class ServusStorageCommands {
         if (network.isEmpty()) {
             return 0;
         }
-        ItemStack item = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        ItemStack item = ItemArgument.getItem(context, "item").createItemStack(1);
         boolean removed = network.get().removeStockRule(ItemKey.of(item));
         if (!removed) {
             source.sendFailure(Component.literal("No rule for " + item.getHoverName().getString()));
@@ -275,7 +275,7 @@ public final class ServusStorageCommands {
     private static int order(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
         CommandSourceStack source = context.getSource();
-        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1);
         int count = IntegerArgumentType.getInteger(context, "count");
         io.github.dirnei.mc.servus.storage.cpu.CpuOrders.Placed placed =
                 io.github.dirnei.mc.servus.storage.cpu.CpuOrders.create(source.getLevel(), pos, ItemKey.of(wanted), count, 0);
@@ -296,7 +296,7 @@ public final class ServusStorageCommands {
         if (network.isEmpty()) {
             return 0;
         }
-        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1);
         int count = IntegerArgumentType.getInteger(context, "count");
         WarehouseNetwork.Shipping shipping = network.get().ship(target, ItemKey.of(wanted), count);
         if (!shipping.shipped()) {
@@ -361,7 +361,7 @@ public final class ServusStorageCommands {
         if (network.isEmpty()) {
             return 0;
         }
-        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1);
         int count = IntegerArgumentType.getInteger(context, "count");
         String refused = network.get().feedStation(station, ItemKey.of(wanted), count);
         if (!refused.isEmpty()) {
@@ -428,7 +428,7 @@ public final class ServusStorageCommands {
         for (var site : sites) {
             boolean awake = io.github.dirnei.mc.servus.storage.site.SiteWakes.isAwake(site.dimension(), site.pos());
             String team = site.team().map(id -> id.toString().substring(0, 8)).orElse("no team");
-            source.sendSuccess(() -> Component.literal("  - " + site.name() + " at " + site.dimension().location() + " "
+            source.sendSuccess(() -> Component.literal("  - " + site.name() + " at " + site.dimension().identifier() + " "
                     + site.pos().toShortString() + ", team " + team + ", " + site.span().size() + " of " + site.capacity()
                     + " chunks, " + (awake ? "awake" : "asleep") + ", " + site.stock().size() + " item types known"), false);
         }

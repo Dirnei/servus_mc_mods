@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.order;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.core.BlockPos;
 
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -170,24 +171,24 @@ public final class WorkOrder {
 
     /** The saved order, or null when its item no longer exists. */
     static WorkOrder load(CompoundTag tag, HolderLookup.Provider registries) {
-        ItemKey key = Saving.key(tag.getCompound("Item"), registries).orElse(null);
+        ItemKey key = Saving.key(tag.getCompoundOrEmpty("Item"), registries).orElse(null);
         if (key == null) {
             return null;
         }
         List<OrderStep> steps = new ArrayList<>();
-        for (Tag raw : tag.getList("Steps", Tag.TAG_COMPOUND)) {
+        for (Tag raw : tag.getListOrEmpty("Steps")) {
             steps.add(OrderStep.load((CompoundTag) raw, registries));
         }
-        WorkOrder order = new WorkOrder(tag.getInt("Id"), key, tag.getInt("Amount"), tag.getInt("Request"), steps,
-                Saving.counts(tag.getList("Reserved", Tag.TAG_COMPOUND), registries),
-                Saving.counts(tag.getList("Missing", Tag.TAG_COMPOUND), registries));
-        order.state = Saving.state(State.class, tag.getString("State"), State.RUNNING);
-        order.reason = tag.getString("Reason");
-        order.doneAt = tag.getLong("DoneAt");
+        WorkOrder order = new WorkOrder(tag.getIntOr("Id", 0), key, tag.getIntOr("Amount", 0), tag.getIntOr("Request", 0), steps,
+                Saving.counts(tag.getListOrEmpty("Reserved"), registries),
+                Saving.counts(tag.getListOrEmpty("Missing"), registries));
+        order.state = Saving.state(State.class, tag.getStringOr("State", ""), State.RUNNING);
+        order.reason = tag.getStringOr("Reason", "");
+        order.doneAt = tag.getLongOr("DoneAt", 0L);
         if (tag.contains("DeliverTo")) {
-            order.deliverTo = BlockPos.of(tag.getLong("DeliverTo"));
+            order.deliverTo = BlockPos.of(tag.getLongOr("DeliverTo", 0L));
         }
-        order.directSent = tag.getInt("Direct");
+        order.directSent = tag.getIntOr("Direct", 0);
         return order;
     }
 }

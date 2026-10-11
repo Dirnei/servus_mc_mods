@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,7 +28,7 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
@@ -99,7 +99,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** Signature of the fertilizer stock last sent, on the crop stock timer; null before the first send. */
     private Long sentFertilizerStock;
     /** Client side: the fertilizer stock by item id, null while there is no warehouse or before the first. */
-    private Map<ResourceLocation, Long> fertilizerStock;
+    private Map<Identifier, Long> fertilizerStock;
     /** The worker name last sent to the player; null before the first send. */
     private String sentWorker;
     /** Ticks until the next stock look; zero sends on the first broadcast. */
@@ -107,7 +107,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** Signature of the stock last sent; null before the first send. */
     private Long sentStock;
     /** Client side: the stock counts by item id as last received, null while there is no warehouse or before the first. */
-    private Map<ResourceLocation, Long> stock;
+    private Map<Identifier, Long> stock;
     /** The tab the screen shows; client side view state, the server never learns it. */
     private Page page = Page.FIELD;
 
@@ -123,13 +123,13 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         this.head = head;
         this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(head.getLevel(), head.getBlockPos());
-        addSlot(new SlotItemHandler(head.rangeUpgrades(), 0, RANGE_X, RANGE_Y) {
+        addSlot(new ResourceHandlerSlot(head.rangeUpgrades(), head.rangeUpgrades()::set, 0, RANGE_X, RANGE_Y) {
             @Override
             public boolean isActive() {
                 return shows(RANGE_SLOT);
             }
         });
-        addSlot(new SlotItemHandler(head.antiCorrosion(), 0, ANTI_CORROSION_X, ANTI_CORROSION_Y) {
+        addSlot(new ResourceHandlerSlot(head.antiCorrosion(), head.antiCorrosion()::set, 0, ANTI_CORROSION_X, ANTI_CORROSION_Y) {
             @Override
             public boolean isActive() {
                 return shows(ANTI_CORROSION_SLOT);
@@ -227,13 +227,13 @@ public class FieldHeadMenu extends AbstractContainerMenu {
 
     /** The warehouse stock of the crop items as it travels to the client. Server side. */
     public FieldCropStockPayload stockPayload() {
-        Optional<Map<ResourceLocation, Long>> counts = head.cropStock();
+        Optional<Map<Identifier, Long>> counts = head.cropStock();
         return new FieldCropStockPayload(containerId, counts.isPresent(), counts.orElse(Map.of()));
     }
 
     /** The warehouse stock of the fertilizer items as it travels to the client. Server side. */
     public FieldFertilizerStockPayload fertilizerStockPayload() {
-        Optional<Map<ResourceLocation, Long>> counts = head.fertilizerStock();
+        Optional<Map<Identifier, Long>> counts = head.fertilizerStock();
         return new FieldFertilizerStockPayload(containerId, counts.isPresent(), counts.orElse(Map.of()));
     }
 
@@ -245,7 +245,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     }
 
     /** Client side: the fertilizer stock by item id; null while there are no counts to show. */
-    public Map<ResourceLocation, Long> fertilizerStock() {
+    public Map<Identifier, Long> fertilizerStock() {
         return fertilizerStock;
     }
 
@@ -254,7 +254,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
      * or empty for Off. Acts only while the player's open menu is a Field Head
      * menu they can still use. Returns whether the choice was taken. Server side.
      */
-    public static boolean chooseFertilizer(Player player, Optional<ResourceLocation> fertilizer) {
+    public static boolean chooseFertilizer(Player player, Optional<Identifier> fertilizer) {
         if (!(player.containerMenu instanceof FieldHeadMenu menu) || !menu.stillValid(player)) {
             return false;
         }
@@ -276,7 +276,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return true;
     }
 
-    private static Map<String, Long> stringKeys(Map<ResourceLocation, Long> counts) {
+    private static Map<String, Long> stringKeys(Map<Identifier, Long> counts) {
         Map<String, Long> keyed = new HashMap<>();
         counts.forEach((id, count) -> keyed.put(id.toString(), count));
         return keyed;
@@ -290,7 +290,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     }
 
     /** Client side: the warehouse stock by item id, missing ids hold none; null while there are no counts to show. */
-    public Map<ResourceLocation, Long> stock() {
+    public Map<Identifier, Long> stock() {
         return stock;
     }
 
@@ -300,7 +300,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
      * menu is a Field Head menu they can still use; anything else is refused.
      * Returns whether the choice was taken. Server side.
      */
-    public static boolean choose(Player player, Optional<ResourceLocation> crop) {
+    public static boolean choose(Player player, Optional<Identifier> crop) {
         if (!(player.containerMenu instanceof FieldHeadMenu menu) || !menu.stillValid(player)) {
             return false;
         }

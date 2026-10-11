@@ -9,7 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Server to client: what the open controller GUI shows about its site.
@@ -32,7 +32,7 @@ public record SiteStatusPayload(String name, String title, int online, Component
                                 List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites) implements CustomPacketPayload {
 
     public static final Type<SiteStatusPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "site_status"));
+            new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "site_status"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SiteStatusPayload> STREAM_CODEC =
             StreamCodec.ofMember(SiteStatusPayload::write, SiteStatusPayload::read);

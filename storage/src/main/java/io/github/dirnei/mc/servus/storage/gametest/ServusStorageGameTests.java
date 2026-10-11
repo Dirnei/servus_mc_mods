@@ -1,13 +1,15 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import net.minecraft.world.level.block.entity.BlockEntity;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import net.minecraft.world.InteractionResult;
 import java.util.ArrayList;
 import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
-import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
-import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.production.StockProvider;
 import io.github.dirnei.mc.servus.foundation.production.StockSink;
@@ -25,7 +27,6 @@ import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
-import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
@@ -43,7 +44,6 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
@@ -55,15 +55,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -83,13 +81,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class ServusStorageGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -108,7 +101,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Two rails link a crate to the controller; a chest beside a rail stays out of the index. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void railsLinkCrateAndController(GameTestHelper helper) {
         helper.setBlock(RAIL_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(RAIL_A.below(), Blocks.STONE.defaultBlockState());
@@ -119,9 +112,9 @@ public final class ServusStorageGameTests {
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, RAIL_TERMINAL);
         helper.setBlock(RAIL_CHEST, Blocks.CHEST.defaultBlockState());
-        CrateBlockEntity crate = helper.getBlockEntity(RAIL_CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(RAIL_CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.COBBLESTONE, 40), false);
-        ChestBlockEntity chest = helper.getBlockEntity(RAIL_CHEST);
+        ChestBlockEntity chest = helper.getBlockEntity(RAIL_CHEST, ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.BREAD, 10));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
@@ -157,7 +150,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos LIFT_SIDE_CRATE = new BlockPos(4, 1, 4);
 
     /** A three segment shaft links a ground floor crate to a controller two floors up; a chest on the shaft stays out. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void elevatorLinksFloors(GameTestHelper helper) {
         helper.setBlock(LIFT_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(LIFT_RAIL_LOW.below(), Blocks.STONE.defaultBlockState());
@@ -180,11 +173,11 @@ public final class ServusStorageGameTests {
         TerminalWiring.place(helper, LIFT_TERMINAL);
         helper.setBlock(LIFT_CHEST, Blocks.CHEST.defaultBlockState());
         helper.setBlock(LIFT_SIDE_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(LIFT_CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(LIFT_CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.COBBLESTONE, 30), false);
-        CrateBlockEntity sideCrate = helper.getBlockEntity(LIFT_SIDE_CRATE);
+        CrateBlockEntity sideCrate = helper.getBlockEntity(LIFT_SIDE_CRATE, CrateBlockEntity.class);
         sideCrate.insert(new ItemStack(Items.APPLE, 7), false);
-        ChestBlockEntity chest = helper.getBlockEntity(LIFT_CHEST);
+        ChestBlockEntity chest = helper.getBlockEntity(LIFT_CHEST, ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.BREAD, 10));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
@@ -213,7 +206,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos NC_SEGMENT = new BlockPos(6, 1, 6);
 
     /** An entity above a segment stands on its top plate; one that descends or is inside passes. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void elevatorStandsFromAbove(GameTestHelper helper) {
         helper.setBlock(NC_SEGMENT.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(NC_SEGMENT, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
@@ -235,7 +228,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A segment has at most its top plate as collision, keeps a full outline to target it, and is climbable. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void elevatorHasNoCollision(GameTestHelper helper) {
         helper.setBlock(NC_SEGMENT.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(NC_SEGMENT, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
@@ -253,13 +246,13 @@ public final class ServusStorageGameTests {
     private static final BlockPos QUAD_TERMINAL = new BlockPos(10, 1, 8);
 
     /** A quad crate keeps two types in two compartments, refuses a mismatch, and the terminal lists both. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void quadCrateCompartments(GameTestHelper helper) {
         helper.setBlock(QUAD, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(QUAD_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, QUAD_TERMINAL);
-        CrateBlockEntity crate = helper.getBlockEntity(QUAD);
+        CrateBlockEntity crate = helper.getBlockEntity(QUAD, CrateBlockEntity.class);
         helper.assertTrue(crate.compartments() == 4, "quad crate should have four compartments");
         helper.assertTrue(crate.insert(0, new ItemStack(Items.COBBLESTONE, 40), false) == 40, "compartment 0 takes cobblestone");
         helper.assertTrue(crate.insert(3, new ItemStack(Items.DIRT, 12), false) == 12, "compartment 3 takes dirt");
@@ -288,7 +281,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos RACK_TERMINAL = new BlockPos(10, 1, 2);
 
     /** A rack with a front rail of the warehouse is indexed and shows the item types it holds the most of. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void heavyRackIndexesAndDisplays(GameTestHelper helper) {
         helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         helper.setBlock(RACK_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
@@ -299,7 +292,7 @@ public final class ServusStorageGameTests {
             placeRail(helper, rail);
         }
         TerminalWiring.place(helper, RACK_TERMINAL);
-        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
         rack.items().insertItem(1, new ItemStack(Items.DIRT, 32), false);
         rack.items().insertItem(2, new ItemStack(Items.SAND, 16), false);
@@ -334,7 +327,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos SH_GARAGE = new BlockPos(3, 1, 5);
 
     /** A shuttle fetches from a crate at the end of the rail; a crate on the controller is still instant. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void shuttlePicksFromRail(GameTestHelper helper) {
         helper.setBlock(SH_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -345,12 +338,12 @@ public final class ServusStorageGameTests {
             helper.setBlock(new BlockPos(x, 1, 6), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
         helper.setBlock(SH_FAR_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity far = helper.getBlockEntity(SH_FAR_CRATE);
+        CrateBlockEntity far = helper.getBlockEntity(SH_FAR_CRATE, CrateBlockEntity.class);
         far.insert(new ItemStack(Items.COBBLESTONE, 40), false);
-        CrateBlockEntity direct = helper.getBlockEntity(SH_DIRECT_CRATE);
+        CrateBlockEntity direct = helper.getBlockEntity(SH_DIRECT_CRATE, CrateBlockEntity.class);
         direct.insert(new ItemStack(Items.DIRT, 9), false);
         helper.setBlock(SH_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SH_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SH_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(), "one shuttle fits");
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
@@ -386,7 +379,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos FR_FRONT_TERMINAL = new BlockPos(3, 1, 8);
 
     /** A rail at the side of a rack does not link it; a rail at its front does. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void rackLinksRailOnlyFromFront(GameTestHelper helper) {
         helper.setBlock(FR_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         helper.setBlock(FR_SIDE_RAIL.below(), Blocks.STONE.defaultBlockState());
@@ -394,7 +387,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(FR_SIDE_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, FR_SIDE_TERMINAL);
-        HeavyRackBlockEntity rack = helper.getBlockEntity(FR_RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(FR_RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.SAND, 20), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
@@ -431,7 +424,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos STACK_BASE = new BlockPos(10, 1, 10);
 
     /** A rack placed on top of a rack takes the lower rack's facing, whatever way the player looks. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackOnRackCopiesFacing(GameTestHelper helper) {
         helper.setBlock(STACK_BASE, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -458,20 +451,20 @@ public final class ServusStorageGameTests {
                 iron, ItemStack.EMPTY, iron,
                 new ItemStack(left), new ItemStack(middle), new ItemStack(right),
                 iron, ItemStack.EMPTY, iron));
-        RecipeHolder<?> holder = helper.getLevel().getRecipeManager()
-                .byKey(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "heavy_rack")).orElseThrow();
+        RecipeHolder<?> holder = helper.getLevel().recipeAccess()
+                .byKey(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "heavy_rack")).orElseThrow();
         @SuppressWarnings("unchecked")
         CraftingRecipe recipe = ((RecipeHolder<CraftingRecipe>) holder).value();
         helper.assertTrue(recipe.matches(input, helper.getLevel()), "the rack recipe should match the grid");
-        return recipe.assemble(input, helper.getLevel().registryAccess());
+        return recipe.assemble(input);
     }
 
-    private static ResourceLocation idOf(Block block) {
+    private static Identifier idOf(Block block) {
         return BuiltInRegistries.BLOCK.getKey(block);
     }
 
     /** The recipe remembers spruce, the majority, and the middle of three different woods. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void rackRecipePicksWood(GameTestHelper helper) {
         ItemStack spruce = craftRack(helper, Items.SPRUCE_PLANKS, Items.SPRUCE_PLANKS, Items.SPRUCE_PLANKS);
         helper.assertTrue(spruce.is(ServusStorageItems.HEAVY_RACK.get()), "the result is a rack");
@@ -484,7 +477,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A placed spruce rack keeps spruce, and its drops and dismantled item carry it. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackKeepsWood(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos absolute = helper.absolutePos(WOOD_RACK);
@@ -494,7 +487,7 @@ public final class ServusStorageGameTests {
         rackItem.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false)));
         helper.runAfterDelay(2, () -> {
-            HeavyRackBlockEntity rack = helper.getBlockEntity(WOOD_RACK);
+            HeavyRackBlockEntity rack = helper.getBlockEntity(WOOD_RACK, HeavyRackBlockEntity.class);
             helper.assertTrue(idOf(Blocks.SPRUCE_PLANKS).equals(rack.wood()), "the placed rack remembers spruce, had " + rack.wood());
             List<ItemStack> drops = Block.getDrops(helper.getBlockState(WOOD_RACK), helper.getLevel(), absolute, rack);
             helper.assertTrue(drops.size() == 1 && HeavyRackBlockEntity.woodOf(drops.get(0)).equals(idOf(Blocks.SPRUCE_PLANKS)),
@@ -507,10 +500,10 @@ public final class ServusStorageGameTests {
     }
 
     /** A rack without a stored wood shows oak. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void rackWithoutWoodIsOak(GameTestHelper helper) {
         helper.setBlock(WOOD_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        HeavyRackBlockEntity rack = helper.getBlockEntity(WOOD_RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(WOOD_RACK, HeavyRackBlockEntity.class);
         helper.assertTrue(idOf(Blocks.OAK_PLANKS).equals(rack.wood()), "a rack without wood is oak");
         helper.assertTrue(idOf(Blocks.OAK_PLANKS).equals(HeavyRackBlockEntity.woodOf(new ItemStack(ServusStorageBlocks.HEAVY_RACK.get()))),
                 "a rack item without wood is oak");
@@ -530,7 +523,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Spruce beside oak stays apart, spruce beside spruce joins, and a rack on top copies the facing whatever its wood. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackJoinsOnlySameWood(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
@@ -569,7 +562,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Sections form in placement order and never move: three join, a fourth at either end stands alone. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackSectionsStayPut(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
@@ -595,7 +588,7 @@ public final class ServusStorageGameTests {
     private static final int UP_Z = 11;
 
     /** An upper row placed shifted by one splits above the same post as the row below. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void upperRowFollowsLowerSections(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
@@ -619,7 +612,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Four in a row, a gap, one more, then the gap filled: the filler joins the lone bays on both sides. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void gapFillerJoinsBothLoneBays(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
@@ -647,11 +640,11 @@ public final class ServusStorageGameTests {
     }
 
     private static HeavyRackBlockEntity rackAt(GameTestHelper helper, int x) {
-        return helper.getBlockEntity(new BlockPos(x, 1, SM_Z));
+        return helper.getBlockEntity(new BlockPos(x, 1, SM_Z), HeavyRackBlockEntity.class);
     }
 
     /** The middle bay of a section of three opens all three bays, left to right, and shift click spills into the next bay. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackSectionSharesMenu(GameTestHelper helper) {
         Player player = rackRow(helper, 2, 4);
         HeavyRackBlockEntity left = rackAt(helper, 2);
@@ -683,7 +676,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Breaking the right bay of a section spills only its items; the left bay keeps its own. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackBayBreaksAlone(GameTestHelper helper) {
         rackRow(helper, 2, 3);
         rackAt(helper, 2).items().setStackInSlot(0, new ItemStack(Items.DIRT, 5));
@@ -699,7 +692,7 @@ public final class ServusStorageGameTests {
     }
 
     /** The section menu turns invalid once a bay of the section is removed. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackMenuClosesWhenSectionChanges(GameTestHelper helper) {
         Player player = rackRow(helper, 2, 4);
         HeavyRackMenu menu = HeavyRackMenu.forSection(1, player.getInventory(), rackAt(helper, 2));
@@ -712,7 +705,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos FG_RACK = new BlockPos(2, 1, 11);
 
     /** With a rack in hand, the side of a rack takes a new rack; the front opens the GUI instead. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackPlacesAgainstRackSide(GameTestHelper helper) {
         helper.setBlock(FG_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -732,9 +725,9 @@ public final class ServusStorageGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, rackItem);
         BlockState state = helper.getBlockState(pos);
         ItemInteractionResult result = state.useItemOn(rackItem, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
-        if (result == ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION) {
+        if (result == InteractionResult.PASS) {
             rackItem.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
-        } else if (result == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION) {
+        } else if (result == InteractionResult.TRY_WITH_EMPTY_HAND) {
             state.useWithoutItem(helper.getLevel(), player, hit);
         }
     }
@@ -742,7 +735,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos NR_RACK = new BlockPos(1, 1, 1);
 
     /** The carrot leaves a rack's facing and joins alone. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void carrotDoesNotTurnRack(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
@@ -763,7 +756,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos CLIMB_RACK = new BlockPos(6, 2, 6);
 
     /** A player pressed against a rack side climbs or slides without fall damage; the front stays a wall. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackSideClimbsAndFrontDoesNot(GameTestHelper helper) {
         helper.setBlock(CLIMB_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -815,13 +808,13 @@ public final class ServusStorageGameTests {
     }
 
     /** A request without shuttles lands in the output slots at once, the player collects it, and a push stores a stack back. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void terminalRequestsAndPushes(GameTestHelper helper) {
         helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, TERMINAL);
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.COBBLESTONE, 50), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
@@ -887,12 +880,12 @@ public final class ServusStorageGameTests {
     }
 
     /** A named label copies name and filter onto crates and racks, a restamp replaces, sneaking clears, an unnamed label does nothing, and the label stays. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void zoneLabelStampsAndClears(GameTestHelper helper) {
         helper.setBlock(ZL_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(ZL_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(ZL_CRATE);
-        HeavyRackBlockEntity rack = helper.getBlockEntity(ZL_RACK);
+        CrateBlockEntity crate = helper.getBlockEntity(ZL_CRATE, CrateBlockEntity.class);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(ZL_RACK, HeavyRackBlockEntity.class);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         ItemStack unnamed = label(null, new ZoneFilter(List.of(), List.of("c:ores")));
@@ -925,14 +918,14 @@ public final class ServusStorageGameTests {
         helper.setBlock(ZL_RACK, Blocks.AIR.defaultBlockState());
         helper.setBlock(ZL_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         net.minecraft.world.item.BlockItem.updateCustomBlockEntityTag(helper.getLevel(), player, helper.absolutePos(ZL_RACK), drop);
-        HeavyRackBlockEntity placed = helper.getBlockEntity(ZL_RACK);
+        HeavyRackBlockEntity placed = helper.getBlockEntity(ZL_RACK, HeavyRackBlockEntity.class);
         helper.assertTrue(placed.zone().equals("Food"), "a dismantled and placed rack keeps its zone, was '" + placed.zone() + "'");
         helper.assertTrue(placed.zoneFilter().items().size() == 1, "a dismantled and placed rack keeps its filter");
         helper.succeed();
     }
 
     /** The label menu names the label, parses tags and takes ghost items; the result stamps. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void zoneLabelMenuEditsDefinition(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ServusStorageItems.ZONE_LABEL.get()));
@@ -942,7 +935,7 @@ public final class ServusStorageGameTests {
         menu.setName("  Ores ");
         menu.setTags("c:ores, #minecraft:logs, not a tag!!");
         menu.setCarried(new ItemStack(Items.BREAD, 5));
-        menu.clicked(0, 0, ClickType.PICKUP, player);
+        menu.clicked(0, 0, ContainerInput.PICKUP, player);
         ItemStack labelStack = player.getItemInHand(InteractionHand.MAIN_HAND);
         ZoneDefinition definition = ZoneDefinition.of(labelStack);
         helper.assertTrue(definition != null && definition.name().equals("Ores"), "the label should be named Ores");
@@ -953,7 +946,7 @@ public final class ServusStorageGameTests {
         helper.assertTrue(labelStack.getHoverName().getString().equals("Ores"), "the item shows the zone name");
 
         menu.setCarried(ItemStack.EMPTY);
-        menu.clicked(0, 0, ClickType.PICKUP, player);
+        menu.clicked(0, 0, ContainerInput.PICKUP, player);
         helper.assertTrue(ZoneDefinition.of(player.getItemInHand(InteractionHand.MAIN_HAND)).filter().items().isEmpty(), "an empty cursor clears the ghost slot");
 
         menu.setName("");
@@ -961,7 +954,7 @@ public final class ServusStorageGameTests {
         menu.setName("Ores");
 
         helper.setBlock(ZL_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(ZL_CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(ZL_CRATE, CrateBlockEntity.class);
         useLabel(helper, player, player.getItemInHand(InteractionHand.MAIN_HAND), ZL_CRATE);
         helper.assertTrue(crate.zone().equals("Ores") && crate.zoneFilter().tags().equals(List.of("c:ores", "minecraft:logs")),
                 "the edited label should stamp name and tags, got " + crate.zone() + " " + crate.zoneFilter().tags());
@@ -980,18 +973,18 @@ public final class ServusStorageGameTests {
     }
 
     /** Inserts follow the zones: exact items beat tags, filtered blocks refuse other items, unzoned storage catches full zones. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void insertRespectsZones(GameTestHelper helper) {
         helper.setBlock(IZ_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         for (BlockPos pos : List.of(IZ_ORES, IZ_PLAIN, IZ_SPARE, IZ_IRON)) {
             helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         }
-        CrateBlockEntity ores = helper.getBlockEntity(IZ_ORES);
-        CrateBlockEntity iron = helper.getBlockEntity(IZ_IRON);
-        CrateBlockEntity plain = helper.getBlockEntity(IZ_PLAIN);
-        CrateBlockEntity spare = helper.getBlockEntity(IZ_SPARE);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(IZ_CONTROLLER);
+        CrateBlockEntity ores = helper.getBlockEntity(IZ_ORES, CrateBlockEntity.class);
+        CrateBlockEntity iron = helper.getBlockEntity(IZ_IRON, CrateBlockEntity.class);
+        CrateBlockEntity plain = helper.getBlockEntity(IZ_PLAIN, CrateBlockEntity.class);
+        CrateBlockEntity spare = helper.getBlockEntity(IZ_SPARE, CrateBlockEntity.class);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(IZ_CONTROLLER, WarehouseControllerBlockEntity.class);
         ores.setZone(zone("Ores", List.of(), List.of("c:ores")));
         iron.setZone(zone("Iron", List.of(new ItemStack(Items.IRON_ORE)), List.of()));
         plain.insert(new ItemStack(Items.BREAD, 1), false);
@@ -1049,13 +1042,13 @@ public final class ServusStorageGameTests {
     }
 
     /** A stack fed into the station lands in a crate within a few ticks when there are no shuttles. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void stationPutsAwayInstantly(GameTestHelper helper) {
         InboundStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(ST_CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(ST_CRATE, CrateBlockEntity.class);
         helper.runAfterDelay(5, () -> {
-            ItemStack left = ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
+            ItemStack left = station.intake().insertItem(new ItemStack(Items.COBBLESTONE, 64), false);
             helper.assertTrue(left.isEmpty(), "the intake should take a stack");
             helper.assertTrue(station.intake().extractItem(0, 64, false).isEmpty(), "the intake must refuse extraction");
             helper.runAfterDelay(10, () -> {
@@ -1069,15 +1062,15 @@ public final class ServusStorageGameTests {
     }
 
     /** With its zone full and no unzoned storage the stack waits with a red lamp, and leaves once an unzoned crate appears. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void stationBacksUpWhenZoneFull(GameTestHelper helper) {
         InboundStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity full = helper.getBlockEntity(ST_CRATE);
+        CrateBlockEntity full = helper.getBlockEntity(ST_CRATE, CrateBlockEntity.class);
         full.setZone(zone("Ores", List.of(), List.of("c:ores")));
         full.insert(new ItemStack(Items.IRON_ORE, 5000), false);
         helper.runAfterDelay(5, () -> {
-            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.IRON_ORE, 7), false);
+            station.intake().insertItem(new ItemStack(Items.IRON_ORE, 7), false);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty(), "the ore should wait in the buffer");
                 helper.assertTrue(blocked(helper, ST_STATION), "the lamp should be red");
@@ -1085,7 +1078,7 @@ public final class ServusStorageGameTests {
                         "reason should be no room, was " + station.blockedReason());
                 helper.assertTrue("Ores".equals(station.blockedZone()), "blocked zone should read Ores, was " + station.blockedZone());
                 helper.setBlock(ST_CRATE_2, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-                CrateBlockEntity fresh = helper.getBlockEntity(ST_CRATE_2);
+                CrateBlockEntity fresh = helper.getBlockEntity(ST_CRATE_2, CrateBlockEntity.class);
                 helper.runAfterDelay(10, () -> {
                     helper.assertTrue(fresh.count() == 7, "the waiting ore should spill into the new unzoned crate, had " + fresh.count());
                     helper.assertTrue(station.isEmpty(), "the buffer should be empty again");
@@ -1097,16 +1090,16 @@ public final class ServusStorageGameTests {
     }
 
     /** Neither a chest feeding the station nor the buffer itself counts as warehouse stock. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void chestOnStationIsNotStock(GameTestHelper helper) {
         InboundStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CHEST, Blocks.CHEST.defaultBlockState());
-        ChestBlockEntity chest = helper.getBlockEntity(ST_CHEST);
+        ChestBlockEntity chest = helper.getBlockEntity(ST_CHEST, ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.BREAD, 30));
         helper.runAfterDelay(5, () -> {
-            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
+            station.intake().insertItem(new ItemStack(Items.BREAD, 10), false);
             helper.runAfterDelay(15, () -> {
-                WarehouseControllerBlockEntity controller = helper.getBlockEntity(ST_CONTROLLER);
+                WarehouseControllerBlockEntity controller = helper.getBlockEntity(ST_CONTROLLER, WarehouseControllerBlockEntity.class);
                 WarehouseNetwork network = controller.network().orElseThrow();
                 helper.assertTrue(network.index().count(ItemKey.of(new ItemStack(Items.BREAD))) == 0,
                         "bread beside or inside the station must not be indexed");
@@ -1120,7 +1113,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos DK_STATION = new BlockPos(5, 1, 5);
 
     /** Rails dock onto a station on every side, and the carrot dismantles it with its buffer. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void stationDocksAndDismantles(GameTestHelper helper) {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             helper.setBlock(DK_STATION.relative(direction).below(), Blocks.STONE.defaultBlockState());
@@ -1130,8 +1123,8 @@ public final class ServusStorageGameTests {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             placeRail(helper, DK_STATION.relative(direction));
         }
-        InboundStationBlockEntity station = helper.getBlockEntity(DK_STATION);
-        ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
+        InboundStationBlockEntity station = helper.getBlockEntity(DK_STATION, InboundStationBlockEntity.class);
+        station.intake().insertItem(new ItemStack(Items.BREAD, 10), false);
         helper.runAfterDelay(2, () -> {
             for (Direction direction : Direction.Plane.HORIZONTAL) {
                 BlockState rail = helper.getBlockState(DK_STATION.relative(direction));
@@ -1160,7 +1153,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos PA_GARAGE = new BlockPos(3, 1, 2);
 
     /** A shuttle fetches a stack from the station and carries it along the rail to the crate. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void shuttleCarriesPutAway(GameTestHelper helper) {
         helper.setBlock(PA_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -1171,15 +1164,15 @@ public final class ServusStorageGameTests {
         helper.setBlock(PA_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         helper.setBlock(PA_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(PA_STATION);
-        CrateBlockEntity crate = helper.getBlockEntity(PA_CRATE);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(PA_CONTROLLER);
+        InboundStationBlockEntity station = helper.getBlockEntity(PA_STATION, InboundStationBlockEntity.class);
+        CrateBlockEntity crate = helper.getBlockEntity(PA_CRATE, CrateBlockEntity.class);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(PA_CONTROLLER, WarehouseControllerBlockEntity.class);
         helper.setBlock(PA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(PA_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(PA_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(), "one shuttle fits");
 
         helper.runAfterDelay(10, () -> {
-            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
+            station.intake().insertItem(new ItemStack(Items.COBBLESTONE, 40), false);
             helper.runAfterDelay(2, () -> helper.assertTrue(!station.isEmpty(), "the stack waits in the buffer until the shuttle arrives"));
             // The shuttle speeds up and brakes before it loads.
             helper.runAfterDelay(45, () -> {
@@ -1197,7 +1190,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A crate on the station's own rail node: the shuttle's next leg has one node and must still complete. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void shuttlePutAwayOnStationRail(GameTestHelper helper) {
         helper.setBlock(PA_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -1209,15 +1202,15 @@ public final class ServusStorageGameTests {
         helper.setBlock(PA_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         helper.setBlock(crateBeside, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.SOUTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(PA_STATION);
-        CrateBlockEntity crate = helper.getBlockEntity(crateBeside);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(PA_CONTROLLER);
+        InboundStationBlockEntity station = helper.getBlockEntity(PA_STATION, InboundStationBlockEntity.class);
+        CrateBlockEntity crate = helper.getBlockEntity(crateBeside, CrateBlockEntity.class);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(PA_CONTROLLER, WarehouseControllerBlockEntity.class);
         helper.setBlock(PA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(PA_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(PA_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(), "one shuttle fits");
 
         helper.runAfterDelay(10, () -> {
-            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
+            station.intake().insertItem(new ItemStack(Items.COBBLESTONE, 40), false);
             helper.runAfterDelay(70, () -> {
                 helper.assertTrue(crate.count() == 40, "the shuttle should have delivered 40 cobblestone, crate has " + crate.count());
                 helper.assertTrue(controller.network().orElseThrow().summary().getString().contains("0 busy"),
@@ -1228,11 +1221,11 @@ public final class ServusStorageGameTests {
     }
 
     /** The station menu reports the warehouse state and shift click feeds the buffer. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void stationMenuFeedsBuffer(GameTestHelper helper) {
         InboundStationBlockEntity station = stationSetup(helper);
         helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity ores = helper.getBlockEntity(ST_CRATE);
+        CrateBlockEntity ores = helper.getBlockEntity(ST_CRATE, CrateBlockEntity.class);
         ores.setZone(zone("Ores", List.of(), List.of("c:ores")));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(5, () -> {
@@ -1256,10 +1249,10 @@ public final class ServusStorageGameTests {
     private static final BlockPos GA_GARAGE = new BlockPos(5, 1, 11);
 
     /** A garage takes shuttle items up to its capacity, refuses to be dismantled while it holds them, and breaks when empty. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void garageHoldsShuttles(GameTestHelper helper) {
         helper.setBlock(GA_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(GA_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(GA_GARAGE, ShuttleGarageBlockEntity.class);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         int capacity = garage.capacity();
         io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu menu = new io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu(1, player.getInventory(), garage);
@@ -1293,7 +1286,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos AR_GARAGE = new BlockPos(5, 1, 6);
 
     /** The rail behind a garage links to it as a plain arm; a rail in front neither links nor docks. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void garageRailIsAnArm(GameTestHelper helper) {
         helper.setBlock(AR_GARAGE.north().below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(AR_GARAGE.south().below(), Blocks.STONE.defaultBlockState());
@@ -1318,7 +1311,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos TG_CRATE = new BlockPos(9, 1, 5);
 
     /** With two garages the nearer shuttle serves and each shuttle returns to its own garage. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void shuttlesParkAtTheirGarage(GameTestHelper helper) {
         helper.setBlock(TG_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -1330,12 +1323,12 @@ public final class ServusStorageGameTests {
         helper.setBlock(TG_GARAGE_A, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         helper.setBlock(TG_GARAGE_B, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         helper.setBlock(TG_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garageA = helper.getBlockEntity(TG_GARAGE_A);
-        ShuttleGarageBlockEntity garageB = helper.getBlockEntity(TG_GARAGE_B);
+        ShuttleGarageBlockEntity garageA = helper.getBlockEntity(TG_GARAGE_A, ShuttleGarageBlockEntity.class);
+        ShuttleGarageBlockEntity garageB = helper.getBlockEntity(TG_GARAGE_B, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garageA.addShuttle() && garageB.addShuttle(), "each garage takes a shuttle");
-        CrateBlockEntity crate = helper.getBlockEntity(TG_CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(TG_CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.COBBLESTONE, 30), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(TG_CONTROLLER);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(TG_CONTROLLER, WarehouseControllerBlockEntity.class);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(10, () -> {
@@ -1364,7 +1357,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos RS_RACK = new BlockPos(1, 1, 7);
 
     /** A rack is never served instantly: extract skips it, insert and terminal pushes leave it alone. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackNeedsShuttle(GameTestHelper helper) {
         helper.setBlock(RS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -1375,9 +1368,9 @@ public final class ServusStorageGameTests {
             helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
             placeRail(helper, rail);
         }
-        HeavyRackBlockEntity rack = helper.getBlockEntity(RS_RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RS_RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 40), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(RS_CONTROLLER);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(RS_CONTROLLER, WarehouseControllerBlockEntity.class);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = controller.network().orElseThrow();
@@ -1401,7 +1394,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos SW_GARAGE = new BlockPos(6, 1, 10);
 
     /** A station stack whose only room is a rack waits with the needs a shuttle reason until a garage with a shuttle can reach the rack. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void stationWaitsForShuttleOnRacks(GameTestHelper helper) {
         helper.setBlock(SW_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -1414,16 +1407,16 @@ public final class ServusStorageGameTests {
         helper.setBlock(SW_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
         // The rack faces south, towards the rail behind it at z 11.
         helper.setBlock(SW_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.SOUTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(SW_STATION);
-        HeavyRackBlockEntity rack = helper.getBlockEntity(SW_RACK);
+        InboundStationBlockEntity station = helper.getBlockEntity(SW_STATION, InboundStationBlockEntity.class);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(SW_RACK, HeavyRackBlockEntity.class);
         helper.runAfterDelay(10, () -> {
-            ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
+            station.intake().insertItem(new ItemStack(Items.BREAD, 10), false);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty(), "the bread should wait: only a rack has room");
                 helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.NO_SHUTTLE, "reason should be no shuttle, was " + station.blockedReason());
                 helper.assertTrue(blocked(helper, SW_STATION), "the lamp should be red");
                 helper.setBlock(SW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
-                ShuttleGarageBlockEntity garage = helper.getBlockEntity(SW_GARAGE);
+                ShuttleGarageBlockEntity garage = helper.getBlockEntity(SW_GARAGE, ShuttleGarageBlockEntity.class);
                 helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
                 helper.runAfterDelay(120, () -> {
                     int inRack = 0;
@@ -1445,7 +1438,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos RP_GARAGE = new BlockPos(3, 1, 10);
 
     /** A rack request is refused without a garage and delivered into the output slots once a shuttle can reach the rack. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void rackPickByShuttle(GameTestHelper helper) {
         helper.setBlock(RP_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -1455,7 +1448,7 @@ public final class ServusStorageGameTests {
         }
         TerminalWiring.place(helper, RP_TERMINAL);
         helper.setBlock(RP_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.SOUTH));
-        HeavyRackBlockEntity rack = helper.getBlockEntity(RP_RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RP_RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
@@ -1467,7 +1460,7 @@ public final class ServusStorageGameTests {
             helper.assertTrue(menu.stock().requests().isEmpty(), "no request is created");
 
             helper.setBlock(RP_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
-            ShuttleGarageBlockEntity garage = helper.getBlockEntity(RP_GARAGE);
+            ShuttleGarageBlockEntity garage = helper.getBlockEntity(RP_GARAGE, ShuttleGarageBlockEntity.class);
             helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
             helper.runAfterDelay(5, () -> {
                 menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
@@ -1509,18 +1502,18 @@ public final class ServusStorageGameTests {
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, SR_TERMINAL);
         helper.setBlock(SR_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SR_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SR_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
         return player;
     }
 
     /** Bread in the right bay of a section is fetched through the rail in front of the left bay. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void rackSectionServedFromOneRail(GameTestHelper helper) {
         Player player = sectionRailSetup(helper);
         helper.assertTrue(HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(new BlockPos(2, 1, SR_Z))).size() == 3,
                 "the three racks form one section");
-        HeavyRackBlockEntity right = helper.getBlockEntity(new BlockPos(2, 1, SR_Z));
+        HeavyRackBlockEntity right = helper.getBlockEntity(new BlockPos(2, 1, SR_Z), HeavyRackBlockEntity.class);
         right.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, SR_TERMINAL);
@@ -1539,14 +1532,14 @@ public final class ServusStorageGameTests {
     }
 
     /** A lone rack beside a section with a front rail, but without one of its own, is not part of the warehouse. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackBesideSectionNotServed(GameTestHelper helper) {
         Player player = sectionRailSetup(helper);
         BlockPos lonePos = new BlockPos(1, 1, SR_Z);
         placeRackByHand(helper, player, lonePos);
         helper.assertTrue(HeavyRackBlock.section(helper.getLevel(), helper.absolutePos(lonePos)).size() == 1,
                 "the fourth rack stands alone");
-        HeavyRackBlockEntity lone = helper.getBlockEntity(lonePos);
+        HeavyRackBlockEntity lone = helper.getBlockEntity(lonePos, HeavyRackBlockEntity.class);
         lone.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, SR_TERMINAL);
@@ -1557,10 +1550,10 @@ public final class ServusStorageGameTests {
     }
 
     /** A section joins through the rail in front of one bay and leaves when that rail is broken. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void frontRailConnectsSection(GameTestHelper helper) {
         Player player = sectionRailSetup(helper);
-        HeavyRackBlockEntity left = helper.getBlockEntity(new BlockPos(2, 1, SR_Z));
+        HeavyRackBlockEntity left = helper.getBlockEntity(new BlockPos(2, 1, SR_Z), HeavyRackBlockEntity.class);
         left.items().insertItem(0, new ItemStack(Items.BREAD, 12), false);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, SR_TERMINAL);
@@ -1576,13 +1569,13 @@ public final class ServusStorageGameTests {
     }
 
     /** A rack touching the controller without a front rail is not part of the warehouse. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackTouchingControllerNotListed(GameTestHelper helper) {
         helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         helper.setBlock(RACK_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, RACK_TERMINAL);
-        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 9), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
@@ -1594,12 +1587,12 @@ public final class ServusStorageGameTests {
     }
 
     /** A crate touching only the back of a connected rack is not linked through it. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void crateBehindRackNotLinked(GameTestHelper helper) {
         Player player = sectionRailSetup(helper);
         BlockPos cratePos = new BlockPos(3, 1, SR_Z - 1);
         helper.setBlock(cratePos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(cratePos);
+        CrateBlockEntity crate = helper.getBlockEntity(cratePos, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.APPLE, 7), false);
         helper.runAfterDelay(10, () -> {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, SR_TERMINAL));
@@ -1614,7 +1607,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos SS_GARAGE = new BlockPos(3, 1, 3);
 
     /** A rack touching the controller with a member rail only along its side is not part of the warehouse. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void rackSideRailDoesNotReach(GameTestHelper helper) {
         for (int x = 2; x <= 8; x++) {
             helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
@@ -1624,11 +1617,11 @@ public final class ServusStorageGameTests {
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, SS_TERMINAL);
         helper.setBlock(SS_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SS_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SS_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
         // Faces west onto the controller; the rail at z 4 runs along its south side.
         helper.setBlock(SS_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
-        HeavyRackBlockEntity rack = helper.getBlockEntity(SS_RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(SS_RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 30), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
@@ -1655,16 +1648,16 @@ public final class ServusStorageGameTests {
         TerminalWiring.place(helper, RQ_TERMINAL);
         helper.setBlock(RQ_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         helper.setBlock(RQ_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(RQ_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(RQ_GARAGE, ShuttleGarageBlockEntity.class);
         garage.addShuttle();
-        CrateBlockEntity crate = helper.getBlockEntity(RQ_CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(RQ_CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.COBBLESTONE, cobblestone), false);
         StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, RQ_TERMINAL);
         return new StorageTerminalMenu(1, player.getInventory(), terminal);
     }
 
     /** A request over a stack splits into two loads and shows its progress until both arrived. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void requestSplitsAndDelivers(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StorageTerminalMenu menu = requestSetup(helper, player, 200);
@@ -1684,7 +1677,7 @@ public final class ServusStorageGameTests {
     }
 
     /** When the output slots are full the shuttle waits beside the terminal and unloads once a slot frees up. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void outputFullShuttleWaits(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StorageTerminalMenu menu = requestSetup(helper, player, 64);
@@ -1712,14 +1705,14 @@ public final class ServusStorageGameTests {
     private static final BlockPos CS_EMPTY = new BlockPos(7, 1, 6);
 
     /** The controller exposes the warehouse through the Lib stock capabilities. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void controllerExposesStock(GameTestHelper helper) {
         helper.setBlock(CS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         helper.setBlock(CS_FULL, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(CS_EMPTY, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity full = helper.getBlockEntity(CS_FULL);
-        CrateBlockEntity empty = helper.getBlockEntity(CS_EMPTY);
+        CrateBlockEntity full = helper.getBlockEntity(CS_FULL, CrateBlockEntity.class);
+        CrateBlockEntity empty = helper.getBlockEntity(CS_EMPTY, CrateBlockEntity.class);
         full.insert(new ItemStack(Items.COBBLESTONE, 80), false);
         helper.runAfterDelay(10, () -> {
             BlockPos absolute = helper.absolutePos(CS_CONTROLLER);
@@ -1751,10 +1744,10 @@ public final class ServusStorageGameTests {
     }
 
     /** A keep slot pulls its amount out of storage into the buffer. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void outboundKeepsBufferStocked(GameTestHelper helper) {
         OutboundStationBlockEntity station = outboundSetup(helper);
-        CrateBlockEntity crate = helper.getBlockEntity(OS_CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(OS_CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.STICK, 50), false);
         station.setKeep(0, new ItemStack(Items.STICK), 16);
         helper.runAfterDelay(StorageStatsManager.INSTANCE.outboundCheckInterval() + 20, () -> {
@@ -1766,10 +1759,10 @@ public final class ServusStorageGameTests {
     }
 
     /** What a hopper takes from an extract side is topped up again. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void outboundToppedUpAfterExtraction(GameTestHelper helper) {
         OutboundStationBlockEntity station = outboundSetup(helper);
-        CrateBlockEntity crate = helper.getBlockEntity(OS_CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(OS_CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.STICK, 50), false);
         station.setKeep(0, new ItemStack(Items.STICK), 16);
         int interval = StorageStatsManager.INSTANCE.outboundCheckInterval();
@@ -1777,7 +1770,7 @@ public final class ServusStorageGameTests {
             helper.assertTrue(station.handlerFor(Direction.DOWN) == null, "the bottom is off by default");
             helper.assertTrue(station.cycleFace(Direction.DOWN) == SideMode.PUSH, "the first cycle turns the bottom to push");
             helper.assertTrue(station.cycleFace(Direction.DOWN) == SideMode.OUTPUT, "the second cycle turns the bottom to output");
-            IItemHandler bottom = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(OS_STATION), Direction.DOWN);
+            ItemView bottom = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(OS_STATION), Direction.DOWN));
             helper.assertTrue(bottom != null, "the extract side exposes a handler");
             helper.assertTrue(bottom.extractItem(0, 5, false).getCount() == 5, "5 sticks can be taken");
             helper.assertTrue(bottom.insertItem(1, new ItemStack(Items.COBBLESTONE, 3), false).getCount() == 3, "nothing goes in");
@@ -1790,13 +1783,13 @@ public final class ServusStorageGameTests {
     }
 
     /** The buffer is pushed into the block in front. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void outboundPushesIntoFront(GameTestHelper helper) {
         OutboundStationBlockEntity station = outboundSetup(helper);
         helper.setBlock(OS_FRONT, Blocks.CHEST.defaultBlockState());
         station.buffer().setStackInSlot(0, new ItemStack(Items.IRON_INGOT, 8));
         helper.runAfterDelay(20, () -> {
-            ChestBlockEntity chest = helper.getBlockEntity(OS_FRONT);
+            ChestBlockEntity chest = helper.getBlockEntity(OS_FRONT, ChestBlockEntity.class);
             helper.assertTrue(chest.countItem(Items.IRON_INGOT) == 8, "the chest should hold the 8 ingots, had " + chest.countItem(Items.IRON_INGOT));
             helper.assertTrue(station.isEmpty(), "the buffer should be empty");
             helper.succeed();
@@ -1804,7 +1797,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Sides cycle push, output, off; off sides expose nothing, the back starts as push and the front is fixed off. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void outboundSideModes(GameTestHelper helper) {
         OutboundStationBlockEntity station = outboundSetup(helper);
         helper.assertTrue(station.sideMode(Direction.EAST) == SideMode.PUSH, "the back starts as push");
@@ -1823,12 +1816,12 @@ public final class ServusStorageGameTests {
     }
 
     /** Feeding a station from a crate touching the controller is instant. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void feedOutboundFromCrate(GameTestHelper helper) {
         OutboundStationBlockEntity station = outboundSetup(helper);
-        CrateBlockEntity crate = helper.getBlockEntity(OS_CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(OS_CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.IRON_INGOT, 10), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(OS_CONTROLLER);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(OS_CONTROLLER, WarehouseControllerBlockEntity.class);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = controller.network().orElseThrow();
             String refused = network.feedStation(station, ItemKey.of(new ItemStack(Items.IRON_INGOT)), 4);
@@ -1846,7 +1839,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos FD_STATION = new BlockPos(7, 1, 8);
 
     /** Feeding a station from a rack rides a shuttle. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void feedOutboundByShuttle(GameTestHelper helper) {
         helper.setBlock(FD_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -1857,12 +1850,12 @@ public final class ServusStorageGameTests {
         helper.setBlock(FD_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         helper.setBlock(FD_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         helper.setBlock(FD_STATION, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.SOUTH));
-        HeavyRackBlockEntity rack = helper.getBlockEntity(FD_RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(FD_RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.IRON_INGOT, 10), false);
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(FD_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(FD_GARAGE, ShuttleGarageBlockEntity.class);
         garage.addShuttle();
-        OutboundStationBlockEntity station = helper.getBlockEntity(FD_STATION);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(FD_CONTROLLER);
+        OutboundStationBlockEntity station = helper.getBlockEntity(FD_STATION, OutboundStationBlockEntity.class);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(FD_CONTROLLER, WarehouseControllerBlockEntity.class);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = controller.network().orElseThrow();
             String refused = network.feedStation(station, ItemKey.of(new ItemStack(Items.IRON_INGOT)), 4);
@@ -1878,15 +1871,15 @@ public final class ServusStorageGameTests {
     private static final BlockPos IS_STATION = new BlockPos(5, 1, 10);
 
     /** An inbound side switched off takes nothing until it is switched on again. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void inboundSideOff(GameTestHelper helper) {
         helper.setBlock(IS_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(IS_STATION);
+        InboundStationBlockEntity station = helper.getBlockEntity(IS_STATION, InboundStationBlockEntity.class);
         helper.assertTrue(station.sideMode(Direction.NORTH) == SideMode.DISABLED && station.cycleFace(Direction.NORTH) == SideMode.DISABLED, "the front is fixed off");
         helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.PULL, "input cycles to pull");
         helper.assertTrue(station.cycleFace(Direction.UP) == SideMode.DISABLED, "pull cycles to off");
         helper.setBlock(IS_STATION.above(), Blocks.HOPPER.defaultBlockState());
-        HopperBlockEntity hopper = helper.getBlockEntity(IS_STATION.above());
+        HopperBlockEntity hopper = helper.getBlockEntity(IS_STATION.above(), HopperBlockEntity.class);
         hopper.setItem(0, new ItemStack(Items.BREAD, 10));
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(station.isEmpty() && hopper.getItem(0).getCount() == 10, "the hopper should not get through an off side");
@@ -1901,12 +1894,12 @@ public final class ServusStorageGameTests {
     private static final BlockPos IP_STATION = new BlockPos(8, 1, 10);
 
     /** A Pull side empties a chest into the buffer without a hopper. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void inboundPullsFromChest(GameTestHelper helper) {
         helper.setBlock(IP_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.NORTH));
-        InboundStationBlockEntity station = helper.getBlockEntity(IP_STATION);
+        InboundStationBlockEntity station = helper.getBlockEntity(IP_STATION, InboundStationBlockEntity.class);
         helper.setBlock(IP_STATION.south(), Blocks.CHEST.defaultBlockState());
-        ChestBlockEntity chest = helper.getBlockEntity(IP_STATION.south());
+        ChestBlockEntity chest = helper.getBlockEntity(IP_STATION.south(), ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.BREAD, 30));
         helper.assertTrue(station.relativeSide(Direction.SOUTH) == RelativeSide.BACK, "south is the back of a station facing north");
         station.sideConfig().set(RelativeSide.BACK, SideMode.PULL);
@@ -1920,15 +1913,15 @@ public final class ServusStorageGameTests {
     private static final BlockPos CS_STATION = new BlockPos(9, 1, 2);
 
     /** A Crafting Station side set to Off refuses a hopper; Pull takes used items from a chest. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void craftingStationSideOff(GameTestHelper helper) {
         CraftingStationBlockEntity station = craftingStationWithSticks(helper, CS_STATION);
         station.sideConfig().set(RelativeSide.TOP, SideMode.DISABLED);
         helper.setBlock(CS_STATION.above(), Blocks.HOPPER.defaultBlockState());
-        HopperBlockEntity hopper = helper.getBlockEntity(CS_STATION.above());
+        HopperBlockEntity hopper = helper.getBlockEntity(CS_STATION.above(), HopperBlockEntity.class);
         hopper.setItem(0, new ItemStack(Items.OAK_PLANKS, 4));
         helper.setBlock(CS_STATION.west(), Blocks.CHEST.defaultBlockState());
-        ChestBlockEntity chest = helper.getBlockEntity(CS_STATION.west());
+        ChestBlockEntity chest = helper.getBlockEntity(CS_STATION.west(), ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.OAK_PLANKS, 6));
         chest.setItem(1, new ItemStack(Items.COBBLESTONE, 2));
         station.sideConfig().set(station.relativeSide(Direction.WEST), SideMode.PULL);
@@ -1954,7 +1947,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A sticks job is crafted from the inputs, one craft per work time, and ends with no crafts left. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void craftingStationCraftsJob(GameTestHelper helper) {
         CraftingStationBlockEntity station = plainStation(helper, CR_STATION);
         station.inputs().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 6));
@@ -1978,32 +1971,32 @@ public final class ServusStorageGameTests {
     }
 
     /** Without a job the station crafts nothing, reports no recipes and takes nothing from automation. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void craftingStationIdleWithoutJob(GameTestHelper helper) {
         CraftingStationBlockEntity station = plainStation(helper, CR_STATION);
         station.inputs().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 4));
         ProductionProvider provider = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(CR_STATION), null);
         helper.assertTrue(provider != null && provider.recipes().isEmpty() && provider.active().isEmpty(), "no recipes and nothing active");
-        IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(CR_STATION), Direction.UP);
-        helper.assertTrue(ItemHandlerHelper.insertItem(handler, new ItemStack(Items.OAK_PLANKS, 5), false).getCount() == 5, "planks are refused without a job");
+        ItemView handler = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(CR_STATION), Direction.UP));
+        helper.assertTrue(handler.insertItem(new ItemStack(Items.OAK_PLANKS, 5), false).getCount() == 5, "planks are refused without a job");
         helper.runAfterDelay(station.workTicks() + 5, () -> {
             helper.assertTrue(station.outputs().getStackInSlot(0).isEmpty(), "nothing is crafted without a job");
             StationJobs.sticksJob(station, 1);
             ProductionProvider working = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(CR_STATION), null);
-            helper.assertTrue(working.recipes().isEmpty() && working.active().map(id -> id.equals(ResourceLocation.withDefaultNamespace("stick"))).orElse(false),
+            helper.assertTrue(working.recipes().isEmpty() && working.active().map(id -> id.equals(Identifier.withDefaultNamespace("stick"))).orElse(false),
                     "with a job the sticks recipe is active");
             helper.succeed();
         });
     }
 
     /** Automation can insert only used items into the inputs and extract only from the outputs. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void craftingStationRefusesUnusedItems(GameTestHelper helper) {
         CraftingStationBlockEntity station = craftingStationWithSticks(helper, CR_STATION);
-        IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(CR_STATION), Direction.UP);
+        ItemView handler = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(CR_STATION), Direction.UP));
         helper.assertTrue(handler != null, "the station should expose an item handler");
-        helper.assertTrue(ItemHandlerHelper.insertItem(handler, new ItemStack(Items.COBBLESTONE, 5), false).getCount() == 5, "cobblestone is refused");
-        helper.assertTrue(ItemHandlerHelper.insertItem(handler, new ItemStack(Items.OAK_PLANKS, 5), false).isEmpty(), "planks are accepted");
+        helper.assertTrue(handler.insertItem(new ItemStack(Items.COBBLESTONE, 5), false).getCount() == 5, "cobblestone is refused");
+        helper.assertTrue(handler.insertItem(new ItemStack(Items.OAK_PLANKS, 5), false).isEmpty(), "planks are accepted");
         helper.assertTrue(handler.extractItem(0, 5, false).isEmpty(), "inputs cannot be extracted");
         station.outputs().setStackInSlot(0, new ItemStack(Items.STICK, 3));
         helper.assertTrue(handler.extractItem(CraftingStationBlockEntity.INPUT_SLOTS, 3, false).getCount() == 3, "outputs can be extracted");
@@ -2018,7 +2011,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos DS_INBOUND = new BlockPos(4, 1, 6);
 
     /** An outbound station pushes planks into the station, an inbound station collects the sticks, which end in the crates. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void outboundServesCraftingStation(GameTestHelper helper) {
         helper.setBlock(DS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -2031,10 +2024,10 @@ public final class ServusStorageGameTests {
         TerminalWiring.railUnder(helper, DS_INBOUND);
         CraftingStationBlockEntity station = plainStation(helper, DS_STATION);
         Object owner = StationJobs.sticksJob(station, 2);
-        OutboundStationBlockEntity outbound = helper.getBlockEntity(DS_OUTBOUND);
-        InboundStationBlockEntity inbound = helper.getBlockEntity(DS_INBOUND);
-        CrateBlockEntity crateA = helper.getBlockEntity(DS_CRATE_A);
-        CrateBlockEntity crateB = helper.getBlockEntity(DS_CRATE_B);
+        OutboundStationBlockEntity outbound = helper.getBlockEntity(DS_OUTBOUND, OutboundStationBlockEntity.class);
+        InboundStationBlockEntity inbound = helper.getBlockEntity(DS_INBOUND, InboundStationBlockEntity.class);
+        CrateBlockEntity crateA = helper.getBlockEntity(DS_CRATE_A, CrateBlockEntity.class);
+        CrateBlockEntity crateB = helper.getBlockEntity(DS_CRATE_B, CrateBlockEntity.class);
         outbound.buffer().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 4));
         // A held job keeps its outputs for the CPU; the sticks leave once the job ends.
         TerminalWiring.when(helper, () -> !station.working(), station.workTicks() * 2 + 80, () -> "both crafts should be done", () -> {
@@ -2069,15 +2062,15 @@ public final class ServusStorageGameTests {
         // The crate keeps the garage in the warehouse when the rail behind it is broken.
         helper.setBlock(RC_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(RC_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(RC_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(RC_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
-        HeavyRackBlockEntity rack = helper.getBlockEntity(RC_RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RC_RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.COBBLESTONE, 30), false);
         return helper.getBlockEntity(RC_CONTROLLER);
     }
 
     /** Recall brings a shuttle that is out on a pick back inside at once; the pick is queued again. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void garageRecallBringsShuttlesHome(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = recallSetup(helper);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -2103,11 +2096,11 @@ public final class ServusStorageGameTests {
     private static final BlockPos PG_GARAGE_B = new BlockPos(8, 1, 5);
 
     /** A paused garage hands out no shuttle; the active one serves instead. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void pausedGarageTakesNoJobs(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = recallSetup(helper);
         helper.setBlock(PG_GARAGE_B, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
-        ShuttleGarageBlockEntity garageB = helper.getBlockEntity(PG_GARAGE_B);
+        ShuttleGarageBlockEntity garageB = helper.getBlockEntity(PG_GARAGE_B, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garageB.addShuttle(), "garage B takes a shuttle");
         garageB.setActive(false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -2128,7 +2121,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Breaking the rail behind a garage while its shuttle is out brings the shuttle inside instead of freezing it. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void losingTheRailRecalls(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = recallSetup(helper);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -2144,7 +2137,7 @@ public final class ServusStorageGameTests {
                 helper.runAfterDelay(5, () -> {
                     // The rail line split off, so the controller's part is a rebuilt network object.
                     WarehouseNetwork after = controller.network().orElseThrow();
-                    ShuttleGarageBlockEntity garage = helper.getBlockEntity(RC_GARAGE);
+                    ShuttleGarageBlockEntity garage = helper.getBlockEntity(RC_GARAGE, ShuttleGarageBlockEntity.class);
                     helper.assertTrue(garage.shuttleCount() == 1, "the garage still holds its shuttle");
                     helper.assertTrue(after.garageOut(garagePos) == 0, "without a home the shuttle is recalled, out is " + after.garageOut(garagePos));
                     helper.assertTrue(after.shuttleViews(garagePos).isEmpty(), "nothing is drawn on the rails");
@@ -2184,7 +2177,7 @@ public final class ServusStorageGameTests {
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, LC_TERMINAL);
         helper.setBlock(LC_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(LC_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(LC_GARAGE, ShuttleGarageBlockEntity.class);
         for (int i = 0; i < shuttles; i++) {
             helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
         }
@@ -2197,18 +2190,18 @@ public final class ServusStorageGameTests {
         helper.setBlock(rackPos.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(rail, ServusStorageBlocks.RAIL.get().defaultBlockState());
         helper.setBlock(rackPos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        HeavyRackBlockEntity rack = helper.getBlockEntity(rackPos);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(rackPos, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(item, count), false);
         return rack;
     }
 
     private static WarehouseNetwork liftNetwork(GameTestHelper helper) {
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(LC_CONTROLLER);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(LC_CONTROLLER, WarehouseControllerBlockEntity.class);
         return controller.network().orElseThrow();
     }
 
     /** A ground floor shuttle rides the car up to a rack two floors up and back down to the terminal. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void shuttleRidesCarToUpperRack(GameTestHelper helper) {
         liftBase(helper, 1);
         HeavyRackBlockEntity rack = liftRack(helper, new BlockPos(5, 3, 3), Items.BREAD, 20);
@@ -2216,7 +2209,7 @@ public final class ServusStorageGameTests {
         BlockPos bottom = helper.absolutePos(LC_BOTTOM);
         double[] highest = {Double.NEGATIVE_INFINITY};
         helper.onEachTick(() -> {
-            if (helper.getBlockEntity(LC_CONTROLLER) instanceof WarehouseControllerBlockEntity controller) {
+            if (helper.getBlockEntity(LC_CONTROLLER, BlockEntity.class) instanceof WarehouseControllerBlockEntity controller) {
                 controller.network().map(network -> network.lift(bottom)).ifPresent(car -> highest[0] = Math.max(highest[0], car.y()));
             }
         });
@@ -2242,7 +2235,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Two shuttles call the car at the same floor: the first caller rides first, the second waits for the car. */
-    @GameTest(template = EMPTY, timeoutTicks = 700)
+    @ServusGameTest(timeoutTicks = 700)
     public static void shuttlesQueueForCar(GameTestHelper helper) {
         liftBase(helper, 2);
         HeavyRackBlockEntity top = liftRack(helper, new BlockPos(3, 3, 3), Items.BREAD, 10);
@@ -2268,7 +2261,7 @@ public final class ServusStorageGameTests {
     }
 
     /** The shaft's upgrade menu opened from the top segment works on the lowest one; only Speed Upgrades go in. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void liftUpgradesLiveInTheBottom(GameTestHelper helper) {
         liftBase(helper, 0);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -2278,51 +2271,51 @@ public final class ServusStorageGameTests {
         helper.assertFalse(menu.getSlot(0).mayPlace(new ItemStack(ServusStorageItems.HANDLING_UPGRADE.get())), "a Handling Upgrade does not fit");
         ItemStack rest = menu.getSlot(0).safeInsert(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get(), 3));
         helper.assertTrue(rest.getCount() == 2, "one Speed Upgrade goes in, two stay, left " + rest.getCount());
-        ElevatorBlockEntity top = helper.getBlockEntity(LC_TOP);
+        ElevatorBlockEntity top = helper.getBlockEntity(LC_TOP, ElevatorBlockEntity.class);
         helper.assertTrue(bottom.upgradeCount() == 1 && top.upgradeCount() == 0, "the lowest segment keeps the upgrade");
         helper.succeed();
     }
 
     /** A segment placed under a shaft becomes its lowest one and takes the upgrades over. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void liftUpgradesMoveDown(GameTestHelper helper) {
         helper.setBlock(new BlockPos(2, 0, 2), Blocks.STONE.defaultBlockState());
         helper.setBlock(new BlockPos(2, 1, 2), Blocks.STONE.defaultBlockState());
         helper.setBlock(new BlockPos(2, 2, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
         helper.setBlock(new BlockPos(2, 3, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
-        ElevatorBlockEntity old = helper.getBlockEntity(new BlockPos(2, 2, 2));
+        ElevatorBlockEntity old = helper.getBlockEntity(new BlockPos(2, 2, 2), ElevatorBlockEntity.class);
         old.upgrades().insertAll(List.of(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get()), new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get())));
         helper.setBlock(new BlockPos(2, 1, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
-        ElevatorBlockEntity lowest = helper.getBlockEntity(new BlockPos(2, 1, 2));
+        ElevatorBlockEntity lowest = helper.getBlockEntity(new BlockPos(2, 1, 2), ElevatorBlockEntity.class);
         helper.assertTrue(lowest.upgradeCount() == 2, "the new lowest segment holds both upgrades, has " + lowest.upgradeCount());
         helper.assertTrue(old.upgradeCount() == 0, "the old lowest segment holds none");
         helper.succeed();
     }
 
     /** A lowest segment replaced by a block the shaft stands on hands its upgrades to the segment above. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void liftUpgradesClimbWhenBottomIsReplaced(GameTestHelper helper) {
         helper.setBlock(new BlockPos(2, 0, 2), Blocks.STONE.defaultBlockState());
         for (int y = 1; y <= 3; y++) {
             helper.setBlock(new BlockPos(2, y, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
         }
-        ElevatorBlockEntity bottom = helper.getBlockEntity(new BlockPos(2, 1, 2));
+        ElevatorBlockEntity bottom = helper.getBlockEntity(new BlockPos(2, 1, 2), ElevatorBlockEntity.class);
         bottom.upgrades().insertAll(List.of(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get()), new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get())));
         helper.setBlock(new BlockPos(2, 1, 2), Blocks.STONE.defaultBlockState());
-        ElevatorBlockEntity next = helper.getBlockEntity(new BlockPos(2, 2, 2));
+        ElevatorBlockEntity next = helper.getBlockEntity(new BlockPos(2, 2, 2), ElevatorBlockEntity.class);
         helper.assertTrue(next.upgradeCount() == 2, "the segment above holds both upgrades, has " + next.upgradeCount());
         helper.assertItemEntityNotPresent(ServusFoundationItems.SPEED_UPGRADE.get(), new BlockPos(2, 1, 2), 4);
         helper.succeed();
     }
 
     /** Breaking the lowest segment brings the shaft down like scaffolding; the upgrades drop where it was. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void liftUpgradesDropWithTheBottom(GameTestHelper helper) {
         helper.setBlock(new BlockPos(2, 0, 2), Blocks.STONE.defaultBlockState());
         for (int y = 1; y <= 3; y++) {
             helper.setBlock(new BlockPos(2, y, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
         }
-        ElevatorBlockEntity bottom = helper.getBlockEntity(new BlockPos(2, 1, 2));
+        ElevatorBlockEntity bottom = helper.getBlockEntity(new BlockPos(2, 1, 2), ElevatorBlockEntity.class);
         bottom.upgrades().insertAll(List.of(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get()), new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get())));
         helper.setBlock(new BlockPos(2, 1, 2), Blocks.AIR.defaultBlockState());
         helper.runAfterDelay(2, () -> {
@@ -2333,10 +2326,10 @@ public final class ServusStorageGameTests {
     }
 
     /** Four Speed Upgrades make the car faster: it reaches the top floor before a plain car could. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void upgradedCarIsFaster(GameTestHelper helper) {
         liftBase(helper, 0);
-        ElevatorBlockEntity bottomSegment = helper.getBlockEntity(LC_BOTTOM);
+        ElevatorBlockEntity bottomSegment = helper.getBlockEntity(LC_BOTTOM, ElevatorBlockEntity.class);
         List<ItemStack> four = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             four.add(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get()));
@@ -2360,7 +2353,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A shuttle crosses the shaft on the ground floor deck while the car stays parked at the top. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void shuttleCrossesShaftWithoutCar(GameTestHelper helper) {
         liftBase(helper, 1);
         BlockPos crossRail = new BlockPos(5, 1, 3);
@@ -2368,7 +2361,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(crossRail.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(crossRail, ServusStorageBlocks.RAIL.get().defaultBlockState());
         helper.setBlock(cratePos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(cratePos);
+        CrateBlockEntity crate = helper.getBlockEntity(cratePos, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.COBBLESTONE, 16), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos bottom = helper.absolutePos(LC_BOTTOM);
@@ -2394,7 +2387,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Breaking the middle segment while the car carries a loaded shuttle drops the load at its garage. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void shaftBreakDropsRiderCargo(GameTestHelper helper) {
         liftBase(helper, 1);
         liftRack(helper, new BlockPos(5, 3, 3), Items.BREAD, 20);
@@ -2456,7 +2449,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A rail hangs on a raised rack front; the rack side, a crate and open air take none. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void railHangsOnRackFrontOnly(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         hangRack(helper, 2, 2, Direction.SOUTH);
@@ -2473,7 +2466,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A row of rails hangs along five raised racks at any length. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void hungRowAlongRacksHolds(GameTestHelper helper) {
         for (int x = 1; x <= 5; x++) {
             hangRack(helper, x, 2, Direction.SOUTH);
@@ -2488,7 +2481,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Three rails bridge two elevator shafts, ends first, and link them. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void bridgeBetweenElevatorsHolds(GameTestHelper helper) {
         for (int x : new int[] {1, 5}) {
             helper.setBlock(new BlockPos(x, HANG_Y - 1, 2), Blocks.STONE.defaultBlockState());
@@ -2509,7 +2502,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Three rails bridge two raised racks facing each other; breaking one rack drops the bridge. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void bridgeBetweenRacksFallsWithItsRack(GameTestHelper helper) {
         hangRack(helper, 1, 2, Direction.EAST);
         hangRack(helper, 5, 2, Direction.WEST);
@@ -2533,7 +2526,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A fourth rail beside the middle of a three rail bridge drops all four. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void fourthRailCollapsesBridge(GameTestHelper helper) {
         hangRack(helper, 1, 2, Direction.EAST);
         hangRack(helper, 5, 2, Direction.WEST);
@@ -2554,7 +2547,7 @@ public final class ServusStorageGameTests {
     }
 
     /** In a four block gap the first free rail drops with the hung rail it touches; the far hung rail stays. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void fourBlockGapCannotBeBridged(GameTestHelper helper) {
         hangRack(helper, 1, 2, Direction.EAST);
         hangRack(helper, 6, 2, Direction.WEST);
@@ -2571,7 +2564,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Two floor edges three blocks apart are bridged by one rail off each edge and one in the middle. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void bridgeBetweenFloorsHolds(GameTestHelper helper) {
         for (int x : new int[] {1, 5}) {
             helper.setBlock(new BlockPos(x, HANG_Y - 1, 2), Blocks.STONE.defaultBlockState());
@@ -2599,7 +2592,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A free rail beside a hung rail and nothing else drops both. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void overhangCollapses(GameTestHelper helper) {
         hangRack(helper, 1, 2, Direction.EAST);
         hangRail(helper, 2, 2);
@@ -2614,7 +2607,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Breaking the floor under a rail leaves it hung on a rack front and drops a lone rail. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void floorRemovedUnderRails(GameTestHelper helper) {
         hangRack(helper, 2, 2, Direction.SOUTH);
         helper.setBlock(new BlockPos(2, HANG_Y - 1, 3), Blocks.STONE.defaultBlockState());
@@ -2664,7 +2657,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Sneaking with a rail on the east half of a floor run places past its end; a plain click still turns. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void sneakRailExtendsStraight(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         floorRails(helper, 1, 4, 3);
@@ -2679,7 +2672,7 @@ public final class ServusStorageGameTests {
     }
 
     /** On lone rails the top face quadrant and side faces pick the direction; the walk passes a junction. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void sneakRailDirectionAndJunction(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         floorRails(helper, 1, 4, 3);
@@ -2698,7 +2691,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A hit near the north edge of a rail inside an east west line still extends the line by the half it lands in. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void sneakRailFollowsStraightRun(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         floorRails(helper, 1, 4, 3);
@@ -2712,7 +2705,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A run that ends at a stone block places nothing and keeps the stack. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void sneakRailBlockedPlacesNothing(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         floorRails(helper, 1, 3, 3);
@@ -2725,7 +2718,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Sneak clicking a rail hung on a rack towards the other rack fills the middle of the gap and the bridge holds. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void sneakRailBridgesRacks(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         hangRack(helper, 1, 2, Direction.EAST);
@@ -2744,7 +2737,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Sneak extending a lone hung rail into the air drops both, as a hand placed overhang would. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void sneakRailOverhangCollapses(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         hangRack(helper, 1, 2, Direction.EAST);
@@ -2777,7 +2770,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A plain click on the side of the lowest segment places a new segment on top of the shaft, like scaffolding. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void plainElevatorBuildsUp(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         shaft(helper, 3, 3, 4);
@@ -2789,7 +2782,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A plain click on a shaft capped by stone places nothing and keeps the stack. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void plainElevatorBlockedTop(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         shaft(helper, 3, 3, 2);
@@ -2801,7 +2794,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A plain click on the top of a stone block places a segment on it as with any block. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void plainElevatorOnGround(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(new BlockPos(3, 1, 3), Blocks.STONE.defaultBlockState());
@@ -2822,7 +2815,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A sneak click on the side of the lowest segment places a new segment on top of the shaft. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void sneakElevatorBuildsUp(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         shaft(helper, 3, 3, 4);
@@ -2833,7 +2826,7 @@ public final class ServusStorageGameTests {
     }
 
     /** A shaft capped by stone takes no new segment and the stack keeps its count. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void sneakElevatorBlockedTop(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         shaft(helper, 3, 3, 2);

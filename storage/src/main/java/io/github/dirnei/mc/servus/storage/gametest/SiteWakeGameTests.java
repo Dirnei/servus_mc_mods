@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderData;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
@@ -36,12 +35,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** Site records with last known stock, and waking a site inside its capacity and its team's cap. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class SiteWakeGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -57,7 +52,7 @@ public final class SiteWakeGameTests {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(GRACE);
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
         if (team != null) {
             controller.setTeam(team);
         }
@@ -85,11 +80,11 @@ public final class SiteWakeGameTests {
     }
 
     /** The record names the site, keeps its chunks and the stock it reported. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void recordKeepsNameSpanAndStock(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setSiteSnapshotInterval(5);
         WarehouseControllerBlockEntity controller = site(helper, UUID.randomUUID(), 0);
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.IRON_INGOT, 40), false);
         controller.setSiteName("Iron Outpost");
         TerminalWiring.when(helper, () -> record(helper).map(site -> site.stock().getOrDefault(ItemKey.of(new ItemStack(Items.IRON_INGOT)), 0L) == 40L)
@@ -104,7 +99,7 @@ public final class SiteWakeGameTests {
     }
 
     /** A wake forces the span and takes a team slot, the lamp turns orange; after the grace all is released. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void wakeLoadsAndReleasesAfterGrace(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         site(helper, team, 1);
@@ -124,7 +119,7 @@ public final class SiteWakeGameTests {
     }
 
     /** A site larger than its upgrades cover never wakes. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void overCapacityNeverWakes(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         WarehouseControllerBlockEntity controller = site(helper, team, 1);
@@ -142,7 +137,7 @@ public final class SiteWakeGameTests {
     }
 
     /** Without an upgrade a site does not wake. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void noUpgradeWaits(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         site(helper, team, 0);
@@ -155,7 +150,7 @@ public final class SiteWakeGameTests {
     }
 
     /** A full team waits with the reason and wakes once a slot frees up while the wake is still held. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void teamCapWaitsThenWakes(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         site(helper, team, 1);
@@ -170,7 +165,7 @@ public final class SiteWakeGameTests {
         helper.runAfterDelay(3, () -> {
             SiteWakes.Status waiting = SiteWakes.hold(level, helper.absolutePos(CONTROLLER), token).orElseThrow();
             helper.assertTrue(!waiting.awake() && waiting.reason() == WakeAllowance.Reason.TEAM_LIMIT, "team limit, was " + waiting);
-            WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER);
+            WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
             helper.assertTrue(controller.wakeAlert() && controller.wakeLine().getString().contains("team limit"),
                     "the GUI says why, was " + controller.wakeLine().getString());
             data.unregister(team, level, base);
@@ -196,13 +191,13 @@ public final class SiteWakeGameTests {
     private static final BlockPos SH_GARAGE = new BlockPos(3, 1, 5);
 
     /** A shuttle on its way keeps a woken site awake past the grace time; it sleeps once the work is done. */
-    @GameTest(template = EMPTY, timeoutTicks = 600)
+    @ServusGameTest(timeoutTicks = 600)
     public static void shuttleJobKeepsSiteAwake(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(GRACE);
         UUID team = UUID.randomUUID();
         helper.setBlock(SH_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(SH_CONTROLLER);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(SH_CONTROLLER, WarehouseControllerBlockEntity.class);
         controller.setTeam(team);
         controller.upgrades().insertItem(0, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()), false);
         TerminalWiring.place(helper, SH_TERMINAL);
@@ -211,10 +206,10 @@ public final class SiteWakeGameTests {
             helper.setBlock(new BlockPos(x, 1, 6), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
         helper.setBlock(SH_FAR_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity far = helper.getBlockEntity(SH_FAR_CRATE);
+        CrateBlockEntity far = helper.getBlockEntity(SH_FAR_CRATE, CrateBlockEntity.class);
         far.insert(new ItemStack(Items.COBBLESTONE, 40), false);
         helper.setBlock(SH_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SH_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SH_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(), "one shuttle fits");
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos at = helper.absolutePos(SH_CONTROLLER);
@@ -240,7 +235,7 @@ public final class SiteWakeGameTests {
     }
 
     /** A broken controller takes its record and its wake along. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void brokenControllerDropsRecordAndWake(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         site(helper, team, 1);
@@ -255,7 +250,7 @@ public final class SiteWakeGameTests {
     }
 
     /** The wake command wakes a recorded site and names the reason when it cannot. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void wakeCommandReports(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         site(helper, team, 1);

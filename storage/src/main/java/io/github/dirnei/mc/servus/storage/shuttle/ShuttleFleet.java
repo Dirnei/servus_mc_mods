@@ -2062,7 +2062,7 @@ public final class ShuttleFleet {
 
     private void send() {
         for (Garage garage : garages.values()) {
-            PacketDistributor.sendToPlayersTrackingChunk(host.level(), new ChunkPos(garage.pos),
+            PacketDistributor.sendToPlayersTrackingChunk(host.level(), ChunkPos.unpack(garage.pos),
                     new ShuttleSyncPayload(garage.pos, views(garage.pos)));
         }
         for (Map.Entry<BlockPos, LiftCar> entry : lifts.entrySet()) {
@@ -2075,7 +2075,7 @@ public final class ShuttleFleet {
         ShuttleView.Drive drive = car.moving()
                 ? new ShuttleView.Drive((float) car.velocity(), (float) liftSpeed(car), (float) liftAccel(car))
                 : ShuttleView.Drive.STILL;
-        PacketDistributor.sendToPlayersTrackingChunk(host.level(), new ChunkPos(bottom), new LiftSyncPayload(bottom, car.topY(),
+        PacketDistributor.sendToPlayersTrackingChunk(host.level(), ChunkPos.unpack(bottom), new LiftSyncPayload(bottom, car.topY(),
                 (float) car.y(), target == null ? (int) Math.round(car.y()) : target, drive, car.carrying()));
     }
 

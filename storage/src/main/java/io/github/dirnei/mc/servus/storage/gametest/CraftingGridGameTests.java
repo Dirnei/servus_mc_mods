@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
@@ -14,19 +14,14 @@ import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** The Storage Terminal's crafting grid: crafting, refill from instant stock, pull, clear, close and JEI fill. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class CraftingGridGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -44,7 +39,7 @@ public final class CraftingGridGameTests {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, TERMINAL);
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
         if (planks > 0) {
             crate.insert(new ItemStack(Items.OAK_PLANKS, planks), false);
         }
@@ -79,13 +74,13 @@ public final class CraftingGridGameTests {
     }
 
     /** Taking the result crafts four sticks, and the used planks come back from the crate. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void gridCraftsSticks(GameTestHelper helper) {
         setup(helper, 10, f -> {
             sticksPattern(f.menu(), 1);
             helper.assertTrue(result(f.menu()).is(Items.STICK) && result(f.menu()).getCount() == 4,
                     "the result shows four sticks, got " + result(f.menu()));
-            f.menu().clicked(f.menu().resultIndex(), 0, ClickType.PICKUP, f.player());
+            f.menu().clicked(f.menu().resultIndex(), 0, ContainerInput.PICKUP, f.player());
             helper.assertTrue(f.menu().getCarried().is(Items.STICK) && f.menu().getCarried().getCount() == 4,
                     "the cursor holds four sticks, got " + f.menu().getCarried());
             helper.assertTrue(f.menu().craftSlots().getItem(1).is(Items.OAK_PLANKS) && f.menu().craftSlots().getItem(4).is(Items.OAK_PLANKS),
@@ -96,11 +91,11 @@ public final class CraftingGridGameTests {
     }
 
     /** Shift clicking the result crafts until the crate runs dry. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void gridShiftCraftRefills(GameTestHelper helper) {
         setup(helper, 6, f -> {
             sticksPattern(f.menu(), 1);
-            f.menu().clicked(f.menu().resultIndex(), 0, ClickType.QUICK_MOVE, f.player());
+            f.menu().clicked(f.menu().resultIndex(), 0, ContainerInput.QUICK_MOVE, f.player());
             int sticks = f.player().getInventory().countItem(Items.STICK);
             helper.assertTrue(sticks == 16, "sixteen sticks in the inventory, got " + sticks);
             helper.assertTrue(f.crate().count(0) == 0, "the crate is empty, holds " + f.crate().count(0));
@@ -110,14 +105,14 @@ public final class CraftingGridGameTests {
     }
 
     /** Planks in a Heavy Duty Rack are not used to refill the grid. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void gridSkipsRackStock(GameTestHelper helper) {
         helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.OAK_PLANKS, 32), false);
         setup(helper, 0, f -> {
             sticksPattern(f.menu(), 1);
-            f.menu().clicked(f.menu().resultIndex(), 0, ClickType.QUICK_MOVE, f.player());
+            f.menu().clicked(f.menu().resultIndex(), 0, ContainerInput.QUICK_MOVE, f.player());
             helper.assertTrue(f.player().getInventory().countItem(Items.STICK) == 4, "one craft only");
             helper.assertTrue(gridEmpty(f.menu()), "the grid stays empty");
             helper.assertTrue(rack.items().getStackInSlot(0).getCount() == 32, "the rack keeps its planks");
@@ -126,7 +121,7 @@ public final class CraftingGridGameTests {
     }
 
     /** The clear button moves the grid into the warehouse. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void gridClearStores(GameTestHelper helper) {
         setup(helper, 4, f -> {
             sticksPattern(f.menu(), 1);
@@ -139,7 +134,7 @@ public final class CraftingGridGameTests {
     }
 
     /** Closing the terminal moves the grid into the warehouse. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void gridCloseStores(GameTestHelper helper) {
         setup(helper, 4, f -> {
             f.menu().craftSlots().setItem(0, new ItemStack(Items.OAK_PLANKS, 3));
@@ -151,7 +146,7 @@ public final class CraftingGridGameTests {
     }
 
     /** JEI fill takes from the crate first and from the player inventory for what the warehouse lacks. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void gridFillFromCrateFirst(GameTestHelper helper) {
         setup(helper, 10, f -> {
             f.player().getInventory().add(new ItemStack(Items.OAK_PLANKS, 5));
@@ -173,7 +168,7 @@ public final class CraftingGridGameTests {
     }
 
     /** Alt click puts a stack from instant stock onto the empty cursor. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void gridPullToCursor(GameTestHelper helper) {
         setup(helper, 80, f -> {
             f.menu().pullToCursor(ItemKey.of(new ItemStack(Items.OAK_PLANKS)));

@@ -8,7 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Server to client: the stock of the warehouse behind the open terminal, its
@@ -42,7 +42,7 @@ public record StockSyncPayload(BlockPos terminal, boolean online, String reason,
     }
 
     public static final Type<StockSyncPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "stock_sync"));
+            new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "stock_sync"));
 
     private static final StreamCodec<RegistryFriendlyByteBuf, List<StockEntry>> ENTRIES = StockEntry.STREAM_CODEC.apply(ByteBufCodecs.list());
     private static final StreamCodec<RegistryFriendlyByteBuf, List<RequestRow>> REQUESTS = RequestRow.STREAM_CODEC.apply(ByteBufCodecs.list());

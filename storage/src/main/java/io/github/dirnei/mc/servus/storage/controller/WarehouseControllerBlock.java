@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.controller;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
+import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
@@ -7,10 +10,8 @@ import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,14 +27,14 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 /** Right click with an empty hand opens the site GUI. */
 public class WarehouseControllerBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<WarehouseControllerBlock> CODEC = simpleCodec(WarehouseControllerBlock::new);
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
     public WarehouseControllerBlock(Properties properties) {
         super(properties);
@@ -67,12 +68,12 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem) {
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
@@ -81,7 +82,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
                 && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
             serverPlayer.openMenu(controller, buf -> io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu.writeOpening(buf, controller));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /** The placer's team owns the site; a span carried in the item would point at the old place. */
@@ -106,8 +107,9 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         StorageNodeBlockEntity.neighborsChanged(level, pos);
     }
 
@@ -123,7 +125,7 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
                 if (level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
                     // Upgrades drop on their own; the item carries the name and the rules.
                     controller.upgrades().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
-                    controller.saveToItem(drop, level.registryAccess());
+                    BlockEntityItems.saveToItem(controller, drop, level.registryAccess());
                 }
                 Block.popResource(level, pos, drop);
                 level.removeBlock(pos, false);
@@ -131,6 +133,6 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
                 level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

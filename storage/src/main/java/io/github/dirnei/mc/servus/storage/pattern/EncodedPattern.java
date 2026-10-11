@@ -9,7 +9,7 @@ import java.util.Map;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -23,18 +23,18 @@ import net.minecraft.world.level.Level;
  * @param template nine cells, empty stacks for unused cells, used cells with count 1
  * @param result   what one craft makes
  */
-public record EncodedPattern(ResourceLocation recipe, List<ItemStack> template, ItemStack result) {
+public record EncodedPattern(Identifier recipe, List<ItemStack> template, ItemStack result) {
 
     public static final int GRID = 9;
 
     public static final Codec<EncodedPattern> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("recipe").forGetter(EncodedPattern::recipe),
+            Identifier.CODEC.fieldOf("recipe").forGetter(EncodedPattern::recipe),
             ItemStack.OPTIONAL_CODEC.listOf().fieldOf("template").forGetter(EncodedPattern::template),
             ItemStack.CODEC.fieldOf("result").forGetter(EncodedPattern::result)
     ).apply(instance, EncodedPattern::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, EncodedPattern> STREAM_CODEC = StreamCodec.composite(
-            ResourceLocation.STREAM_CODEC, EncodedPattern::recipe,
+            Identifier.STREAM_CODEC, EncodedPattern::recipe,
             ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list()), EncodedPattern::template,
             ItemStack.STREAM_CODEC, EncodedPattern::result,
             EncodedPattern::new);
@@ -55,8 +55,8 @@ public record EncodedPattern(ResourceLocation recipe, List<ItemStack> template, 
      * Falls back to the plain recipe result, or to {@code fallback} when the
      * recipe is gone.
      */
-    public static ItemStack assembledResult(Level level, ResourceLocation recipe, List<ItemStack> template, ItemStack fallback) {
-        var holder = level.getRecipeManager().byKey(recipe);
+    public static ItemStack assembledResult(Level level, Identifier recipe, List<ItemStack> template, ItemStack fallback) {
+        var holder = level.recipeAccess().byKey(recipe);
         if (holder.isEmpty() || !(holder.get().value() instanceof CraftingRecipe crafting)) {
             return fallback.copy();
         }
@@ -106,7 +106,7 @@ public record EncodedPattern(ResourceLocation recipe, List<ItemStack> template, 
     }
 
     /** Whether the other pattern is the same recipe with the same items. */
-    public boolean sameWork(ResourceLocation otherRecipe, List<ItemKey> otherKeys) {
+    public boolean sameWork(Identifier otherRecipe, List<ItemKey> otherKeys) {
         return recipe.equals(otherRecipe) && TemplateCounts.same(keys(), otherKeys);
     }
 

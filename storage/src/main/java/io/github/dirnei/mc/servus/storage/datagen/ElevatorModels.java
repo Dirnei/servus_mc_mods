@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
 
 /**
  * Datagen for the elevator segment: four corner posts always, and a head with
@@ -18,7 +18,7 @@ final class ElevatorModels {
     }
 
     static void elevator(BlockStateProvider provider, Block block, String name) {
-        ResourceLocation texture = provider.modLoc("block/" + name);
+        Identifier texture = provider.modLoc("block/" + name);
         BlockModelBuilder frame = provider.models().getBuilder(name + "_frame")
                 .texture("particle", texture).texture("skin", texture);
         int[][] posts = {{0, 0}, {14, 0}, {0, 14}, {14, 14}};
@@ -27,7 +27,7 @@ final class ElevatorModels {
                     .allFaces((direction, face) -> face.texture("#skin")).end();
         }
 
-        ResourceLocation headTexture = provider.modLoc("block/" + name + "_head");
+        Identifier headTexture = provider.modLoc("block/" + name + "_head");
         BlockModelBuilder head = provider.models().getBuilder(name + "_head")
                 .texture("particle", texture).texture("skin", texture).texture("head", headTexture);
         // A closed ring of beams over the posts.

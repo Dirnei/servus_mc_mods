@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -28,7 +28,7 @@ final class CropPickerEntries {
     }
 
     /** The menu's stock keyed by id text, as the picker takes it; null stays null. */
-    static Map<String, Long> keyed(Map<ResourceLocation, Long> stock) {
+    static Map<String, Long> keyed(Map<Identifier, Long> stock) {
         if (stock == null) {
             return null;
         }

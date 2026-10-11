@@ -5,13 +5,12 @@ import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import io.github.dirnei.mc.servus.foundation.datagen.LayeredModels;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
@@ -28,8 +27,8 @@ import net.minecraft.core.Direction;
 
 final class ServusStorageBlockStateProvider extends BlockStateProvider {
 
-    ServusStorageBlockStateProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
-        super(output, ServusStorageIds.MOD_ID, existingFileHelper);
+    ServusStorageBlockStateProvider(PackOutput output) {
+        super(output, ServusStorageIds.MOD_ID);
     }
 
     @Override
@@ -76,7 +75,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         Map<String, ModelFile> formed = new HashMap<>();
         for (int part = 0; part < CpuShape.PARTS; part++) {
             for (boolean active : new boolean[] {false, true}) {
-                Map<Direction, ResourceLocation> faces = new EnumMap<>(Direction.class);
+                Map<Direction, Identifier> faces = new EnumMap<>(Direction.class);
                 for (Direction direction : Direction.values()) {
                     String tile = CpuTiles.tile(part, Conversions.toSide(direction)).substring("tile_".length());
                     faces.put(direction, modLoc("block/" + name + (active ? "_active_" : "_idle_") + tile));
@@ -93,8 +92,8 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         simpleBlockItem(block, casing);
     }
 
-    private static Map<Direction, ResourceLocation> allFaces(ResourceLocation texture) {
-        Map<Direction, ResourceLocation> faces = new EnumMap<>(Direction.class);
+    private static Map<Direction, Identifier> allFaces(Identifier texture) {
+        Map<Direction, Identifier> faces = new EnumMap<>(Direction.class);
         for (Direction direction : Direction.values()) {
             faces.put(direction, texture);
         }
@@ -145,8 +144,8 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         ModelFile[] models = new ModelFile[FieldHeadLook.READY + 1];
         ModelFile[] corroded = new ModelFile[FieldHeadLook.READY + 1];
         for (int step = 0; step <= FieldHeadLook.READY; step++) {
-            ResourceLocation side = modLoc("block/" + name + "_side");
-            Map<Direction, ResourceLocation> faces = new EnumMap<>(Direction.class);
+            Identifier side = modLoc("block/" + name + "_side");
+            Map<Direction, Identifier> faces = new EnumMap<>(Direction.class);
             faces.put(Direction.NORTH, modLoc("block/" + name + "_front_" + step));
             faces.put(Direction.SOUTH, side);
             faces.put(Direction.EAST, side);
@@ -208,9 +207,9 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
     }
 
     private ModelFile garageModel(String model, String front) {
-        ResourceLocation side = modLoc("block/shuttle_garage_side");
-        ResourceLocation top = modLoc("block/shuttle_garage_top");
-        Map<Direction, ResourceLocation> faces = new EnumMap<>(Direction.class);
+        Identifier side = modLoc("block/shuttle_garage_side");
+        Identifier top = modLoc("block/shuttle_garage_top");
+        Map<Direction, Identifier> faces = new EnumMap<>(Direction.class);
         faces.put(Direction.DOWN, top);
         faces.put(Direction.UP, top);
         faces.put(Direction.NORTH, modLoc("block/" + front));

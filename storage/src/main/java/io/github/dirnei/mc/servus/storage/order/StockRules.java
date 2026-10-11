@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.order;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +48,7 @@ public final class StockRules {
         ListTag list = new ListTag();
         for (StockRule rule : rules.values()) {
             CompoundTag tag = new CompoundTag();
-            tag.put("Item", rule.key().stack(1).save(registries));
+            tag.put("Item", rule.key().ValueIo.saveStack(registries, stack(1)));
             tag.putInt("Min", rule.min());
             tag.putInt("Max", rule.max());
             list.add(tag);
@@ -59,11 +60,11 @@ public final class StockRules {
 
     public void load(CompoundTag root, HolderLookup.Provider registries) {
         rules.clear();
-        for (Tag element : root.getList("Rules", Tag.TAG_COMPOUND)) {
+        for (Tag element : root.getListOrEmpty("Rules")) {
             CompoundTag tag = (CompoundTag) element;
-            ItemStack stack = ItemStack.parseOptional(registries, tag.getCompound("Item"));
+            ItemStack stack = ValueIo.parseStack(registries, tag.getCompoundOrEmpty("Item"));
             if (!stack.isEmpty()) {
-                StockRule rule = new StockRule(ItemKey.of(stack), tag.getInt("Min"), tag.getInt("Max"));
+                StockRule rule = new StockRule(ItemKey.of(stack), tag.getIntOr("Min", 0), tag.getIntOr("Max", 0));
                 rules.put(rule.key(), rule);
             }
         }

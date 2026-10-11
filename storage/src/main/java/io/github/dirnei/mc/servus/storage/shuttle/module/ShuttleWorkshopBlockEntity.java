@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module;
 
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
@@ -10,9 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -22,7 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * The workshop keeps one shuttle, the supplies for its next tier and the
@@ -35,7 +38,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
     public static final int SUPPLY_SLOTS = 6;
     private static final Component TITLE = Component.translatable("container.servus_storage.shuttle_workshop");
 
-    private final ItemStackHandler shuttle = new ItemStackHandler(1) {
+    private final ItemSlots shuttle = new ItemSlots(1) {
         @Override
         public int getSlotLimit(int slot) {
             return 1;
@@ -57,7 +60,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
         }
     };
 
-    private final ItemStackHandler supplies = new ItemStackHandler(SUPPLY_SLOTS) {
+    private final ItemSlots supplies = new ItemSlots(SUPPLY_SLOTS) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             return !handBuild;
@@ -83,11 +86,11 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
         super(ServusStorageBlockEntities.SHUTTLE_WORKSHOP.get(), pos, state);
     }
 
-    public ItemStackHandler shuttle() {
+    public ItemSlots shuttle() {
         return shuttle;
     }
 
-    public ItemStackHandler supplies() {
+    public ItemSlots supplies() {
         return supplies;
     }
 
@@ -171,7 +174,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
     }
 
     /** Counts the stacks of a supply handler by item id. */
-    public static Map<String, Integer> countSupplies(ItemStackHandler handler) {
+    public static Map<String, Integer> countSupplies(ItemSlots handler) {
         Map<String, Integer> counts = new HashMap<>();
         for (int i = 0; i < handler.getSlots(); i++) {
             ItemStack stack = handler.getStackInSlot(i);
@@ -224,7 +227,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
         if (level == null) {
             return;
         }
-        for (ItemStackHandler handler : List.of(shuttle, supplies)) {
+        for (ItemSlots handler : List.of(shuttle, supplies)) {
             for (int i = 0; i < handler.getSlots(); i++) {
                 ItemStack stack = handler.getStackInSlot(i);
                 if (!stack.isEmpty()) {
@@ -246,24 +249,29 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
         tag.put("Shuttle", shuttle.serializeNBT(registries));
         tag.put("Supplies", supplies.serializeNBT(registries));
-        tag.putBoolean("HandBuild", handBuild);
-        tag.putInt("BuildStep", buildStep);
+        output.putBoolean("HandBuild", handBuild);
+        output.putInt("BuildStep", buildStep);
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
         if (tag.contains("Shuttle")) {
-            shuttle.deserializeNBT(registries, tag.getCompound("Shuttle"));
+            shuttle.deserializeNBT(registries, tag.getCompoundOrEmpty("Shuttle"));
         }
         if (tag.contains("Supplies")) {
-            supplies.deserializeNBT(registries, tag.getCompound("Supplies"));
+            supplies.deserializeNBT(registries, tag.getCompoundOrEmpty("Supplies"));
         }
-        handBuild = tag.getBoolean("HandBuild");
-        buildStep = Math.max(0, tag.getInt("BuildStep"));
+        handBuild = input.getBooleanOr("HandBuild", false);
+        buildStep = Math.max(0, input.getIntOr("BuildStep", 0));
     }
 }

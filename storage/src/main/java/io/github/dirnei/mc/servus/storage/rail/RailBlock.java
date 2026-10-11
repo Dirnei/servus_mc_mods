@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
+import net.minecraft.world.level.ScheduledTickAccess;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
@@ -104,9 +105,9 @@ public class RailBlock extends ConnectableBlock {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
-                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
-        state = super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+        state = super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
         level.scheduleTick(pos, this, 1);
         if (direction.getAxis().isHorizontal()) {
             state = state.setValue(dock(direction), showsDockTo(level, neighborPos, direction));

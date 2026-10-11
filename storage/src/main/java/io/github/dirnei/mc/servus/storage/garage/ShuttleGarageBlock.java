@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.garage;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
@@ -10,7 +12,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -23,7 +24,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
@@ -34,7 +35,7 @@ import io.github.dirnei.mc.servus.foundation.wood.Wood;
 public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<ShuttleGarageBlock> CODEC = simpleCodec(ShuttleGarageBlock::new);
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
     public ShuttleGarageBlock(Properties properties) {
         super(properties);
@@ -72,12 +73,12 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem) {
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
@@ -85,12 +86,13 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ShuttleGarageBlockEntity garage) {
             player.openMenu(garage, pos);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         StorageNodeBlockEntity.neighborsChanged(level, pos);
     }
 
@@ -111,7 +113,7 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
         if (!level.isClientSide()) {
             if (dismantle) {
                 if (occupied(level, pos)) {
-                    player.displayClientMessage(Component.translatable("message.servus_storage.garage.occupied"), true);
+                    player.sendOverlayMessage(Component.translatable("message.servus_storage.garage.occupied"));
                 } else {
                     Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
                     level.removeBlock(pos, false);
@@ -120,6 +122,6 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
                 level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

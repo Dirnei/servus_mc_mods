@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.storage.controller;
 
+import net.minecraft.core.UUIDUtil;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.production.StockProvider;
 import io.github.dirnei.mc.servus.foundation.production.StockSink;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -32,8 +37,7 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /** Exactly one per network makes the warehouse online. Shuttles live in garages. */
 public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity implements WoodHolder, net.minecraft.world.MenuProvider {
@@ -263,36 +267,41 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        woodSlot.save(output);
         tag.put("StockRules", rules.save(registries));
-        tag.putString("SiteName", siteName);
+        output.putString("SiteName", siteName);
         if (team != null) {
-            tag.putUUID("Team", team);
+            tag.store("Team", UUIDUtil.CODEC, team);
         }
         tag.putLongArray("Span", span.stream().mapToLong(Long::longValue).toArray());
         tag.put("ChunkLoaderUpgrades", upgrades.serializeNBT(registries));
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
-        legacyShuttles = tag.getInt("Shuttles");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        woodSlot.load(input);
+        legacyShuttles = input.getIntOr("Shuttles", 0);
         if (tag.contains("StockRules")) {
-            rules.load(tag.getCompound("StockRules"), registries);
+            rules.load(tag.getCompoundOrEmpty("StockRules"), registries);
         }
-        siteName = SiteName.clean(tag.getString("SiteName"));
-        team = tag.hasUUID("Team") ? tag.getUUID("Team") : null;
+        siteName = SiteName.clean(input.getStringOr("SiteName", ""));
+        team = tag.read("Team", UUIDUtil.CODEC).isPresent() ? tag.read("Team", UUIDUtil.CODEC).orElseThrow() : null;
         span.clear();
-        for (long key : tag.getLongArray("Span")) {
+        for (long key : tag.getLongArray("Span").orElse(new long[0])) {
             span.add(key);
         }
         span.add(homeChunk());
         if (tag.contains("ChunkLoaderUpgrades", CompoundTag.TAG_COMPOUND)) {
             ChunkLoaderUpgradeSlots saved = new ChunkLoaderUpgradeSlots(0, null);
-            saved.deserializeNBT(registries, tag.getCompound("ChunkLoaderUpgrades"));
+            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("ChunkLoaderUpgrades"));
             for (int slot = 0; slot < upgrades.getSlots(); slot++) {
                 upgrades.setStackInSlot(slot, slot < saved.getSlots() ? saved.getStackInSlot(slot) : ItemStack.EMPTY);
             }
@@ -319,7 +328,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
     }
@@ -332,9 +341,9 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
     }
 
     @Override

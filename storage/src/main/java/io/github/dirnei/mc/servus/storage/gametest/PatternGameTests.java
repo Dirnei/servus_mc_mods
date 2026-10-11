@@ -1,16 +1,16 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
-import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -27,9 +27,7 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -38,8 +36,6 @@ import net.minecraft.world.level.GameType;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
  * Patterns, Pattern Storage and the Production Terminal's pattern editor.
@@ -48,8 +44,6 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  * terminal at (5,3,2), the CPU cube at x 6 to 8, z 1 to 3, and Pattern
  * Storage on the ducts at (4,3,2) and (3,3,3).
  */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class PatternGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -104,7 +98,7 @@ public final class PatternGameTests {
     }
 
     private static ProductionTerminalMenu menu(GameTestHelper helper, Player player) {
-        ProductionTerminalBlockEntity terminal = helper.getBlockEntity(TERMINAL);
+        ProductionTerminalBlockEntity terminal = helper.getBlockEntity(TERMINAL, ProductionTerminalBlockEntity.class);
         return new ProductionTerminalMenu(1, player.getInventory(), terminal);
     }
 
@@ -132,13 +126,13 @@ public final class PatternGameTests {
     }
 
     /** A Pattern Storage on a data duct is a link member and has the configured slots. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void patternStorageJoinsLine(GameTestHelper helper) {
         setup(helper, false, false);
         TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the Pattern Storage should join the line", () -> {
             helper.assertTrue(line(helper).dataMembers(DataRole.LINK).stream()
                     .anyMatch(member -> member.pos().equals(helper.absolutePos(STORAGE_A))), "it should be a link member");
-            PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A);
+            PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
             helper.assertTrue(storage.capacity() == PatternStorageBlockEntity.slots() && storage.capacity() == 9,
                     "9 slots from the data, got " + storage.capacity());
             helper.succeed();
@@ -146,26 +140,26 @@ public final class PatternGameTests {
     }
 
     /** Pattern Storage keeps patterns as data by place and has no item handler. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void patternStorageKeepsData(GameTestHelper helper) {
         storage(helper, STORAGE_A);
-        PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A);
+        PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
         helper.assertTrue(storage.firstFree() == 0 && storage.usedSlots().isEmpty(), "a new storage is empty");
         storage.set(0, sticksPattern());
         storage.set(2, StationJobs.planks());
         helper.assertTrue(storage.usedSlots().equals(List.of(0, 2)) && storage.firstFree() == 1, "places 0 and 2 are used");
         storage.clear(0);
         helper.assertTrue(storage.pattern(0).isEmpty() && storage.firstFree() == 0, "place 0 is free again");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(STORAGE_A), Direction.UP) == null,
+        helper.assertTrue(ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(STORAGE_A), Direction.UP)) == null,
                 "no item handler");
         helper.succeed();
     }
 
     /** Mining a Pattern Storage drops one item that carries its patterns; placing it restores them. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void patternStorageTravelsWithBlock(GameTestHelper helper) {
         storage(helper, STORAGE_A);
-        PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A);
+        PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
         storage.set(0, sticksPattern());
         storage.set(3, StationJobs.planks());
         BlockPos at = helper.absolutePos(STORAGE_A);
@@ -177,7 +171,7 @@ public final class PatternGameTests {
         helper.assertTrue(item.has(ServusStorageComponents.PATTERNS.get()), "the item carries the patterns");
         helper.setBlock(STORAGE_A, Blocks.AIR.defaultBlockState());
         storage(helper, STORAGE_B);
-        PatternStorageBlockEntity placed = helper.getBlockEntity(STORAGE_B);
+        PatternStorageBlockEntity placed = helper.getBlockEntity(STORAGE_B, PatternStorageBlockEntity.class);
         placed.applyComponentsFromItemStack(item);
         helper.assertTrue(placed.usedSlots().equals(List.of(0, 3))
                         && placed.pattern(0).map(p -> p.result().is(Items.STICK)).orElse(false)
@@ -194,7 +188,7 @@ public final class PatternGameTests {
     }
 
     /** The capacity of a line is the slots of all its Pattern Storages. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void patternCapacityOverTwoBlocks(GameTestHelper helper) {
         setup(helper, false, true);
         TerminalWiring.when(helper, () -> storagesOnLine(helper, 2), 40, () -> "both Pattern Storages should join", () -> {
@@ -205,7 +199,7 @@ public final class PatternGameTests {
     }
 
     /** Saving a new pattern stores it in the first free place without any item. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void patternSaveWithoutItems(GameTestHelper helper) {
         setup(helper, false, true);
         Player player = player(helper);
@@ -228,7 +222,7 @@ public final class PatternGameTests {
     }
 
     /** Saving refuses empty and unmatched grids, a duplicate and a full line. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void patternSaveRefusals(GameTestHelper helper) {
         setup(helper, false, false);
         Player player = player(helper);
@@ -244,7 +238,7 @@ public final class PatternGameTests {
             menu.openNew();
             sticksGrid(menu);
             helper.assertTrue(menu.save().equals("duplicate"), "the same pattern again is a duplicate");
-            PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A);
+            PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
             for (int slot = 1; slot < storage.capacity(); slot++) {
                 storage.set(slot, sticksPattern());
             }
@@ -256,7 +250,7 @@ public final class PatternGameTests {
     }
 
     /** Saving with no Pattern Storage on the line is refused. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void patternSaveNoStorage(GameTestHelper helper) {
         setup(helper, false, false);
         Player player = player(helper);
@@ -273,12 +267,12 @@ public final class PatternGameTests {
     }
 
     /** Editing rewrites a pattern in place; delete removes it and gives nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void patternEditAndDelete(GameTestHelper helper) {
         setup(helper, false, false);
         Player player = player(helper);
         TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
-            PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A);
+            PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
             storage.set(0, sticksPattern());
             ProductionTerminalMenu menu = menu(helper, player);
             helper.assertTrue(menu.openExisting(helper.absolutePos(STORAGE_A), 0), "the pattern should open");
@@ -297,12 +291,12 @@ public final class PatternGameTests {
     }
 
     /** The CPU orders sticks from a pattern any station can run, and not when no station is on the line. */
-    @GameTest(template = EMPTY, timeoutTicks = 80)
+    @ServusGameTest(timeoutTicks = 80)
     public static void patternCpuPlansWithStation(GameTestHelper helper) {
         setup(helper, true, false);
         TerminalWiring.when(helper, () -> storagesOnLine(helper, 1)
                 && CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 60, () -> "storage and CPU should join", () -> {
-            PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A);
+            PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
             storage.set(0, sticksPattern());
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
@@ -323,11 +317,11 @@ public final class PatternGameTests {
     }
 
     /** The terminal view lists the patterns of the line and the capacity. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void patternViewListsPatterns(GameTestHelper helper) {
         setup(helper, false, false);
         TerminalWiring.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
-            PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A);
+            PatternStorageBlockEntity storage = helper.getBlockEntity(STORAGE_A, PatternStorageBlockEntity.class);
             storage.set(2, sticksPattern());
             ProductionPayload view = ProductionView.of(helper.getLevel(), helper.absolutePos(TERMINAL));
             helper.assertTrue(view.patterns().used() == 1 && view.patterns().total() == storage.capacity(),

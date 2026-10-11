@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.order;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -19,11 +20,11 @@ final class Saving {
     }
 
     static CompoundTag key(ItemKey key, HolderLookup.Provider registries) {
-        return (CompoundTag) key.stack(1).save(registries);
+        return (CompoundTag) ValueIo.saveStack(registries, key.stack(1));
     }
 
     static Optional<ItemKey> key(CompoundTag tag, HolderLookup.Provider registries) {
-        ItemStack stack = ItemStack.parseOptional(registries, tag);
+        ItemStack stack = ValueIo.parseStack(registries, tag);
         return stack.isEmpty() ? Optional.empty() : Optional.of(ItemKey.of(stack));
     }
 
@@ -31,7 +32,7 @@ final class Saving {
         ListTag list = new ListTag();
         for (ItemStack stack : stacks) {
             if (!stack.isEmpty()) {
-                list.add(stack.save(registries));
+                list.add(ValueIo.saveStack(registries, stack));
             }
         }
         return list;
@@ -40,7 +41,7 @@ final class Saving {
     static List<ItemStack> stacks(ListTag list, HolderLookup.Provider registries) {
         List<ItemStack> stacks = new ArrayList<>();
         for (Tag raw : list) {
-            ItemStack stack = ItemStack.parseOptional(registries, (CompoundTag) raw);
+            ItemStack stack = ValueIo.parseStack(registries, (CompoundTag) raw);
             if (!stack.isEmpty()) {
                 stacks.add(stack);
             }
@@ -63,7 +64,7 @@ final class Saving {
         Map<ItemKey, Integer> counts = new LinkedHashMap<>();
         for (Tag raw : list) {
             CompoundTag entry = (CompoundTag) raw;
-            key(entry.getCompound("Item"), registries).ifPresent(key -> counts.merge(key, entry.getInt("Count"), Integer::sum));
+            key(entry.getCompoundOrEmpty("Item"), registries).ifPresent(key -> counts.merge(key, entry.getIntOr("Count", 0), Integer::sum));
         }
         return counts;
     }

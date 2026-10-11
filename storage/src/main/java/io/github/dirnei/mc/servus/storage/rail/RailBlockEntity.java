@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
@@ -17,11 +21,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * Connector node: joins the warehouse graph but holds no stock. Remembers the
@@ -31,7 +34,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolder {
 
     private static final String CORROSION = "Corrosion";
-    private static final ResourceLocation FRESH_HEAD = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/farm_rail_head");
+    private static final Identifier FRESH_HEAD = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/farm_rail_head");
 
     private final WoodSlot woodSlot = new WoodSlot(this);
     /** The corrosion stage of a farm rail, {@link FieldCorrosion#LOOSE} until it joins a field. */
@@ -47,17 +50,18 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolde
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
-        tag.putInt(CORROSION, corrosion);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        woodSlot.save(output);
+        output.putInt(CORROSION, corrosion);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
-        int loaded = tag.contains(CORROSION) ? Math.max(FieldCorrosion.LOOSE, Math.min(FieldCorrosion.CORRODED, tag.getInt(CORROSION)))
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        woodSlot.load(input);
+        int loaded = tag.contains(CORROSION) ? Math.max(FieldCorrosion.LOOSE, Math.min(FieldCorrosion.CORRODED, input.getIntOr(CORROSION, 0)))
                 : FieldCorrosion.LOOSE;
         boolean changed = loaded != corrosion;
         corrosion = loaded;
@@ -107,7 +111,7 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolde
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
     }
@@ -120,9 +124,9 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolde
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
     }
 
     /** The wood, and from exposed on the head texture of the stage in place of the fresh copper. */
@@ -131,7 +135,7 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements WoodHolde
         if (corrosion <= FieldCorrosion.COPPER) {
             return woodSlot.modelData();
         }
-        ResourceLocation stageHead = FRESH_HEAD.withSuffix("_" + FieldCorrosion.name(corrosion));
+        Identifier stageHead = FRESH_HEAD.withSuffix("_" + FieldCorrosion.name(corrosion));
         return ModelData.builder().with(Wood.PROPERTY, woodSlot.wood()).with(Wood.SWAPS, Map.of(FRESH_HEAD, stageHead)).build();
     }
 }

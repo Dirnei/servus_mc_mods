@@ -37,7 +37,7 @@ public class HeavyRackRenderer implements BlockEntityRenderer<HeavyRackBlockEnti
             return;
         }
         Direction facing = rack.getBlockState().getValue(HeavyRackBlock.FACING);
-        int light = LevelRenderer.getLightColor(rack.getLevel(), rack.getBlockPos());
+        int light = LevelRenderer.getLightCoords(rack.getLevel(), rack.getBlockPos());
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.0, 0.5);

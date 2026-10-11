@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -28,7 +28,7 @@ public final class CraftingGrid {
         if (cells.stream().allMatch(ItemStack::isEmpty)) {
             return Optional.empty();
         }
-        return level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, cells), level);
+        return level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, cells), level);
     }
 
     /** "2 Oak Planks, 1 Coal" for a list of stacks with counts. */
@@ -44,8 +44,8 @@ public final class CraftingGrid {
     }
 
     /** The template laid out by a vanilla crafting recipe, one ingredient item per cell, for the recipe viewer. */
-    public static Optional<List<ItemStack>> templateOf(Level level, ResourceLocation id) {
-        Optional<RecipeHolder<?>> holder = level.getRecipeManager().byKey(id);
+    public static Optional<List<ItemStack>> templateOf(Level level, Identifier id) {
+        Optional<RecipeHolder<?>> holder = level.recipeAccess().byKey(id);
         if (holder.isEmpty() || !(holder.get().value() instanceof CraftingRecipe recipe)) {
             return Optional.empty();
         }

@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
  * Requests of a Storage Terminal on the data line: shipped by the reachable
@@ -271,7 +270,7 @@ public final class TerminalRequests {
             if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
                     && point.isSending(tracked.shipmentId())) {
                 // Packets that find no room wait at the terminal.
-                boolean fits = ItemHandlerHelper.insertItemStacked(terminal.output(), request.key.stack(1), true).isEmpty();
+                boolean fits = terminal.output().insertItemStacked(request.key.stack(1), true).isEmpty();
                 return fits ? RequestState.SENDING : RequestState.WAITING_ROOM;
             }
         }

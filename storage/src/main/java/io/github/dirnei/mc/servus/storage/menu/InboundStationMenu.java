@@ -19,7 +19,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /** The station's buffer and the player inventory; the state line comes along as a payload. */
@@ -47,7 +47,7 @@ public class InboundStationMenu extends AbstractContainerMenu {
         this.access = ContainerLevelAccess.create(station.getLevel(), station.getBlockPos());
         this.bufferSlots = station.buffer().getSlots();
         for (int slot = 0; slot < bufferSlots; slot++) {
-            addSlot(new SlotItemHandler(station.buffer(), slot, 8 + (slot % COLUMNS) * 18, BUFFER_Y + (slot / COLUMNS) * 18));
+            addSlot(new ResourceHandlerSlot(station.buffer(), station.buffer()::set, slot, 8 + (slot % COLUMNS) * 18, BUFFER_Y + (slot / COLUMNS) * 18));
         }
         inventoryStart = slots.size();
         for (int row = 0; row < 3; row++) {

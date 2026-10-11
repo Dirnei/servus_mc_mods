@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.packing;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.data.packet.RateBudget;
@@ -30,16 +34,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * The warehouse's door to the data line and its only throughput limit. Items
@@ -100,7 +102,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     private record SavedShipment(long id, BlockPos target, ItemKey key) {
     }
 
-    private final ItemStackHandler outgoing = new ItemStackHandler(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
+    private final ItemSlots outgoing = new ItemSlots(StorageStatsManager.INSTANCE.inboundBufferSlots()) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -114,7 +116,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     private ServerLevel shippingLevel;
     private Shipment runningFor;
     private int sendTimer;
-    private final IItemHandler[] faces = new IItemHandler[6];
+    private final ItemView[] faces = new ItemView[6];
     private final RateBudget toStorage = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
     private final RateBudget toNetwork = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
     private final UpgradeSlots upgrades = new UpgradeSlots(StorageStatsManager.INSTANCE.packingUpgradeSlots(), this::setChanged);
@@ -129,11 +131,11 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     @Override
-    public ItemStackHandler deliveries() {
+    public ItemSlots deliveries() {
         return outgoing;
     }
 
-    public ItemStackHandler outgoing() {
+    public ItemSlots outgoing() {
         return outgoing;
     }
 
@@ -143,11 +145,11 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
      * face, so a producer that pushes its outputs in on its own is counted.
      */
     @Override
-    public IItemHandler handlerFor(Direction side) {
+    public ItemView handlerFor(Direction side) {
         if (side == null) {
             return intake();
         }
-        IItemHandler handler = faces[side.ordinal()];
+        ItemView handler = faces[side.ordinal()];
         if (handler == null) {
             handler = new PushCredit(side);
             faces[side.ordinal()] = handler;
@@ -156,7 +158,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     /** The intake seen through one face; real inserts are credited to the neighbour's running step. */
-    private final class PushCredit implements IItemHandler {
+    private final class PushCredit extends LegacyItemHandler {
 
         private final Direction side;
 
@@ -277,7 +279,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             return 0;
         }
         ItemStack probe = key.stack(max);
-        return max - ItemHandlerHelper.insertItemStacked(outgoing, probe, true).getCount();
+        return max - outgoing.insertItemStacked(probe, true).getCount();
     }
 
     // Menu
@@ -506,7 +508,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             if (stack.isEmpty() || wanted(ItemKey.of(stack))) {
                 continue;
             }
-            ItemStack left = ItemHandlerHelper.insertItemStacked(buffer(), stack.copy(), false);
+            ItemStack left = buffer().insertItemStacked(stack.copy(), false);
             outgoing.setStackInSlot(slot, left);
         }
     }
@@ -598,8 +600,10 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     // Persistence
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
         tag.put("Outgoing", outgoing.serializeNBT(registries));
         tag.put("Upgrades", upgrades.serializeNBT(registries));
         ListTag list = new ListTag();
@@ -612,33 +616,36 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             list.add(savedShipment(saved.id(), saved.target(), saved.key(), registries));
         }
         tag.put("Shipments", list);
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
         if (tag.contains("Outgoing")) {
-            ItemStackHandler saved = new ItemStackHandler();
-            saved.deserializeNBT(registries, tag.getCompound("Outgoing"));
+            ItemSlots saved = new ItemSlots();
+            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Outgoing"));
             for (int i = 0; i < outgoing.getSlots(); i++) {
                 outgoing.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         }
         if (tag.contains("Upgrades")) {
-            ItemStackHandler saved = new ItemStackHandler();
-            saved.deserializeNBT(registries, tag.getCompound("Upgrades"));
+            ItemSlots saved = new ItemSlots();
+            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Upgrades"));
             for (int i = 0; i < upgrades.getSlots(); i++) {
                 upgrades.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         }
         shipments.clear();
         unresolved.clear();
-        for (Tag raw : tag.getList("Shipments", Tag.TAG_COMPOUND)) {
+        for (Tag raw : tag.getListOrEmpty("Shipments")) {
             CompoundTag entry = (CompoundTag) raw;
-            Optional<BlockPos> target = NbtUtils.readBlockPos(entry, "Target");
-            ItemStack item = ItemStack.parseOptional(registries, entry.getCompound("Item"));
+            Optional<BlockPos> target = ValueIo.readPos(entry, "Target");
+            ItemStack item = ValueIo.parseStack(registries, entry.getCompoundOrEmpty("Item"));
             if (target.isPresent() && !item.isEmpty() && entry.contains("Id")) {
-                unresolved.add(new SavedShipment(entry.getLong("Id"), target.get(), ItemKey.of(item)));
+                unresolved.add(new SavedShipment(entry.getLongOr("Id", 0L), target.get(), ItemKey.of(item)));
             }
         }
     }
@@ -646,8 +653,8 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     private static CompoundTag savedShipment(long id, BlockPos target, ItemKey key, HolderLookup.Provider registries) {
         CompoundTag entry = new CompoundTag();
         entry.putLong("Id", id);
-        entry.put("Target", NbtUtils.writeBlockPos(target));
-        entry.put("Item", key.stack(1).save(registries));
+        entry.put("Target", ValueIo.posTag(target));
+        entry.put("Item", ValueIo.saveStack(registries, key.stack(1)));
         return entry;
     }
 }

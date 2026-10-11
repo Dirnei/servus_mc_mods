@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.field.ChooseFertilizerPayload;
 import io.github.dirnei.mc.servus.storage.field.ChooseFieldCropPayload;
@@ -18,17 +23,16 @@ import java.util.Map;
 import java.util.Optional;
 import io.github.dirnei.mc.servus.storage.picker.PickerList;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The Field Head GUI in four tabs on the left edge, drawn like the Utility
@@ -41,8 +45,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     /** The plain panel of the garage GUI; slot frames and bars are drawn on it. */
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/shuttle_garage.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/shuttle_garage.png");
     private static final int MARGIN = 8;
     private static final int WIDTH = 160;
     private static final int COLOUR_TEXT = 0x404040;
@@ -93,19 +97,17 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private final ItemPicker picker;
     private final ItemPicker fertilizerPicker;
     /** The fertilizer stock map last handed to its picker. */
-    private Map<ResourceLocation, Long> fertilizerPickerStock;
+    private Map<Identifier, Long> fertilizerPickerStock;
     private final List<Button> modeButtons = new ArrayList<>();
     private final List<Button> reserveButtons = new ArrayList<>();
     private Button fertilizeDown;
     private Button fertilizeUp;
     /** The stock map last handed to the picker, to hand it over only when the menu got a new one. */
-    private Map<ResourceLocation, Long> pickerStock;
+    private Map<Identifier, Long> pickerStock;
     private Button up;
 
     public FieldHeadScreen(FieldHeadMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 178;
+        super(menu, playerInventory, title, 176, 178);
         this.picker = new ItemPicker(Component.translatable("gui.servus_storage.field_head.crop_picker"), this::choose);
         picker.setEntries(CropPickerEntries.build());
         picker.setZeroHint(Component.translatable("gui.servus_storage.field_head.crop_no_stock"));
@@ -116,8 +118,8 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     /** Sends the picked fertilizer, or Off for the none entry, to the server. */
     private void chooseFertilizer(ItemPicker.Entry entry) {
-        Optional<ResourceLocation> fertilizer = entry.isNone() ? Optional.empty() : Optional.ofNullable(ResourceLocation.tryParse(entry.id()));
-        PacketDistributor.sendToServer(new ChooseFertilizerPayload(fertilizer));
+        Optional<Identifier> fertilizer = entry.isNone() ? Optional.empty() : Optional.ofNullable(Identifier.tryParse(entry.id()));
+        ClientPacketDistributor.sendToServer(new ChooseFertilizerPayload(fertilizer));
     }
 
     /** The picker of the shown page, null on pages without one. */
@@ -139,8 +141,8 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     /** Sends the picked crop, or harvest only for the none entry, to the server. */
     private void choose(ItemPicker.Entry entry) {
-        Optional<ResourceLocation> crop = entry.isNone() ? Optional.empty() : Optional.ofNullable(ResourceLocation.tryParse(entry.id()));
-        PacketDistributor.sendToServer(new ChooseFieldCropPayload(crop));
+        Optional<Identifier> crop = entry.isNone() ? Optional.empty() : Optional.ofNullable(Identifier.tryParse(entry.id()));
+        ClientPacketDistributor.sendToServer(new ChooseFieldCropPayload(crop));
     }
 
     /** Hands the head's crop and the menu's stock to the picker. */
@@ -286,7 +288,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         };
     }
 
-    private void renderTabs(GuiGraphics graphics) {
+    private void renderTabs(GuiGraphicsExtractor graphics) {
         for (Page page : Page.VALUES) {
             boolean selected = page == menu.page();
             boolean problem = problem(page) != null;
@@ -299,14 +301,14 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             if (problem) {
                 graphics.fill(x + 1, y + 1, x + 3, y + TAB_HEIGHT - 1, COLOUR_PROBLEM);
             }
-            graphics.renderFakeItem(icon(page), x + 6, y + 5);
+            graphics.fakeItem(icon(page), x + 6, y + 5);
         }
     }
 
     // Rendering
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         Page page = menu.page();
         boolean serving = serving();
         down.visible = page == Page.FIELD && serving;
@@ -333,13 +335,13 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             open.renderTooltip(graphics, font, mouseX, mouseY);
             return;
         }
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         ItemPicker shown = pagePicker();
         if (shown != null && shown.renderTooltip(graphics, font, mouseX, mouseY)) {
             return;
         }
         if (fertilizerPage && inside(mouseX, mouseY, MARGIN, RESERVE_Y, RESERVE_X[0] - MARGIN, 11)) {
-            graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.reserve_tooltip"), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_storage.field_head.reserve_tooltip"), mouseX, mouseY);
             return;
         }
         Page hovered = tabAt(mouseX, mouseY);
@@ -350,26 +352,25 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             if (problem != null) {
                 lines.add(problem.copy().withColor(COLOUR_PROBLEM & 0xFFFFFF));
             }
-            graphics.renderComponentTooltip(font, lines, mouseX, mouseY);
+            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
             return;
         }
         if (page == Page.FIELD && serving && inside(mouseX, mouseY, RIPE_X, RIPE_Y, RIPE_W, RIPE_H)) {
-            graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.ripe_tooltip",
+            graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_storage.field_head.ripe_tooltip",
                     menu.ripe(), menu.planted(), percent(menu.ripe(), menu.planted()), menu.threshold()), mouseX, mouseY);
         }
         if (page == Page.WATER && inside(mouseX, mouseY, MARGIN, BAR_Y, WIDTH, BAR_H)) {
-            graphics.renderComponentTooltip(font, List.of(
+            graphics.setComponentTooltipForNextFrame(font, List.of(
                     Component.translatable("gui.servus_storage.field_head.water", menu.water(), menu.capacity()),
                     Component.translatable(menu.hydrated() ? "gui.servus_storage.field_head.hydrated" : "gui.servus_storage.field_head.dry")),
                     mouseX, mouseY);
         }
         if (page == Page.UPGRADES && emptySlotHovered(FieldHeadMenu.RANGE_SLOT, mouseX, mouseY)) {
-            graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.range_slot", menu.radius()), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_storage.field_head.range_slot", menu.radius()), mouseX, mouseY);
         }
         if (page == Page.WATER && emptySlotHovered(FieldHeadMenu.ANTI_CORROSION_SLOT, mouseX, mouseY)) {
-            graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.anti_corrosion_slot"), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_storage.field_head.anti_corrosion_slot"), mouseX, mouseY);
         }
-        renderTooltip(graphics, mouseX, mouseY);
     }
 
     private boolean inside(int mouseX, int mouseY, int x, int y, int width, int height) {
@@ -384,9 +385,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         renderTabs(graphics);
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
         switch (menu.page()) {
             case FIELD -> {
                 picker.renderButton(graphics, font, mouseX, mouseY);
@@ -425,7 +427,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         return planted <= 0 ? 0 : 100 * ripe / planted;
     }
 
-    private static void sunken(GuiGraphics graphics, int x, int y, int width, int height) {
+    private static void sunken(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
         graphics.fill(x, y, x + width, y + height, 0xFF8B8B8B);
         graphics.fill(x, y, x + width, y + 1, PANEL_DARK);
         graphics.fill(x, y, x + 1, y + height, PANEL_DARK);
@@ -434,8 +436,8 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        super.renderLabels(graphics, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractLabels(graphics, mouseX, mouseY);
         switch (menu.page()) {
             case FIELD -> renderFieldLabels(graphics);
             case WATER -> renderWaterLabels(graphics);
@@ -444,12 +446,12 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
     }
 
-    private void renderFertilizerLabels(GuiGraphics graphics) {
-        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.reserve"), MARGIN, RESERVE_Y + 2, COLOUR_TEXT, false);
+    private void renderFertilizerLabels(GuiGraphicsExtractor graphics) {
+        graphics.text(font, Component.translatable("gui.servus_storage.field_head.reserve"), MARGIN, RESERVE_Y + 2, COLOUR_TEXT, false);
         String reserve = String.valueOf(menu.reserve());
-        graphics.drawString(font, reserve, RESERVE_TEXT_X + (RESERVE_TEXT_W - font.width(reserve)) / 2, RESERVE_Y + 2, COLOUR_TEXT, false);
+        graphics.text(font, reserve, RESERVE_TEXT_X + (RESERVE_TEXT_W - font.width(reserve)) / 2, RESERVE_Y + 2, COLOUR_TEXT, false);
         if (menu.fertilizeMode() == FertilizeMode.UNTIL_RIPE) {
-            graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.fertilize_at", menu.fertilizePercent()),
+            graphics.text(font, Component.translatable("gui.servus_storage.field_head.fertilize_at", menu.fertilizePercent()),
                     MARGIN, FERTILIZE_Y + 2, COLOUR_TEXT, false);
         }
         if (!serving()) {
@@ -463,13 +465,13 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
     }
 
-    private void renderFieldLabels(GuiGraphics graphics) {
+    private void renderFieldLabels(GuiGraphicsExtractor graphics) {
         if (!serving()) {
             wrapped(graphics, statusLine(), RIPE_Y, COLOUR_WARN);
             return;
         }
-        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.ripe", menu.ripe(), menu.planted()), MARGIN, RIPE_Y, COLOUR_TEXT, false);
-        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.harvest_at", menu.threshold()), MARGIN, THRESHOLD_Y, COLOUR_TEXT, false);
+        graphics.text(font, Component.translatable("gui.servus_storage.field_head.ripe", menu.ripe(), menu.planted()), MARGIN, RIPE_Y, COLOUR_TEXT, false);
+        graphics.text(font, Component.translatable("gui.servus_storage.field_head.harvest_at", menu.threshold()), MARGIN, THRESHOLD_Y, COLOUR_TEXT, false);
         FieldWork work = menu.work();
         if (work != null) {
             int colour = switch (work) {
@@ -480,11 +482,11 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         }
     }
 
-    private void renderWaterLabels(GuiGraphics graphics) {
-        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.water", menu.water(), menu.capacity()), MARGIN, WATER_Y, COLOUR_TEXT, false);
+    private void renderWaterLabels(GuiGraphicsExtractor graphics) {
+        graphics.text(font, Component.translatable("gui.servus_storage.field_head.water", menu.water(), menu.capacity()), MARGIN, WATER_Y, COLOUR_TEXT, false);
         if (serving()) {
             boolean hydrated = menu.hydrated();
-            graphics.drawString(font, Component.translatable(hydrated ? "gui.servus_storage.field_head.hydrated" : "gui.servus_storage.field_head.dry"),
+            graphics.text(font, Component.translatable(hydrated ? "gui.servus_storage.field_head.hydrated" : "gui.servus_storage.field_head.dry"),
                     MARGIN, HYDRATED_Y, hydrated ? COLOUR_DUE : COLOUR_WARN, false);
         }
         int stage = menu.corrosion();
@@ -493,31 +495,34 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                     ? Component.translatable("gui.servus_storage.field_head.corroded")
                     : Component.translatable("gui.servus_storage.field_head.corrosion",
                             Component.translatable("gui.servus_storage.field_head.stage." + FieldCorrosion.name(stage)), menu.corrosionProgress());
-            graphics.drawString(font, corrosion, CORROSION_TEXT_X, FieldHeadMenu.ANTI_CORROSION_Y + 4,
+            graphics.text(font, corrosion, CORROSION_TEXT_X, FieldHeadMenu.ANTI_CORROSION_Y + 4,
                     stage == FieldCorrosion.CORRODED ? COLOUR_WARN : COLOUR_TEXT, false);
         }
     }
 
-    private void renderUpgradeLabels(GuiGraphics graphics) {
-        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.radius", menu.radius()),
+    private void renderUpgradeLabels(GuiGraphicsExtractor graphics) {
+        graphics.text(font, Component.translatable("gui.servus_storage.field_head.radius", menu.radius()),
                 RADIUS_TEXT_X, FieldHeadMenu.RANGE_Y + 4, COLOUR_TEXT, false);
         if (!serving()) {
             wrapped(graphics, statusLine(), SIZE_Y, COLOUR_WARN);
             return;
         }
-        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.size", menu.rails(), menu.plots()), MARGIN, SIZE_Y, COLOUR_TEXT, false);
+        graphics.text(font, Component.translatable("gui.servus_storage.field_head.size", menu.rails(), menu.plots()), MARGIN, SIZE_Y, COLOUR_TEXT, false);
     }
 
     /** Draws a line wrapped to the panel width, at most two rows. */
-    private void wrapped(GuiGraphics graphics, Component text, int y, int colour) {
+    private void wrapped(GuiGraphicsExtractor graphics, Component text, int y, int colour) {
         List<FormattedCharSequence> rows = font.split(text, WIDTH);
         for (int i = 0; i < Math.min(2, rows.size()); i++) {
-            graphics.drawString(font, rows.get(i), MARGIN, y + i * 9, colour, false);
+            graphics.text(font, rows.get(i), MARGIN, y + i * 9, colour, false);
         }
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         ItemPicker open = openPicker();
         if (open != null) {
             return open.mouseClicked(mouseX, mouseY, button);
@@ -531,19 +536,25 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         if (shown != null && shown.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         ItemPicker open = openPicker();
-        return open != null && open.mouseDragged(mouseX, mouseY) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return open != null && open.mouseDragged(mouseX, mouseY) || super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         ItemPicker open = openPicker();
-        return open != null && open.mouseReleased() || super.mouseReleased(mouseX, mouseY, button);
+        return open != null && open.mouseReleased() || super.mouseReleased(event);
     }
 
     @Override
@@ -553,14 +564,19 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
         ItemPicker open = openPicker();
-        return open != null && open.keyPressed(keyCode, scanCode, modifiers) || super.keyPressed(keyCode, scanCode, modifiers);
+        return open != null && open.keyPressed(keyCode, scanCode, modifiers) || super.keyPressed(event);
     }
 
     @Override
-    public boolean charTyped(char codePoint, int modifiers) {
+    public boolean charTyped(CharacterEvent event) {
+        char codePoint = (char) event.codepoint();
+        int modifiers = 0;
         ItemPicker open = openPicker();
-        return open != null && open.charTyped(codePoint, modifiers) || super.charTyped(codePoint, modifiers);
+        return open != null && open.charTyped(codePoint, modifiers) || super.charTyped(event);
     }
 }

@@ -16,7 +16,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
  * Inputs, the job area and outputs above the player inventory. The job comes
@@ -56,11 +56,11 @@ public class CraftingStationMenu extends AbstractContainerMenu {
         this.access = ContainerLevelAccess.create(station.getLevel(), station.getBlockPos());
         inputsStart = slots.size();
         for (int i = 0; i < CraftingStationBlockEntity.INPUT_SLOTS; i++) {
-            addSlot(new SlotItemHandler(station.inputs(), i, INPUTS_X + (i % 3) * 18, INPUTS_Y + (i / 3) * 18));
+            addSlot(new ResourceHandlerSlot(station.inputs(), station.inputs()::set, i, INPUTS_X + (i % 3) * 18, INPUTS_Y + (i / 3) * 18));
         }
         outputsStart = slots.size();
         for (int i = 0; i < CraftingStationBlockEntity.OUTPUT_SLOTS; i++) {
-            addSlot(new SlotItemHandler(station.outputs(), i, OUTPUTS_X + (i % 2) * 18, OUTPUTS_Y + (i / 2) * 18) {
+            addSlot(new ResourceHandlerSlot(station.outputs(), station.outputs()::set, i, OUTPUTS_X + (i % 2) * 18, OUTPUTS_Y + (i / 2) * 18) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return false;

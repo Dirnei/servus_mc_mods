@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.garage;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
@@ -23,7 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
@@ -31,8 +35,7 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * Keeps shuttles as items, one per slot, and sends them out through its
@@ -43,7 +46,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
 
     private final WoodSlot woodSlot = new WoodSlot(this);
 
-    private final ItemStackHandler shuttles = new ItemStackHandler(StorageStatsManager.INSTANCE.garageCapacity()) {
+    private final ItemSlots shuttles = new ItemSlots(StorageStatsManager.INSTANCE.garageCapacity()) {
         @Override
         public int getSlotLimit(int slot) {
             return 1;
@@ -99,7 +102,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     }
 
     /** The shuttle items, one slot per place. */
-    public ItemStackHandler shuttles() {
+    public ItemSlots shuttles() {
         return shuttles;
     }
 
@@ -189,27 +192,32 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     // Persistence
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        woodSlot.save(output);
         tag.put("ShuttleItems", shuttles.serializeNBT(registries));
-        tag.putBoolean("Active", active);
+        output.putBoolean("Active", active);
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
-        active = !tag.contains("Active") || tag.getBoolean("Active");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        woodSlot.load(input);
+        active = !tag.contains("Active") || input.getBooleanOr("Active", false);
         if (tag.contains("ShuttleItems")) {
-            ItemStackHandler saved = new ItemStackHandler();
-            saved.deserializeNBT(registries, tag.getCompound("ShuttleItems"));
+            ItemSlots saved = new ItemSlots();
+            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("ShuttleItems"));
             for (int i = 0; i < shuttles.getSlots(); i++) {
                 shuttles.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         } else if (tag.contains("Shuttles")) {
             // Older saves kept a plain count.
-            int count = Math.min(tag.getInt("Shuttles"), shuttles.getSlots());
+            int count = Math.min(input.getIntOr("Shuttles", 0), shuttles.getSlots());
             for (int i = 0; i < count; i++) {
                 shuttles.setStackInSlot(i, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
             }
@@ -236,7 +244,7 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
     }
@@ -249,9 +257,9 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
     }
 
     @Override

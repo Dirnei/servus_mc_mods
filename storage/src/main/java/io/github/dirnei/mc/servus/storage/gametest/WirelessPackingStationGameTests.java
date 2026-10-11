@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
@@ -13,7 +13,6 @@ import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.site.RemoteSite;
 import io.github.dirnei.mc.servus.storage.site.SiteChunks;
 import io.github.dirnei.mc.servus.storage.site.SiteRecord;
@@ -31,7 +30,6 @@ import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
@@ -40,8 +38,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
  * Two sites in one test area, linked by Wireless Packing Stations of one team:
@@ -49,8 +45,6 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  * data line, a Wireless Packing Station) and site B (controller, crate with
  * iron, rails, a Wireless Packing Station), six blocks apart.
  */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class WirelessPackingStationGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -77,7 +71,7 @@ public final class WirelessPackingStationGameTests {
     private static WarehouseControllerBlockEntity controller(GameTestHelper helper, BlockPos pos, UUID team) {
         helper.setBlock(pos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(pos);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
         controller.setTeam(team);
         return controller;
     }
@@ -89,7 +83,7 @@ public final class WirelessPackingStationGameTests {
 
     private static WirelessPackingStationBlockEntity wireless(GameTestHelper helper, BlockPos pos, UUID team) {
         helper.setBlock(pos, ServusStorageBlocks.WIRELESS_PACKING_STATION.get().defaultBlockState());
-        WirelessPackingStationBlockEntity station = helper.getBlockEntity(pos);
+        WirelessPackingStationBlockEntity station = helper.getBlockEntity(pos, WirelessPackingStationBlockEntity.class);
         station.setTeam(team);
         return station;
     }
@@ -142,7 +136,7 @@ public final class WirelessPackingStationGameTests {
     }
 
     /** A data duct beside the station shows no arm and the station is no member. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void wirelessStationIsNoDataMember(GameTestHelper helper) {
         WirelessPackingStationBlockEntity station = wireless(helper, A_WIRELESS, UUID.randomUUID());
         TerminalWiring.dataDuct(helper, A_WIRELESS.above());
@@ -157,7 +151,7 @@ public final class WirelessPackingStationGameTests {
     }
 
     /** Iron leaves the outpost's crate, arrives in the base's crate, and the base pays 5 FE per item. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void transferMovesItemsAndCostsEnergy(GameTestHelper helper) {
         Sites sites = sites(helper, null);
         sites.wirelessA().setEnergy(1000);
@@ -180,7 +174,7 @@ public final class WirelessPackingStationGameTests {
     }
 
     /** Without FE at the receiver nothing moves and the stations say why; FE lets it through. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void noPowerNoTransfer(GameTestHelper helper) {
         Sites sites = sites(helper, null);
         helper.runAfterDelay(10, () -> {
@@ -199,7 +193,7 @@ public final class WirelessPackingStationGameTests {
     }
 
     /** A station of another team is no wireless line for this team. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void otherTeamRefused(GameTestHelper helper) {
         Sites sites = sites(helper, UUID.randomUUID());
         helper.runAfterDelay(10, () -> {
@@ -214,7 +208,7 @@ public final class WirelessPackingStationGameTests {
     }
 
     /** The terminal lists the outpost, shows its live stock, a sleeping site's last known stock, and refuses an unreachable one. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void terminalListsSitesAndRemoteStock(GameTestHelper helper) {
         Sites sites = sites(helper, null);
         ServerLevel level = helper.getLevel();
@@ -255,7 +249,7 @@ public final class WirelessPackingStationGameTests {
     }
 
     /** A request on the outpost becomes a transfer: listed, put away at the base, then gone. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void remoteRequestArrivesInStorage(GameTestHelper helper) {
         Sites sites = sites(helper, null);
         sites.wirelessA().setEnergy(10000);
@@ -280,7 +274,7 @@ public final class WirelessPackingStationGameTests {
     }
 
     /** A sleeping site that can wake is held awake while its transfer waits; cancelling lets it sleep. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void wakeableSiteHeldForRequest(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(20);
         Sites sites = sites(helper, null);
@@ -312,7 +306,7 @@ public final class WirelessPackingStationGameTests {
     }
 
     /** A request for this site's own stock still goes through the Packing Station on the data line. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void dataShipmentIgnoresWirelessStation(GameTestHelper helper) {
         Sites sites = sites(helper, null);
         sites.crateA().insert(new ItemStack(Items.COBBLESTONE, 24), false);

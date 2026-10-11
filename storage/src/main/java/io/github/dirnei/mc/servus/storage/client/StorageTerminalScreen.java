@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.terminal.AmountSteps;
@@ -27,7 +30,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -37,10 +40,9 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -181,7 +183,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         craftButton = addRenderableWidget(Button.builder(Component.empty(), b -> togglePopup())
                 .bounds(leftPos + craftRect.x(), topPos + craftRect.y(), craftRect.w(), craftRect.h())
                 .tooltip(Tooltip.create(Component.translatable("gui.servus_storage.terminal.craft_button_hint"))).build());
-        clearButton = addRenderableWidget(Button.builder(Component.literal("x"), b -> PacketDistributor.sendToServer(GridClearPayload.INSTANCE))
+        clearButton = addRenderableWidget(Button.builder(Component.literal("x"), b -> ClientPacketDistributor.sendToServer(GridClearPayload.INSTANCE))
                 .bounds(leftPos + Storage.CLEAR.x(), topPos + Storage.CLEAR.y(), Storage.CLEAR.w(), Storage.CLEAR.h())
                 .tooltip(Tooltip.create(Component.translatable("gui.servus_storage.terminal.clear_grid"))).build());
 
@@ -253,7 +255,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             return;
         }
         popupOpen = false;
-        PacketDistributor.sendToServer(GridClearPayload.INSTANCE);
+        ClientPacketDistributor.sendToServer(GridClearPayload.INSTANCE);
         applyDialog();
     }
 
@@ -452,7 +454,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         int wanted = enteredAmount();
         if (wanted > 0 && wanted != askedAmount) {
             askedAmount = wanted;
-            PacketDistributor.sendToServer(new CraftPreviewRequestPayload(subject, wanted));
+            ClientPacketDistributor.sendToServer(new CraftPreviewRequestPayload(subject, wanted));
         }
     }
 
@@ -470,7 +472,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         switch (dialog) {
             case REQUEST -> {
                 if (wanted > 0) {
-                    PacketDistributor.sendToServer(new RequestItemPayload(subject, wanted));
+                    ClientPacketDistributor.sendToServer(new RequestItemPayload(subject, wanted));
                 }
             }
             case RULE -> {
@@ -480,14 +482,14 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 } catch (NumberFormatException e) {
                     max = wanted;
                 }
-                PacketDistributor.sendToServer(new SetStockRulePayload(subject, wanted, max));
+                ClientPacketDistributor.sendToServer(new SetStockRulePayload(subject, wanted, max));
             }
             case CRAFT -> {
                 CraftPreviewPayload preview = currentPreview();
                 if (preview == null || !preview.startable()) {
                     return;
                 }
-                PacketDistributor.sendToServer(new CraftStartPayload(subject, wanted));
+                ClientPacketDistributor.sendToServer(new CraftStartPayload(subject, wanted));
             }
             default -> {
             }
@@ -497,7 +499,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     private void removeRule() {
         if (!subject.isEmpty()) {
-            PacketDistributor.sendToServer(new SetStockRulePayload(subject, -1, -1));
+            ClientPacketDistributor.sendToServer(new SetStockRulePayload(subject, -1, -1));
         }
         closeDialog();
     }
@@ -509,7 +511,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     private static TerminalSort.Key key(Cell cell) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(cell.stack().getItem());
+        Identifier id = BuiltInRegistries.ITEM.getKey(cell.stack().getItem());
         return new TerminalSort.Key(cell.stack().getHoverName().getString(), cell.stocked() ? cell.count() : 0, id.getNamespace());
     }
 
@@ -576,7 +578,8 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     // Drawing
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         PanelPainter.panel(graphics, leftPos, topPos + layout.top(), imageWidth, layout.height());
         Rect grid = layout.grid();
         PanelPainter.slots(graphics, leftPos, topPos, grid, COLUMNS, COLUMNS * layout.rows());
@@ -606,7 +609,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     /** A small arrow beside a row: up into the warehouse for the input, down to the player for the output. */
-    private void tag(GuiGraphics graphics, Rect rect, boolean up, int colour) {
+    private void tag(GuiGraphicsExtractor graphics, Rect rect, boolean up, int colour) {
         int cx = leftPos + rect.x() + rect.w() / 2;
         int top = topPos + rect.y() + 4;
         graphics.fill(cx - 1, top, cx + 1, top + 10, colour);
@@ -627,7 +630,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     /** A grey arrow pointing right, 16 by 10, from the grid to the result. */
-    private static void arrow(GuiGraphics graphics, int x, int y) {
+    private static void arrow(GuiGraphicsExtractor graphics, int x, int y) {
         int colour = 0xFF8B8B8B;
         graphics.fill(x, y + 3, x + 10, y + 7, colour);
         for (int i = 0; i < 5; i++) {
@@ -636,24 +639,22 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         if (!ClientStock.loaded() || !ClientStock.online()) {
             Component text = !ClientStock.loaded() ? Component.translatable("gui.servus_storage.terminal.loading")
                     : Component.translatable("gui.servus_storage.terminal." + ClientStock.reason());
             Rect grid = layout.grid();
-            graphics.drawCenteredString(font, text, leftPos + grid.x() + grid.w() / 2, topPos + grid.y() + grid.h() / 2 - 4, 0xFFFFFF);
-            renderTooltip(graphics, mouseX, mouseY);
+            graphics.centeredText(font, text, leftPos + grid.x() + grid.w() / 2, topPos + grid.y() + grid.h() / 2 - 4, 0xFFFFFF);
             return;
         }
         renderMessage(graphics);
         if (dialogOpen()) {
-            graphics.pose().pushPose();
-            graphics.pose().translate(0, 0, DIALOG_Z);
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(0, 0);
             renderDialog(graphics, mouseX, mouseY);
-            graphics.pose().popPose();
+            graphics.pose().popMatrix();
             if (!insideDialog(mouseX, mouseY)) {
-                renderTooltip(graphics, mouseX, mouseY);
             }
             return;
         }
@@ -661,13 +662,12 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         Optional<Cell> hovered = cellUnder(mouseX, mouseY);
         Component tag = tagTooltip(mouseX - leftPos, mouseY - topPos);
         if (siteSelector() && overTitle(mouseX, mouseY)) {
-            graphics.renderTooltip(font, font.split(Component.translatable("gui.servus_storage.terminal.site_tooltip"), 200), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, font.split(Component.translatable("gui.servus_storage.terminal.site_tooltip"), 200), mouseX, mouseY);
         } else if (hovered.isPresent()) {
-            graphics.renderTooltip(font, cellTooltip(hovered.get()), Optional.empty(), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, cellTooltip(hovered.get()), Optional.empty(), mouseX, mouseY);
         } else if (tag != null) {
-            graphics.renderTooltip(font, tag, mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, tag, mouseX, mouseY);
         } else {
-            renderTooltip(graphics, mouseX, mouseY);
         }
     }
 
@@ -714,7 +714,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         };
     }
 
-    private void renderGrid(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderGrid(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         List<Cell> list = cells();
         Rect grid = layout.grid();
         int first = scrollRow * COLUMNS;
@@ -729,27 +729,27 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             if (cell.isRequest()) {
                 graphics.fill(x - 1, y - 1, x + 17, y + 17, 0xFF5868A8);
             }
-            graphics.renderItem(cell.stack(), x, y);
+            graphics.item(cell.stack(), x, y);
             if (!cell.isRequest() && greyed()) {
                 // The last known stock of a sleeping site.
-                graphics.pose().pushPose();
+                graphics.pose().pushMatrix();
                 // Above the item model, below the count drawn at 200.
-                graphics.pose().translate(0, 0, 180);
+                graphics.pose().translate(0, 0);
                 graphics.fill(x, y, x + 16, y + 16, 0xA0707070);
-                graphics.pose().popPose();
+                graphics.pose().popMatrix();
             }
             if (cell.isRequest()) {
                 RequestRow row = cell.request();
                 smallText(graphics, Component.literal(row.delivered() + "/" + row.requested()), x + 16, y + 11, 0xFFFFFFFF);
-                graphics.pose().pushPose();
-                graphics.pose().translate(0, 0, 200);
+                graphics.pose().pushMatrix();
+                graphics.pose().translate(0, 0);
                 graphics.fill(x + 12, y, x + 16, y + 4, 0xFF202020);
                 graphics.fill(x + 13, y + 1, x + 15, y + 3, stateColour(row.state()));
-                graphics.pose().popPose();
+                graphics.pose().popMatrix();
                 continue;
             }
             if (cell.stocked()) {
-                graphics.renderItemDecorations(font, cell.stack(), x, y, abbreviate(cell.count()));
+                graphics.itemDecorations(font, cell.stack(), x, y, abbreviate(cell.count()));
             } else {
                 smallText(graphics, Component.translatable("gui.servus_storage.terminal.craft_cell"), x + 16, y + 11, 0xFFFFE080);
             }
@@ -769,12 +769,12 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     /** Half size text right aligned at {@code right}, drawn above items. */
-    private void smallText(GuiGraphics graphics, Component text, int right, int y, int colour) {
-        graphics.pose().pushPose();
+    private void smallText(GuiGraphicsExtractor graphics, Component text, int right, int y, int colour) {
+        graphics.pose().pushMatrix();
         graphics.pose().translate(right - font.width(text) * 0.5F, y, 200);
-        graphics.pose().scale(0.5F, 0.5F, 1.0F);
-        graphics.drawString(font, text, 0, 0, colour, true);
-        graphics.pose().popPose();
+        graphics.pose().scale(0.5F, 0.5F);
+        graphics.text(font, text, 0, 0, colour, true);
+        graphics.pose().popMatrix();
     }
 
     /** Whether the grid shows the last known stock of a sleeping site. */
@@ -783,37 +783,37 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return state != null && state != io.github.dirnei.mc.servus.storage.site.RemoteSite.State.ONLINE;
     }
 
-    private void renderMessage(GuiGraphics graphics) {
+    private void renderMessage(GuiGraphicsExtractor graphics) {
         io.github.dirnei.mc.servus.storage.site.RemoteSite.State state = ClientStock.viewState();
         if (ClientStock.message().isEmpty() && state != null) {
             Component text = Component.translatable("gui.servus_storage.terminal.view." + state.name().toLowerCase(Locale.ROOT), ClientStock.viewName());
             int colour = state == io.github.dirnei.mc.servus.storage.site.RemoteSite.State.UNREACHABLE ? COLOUR_ALERT : 0x404040;
-            graphics.drawString(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
+            graphics.text(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
                     leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, colour, false);
             return;
         }
         if (!ClientStock.message().isEmpty()) {
             Component text = Component.translatable("gui.servus_storage.terminal.message." + ClientStock.message());
-            graphics.drawString(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
+            graphics.text(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
                     leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, COLOUR_ALERT, false);
         }
     }
 
-    private void renderDialog(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderDialog(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         Rect area = dialogRect();
         int x = dx();
         int y = dy();
         graphics.fill(x - 1, y - 1, x + area.w() + 1, y + area.h() + 1, 0xFF373737);
         graphics.fill(x, y, x + area.w(), y + area.h(), 0xFFC6C6C6);
-        graphics.renderItem(subject, x + 4, y + 2);
+        graphics.item(subject, x + 4, y + 2);
         Component head = dialog == Dialog.CRAFT
                 ? Component.translatable("gui.servus_storage.terminal.craft_title", subject.getHoverName())
                 : subject.getHoverName();
-        graphics.drawString(font, font.plainSubstrByWidth(head.getString(), area.w() - 28), x + 24, y + 6, COLOUR_TEXT, false);
-        graphics.drawString(font, Component.translatable(dialog == Dialog.RULE ? "gui.servus_storage.terminal.rule_min"
+        graphics.text(font, font.plainSubstrByWidth(head.getString(), area.w() - 28), x + 24, y + 6, COLOUR_TEXT, false);
+        graphics.text(font, Component.translatable(dialog == Dialog.RULE ? "gui.servus_storage.terminal.rule_min"
                 : "gui.servus_storage.terminal.amount"), x + 4, y + 22, COLOUR_TEXT, false);
         if (dialog == Dialog.RULE) {
-            graphics.drawString(font, Component.translatable("gui.servus_storage.terminal.rule_max"), x + 96, y + 22, COLOUR_TEXT, false);
+            graphics.text(font, Component.translatable("gui.servus_storage.terminal.rule_max"), x + 96, y + 22, COLOUR_TEXT, false);
         }
         // Widgets were drawn by super.render below the dialog; draw them again on top of it.
         for (AbstractWidget widget : dialogWidgets()) {
@@ -826,12 +826,12 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
     }
 
-    private void renderPreview(GuiGraphics graphics, int x, int y) {
+    private void renderPreview(GuiGraphicsExtractor graphics, int x, int y) {
         CraftPreviewPayload preview = currentPreview();
         confirmButton.active = preview != null && preview.startable();
         int statusY = y + 96;
         if (preview == null) {
-            graphics.drawString(font, Component.translatable("gui.servus_storage.terminal.craft_wait"), x + 4, statusY, COLOUR_DIM, false);
+            graphics.text(font, Component.translatable("gui.servus_storage.terminal.craft_wait"), x + 4, statusY, COLOUR_DIM, false);
             return;
         }
         previewColumn(graphics, x + 4, y + 54, "gui.servus_storage.terminal.craft_from_stock", preview.fromStock(), COLOUR_TEXT);
@@ -849,21 +849,21 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             status = Component.translatable("gui.servus_storage.terminal.craft_ready");
             colour = COLOUR_GOOD;
         }
-        graphics.drawString(font, font.plainSubstrByWidth(status.getString(), dialogRect().w() - 8), x + 4, statusY, colour, false);
+        graphics.text(font, font.plainSubstrByWidth(status.getString(), dialogRect().w() - 8), x + 4, statusY, colour, false);
     }
 
-    private void previewColumn(GuiGraphics graphics, int x, int y, String heading, List<StockEntry> rows, int colour) {
-        graphics.drawString(font, font.plainSubstrByWidth(Component.translatable(heading).getString(), 54), x, y, colour, false);
+    private void previewColumn(GuiGraphicsExtractor graphics, int x, int y, String heading, List<StockEntry> rows, int colour) {
+        graphics.text(font, font.plainSubstrByWidth(Component.translatable(heading).getString(), 54), x, y, colour, false);
         for (int i = 0; i < Math.min(PREVIEW_ROWS, rows.size()); i++) {
             StockEntry row = rows.get(i);
             int rowY = y + 10 + i * 9;
-            graphics.pose().pushPose();
-            graphics.pose().translate(x, rowY, 0);
-            graphics.pose().scale(0.5F, 0.5F, 1.0F);
-            graphics.renderItem(row.stack(), 0, 0);
-            graphics.pose().popPose();
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(x, rowY);
+            graphics.pose().scale(0.5F, 0.5F);
+            graphics.item(row.stack(), 0, 0);
+            graphics.pose().popMatrix();
             String text = row.count() + " " + row.stack().getHoverName().getString();
-            graphics.drawString(font, font.plainSubstrByWidth(text, 44), x + 10, rowY, COLOUR_TEXT, false);
+            graphics.text(font, font.plainSubstrByWidth(text, 44), x + 10, rowY, COLOUR_TEXT, false);
         }
         if (rows.size() > PREVIEW_ROWS) {
             smallText(graphics, Component.translatable("gui.servus_storage.terminal.craft_more", rows.size() - PREVIEW_ROWS),
@@ -918,24 +918,27 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (!siteSelector()) {
-            super.renderLabels(graphics, mouseX, mouseY);
+            super.extractLabels(graphics, mouseX, mouseY);
             return;
         }
         String name = ClientStock.view().isEmpty() ? Component.translatable("gui.servus_storage.terminal.this_site").getString()
                 : ClientStock.viewName();
         String text = font.plainSubstrByWidth("< " + name, layout.title().w() - font.width(" >")) + " >";
         int colour = overTitle(mouseX, mouseY) ? 0x2050A0 : 0x404040;
-        graphics.drawString(font, text, titleLabelX, titleLabelY, colour, false);
-        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0x404040, false);
+        graphics.text(font, text, titleLabelX, titleLabelY, colour, false);
+        graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF404040, false);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (!dialogOpen() && siteSelector() && overTitle(mouseX, mouseY)
                 && (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
-            PacketDistributor.sendToServer(new io.github.dirnei.mc.servus.storage.terminal.SelectSitePayload(
+            ClientPacketDistributor.sendToServer(new io.github.dirnei.mc.servus.storage.terminal.SelectSitePayload(
                     nextSite(button == GLFW.GLFW_MOUSE_BUTTON_LEFT ? 1 : -1)));
             scrollRow = 0;
             return true;
@@ -957,26 +960,26 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             if (insideDialog(mouseX, mouseY)) {
                 return true;
             }
-            return super.mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(event, doubleClick);
         }
         if (!ClientStock.online()) {
-            return super.mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(event, doubleClick);
         }
         if (cellAt(mouseX, mouseY) >= 0) {
             Optional<Cell> cell = cellUnder(mouseX, mouseY);
             if (cell.isPresent() && cell.get().isRequest()) {
                 // A request entry cancels on click, as the request row did.
-                PacketDistributor.sendToServer(new CancelRequestPayload(cell.get().request().id()));
+                ClientPacketDistributor.sendToServer(new CancelRequestPayload(cell.get().request().id()));
                 return true;
             }
             if (!menu.getCarried().isEmpty()) {
-                PacketDistributor.sendToServer(PushCarriedPayload.INSTANCE);
+                ClientPacketDistributor.sendToServer(PushCarriedPayload.INSTANCE);
                 return true;
             }
             if (cell.isPresent() && hasAltDown()) {
                 // Alt click: a stack from instant stock onto the cursor, for the crafting grid.
                 if (cell.get().stocked()) {
-                    PacketDistributor.sendToServer(new GridPullPayload(cell.get().stack()));
+                    ClientPacketDistributor.sendToServer(new GridPullPayload(cell.get().stack()));
                 }
                 return true;
             }
@@ -986,14 +989,14 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 if (!found.stocked() || (found.craftable() && craftClick)) {
                     openCraft(found.stack());
                 } else if (hasShiftDown()) {
-                    PacketDistributor.sendToServer(new RequestItemPayload(found.stack(), found.stack().getMaxStackSize()));
+                    ClientPacketDistributor.sendToServer(new RequestItemPayload(found.stack(), found.stack().getMaxStackSize()));
                 } else {
                     openRequest(found.stack());
                 }
                 return true;
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
@@ -1006,7 +1009,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             if (dialogOpen()) {
                 closeDialog();
@@ -1016,7 +1022,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 closePopup();
                 return true;
             }
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(event);
         }
         if (dialogOpen()) {
             if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
@@ -1032,7 +1038,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         if (search.isFocused() && (search.keyPressed(keyCode, scanCode, modifiers) || search.canConsumeInput())) {
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
@@ -1052,9 +1058,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
 
         @Override
-        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
             super.renderWidget(graphics, mouseX, mouseY, partialTick);
-            ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID,
+            Identifier texture = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID,
                     "textures/gui/terminal/" + icon.get() + ".png");
             graphics.blit(texture, getX() + (width - 16) / 2, getY() + (height - 16) / 2, 0, 0, 16, 16, 16, 16);
         }

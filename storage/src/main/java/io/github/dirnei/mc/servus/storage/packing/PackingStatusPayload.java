@@ -7,7 +7,7 @@ import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Server to client: the status line of the open Packing Station.
@@ -19,7 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 public record PackingStatusPayload(Component line, boolean alert, float rate) implements CustomPacketPayload {
 
     public static final Type<PackingStatusPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "packing_status"));
+            new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "packing_status"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PackingStatusPayload> STREAM_CODEC = StreamCodec.composite(
             ComponentSerialization.STREAM_CODEC, PackingStatusPayload::line,

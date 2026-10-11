@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.network;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.network.NetworkBlockEntity;
 import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
@@ -82,15 +85,20 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
         writeZone(tag, registries);
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        zone = tag.contains("Zone", CompoundTag.TAG_COMPOUND) ? ZoneDefinition.load(tag.getCompound("Zone"), registries) : null;
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        zone = tag.contains("Zone", CompoundTag.TAG_COMPOUND) ? ZoneDefinition.load(tag.getCompoundOrEmpty("Zone"), registries) : null;
     }
 
     // Linking

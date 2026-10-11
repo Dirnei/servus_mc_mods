@@ -14,7 +14,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
  * One slot per shuttle place above the player inventory. The slot of a
@@ -46,7 +46,7 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
         this.capacity = garage.capacity();
         for (int slot = 0; slot < capacity; slot++) {
             int index = slot;
-            addSlot(new SlotItemHandler(garage.shuttles(), slot, slotX(slot), SLOTS_Y) {
+            addSlot(new ResourceHandlerSlot(garage.shuttles(), garage.shuttles()::set, slot, slotX(slot), SLOTS_Y) {
                 @Override
                 public boolean mayPickup(Player player) {
                     return !locked(index);

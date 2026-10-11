@@ -1,19 +1,20 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleGarageMenu;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 /** A centred row of shuttle slots, a count line, the player inventory. */
 public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMenu> {
 
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/shuttle_garage.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/shuttle_garage.png");
     private static final int STATUS_Y = 52;
     private static final int BUTTONS_Y = 64;
 
@@ -22,9 +23,7 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
     private static final int COLOUR_LOCKED = 0x80FF9A2E;
 
     public ShuttleGarageScreen(ShuttleGarageMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 178;
+        super(menu, playerInventory, title, 176, 178);
     }
 
     @Override
@@ -44,15 +43,15 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         toggle.setMessage(Component.translatable(menu.isActive() ? "gui.servus_storage.garage.active" : "gui.servus_storage.garage.paused"));
-        super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
         for (int slot = 0; slot < menu.capacity(); slot++) {
             int x = leftPos + menu.slotX(slot) - 1;
             int y = topPos + ShuttleGarageMenu.SLOTS_Y - 1;
@@ -65,12 +64,12 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        super.renderLabels(graphics, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractLabels(graphics, mouseX, mouseY);
         int count = menu.garage().shuttleCount();
         Component line = Component.translatable(menu.isActive() ? "gui.servus_storage.garage.status" : "gui.servus_storage.garage.status_paused",
                 count, menu.capacity(), menu.out());
-        graphics.drawString(font, line, 8, STATUS_Y, COLOUR_TEXT, false);
+        graphics.text(font, line, 8, STATUS_Y, COLOUR_TEXT, false);
         for (int slot = 0; slot < menu.capacity(); slot++) {
             if (menu.locked(slot)) {
                 int x = menu.slotX(slot);

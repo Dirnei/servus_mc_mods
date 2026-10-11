@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.network;
 
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
@@ -36,7 +38,6 @@ import io.github.dirnei.mc.servus.storage.packing.PackingStationChoice;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.storage.shuttle.RailPaths;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlockEntity;
-import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import io.github.dirnei.mc.servus.storage.order.OrderBook;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
@@ -61,15 +62,14 @@ import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
  * One connected set of storage blocks plus the inventories touching them.
@@ -78,7 +78,7 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
  */
 public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity, WarehouseEvent> implements ShuttleFleet.Host {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
 
     public static final NetworkType<StorageNodeBlockEntity, WarehouseEvent, WarehouseNetwork> TYPE =
             new NetworkType<>(ID, (from, fromNode, side, to, toNode) ->
@@ -113,7 +113,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         };
     }
 
-    private record Source(BlockPos pos, boolean node, BlockCapabilityCache<IItemHandler, Direction> cache) {
+    private record Source(BlockPos pos, boolean node, BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> cache) {
     }
 
     private final Map<BlockPos, Source> sources = new LinkedHashMap<>();
@@ -529,7 +529,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     @Override
     public ItemStack extractFrom(BlockPos pos, ItemKey key, int amount) {
         Source source = sources.get(pos);
-        IItemHandler handler = source == null ? null : source.cache().getCapability();
+        ItemView handler = source == null ? null : ItemView.of(source.cache().getCapability());
         if (handler == null) {
             return ItemStack.EMPTY;
         }
@@ -965,7 +965,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             Block.popResource(level, job.terminal(), stack);
             return ItemStack.EMPTY;
         }
-        return ItemHandlerHelper.insertItem(target.deliveries(), stack, false);
+        return target.deliveries().insertItem(stack, false);
     }
 
     @Override
@@ -1072,7 +1072,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             markDirty(pos);
             return;
         }
-        sources.put(pos, new Source(pos, node, BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, level, pos, null)));
+        sources.put(pos, new Source(pos, node, BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, pos, null)));
         pollOrderStale = true;
         markDirty(pos);
     }
@@ -1343,7 +1343,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         for (List<BlockPos> tier : targetTiers(key, tiers(key))) {
             for (BlockPos pos : tier) {
                 Source source = sources.get(pos);
-                if (source != null && source.cache().getCapability() != null) {
+                if (source != null && ItemView.of(source.cache().getCapability()) != null) {
                     return true;
                 }
             }
@@ -1371,8 +1371,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     private boolean hasRoom(BlockPos pos, ItemStack stack) {
         Source source = sources.get(pos);
-        IItemHandler handler = source == null ? null : source.cache().getCapability();
-        return handler != null && ItemHandlerHelper.insertItem(handler, stack, true).getCount() < stack.getCount();
+        ItemView handler = source == null ? null : ItemView.of(source.cache().getCapability());
+        return handler != null && handler.insertItem(stack, true).getCount() < stack.getCount();
     }
 
     /** Whether some rack in the tiers has room for the stack. */
@@ -1485,11 +1485,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return stack;
         }
         Source source = sources.get(pos);
-        IItemHandler handler = source == null ? null : source.cache().getCapability();
+        ItemView handler = source == null ? null : ItemView.of(source.cache().getCapability());
         if (handler == null) {
             return stack;
         }
-        ItemStack left = ItemHandlerHelper.insertItem(handler, stack, false);
+        ItemStack left = handler.insertItem(stack, false);
         if (left.getCount() != stack.getCount()) {
             markDirty(pos);
         }
@@ -1504,7 +1504,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         ItemStack left = stack;
         if (loaded(pos) instanceof InboundStationBlockEntity station) {
-            left = ItemHandlerHelper.insertItem(station.buffer(), stack, false);
+            left = station.buffer().insertItem(stack, false);
         }
         if (!left.isEmpty()) {
             Block.popResource(level, pos, left);
@@ -1657,7 +1657,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             dropSource(pos);
             return;
         }
-        IItemHandler handler = source.cache().getCapability();
+        ItemView handler = ItemView.of(source.cache().getCapability());
         long before = total(index.snapshot(pos));
         if (handler == null) {
             if (source.node()) {
@@ -1730,7 +1730,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 continue;
             }
             Source source = sources.get(pos);
-            IItemHandler handler = source == null ? null : source.cache().getCapability();
+            ItemView handler = source == null ? null : ItemView.of(source.cache().getCapability());
             if (handler == null) {
                 continue;
             }
@@ -1794,12 +1794,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 break;
             }
             Source source = sources.get(pos);
-            IItemHandler handler = source == null ? null : source.cache().getCapability();
+            ItemView handler = source == null ? null : ItemView.of(source.cache().getCapability());
             if (handler == null) {
                 continue;
             }
             int before = remaining.getCount();
-            remaining = ItemHandlerHelper.insertItem(handler, remaining, false);
+            remaining = handler.insertItem(remaining, false);
             if (remaining.getCount() != before) {
                 markDirty(pos);
             }

@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 /**
@@ -13,7 +13,7 @@ import net.minecraft.world.entity.player.Inventory;
  */
 public class HeavyRackScreen extends AbstractContainerScreen<HeavyRackMenu> {
 
-    private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
+    private static final Identifier TEXTURE = Identifier.withDefaultNamespace("textures/gui/container/generic_54.png");
     private static final int ROW_HEIGHT = 18;
     private static final int TOP_HEIGHT = 17;
     private static final int BOTTOM_HEIGHT = 96;
@@ -29,13 +29,13 @@ public class HeavyRackScreen extends AbstractContainerScreen<HeavyRackMenu> {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         // Header, then the texture's first slot row once per row, then the player inventory part.
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, TOP_HEIGHT);
         for (int row = 0; row < rows; row++) {

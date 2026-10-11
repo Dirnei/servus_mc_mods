@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DataCableItem;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
@@ -20,15 +20,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
  * Bandwidth of data cable tiers: a Warehouse Controller at x 2 (a crate of
@@ -37,8 +34,6 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  * so only the ducts limit the deliveries. Rates are measured over the 40
  * ticks after the first second, when the full budgets of fresh ducts are spent.
  */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class DataBandwidthGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -59,7 +54,7 @@ public final class DataBandwidthGameTests {
 
     static UtilityDuctBlockEntity dataDuct(GameTestHelper helper, BlockPos pos, DataCableItem cable) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         duct.addDataLine(cable.tierId());
         BlockPos absolute = helper.absolutePos(pos);
         BlockState state = helper.getLevel().getBlockState(absolute);
@@ -70,14 +65,14 @@ public final class DataBandwidthGameTests {
     /** Controller with 1024 planks, six ducts of the tier {@code tierAt} gives per x, a station with full outputs that never crafts. */
     private static CraftingStationBlockEntity setup(GameTestHelper helper, java.util.function.IntFunction<DataCableItem> tierAt) {
         helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.OAK_PLANKS, 1024), false);
         helper.setBlock(SPARE_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState()
                 .setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
+        CraftingStationBlockEntity station = helper.getBlockEntity(STATION, CraftingStationBlockEntity.class);
         StationJobs.sticksJob(station, 1000);
         for (int slot = 0; slot < station.outputs().getSlots(); slot++) {
             station.outputs().setStackInSlot(slot, new ItemStack(Items.STICK, 64));
@@ -128,7 +123,7 @@ public final class DataBandwidthGameTests {
     }
 
     /** Five Fast Data Cable ducts and one Data Cable duct: the slow duct decides, about 32 items per second. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void slowestDuctDecides(GameTestHelper helper) {
         setup(helper, x -> x == 5 ? ServusLogisticsItems.DATA_CABLE.get() : ServusLogisticsItems.FAST_DATA_CABLE.get());
         helper.runAfterDelay(2, () -> {
@@ -138,7 +133,7 @@ public final class DataBandwidthGameTests {
     }
 
     /** All Fast Data Cable ducts: 128 items per second. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void fastDuctsCarryMore(GameTestHelper helper) {
         setup(helper, x -> ServusLogisticsItems.FAST_DATA_CABLE.get());
         helper.runAfterDelay(2, () -> {
@@ -148,7 +143,7 @@ public final class DataBandwidthGameTests {
     }
 
     /** Two deliveries in the same direction over duplex ducts of 32 share the budget: together about 32 items per second. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void sharedDuctSplits(GameTestHelper helper) {
         setup(helper, x -> ServusLogisticsItems.DUPLEX_DATA_CABLE.get());
         helper.runAfterDelay(2, () -> {
@@ -159,7 +154,7 @@ public final class DataBandwidthGameTests {
     }
 
     /** Two deliveries in opposite directions over simplex Data Cable ducts share the bandwidth: together about 32 per second. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void simplexOppositeShares(GameTestHelper helper) {
         setup(helper, x -> ServusLogisticsItems.DATA_CABLE.get());
         helper.runAfterDelay(2, () -> {
@@ -170,7 +165,7 @@ public final class DataBandwidthGameTests {
     }
 
     /** The same two deliveries over Duplex Data Cable ducts: each moves about 32 per second. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void duplexOppositeSeparate(GameTestHelper helper) {
         setup(helper, x -> ServusLogisticsItems.DUPLEX_DATA_CABLE.get());
         helper.runAfterDelay(2, () -> {
@@ -181,13 +176,13 @@ public final class DataBandwidthGameTests {
     }
 
     /** A busy Data Cable duct's summary says how many items per second pass it out of its bandwidth. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void summaryShowsLoad(GameTestHelper helper) {
         setup(helper, x -> ServusLogisticsItems.DATA_CABLE.get());
         BlockPos middle = new BlockPos(5, 1, 3);
         helper.runAfterDelay(2, () -> move(helper, CONTROLLER, STATION, Items.OAK_PLANKS, 500));
         helper.runAfterDelay(2 + WARM_UP + MEASURE, () -> {
-            UtilityDuctBlockEntity duct = helper.getBlockEntity(middle);
+            UtilityDuctBlockEntity duct = helper.getBlockEntity(middle, UtilityDuctBlockEntity.class);
             DataNetwork network = duct.dataNetwork().orElseThrow(() -> new AssertionError("the duct has a data network"));
             Component summary = DataSummary.of(network, helper.absolutePos(middle), duct.dataTier());
             helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
@@ -204,13 +199,13 @@ public final class DataBandwidthGameTests {
     }
 
     /** The Production Terminal view names the slow Data Cable duct as the busiest with its load out of 32. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void busiestDuctNamed(GameTestHelper helper) {
         setup(helper, x -> x == 5 ? ServusLogisticsItems.DATA_CABLE.get() : ServusLogisticsItems.FAST_DATA_CABLE.get());
         BlockPos slow = new BlockPos(5, 1, 3);
         helper.runAfterDelay(2, () -> move(helper, CONTROLLER, STATION, Items.OAK_PLANKS, 500));
         helper.runAfterDelay(2 + WARM_UP + MEASURE, () -> {
-            UtilityDuctBlockEntity duct = helper.getBlockEntity(slow);
+            UtilityDuctBlockEntity duct = helper.getBlockEntity(slow, UtilityDuctBlockEntity.class);
             DataNetwork network = duct.dataNetwork().orElseThrow(() -> new AssertionError("the duct has a data network"));
             var rows = io.github.dirnei.mc.servus.storage.production.ProductionView.busiest(helper.getLevel(), network);
             helper.assertTrue(rows.size() == 1, "one busiest duct, got " + rows);

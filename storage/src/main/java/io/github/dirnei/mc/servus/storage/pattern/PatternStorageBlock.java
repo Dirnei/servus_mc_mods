@@ -12,7 +12,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -25,7 +24,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.entity.LivingEntity;
@@ -35,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<PatternStorageBlock> CODEC = simpleCodec(PatternStorageBlock::new);
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     /** How many of the nine front lights are lit, see {@link PatternLights}. */
     public static final IntegerProperty LIGHTS = IntegerProperty.create("lights", 0, PatternLights.LIGHTS);
 
@@ -86,21 +85,21 @@ public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem) {
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof PatternStorageBlockEntity storage) {
-            player.displayClientMessage(Component.translatable("message.servus_storage.pattern_storage.count",
-                    storage.usedSlots().size(), storage.capacity()), true);
+            player.sendOverlayMessage(Component.translatable("message.servus_storage.pattern_storage.count",
+                    storage.usedSlots().size(), storage.capacity()));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /** The carrot turns the block; sneaking dismantles it, the item carrying the patterns. */
@@ -121,6 +120,6 @@ public class PatternStorageBlock extends BaseEntityBlock implements Wrenchable {
                 level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

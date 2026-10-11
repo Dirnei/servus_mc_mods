@@ -16,11 +16,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /** Keep row (ghost slots with amounts), buffer row and the player inventory; the state line comes along as a payload. */
@@ -54,7 +54,7 @@ public class OutboundStationMenu extends AbstractContainerMenu {
         }
         bufferStart = slots.size();
         for (int slot = 0; slot < station.buffer().getSlots(); slot++) {
-            addSlot(new SlotItemHandler(station.buffer(), slot, 8 + (slot % COLUMNS) * 18, BUFFER_Y + (slot / COLUMNS) * 18));
+            addSlot(new ResourceHandlerSlot(station.buffer(), station.buffer()::set, slot, 8 + (slot % COLUMNS) * 18, BUFFER_Y + (slot / COLUMNS) * 18));
         }
         inventoryStart = slots.size();
         for (int row = 0; row < 3; row++) {
@@ -118,7 +118,7 @@ public class OutboundStationMenu extends AbstractContainerMenu {
 
     /** Keep slots take the carried item with its count on a left click and clear on a right click. */
     @Override
-    public void clicked(int slotId, int button, ClickType clickType, Player player) {
+    public void clicked(int slotId, int button, ContainerInput clickType, Player player) {
         if (slotId >= 0 && slotId < keepSlots) {
             if (!player.level().isClientSide()) {
                 ItemStack carried = getCarried();

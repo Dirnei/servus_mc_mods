@@ -13,8 +13,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
  * The Speed upgrades of an elevator shaft, opened from any of its segments but
@@ -35,12 +35,12 @@ public class ElevatorMenu extends AbstractContainerMenu {
         this(containerId, playerInventory, ContainerLevelAccess.create(bottom.getLevel(), bottom.getBlockPos()), bottom.upgrades());
     }
 
-    private ElevatorMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, IItemHandler upgrades) {
+    private ElevatorMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, ItemView upgrades) {
         super(ServusStorageMenus.ELEVATOR.get(), containerId);
         this.access = access;
         this.upgradeSlots = upgrades.getSlots();
         for (int slot = 0; slot < upgradeSlots; slot++) {
-            addSlot(new SlotItemHandler(upgrades, slot, upgradeX(slot), UPGRADES_Y));
+            addSlot(new ResourceHandlerSlot(upgrades, upgrades::set, slot, upgradeX(slot), UPGRADES_Y));
         }
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {

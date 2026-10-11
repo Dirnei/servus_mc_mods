@@ -15,9 +15,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeSlots;
 import io.github.dirnei.mc.servus.foundation.upgrade.Upgrades;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
@@ -33,9 +33,9 @@ public class PackingStationMenu extends AbstractContainerMenu {
     private static final int SYNC_INTERVAL = 5;
 
     /** A slot that shows a system buffer and refuses every click. */
-    public static final class ReadOnlySlot extends SlotItemHandler {
+    public static final class ReadOnlySlot extends ResourceHandlerSlot {
 
-        public ReadOnlySlot(IItemHandler handler, int index, int x, int y) {
+        public ReadOnlySlot(ItemView handler, int index, int x, int y) {
             super(handler, index, x, y);
         }
 
@@ -73,7 +73,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
     }
 
     private PackingStationMenu(int containerId, Inventory playerInventory, PackingStationBlockEntity point,
-                               IItemHandler toStorage, IItemHandler toNetwork, IItemHandler upgrades) {
+                               ItemView toStorage, ItemView toNetwork, ItemView upgrades) {
         super(ServusStorageMenus.PACKING_STATION.get(), containerId);
         this.point = point;
         this.player = playerInventory.player;
@@ -92,7 +92,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
         addRow(toStorage, toStorageY);
         addRow(toNetwork, toNetworkY);
         for (int slot = 0; slot < upgradeSlots; slot++) {
-            addSlot(new SlotItemHandler(upgrades, slot, 8 + slot * 18, upgradesY));
+            addSlot(new ResourceHandlerSlot(upgrades, upgrades::set, slot, 8 + slot * 18, upgradesY));
         }
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < COLUMNS; column++) {
@@ -104,7 +104,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
         }
     }
 
-    private void addRow(IItemHandler handler, int y) {
+    private void addRow(ItemView handler, int y) {
         for (int slot = 0; slot < handler.getSlots(); slot++) {
             addSlot(new ReadOnlySlot(handler, slot, 8 + (slot % COLUMNS) * 18, y + (slot / COLUMNS) * 18));
         }
@@ -122,7 +122,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
         int upgrades = buf.readVarInt();
         PackingStationBlockEntity point = playerInventory.player.level().getBlockEntity(pos) instanceof PackingStationBlockEntity found
                 ? found : null;
-        return new PackingStationMenu(containerId, playerInventory, point, new ItemStackHandler(toStorage), new ItemStackHandler(toNetwork),
+        return new PackingStationMenu(containerId, playerInventory, point, new ItemSlots(toStorage), new ItemSlots(toNetwork),
                 new UpgradeSlots(upgrades, null));
     }
 

@@ -1,7 +1,11 @@
 package io.github.dirnei.mc.servus.foundation.transfer;
 
 import java.util.Optional;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
@@ -24,6 +28,26 @@ public class ItemSlots extends ItemStacksResourceHandler {
 
     public ItemSlots(int size) {
         super(size);
+    }
+
+    /** An empty inventory that takes its size from {@link #deserializeNBT}, like the old handler's default. */
+    public ItemSlots() {
+        this(0);
+    }
+
+    /** The slots as a tag, for code that still builds compound tags; {@link #save} is the value output form. */
+    public CompoundTag serializeNBT(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        tag.put(VALUE_IO_KEY, codec.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), stacks).getOrThrow());
+        return tag;
+    }
+
+    /** Replaces the slots (and the size) with a tag from {@link #serializeNBT}. */
+    public void deserializeNBT(HolderLookup.Provider registries, CompoundTag tag) {
+        Tag list = tag.get(VALUE_IO_KEY);
+        if (list != null) {
+            codec.parse(registries.createSerializationContext(NbtOps.INSTANCE), list).result().ifPresent(this::setStacks);
+        }
     }
 
     /** Called after a slot changed, like the old handler's hook. */
@@ -73,6 +97,16 @@ public class ItemSlots extends ItemStacksResourceHandler {
     /** Inserts into one slot and returns what did not fit. */
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
         return ItemUtil.insertItemReturnRemaining(this, slot, stack, simulate, Transfer.current());
+    }
+
+    /** Inserts slot by slot from the first; returns what did not fit. */
+    public ItemStack insertItem(ItemStack stack, boolean simulate) {
+        return ItemUtil.insertItemReturnRemaining(this, stack, simulate, Transfer.current());
+    }
+
+    /** Inserts into slots that already hold the item first, then into empty ones; returns what did not fit. */
+    public ItemStack insertItemStacked(ItemStack stack, boolean simulate) {
+        return Transfer.insertItemStacked(this, stack, simulate);
     }
 
     /** Takes up to {@code amount} items out of one slot. */

@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.minecraft.resources.Identifier;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 
 /**
  * Datagen for the shuttle parts under {@code models/shuttle/}: a body with its
@@ -168,7 +168,7 @@ final class ShuttleModels {
         box(model, 17, 1.5F, 16, 18, 3, 17, IRON);
     }
 
-    private static ResourceLocation part(BlockStateProvider provider, String name) {
+    private static Identifier part(BlockStateProvider provider, String name) {
         return provider.modLoc("shuttle/" + name);
     }
 

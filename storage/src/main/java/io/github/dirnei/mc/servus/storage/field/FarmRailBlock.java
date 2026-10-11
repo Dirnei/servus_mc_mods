@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.field;
 
+import net.minecraft.world.InteractionResult;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.rail.RailBlockEntity;
@@ -10,7 +11,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -57,17 +57,17 @@ public class FarmRailBlock extends RailBlock {
      * field needs. Fresh copper passes the click on.
      */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!stack.canPerformAction(ItemAbilities.AXE_SCRAPE)) {
             return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
         }
         if (!(level.getBlockEntity(pos) instanceof RailBlockEntity clicked)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (level.isClientSide()) {
             return clicked.corrosion() > FieldCorrosion.COPPER
-                    ? ItemInteractionResult.SUCCESS : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                    ? InteractionResult.SUCCESS : InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         Optional<FieldHeadBlockEntity> head = FieldHeads.servingAt(level, pos);
         Collection<BlockPos> rails;
@@ -78,19 +78,19 @@ public class FarmRailBlock extends RailBlock {
         } else {
             FieldGraph.Result<BlockPos> field = FieldHeads.field(level, pos);
             if (field.tooLarge()) {
-                player.displayClientMessage(Component.translatable("message.servus_storage.farm_rail.too_large"), true);
-                return ItemInteractionResult.CONSUME;
+                player.sendOverlayMessage(Component.translatable("message.servus_storage.farm_rail.too_large"));
+                return InteractionResult.CONSUME;
             }
             rails = field.members();
             stage = clicked.corrosion();
         }
         if (stage <= FieldCorrosion.COPPER) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         int count = rails.size();
         if (!FieldCorrosion.axeCanScrape(stack.isDamageableItem(), stack.getMaxDamage() - stack.getDamageValue(), count)) {
-            player.displayClientMessage(Component.translatable("message.servus_storage.farm_rail.axe_worn", count, count), true);
-            return ItemInteractionResult.CONSUME;
+            player.sendOverlayMessage(Component.translatable("message.servus_storage.farm_rail.axe_worn", count, count));
+            return InteractionResult.CONSUME;
         }
         int younger = FieldCorrosion.previous(stage);
         if (head.isPresent()) {
@@ -107,7 +107,7 @@ public class FarmRailBlock extends RailBlock {
             level.levelEvent(null, LevelEvent.PARTICLES_SCRAPE, rail, 0);
         }
         stack.hurtAndBreak(count, player, LivingEntity.getSlotForHand(hand));
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     /**

@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.rack;
 
-import java.util.List;
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -17,10 +18,10 @@ public class HeavyRackItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        Block planks = BuiltInRegistries.BLOCK.get(HeavyRackBlockEntity.woodOf(stack));
-        tooltip.add(Component.translatable("tooltip.servus_storage.heavy_rack.wood", planks.getName())
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
+        Block planks = BuiltInRegistries.BLOCK.getValue(HeavyRackBlockEntity.woodOf(stack));
+        tooltip.accept(Component.translatable("tooltip.servus_storage.heavy_rack.wood", planks.getName())
                 .withStyle(ChatFormatting.GRAY));
     }
 }

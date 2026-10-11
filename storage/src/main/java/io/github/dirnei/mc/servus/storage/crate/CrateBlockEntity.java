@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.crate;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import java.util.Arrays;
@@ -10,7 +13,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -19,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
  * Bulk storage in one, two or four compartments. Each compartment locks to
@@ -107,7 +109,7 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
         return total;
     }
 
-    public IItemHandler handler() {
+    public ItemView handler() {
         return handler;
     }
 
@@ -230,8 +232,10 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
     // Persistence and sync
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
         ListTag list = new ListTag();
         for (int i = 0; i < types.length; i++) {
             CompoundTag entry = new CompoundTag();
@@ -242,18 +246,21 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
             list.add(entry);
         }
         tag.put("Compartments", list);
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
         Arrays.fill(types, ItemStack.EMPTY);
         Arrays.fill(counts, 0);
-        ListTag list = tag.getList("Compartments", Tag.TAG_COMPOUND);
+        ListTag list = tag.getListOrEmpty("Compartments");
         for (int i = 0; i < Math.min(list.size(), types.length); i++) {
-            CompoundTag entry = list.getCompound(i);
-            ItemStack type = entry.contains("Type") ? ItemStack.parseOptional(registries, entry.getCompound("Type")) : ItemStack.EMPTY;
-            int count = entry.getInt("Count");
+            CompoundTag entry = list.getCompoundOrEmpty(i);
+            ItemStack type = entry.contains("Type") ? ValueIo.parseStack(registries, entry.getCompoundOrEmpty("Type")) : ItemStack.EMPTY;
+            int count = entry.getIntOr("Count", 0);
             if (!type.isEmpty() && count > 0) {
                 types[i] = type;
                 counts[i] = count;
@@ -264,7 +271,7 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        saveAdditional(tag, registries);
+        tag.merge(saveCustomOnly(registries));
         return tag;
     }
 

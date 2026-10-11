@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
@@ -29,23 +29,17 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /** The Shuttle Workshop, shuttle tiers and upgrades, and how the fleet uses them. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class ShuttleModuleGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -59,7 +53,7 @@ public final class ShuttleModuleGameTests {
     /** A workshop at the position and its menu as the server opens it. */
     static ShuttleWorkshopMenu menu(GameTestHelper helper, Player player, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.SHUTTLE_WORKSHOP.get().defaultBlockState());
-        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(pos);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(pos, ShuttleWorkshopBlockEntity.class);
         return new ShuttleWorkshopMenu(1, player.getInventory(), workshop, StorageStatsManager.INSTANCE.shuttleTiers());
     }
 
@@ -82,7 +76,7 @@ public final class ShuttleModuleGameTests {
     }
 
     /** A stack of five Speed upgrades on a Mk1 shuttle: two go in, three stay with the player. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void installStackUpToMax(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
@@ -102,7 +96,7 @@ public final class ShuttleModuleGameTests {
     }
 
     /** Nothing installs without a shuttle, and only upgrades and tools install at all. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void installRefusesWithoutShuttleOrUpgrade(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
@@ -120,7 +114,7 @@ public final class ShuttleModuleGameTests {
     }
 
     /** A tool goes in once; the same tool again does not, and the remove button gives it back. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void toolInstallsOnce(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
@@ -139,7 +133,7 @@ public final class ShuttleModuleGameTests {
     }
 
     /** The remove buttons take one count at a time and hand the item back; a bare shuttle stacks with a new one. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void removeButtonsGiveItemsBack(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
@@ -158,16 +152,16 @@ public final class ShuttleModuleGameTests {
     }
 
     /** Build now waits for every supply, then turns Mk1 into Mk2 with its upgrades and tool and leaves extras. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void buildNowNeedsSuppliesAndKeepsUpgrades(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
-        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, shuttle(ServusStorageItems.SHUTTLE_MK1.get(), 2, 1, Optional.of(ServusStorageItems.HARVESTER.get())));
         ShuttleTiers.Tier mk2 = StorageStatsManager.INSTANCE.shuttleTiers().tier(2);
         int slot = 0;
         for (ShuttleTiers.Supply supply : mk2.build()) {
-            Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.parse(supply.id()));
+            Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.parse(supply.id()));
             int amount = slot == 0 ? supply.count() - 1 : supply.count();
             workshop.supplies().setStackInSlot(slot++, new ItemStack(item, amount));
         }
@@ -187,7 +181,7 @@ public final class ShuttleModuleGameTests {
     }
 
     /** The workshop keeps its shuttle and supplies after the GUI closes and drops them when broken. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void workshopKeepsAndDropsContents(GameTestHelper helper) {
         Player player = helper.makeMockServerPlayerInLevel();
         ShuttleWorkshopMenu menu = workshop(helper, player);
@@ -196,7 +190,7 @@ public final class ShuttleModuleGameTests {
         menu.quickMoveStack(player, HOTBAR);
         menu.quickMoveStack(player, HOTBAR + 1);
         menu.removed(player);
-        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         helper.assertFalse(workshop.shuttle().getStackInSlot(0).isEmpty(), "the shuttle stays in the workshop");
         helper.assertTrue(ShuttleWorkshopBlockEntity.countSupplies(workshop.supplies()).get("minecraft:gold_ingot") == 7, "the gold stays");
         helper.destroyBlock(WS_POS);
@@ -212,7 +206,7 @@ public final class ShuttleModuleGameTests {
     private static void supplyFor(ShuttleWorkshopBlockEntity workshop, int tier) {
         int slot = 0;
         for (ShuttleTiers.Supply supply : StorageStatsManager.INSTANCE.shuttleTiers().tier(tier).build()) {
-            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(supply.id()));
+            Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(supply.id()));
             workshop.supplies().setStackInSlot(slot++, new ItemStack(item, supply.count()));
         }
     }
@@ -225,11 +219,11 @@ public final class ShuttleModuleGameTests {
     }
 
     /** A build by hand locks the shuttle, the supplies and the upgrades; Cancel frees them and uses nothing. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void handBuildLocksAndCancels(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
-        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, shuttle(ServusStorageItems.SHUTTLE_MK1.get(), 1, 0, Optional.empty()));
         supplyFor(workshop, 2);
         helper.assertTrue(menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND), "a build by hand starts");
@@ -250,11 +244,11 @@ public final class ShuttleModuleGameTests {
     }
 
     /** The server only takes the step that is next; an engrave before the last step does nothing. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void handBuildStepsInOrder(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
-        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
         supplyFor(workshop, 2);
         menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND);
@@ -273,11 +267,11 @@ public final class ShuttleModuleGameTests {
     }
 
     /** Engrave finishes the build like Build now and puts the cleaned name on the new shuttle. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void engraveFinishesWithPlate(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
-        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, shuttle(ServusStorageItems.SHUTTLE_MK1.get(), 2, 1, Optional.of(ServusStorageItems.HARVESTER.get())));
         supplyFor(workshop, 2);
         menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND);
@@ -296,11 +290,11 @@ public final class ShuttleModuleGameTests {
     }
 
     /** Build now keeps a plate; a new build by hand replaces it, and an empty name keeps it. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void buildNowKeepsPlate(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
-        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         ItemStack named = new ItemStack(ServusStorageItems.SHUTTLE_MK2.get());
         ShuttleItem.engrave(named, "Berta");
         workshop.shuttle().setStackInSlot(0, named);
@@ -334,11 +328,11 @@ public final class ShuttleModuleGameTests {
     }
 
     /** A build by hand and its step are saved with the workshop and come back on load. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void handBuildSurvivesSaveAndLoad(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
-        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
         supplyFor(workshop, 2);
         menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND);
@@ -354,11 +348,11 @@ public final class ShuttleModuleGameTests {
     }
 
     /** Editing the shuttle stack in place no longer resets the step of a build. */
-    @GameTest(template = EMPTY)
+    @ServusGameTest
     public static void installKeepsBuildStep(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ShuttleWorkshopMenu menu = workshop(helper, player);
-        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
         workshop.shuttle().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
         supplyFor(workshop, 2);
         menu.clickMenuButton(player, ShuttleWorkshopMenu.BUTTON_BUILD_BY_HAND);
@@ -386,9 +380,9 @@ public final class ShuttleModuleGameTests {
         }
         helper.setBlock(FL_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         helper.setBlock(FL_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(FL_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(FL_GARAGE, ShuttleGarageBlockEntity.class);
         garage.shuttles().setStackInSlot(slot, shuttle);
-        HeavyRackBlockEntity rack = helper.getBlockEntity(FL_RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(FL_RACK, HeavyRackBlockEntity.class);
         int[] amounts = stacks.length == 0 ? new int[] {64, 36} : stacks;
         for (int i = 0; i < amounts.length; i++) {
             rack.items().insertItem(i, new ItemStack(Items.COBBLESTONE, amounts[i]), false);
@@ -397,7 +391,7 @@ public final class ShuttleModuleGameTests {
     }
 
     private static WarehouseNetwork requestCobblestone(GameTestHelper helper, int amount) {
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(FL_CONTROLLER);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(FL_CONTROLLER, WarehouseControllerBlockEntity.class);
         StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, FL_TERMINAL);
         new StorageTerminalMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(), terminal)
                 .request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), amount);
@@ -405,7 +399,7 @@ public final class ShuttleModuleGameTests {
     }
 
     /** A Mk1 shuttle carries two stacks: both pick jobs of a request for 100 ride on one trip. */
-    @GameTest(template = EMPTY, timeoutTicks = 800)
+    @ServusGameTest(timeoutTicks = 800)
     public static void mk1PicksTwoStacks(GameTestHelper helper) {
         fleetSetup(helper, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()), 0);
         helper.runAfterDelay(10, () -> {
@@ -422,7 +416,7 @@ public final class ShuttleModuleGameTests {
     }
 
     /** More than the tier holds: a Mk1 shuttle takes two of four jobs, the other two wait. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void mk1LeavesTheRestQueued(GameTestHelper helper) {
         fleetSetup(helper, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()), 0, 64, 64, 64, 8);
         helper.runAfterDelay(10, () -> {
@@ -455,19 +449,19 @@ public final class ShuttleModuleGameTests {
     }
 
     /** A plain shuttle takes its stops: travel alone would be done by the check, with both stops it is not. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void stopsDelayTheDelivery(GameTestHelper helper) {
         timedTrip(helper, 0, false);
     }
 
     /** Two Speed upgrades bring the same pick back well before a plain shuttle. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void speedShortensTheTrip(GameTestHelper helper) {
         timedTrip(helper, 2, true);
     }
 
     /** The garage locks the slot of the shuttle that is out, not the first filled slot. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void garageLocksSlotOfShuttleOut(GameTestHelper helper) {
         ShuttleGarageBlockEntity garage = fleetSetup(helper, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()), 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -495,7 +489,7 @@ public final class ShuttleModuleGameTests {
     private static final BlockPos PW_GARAGE = new BlockPos(10, 1, 2);
 
     /** A Mk2 shuttle loads three stacks of the station at once and puts them away on one trip. */
-    @GameTest(template = EMPTY, timeoutTicks = 500)
+    @ServusGameTest(timeoutTicks = 500)
     public static void mk2PutAwayLoadsThree(GameTestHelper helper) {
         helper.setBlock(PW_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
@@ -507,13 +501,13 @@ public final class ShuttleModuleGameTests {
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         helper.setBlock(PW_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(PW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
-        ShuttleGarageBlockEntity garage = helper.getBlockEntity(PW_GARAGE);
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(PW_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(new ItemStack(ServusStorageItems.SHUTTLE_MK2.get())), "the garage takes the Mk2 shuttle");
-        InboundStationBlockEntity station = helper.getBlockEntity(PW_STATION);
-        CrateBlockEntity crate = helper.getBlockEntity(PW_CRATE);
+        InboundStationBlockEntity station = helper.getBlockEntity(PW_STATION, InboundStationBlockEntity.class);
+        CrateBlockEntity crate = helper.getBlockEntity(PW_CRATE, CrateBlockEntity.class);
         helper.runAfterDelay(10, () -> {
             for (int i = 0; i < 3; i++) {
-                ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
+                station.intake().insertItem(new ItemStack(Items.COBBLESTONE, 64), false);
             }
             TerminalWiring.when(helper, station::isEmpty, 250, () -> "the shuttle should load the station", () -> {
                 helper.assertTrue(crate.count() == 0, "all three stacks left on one shuttle before any reached the crate, crate has " + crate.count());

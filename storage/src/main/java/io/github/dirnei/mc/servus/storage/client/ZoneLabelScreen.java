@@ -1,22 +1,25 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.menu.ZoneLabelMenu;
 import io.github.dirnei.mc.servus.storage.zone.SetLabelNamePayload;
 import io.github.dirnei.mc.servus.storage.zone.SetLabelTagsPayload;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import org.lwjgl.glfw.GLFW;
 
 /** Name box, nine ghost filter slots, tag line, player inventory. */
 public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
 
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/zone_label.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/zone_label.png");
     private static final int NAME_Y = 18;
     private static final int TAGS_Y = 62;
     private static final int COLOUR_TEXT = 0x404040;
@@ -27,9 +30,7 @@ public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
     private boolean tagsWasFocused;
 
     public ZoneLabelScreen(ZoneLabelMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        super(menu, playerInventory, title, 176, 166);
     }
 
     @Override
@@ -53,13 +54,13 @@ public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
 
     private void sendName() {
         if (!name.getValue().trim().equals(menu.name())) {
-            net.neoforged.neoforge.network.PacketDistributor.sendToServer(new SetLabelNamePayload(name.getValue()));
+            net.neoforged.neoforge.network.ClientPacketDistributor.sendToServer(new SetLabelNamePayload(name.getValue()));
         }
     }
 
     private void sendTags() {
         if (!tags.getValue().equals(menu.zoneFilter().tagLine())) {
-            net.neoforged.neoforge.network.PacketDistributor.sendToServer(new SetLabelTagsPayload(tags.getValue()));
+            net.neoforged.neoforge.network.ClientPacketDistributor.sendToServer(new SetLabelTagsPayload(tags.getValue()));
         }
     }
 
@@ -86,28 +87,31 @@ public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        super.renderLabels(graphics, mouseX, mouseY);
-        graphics.drawString(font, Component.translatable("gui.servus_storage.zone_label.items"), 8, ZoneLabelMenu.GHOST_Y - 9, COLOUR_TEXT, false);
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractLabels(graphics, mouseX, mouseY);
+        graphics.text(font, Component.translatable("gui.servus_storage.zone_label.items"), 8, ZoneLabelMenu.GHOST_Y - 9, COLOUR_TEXT, false);
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             sendName();
             sendTags();
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(event);
         }
         EditBox focused = name.isFocused() ? name : tags.isFocused() ? tags : null;
         if (focused != null) {
@@ -124,7 +128,7 @@ public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
                 return true;
             }
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override

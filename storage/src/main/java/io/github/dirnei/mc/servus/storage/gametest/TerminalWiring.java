@@ -105,7 +105,7 @@ public final class TerminalWiring {
     /** A Utility Duct carrying only the data line. */
     public static UtilityDuctBlockEntity dataDuct(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         duct.addLine(Line.DATA);
         BlockPos absolute = helper.absolutePos(pos);
         BlockState state = helper.getLevel().getBlockState(absolute);

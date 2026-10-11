@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 public record GridFillPayload(List<List<ItemStack>> slots, boolean max) implements CustomPacketPayload {
 
     public static final Type<GridFillPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "grid_fill"));
+            new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "grid_fill"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, GridFillPayload> STREAM_CODEC = StreamCodec.composite(
             ItemStack.OPTIONAL_LIST_STREAM_CODEC.apply(ByteBufCodecs.list(9)), GridFillPayload::slots,

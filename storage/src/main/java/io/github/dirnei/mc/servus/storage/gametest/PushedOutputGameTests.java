@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideConfig;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
@@ -15,14 +15,10 @@ import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
  * A producer beside a Packing Station that pushes its outputs on its own. The
@@ -30,8 +26,6 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
  * the test moves them through the Packing Station face that touches the station,
  * which is what a pushing machine does.
  */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class PushedOutputGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -48,7 +42,7 @@ public final class PushedOutputGameTests {
         helper.setBlock(new BlockPos(4, 1, 2), Blocks.AIR.defaultBlockState());
         helper.setBlock(new BlockPos(5, 1, 2), Blocks.AIR.defaultBlockState());
         helper.setBlock(BESIDE, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(BESIDE);
+        CraftingStationBlockEntity station = helper.getBlockEntity(BESIDE, CraftingStationBlockEntity.class);
         SideConfig sides = station.sideConfig();
         for (RelativeSide side : RelativeSide.values()) {
             if (!sides.isLocked(side) && sides.supported().contains(SideMode.INPUT)) {
@@ -69,8 +63,8 @@ public final class PushedOutputGameTests {
     private static void push(GameTestHelper helper, CraftingStationBlockEntity station, Direction face) {
         int count = station.outputs().getStackInSlot(0).getCount();
         ItemStack sticks = station.outputs().extractItem(0, count, false);
-        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS));
-        ItemStack left = ItemHandlerHelper.insertItem(point.handlerFor(face), sticks, false);
+        PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS), PackingStationBlockEntity.class);
+        ItemStack left = point.handlerFor(face).insertItem(sticks, false);
         helper.assertTrue(left.isEmpty(), "the Packing Station should take the sticks, left " + left);
     }
 
@@ -80,7 +74,7 @@ public final class PushedOutputGameTests {
     }
 
     /** Sticks pushed in through the face touching the producer count for its step, so the order finishes. */
-    @GameTest(template = EMPTY, timeoutTicks = 800)
+    @ServusGameTest(timeoutTicks = 800)
     public static void pushedOutputsCountForTheStep(GameTestHelper helper) {
         CraftingStationBlockEntity station = pushingStation(helper);
         TerminalWiring.when(helper, () -> ready(helper), 60, () -> "the station and the CPU should join the line", () -> {
@@ -97,7 +91,7 @@ public final class PushedOutputGameTests {
     }
 
     /** Sticks entering through a face that does not touch the producer count for nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 800)
+    @ServusGameTest(timeoutTicks = 800)
     public static void otherFaceCountsNothing(GameTestHelper helper) {
         CraftingStationBlockEntity station = pushingStation(helper);
         TerminalWiring.when(helper, () -> ready(helper), 60, () -> "the station and the CPU should join the line", () -> {

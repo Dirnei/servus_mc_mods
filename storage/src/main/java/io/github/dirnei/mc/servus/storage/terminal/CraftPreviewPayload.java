@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -21,7 +21,7 @@ public record CraftPreviewPayload(ItemStack item, int amount, List<StockEntry> f
                                   List<StockEntry> missing, String refusal) implements CustomPacketPayload {
 
     public static final Type<CraftPreviewPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "craft_preview"));
+            new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "craft_preview"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, CraftPreviewPayload> STREAM_CODEC = StreamCodec.composite(
             ItemStack.STREAM_CODEC, CraftPreviewPayload::item,

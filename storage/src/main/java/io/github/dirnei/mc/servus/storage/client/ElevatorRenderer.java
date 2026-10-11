@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -19,8 +20,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -34,11 +34,11 @@ import org.joml.Quaternionf;
  */
 public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity> {
 
-    private static final ResourceLocation FRAME = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/elevator");
+    private static final Identifier FRAME = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/elevator");
     /** Rail textures: the Warehouse Rail's steel heads and oak sleepers (the shaft has no wood of its own). */
-    private static final ResourceLocation[] RAIL = {
-            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/rail_head"),
-            ResourceLocation.withDefaultNamespace("block/oak_planks")};
+    private static final Identifier[] RAIL = {
+            Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/rail_head"),
+            Identifier.withDefaultNamespace("block/oak_planks")};
     /** The shaft area between the posts that the car and the decks cover. */
     private static final float[] INNER = {2, 2, 14, 14};
 
@@ -86,19 +86,19 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         }
         double carY = carY(segment, level.getGameTime() + partialTick) - bottom.getY();
         carY = Math.max(0, Math.min(floors.size() - 1, carY));
-        TextureAtlasSprite frame = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(FRAME);
+        TextureAtlasSprite frame = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(FRAME);
         TextureAtlasSprite[] rail = new TextureAtlasSprite[RAIL.length];
         for (int i = 0; i < RAIL.length; i++) {
-            rail[i] = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(RAIL[i]);
+            rail[i] = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RAIL[i]);
         }
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(InventoryMenu.BLOCK_ATLAS));
+        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(TextureAtlas.LOCATION_BLOCKS));
 
         for (int floor = 0; floor < floors.size(); floor++) {
             BlockState state = floors.get(floor);
             if (!hasRail(state)) {
                 continue;
             }
-            int light = LevelRenderer.getLightColor(level, bottom.above(floor));
+            int light = LevelRenderer.getLightCoords(level, bottom.above(floor));
             poseStack.pushPose();
             poseStack.translate(0, floor, 0);
             float angle = (float) Flaps.angle(carY, floor);
@@ -112,7 +112,7 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         }
 
         int nearest = (int) Math.round(carY);
-        int light = LevelRenderer.getLightColor(level, bottom.above(nearest));
+        int light = LevelRenderer.getLightCoords(level, bottom.above(nearest));
         poseStack.pushPose();
         poseStack.translate(0, carY, 0);
         car(poseStack, buffer, frame, rail, floors.get(nearest), light, packedOverlay);

@@ -10,7 +10,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -183,11 +182,11 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
     // Interaction
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                               InteractionHand hand, BlockHitResult hitResult) {
         // The carrot forms the cube; any other item shows the summary like a chest, sneaking uses the item.
-        return stack.getItem() instanceof ConfigurationCarrotItem ? ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION
-                : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return stack.getItem() instanceof ConfigurationCarrotItem ? InteractionResult.PASS
+                : InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     /** An empty hand shows the CPU's slots, or how to form it. */
@@ -195,10 +194,10 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level instanceof ServerLevel) {
             CpuBlockEntity master = master(level, pos);
-            player.displayClientMessage(master != null ? master.summary()
-                    : Component.translatable("message.servus_storage.cpu.casing"), true);
+            player.sendOverlayMessage(master != null ? master.summary()
+                    : Component.translatable("message.servus_storage.cpu.casing"));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /** Carrot: forms the cube around the clicked block. Sneak carrot: dismantles this block. */
@@ -221,8 +220,8 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
         }
         boolean formed = tryForm(level, pos);
         if (player != null) {
-            player.displayClientMessage(Component.translatable(formed ? "message.servus_storage.cpu.formed"
-                    : "message.servus_storage.cpu.incomplete"), true);
+            player.sendOverlayMessage(Component.translatable(formed ? "message.servus_storage.cpu.formed"
+                    : "message.servus_storage.cpu.incomplete"));
         }
         return InteractionResult.SUCCESS;
     }

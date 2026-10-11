@@ -1,15 +1,15 @@
 package io.github.dirnei.mc.servus.storage.packing;
 
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.function.Consumer;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import net.minecraft.core.BlockPos;
 import io.github.dirnei.mc.servus.storage.menu.PackingStationMenu;
-import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.entity.player.Player;
@@ -53,13 +53,13 @@ public class PackingStationBlock extends InboundStationBlock {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof PackingStationBlockEntity point) {
             player.openMenu(point, buf -> PackingStationMenu.writeOpening(buf, point));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        tooltip.add(Component.translatable(tooltipKey()).withStyle(ChatFormatting.GRAY));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
+        tooltip.accept(Component.translatable(tooltipKey()).withStyle(ChatFormatting.GRAY));
     }
 
     /** The lang key of the item tooltip. */
@@ -83,7 +83,7 @@ public class PackingStationBlock extends InboundStationBlock {
             Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
             level.removeBlock(pos, false);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override

@@ -5,7 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Server to client: the name plates of the harvester and of the Spreader that
@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 public record FieldWorkerPayload(String name, String spreader) implements CustomPacketPayload {
 
     public static final Type<FieldWorkerPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field_worker"));
+            new Type<>(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field_worker"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, FieldWorkerPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.stringUtf8(64), FieldWorkerPayload::name,

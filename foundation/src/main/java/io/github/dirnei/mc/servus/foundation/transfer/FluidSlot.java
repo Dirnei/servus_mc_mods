@@ -1,6 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.transfer;
 
 import java.util.function.Predicate;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -113,6 +117,21 @@ public class FluidSlot extends FluidStacksResourceHandler {
             }
             return drained <= 0 ? FluidStack.EMPTY : key.toStack(drained);
         }
+    }
+
+    /** Writes the contents into {@code tag}, for code that still builds compound tags. */
+    public CompoundTag writeToNBT(HolderLookup.Provider registries, CompoundTag tag) {
+        if (!isEmpty()) {
+            tag.put("Fluid", FluidStack.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), getFluid()).getOrThrow());
+        }
+        return tag;
+    }
+
+    /** Reads contents written by {@link #writeToNBT}. */
+    public void readFromNBT(HolderLookup.Provider registries, CompoundTag tag) {
+        Tag fluid = tag.get("Fluid");
+        stacks.set(0, fluid == null ? FluidStack.EMPTY
+                : FluidStack.CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), fluid).result().orElse(FluidStack.EMPTY));
     }
 
     public void save(ValueOutput output, String key) {

@@ -160,14 +160,14 @@ public final class ProductionLedger extends SavedData {
 
     private static ProductionLedger load(CompoundTag tag, HolderLookup.Provider registries) {
         ProductionLedger ledger = new ProductionLedger();
-        ledger.nextTransfer = Math.max(1, tag.getLong("NextTransfer"));
-        ledger.nextRequest = Math.max(1, tag.getInt("NextRequest"));
-        for (Tag raw : tag.getList("Transfers", Tag.TAG_COMPOUND)) {
+        ledger.nextTransfer = Math.max(1, tag.getLongOr("NextTransfer", 0L));
+        ledger.nextRequest = Math.max(1, tag.getIntOr("NextRequest", 0));
+        for (Tag raw : tag.getListOrEmpty("Transfers")) {
             CompoundTag entry = (CompoundTag) raw;
-            Transfer transfer = new Transfer(entry.getLong("Id"), entry.getInt("Asked"));
-            transfer.delivered = entry.getInt("Delivered");
-            transfer.ended = entry.getBoolean("Ended");
-            transfer.endedAt = entry.getLong("EndedAt");
+            Transfer transfer = new Transfer(entry.getLongOr("Id", 0L), entry.getIntOr("Asked", 0));
+            transfer.delivered = entry.getIntOr("Delivered", 0);
+            transfer.ended = entry.getBooleanOr("Ended", false);
+            transfer.endedAt = entry.getLongOr("EndedAt", 0L);
             ledger.transfers.put(transfer.id, transfer);
         }
         return ledger;

@@ -1,15 +1,15 @@
 package io.github.dirnei.mc.servus.storage.cpu;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
-import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
-import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
-import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
-import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
@@ -25,7 +25,6 @@ import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalRequests;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternLibrary;
-import io.github.dirnei.mc.servus.storage.pattern.PatternRunners;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
 import java.util.ArrayList;
@@ -45,7 +44,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
@@ -53,7 +52,7 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * One block of a Crafting CPU. Every formed block is a link member of the
@@ -156,22 +155,27 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     // Persistence
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        woodSlot.save(output);
         if (book != null) {
             tag.put("Orders", book.save(registries));
         }
+        output.store(tag);
     }
 
     /** Only a formed master takes its saved orders back; one that loads unformed has lost them. */
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        woodSlot.load(input);
         BlockState state = getBlockState();
         if (tag.contains("Orders") && CpuBlock.isFormed(state) && state.getValue(CpuBlock.PART) == 0) {
-            book().load(tag.getCompound("Orders"), registries);
+            book().load(tag.getCompoundOrEmpty("Orders"), registries);
         }
     }
 
@@ -472,7 +476,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     private static int extractable(ServerLevel level, BlockPos producer, ItemKey key) {
         int best = 0;
         for (Direction side : Direction.values()) {
-            IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, producer, side);
+            ItemView handler = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, producer, side));
             if (handler == null) {
                 continue;
             }
@@ -522,7 +526,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
     }
@@ -535,9 +539,9 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
     }
 
     @Override

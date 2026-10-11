@@ -5,7 +5,7 @@ import io.github.dirnei.mc.servus.storage.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.storage.packing.PackingStatusPayload;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Rect;
 import java.util.List;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
@@ -48,10 +48,9 @@ public class PackingStationScreen extends AbstractContainerScreen<PackingStation
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         if (menu.getCarried().isEmpty() && hoveredSlot != null && hoveredSlot.hasItem()) {
-            renderTooltip(graphics, mouseX, mouseY);
             return;
         }
         int x = mouseX - leftPos;
@@ -63,7 +62,6 @@ public class PackingStationScreen extends AbstractContainerScreen<PackingStation
         } else if (menu.upgradeSlots() > 0 && over(x, y, menu.upgradesLabelY(), upgradesRow())) {
             rowTooltip(graphics, "upgrades", mouseX, mouseY);
         } else {
-            renderTooltip(graphics, mouseX, mouseY);
         }
     }
 
@@ -72,14 +70,15 @@ public class PackingStationScreen extends AbstractContainerScreen<PackingStation
         return x >= row.x() - 1 && x < row.x() + row.w() + 1 && y >= labelY && y < row.y() + row.h();
     }
 
-    private void rowTooltip(GuiGraphics graphics, String row, int mouseX, int mouseY) {
+    private void rowTooltip(GuiGraphicsExtractor graphics, String row, int mouseX, int mouseY) {
         List<FormattedCharSequence> lines = font.split(
                 Component.translatable("gui.servus_storage.packing_station." + row + ".tooltip"), 180);
-        graphics.renderTooltip(font, lines, mouseX, mouseY);
+        graphics.setTooltipForNextFrame(font, lines, mouseX, mouseY);
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         PanelPainter.panel(graphics, leftPos, topPos, imageWidth, imageHeight);
         PanelPainter.slots(graphics, leftPos, topPos, toStorageRow(), PackingStationMenu.COLUMNS, menu.toStorageSlots());
         PanelPainter.slots(graphics, leftPos, topPos, toNetworkRow(), PackingStationMenu.COLUMNS, menu.toNetworkSlots());
@@ -91,22 +90,22 @@ public class PackingStationScreen extends AbstractContainerScreen<PackingStation
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        super.renderLabels(graphics, mouseX, mouseY);
-        graphics.drawString(font, Component.translatable("gui.servus_storage.packing_station.to_storage"),
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractLabels(graphics, mouseX, mouseY);
+        graphics.text(font, Component.translatable("gui.servus_storage.packing_station.to_storage"),
                 8, PackingStationMenu.FIRST_LABEL_Y, COLOUR_TEXT, false);
-        graphics.drawString(font, Component.translatable("gui.servus_storage.packing_station.to_network"),
+        graphics.text(font, Component.translatable("gui.servus_storage.packing_station.to_network"),
                 8, menu.toNetworkLabelY(), COLOUR_TEXT, false);
-        graphics.drawString(font, Component.translatable("gui.servus_storage.packing_station.upgrades"),
+        graphics.text(font, Component.translatable("gui.servus_storage.packing_station.upgrades"),
                 8, menu.upgradesLabelY(), COLOUR_TEXT, false);
         PackingStatusPayload status = ClientPackingStatus.status();
         if (status.rate() > 0) {
             Component rate = Component.translatable("gui.servus_storage.packing_station.rate", Upgrades.format(status.rate()));
-            graphics.drawString(font, rate, imageWidth - 8 - font.width(rate), menu.upgradesLabelY(), COLOUR_TEXT, false);
+            graphics.text(font, rate, imageWidth - 8 - font.width(rate), menu.upgradesLabelY(), COLOUR_TEXT, false);
         }
         if (!status.line().getString().isEmpty()) {
             FormattedCharSequence line = font.split(status.line(), imageWidth - 16).get(0);
-            graphics.drawString(font, line, 8, menu.statusY(), status.alert() ? COLOUR_ALERT : COLOUR_TEXT, false);
+            graphics.text(font, line, 8, menu.statusY(), status.alert() ? COLOUR_ALERT : COLOUR_TEXT, false);
         }
     }
 

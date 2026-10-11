@@ -10,14 +10,14 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ModelBuilder;
-import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
 
 /**
  * Datagen for the track rails: one model per {@link RailLook} piece (single,
@@ -35,8 +35,8 @@ final class RailModels {
     }
 
     static void rail(BlockStateProvider provider, Block block, String name) {
-        ResourceLocation head = provider.modLoc("block/" + name + "_head");
-        ResourceLocation dockTexture = provider.modLoc("block/" + name + "_dock");
+        Identifier head = provider.modLoc("block/" + name + "_head");
+        Identifier dockTexture = provider.modLoc("block/" + name + "_dock");
         Map<Piece, BlockModelBuilder> pieces = new EnumMap<>(Piece.class);
         for (Piece piece : Piece.values()) {
             pieces.put(piece, model(provider, name + "_" + piece.name().toLowerCase(java.util.Locale.ROOT), head, dockTexture,
@@ -68,7 +68,7 @@ final class RailModels {
     }
 
     /** A model of boxes: sleepers in the wood board texture, heads and dock beams in their own textures. */
-    private static BlockModelBuilder model(BlockStateProvider provider, String model, ResourceLocation head, ResourceLocation dock,
+    private static BlockModelBuilder model(BlockStateProvider provider, String model, Identifier head, Identifier dock,
                                            List<Box> boxes) {
         BlockModelBuilder builder = provider.models().withExistingParent(model, "minecraft:block/block")
                 .texture("particle", head).texture("head", head).texture("wood", Wood.BOARD).texture("dock", dock);

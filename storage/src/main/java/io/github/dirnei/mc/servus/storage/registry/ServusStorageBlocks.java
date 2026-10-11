@@ -31,26 +31,26 @@ public final class ServusStorageBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(ServusStorageIds.MOD_ID);
 
     public static final DeferredBlock<CrateBlock> CRATE = BLOCKS.registerBlock("crate", CrateBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
                     .sound(SoundType.WOOD));
 
     public static final DeferredBlock<DoubleCrateBlock> DOUBLE_CRATE = BLOCKS.registerBlock("double_crate", DoubleCrateBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
                     .sound(SoundType.WOOD));
 
     public static final DeferredBlock<QuadCrateBlock> QUAD_CRATE = BLOCKS.registerBlock("quad_crate", QuadCrateBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
                     .sound(SoundType.WOOD));
 
     public static final DeferredBlock<WarehouseControllerBlock> WAREHOUSE_CONTROLLER =
             BLOCKS.registerBlock("warehouse_controller", WarehouseControllerBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
@@ -58,14 +58,14 @@ public final class ServusStorageBlocks {
 
     public static final DeferredBlock<StorageTerminalBlock> STORAGE_TERMINAL =
             BLOCKS.registerBlock("storage_terminal", StorageTerminalBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.WOOD)
                             .strength(2.5F)
                             .sound(SoundType.WOOD));
 
     public static final DeferredBlock<ProductionTerminalBlock> PRODUCTION_TERMINAL =
             BLOCKS.registerBlock("production_terminal", ProductionTerminalBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(2.5F)
                             .requiresCorrectToolForDrops()
@@ -73,42 +73,42 @@ public final class ServusStorageBlocks {
 
     public static final DeferredBlock<PatternStorageBlock> PATTERN_STORAGE =
             BLOCKS.registerBlock("pattern_storage", PatternStorageBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(2.5F)
                             .requiresCorrectToolForDrops()
                             .sound(SoundType.METAL));
 
     public static final DeferredBlock<RailBlock> RAIL = BLOCKS.registerBlock("rail", RailBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .strength(1.0F)
                     .sound(SoundType.METAL)
                     .noOcclusion());
 
     public static final DeferredBlock<FarmRailBlock> FARM_RAIL = BLOCKS.registerBlock("farm_rail", FarmRailBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.PLANT)
                     .strength(1.0F)
                     .sound(SoundType.METAL)
                     .noOcclusion());
 
     public static final DeferredBlock<FieldHeadBlock> FIELD_HEAD = BLOCKS.registerBlock("field_head", FieldHeadBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .strength(2.5F)
                     .requiresCorrectToolForDrops()
                     .sound(SoundType.METAL));
 
     public static final DeferredBlock<ElevatorBlock> ELEVATOR = BLOCKS.registerBlock("elevator", ElevatorBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .strength(2.0F)
                     .sound(SoundType.METAL)
                     .noOcclusion());
 
     public static final DeferredBlock<HeavyRackBlock> HEAVY_RACK = BLOCKS.registerBlock("heavy_rack", HeavyRackBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_ORANGE)
                     .strength(3.0F)
                     .sound(SoundType.METAL)
@@ -116,7 +116,7 @@ public final class ServusStorageBlocks {
 
     public static final DeferredBlock<InboundStationBlock> INBOUND_STATION =
             BLOCKS.registerBlock("inbound_station", InboundStationBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
@@ -124,7 +124,7 @@ public final class ServusStorageBlocks {
 
     public static final DeferredBlock<io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlock> WIRELESS_PACKING_STATION =
             BLOCKS.registerBlock("wireless_packing_station", io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_PURPLE)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
@@ -132,7 +132,7 @@ public final class ServusStorageBlocks {
 
     public static final DeferredBlock<PackingStationBlock> PACKING_STATION =
             BLOCKS.registerBlock("packing_station", PackingStationBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_CYAN)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
@@ -140,7 +140,7 @@ public final class ServusStorageBlocks {
 
     public static final DeferredBlock<ShuttleGarageBlock> SHUTTLE_GARAGE =
             BLOCKS.registerBlock("shuttle_garage", ShuttleGarageBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
@@ -148,7 +148,7 @@ public final class ServusStorageBlocks {
 
     public static final DeferredBlock<OutboundStationBlock> OUTBOUND_STATION =
             BLOCKS.registerBlock("outbound_station", OutboundStationBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
@@ -156,14 +156,14 @@ public final class ServusStorageBlocks {
 
     public static final DeferredBlock<CraftingStationBlock> CRAFTING_STATION =
             BLOCKS.registerBlock("crafting_station", CraftingStationBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.WOOD)
                             .strength(2.5F)
                             .sound(SoundType.WOOD));
 
     public static final DeferredBlock<CpuBlock> CRAFTING_CPU =
             BLOCKS.registerBlock("crafting_cpu", CpuBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_CYAN)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
@@ -171,7 +171,7 @@ public final class ServusStorageBlocks {
 
     public static final DeferredBlock<ShuttleWorkshopBlock> SHUTTLE_WORKSHOP =
             BLOCKS.registerBlock("shuttle_workshop", ShuttleWorkshopBlock::new,
-                    BlockBehaviour.Properties.of()
+                    () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.WOOD)
                             .strength(2.5F)
                             .sound(SoundType.WOOD));

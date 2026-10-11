@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.order;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.production.OrderPlanner;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -18,7 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -78,7 +79,7 @@ public final class OrderBook {
     }
 
     /** A producer of the data line and what it reports. */
-    public record Producer(BlockPos pos, Component name, List<ProductionRecipe> recipes, Optional<ResourceLocation> active) {
+    public record Producer(BlockPos pos, Component name, List<ProductionRecipe> recipes, Optional<Identifier> active) {
     }
 
     /** A shipment of inputs on its way: its ledger id and how many it was asked to bring. */
@@ -121,7 +122,7 @@ public final class OrderBook {
     }
 
     /** Which producer runs which recipe; the planner's recipe id. */
-    public record StepKey(BlockPos producer, ResourceLocation recipe) {
+    public record StepKey(BlockPos producer, Identifier recipe) {
     }
 
     /** The request id of orders a stock rule created. */
@@ -538,8 +539,8 @@ public final class OrderBook {
     /** Takes over saved orders; their ids stay and new ids continue above them. */
     public void load(CompoundTag tag, HolderLookup.Provider registries) {
         orders.clear();
-        nextId = Math.max(1, tag.getInt("NextId"));
-        for (Tag raw : tag.getList("Orders", Tag.TAG_COMPOUND)) {
+        nextId = Math.max(1, tag.getIntOr("NextId", 0));
+        for (Tag raw : tag.getListOrEmpty("Orders")) {
             WorkOrder order = WorkOrder.load((CompoundTag) raw, registries);
             if (order != null) {
                 assignRefs(order);

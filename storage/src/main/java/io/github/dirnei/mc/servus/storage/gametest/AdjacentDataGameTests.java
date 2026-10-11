@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
@@ -22,19 +22,14 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** Terminals, Crafting Stations, Pattern Storages and formed CPUs carry the data network to each other. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class AdjacentDataGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -86,7 +81,7 @@ public final class AdjacentDataGameTests {
     }
 
     /** Pattern Storage, terminal and station in a row share one network without any duct. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void stackWithoutDuctIsOneNetwork(GameTestHelper helper) {
         row(helper);
         TerminalWiring.when(helper, () -> network(helper, TERMINAL)
@@ -103,19 +98,19 @@ public final class AdjacentDataGameTests {
     }
 
     /** A request at a terminal in the row is crafted on the station of the row and lands in the terminal. */
-    @GameTest(template = EMPTY, timeoutTicks = 1000)
+    @ServusGameTest(timeoutTicks = 1000)
     public static void craftThroughStack(GameTestHelper helper) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity planks = helper.getBlockEntity(CRATE);
+        CrateBlockEntity planks = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
         planks.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
         helper.setBlock(new BlockPos(1, 1, 3), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         helper.setBlock(ACCESS, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         TerminalWiring.railUnder(helper, ACCESS);
         TerminalWiring.dataDuct(helper, DUCT);
         row(helper);
-        PatternStorageBlockEntity storage = helper.getBlockEntity(PATTERNS);
+        PatternStorageBlockEntity storage = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         storage.set(0, StationJobs.sticks());
         cube(helper);
         helper.assertTrue(ServusStorageBlocks.CRAFTING_CPU.get().tryForm(helper.getLevel(), helper.absolutePos(CPU)), "the cube should form");
@@ -124,7 +119,7 @@ public final class AdjacentDataGameTests {
                         .map(net -> CpuOrders.cpus(helper.getLevel(), net).size() == 1 && member(net, helper, ACCESS, DataRole.LINK))
                         .orElse(false), 60,
                 () -> "the CPU and the Packing Station should be on the terminal's network", () -> {
-            StorageTerminalBlockEntity terminal = helper.getBlockEntity(TERMINAL);
+            StorageTerminalBlockEntity terminal = helper.getBlockEntity(TERMINAL, StorageTerminalBlockEntity.class);
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(STICK, 8);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request should be accepted, got " + menu.stock().message());
@@ -137,7 +132,7 @@ public final class AdjacentDataGameTests {
     }
 
     /** Breaking the middle block of the row splits the network. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void breakingMiddleSplits(GameTestHelper helper) {
         row(helper);
         TerminalWiring.when(helper, () -> network(helper, PATTERNS).isPresent()
@@ -153,7 +148,7 @@ public final class AdjacentDataGameTests {
     }
 
     /** A chest between a Pattern Storage and a terminal carries nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void chestDoesNotConnect(GameTestHelper helper) {
         patterns(helper, PATTERNS);
         helper.setBlock(TERMINAL, Blocks.CHEST.defaultBlockState());
@@ -167,7 +162,7 @@ public final class AdjacentDataGameTests {
     }
 
     /** A Packing Station and a Machine Adapter touching a lone terminal do not join its network. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void packingStationAndAdapterDoNotJoin(GameTestHelper helper) {
         terminal(helper, TERMINAL);
         helper.setBlock(PATTERNS, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
@@ -183,7 +178,7 @@ public final class AdjacentDataGameTests {
     }
 
     /** A cube touching a terminal joins its network when formed and leaves when a block is broken. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void formedCpuJoinsStack(GameTestHelper helper) {
         terminal(helper, STATION);
         cube(helper);

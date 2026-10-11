@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
@@ -24,7 +24,6 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -33,12 +32,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FurnaceBlock;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** Opening a terminal must show its content at once and not rebuild the line's recipe lists. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class TerminalSpeedGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -79,7 +74,7 @@ public final class TerminalSpeedGameTests {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.COBBLESTONE, 16), false);
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(FURNACE, Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
@@ -104,7 +99,7 @@ public final class TerminalSpeedGameTests {
     }
 
     /** Opening the Storage Terminal the way the game does sends its content in the same tick. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void counterSendsOnOpen(GameTestHelper helper) {
         setup(helper);
         TerminalWiring.when(helper, () -> ready(helper), 120, () -> "the adapter and CPU should join the line", () -> {
@@ -123,12 +118,12 @@ public final class TerminalSpeedGameTests {
     }
 
     /** Opening the Production Terminal the way the game does sends its content in the same tick. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void productionSendsOnOpen(GameTestHelper helper) {
         setup(helper);
         TerminalWiring.when(helper, () -> ready(helper), 120, () -> "the adapter and CPU should join the line", () -> {
             ServerPlayer player = helper.makeMockServerPlayerInLevel();
-            ProductionTerminalBlockEntity terminal = helper.getBlockEntity(PRODUCTION);
+            ProductionTerminalBlockEntity terminal = helper.getBlockEntity(PRODUCTION, ProductionTerminalBlockEntity.class);
             ProductionTerminalMenu menu = new ProductionTerminalMenu(1, player.getInventory(), terminal);
             long now = helper.getLevel().getGameTime();
             try {
@@ -151,7 +146,7 @@ public final class TerminalSpeedGameTests {
     }
 
     /** The craftable list is built once and reused until a pattern is saved or a producer leaves the line. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void craftablesCachedOnLine(GameTestHelper helper) {
         setup(helper);
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState()
@@ -165,7 +160,7 @@ public final class TerminalSpeedGameTests {
             List<ItemStack> again = TerminalCraftables.of(helper.getLevel(), terminal, 4096);
             helper.assertTrue(first == again && TerminalCraftables.builds() == builds, "an unchanged line should reuse its craftable list");
             helper.assertTrue(lists(first, Items.STONE) && !lists(first, Items.STICK), "stone from the furnace, no sticks without a pattern");
-            PatternStorageBlockEntity storage = helper.getBlockEntity(PATTERNS);
+            PatternStorageBlockEntity storage = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
             storage.set(0, StationJobs.sticks());
             List<ItemStack> withPattern = TerminalCraftables.of(helper.getLevel(), terminal, 4096);
             helper.assertTrue(withPattern != again && lists(withPattern, Items.STICK), "a saved pattern should rebuild the list with sticks");

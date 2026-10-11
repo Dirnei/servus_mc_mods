@@ -8,7 +8,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -24,10 +24,10 @@ public final class ServusStorageComponents {
                     .networkSynchronized(ZoneFilter.STREAM_CODEC));
 
     /** The planks block a Heavy Duty Rack was crafted from; missing means oak. */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> RACK_WOOD =
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Identifier>> RACK_WOOD =
             COMPONENTS.registerComponentType("rack_wood", builder -> builder
-                    .persistent(ResourceLocation.CODEC)
-                    .networkSynchronized(ResourceLocation.STREAM_CODEC));
+                    .persistent(Identifier.CODEC)
+                    .networkSynchronized(Identifier.STREAM_CODEC));
 
     /** The patterns a Pattern Storage keeps, carried by its dropped item. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<StoredPatterns>> PATTERNS =

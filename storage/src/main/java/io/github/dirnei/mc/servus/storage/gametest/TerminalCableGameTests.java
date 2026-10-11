@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
@@ -13,7 +13,6 @@ import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.StockEntry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -22,12 +21,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** The Storage Terminal on the data line: packets, reach, several warehouses, cancel and closed output. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class TerminalCableGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -37,7 +32,7 @@ public final class TerminalCableGameTests {
 
     private static CrateBlockEntity crate(GameTestHelper helper, BlockPos pos, Item item, int count) {
         helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(pos);
+        CrateBlockEntity crate = helper.getBlockEntity(pos, CrateBlockEntity.class);
         if (count > 0) {
             crate.insert(new ItemStack(item, count), false);
         }
@@ -65,7 +60,7 @@ public final class TerminalCableGameTests {
     }
 
     /** A request travels from a crate through the Packing Station and three data ducts into the output slots. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void terminalRequestArrivesAsPackets(GameTestHelper helper) {
         CrateBlockEntity crate = crate(helper, new BlockPos(1, 1, 3), Items.OAK_PLANKS, 20);
         controller(helper, new BlockPos(2, 1, 3));
@@ -98,7 +93,7 @@ public final class TerminalCableGameTests {
     }
 
     /** A terminal beside a controller but on no data line reaches nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void terminalBesideControllerIsOffline(GameTestHelper helper) {
         crate(helper, new BlockPos(1, 1, 3), Items.COBBLESTONE, 10);
         controller(helper, new BlockPos(2, 1, 3));
@@ -117,7 +112,7 @@ public final class TerminalCableGameTests {
     }
 
     /** Two warehouses on one line: their stock adds up and a request takes from the fuller one first. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void twoWarehousesMergeAndSplit(GameTestHelper helper) {
         CrateBlockEntity first = crate(helper, new BlockPos(1, 1, 1), Items.COBBLESTONE, 30);
         controller(helper, new BlockPos(2, 1, 1));
@@ -146,7 +141,7 @@ public final class TerminalCableGameTests {
     }
 
     /** Cancelling a request before its packets leave sends the picked items back into storage. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void terminalCancelPutsPicksBack(GameTestHelper helper) {
         CrateBlockEntity crate = crate(helper, new BlockPos(1, 1, 3), Items.COBBLESTONE, 64);
         controller(helper, new BlockPos(2, 1, 3));
@@ -172,13 +167,13 @@ public final class TerminalCableGameTests {
     }
 
     /** A hopper below the terminal cannot take anything out of the output slots. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void hopperCannotTakeTerminalOutput(GameTestHelper helper) {
         helper.setBlock(new BlockPos(3, 1, 3), Blocks.HOPPER.defaultBlockState());
         StorageTerminalBlockEntity terminal = terminal(helper, new BlockPos(3, 2, 3));
         terminal.output().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 10));
         helper.runAfterDelay(40, () -> {
-            HopperBlockEntity hopper = helper.getBlockEntity(new BlockPos(3, 1, 3));
+            HopperBlockEntity hopper = helper.getBlockEntity(new BlockPos(3, 1, 3), HopperBlockEntity.class);
             helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 10, "the output keeps its 10 cobblestone");
             helper.assertTrue(hopper.isEmpty(), "the hopper took nothing");
             helper.succeed();
@@ -186,7 +181,7 @@ public final class TerminalCableGameTests {
     }
 
     /** A warehouse reached only through its controller cannot ship: there is no Packing Station on the line. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void terminalRequestWithoutPackingStationIsRefused(GameTestHelper helper) {
         crate(helper, new BlockPos(1, 1, 3), Items.COBBLESTONE, 10);
         controller(helper, new BlockPos(2, 1, 3));

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
@@ -20,21 +21,16 @@ import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** Pattern results as the recipe really crafts them: wood from the planks, old patterns refreshed, orders that arrive. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class PatternResultGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -45,8 +41,8 @@ public final class PatternResultGameTests {
     /** Extra stock beside the controller: a quad crate and a crate. */
     private static final BlockPos QUAD = new BlockPos(3, 1, 2);
     private static final BlockPos BIRCH = new BlockPos(2, 1, 1);
-    private static final ResourceLocation RACK_RECIPE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "heavy_rack");
-    private static final ResourceLocation STORAGE_RECIPE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
+    private static final Identifier RACK_RECIPE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "heavy_rack");
+    private static final Identifier STORAGE_RECIPE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
 
     private PatternResultGameTests() {
     }
@@ -89,26 +85,26 @@ public final class PatternResultGameTests {
     /** Fills a quad crate beside the controller, one item per compartment. */
     private static void quad(GameTestHelper helper, List<ItemStack> stacks) {
         helper.setBlock(QUAD, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(QUAD);
+        CrateBlockEntity crate = helper.getBlockEntity(QUAD, CrateBlockEntity.class);
         for (ItemStack stack : stacks) {
             crate.insert(stack, false);
         }
     }
 
     /** A saved rack pattern carries the wood of its oak planks. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void rackPatternResultHasWood(GameTestHelper helper) {
         PatternStorageBlockEntity storage = lone(helper);
         storage.set(0, rack(new ItemStack(ServusStorageItems.HEAVY_RACK.get())));
         ItemStack result = storage.pattern(0).orElseThrow().result();
         helper.assertTrue(result.is(ServusStorageItems.HEAVY_RACK.get())
-                        && ResourceLocation.withDefaultNamespace("oak_planks").equals(result.get(ServusStorageComponents.RACK_WOOD.get())),
+                        && Identifier.withDefaultNamespace("oak_planks").equals(result.get(ServusStorageComponents.RACK_WOOD.get())),
                 "the rack pattern result should carry oak wood, got " + result.getComponents());
         helper.succeed();
     }
 
     /** A pattern kept with the plain recipe result gets the assembled result once its storage is read. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void oldPatternResultRefreshed(GameTestHelper helper) {
         PatternStorageBlockEntity storage = lone(helper);
         var registries = helper.getLevel().registryAccess();
@@ -122,11 +118,11 @@ public final class PatternResultGameTests {
     }
 
     /** Two racks requested through the CPU from an oak rack pattern arrive in the terminal. */
-    @GameTest(template = EMPTY, timeoutTicks = 1600)
+    @ServusGameTest(timeoutTicks = 1600)
     public static void rackRequestArrives(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
         quad(helper, List.of(new ItemStack(Items.IRON_INGOT, 16)));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, rack(new ItemStack(ServusStorageItems.HEAVY_RACK.get())));
         ItemKey rack = ItemKey.of(patterns.pattern(1).orElseThrow().result());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -140,18 +136,18 @@ public final class PatternResultGameTests {
     }
 
     /** A Pattern Storage crafted from birch planks through the CPU arrives with birch wood. */
-    @GameTest(template = EMPTY, timeoutTicks = 1600)
+    @ServusGameTest(timeoutTicks = 1600)
     public static void woodBlockRequestArrives(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
         quad(helper, List.of(new ItemStack(Items.IRON_INGOT, 8), new ItemStack(Items.PAPER, 4),
                 new ItemStack(Items.REDSTONE, 8), new ItemStack(Items.CHEST, 4)));
         helper.setBlock(BIRCH, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity birch = helper.getBlockEntity(BIRCH);
+        CrateBlockEntity birch = helper.getBlockEntity(BIRCH, CrateBlockEntity.class);
         birch.insert(new ItemStack(Items.BIRCH_PLANKS, 16), false);
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, birchStorage());
         ItemStack expected = patterns.pattern(1).orElseThrow().result();
-        helper.assertTrue(ResourceLocation.withDefaultNamespace("birch_planks").equals(expected.get(WoodContent.WOOD.get())),
+        helper.assertTrue(Identifier.withDefaultNamespace("birch_planks").equals(expected.get(WoodContent.WOOD.get())),
                 "the pattern result should carry birch wood, got " + expected.getComponents());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         TerminalWiring.when(helper, () -> stocked(helper, player, Items.BIRCH_PLANKS) && stocked(helper, player, Items.CHEST)

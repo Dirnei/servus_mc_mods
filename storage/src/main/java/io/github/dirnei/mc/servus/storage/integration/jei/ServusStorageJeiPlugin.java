@@ -13,7 +13,7 @@ import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.runtime.IIngredientFilter;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * JEI integration, loaded only when JEI is present: the transfer button opens
@@ -24,10 +24,10 @@ import net.minecraft.resources.ResourceLocation;
 @JeiPlugin
 public final class ServusStorageJeiPlugin implements IModPlugin {
 
-    private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "jei");
+    private static final Identifier UID = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "jei");
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return UID;
     }
 

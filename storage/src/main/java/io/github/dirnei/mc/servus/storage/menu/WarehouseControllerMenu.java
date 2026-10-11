@@ -20,8 +20,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
@@ -56,7 +56,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     }
 
     private WarehouseControllerMenu(int containerId, Inventory playerInventory, WarehouseControllerBlockEntity controller,
-                                    BlockPos pos, IItemHandler upgrades, String name) {
+                                    BlockPos pos, ItemView upgrades, String name) {
         super(ServusStorageMenus.WAREHOUSE_CONTROLLER.get(), containerId);
         this.controller = controller;
         this.player = playerInventory.player;
@@ -65,7 +65,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         this.access = ContainerLevelAccess.create(playerInventory.player.level(), pos);
         this.upgradeSlots = upgrades.getSlots();
         for (int slot = 0; slot < upgradeSlots; slot++) {
-            addSlot(new SlotItemHandler(upgrades, slot, upgradeX(slot), UPGRADES_Y));
+            addSlot(new ResourceHandlerSlot(upgrades, upgrades::set, slot, upgradeX(slot), UPGRADES_Y));
         }
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {

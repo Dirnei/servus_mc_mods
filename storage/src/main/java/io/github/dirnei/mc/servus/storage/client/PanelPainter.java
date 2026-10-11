@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Rect;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /** Paints vanilla style panels, insets and slot frames straight from layout rectangles. */
 final class PanelPainter {
@@ -17,7 +17,7 @@ final class PanelPainter {
     }
 
     /** A raised grey panel with a black outline. */
-    static void panel(GuiGraphics graphics, int x, int y, int w, int h) {
+    static void panel(GuiGraphicsExtractor graphics, int x, int y, int w, int h) {
         graphics.fill(x + 1, y, x + w - 1, y + h, OUTLINE);
         graphics.fill(x, y + 1, x + w, y + h - 1, OUTLINE);
         graphics.fill(x + 1, y + 1, x + w - 1, y + h - 1, FACE);
@@ -28,7 +28,7 @@ final class PanelPainter {
     }
 
     /** A sunken area, for lists and the stock grid background. */
-    static void inset(GuiGraphics graphics, int left, int top, Rect rect) {
+    static void inset(GuiGraphicsExtractor graphics, int left, int top, Rect rect) {
         int x = left + rect.x() - 1;
         int y = top + rect.y() - 1;
         int r = left + rect.right() + 1;
@@ -39,7 +39,7 @@ final class PanelPainter {
     }
 
     /** Slot frames for a block of slots whose first item origin is at the rectangle's corner. */
-    static void slots(GuiGraphics graphics, int left, int top, Rect rect, int columns, int count) {
+    static void slots(GuiGraphicsExtractor graphics, int left, int top, Rect rect, int columns, int count) {
         for (int i = 0; i < count; i++) {
             int x = left + rect.x() + (i % columns) * 18 - 1;
             int y = top + rect.y() + (i / columns) * 18 - 1;

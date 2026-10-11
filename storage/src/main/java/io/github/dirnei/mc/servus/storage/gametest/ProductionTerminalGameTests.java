@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
@@ -7,7 +8,6 @@ import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
@@ -31,7 +31,6 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -39,8 +38,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FurnaceBlock;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
  * The Production Terminal on the data line. Same layout as the CPU tests: the
@@ -49,8 +46,6 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  * Crafting Station at (4,1,2) and the CPU cube at x 6 to 8, z 1 to 3. The
  * Production Terminal stands on the duct at (5,2,2).
  */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class ProductionTerminalGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -73,9 +68,9 @@ public final class ProductionTerminalGameTests {
         helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
+        CraftingStationBlockEntity station = helper.getBlockEntity(STATION, CraftingStationBlockEntity.class);
         helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(0, StationJobs.sticks());
         for (BlockPos pos : List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), new BlockPos(5, 2, 2))) {
             TerminalWiring.dataDuct(helper, pos);
@@ -111,7 +106,7 @@ public final class ProductionTerminalGameTests {
     }
 
     /** On a line with a CPU the terminal is a link member and its lamp lights. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalJoinsLineAndLights(GameTestHelper helper) {
         setup(helper, true);
         TerminalWiring.when(helper, () -> lit(helper, TERMINAL), 60, () -> "the lamp should light", () -> {
@@ -122,7 +117,7 @@ public final class ProductionTerminalGameTests {
     }
 
     /** Alone the lamp stays dark and the view says it is not on a line. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void productionTerminalAloneIsDark(GameTestHelper helper) {
         terminal(helper, LONE);
         helper.runAfterDelay(25, () -> {
@@ -134,7 +129,7 @@ public final class ProductionTerminalGameTests {
     }
 
     /** An idle Crafting Station is a status row: idle, any pattern, no recipe list; with a job it is crafting with crafts left. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void productionTerminalListsIdleStation(GameTestHelper helper) {
         setup(helper, false);
         TerminalWiring.when(helper, () -> !view(helper, TERMINAL).machines().isEmpty(), 40, () -> "the station should be listed", () -> {
@@ -143,7 +138,7 @@ public final class ProductionTerminalGameTests {
                     "the station should be idle, got " + machine.state());
             helper.assertTrue(machine.makes() == -1 && machine.icon().is(ServusStorageBlocks.CRAFTING_STATION.get().asItem()),
                     "any pattern with the station icon, got " + machine);
-            CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
+            CraftingStationBlockEntity station = helper.getBlockEntity(STATION, CraftingStationBlockEntity.class);
             StationJobs.sticksJob(station, 2);
             MachineRow working = view(helper, TERMINAL).machines().get(0);
             helper.assertTrue(working.state().equals("crafting") && working.item().is(Items.STICK) && working.left() == 2,
@@ -153,7 +148,7 @@ public final class ProductionTerminalGameTests {
     }
 
     /** A CPU with a job shows the slot summary and one open job row for 8 sticks with a status. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalListsCpuJob(GameTestHelper helper) {
         setup(helper, true);
         TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
@@ -174,10 +169,10 @@ public final class ProductionTerminalGameTests {
     }
 
     /** A job that runs says "Crafting Station: crafting n of 2" and ends done with a full bar. */
-    @GameTest(template = EMPTY, timeoutTicks = 600)
+    @ServusGameTest(timeoutTicks = 600)
     public static void productionTerminalJobWording(GameTestHelper helper) {
         setup(helper, true);
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.OAK_PLANKS, 4), false);
         helper.setBlock(new BlockPos(2, 1, 1), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
@@ -205,7 +200,7 @@ public final class ProductionTerminalGameTests {
     }
 
     /** A third job on a CPU with 2 slots waits for a CPU. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalWaitingForCpu(GameTestHelper helper) {
         setup(helper, true);
         TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
@@ -221,7 +216,7 @@ public final class ProductionTerminalGameTests {
     }
 
     /** A furnace adapter without fuel is listed first as out of fuel, with a count instead of a recipe list. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalMachinesProblemsFirst(GameTestHelper helper) {
         setup(helper, false);
         BlockPos furnace = new BlockPos(5, 1, 1);
@@ -242,17 +237,17 @@ public final class ProductionTerminalGameTests {
     }
 
     /** Cancelling through the terminal cancels the order on its CPU and releases its reservations. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalCancelsOrder(GameTestHelper helper) {
         setup(helper, true);
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made");
             WorkOrder order = placed.created().order();
-            ProductionTerminalBlockEntity terminal = helper.getBlockEntity(TERMINAL);
+            ProductionTerminalBlockEntity terminal = helper.getBlockEntity(TERMINAL, ProductionTerminalBlockEntity.class);
             ProductionTerminalMenu menu = new ProductionTerminalMenu(1, player.getInventory(), terminal);
             helper.assertTrue(menu.cancel(placed.cpu(), order.id()), "the cancel should go through");
             helper.assertTrue(order.state() == WorkOrder.State.CANCELLED, "the order should be cancelled, got " + order.state());
@@ -262,7 +257,7 @@ public final class ProductionTerminalGameTests {
     }
 
     /** A line with a warehouse but no CPU is online and has no CPU rows. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalNoCpuRows(GameTestHelper helper) {
         setup(helper, false);
         TerminalWiring.when(helper, () -> lit(helper, TERMINAL), 60, () -> "the warehouse should light the lamp", () -> {
@@ -273,7 +268,7 @@ public final class ProductionTerminalGameTests {
     }
 
     /** A Crafting Station and a Pattern Storage on a line with a CPU light their online lamps. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void stationAndPatternStorageLampsLight(GameTestHelper helper) {
         setup(helper, true);
         TerminalWiring.when(helper, () -> lit(helper, STATION) && lit(helper, PATTERNS), 60,
@@ -281,7 +276,7 @@ public final class ProductionTerminalGameTests {
     }
 
     /** Alone, a Crafting Station and a Pattern Storage keep their lamps dark. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void stationAndPatternStorageAloneDark(GameTestHelper helper) {
         BlockPos station = LONE;
         BlockPos patterns = LONE.east(1).south(0).west(2);

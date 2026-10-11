@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
@@ -11,9 +12,8 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -29,18 +29,14 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** The track rails as wood blocks: the wood from the recipe stays on the placed rail, its drops and sneak placed runs. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class RailLookGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos AT = new BlockPos(5, 2, 5);
-    private static final ResourceLocation SPRUCE = BuiltInRegistries.BLOCK.getKey(Blocks.SPRUCE_PLANKS);
-    private static final ResourceLocation BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
+    private static final Identifier SPRUCE = BuiltInRegistries.BLOCK.getKey(Blocks.SPRUCE_PLANKS);
+    private static final Identifier BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
 
     private RailLookGameTests() {
     }
@@ -51,7 +47,7 @@ public final class RailLookGameTests {
         return player;
     }
 
-    private static ItemStack woodRail(Item item, ResourceLocation wood) {
+    private static ItemStack woodRail(Item item, Identifier wood) {
         ItemStack stack = new ItemStack(item, 8);
         stack.set(WoodContent.WOOD.get(), wood);
         return stack;
@@ -64,13 +60,13 @@ public final class RailLookGameTests {
                 new BlockHitResult(Vec3.atCenterOf(floor).add(0, 0.5, 0), Direction.UP, floor, false)));
     }
 
-    private static ResourceLocation woodAt(GameTestHelper helper, BlockPos pos) {
+    private static Identifier woodAt(GameTestHelper helper, BlockPos pos) {
         return helper.getLevel().getBlockEntity(helper.absolutePos(pos)) instanceof WoodHolder holder ? holder.woodSlot().raw() : null;
     }
 
     private static CraftingRecipe recipe(GameTestHelper helper, String id) {
-        return (CraftingRecipe) helper.getLevel().getRecipeManager()
-                .byKey(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, id))
+        return (CraftingRecipe) helper.getLevel().recipeAccess()
+                .byKey(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, id))
                 .orElseThrow(() -> new AssertionError("no " + id + " recipe")).value();
     }
 
@@ -83,7 +79,7 @@ public final class RailLookGameTests {
     }
 
     /** A spruce rail places spruce sleepers and drops a spruce rail; so does a farm rail. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void woodSurvivesPlaceAndBreak(GameTestHelper helper) {
         for (Item item : new Item[] {ServusStorageItems.RAIL.get(), ServusStorageItems.FARM_RAIL.get()}) {
             helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
@@ -102,7 +98,7 @@ public final class RailLookGameTests {
     }
 
     /** Sneaking with the carrot on a birch rail drops a birch rail. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dismantleKeepsWood(GameTestHelper helper) {
         helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
         ItemStack stack = woodRail(ServusStorageItems.RAIL.get(), BIRCH);
@@ -126,7 +122,7 @@ public final class RailLookGameTests {
     }
 
     /** Iron ingots around birch planks make sixteen birch rails. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void railRecipeRecordsWood(GameTestHelper helper) {
         CraftingRecipe recipe = recipe(helper, "rail");
         CraftingInput input = grid(
@@ -134,14 +130,14 @@ public final class RailLookGameTests {
                 Items.IRON_INGOT, Items.BIRCH_PLANKS, Items.IRON_INGOT,
                 Items.IRON_INGOT, Items.AIR, Items.IRON_INGOT);
         helper.assertTrue(recipe.matches(input, helper.getLevel()), "the rail recipe should take birch planks");
-        ItemStack result = recipe.assemble(input, helper.getLevel().registryAccess());
+        ItemStack result = recipe.assemble(input);
         helper.assertTrue(result.is(ServusStorageItems.RAIL.get()) && result.getCount() == 16
                 && BIRCH.equals(result.get(WoodContent.WOOD.get())), "sixteen birch rails, got " + result + " " + result.get(WoodContent.WOOD.get()));
         helper.succeed();
     }
 
     /** Copper ingots around spruce planks make sixteen spruce farm rails; iron does not. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void farmRailRecipeTakesCopper(GameTestHelper helper) {
         CraftingRecipe recipe = recipe(helper, "farm_rail");
         CraftingInput copper = grid(
@@ -149,7 +145,7 @@ public final class RailLookGameTests {
                 Items.COPPER_INGOT, Items.SPRUCE_PLANKS, Items.COPPER_INGOT,
                 Items.COPPER_INGOT, Items.AIR, Items.COPPER_INGOT);
         helper.assertTrue(recipe.matches(copper, helper.getLevel()), "the farm rail recipe should take copper and planks");
-        ItemStack result = recipe.assemble(copper, helper.getLevel().registryAccess());
+        ItemStack result = recipe.assemble(copper);
         helper.assertTrue(result.is(ServusStorageItems.FARM_RAIL.get()) && result.getCount() == 16
                 && SPRUCE.equals(result.get(WoodContent.WOOD.get())), "sixteen spruce farm rails, got " + result);
         CraftingInput iron = grid(
@@ -161,7 +157,7 @@ public final class RailLookGameTests {
     }
 
     /** A sneak placed run of birch rails puts birch on every rail it places. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void runKeepsWood(GameTestHelper helper) {
         for (int x = 0; x <= 9; x++) {
             helper.setBlock(new BlockPos(x, 1, 3), Blocks.STONE.defaultBlockState());

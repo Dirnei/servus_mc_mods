@@ -28,18 +28,18 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
@@ -61,7 +61,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     private final ProductionTerminalBlockEntity terminal;
     private final ContainerLevelAccess access;
     private final Player player;
-    private final ItemStackHandler grid = new ItemStackHandler(EncodedPattern.GRID);
+    private final ItemSlots grid = new ItemSlots(EncodedPattern.GRID);
     private final DataSlot editing = DataSlot.standalone();
     private final int gridStart;
     private PatternLibrary.Free editingSlot;
@@ -213,7 +213,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     }
 
     /** Opens the editor prefilled with a vanilla crafting recipe from the recipe viewer. */
-    public void openEditorWith(ResourceLocation id) {
+    public void openEditorWith(Identifier id) {
         if (player.level().isClientSide()) {
             return;
         }
@@ -275,8 +275,8 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         if (id == RecipeEditorButtons.SAVE && isEditing()) {
             String result = save();
             if (!result.isEmpty()) {
-                player.displayClientMessage(Component.translatable("gui.servus_storage.production.pattern_message." + result)
-                        .withStyle(ChatFormatting.RED), true);
+                player.sendOverlayMessage(Component.translatable("gui.servus_storage.production.pattern_message." + result)
+                        .withStyle(ChatFormatting.RED));
             }
             return true;
         }
@@ -293,7 +293,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
 
     /** Grid cells take a copy of the cursor and never hand anything out. */
     @Override
-    public void clicked(int slotId, int button, ClickType clickType, Player player) {
+    public void clicked(int slotId, int button, ContainerInput clickType, Player player) {
         if (isGridSlot(slotId)) {
             if (isEditing() && !player.level().isClientSide()) {
                 setGhost(slotId - gridStart, getCarried());
@@ -344,7 +344,7 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
             lastSignature = signature(payload);
             syncTimer = 0;
             if (firstSyncTick < 0) {
-                firstSyncTick = serverPlayer.serverLevel().getGameTime();
+                firstSyncTick = serverPlayer.level().getGameTime();
             }
             PacketDistributor.sendToPlayer(serverPlayer, payload);
         }

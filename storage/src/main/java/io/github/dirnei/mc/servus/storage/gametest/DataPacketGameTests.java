@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.data.packet.DeliveryReason;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
@@ -16,7 +16,6 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
@@ -26,17 +25,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * Deliveries over the data line between a Warehouse Controller (a crate of
  * planks beside it) and a Crafting Station: controller at x 2, six data
  * ducts at x 3 to 8, station at x 9, all at y 1, z 3.
  */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class DataPacketGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -55,7 +50,7 @@ public final class DataPacketGameTests {
 
     private static void data(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         duct.addLine(Line.DATA);
         BlockPos absolute = helper.absolutePos(pos);
         BlockState state = helper.getLevel().getBlockState(absolute);
@@ -65,13 +60,13 @@ public final class DataPacketGameTests {
     /** Controller with 32 planks, six data ducts, a sticks station whose outputs are full so it never crafts. */
     private static Setup setup(GameTestHelper helper, boolean ducts) {
         helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.OAK_PLANKS, 32), false);
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState()
                 .setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(STATION);
+        CraftingStationBlockEntity station = helper.getBlockEntity(STATION, CraftingStationBlockEntity.class);
         StationJobs.sticksJob(station, 64);
         for (int slot = 0; slot < station.outputs().getSlots(); slot++) {
             station.outputs().setStackInSlot(slot, new ItemStack(Items.STICK, 64));
@@ -84,7 +79,7 @@ public final class DataPacketGameTests {
         return new Setup(crate, station);
     }
 
-    private static int count(ItemStackHandler handler, Item item) {
+    private static int count(ItemSlots handler, Item item) {
         int total = 0;
         for (int slot = 0; slot < handler.getSlots(); slot++) {
             if (handler.getStackInSlot(slot).is(item)) {
@@ -106,7 +101,7 @@ public final class DataPacketGameTests {
     }
 
     /** Sixteen planks move from the warehouse into the station. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void packetMoveControllerToStation(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         helper.runAfterDelay(2, () -> {
@@ -121,7 +116,7 @@ public final class DataPacketGameTests {
     }
 
     /** The data line is instant: eight planks arrive within the first ticks, distance does not matter. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void packetMoveIsInstant(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         helper.runAfterDelay(2, () -> {
@@ -135,7 +130,7 @@ public final class DataPacketGameTests {
     }
 
     /** A sent stack of 20 arrives at once between members that are no gates. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void packetSendArrivesAtOnce(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         helper.runAfterDelay(2, () -> {
@@ -151,10 +146,10 @@ public final class DataPacketGameTests {
     }
 
     /** A target with room for 3 takes 3; the other 5 wait and go in once room frees up. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void packetTargetFullRetries(GameTestHelper helper) {
         Setup setup = setup(helper, true);
-        ItemStackHandler inputs = setup.station().inputs();
+        ItemSlots inputs = setup.station().inputs();
         for (int slot = 0; slot < inputs.getSlots(); slot++) {
             inputs.setStackInSlot(slot, new ItemStack(Items.OAK_PLANKS, slot == 0 ? 61 : 64));
         }
@@ -173,11 +168,11 @@ public final class DataPacketGameTests {
     }
 
     /** A move of 16 sticks from a station holding 4 ends done with 4. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void packetSourceShortEndsDone(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         helper.setBlock(SPARE_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        ItemStackHandler outputs = setup.station().outputs();
+        ItemSlots outputs = setup.station().outputs();
         for (int slot = 0; slot < outputs.getSlots(); slot++) {
             outputs.setStackInSlot(slot, slot == 0 ? new ItemStack(Items.STICK, 4) : ItemStack.EMPTY);
         }
@@ -185,14 +180,14 @@ public final class DataPacketGameTests {
             Delivery delivery = move(helper, STATION, CONTROLLER, Items.STICK, 16);
             helper.succeedWhen(() -> {
                 helper.assertTrue(delivery.state() == Delivery.State.DONE && delivery.delivered() == 4, "done with 4, " + delivery);
-                CrateBlockEntity spare = helper.getBlockEntity(SPARE_CRATE);
+                CrateBlockEntity spare = helper.getBlockEntity(SPARE_CRATE, CrateBlockEntity.class);
                 helper.assertTrue(spare.count(0) == 4, "the 4 sticks should be in the spare crate, got " + spare.count(0));
             });
         });
     }
 
     /** Without a route the move fails at once and the warehouse keeps its planks. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void packetNoRouteKeepsItems(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         helper.setBlock(new BlockPos(5, 1, 3), Blocks.AIR.defaultBlockState());
@@ -208,7 +203,7 @@ public final class DataPacketGameTests {
     }
 
     /** The op command starts a move and the planks arrive. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void packetCommandStartsMove(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         helper.runAfterDelay(2, () -> {
@@ -225,13 +220,13 @@ public final class DataPacketGameTests {
     }
 
     /** Breaking a duct while a move waits for room lets the rest go round a detour. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void packetDetourArrives(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         data(helper, new BlockPos(4, 1, 4));
         data(helper, new BlockPos(5, 1, 4));
         data(helper, new BlockPos(6, 1, 4));
-        ItemStackHandler inputs = fillInputs(setup, 3);
+        ItemSlots inputs = fillInputs(setup, 3);
         helper.runAfterDelay(2, () -> {
             Delivery delivery = move(helper, CONTROLLER, STATION, Items.OAK_PLANKS, 8);
             helper.runAfterDelay(6, () -> helper.setBlock(new BlockPos(5, 1, 3), Blocks.AIR.defaultBlockState()));
@@ -244,7 +239,7 @@ public final class DataPacketGameTests {
     }
 
     /** Breaking the only route fails the move; what it has not moved stays in the warehouse. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void packetBrokenRouteKeepsItems(GameTestHelper helper) {
         Setup setup = setup(helper, true);
         fillInputs(setup, 3);
@@ -265,8 +260,8 @@ public final class DataPacketGameTests {
     }
 
     /** Fills the station's inputs with planks, leaving room for {@code room} in the first slot. */
-    private static ItemStackHandler fillInputs(Setup setup, int room) {
-        ItemStackHandler inputs = setup.station().inputs();
+    private static ItemSlots fillInputs(Setup setup, int room) {
+        ItemSlots inputs = setup.station().inputs();
         for (int slot = 0; slot < inputs.getSlots(); slot++) {
             inputs.setStackInSlot(slot, new ItemStack(Items.OAK_PLANKS, slot == 0 ? 64 - room : 64));
         }

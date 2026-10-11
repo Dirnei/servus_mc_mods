@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.storage.terminal.TerminalLayout.Production;
 import io.github.dirnei.mc.servus.storage.pattern.CraftingGrid;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
@@ -17,17 +20,14 @@ import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternRow;
 import io.github.dirnei.mc.servus.storage.production.ProductionRows.PatternsView;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Supplier;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -57,7 +57,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
 
     /** Draws one line at its top edge. */
     private interface Painter {
-        void paint(GuiGraphics graphics, int y, boolean hovered);
+        void paint(GuiGraphicsExtractor graphics, int y, boolean hovered);
     }
 
     /** Tooltip and click by position inside a line, relative to the list's left edge and the line's top. */
@@ -112,7 +112,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     // Drawing
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         PanelPainter.panel(graphics, leftPos, topPos, imageWidth, imageHeight);
         graphics.fill(leftPos + MARGIN, topPos + LIST_Y - 2, leftPos + WIDTH - MARGIN, topPos + LIST_Y - 1, 0xFF8B8B8B);
         if (menu.isEditing()) {
@@ -146,18 +147,17 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         if (menu.isEditing()) {
             if (popup.previewHovered(leftPos, topPos, mouseX, mouseY)) {
                 ItemStack preview = preview();
                 if (preview.isEmpty()) {
-                    graphics.renderTooltip(font, Component.translatable("gui.servus_storage.crafting_station.no_match"), mouseX, mouseY);
+                    graphics.setTooltipForNextFrame(font, Component.translatable("gui.servus_storage.crafting_station.no_match"), mouseX, mouseY);
                 } else {
-                    graphics.renderTooltip(font, preview, mouseX, mouseY);
+                    graphics.setTooltipForNextFrame(font, preview, mouseX, mouseY);
                 }
             } else {
-                renderTooltip(graphics, mouseX, mouseY);
             }
             return;
         }
@@ -167,25 +167,25 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                     ? hovered.hit().tooltip(mouseX - leftPos - MARGIN, mouseY - topPos - lineTop(hovered))
                     : hovered.tooltip() == null ? List.of() : hovered.tooltip().get();
             if (!tooltip.isEmpty()) {
-                graphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+                graphics.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
             }
         }
     }
 
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (menu.isEditing()) {
             return;
         }
-        graphics.drawString(font, title, Production.TITLE.x(), Production.TITLE.y(), COLOUR_TEXT, false);
+        graphics.text(font, title, Production.TITLE.x(), Production.TITLE.y(), COLOUR_TEXT, false);
         renderTabs(graphics);
         if (!ClientProduction.loaded()) {
-            graphics.drawString(font, Component.translatable("gui.servus_storage.production.loading"), MARGIN, LIST_Y, COLOUR_DIM, false);
+            graphics.text(font, Component.translatable("gui.servus_storage.production.loading"), MARGIN, LIST_Y, COLOUR_DIM, false);
             return;
         }
         if (!ClientProduction.online()) {
             String reason = ClientProduction.reason().isEmpty() ? "no_line" : ClientProduction.reason();
-            graphics.drawString(font, Component.translatable("gui.servus_storage.production." + reason), MARGIN, LIST_Y, COLOUR_ALERT, false);
+            graphics.text(font, Component.translatable("gui.servus_storage.production." + reason), MARGIN, LIST_Y, COLOUR_ALERT, false);
             return;
         }
         rebuildLines();
@@ -201,14 +201,14 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         graphics.disableScissor();
     }
 
-    private void renderTabs(GuiGraphics graphics) {
+    private void renderTabs(GuiGraphicsExtractor graphics) {
         for (int i = 0; i < tabs.size(); i++) {
             int x = tabX(i);
             boolean active = i == selected;
             graphics.fill(x, TAB_Y, x + TAB_WIDTH, TAB_Y + TAB_HEIGHT, active ? 0xFF8B8B8B : 0xFFC6C6C6);
             graphics.renderOutline(x, TAB_Y, TAB_WIDTH, TAB_HEIGHT, 0xFF373737);
             Component label = Component.translatable("gui.servus_storage.production.tab." + tabs.get(i).key());
-            graphics.drawString(font, label, x + (TAB_WIDTH - font.width(label)) / 2, TAB_Y + 2, active ? 0xFFFFFF : COLOUR_TEXT, false);
+            graphics.text(font, label, x + (TAB_WIDTH - font.width(label)) / 2, TAB_Y + 2, active ? 0xFFFFFF : COLOUR_TEXT, false);
         }
     }
 
@@ -280,7 +280,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             return list;
         };
         result.add(new Line(Production.HEADER_HEIGHT,
-                (graphics, y, hovered) -> graphics.drawString(font, head, MARGIN, y + 2, COLOUR_HEAD, false), headTip, null));
+                (graphics, y, hovered) -> graphics.text(font, head, MARGIN, y + 2, COLOUR_HEAD, false), headTip, null));
         int shown = 0;
         for (JobRow job : ClientProduction.jobs()) {
             if (visibility(job) <= 0f) {
@@ -316,10 +316,10 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                 graphics.fill(MARGIN, y, WIDTH - MARGIN, y + Production.JOB_HEIGHT, 0x20000000);
             }
             if (visible >= 0.5f) {
-                graphics.renderItem(job.item(), MARGIN + Production.JOB_ICON.x(), y + Production.JOB_ICON.y());
+                graphics.item(job.item(), MARGIN + Production.JOB_ICON.x(), y + Production.JOB_ICON.y());
             }
             String title = job.amount() + " " + job.item().getHoverName().getString();
-            graphics.drawString(font, font.plainSubstrByWidth(title, Production.JOB_TITLE.w()), MARGIN + Production.JOB_TITLE.x(),
+            graphics.text(font, font.plainSubstrByWidth(title, Production.JOB_TITLE.w()), MARGIN + Production.JOB_TITLE.x(),
                     y + Production.JOB_TITLE.y(), alpha(COLOUR_TEXT, visible), false);
             int barX = MARGIN + Production.JOB_BAR.x();
             int barY = y + Production.JOB_BAR.y();
@@ -341,14 +341,14 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                         ? COLOUR_ALERT : COLOUR_TEXT;
             };
             String text = status(job).getString();
-            graphics.drawString(font, font.plainSubstrByWidth(text, Production.JOB_STATUS.w()), MARGIN + Production.JOB_STATUS.x(),
+            graphics.text(font, font.plainSubstrByWidth(text, Production.JOB_STATUS.w()), MARGIN + Production.JOB_STATUS.x(),
                     y + Production.JOB_STATUS.y(), alpha(statusColour, visible), false);
             if (job.open()) {
                 int cx = MARGIN + Production.JOB_CANCEL.x();
                 int cy = y + Production.JOB_CANCEL.y();
                 graphics.fill(cx, cy, cx + Production.JOB_CANCEL.w(), cy + Production.JOB_CANCEL.h(), 0xFF373737);
                 graphics.fill(cx + 1, cy + 1, cx + Production.JOB_CANCEL.w() - 1, cy + Production.JOB_CANCEL.h() - 1, 0xFFB03030);
-                graphics.drawString(font, "x", cx + (Production.JOB_CANCEL.w() - font.width("x")) / 2, cy + 2, 0xFFFFFF, false);
+                graphics.text(font, "x", cx + (Production.JOB_CANCEL.w() - font.width("x")) / 2, cy + 2, 0xFFFFFFFF, false);
             }
         };
         Hit hit = new Hit() {
@@ -368,7 +368,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             @Override
             public boolean click(int lx, int ly) {
                 if (job.open() && Production.JOB_CANCEL.contains(lx, ly)) {
-                    PacketDistributor.sendToServer(new CancelProductionOrderPayload(job.cpu(), job.id()));
+                    ClientPacketDistributor.sendToServer(new CancelProductionOrderPayload(job.cpu(), job.id()));
                     return true;
                 }
                 return false;
@@ -396,7 +396,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         Component capacity = Component.translatable("gui.servus_storage.production.patterns_capacity", patterns.used(), patterns.total());
         int barWidth = 80;
         result.add(new Line(14, (graphics, y, hovered) -> {
-            graphics.drawString(font, capacity, MARGIN, y + 3, COLOUR_HEAD, false);
+            graphics.text(font, capacity, MARGIN, y + 3, COLOUR_HEAD, false);
             int x = WIDTH - MARGIN - barWidth - 2;
             graphics.fill(x, y + 3, x + barWidth, y + 10, 0xFF373737);
             int filled = patterns.total() == 0 ? 0 : Math.min(barWidth - 2, patterns.used() * (barWidth - 2) / patterns.total());
@@ -424,13 +424,13 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             if (hovered) {
                 graphics.fill(MARGIN, y, WIDTH - MARGIN, y + ORDER_ROW, 0x30000000);
             }
-            graphics.renderItem(row.result(), MARGIN + 4, y + 1);
-            graphics.drawString(font, text, MARGIN + 24, y + 5, COLOUR_TEXT, false);
+            graphics.item(row.result(), MARGIN + 4, y + 1);
+            graphics.text(font, text, MARGIN + 24, y + 5, COLOUR_TEXT, false);
         };
         Supplier<List<Component>> tooltip = () -> List.of(text,
                 Component.translatable("gui.servus_storage.production.pattern_storage_at", row.storage().toShortString(), row.slot() + 1),
                 Component.translatable("gui.servus_storage.production.pattern_edit_hint"));
-        return new Line(ORDER_ROW, painter, tooltip, () -> PacketDistributor.sendToServer(new EditPatternPayload(row.storage(), row.slot())));
+        return new Line(ORDER_ROW, painter, tooltip, () -> ClientPacketDistributor.sendToServer(new EditPatternPayload(row.storage(), row.slot())));
     }
 
     private void press(int button) {
@@ -471,7 +471,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private Line ductLine(DuctRow duct) {
         Component line = Component.translatable("gui.servus_storage.production.busiest_duct", duct.name(), duct.load(), duct.bandwidth());
         int colour = PackingRow.busy(duct.load(), duct.bandwidth()) ? COLOUR_ALERT : COLOUR_DIM;
-        Painter painter = (graphics, y, hovered) -> graphics.drawString(font,
+        Painter painter = (graphics, y, hovered) -> graphics.text(font,
                 font.plainSubstrByWidth(line.getString(), WIDTH - 2 * MARGIN), MARGIN, y + 1, colour, false);
         Supplier<List<Component>> tooltip = () -> List.of(line,
                 Component.translatable("gui.servus_storage.production.machine.at", duct.pos().toShortString()));
@@ -493,13 +493,13 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             if (hovered) {
                 graphics.fill(MARGIN, y, WIDTH - MARGIN, y + Production.MACHINE_HEIGHT, 0x20000000);
             }
-            graphics.renderItem(icon, MARGIN + Production.MACHINE_ICON.x(), y + Production.MACHINE_ICON.y());
-            graphics.drawString(font, font.plainSubstrByWidth(icon.getHoverName().getString(), Production.MACHINE_NAME.w()),
+            graphics.item(icon, MARGIN + Production.MACHINE_ICON.x(), y + Production.MACHINE_ICON.y());
+            graphics.text(font, font.plainSubstrByWidth(icon.getHoverName().getString(), Production.MACHINE_NAME.w()),
                     MARGIN + Production.MACHINE_NAME.x(), y + Production.MACHINE_NAME.y(), COLOUR_TEXT, false);
             boolean busy = station.busyToNetwork() || station.busyToStorage();
             boolean working = station.toNetwork() > 0 || station.toStorage() > 0;
             int colour = busy ? COLOUR_ALERT : working ? COLOUR_GOOD : COLOUR_DIM;
-            graphics.drawString(font, font.plainSubstrByWidth(state.getString(), Production.MACHINE_STATE.w()),
+            graphics.text(font, font.plainSubstrByWidth(state.getString(), Production.MACHINE_STATE.w()),
                     MARGIN + Production.MACHINE_STATE.x(), y + Production.MACHINE_STATE.y(), colour, false);
         };
         Supplier<List<Component>> tooltip = () -> List.of(icon.getHoverName(), toNetwork, toStorage,
@@ -522,11 +522,11 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             if (hovered) {
                 graphics.fill(MARGIN, y, WIDTH - MARGIN, y + Production.MACHINE_HEIGHT, 0x20000000);
             }
-            graphics.renderItem(machine.icon(), MARGIN + Production.MACHINE_ICON.x(), y + Production.MACHINE_ICON.y());
-            graphics.drawString(font, font.plainSubstrByWidth(machine.name(), Production.MACHINE_NAME.w()),
+            graphics.item(machine.icon(), MARGIN + Production.MACHINE_ICON.x(), y + Production.MACHINE_ICON.y());
+            graphics.text(font, font.plainSubstrByWidth(machine.name(), Production.MACHINE_NAME.w()),
                     MARGIN + Production.MACHINE_NAME.x(), y + Production.MACHINE_NAME.y(), COLOUR_TEXT, false);
             int colour = machine.problem() ? COLOUR_ALERT : machine.state().equals("crafting") ? COLOUR_GOOD : COLOUR_DIM;
-            graphics.drawString(font, font.plainSubstrByWidth(machineState(machine).getString(), Production.MACHINE_STATE.w()),
+            graphics.text(font, font.plainSubstrByWidth(machineState(machine).getString(), Production.MACHINE_STATE.w()),
                     MARGIN + Production.MACHINE_STATE.x(), y + Production.MACHINE_STATE.y(), colour, false);
             if (machine.upkeepLevel() > 0) {
                 int barX = MARGIN + Production.MACHINE_BAR.x();
@@ -558,7 +558,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     }
 
     private Line text(Component text, int colour, int indent) {
-        return new Line(ROW, (graphics, y, hovered) -> graphics.drawString(font, text, MARGIN + indent, y + 1, colour, false), null, null);
+        return new Line(ROW, (graphics, y, hovered) -> graphics.text(font, text, MARGIN + indent, y + 1, colour, false), null, null);
     }
 
     // Input
@@ -595,7 +595,10 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (menu.isEditing()) {
             switch (popup.buttonAt(leftPos, topPos, mouseX, mouseY, menu.editing() == ProductionTerminalMenu.EDIT_EXISTING)) {
                 case SAVE -> {
@@ -613,7 +616,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
                 case NONE -> {
                 }
             }
-            return super.mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(event, doubleClick);
         }
         int x = (int) mouseX - leftPos;
         int y = (int) mouseY - topPos;
@@ -634,7 +637,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             line.click().run();
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
@@ -647,11 +650,14 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
         if (menu.isEditing() && keyCode == GLFW.GLFW_KEY_ESCAPE) {
             press(RecipeEditorButtons.CANCEL);
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 }

@@ -2,7 +2,6 @@ package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -19,7 +18,6 @@ import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -33,12 +31,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** A controller is a site: name, chunk span, Chunk Loader Upgrades and the over capacity lamp. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class ControllerSiteGameTests {
 
     /** Wide enough that every row of x positions 2..30 crosses a chunk border. */
@@ -91,7 +85,7 @@ public final class ControllerSiteGameTests {
     }
 
     /** A rail run carries the site into the next chunk; breaking it takes the chunk out again. */
-    @GameTest(template = WIDE, timeoutTicks = 200)
+    @ServusGameTest(template = WIDE, timeoutTicks = 200)
     public static void spanFollowsRailIntoNextChunk(GameTestHelper helper) {
         int border = border(helper);
         WarehouseControllerBlockEntity controller = acrossBorder(helper, border);
@@ -107,7 +101,7 @@ public final class ControllerSiteGameTests {
     }
 
     /** A chest across the border touching a crate counts its chunk until it is broken. */
-    @GameTest(template = WIDE, timeoutTicks = 200)
+    @ServusGameTest(template = WIDE, timeoutTicks = 200)
     public static void foreignChestCountsItsChunk(GameTestHelper helper) {
         int border = border(helper);
         WarehouseControllerBlockEntity controller = controller(helper, new BlockPos(border - 2, 1, ROW_Z));
@@ -123,7 +117,7 @@ public final class ControllerSiteGameTests {
     }
 
     /** One upgrade of one chunk is too small for two chunks: red lamp; a second upgrade turns it green. */
-    @GameTest(template = WIDE, timeoutTicks = 200)
+    @ServusGameTest(template = WIDE, timeoutTicks = 200)
     public static void overCapacityLampAndBackWithUpgrade(GameTestHelper helper) {
         int border = border(helper);
         BlockPos at = new BlockPos(border - 2, 1, ROW_Z);
@@ -144,7 +138,7 @@ public final class ControllerSiteGameTests {
     }
 
     /** Only Chunk Loader Upgrades go in, one per slot; without one the lamp stays green. */
-    @GameTest(template = WIDE, timeoutTicks = 40)
+    @ServusGameTest(template = WIDE, timeoutTicks = 40)
     public static void upgradeSlotsTakeOnlyChunkLoaderUpgrades(GameTestHelper helper) {
         BlockPos at = new BlockPos(2, 1, ROW_Z);
         WarehouseControllerBlockEntity controller = controller(helper, at);
@@ -163,7 +157,7 @@ public final class ControllerSiteGameTests {
     }
 
     /** Name and rules ride the dismantled item, upgrades drop, the span starts over at the new place. */
-    @GameTest(template = WIDE, timeoutTicks = 60)
+    @ServusGameTest(template = WIDE, timeoutTicks = 60)
     public static void nameSavedAndCarriedByCarrot(GameTestHelper helper) {
         BlockPos at = new BlockPos(2, 1, ROW_Z);
         BlockPos again = new BlockPos(28, 1, ROW_Z);
@@ -199,7 +193,7 @@ public final class ControllerSiteGameTests {
     }
 
     /** The GUI renames the site and cleans the name; an unnamed site shows its position. */
-    @GameTest(template = WIDE, timeoutTicks = 40)
+    @ServusGameTest(template = WIDE, timeoutTicks = 40)
     public static void menuRenamesAndCleans(GameTestHelper helper) {
         BlockPos at = new BlockPos(2, 1, ROW_Z);
         WarehouseControllerBlockEntity controller = controller(helper, at);

@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
 import net.neoforged.neoforge.client.model.IDynamicBakedModel;
 import net.neoforged.neoforge.client.model.IQuadTransformer;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -37,20 +37,20 @@ import org.jetbrains.annotations.Nullable;
 public final class HeavyRackModel implements IDynamicBakedModel {
 
     /** The board texture the datagen models use; quads with this sprite show the wood. */
-    public static final ResourceLocation BOARD = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/heavy_rack_board");
+    public static final Identifier BOARD = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/heavy_rack_board");
 
-    private record QuadKey(ResourceLocation wood, @Nullable BlockState state, @Nullable Direction side, @Nullable RenderType renderType) {
+    private record QuadKey(Identifier wood, @Nullable BlockState state, @Nullable Direction side, @Nullable RenderType renderType) {
     }
 
     private final BakedModel base;
     /** The wood of an item model resolved for a stack, or null to read the model data. */
-    private final @Nullable ResourceLocation fixedWood;
+    private final @Nullable Identifier fixedWood;
     private final Map<QuadKey, List<BakedQuad>> quads = new ConcurrentHashMap<>();
-    private final Map<ResourceLocation, HeavyRackModel> itemModels = new ConcurrentHashMap<>();
+    private final Map<Identifier, HeavyRackModel> itemModels = new ConcurrentHashMap<>();
     private final ItemOverrides overrides = new ItemOverrides() {
         @Override
         public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
-            ResourceLocation wood = HeavyRackBlockEntity.woodOf(stack);
+            Identifier wood = HeavyRackBlockEntity.woodOf(stack);
             return itemModels.computeIfAbsent(wood, key -> new HeavyRackModel(base, key));
         }
     };
@@ -59,29 +59,29 @@ public final class HeavyRackModel implements IDynamicBakedModel {
         this(base, null);
     }
 
-    private HeavyRackModel(BakedModel base, @Nullable ResourceLocation fixedWood) {
+    private HeavyRackModel(BakedModel base, @Nullable Identifier fixedWood) {
         this.base = base;
         this.fixedWood = fixedWood;
     }
 
-    private ResourceLocation woodOf(ModelData data) {
+    private Identifier woodOf(ModelData data) {
         if (fixedWood != null) {
             return fixedWood;
         }
-        ResourceLocation wood = data.get(HeavyRackBlockEntity.WOOD);
+        Identifier wood = data.get(HeavyRackBlockEntity.WOOD);
         return wood != null ? wood : HeavyRackBlockEntity.DEFAULT_WOOD;
     }
 
     /** The particle sprite of the planks block's default model. */
-    private static TextureAtlasSprite spriteOf(ResourceLocation wood) {
-        BlockState planks = BuiltInRegistries.BLOCK.get(wood).defaultBlockState();
+    private static TextureAtlasSprite spriteOf(Identifier wood) {
+        BlockState planks = BuiltInRegistries.BLOCK.getValue(wood).defaultBlockState();
         return Minecraft.getInstance().getBlockRenderer().getBlockModel(planks).getParticleIcon(ModelData.EMPTY);
     }
 
     @Override
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand,
                                     ModelData extraData, @Nullable RenderType renderType) {
-        ResourceLocation wood = woodOf(extraData);
+        Identifier wood = woodOf(extraData);
         return quads.computeIfAbsent(new QuadKey(wood, state, side, renderType), key -> {
             TextureAtlasSprite sprite = spriteOf(wood);
             List<BakedQuad> result = new ArrayList<>();

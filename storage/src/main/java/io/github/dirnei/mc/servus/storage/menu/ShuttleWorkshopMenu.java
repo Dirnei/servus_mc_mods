@@ -27,8 +27,8 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
  * The Shuttle Workshop: the shuttle slot, the install slot that puts upgrades
@@ -64,8 +64,8 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
 
     private final ContainerLevelAccess access;
     private final ShuttleWorkshopBlockEntity workshop;
-    private final ItemStackHandler shuttle;
-    private final ItemStackHandler supplies;
+    private final ItemSlots shuttle;
+    private final ItemSlots supplies;
     private final ShuttleTiers tiers;
     private final Player player;
     /** Whether a build by hand runs; read from the workshop on the server, synced to the client. */
@@ -79,8 +79,8 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
                 ContainerLevelAccess.create(workshop.getLevel(), workshop.getBlockPos()));
     }
 
-    private ShuttleWorkshopMenu(int containerId, Inventory playerInventory, ShuttleWorkshopBlockEntity workshop, ItemStackHandler shuttle,
-                                ItemStackHandler supplies, ShuttleTiers tiers, ContainerLevelAccess access) {
+    private ShuttleWorkshopMenu(int containerId, Inventory playerInventory, ShuttleWorkshopBlockEntity workshop, ItemSlots shuttle,
+                                ItemSlots supplies, ShuttleTiers tiers, ContainerLevelAccess access) {
         super(ServusStorageMenus.SHUTTLE_WORKSHOP.get(), containerId);
         this.access = access;
         this.workshop = workshop;
@@ -90,7 +90,7 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
         this.player = playerInventory.player;
         this.building = workshop == null ? DataSlot.standalone() : new WorkshopSlot(() -> workshop.handBuild() ? 1 : 0);
         this.step = workshop == null ? DataSlot.standalone() : new WorkshopSlot(workshop::buildStep);
-        addSlot(new SlotItemHandler(shuttle, 0, SHUTTLE_X, SHUTTLE_Y) {
+        addSlot(new ResourceHandlerSlot(shuttle, shuttle::set, 0, SHUTTLE_X, SHUTTLE_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return !building() && ShuttleItem.isShuttle(stack);
@@ -108,7 +108,7 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
         });
         addSlot(new InstallSlot(INSTALL_X, INSTALL_Y));
         for (int i = 0; i < ShuttleWorkshopBlockEntity.SUPPLY_SLOTS; i++) {
-            addSlot(new SlotItemHandler(supplies, i, SUPPLY_X + i * 18, SUPPLY_Y) {
+            addSlot(new ResourceHandlerSlot(supplies, supplies::set, i, SUPPLY_X + i * 18, SUPPLY_Y) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return !building() && !ShuttleItem.isShuttle(stack);
@@ -155,8 +155,8 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
     public static ShuttleWorkshopMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         BlockPos pos = buf.readBlockPos();
         ShuttleTiers tiers = TIERS_CODEC.decode(buf);
-        return new ShuttleWorkshopMenu(containerId, playerInventory, null, new ItemStackHandler(1),
-                new ItemStackHandler(ShuttleWorkshopBlockEntity.SUPPLY_SLOTS), tiers,
+        return new ShuttleWorkshopMenu(containerId, playerInventory, null, new ItemSlots(1),
+                new ItemSlots(ShuttleWorkshopBlockEntity.SUPPLY_SLOTS), tiers,
                 ContainerLevelAccess.create(playerInventory.player.level(), pos));
     }
 

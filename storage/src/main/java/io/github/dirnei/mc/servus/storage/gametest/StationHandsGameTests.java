@@ -1,9 +1,9 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
@@ -23,19 +23,14 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** Crafting Stations as the CPU's hands: pattern jobs, parallel stations, refusals and cancel. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class StationHandsGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -57,7 +52,7 @@ public final class StationHandsGameTests {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
         crate.insert(new ItemStack(Items.OAK_PLANKS, planks), false);
         TerminalWiring.place(helper, ACCESS);
         for (BlockPos station : List.of(STATION_A, STATION_B)) {
@@ -67,7 +62,7 @@ public final class StationHandsGameTests {
             TerminalWiring.dataDuct(helper, pos);
         }
         helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(0, StationJobs.sticks());
         for (int part = 0; part < CpuShape.PARTS; part++) {
             CpuShape.Vec offset = CpuShape.offset(part);
@@ -93,11 +88,11 @@ public final class StationHandsGameTests {
     }
 
     private static CraftingStationBlockEntity station(GameTestHelper helper, BlockPos pos) {
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
     }
 
     /** A station still holding outputs takes no job; the CPU gives the step to the free station instead. */
-    @GameTest(template = EMPTY, timeoutTicks = 800)
+    @ServusGameTest(timeoutTicks = 800)
     public static void stationWithOutputsIsSkipped(GameTestHelper helper) {
         setup(helper, 8);
         CraftingStationBlockEntity held = station(helper, STATION_A);
@@ -124,7 +119,7 @@ public final class StationHandsGameTests {
     }
 
     /** An order from a pattern runs on a station that has nothing configured; it is idle again once the step is done. */
-    @GameTest(template = EMPTY, timeoutTicks = 800)
+    @ServusGameTest(timeoutTicks = 800)
     public static void patternOrderOnPlainStation(GameTestHelper helper) {
         setup(helper, 8);
         TerminalWiring.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
@@ -150,7 +145,7 @@ public final class StationHandsGameTests {
      * A station right beside the Packing Station keeps its job's sticks for the CPU instead of pushing them
      * into the Packing Station, so they are counted and the order finishes.
      */
-    @GameTest(template = EMPTY, timeoutTicks = 800)
+    @ServusGameTest(timeoutTicks = 800)
     public static void stationBesidePackingStationFinishes(GameTestHelper helper) {
         setup(helper, 8);
         BlockPos beside = new BlockPos(3, 1, 3);
@@ -175,7 +170,7 @@ public final class StationHandsGameTests {
     }
 
     /** Two orders made one after the other run on two different stations at the same time. */
-    @GameTest(template = EMPTY, timeoutTicks = 800)
+    @ServusGameTest(timeoutTicks = 800)
     public static void twoStationsCraftInParallel(GameTestHelper helper) {
         setup(helper, 16);
         TerminalWiring.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
@@ -200,12 +195,12 @@ public final class StationHandsGameTests {
     }
 
     /** A station without a job refuses a hopper; with a job it takes the planks. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void stationWithoutJobRefusesHopper(GameTestHelper helper) {
         helper.setBlock(LONE, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(LONE);
+        CraftingStationBlockEntity station = helper.getBlockEntity(LONE, CraftingStationBlockEntity.class);
         helper.setBlock(LONE.above(), Blocks.HOPPER.defaultBlockState());
-        HopperBlockEntity hopper = helper.getBlockEntity(LONE.above());
+        HopperBlockEntity hopper = helper.getBlockEntity(LONE.above(), HopperBlockEntity.class);
         hopper.setItem(0, new ItemStack(Items.OAK_PLANKS, 4));
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(hopper.getItem(0).getCount() == 4, "the hopper keeps its planks while the station has no job");
@@ -218,11 +213,11 @@ public final class StationHandsGameTests {
     }
 
     /** Cancelling the order ends the station's job; its inputs stay. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void cancelReturnsStationToIdle(GameTestHelper helper) {
         setup(helper, 0);
         TerminalWiring.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
-            CrateBlockEntity crate = helper.getBlockEntity(CRATE);
+            CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
             crate.insert(new ItemStack(Items.OAK_PLANKS, 1), false);
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
@@ -240,12 +235,12 @@ public final class StationHandsGameTests {
     }
 
     /** A station with crafts left refuses another owner's job; the same owner may hand it again. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void secondJobIsRefused(GameTestHelper helper) {
         helper.setBlock(LONE, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(LONE);
+        CraftingStationBlockEntity station = helper.getBlockEntity(LONE, CraftingStationBlockEntity.class);
         Object owner = StationJobs.sticksJob(station, 2);
-        EncodedPattern torch = new EncodedPattern(ResourceLocation.withDefaultNamespace("torch"),
+        EncodedPattern torch = new EncodedPattern(Identifier.withDefaultNamespace("torch"),
                 List.of(ItemStack.EMPTY, new ItemStack(Items.COAL), ItemStack.EMPTY, ItemStack.EMPTY, new ItemStack(Items.STICK)),
                 new ItemStack(Items.TORCH, 4));
         helper.assertTrue(!station.assign(torch, 1, new Object()), "another owner's job is refused");

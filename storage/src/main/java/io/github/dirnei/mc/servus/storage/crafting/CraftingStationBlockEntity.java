@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.storage.crafting;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataCarrier;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.production.ProductionView;
@@ -33,7 +38,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -48,14 +53,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
 import net.minecraft.core.component.DataComponentMap;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * Storage's own producer and the hands of the Crafting CPU: crafts the
@@ -77,13 +81,13 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     private record Plan(int[] take, ItemStack result, NonNullList<ItemStack> remainders) {
     }
 
-    private final ItemStackHandler inputs = new ItemStackHandler(INPUT_SLOTS) {
+    private final ItemSlots inputs = new ItemSlots(INPUT_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
         }
     };
-    private final ItemStackHandler outputs = new ItemStackHandler(OUTPUT_SLOTS) {
+    private final ItemSlots outputs = new ItemSlots(OUTPUT_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -105,11 +109,11 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     private int pushTimer;
 
     private final SideConfig sides = SideConfig.machine();
-    private final java.util.Map<Direction, IItemHandler> sideHandlers = new java.util.EnumMap<>(Direction.class);
-    private final IItemHandler anySide = new SideHandler(null);
+    private final java.util.Map<Direction, ItemView> sideHandlers = new java.util.EnumMap<>(Direction.class);
+    private final ItemView anySide = new SideHandler(null);
 
     /** All thirteen slots for automation: inputs take only used items, outputs only give, both only where the side allows it. */
-    private final class SideHandler implements IItemHandler {
+    private final class SideHandler extends LegacyItemHandler {
         private final Direction side;
 
         private SideHandler(Direction side) {
@@ -160,16 +164,16 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         sides.lock(RelativeSide.FRONT, SideMode.DISABLED);
     }
 
-    public ItemStackHandler inputs() {
+    public ItemSlots inputs() {
         return inputs;
     }
 
-    public ItemStackHandler outputs() {
+    public ItemSlots outputs() {
         return outputs;
     }
 
     /** The handler a neighbour on that side sees, or the unrestricted view for a null side. */
-    public IItemHandler handlerFor(Direction side) {
+    public ItemView handlerFor(Direction side) {
         if (side == null) {
             return anySide;
         }
@@ -318,7 +322,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
             }
 
             @Override
-            public Optional<ResourceLocation> active() {
+            public Optional<Identifier> active() {
                 return working() ? Optional.of(job.recipe()) : Optional.empty();
             }
         };
@@ -363,15 +367,15 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     }
 
     private boolean fits(ItemStack result, NonNullList<ItemStack> remainders) {
-        ItemStackHandler scratch = new ItemStackHandler(OUTPUT_SLOTS);
+        ItemSlots scratch = new ItemSlots(OUTPUT_SLOTS);
         for (int i = 0; i < OUTPUT_SLOTS; i++) {
             scratch.setStackInSlot(i, outputs.getStackInSlot(i).copy());
         }
-        if (!ItemHandlerHelper.insertItem(scratch, result.copy(), false).isEmpty()) {
+        if (!scratch.insertItem(result.copy(), false).isEmpty()) {
             return false;
         }
         for (ItemStack remainder : remainders) {
-            if (!remainder.isEmpty() && !ItemHandlerHelper.insertItem(scratch, remainder.copy(), false).isEmpty()) {
+            if (!remainder.isEmpty() && !scratch.insertItem(remainder.copy(), false).isEmpty()) {
                 return false;
             }
         }
@@ -404,18 +408,18 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
                 inputs.extractItem(i, take[i], false);
             }
         }
-        ItemHandlerHelper.insertItem(outputs, plan.get().result(), false);
+        outputs.insertItem(plan.get().result(), false);
         for (ItemStack remainder : plan.get().remainders()) {
             if (!remainder.isEmpty()) {
-                ItemHandlerHelper.insertItem(outputs, remainder.copy(), false);
+                outputs.insertItem(remainder.copy(), false);
             }
         }
         jobLeft--;
         jobChanged();
     }
 
-    private static Optional<RecipeHolder<CraftingRecipe>> resolve(Level level, ResourceLocation id) {
-        return level.getRecipeManager().byKey(id)
+    private static Optional<RecipeHolder<CraftingRecipe>> resolve(Level level, Identifier id) {
+        return level.recipeAccess().byKey(id)
                 .filter(holder -> holder.value() instanceof CraftingRecipe)
                 .map(holder -> {
                     @SuppressWarnings("unchecked")
@@ -434,7 +438,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
             if (!mode.pushes() && !mode.pulls()) {
                 continue;
             }
-            IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK, worldPosition.relative(direction), direction.getOpposite());
+            ItemView neighbour = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, worldPosition.relative(direction), direction.getOpposite()));
             if (neighbour == null) {
                 continue;
             }
@@ -448,7 +452,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
             for (int i = 0; i < OUTPUT_SLOTS; i++) {
                 ItemStack stack = outputs.getStackInSlot(i);
                 if (!stack.isEmpty()) {
-                    ItemStack left = ItemHandlerHelper.insertItem(neighbour, stack.copy(), false);
+                    ItemStack left = neighbour.insertItem(stack.copy(), false);
                     if (left.getCount() != stack.getCount()) {
                         outputs.setStackInSlot(i, left);
                     }
@@ -458,19 +462,19 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     }
 
     /** Takes one stack the job uses from the neighbour into the inputs. */
-    private void pullFrom(IItemHandler neighbour) {
+    private void pullFrom(ItemView neighbour) {
         for (int from = 0; from < neighbour.getSlots(); from++) {
             ItemStack offered = neighbour.extractItem(from, 64, true);
             if (offered.isEmpty() || !uses(offered)) {
                 continue;
             }
-            int room = offered.getCount() - ItemHandlerHelper.insertItem(inputs, offered, true).getCount();
+            int room = offered.getCount() - inputs.insertItem(offered, true).getCount();
             if (room <= 0) {
                 continue;
             }
             ItemStack taken = neighbour.extractItem(from, room, false);
             if (!taken.isEmpty()) {
-                ItemHandlerHelper.insertItem(inputs, taken, false);
+                inputs.insertItem(taken, false);
                 return;
             }
         }
@@ -508,7 +512,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
 
     /** Drops every item in the inputs and outputs. */
     public void dropContents(Level level, BlockPos pos) {
-        for (ItemStackHandler handler : List.of(inputs, outputs)) {
+        for (ItemSlots handler : List.of(inputs, outputs)) {
             for (int i = 0; i < handler.getSlots(); i++) {
                 ItemStack stack = handler.getStackInSlot(i);
                 if (!stack.isEmpty()) {
@@ -534,9 +538,11 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     // Persistence and sync
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        woodSlot.save(output);
         tag.put("Inputs", inputs.serializeNBT(registries));
         tag.put("Outputs", outputs.serializeNBT(registries));
         tag.putByteArray("Sides", sides.toBytes());
@@ -549,35 +555,38 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
             saved.put("Owner", ref.save());
             tag.put("Job", saved);
         }
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        woodSlot.load(input);
         if (tag.contains("Inputs")) {
-            inputs.deserializeNBT(registries, tag.getCompound("Inputs"));
+            inputs.deserializeNBT(registries, tag.getCompoundOrEmpty("Inputs"));
         }
         if (tag.contains("Outputs")) {
-            outputs.deserializeNBT(registries, tag.getCompound("Outputs"));
+            outputs.deserializeNBT(registries, tag.getCompoundOrEmpty("Outputs"));
         }
         if (tag.contains("JobResult")) {
-            CompoundTag result = tag.getCompound("JobResult");
-            clientJobResult = result.isEmpty() ? ItemStack.EMPTY : ItemStack.parseOptional(registries, result);
-            clientJobLeft = tag.getInt("JobLeft");
+            CompoundTag result = tag.getCompoundOrEmpty("JobResult");
+            clientJobResult = result.isEmpty() ? ItemStack.EMPTY : ValueIo.parseStack(registries, result);
+            clientJobLeft = input.getIntOr("JobLeft", 0);
         }
         if (tag.contains("Sides")) {
-            sides.fromBytes(tag.getByteArray("Sides"));
+            sides.fromBytes(tag.getByteArray("Sides").orElse(new byte[0]));
         }
         if (tag.contains("Job")) {
-            CompoundTag saved = tag.getCompound("Job");
+            CompoundTag saved = tag.getCompoundOrEmpty("Job");
             Optional<EncodedPattern> pattern = EncodedPattern.CODEC
                     .parse(registries.createSerializationContext(NbtOps.INSTANCE), saved.get("Pattern")).result();
-            Optional<StepRef> owner = StepRef.load(saved.getCompound("Owner"));
+            Optional<StepRef> owner = StepRef.load(saved.getCompoundOrEmpty("Owner"));
             if (pattern.isPresent() && owner.isPresent()) {
                 job = pattern.get();
-                jobLeft = saved.getInt("Crafts");
-                progress = saved.getInt("Progress");
+                jobLeft = saved.getIntOr("Crafts", 0);
+                progress = saved.getIntOr("Progress", 0);
                 jobOwner = owner.get();
             }
         }
@@ -588,7 +597,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         CompoundTag tag = super.getUpdateTag(registries);
         woodSlot.save(tag);
         ItemStack result = working() ? job.result() : ItemStack.EMPTY;
-        tag.put("JobResult", result.isEmpty() ? new CompoundTag() : result.save(registries));
+        tag.put("JobResult", result.isEmpty() ? new CompoundTag() : ValueIo.saveStack(registries, result));
         tag.putInt("JobLeft", jobLeft());
         tag.putByteArray("Sides", sides.toBytes());
         return tag;
@@ -607,7 +616,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
     }
@@ -620,9 +629,9 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
     }
 
     @Override

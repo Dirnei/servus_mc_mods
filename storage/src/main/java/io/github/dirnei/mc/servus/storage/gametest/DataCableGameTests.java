@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
@@ -9,7 +10,6 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEnti
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -38,12 +37,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** The Utility Duct's data line with Storage blocks as its members. */
-@GameTestHolder(ServusStorageIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class DataCableGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -59,7 +54,7 @@ public final class DataCableGameTests {
 
     private static UtilityDuctBlockEntity duct(GameTestHelper helper, BlockPos pos, Line... lines) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         for (Line line : lines) {
             duct.addLine(line);
         }
@@ -88,13 +83,13 @@ public final class DataCableGameTests {
     }
 
     private static boolean dataArm(GameTestHelper helper, BlockPos pos, Direction side) {
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         return duct.hasArm(Line.DATA, side);
     }
 
     private static CraftingStationBlockEntity sticksStation(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        CraftingStationBlockEntity station = helper.getBlockEntity(pos);
+        CraftingStationBlockEntity station = helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
         return station;
     }
 
@@ -104,7 +99,7 @@ public final class DataCableGameTests {
     }
 
     /** Three data ducts in a row form one network and show data arms toward each other. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataCableRowIsOneNetwork(GameTestHelper helper) {
         dataRow(helper);
         helper.runAfterDelay(2, () -> {
@@ -118,7 +113,7 @@ public final class DataCableGameTests {
     }
 
     /** Breaking the middle duct splits the row into two networks. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataCableSplitsWhenBroken(GameTestHelper helper) {
         dataRow(helper);
         helper.runAfterDelay(2, () -> {
@@ -135,7 +130,7 @@ public final class DataCableGameTests {
     }
 
     /** A middle duct without the data line does not carry data on. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataCableGapInTheLine(GameTestHelper helper) {
         duct(helper, A, Line.ITEM, Line.DATA);
         duct(helper, B, Line.ITEM);
@@ -148,7 +143,7 @@ public final class DataCableGameTests {
     }
 
     /** A Crafting Station is a producer and a Warehouse Controller a stock member; both get a data arm. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataCableFindsStationAndController(GameTestHelper helper) {
         sticksStation(helper, WEST_END);
         controller(helper, EAST_END);
@@ -167,20 +162,20 @@ public final class DataCableGameTests {
     }
 
     /** A chest is no member and gets no arm. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataCableIgnoresChest(GameTestHelper helper) {
         helper.setBlock(EAST_END, Blocks.CHEST.defaultBlockState());
         dataRow(helper);
         helper.runAfterDelay(2, () -> {
             helper.assertTrue(requireNetwork(helper, B).dataMembers().isEmpty(), "a chest must not be a member");
-            UtilityDuctBlockEntity east = helper.getBlockEntity(C);
+            UtilityDuctBlockEntity east = helper.getBlockEntity(C, UtilityDuctBlockEntity.class);
             helper.assertTrue((east.connections() & 1 << Direction.EAST.ordinal()) == 0, "no arm toward the chest");
             helper.succeed();
         });
     }
 
     /** A member placed later joins, and leaves again when it is broken. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataCableMemberBrokenLeaves(GameTestHelper helper) {
         dataRow(helper);
         helper.runAfterDelay(2, () -> {
@@ -199,7 +194,7 @@ public final class DataCableGameTests {
     }
 
     /** Two ducts of one network touching the same controller count it once. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataCableTouchedTwiceCountsOnce(GameTestHelper helper) {
         controller(helper, B);
         data(helper, A);
@@ -214,15 +209,15 @@ public final class DataCableGameTests {
     }
 
     /** Turning a data side off drops the member there and splits the link to the next duct. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void dataCableSideOff(GameTestHelper helper) {
         controller(helper, EAST_END);
         dataRow(helper);
         helper.runAfterDelay(2, () -> {
             helper.assertTrue(requireNetwork(helper, A).dataMembers().size() == 1, "the controller starts as a member");
-            UtilityDuctBlockEntity east = helper.getBlockEntity(C);
+            UtilityDuctBlockEntity east = helper.getBlockEntity(C, UtilityDuctBlockEntity.class);
             east.setMode(Line.DATA, Direction.EAST, SideMode.DISABLED);
-            UtilityDuctBlockEntity middle = helper.getBlockEntity(B);
+            UtilityDuctBlockEntity middle = helper.getBlockEntity(B, UtilityDuctBlockEntity.class);
             middle.setMode(Line.DATA, Direction.WEST, SideMode.DISABLED);
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(requireNetwork(helper, C).dataMembers().isEmpty(), "an off side reaches no member");
@@ -235,7 +230,7 @@ public final class DataCableGameTests {
     }
 
     /** The click summary counts ducts, producers and stock members. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataCableSummaryCounts(GameTestHelper helper) {
         sticksStation(helper, WEST_END);
         controller(helper, EAST_END);
@@ -251,11 +246,11 @@ public final class DataCableGameTests {
     }
 
     /** A data duct linking a controller with planks and a sticks station moves nothing on its own. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void dataCableMovesNothing(GameTestHelper helper) {
         BlockPos crate = new BlockPos(7, 1, 3);
         helper.setBlock(crate, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity planks = helper.getBlockEntity(crate);
+        CrateBlockEntity planks = helper.getBlockEntity(crate, CrateBlockEntity.class);
         planks.insert(new ItemStack(Items.OAK_PLANKS, 32), false);
         controller(helper, EAST_END);
         CraftingStationBlockEntity station = sticksStation(helper, WEST_END);
@@ -270,7 +265,7 @@ public final class DataCableGameTests {
     }
 
     /** The query finds the network from a member position and nothing at a stone block. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataNetworksAtMemberAndStone(GameTestHelper helper) {
         controller(helper, EAST_END);
         dataRow(helper);
@@ -283,7 +278,7 @@ public final class DataCableGameTests {
     }
 
     /** A sneak click with a Data Cable on the top of a straight data run, east of centre, places past the east end. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataCableSneakExtendsRun(GameTestHelper helper) {
         dataRow(helper);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -294,14 +289,14 @@ public final class DataCableGameTests {
         stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
                 new BlockHitResult(new Vec3(middle.getX() + 0.7, middle.getY() + 0.625, middle.getZ() + 0.5), Direction.UP, middle, false)));
         helper.assertBlockPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), EAST_END);
-        UtilityDuctBlockEntity placed = helper.getBlockEntity(EAST_END);
+        UtilityDuctBlockEntity placed = helper.getBlockEntity(EAST_END, UtilityDuctBlockEntity.class);
         helper.assertTrue(placed.has(Line.DATA), "the new duct should carry the data line");
         helper.assertBlockNotPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), ABOVE_B);
         helper.succeed();
     }
 
     /** A broken duct with the Item Pipe and the data line drops one of each. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataCableDropsFromBrokenDuct(GameTestHelper helper) {
         duct(helper, B, Line.ITEM, Line.DATA);
         helper.getLevel().destroyBlock(helper.absolutePos(B), true);
