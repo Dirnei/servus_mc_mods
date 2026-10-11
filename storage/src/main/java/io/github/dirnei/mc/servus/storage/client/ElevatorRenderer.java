@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import io.github.dirnei.mc.servus.foundation.client.LiveBlockEntityRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -14,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.data.AtlasIds;
+import io.github.dirnei.mc.servus.foundation.client.RecordedGeometry;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
@@ -32,7 +35,7 @@ import org.joml.Quaternionf;
  * a platform with a sleeve around each post. Posts and head are block model.
  * All sizes below are in pixels, 16 to a block.
  */
-public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity> {
+public class ElevatorRenderer extends LiveBlockEntityRenderer<ElevatorBlockEntity> {
 
     private static final Identifier FRAME = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/elevator");
     /** Rail textures: the Warehouse Rail's steel heads and oak sleepers (the shaft has no wood of its own). */
@@ -59,7 +62,7 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
     }
 
     @Override
-    public boolean shouldRenderOffScreen(ElevatorBlockEntity segment) {
+    public boolean shouldRenderOffScreen() {
         return true;
     }
 
@@ -71,8 +74,9 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
     }
 
     @Override
-    public void render(ElevatorBlockEntity segment, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
-                       int packedLight, int packedOverlay) {
+    protected void render(ElevatorBlockEntity segment, float partialTick, PoseStack poseStack, SubmitNodeCollector collector,
+                          int packedLight) {
+        int packedOverlay = OverlayTexture.NO_OVERLAY;
         Level level = segment.getLevel();
         BlockState own = segment.getBlockState();
         if (level == null || !(own.getBlock() instanceof ElevatorBlock) || own.getValue(ConnectableBlock.DOWN)) {
@@ -86,12 +90,12 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         }
         double carY = carY(segment, level.getGameTime() + partialTick) - bottom.getY();
         carY = Math.max(0, Math.min(floors.size() - 1, carY));
-        TextureAtlasSprite frame = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(FRAME);
+        TextureAtlasSprite frame = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(FRAME);
         TextureAtlasSprite[] rail = new TextureAtlasSprite[RAIL.length];
         for (int i = 0; i < RAIL.length; i++) {
-            rail[i] = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RAIL[i]);
+            rail[i] = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(RAIL[i]);
         }
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(TextureAtlas.LOCATION_BLOCKS));
+        RecordedGeometry buffer = new RecordedGeometry();
 
         for (int floor = 0; floor < floors.size(); floor++) {
             BlockState state = floors.get(floor);
@@ -117,6 +121,7 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
         poseStack.translate(0, carY, 0);
         car(poseStack, buffer, frame, rail, floors.get(nearest), light, packedOverlay);
         poseStack.popPose();
+        buffer.submit(collector, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS));
     }
 
     /** The segments of the shaft from this one up, as their block states; empty once this segment is gone. */

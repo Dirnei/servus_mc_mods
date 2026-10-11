@@ -7,14 +7,15 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.foundation.client.SideMarkerRenderer;
-import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModuleItem;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.item.Item;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import io.github.dirnei.mc.servus.foundation.wood.client.WoodModel;
+import io.github.dirnei.mc.servus.foundation.wood.client.WoodSkin;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.event.RegisterItemModelsEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -55,37 +56,25 @@ public final class ServusStorageClient {
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.ELEVATOR.get(), ElevatorRenderer::new);
     }
 
-    /** The shuttle parts are standalone models the shuttle item model composes. */
+    /** The rack shows the wood it remembers, on placed blocks and on items. */
+    public static final WoodSkin RACK_SKIN = new WoodSkin(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack_wood"),
+            Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/heavy_rack_board"), HeavyRackBlockEntity.WOOD,
+            HeavyRackBlockEntity.DEFAULT_WOOD, HeavyRackBlockEntity::woodOf, false);
+
+    /** The rack item and the shuttle items have their own item model types. */
     @SubscribeEvent
-    public static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
-        List<String> tools = new ArrayList<>();
-        for (Item item : BuiltInRegistries.ITEM) {
-            if (item instanceof ShuttleModuleItem module) {
-                tools.add(module.spec().id());
-            }
-        }
-        ShuttleItemModel.parts(tools).forEach(event::register);
+    public static void onRegisterItemModels(RegisterItemModelsEvent event) {
+        event.register(RACK_SKIN.itemModelType(), RACK_SKIN.itemCodec());
+        event.register(ShuttleItemModel.TYPE, ShuttleItemModel.Unbaked.MAP_CODEC);
     }
 
-    /**
-     * Wraps every rack block state model and the rack item model so the boards
-     * show the rack's wood, and the shuttle item models so they show the
-     * shuttle's parts.
-     */
+    /** Wraps every rack block state model so the boards show the rack's wood. */
     @SubscribeEvent
     public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
-        for (Map.Entry<ModelResourceLocation, BakedModel> entry : event.getModels().entrySet()) {
-            ModelResourceLocation key = entry.getKey();
-            if (key.id().getNamespace().equals(ServusStorageIds.MOD_ID)
-                    && key.id().getPath().equals("heavy_rack")
-                    && !(entry.getValue() instanceof HeavyRackModel)) {
-                entry.setValue(new HeavyRackModel(entry.getValue()));
-            }
-            if (key.id().getNamespace().equals(ServusStorageIds.MOD_ID)
-                    && ModelResourceLocation.INVENTORY_VARIANT.equals(key.variant())
-                    && ShuttleItemModel.ITEMS.contains(key.id().getPath())
-                    && !(entry.getValue() instanceof ShuttleItemModel)) {
-                entry.setValue(new ShuttleItemModel(entry.getValue()));
+        Map<BlockState, BlockStateModel> models = event.getBakingResult().blockStateModels();
+        for (Map.Entry<BlockState, BlockStateModel> entry : models.entrySet()) {
+            if (entry.getKey().is(ServusStorageBlocks.HEAVY_RACK.get()) && !(entry.getValue() instanceof WoodModel)) {
+                entry.setValue(new WoodModel(entry.getValue(), RACK_SKIN));
             }
         }
     }

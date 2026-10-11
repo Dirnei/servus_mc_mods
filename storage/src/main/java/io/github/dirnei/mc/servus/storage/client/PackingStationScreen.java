@@ -19,9 +19,7 @@ public class PackingStationScreen extends AbstractContainerScreen<PackingStation
     private static final int WIDTH = 176;
 
     public PackingStationScreen(PackingStationMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = WIDTH;
-        this.imageHeight = menu.imageHeight();
+        super(menu, playerInventory, title, WIDTH, menu.imageHeight());
         ClientPackingStatus.clear();
     }
 

@@ -35,6 +35,6 @@ public final class WoodModels {
     /** The item model type wood block items name in their item model definitions. */
     @SubscribeEvent
     public static void onRegisterItemModels(RegisterItemModelsEvent event) {
-        event.register(WoodItemModel.TYPE, WoodItemModel.Unbaked.MAP_CODEC);
+        event.register(WoodSkin.WOOD.itemModelType(), WoodSkin.WOOD.itemCodec());
     }
 }

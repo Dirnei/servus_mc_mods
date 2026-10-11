@@ -330,7 +330,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         ItemPicker open = openPicker();
         if (open != null) {
             // While a picker is open nothing below it reacts to the mouse.
-            super.render(graphics, -1, -1, partialTick);
+            super.extractRenderState(graphics, -1, -1, partialTick);
             open.renderPopup(graphics, font, mouseX, mouseY, partialTick);
             open.renderTooltip(graphics, font, mouseX, mouseY);
             return;
@@ -525,7 +525,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         int button = event.button();
         ItemPicker open = openPicker();
         if (open != null) {
-            return open.mouseClicked(mouseX, mouseY, button);
+            return open.mouseClicked(event, doubleClick);
         }
         Page tab = tabAt(mouseX, mouseY);
         if (tab != null) {
@@ -533,7 +533,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             return true;
         }
         ItemPicker shown = pagePicker();
-        if (shown != null && shown.mouseClicked(mouseX, mouseY, button)) {
+        if (shown != null && shown.mouseClicked(event, doubleClick)) {
             return true;
         }
         return super.mouseClicked(event, doubleClick);
@@ -569,7 +569,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         int scanCode = event.scancode();
         int modifiers = event.modifiers();
         ItemPicker open = openPicker();
-        return open != null && open.keyPressed(keyCode, scanCode, modifiers) || super.keyPressed(event);
+        return open != null && open.keyPressed(event) || super.keyPressed(event);
     }
 
     @Override
@@ -577,6 +577,6 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         char codePoint = (char) event.codepoint();
         int modifiers = 0;
         ItemPicker open = openPicker();
-        return open != null && open.charTyped(codePoint, modifiers) || super.charTyped(event);
+        return open != null && open.charTyped(event) || super.charTyped(event);
     }
 }

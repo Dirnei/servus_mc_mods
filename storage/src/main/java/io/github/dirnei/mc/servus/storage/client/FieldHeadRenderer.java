@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import io.github.dirnei.mc.servus.foundation.client.LiveBlockEntityRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -9,9 +11,11 @@ import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadLook;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
+import io.github.dirnei.mc.servus.foundation.client.RecordedGeometry;
+import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -29,7 +33,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
  * water's still texture and the biome's water tint; and the field's crop item
  * lying flat on the plate on top, upright for a player in front of the head.
  */
-public final class FieldHeadRenderer implements BlockEntityRenderer<FieldHeadBlockEntity> {
+public final class FieldHeadRenderer extends LiveBlockEntityRenderer<FieldHeadBlockEntity> {
 
     /** Gap between the drawings and the block faces. */
     private static final float OFFSET = 0.002F;
@@ -45,8 +49,9 @@ public final class FieldHeadRenderer implements BlockEntityRenderer<FieldHeadBlo
     }
 
     @Override
-    public void render(FieldHeadBlockEntity head, float partialTick, PoseStack poseStack, MultiBufferSource buffers,
-                       int packedLight, int packedOverlay) {
+    protected void render(FieldHeadBlockEntity head, float partialTick, PoseStack poseStack, SubmitNodeCollector collector,
+                          int packedLight) {
+        int packedOverlay = OverlayTexture.NO_OVERLAY;
         Level level = head.getLevel();
         if (level == null) {
             return;
@@ -54,21 +59,21 @@ public final class FieldHeadRenderer implements BlockEntityRenderer<FieldHeadBlo
         BlockPos pos = head.getBlockPos();
         int water = head.waterLevel();
         if (water > 0) {
-            renderWater(level, pos, water, poseStack, buffers);
+            renderWater(level, pos, water, poseStack, collector);
         }
         ItemStack crop = head.crop();
         if (!crop.isEmpty() && !head.harvestOnly()) {
-            renderCrop(head, level, pos, crop, poseStack, buffers, packedOverlay);
+            renderCrop(head, level, pos, crop, poseStack, collector, packedOverlay);
         }
     }
 
-    private static void renderWater(Level level, BlockPos pos, int water, PoseStack poseStack, MultiBufferSource buffers) {
-        IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(Fluids.WATER);
-        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
-                .apply(extensions.getStillTexture());
-        int color = extensions.getTintColor(Fluids.WATER.defaultFluidState(), level, pos);
+    private static void renderWater(Level level, BlockPos pos, int water, PoseStack poseStack, SubmitNodeCollector collector) {
+        FluidStack waterStack = new FluidStack(Fluids.WATER, 1000);
+        TextureAtlasSprite sprite = FluidSprites.still(waterStack);
+        int color = level instanceof net.minecraft.client.renderer.block.BlockAndTintGetter tinted
+                ? FluidSprites.tint(tinted, pos, waterStack) : FluidSprites.tint(waterStack);
         float top = WINDOW_Y0 + (WINDOW_Y1 - WINDOW_Y0) * water / FieldHeadLook.WATER_LEVELS;
-        VertexConsumer consumer = buffers.getBuffer(Sheets.translucentCullBlockSheet());
+        RecordedGeometry consumer = new RecordedGeometry();
         for (Direction face : Direction.Plane.HORIZONTAL) {
             int light = LevelRenderer.getLightCoords(level, pos.relative(face));
             poseStack.pushPose();
@@ -89,6 +94,7 @@ public final class FieldHeadRenderer implements BlockEntityRenderer<FieldHeadBlo
             vertex(consumer, pose, x0, y1, u0, v0, color, light);
             poseStack.popPose();
         }
+        consumer.submit(collector, Sheets.translucentBlockSheet());
     }
 
     /** Moves the origin to the centre of that face, a hair outside it, turned so the viewer looks along -z. */
@@ -109,7 +115,7 @@ public final class FieldHeadRenderer implements BlockEntityRenderer<FieldHeadBlo
     }
 
     private static void renderCrop(FieldHeadBlockEntity head, Level level, BlockPos pos, ItemStack crop, PoseStack poseStack,
-                                   MultiBufferSource buffers, int packedOverlay) {
+                                   SubmitNodeCollector collector, int packedOverlay) {
         Direction facing = head.getBlockState().getValue(FieldHeadBlock.FACING);
         int light = LevelRenderer.getLightCoords(level, pos.above());
         poseStack.pushPose();
@@ -118,8 +124,7 @@ public final class FieldHeadRenderer implements BlockEntityRenderer<FieldHeadBlo
         poseStack.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
         poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
         poseStack.scale(ICON_SCALE, ICON_SCALE, 0.02F);
-        Minecraft.getInstance().getItemRenderer().renderStatic(crop, ItemDisplayContext.FIXED, light, packedOverlay,
-                poseStack, buffers, level, (int) pos.asLong());
+        RenderSubmit.item(poseStack, collector, crop, ItemDisplayContext.FIXED, level, (int) pos.asLong(), light);
         poseStack.popPose();
     }
 }

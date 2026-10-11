@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -90,9 +91,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private int linesTab = -1;
 
     public ProductionTerminalScreen(ProductionTerminalMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = WIDTH;
-        this.imageHeight = HEIGHT;
+        super(menu, playerInventory, title, WIDTH, HEIGHT);
     }
 
     @Override
@@ -142,7 +141,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             return ItemStack.EMPTY;
         }
         return CraftingGrid.match(level, menu.gridCells())
-                .map(holder -> holder.value().getResultItem(level.registryAccess()).copy())
+                .map(holder -> ServusRecipes.displayResult(level, holder.value()))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -206,7 +205,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             int x = tabX(i);
             boolean active = i == selected;
             graphics.fill(x, TAB_Y, x + TAB_WIDTH, TAB_Y + TAB_HEIGHT, active ? 0xFF8B8B8B : 0xFFC6C6C6);
-            graphics.renderOutline(x, TAB_Y, TAB_WIDTH, TAB_HEIGHT, 0xFF373737);
+            graphics.outline(x, TAB_Y, TAB_WIDTH, TAB_HEIGHT, 0xFF373737);
             Component label = Component.translatable("gui.servus_storage.production.tab." + tabs.get(i).key());
             graphics.text(font, label, x + (TAB_WIDTH - font.width(label)) / 2, TAB_Y + 2, active ? 0xFFFFFF : COLOUR_TEXT, false);
         }

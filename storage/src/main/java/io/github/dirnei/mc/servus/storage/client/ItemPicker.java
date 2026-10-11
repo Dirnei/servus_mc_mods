@@ -247,7 +247,7 @@ public final class ItemPicker {
         graphics.fill(x + 1, y + 1, x + WIDTH - 1, y + HEIGHT - 1, 0xFFFFFFFF);
         graphics.fill(x + 2, y + 2, x + WIDTH - 2, y + HEIGHT - 2, 0xFFC6C6C6);
         graphics.text(font, title, x + PAD, y + 5, 0xFF404040, false);
-        search.render(graphics, mouseX, mouseY, partialTick);
+        search.extractRenderState(graphics, mouseX, mouseY, partialTick);
         int lx = listX();
         int ly = listY();
         graphics.fill(lx - 1, ly - 1, lx + LIST_WIDTH + 1, ly + ROWS * ROW + 1, 0xFF373737);
@@ -333,7 +333,7 @@ public final class ItemPicker {
             }
             return false;
         }
-        if (search.mouseClicked(mouseX, mouseY, button)) {
+        if (search.mouseClicked(event, doubleClick)) {
             search.setFocused(true);
             return true;
         }
@@ -390,7 +390,7 @@ public final class ItemPicker {
             close();
             return true;
         }
-        search.keyPressed(keyCode, scanCode, modifiers);
+        search.keyPressed(event);
         return true;
     }
 
@@ -400,7 +400,7 @@ public final class ItemPicker {
         if (!open) {
             return false;
         }
-        search.charTyped(codePoint, modifiers);
+        search.charTyped(event);
         return true;
     }
 

@@ -38,6 +38,9 @@ final class ShuttleModels {
         provider.itemModels().withExistingParent("shuttle", part(provider, "body_mk1"));
         provider.itemModels().withExistingParent("shuttle_mk2", part(provider, "body_mk2"));
         provider.itemModels().withExistingParent("shuttle_mk3", part(provider, "body_mk3"));
+        for (String item : new String[] {"shuttle", "shuttle_mk2", "shuttle_mk3"}) {
+            provider.itemModels().itemModelType(provider.modLoc(item), "servus_storage:shuttle");
+        }
     }
 
     private static void body(BlockStateProvider provider, int tier, String hold) {

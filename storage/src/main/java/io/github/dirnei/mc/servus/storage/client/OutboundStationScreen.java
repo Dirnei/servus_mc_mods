@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.minecraft.client.Minecraft;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -102,7 +103,7 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
         Slot slot = hoveredSlot;
         if (slot != null && slot.index < menu.keepSlots() && !slot.getItem().isEmpty()) {
             ItemStack keep = slot.getItem();
-            int step = hasShiftDown() ? keep.getMaxStackSize() : 1;
+            int step = Minecraft.getInstance().hasShiftDown() ? keep.getMaxStackSize() : 1;
             int amount = Math.max(1, keep.getCount() + (scrollY > 0 ? step : -step));
             ClientPacketDistributor.sendToServer(new KeepSlotPayload(slot.index, keep.copyWithCount(1), amount));
             return true;

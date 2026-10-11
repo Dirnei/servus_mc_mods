@@ -34,19 +34,25 @@ public final class WoodModel implements DynamicBlockStateModel {
     }
 
     private final BlockStateModel base;
+    private final WoodSkin skin;
     private final Map<PartKey, BlockStateModelPart> parts = new ConcurrentHashMap<>();
 
     public WoodModel(BlockStateModel base) {
+        this(base, WoodSkin.WOOD);
+    }
+
+    public WoodModel(BlockStateModel base, WoodSkin skin) {
         this.base = base;
+        this.skin = skin;
     }
 
-    private static Identifier woodOf(ModelData data) {
-        Identifier wood = data.get(Wood.PROPERTY);
-        return wood != null ? wood : Wood.DEFAULT;
+    private Identifier woodOf(ModelData data) {
+        Identifier wood = data.get(skin.property());
+        return wood != null ? wood : skin.fallback();
     }
 
-    private static Map<Identifier, Identifier> swapsOf(ModelData data) {
-        Map<Identifier, Identifier> swaps = data.get(Wood.SWAPS);
+    private Map<Identifier, Identifier> swapsOf(ModelData data) {
+        Map<Identifier, Identifier> swaps = skin.swaps() ? data.get(Wood.SWAPS) : null;
         return swaps != null ? swaps : Map.of();
     }
 
@@ -63,15 +69,15 @@ public final class WoodModel implements DynamicBlockStateModel {
         }
     }
 
-    private static BlockStateModelPart retexture(BlockStateModelPart part, Identifier wood, Map<Identifier, Identifier> swaps) {
+    private BlockStateModelPart retexture(BlockStateModelPart part, Identifier wood, Map<Identifier, Identifier> swaps) {
         TextureAtlasSprite planks = WoodTextures.spriteOf(wood);
         QuadCollection.Builder builder = new QuadCollection.Builder();
         for (BakedQuad quad : part.getQuads(null)) {
-            builder.addUnculledFace(WoodTextures.apply(quad, planks, swaps));
+            builder.addUnculledFace(WoodTextures.apply(quad, skin.board(), planks, swaps));
         }
         for (Direction direction : Direction.values()) {
             for (BakedQuad quad : part.getQuads(direction)) {
-                builder.addCulledFace(direction, WoodTextures.apply(quad, planks, swaps));
+                builder.addCulledFace(direction, WoodTextures.apply(quad, skin.board(), planks, swaps));
             }
         }
         return new SimpleModelWrapper(builder.build(), part.useAmbientOcclusion(), part.particleMaterial());

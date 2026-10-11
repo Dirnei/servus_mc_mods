@@ -16,9 +16,7 @@ public class ElevatorScreen extends AbstractContainerScreen<ElevatorMenu> {
     private static final int WIDTH = 176;
 
     public ElevatorScreen(ElevatorMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = WIDTH;
-        this.imageHeight = ElevatorMenu.IMAGE_HEIGHT;
+        super(menu, playerInventory, title, WIDTH, ElevatorMenu.IMAGE_HEIGHT);
     }
 
     @Override

@@ -1,8 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.wood.client;
 
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,16 +35,15 @@ import org.jspecify.annotations.Nullable;
  */
 public final class WoodItemModel implements ItemModel {
 
-    /** The registered type id. */
-    public static final Identifier TYPE = Identifier.fromNamespaceAndPath("servus_foundation", "wood");
-
     private final QuadCollection quads;
     private final ModelRenderProperties properties;
     private final Matrix4fc transformation;
     private final Vector3fc[] extents;
     private final Map<Identifier, List<BakedQuad>> byWood = new ConcurrentHashMap<>();
+    private final WoodSkin skin;
 
-    private WoodItemModel(QuadCollection quads, ModelRenderProperties properties, Matrix4fc transformation) {
+    private WoodItemModel(QuadCollection quads, ModelRenderProperties properties, Matrix4fc transformation, WoodSkin skin) {
+        this.skin = skin;
         this.quads = quads;
         this.properties = properties;
         this.transformation = transformation;
@@ -58,7 +55,7 @@ public final class WoodItemModel implements ItemModel {
             TextureAtlasSprite planks = WoodTextures.spriteOf(key);
             List<BakedQuad> result = new ArrayList<>();
             for (BakedQuad quad : quads.getAll()) {
-                result.add(WoodTextures.apply(quad, planks, Map.of()));
+                result.add(WoodTextures.apply(quad, skin.board(), planks, Map.of()));
             }
             return List.copyOf(result);
         });
@@ -67,7 +64,7 @@ public final class WoodItemModel implements ItemModel {
     @Override
     public void update(ItemStackRenderState output, ItemStack item, ItemModelResolver resolver, ItemDisplayContext displayContext,
                        @Nullable ClientLevel level, @Nullable ItemOwner owner, int seed) {
-        Identifier wood = Wood.of(item);
+        Identifier wood = skin.itemWood(item);
         output.appendModelIdentityElement(this);
         output.appendModelIdentityElement(wood);
         ItemStackRenderState.LayerRenderState layer = output.newLayer();
@@ -77,11 +74,8 @@ public final class WoodItemModel implements ItemModel {
         layer.prepareQuadList().addAll(quadsFor(wood));
     }
 
-    /** {@code {"type": "servus_foundation:wood", "model": "<model>"}}. */
-    public record Unbaked(Identifier model) implements ItemModel.Unbaked {
-
-        public static final MapCodec<Unbaked> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-                Identifier.CODEC.fieldOf("model").forGetter(Unbaked::model)).apply(i, Unbaked::new));
+    /** {@code {"type": "<skin item model type>", "model": "<model>"}}. */
+    public record Unbaked(Identifier model, WoodSkin skin) implements ItemModel.Unbaked {
 
         @Override
         public void resolveDependencies(ResolvableModel.Resolver resolver) {
@@ -95,12 +89,12 @@ public final class WoodItemModel implements ItemModel {
             TextureSlots slots = resolved.getTopTextureSlots();
             QuadCollection quads = resolved.bakeTopGeometry(slots, baker, BlockModelRotation.IDENTITY);
             ModelRenderProperties properties = ModelRenderProperties.fromResolvedModel(baker, resolved, slots);
-            return new WoodItemModel(quads, properties, transformation);
+            return new WoodItemModel(quads, properties, transformation, skin);
         }
 
         @Override
         public MapCodec<Unbaked> type() {
-            return MAP_CODEC;
+            return skin.itemCodec();
         }
     }
 }

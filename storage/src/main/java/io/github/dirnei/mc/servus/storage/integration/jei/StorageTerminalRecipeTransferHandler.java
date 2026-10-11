@@ -12,7 +12,7 @@ import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import net.minecraft.world.entity.player.Player;
@@ -40,7 +40,7 @@ public final class StorageTerminalRecipeTransferHandler implements IRecipeTransf
     }
 
     @Override
-    public RecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
+    public IRecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
         return RecipeTypes.CRAFTING;
     }
 

@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
+import io.github.dirnei.mc.servus.foundation.client.LiveBlockEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
@@ -8,15 +13,13 @@ import io.github.dirnei.mc.servus.storage.crate.CrateCompartments;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 /** Draws every filled compartment's item and count on the crate's front face. */
-public class CrateRenderer implements BlockEntityRenderer<CrateBlockEntity> {
+public class CrateRenderer extends LiveBlockEntityRenderer<CrateBlockEntity> {
 
     private static final float OFFSET = 0.004F;
     private static final double ZONE_Y = 0.40;
@@ -26,8 +29,9 @@ public class CrateRenderer implements BlockEntityRenderer<CrateBlockEntity> {
     }
 
     @Override
-    public void render(CrateBlockEntity crate, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
-                       int packedLight, int packedOverlay) {
+    protected void render(CrateBlockEntity crate, float partialTick, PoseStack poseStack, SubmitNodeCollector collector,
+                          int packedLight) {
+        int packedOverlay = OverlayTexture.NO_OVERLAY;
         if (crate.getLevel() == null || (crate.isEmpty() && crate.zone().isEmpty())) {
             return;
         }
@@ -48,7 +52,7 @@ public class CrateRenderer implements BlockEntityRenderer<CrateBlockEntity> {
         // Now x runs to the viewer's right and y up, origin at the face centre.
 
         if (!crate.zone().isEmpty()) {
-            ZoneLabelText.draw(crate.zone(), poseStack, bufferSource, font, 0.0, ZONE_Y, -0.001, ZONE_SCALE, light);
+            ZoneLabelText.draw(crate.zone(), poseStack, collector, font, 0.0, ZONE_Y, -0.001, ZONE_SCALE, light);
         }
 
         for (int i = 0; i < compartments; i++) {
@@ -62,16 +66,14 @@ public class CrateRenderer implements BlockEntityRenderer<CrateBlockEntity> {
             poseStack.pushPose();
             poseStack.translate(cx, cy + itemLift, 0.0);
             poseStack.scale(itemScale, itemScale, 0.02F);
-            Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, packedOverlay,
-                    poseStack, bufferSource, crate.getLevel(), i);
+            RenderSubmit.item(poseStack, collector, stack, ItemDisplayContext.FIXED, crate.getLevel(), i, light);
             poseStack.popPose();
 
             String text = Integer.toString(crate.count(i));
             poseStack.pushPose();
             poseStack.translate(cx, cy - textDrop, -0.001);
             poseStack.scale(textScale, -textScale, textScale);
-            font.drawInBatch(text, -font.width(text) / 2.0F, 0.0F, 0xFFFFFF, false, poseStack.last().pose(),
-                    bufferSource, Font.DisplayMode.NORMAL, 0, light);
+            RenderSubmit.text(poseStack, collector, text, -font.width(text) / 2.0F, 0.0F, 0xFFFFFF, false, light);
             poseStack.popPose();
         }
         poseStack.popPose();

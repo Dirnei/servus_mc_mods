@@ -21,7 +21,7 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.build.WeldBoard;
 import io.github.dirnei.mc.servus.storage.shuttle.module.build.WireBoard;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -392,7 +392,7 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
                 sendEngrave();
                 return true;
             }
-            if (name.keyPressed(keyCode, scanCode, modifiers) || name.canConsumeInput()) {
+            if (name.keyPressed(event) || name.canConsumeInput()) {
                 return true;
             }
         }
@@ -428,7 +428,7 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         graphics.text(font, Component.translatable("gui.servus_storage.workshop.handling", modules.handling(),
                 tiers.tier(tier).max(Kind.HANDLING)), INFO_X, y, COLOUR_TEXT, false);
         y += LINE;
-        Component tool = modules.tool().map(item -> (Component) item.getDescription())
+        Component tool = modules.tool().map(item -> (Component) Component.translatable(item.getDescriptionId()))
                 .orElse(Component.translatable("gui.servus_storage.workshop.no_tool"));
         graphics.text(font, font.plainSubstrByWidth(Component.translatable("gui.servus_storage.workshop.tool", tool).getString(), 60),
                 INFO_X, y, COLOUR_TEXT, false);

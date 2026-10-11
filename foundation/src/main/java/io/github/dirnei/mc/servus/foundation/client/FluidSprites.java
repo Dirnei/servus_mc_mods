@@ -1,6 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.neoforged.neoforge.client.fluid.FluidTintSource;
@@ -25,6 +28,17 @@ public final class FluidSprites {
 
     public static TextureAtlasSprite flowing(FluidStack fluid) {
         return model(fluid).flowingMaterial().sprite();
+    }
+
+    /** ARGB tint of the fluid as it shows in the world at that position (biome water colour), opaque. */
+    public static int tint(BlockAndTintGetter level, BlockPos pos, FluidStack fluid) {
+        FluidTintSource source = model(fluid).fluidTintSource();
+        if (source == null) {
+            return 0xFFFFFFFF;
+        }
+        FluidState state = fluid.getFluid().defaultFluidState();
+        int tint = source.colorInWorld(state, state.createLegacyBlock(), level, pos);
+        return (tint >>> 24) == 0 ? tint | 0xFF000000 : tint;
     }
 
     /** ARGB tint of the fluid as a stack, opaque white when it has none. */

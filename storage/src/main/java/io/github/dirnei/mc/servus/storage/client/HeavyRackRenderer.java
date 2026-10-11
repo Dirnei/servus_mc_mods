@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import io.github.dirnei.mc.servus.foundation.client.LiveBlockEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
@@ -7,15 +11,13 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 /** Stands the rack's sample on its two shelf boards inside the frame, two items per level, no counts. */
-public class HeavyRackRenderer implements BlockEntityRenderer<HeavyRackBlockEntity> {
+public class HeavyRackRenderer extends LiveBlockEntityRenderer<HeavyRackBlockEntity> {
 
     private static final float ITEM_SCALE = 0.33F;
     private static final float HALF = ITEM_SCALE / 2.0F;
@@ -30,8 +32,9 @@ public class HeavyRackRenderer implements BlockEntityRenderer<HeavyRackBlockEnti
     }
 
     @Override
-    public void render(HeavyRackBlockEntity rack, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource,
-                       int packedLight, int packedOverlay) {
+    protected void render(HeavyRackBlockEntity rack, float partialTick, PoseStack poseStack, SubmitNodeCollector collector,
+                          int packedLight) {
+        int packedOverlay = OverlayTexture.NO_OVERLAY;
         List<ItemStack> sample = rack.displayed();
         if (rack.getLevel() == null || (sample.isEmpty() && rack.zone().isEmpty())) {
             return;
@@ -46,7 +49,7 @@ public class HeavyRackRenderer implements BlockEntityRenderer<HeavyRackBlockEnti
         // Now x runs to the aisle viewer's right, y up and plus z towards the aisle.
 
         if (!rack.zone().isEmpty()) {
-            ZoneLabelText.draw(rack.zone(), poseStack, bufferSource, Minecraft.getInstance().font, 0.0, ZONE_Y, 0.5 + 0.004, ZONE_SCALE, light);
+            ZoneLabelText.draw(rack.zone(), poseStack, collector, Minecraft.getInstance().font, 0.0, ZONE_Y, 0.5 + 0.004, ZONE_SCALE, light);
         }
 
         int shown = Math.min(sample.size(), COLUMNS.length * SHELF_TOPS.length);
@@ -57,8 +60,7 @@ public class HeavyRackRenderer implements BlockEntityRenderer<HeavyRackBlockEnti
             poseStack.translate(COLUMNS[column], cy, BACK);
             poseStack.mulPose(Axis.YP.rotationDegrees(column == 0 ? YAW : -YAW));
             poseStack.scale(ITEM_SCALE, ITEM_SCALE, ITEM_SCALE);
-            Minecraft.getInstance().getItemRenderer().renderStatic(sample.get(i), ItemDisplayContext.FIXED, light, packedOverlay,
-                    poseStack, bufferSource, rack.getLevel(), i);
+            RenderSubmit.item(poseStack, collector, sample.get(i), ItemDisplayContext.FIXED, rack.getLevel(), i, light);
             poseStack.popPose();
         }
         poseStack.popPose();

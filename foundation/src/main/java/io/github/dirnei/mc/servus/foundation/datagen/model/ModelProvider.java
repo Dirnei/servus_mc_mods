@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -85,6 +86,13 @@ public class ModelProvider<T extends ModelBuilder<T>> {
                 .texture("particle", north);
     }
 
+    private final Map<Identifier, String> itemTypes = new HashMap<>();
+
+    /** Names a custom item model type for an item's definition, instead of {@code minecraft:model}. */
+    public void itemModelType(Identifier itemId, String type) {
+        itemTypes.put(itemId, type);
+    }
+
     /** Writes every model; for item models also the 1.21.4+ item model definition under {@code items/}. */
     CompletableFuture<?> write(CachedOutput cache, PackOutput output) {
         PackOutput.PathProvider models = output.createPathProvider(PackOutput.Target.RESOURCE_PACK, "models");
@@ -96,7 +104,9 @@ public class ModelProvider<T extends ModelBuilder<T>> {
                 Identifier itemId = location.withPath(location.getPath().substring("item/".length()));
                 if (!itemId.getPath().contains("/") && BuiltInRegistries.ITEM.containsKey(itemId)) {
                     JsonObject definition = itemDefinition(location);
-                    if (Wood.isWoodBlock(itemId)) {
+                    if (itemTypes.containsKey(itemId)) {
+                        definition.getAsJsonObject("model").addProperty("type", itemTypes.get(itemId));
+                    } else if (Wood.isWoodBlock(itemId)) {
                         // Wood block items retexture their boards per stack.
                         definition.getAsJsonObject("model").addProperty("type", "servus_foundation:wood");
                     }

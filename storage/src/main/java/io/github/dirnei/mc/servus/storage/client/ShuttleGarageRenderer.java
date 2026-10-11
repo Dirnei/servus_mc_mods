@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import io.github.dirnei.mc.servus.foundation.client.LiveBlockEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
@@ -11,8 +15,6 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleLook;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -25,7 +27,7 @@ import net.minecraft.world.phys.AABB;
  * extrapolated from the last sync, with its cargo in the crate when the hold
  * is open. A shuttle riding a lift car is drawn at the car's height.
  */
-public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageBlockEntity> {
+public class ShuttleGarageRenderer extends LiveBlockEntityRenderer<ShuttleGarageBlockEntity> {
 
     private static final float CARGO_SCALE = 0.35F;
     /** Height of the cargo's centre above the shuttle's bottom: standing on the crate floor. */
@@ -40,7 +42,7 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
     }
 
     @Override
-    public boolean shouldRenderOffScreen(ShuttleGarageBlockEntity garage) {
+    public boolean shouldRenderOffScreen() {
         return true;
     }
 
@@ -55,8 +57,9 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
     }
 
     @Override
-    public void render(ShuttleGarageBlockEntity garage, float partialTick, PoseStack poseStack,
-                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    protected void render(ShuttleGarageBlockEntity garage, float partialTick, PoseStack poseStack, SubmitNodeCollector collector,
+                          int packedLight) {
+        int packedOverlay = OverlayTexture.NO_OVERLAY;
         ClientShuttles.Fleet fleet = ClientShuttles.fleet(garage.getBlockPos());
         if (fleet == null || fleet.views().isEmpty() || garage.getLevel() == null) {
             return;
@@ -94,13 +97,11 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
             poseStack.scale(SHUTTLE_SCALE, SHUTTLE_SCALE, SHUTTLE_SCALE);
             poseStack.translate(0.0, 0.5, 0.0);
             ItemStack cart = view.shuttle().isEmpty() ? plain : view.shuttle();
-            Minecraft.getInstance().getItemRenderer().renderStatic(cart, ItemDisplayContext.NONE, light, packedOverlay,
-                    poseStack, bufferSource, garage.getLevel(), 0);
+            RenderSubmit.item(poseStack, collector, cart, ItemDisplayContext.NONE, garage.getLevel(), 0, light);
             if (!view.cargo().isEmpty() && ShuttleLook.openHold(ShuttleItem.tier(cart))) {
                 poseStack.translate(0.0, CARGO_Y - 0.5, 0.0);
                 poseStack.scale(CARGO_SCALE, CARGO_SCALE, CARGO_SCALE);
-                Minecraft.getInstance().getItemRenderer().renderStatic(view.cargo(), ItemDisplayContext.FIXED, light, packedOverlay,
-                        poseStack, bufferSource, garage.getLevel(), 1);
+                RenderSubmit.item(poseStack, collector, view.cargo(), ItemDisplayContext.FIXED, garage.getLevel(), 1, light);
             }
             poseStack.popPose();
         }

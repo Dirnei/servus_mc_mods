@@ -54,13 +54,13 @@ public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
 
     private void sendName() {
         if (!name.getValue().trim().equals(menu.name())) {
-            net.neoforged.neoforge.network.ClientPacketDistributor.sendToServer(new SetLabelNamePayload(name.getValue()));
+            net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new SetLabelNamePayload(name.getValue()));
         }
     }
 
     private void sendTags() {
         if (!tags.getValue().equals(menu.zoneFilter().tagLine())) {
-            net.neoforged.neoforge.network.ClientPacketDistributor.sendToServer(new SetLabelTagsPayload(tags.getValue()));
+            net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new SetLabelTagsPayload(tags.getValue()));
         }
     }
 
@@ -124,7 +124,7 @@ public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
                 focused.setFocused(false);
                 return true;
             }
-            if (focused.keyPressed(keyCode, scanCode, modifiers) || focused.canConsumeInput()) {
+            if (focused.keyPressed(event) || focused.canConsumeInput()) {
                 return true;
             }
         }

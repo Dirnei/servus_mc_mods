@@ -44,9 +44,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     private int onlineLineY = -1;
 
     public WarehouseControllerScreen(WarehouseControllerMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = WarehouseControllerMenu.WIDTH;
-        this.imageHeight = WarehouseControllerMenu.IMAGE_HEIGHT;
+        super(menu, playerInventory, title, WarehouseControllerMenu.WIDTH, WarehouseControllerMenu.IMAGE_HEIGHT);
         ClientSiteStatus.clear();
     }
 
@@ -97,7 +95,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
                 name.setFocused(false);
                 return true;
             }
-            if (name.keyPressed(keyCode, scanCode, modifiers) || name.canConsumeInput()) {
+            if (name.keyPressed(event) || name.canConsumeInput()) {
                 return true;
             }
         }
@@ -169,10 +167,10 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
 
     /** A click on the site panel is not a click outside the GUI, so a carried stack is not dropped. */
     @Override
-    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) {
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
         boolean onPanel = extraAreas().stream().anyMatch(area -> mouseX >= area.getX() && mouseX < area.getX() + area.getWidth()
                 && mouseY >= area.getY() && mouseY < area.getY() + area.getHeight());
-        return !onPanel && super.hasClickedOutside(mouseX, mouseY, left, top, button);
+        return !onPanel && super.hasClickedOutside(mouseX, mouseY, left, top);
     }
 
     private int sitesLeft() {

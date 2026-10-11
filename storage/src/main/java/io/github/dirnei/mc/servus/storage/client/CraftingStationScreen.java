@@ -30,9 +30,7 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
             side -> press(SideConfigMenus.buttonOf(side)));
 
     public CraftingStationScreen(CraftingStationMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = CraftingStationMenu.WIDTH;
-        this.imageHeight = CraftingStationMenu.HEIGHT;
+        super(menu, playerInventory, title, CraftingStationMenu.WIDTH, CraftingStationMenu.HEIGHT);
     }
 
     @Override

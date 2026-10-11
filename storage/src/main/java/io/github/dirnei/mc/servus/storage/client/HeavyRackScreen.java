@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -21,10 +22,8 @@ public class HeavyRackScreen extends AbstractContainerScreen<HeavyRackMenu> {
     private final int rows;
 
     public HeavyRackScreen(HeavyRackMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
+        super(menu, playerInventory, title, 176, TOP_HEIGHT + menu.rows() * ROW_HEIGHT + BOTTOM_HEIGHT);
         this.rows = menu.rows();
-        this.imageWidth = 176;
-        this.imageHeight = TOP_HEIGHT + rows * ROW_HEIGHT + BOTTOM_HEIGHT;
         this.inventoryLabelY = this.imageHeight - 94;
     }
 
@@ -37,10 +36,10 @@ public class HeavyRackScreen extends AbstractContainerScreen<HeavyRackMenu> {
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         // Header, then the texture's first slot row once per row, then the player inventory part.
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, TOP_HEIGHT);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, TOP_HEIGHT, 256, 256);
         for (int row = 0; row < rows; row++) {
-            graphics.blit(TEXTURE, leftPos, topPos + TOP_HEIGHT + row * ROW_HEIGHT, 0, TOP_HEIGHT, imageWidth, ROW_HEIGHT);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos + TOP_HEIGHT + row * ROW_HEIGHT, 0, TOP_HEIGHT, imageWidth, ROW_HEIGHT, 256, 256);
         }
-        graphics.blit(TEXTURE, leftPos, topPos + TOP_HEIGHT + rows * ROW_HEIGHT, 0, 126, imageWidth, BOTTOM_HEIGHT);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos + TOP_HEIGHT + rows * ROW_HEIGHT, 0, 126, imageWidth, BOTTOM_HEIGHT, 256, 256);
     }
 }

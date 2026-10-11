@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.client;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -99,9 +100,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private Button cancelButton;
 
     public StorageTerminalScreen(StorageTerminalMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = Storage.WIDTH;
-        this.imageHeight = Storage.BASE_HEIGHT;
+        super(menu, playerInventory, title, Storage.WIDTH, Storage.BASE_HEIGHT);
     }
 
     private TerminalSettings settings() {
@@ -141,10 +140,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     @Override
     protected void init() {
         layout = Storage.layout(Storage.rowsFor(settings().height(), height));
-        imageHeight = layout.height();
         super.init();
         // The panel is centred as a whole; the base top sits below the extra rows.
-        topPos -= layout.top();
+        topPos = (height - layout.height()) / 2 - layout.top();
         // Every show, also after another screen was in front, registers the terminal again.
         ClientStock.open(menu.terminal().getBlockPos());
         titleLabelX = layout.title().x();
@@ -771,7 +769,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     /** Half size text right aligned at {@code right}, drawn above items. */
     private void smallText(GuiGraphicsExtractor graphics, Component text, int right, int y, int colour) {
         graphics.pose().pushMatrix();
-        graphics.pose().translate(right - font.width(text) * 0.5F, y, 200);
+        graphics.pose().translate(right - font.width(text) * 0.5F, y);
         graphics.pose().scale(0.5F, 0.5F);
         graphics.text(font, text, 0, 0, colour, true);
         graphics.pose().popMatrix();
@@ -818,7 +816,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         // Widgets were drawn by super.render below the dialog; draw them again on top of it.
         for (AbstractWidget widget : dialogWidgets()) {
             if (widget.visible) {
-                widget.render(graphics, mouseX, mouseY, 0);
+                widget.extractRenderState(graphics, mouseX, mouseY, 0);
             }
         }
         if (dialog == Dialog.CRAFT) {
@@ -888,7 +886,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     /** The rows above the base top and the side column belong to the screen too. */
     @Override
-    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) {
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
         int x = (int) mouseX - left;
         int y = (int) mouseY - top;
         boolean panel = x >= 0 && x < imageWidth && y >= layout.top() && y < Storage.BASE_HEIGHT;
@@ -952,7 +950,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         }
         if (dialogOpen()) {
             for (AbstractWidget widget : dialogWidgets()) {
-                if (widget.visible && widget.mouseClicked(mouseX, mouseY, button)) {
+                if (widget.visible && widget.mouseClicked(event, doubleClick)) {
                     setFocused(widget);
                     return true;
                 }
@@ -976,7 +974,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 ClientPacketDistributor.sendToServer(PushCarriedPayload.INSTANCE);
                 return true;
             }
-            if (cell.isPresent() && hasAltDown()) {
+            if (cell.isPresent() && Minecraft.getInstance().hasAltDown()) {
                 // Alt click: a stack from instant stock onto the cursor, for the crafting grid.
                 if (cell.get().stocked()) {
                     ClientPacketDistributor.sendToServer(new GridPullPayload(cell.get().stack()));
@@ -985,10 +983,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             }
             if (cell.isPresent()) {
                 Cell found = cell.get();
-                boolean craftClick = button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || hasControlDown();
+                boolean craftClick = button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE || Minecraft.getInstance().hasControlDown();
                 if (!found.stocked() || (found.craftable() && craftClick)) {
                     openCraft(found.stack());
-                } else if (hasShiftDown()) {
+                } else if (Minecraft.getInstance().hasShiftDown()) {
                     ClientPacketDistributor.sendToServer(new RequestItemPayload(found.stack(), found.stack().getMaxStackSize()));
                 } else {
                     openRequest(found.stack());
@@ -1029,13 +1027,13 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 confirm();
                 return true;
             }
-            if (maximum.isFocused() && (maximum.keyPressed(keyCode, scanCode, modifiers) || maximum.canConsumeInput())) {
+            if (maximum.isFocused() && (maximum.keyPressed(event) || maximum.canConsumeInput())) {
                 return true;
             }
-            amount.keyPressed(keyCode, scanCode, modifiers);
+            amount.keyPressed(event);
             return true;
         }
-        if (search.isFocused() && (search.keyPressed(keyCode, scanCode, modifiers) || search.canConsumeInput())) {
+        if (search.isFocused() && (search.keyPressed(event) || search.canConsumeInput())) {
             return true;
         }
         return super.keyPressed(event);
@@ -1059,10 +1057,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
         @Override
         protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-            super.renderWidget(graphics, mouseX, mouseY, partialTick);
+            extractDefaultSprite(graphics);
             Identifier texture = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID,
                     "textures/gui/terminal/" + icon.get() + ".png");
-            graphics.blit(texture, getX() + (width - 16) / 2, getY() + (height - 16) / 2, 0, 0, 16, 16, 16, 16);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, texture, getX() + (width - 16) / 2, getY() + (height - 16) / 2, 0, 0, 16, 16, 16, 16);
         }
     }
 }

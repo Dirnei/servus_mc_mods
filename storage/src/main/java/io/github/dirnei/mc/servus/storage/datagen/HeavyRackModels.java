@@ -80,6 +80,7 @@ final class HeavyRackModels {
         beams(inventory, 15, 2, 14);
         beams(inventory, 0, 2, 14);
         provider.simpleBlockItem(block, inventory);
+        provider.itemModels().itemModelType(provider.modLoc(name), "servus_storage:rack_wood");
     }
 
     /** Back panel, floor board, middle shelf and the front mid beam between the posts. */

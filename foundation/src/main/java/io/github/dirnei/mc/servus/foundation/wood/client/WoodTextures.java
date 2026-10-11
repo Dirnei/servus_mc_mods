@@ -27,9 +27,9 @@ final class WoodTextures {
     }
 
     /** The quad on the wood's planks sprite when it shows a board, on a swap's sprite when one applies, else itself. */
-    static BakedQuad apply(BakedQuad quad, TextureAtlasSprite planks, Map<Identifier, Identifier> swaps) {
+    static BakedQuad apply(BakedQuad quad, Identifier board, TextureAtlasSprite planks, Map<Identifier, Identifier> swaps) {
         Identifier name = quad.materialInfo().sprite().contents().name();
-        if (name.equals(Wood.BOARD)) {
+        if (name.equals(board)) {
             return retexture(quad, planks);
         }
         Identifier swap = swaps.get(name);
