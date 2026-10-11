@@ -34,6 +34,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final double DEFAULT_LIFT_SPEED_PER_UPGRADE = 0.05;
     public static final double DEFAULT_LIFT_ACCEL_PER_UPGRADE = 0.0025;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
+    public static final int DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS = 4;
+    public static final int DEFAULT_CHUNKS_PER_UPGRADE = 9;
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
     public static final int DEFAULT_INBOUND_BUFFER_SLOTS = 9;
     public static final int DEFAULT_PUT_AWAY_PER_TICK = 1;
@@ -89,6 +91,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile double liftSpeedPerUpgrade = DEFAULT_LIFT_SPEED_PER_UPGRADE;
     private volatile double liftAccelPerUpgrade = DEFAULT_LIFT_ACCEL_PER_UPGRADE;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
+    private volatile int chunkLoaderUpgradeSlots = DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS;
+    private volatile int chunksPerUpgrade = DEFAULT_CHUNKS_PER_UPGRADE;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
     private volatile int inboundBufferSlots = DEFAULT_INBOUND_BUFFER_SLOTS;
     private volatile int putAwayPerTick = DEFAULT_PUT_AWAY_PER_TICK;
@@ -136,6 +140,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         liftSpeedPerUpgrade = Math.max(0, doubleField(files.get(WAREHOUSE), "lift_speed_per_upgrade", DEFAULT_LIFT_SPEED_PER_UPGRADE));
         liftAccelPerUpgrade = Math.max(0, doubleField(files.get(WAREHOUSE), "lift_accel_per_upgrade", DEFAULT_LIFT_ACCEL_PER_UPGRADE));
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
+        chunkLoaderUpgradeSlots = countField(files.get(WAREHOUSE), "chunk_loader_upgrade_slots", DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS);
+        chunksPerUpgrade = intField(files.get(WAREHOUSE), "chunks_per_upgrade", DEFAULT_CHUNKS_PER_UPGRADE);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
         inboundBufferSlots = intField(files.get(WAREHOUSE), "inbound_buffer_slots", DEFAULT_INBOUND_BUFFER_SLOTS);
         putAwayPerTick = intField(files.get(WAREHOUSE), "put_away_per_tick", DEFAULT_PUT_AWAY_PER_TICK);
@@ -284,6 +290,21 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         return liftAccelPerUpgrade;
     }
 
+
+    /** Chunk Loader Upgrade slots of a Warehouse Controller. */
+    public int chunkLoaderUpgradeSlots() {
+        return chunkLoaderUpgradeSlots;
+    }
+
+    /** Chunks one Chunk Loader Upgrade covers. */
+    public int chunksPerUpgrade() {
+        return chunksPerUpgrade;
+    }
+
+    /** For GameTests: chunks one upgrade covers. */
+    public void setChunksPerUpgrade(int chunks) {
+        chunksPerUpgrade = Math.max(1, chunks);
+    }
 
     public int rackSlots() {
         return rackSlots;
