@@ -10,10 +10,10 @@ import net.minecraft.resources.ResourceLocation;
 
 /**
  * Server to client: the lift car of the shaft whose lowest segment is at
- * bottom. The client moves the car from y towards target at speed blocks per
- * tick; speed 0 means it stands still.
+ * bottom. The client moves the car from y towards target the way the server
+ * does, speeding up and braking by drive; a top speed of 0 means it stands still.
  */
-public record LiftSyncPayload(BlockPos bottom, int topY, float y, int target, float speed, boolean carrying)
+public record LiftSyncPayload(BlockPos bottom, int topY, float y, int target, ShuttleView.Drive drive, boolean carrying)
         implements CustomPacketPayload {
 
     public static final Type<LiftSyncPayload> TYPE =
@@ -24,7 +24,7 @@ public record LiftSyncPayload(BlockPos bottom, int topY, float y, int target, fl
             ByteBufCodecs.VAR_INT, LiftSyncPayload::topY,
             ByteBufCodecs.FLOAT, LiftSyncPayload::y,
             ByteBufCodecs.VAR_INT, LiftSyncPayload::target,
-            ByteBufCodecs.FLOAT, LiftSyncPayload::speed,
+            ShuttleView.Drive.STREAM_CODEC, LiftSyncPayload::drive,
             ByteBufCodecs.BOOL, LiftSyncPayload::carrying,
             LiftSyncPayload::new);
 

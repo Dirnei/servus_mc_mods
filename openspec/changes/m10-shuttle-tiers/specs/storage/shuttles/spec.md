@@ -97,3 +97,10 @@ A shuttle SHALL start every leg from standing, speed up by its acceleration each
 #### Scenario: Braking for the end of the leg
 - **WHEN** a shuttle at top speed nears the rail beside the rack it picks from
 - **THEN** it slows down and stands still on that rail without overshooting it
+
+### Requirement: The lift car speeds up and brakes
+The lift car SHALL start each trip from standing, speed up by the lift acceleration each tick up to the lift speed, and brake at the same rate so it stops exactly on its floor. The acceleration SHALL come from the warehouse stats file (example `lift_accel` 0.005 blocks per tick per tick). A car held by a crossing deck SHALL start again from standing. Clients SHALL draw the same speeding up and braking.
+
+#### Scenario: Car trip
+- **WHEN** the car carries a shuttle two floors up
+- **THEN** it starts slowly, reaches its full speed, and slows down before it stops on the second floor

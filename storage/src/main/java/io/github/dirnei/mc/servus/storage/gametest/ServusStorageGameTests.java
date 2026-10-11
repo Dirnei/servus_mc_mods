@@ -2238,7 +2238,7 @@ public final class ServusStorageGameTests {
     }
 
     /** Two shuttles call the car at the same floor: the first caller rides first, the second waits for the car. */
-    @GameTest(template = EMPTY, timeoutTicks = 600)
+    @GameTest(template = EMPTY, timeoutTicks = 700)
     public static void shuttlesQueueForCar(GameTestHelper helper) {
         liftBase(helper, 2);
         HeavyRackBlockEntity top = liftRack(helper, new BlockPos(3, 3, 3), Items.BREAD, 10);
@@ -2253,7 +2253,8 @@ public final class ServusStorageGameTests {
             helper.runAfterDelay(100, () -> {
                 helper.assertTrue(top.isEmpty(), "the first caller rode up first and loaded the top rack");
                 helper.assertTrue(!middle.isEmpty(), "the second caller is still waiting for the car, although its floor is nearer");
-                helper.runAfterDelay(300, () -> {
+                // The car speeds up and brakes on each of its trips.
+                helper.runAfterDelay(420, () -> {
                     helper.assertTrue(terminal.outputCount(Items.BREAD) == 10 && terminal.outputCount(Items.APPLE) == 10,
                             "both loads arrive, output has " + terminal.outputCount(Items.BREAD) + " bread and " + terminal.outputCount(Items.APPLE) + " apples");
                     helper.succeed();

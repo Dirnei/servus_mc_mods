@@ -26,6 +26,8 @@ public final class LiftCar {
     private final ArrayDeque<Call> calls = new ArrayDeque<>();
     private final Map<Integer, Integer> crossers = new LinkedHashMap<>();
     private boolean moving;
+    /** Blocks the car moved last tick; it starts from standing and brakes for its target. */
+    private double velocity;
 
     /** A new car stands at the lowest floor. */
     public LiftCar(int bottomY, int topY) {
@@ -144,22 +146,40 @@ public final class LiftCar {
         return crossers.containsKey(id);
     }
 
-    /** Moves the car towards its target, unless the next step would fold a deck a shuttle is crossing. */
+    /** Moves the car at a constant speed: full speed from the first tick. */
     public void tick(double speed) {
+        tick(speed, speed);
+    }
+
+    /**
+     * Moves the car towards its target, speeding up by accel per tick up to
+     * speed and braking so it stops on its floor, unless the next step would
+     * fold a deck a shuttle is crossing.
+     */
+    public void tick(double speed, double accel) {
         moving = false;
         Integer target = target();
         if (target == null || y == target) {
+            velocity = 0;
             return;
         }
         double left = target - y;
-        double next = Math.abs(left) <= speed + 1e-9 ? target : y + Math.signum(left) * speed;
+        double step = ShuttleDrive.next(velocity, speed, accel, Math.abs(left));
+        double next = Math.abs(left) <= step + 1e-9 ? target : y + Math.signum(left) * step;
         for (int floor : crossers.values()) {
             if (Flaps.angle(next, floor) > 0) {
+                velocity = 0;
                 return;
             }
         }
         y = next;
+        velocity = y == target ? 0 : step;
         moving = true;
+    }
+
+    /** Blocks the car moved last tick, 0 while it stands. */
+    public double velocity() {
+        return velocity;
     }
 
     /** The shaft grew or shrank: the car stays where it is, inside the new bounds. */

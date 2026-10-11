@@ -413,10 +413,11 @@ public final class ShuttleFleet {
         // Shuttles already out keep moving even when no garage has a home; only new jobs need one.
         assignJobs();
         double liftSpeed = host.liftSpeed();
+        double liftAccel = StorageStatsManager.INSTANCE.liftAccel();
         boolean moving = false;
         for (Map.Entry<BlockPos, LiftCar> entry : lifts.entrySet()) {
             LiftCar car = entry.getValue();
-            car.tick(liftSpeed);
+            car.tick(liftSpeed, liftAccel);
             if (car.moving() != movingLifts.contains(entry.getKey())) {
                 if (car.moving()) {
                     movingLifts.add(entry.getKey());
@@ -1726,9 +1727,11 @@ public final class ShuttleFleet {
 
     private void sendLift(BlockPos bottom, LiftCar car) {
         Integer target = car.target();
-        float speed = car.moving() ? (float) host.liftSpeed() : 0;
+        ShuttleView.Drive drive = car.moving()
+                ? new ShuttleView.Drive((float) car.velocity(), (float) host.liftSpeed(), (float) StorageStatsManager.INSTANCE.liftAccel())
+                : ShuttleView.Drive.STILL;
         PacketDistributor.sendToPlayersTrackingChunk(host.level(), new ChunkPos(bottom), new LiftSyncPayload(bottom, car.topY(),
-                (float) car.y(), target == null ? (int) Math.round(car.y()) : target, speed, car.carrying()));
+                (float) car.y(), target == null ? (int) Math.round(car.y()) : target, drive, car.carrying()));
     }
 
     /** Leaves the parked car's height on the lowest segment, for players who load the chunk later. */

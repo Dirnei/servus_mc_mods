@@ -186,4 +186,22 @@ class LiftCarTest {
         car.remove(5);
         assertFalse(car.isCrossing(5));
     }
+
+    @Test
+    void carSpeedsUpAndBrakesOntoItsFloor() {
+        LiftCar car = new LiftCar(0, 4);
+        car.call(1, 4);
+        car.tick(0.1, 0.01);
+        assertEquals(0.01, car.y(), 1e-9);
+        car.tick(0.1, 0.01);
+        assertEquals(0.03, car.y(), 1e-9);
+        double fastest = 0;
+        for (int i = 0; i < 400 && car.y() < 4; i++) {
+            car.tick(0.1, 0.01);
+            fastest = Math.max(fastest, car.velocity());
+        }
+        assertEquals(4, car.y(), 1e-9);
+        assertEquals(0.1, fastest, 1e-9);
+        assertEquals(0, car.velocity(), 1e-9);
+    }
 }

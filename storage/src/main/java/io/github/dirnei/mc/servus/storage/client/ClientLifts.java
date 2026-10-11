@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.shuttle.LiftSyncPayload;
+import io.github.dirnei.mc.servus.storage.shuttle.ShuttleDrive;
+import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
@@ -12,15 +14,28 @@ public final class ClientLifts {
     /** @param lift the car as sent; @param receivedTick client game time at receipt */
     public record Lift(LiftSyncPayload lift, long receivedTick) {
 
-        /** The car's y at the given client time, moved towards its target since receipt. */
+        /** The car's y at the given client time, moved towards its target since receipt, speeding up and braking. */
         public double yAt(double time) {
-            double elapsed = Math.max(0, time - receivedTick);
+            double elapsed = Math.min(Math.max(0, time - receivedTick), 400);
             double y = lift.y();
-            if (lift.speed() <= 0 || lift.target() == y) {
+            ShuttleView.Drive drive = lift.drive();
+            if (drive.top() <= 0 || lift.target() == y) {
                 return y;
             }
-            double step = lift.speed() * elapsed;
-            return lift.target() > y ? Math.min(lift.target(), y + step) : Math.max(lift.target(), y - step);
+            double sign = Math.signum(lift.target() - y);
+            double v = drive.speed();
+            double moved = 0;
+            double gap = Math.abs(lift.target() - y);
+            int whole = (int) Math.floor(elapsed);
+            for (int t = 0; t < whole && moved < gap; t++) {
+                v = ShuttleDrive.next(v, drive.top(), drive.accel(), gap - moved);
+                moved += v;
+            }
+            double part = elapsed - whole;
+            if (part > 0 && moved < gap) {
+                moved += ShuttleDrive.next(v, drive.top(), drive.accel(), gap - moved) * part;
+            }
+            return y + sign * Math.min(gap, moved);
         }
     }
 
