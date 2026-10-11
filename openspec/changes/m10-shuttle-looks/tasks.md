@@ -16,5 +16,5 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Full `gradlew build`, unit tests and storage GameTests green.
+- [x] 4.1 Full `gradlew build`, unit tests and storage GameTests green.
 - [ ] 4.2 Play check in game by the user from main (the client launches with all three mods): Mk1, Mk2 and Mk3 shuttles look different in the inventory and on the rails, Speed and Handling counts change the drive and the back, a Harvester shows its reel, the reel faces the way the shuttle drives on north, south, east and west legs, cargo shows only on Mk1, shuttles fit beside racks and on the lift car. Verify: the user confirms in game.
