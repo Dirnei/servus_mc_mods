@@ -7,7 +7,7 @@ import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
-import io.github.dirnei.mc.servus.storage.rail.RailCenter;
+import io.github.dirnei.mc.servus.storage.rail.RailLook;
 import io.github.dirnei.mc.servus.storage.shuttle.Flaps;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,22 +35,23 @@ import org.joml.Quaternionf;
 public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity> {
 
     private static final ResourceLocation FRAME = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/elevator");
-    /** Rail textures in the order of {@link RailCenter.Shape}, the same as the outside rail's models. */
+    /** Rail textures: the Warehouse Rail's steel heads and oak sleepers (the shaft has no wood of its own). */
     private static final ResourceLocation[] RAIL = {
-            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/rail"),
-            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/rail_curve"),
-            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/rail_cross")};
-    /** Rail pieces as x0, z0, x1, z1: the centre plate and the arm towards north, south, west, east. */
-    private static final float[] CENTER = {5, 5, 11, 11};
-    private static final float[][] ARMS = {{5, 0, 11, 5}, {5, 11, 11, 16}, {0, 5, 5, 11}, {11, 5, 16, 11}};
+            ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "block/rail_head"),
+            ResourceLocation.withDefaultNamespace("block/oak_planks")};
     /** The shaft area between the posts that the car and the decks cover. */
     private static final float[] INNER = {2, 2, 14, 14};
 
-    /** One rail piece: its rectangle, the texture of its shape and that texture's clockwise rotation in degrees. */
-    private record Piece(float[] area, RailCenter.Shape shape, int rotation) {
+    /** One box of the rail track in the segment, and the clockwise rotation of the piece it belongs to. */
+    private record Piece(RailLook.Box box, int rotation) {
+
+        /** The box seen from above as x0, z0, x1, z1. */
+        float[] area() {
+            return new float[] {(float) box.x0(), (float) box.z0(), (float) box.x1(), (float) box.z1()};
+        }
 
         Piece within(float[] part) {
-            return new Piece(part, shape, rotation);
+            return new Piece(new RailLook.Box(box.part(), part[0], box.y0(), part[1], part[2], box.y1(), part[3]), rotation);
         }
     }
 
@@ -150,16 +151,25 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
                 state.getValue(ConnectableBlock.WEST), state.getValue(ConnectableBlock.EAST)};
     }
 
-    /** The rail pieces of a floor: the centre shaped like an outside rail's and a straight arm per connected side. */
+    /**
+     * The track of a floor, the same piece an outside rail with these sides
+     * shows. Sleepers stay between the posts, so no sleeper tip is left
+     * behind when a flap folds.
+     */
     private static List<Piece> railPieces(BlockState state) {
         List<Piece> pieces = new ArrayList<>();
         boolean[] arms = arms(state);
-        RailCenter center = RailCenter.of(arms[0], arms[3], arms[1], arms[2]);
-        pieces.add(new Piece(CENTER, center.shape(), center.rotation()));
-        for (int i = 0; i < ARMS.length; i++) {
-            if (arms[i]) {
-                pieces.add(new Piece(ARMS[i], RailCenter.Shape.STRAIGHT, i < 2 ? 0 : 90));
+        RailLook.Placed placed = RailLook.of(arms[0], arms[3], arms[1], arms[2]);
+        for (RailLook.Box box : RailLook.boxes(placed)) {
+            Piece piece = new Piece(box, placed.rotation());
+            if (box.part() == RailLook.Part.SLEEPER) {
+                float[] inside = clip(piece.area(), INNER);
+                if (inside == null) {
+                    continue;
+                }
+                piece = piece.within(inside);
             }
+            pieces.add(piece);
         }
         return pieces;
     }
@@ -333,20 +343,23 @@ public class ElevatorRenderer implements BlockEntityRenderer<ElevatorBlockEntity
     }
 
     /**
-     * A rail piece one pixel high. The top shows its shape's texture mapped by
-     * position and turned with the piece like a rotated block model, so pieces
-     * cut at the deck and car edges still line up with each other.
+     * One box of the track: a head in steel or a sleeper in oak. The top
+     * shows its texture mapped by position and turned with the piece like a
+     * rotated block model, so boxes cut at the deck and car edges still line
+     * up with each other.
      */
     private static void railBox(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite[] rail, Piece piece,
                                 int light, int overlay) {
-        TextureAtlasSprite sprite = rail[piece.shape().ordinal()];
+        TextureAtlasSprite sprite = rail[piece.box().part() == RailLook.Part.SLEEPER ? 1 : 0];
         float[] a = piece.area();
-        sidesAndBottom(poseStack, buffer, sprite, a[0], 0, a[1], a[2], 1, a[3], light, overlay);
+        float y0 = (float) piece.box().y0();
+        float y1 = (float) piece.box().y1();
+        sidesAndBottom(poseStack, buffer, sprite, a[0], y0, a[1], a[2], y1, a[3], light, overlay);
         PoseStack.Pose pose = poseStack.last();
         float[][] corners = {{a[0], a[1]}, {a[0], a[3]}, {a[2], a[3]}, {a[2], a[1]}};
         for (float[] corner : corners) {
             float[] uv = turnedUv(piece.rotation(), corner[0], corner[1]);
-            vertex(buffer, pose, corner[0], 1, corner[1], sprite.getU(uv[0] / 16F), sprite.getV(uv[1] / 16F),
+            vertex(buffer, pose, corner[0], y1, corner[1], sprite.getU(uv[0] / 16F), sprite.getV(uv[1] / 16F),
                     light, overlay, 0, 1, 0);
         }
     }
