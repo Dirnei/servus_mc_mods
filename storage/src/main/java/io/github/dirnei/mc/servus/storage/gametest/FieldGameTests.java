@@ -6,6 +6,15 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsB
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
+import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
+import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
+import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
+import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
@@ -121,6 +130,41 @@ public final class FieldGameTests {
                     "the crate should be in the controller's warehouse through the farm rails");
             helper.assertTrue(network(helper, new BlockPos(5, 1, 3)).equals(crateNetwork), "the farm rail is a node of the warehouse");
             helper.succeed();
+        });
+    }
+
+    /** A shuttle drives from its garage over farm rails to a rack and back to the terminal with the stack. */
+    @GameTest(template = EMPTY, timeoutTicks = 600)
+    public static void shuttleDrivesOverFarmRails(GameTestHelper helper) {
+        BlockPos controllerPos = new BlockPos(1, 1, 3);
+        BlockPos terminalPos = new BlockPos(1, 1, 4);
+        BlockPos garagePos = new BlockPos(2, 1, 5);
+        BlockPos rackPos = new BlockPos(9, 1, 5);
+        helper.setBlock(controllerPos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        TerminalWiring.place(helper, terminalPos);
+        for (int x = 2; x <= 9; x++) {
+            helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
+            Block rail = x >= 4 && x <= 7 ? ServusStorageBlocks.FARM_RAIL.get() : ServusStorageBlocks.RAIL.get();
+            helper.setBlock(new BlockPos(x, 1, 4), rail.defaultBlockState());
+        }
+        helper.setBlock(new BlockPos(5, 1, 3), ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
+        helper.setBlock(garagePos, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
+        helper.setBlock(rackPos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(garagePos);
+        garage.shuttles().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE.get()));
+        HeavyRackBlockEntity rack = helper.getBlockEntity(rackPos);
+        rack.items().insertItem(0, new ItemStack(Items.COBBLESTONE, 36), false);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, terminalPos);
+            new StorageTerminalMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(), terminal)
+                    .request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 36);
+            WarehouseNetwork network = ((WarehouseControllerBlockEntity) helper.getBlockEntity(controllerPos)).network().orElseThrow();
+            helper.runAfterDelay(8, () -> {
+                helper.assertTrue(network.garageOut(helper.absolutePos(garagePos)) == 1, "the shuttle should be out over the farm rails");
+                TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 36, 500,
+                        () -> "the 36 cobblestone should arrive, got " + terminal.outputCount(Items.COBBLESTONE), helper::succeed);
+            });
         });
     }
 
