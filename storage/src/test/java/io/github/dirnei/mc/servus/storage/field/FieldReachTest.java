@@ -17,7 +17,7 @@ class FieldReachTest {
     }
 
     private static Set<FieldPos> reach(List<FieldPos> rails, java.util.function.Predicate<FieldPos> open) {
-        return FieldReach.connected(rails, FieldStrip.plots(rails), open);
+        return FieldReach.connected(rails, FieldStrip.plots(rails, 4), open, 4);
     }
 
     @Test
@@ -87,5 +87,13 @@ class FieldReachTest {
         Set<FieldPos> reached = reach(List.of(RAIL), plot -> true);
         assertFalse(reached.contains(at(5, 0)));
         assertFalse(reached.contains(RAIL));
+    }
+
+    @Test
+    void radiusTwoLooksTwoOut() {
+        Set<FieldPos> reached = FieldReach.connected(List.of(RAIL), FieldStrip.plots(List.of(RAIL), 2), plot -> true, 2);
+        assertEquals(24, reached.size());
+        assertTrue(reached.contains(at(2, 2)));
+        assertFalse(reached.contains(at(3, 0)));
     }
 }

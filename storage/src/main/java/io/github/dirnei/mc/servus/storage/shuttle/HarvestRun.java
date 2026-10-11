@@ -30,6 +30,7 @@ final class HarvestRun {
     /** Plots worked from each rail of the field, nearest first; rebuilt when the field's rails change. */
     private Map<BlockPos, List<BlockPos>> reach = Map.of();
     private Set<BlockPos> reachRails;
+    private int reachRadius = -1;
     /** Rails worked in the current work segment; the segment does not go back to them. */
     final Set<BlockPos> visited = new HashSet<>();
     /** Plots of the rail the harvester works now. */
@@ -60,9 +61,9 @@ final class HarvestRun {
         this.cargo = new FieldCargo<>(slots);
     }
 
-    /** The plots worked from each rail, built from the field's current rails and plots. */
-    Map<BlockPos, List<BlockPos>> reach(Set<BlockPos> rails, Set<BlockPos> plots) {
-        if (rails != reachRails) {
+    /** The plots worked from each rail, built from the field's current rails, plots and radius. */
+    Map<BlockPos, List<BlockPos>> reach(Set<BlockPos> rails, Set<BlockPos> plots, int radius) {
+        if (rails != reachRails || radius != reachRadius) {
             List<FieldPos> railPositions = new ArrayList<>(rails.size());
             for (BlockPos rail : rails) {
                 railPositions.add(new FieldPos(rail.getX(), rail.getY(), rail.getZ()));
@@ -72,7 +73,7 @@ final class HarvestRun {
                 plotPositions.add(new FieldPos(plot.getX(), plot.getY(), plot.getZ()));
             }
             Map<BlockPos, List<BlockPos>> built = new HashMap<>();
-            for (Map.Entry<FieldPos, List<FieldPos>> entry : PlotReach.assign(railPositions, plotPositions).entrySet()) {
+            for (Map.Entry<FieldPos, List<FieldPos>> entry : PlotReach.assign(railPositions, plotPositions, radius).entrySet()) {
                 List<BlockPos> worked = new ArrayList<>(entry.getValue().size());
                 for (FieldPos plot : entry.getValue()) {
                     worked.add(new BlockPos(plot.x(), plot.y(), plot.z()));
@@ -82,6 +83,7 @@ final class HarvestRun {
             }
             reach = built;
             reachRails = rails;
+            reachRadius = radius;
         }
         return reach;
     }

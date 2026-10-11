@@ -922,7 +922,7 @@ public final class ShuttleFleet {
 
     /** Whether some plot worked from the rail needs something the harvester can do now. */
     private boolean railHasWork(HarvestRun run, FieldHeadBlockEntity head, BlockPos rail, boolean plants, boolean haveSeed) {
-        List<BlockPos> plots = run.reach(head.rails(), head.plots()).get(rail);
+        List<BlockPos> plots = run.reach(head.rails(), head.plots(), head.radius()).get(rail);
         if (plots == null) {
             return false;
         }
@@ -1100,7 +1100,7 @@ public final class ShuttleFleet {
         }
         BlockPos rail = Conversions.toBlockPos(at(shuttle));
         run.queue.clear();
-        run.queue.addAll(run.reach(head.rails(), head.plots()).getOrDefault(rail, List.of()));
+        run.queue.addAll(run.reach(head.rails(), head.plots(), head.radius()).getOrDefault(rail, List.of()));
         run.stopPlants = plants(head);
         run.countdown = workTicks(shuttle);
         shuttle.leg = Leg.WORKING;

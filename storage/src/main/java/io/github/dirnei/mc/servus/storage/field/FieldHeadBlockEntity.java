@@ -246,12 +246,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
             railPositions.add(new FieldPos(rail.getX(), rail.getY(), rail.getZ()));
         }
         Set<BlockPos> candidateSet = new HashSet<>();
-        for (FieldPos plot : FieldStrip.plots(railPositions)) {
+        for (FieldPos plot : FieldStrip.plots(railPositions, radius())) {
             candidateSet.add(new BlockPos(plot.x(), plot.y(), plot.z()));
         }
         candidates = Collections.unmodifiableSet(candidateSet);
         plots = Set.of();
-        boxes = FieldStrip.boxes(railPositions);
+        boxes = FieldStrip.boxes(railPositions, radius());
         minX = Integer.MAX_VALUE;
         minZ = Integer.MAX_VALUE;
         maxX = Integer.MIN_VALUE;
@@ -362,7 +362,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         }
         Set<BlockPos> seen = new HashSet<>();
         for (FieldPos plot : FieldReach.connected(railPositions, candidatePositions,
-                pos -> ground.getOrDefault(new BlockPos(pos.x(), pos.y(), pos.z()), PlotState.BLOCKED) != PlotState.BLOCKED)) {
+                pos -> ground.getOrDefault(new BlockPos(pos.x(), pos.y(), pos.z()), PlotState.BLOCKED) != PlotState.BLOCKED, radius())) {
             seen.add(new BlockPos(plot.x(), plot.y(), plot.z()));
         }
         plots = Collections.unmodifiableSet(seen);
@@ -478,6 +478,11 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
 
     public FieldStatus status() {
         return status;
+    }
+
+    /** How far the field reaches to each side of its rails. */
+    public int radius() {
+        return 4;
     }
 
     /** The farm rails of the field; for a head that sees another head, the field it would serve. */

@@ -27,8 +27,9 @@ public final class FieldReach {
      * @param rails      the field's rails
      * @param candidates the plots within reach of a rail, the only ones that count
      * @param open       whether a candidate holds soil a harvester can work
+     * @param radius     how far a rail looks out, the field radius
      */
-    public static Set<FieldPos> connected(Collection<FieldPos> rails, Set<FieldPos> candidates, Predicate<FieldPos> open) {
+    public static Set<FieldPos> connected(Collection<FieldPos> rails, Set<FieldPos> candidates, Predicate<FieldPos> open, int radius) {
         Set<FieldPos> railSet = new HashSet<>(rails);
         Set<FieldPos> reached = new LinkedHashSet<>();
         Predicate<FieldPos> seen = plot -> candidates.contains(plot) && open.test(plot);
@@ -41,7 +42,7 @@ public final class FieldReach {
                 if (!free[d]) {
                     continue;
                 }
-                for (int i = 1; i <= FieldStrip.RADIUS; i++) {
+                for (int i = 1; i <= radius; i++) {
                     FieldPos out = step(rail, d, i);
                     if (!seen.test(out)) {
                         break;
@@ -51,7 +52,7 @@ public final class FieldReach {
                         if (!free[turn]) {
                             continue;
                         }
-                        for (int j = 1; j <= FieldStrip.RADIUS; j++) {
+                        for (int j = 1; j <= radius; j++) {
                             FieldPos corner = step(out, turn, j);
                             if (!seen.test(corner)) {
                                 break;

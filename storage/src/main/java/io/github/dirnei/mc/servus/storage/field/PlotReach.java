@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.field;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -11,22 +12,35 @@ import java.util.Set;
 
 /**
  * Which plots a harvester works from which rail: every plot from the rail
- * nearest to it, so a shuttle standing on a rail reaches at most
- * {@link FieldStrip#RADIUS} blocks, the strip of the field. Pure, no
- * Minecraft imports.
+ * nearest to it, so a shuttle standing on a rail reaches at most the field
+ * radius, the strip of the field. Pure, no Minecraft imports.
  */
 public final class PlotReach {
 
-    /** Offsets from a plot to a rail, nearest first: Chebyshev distance, then Manhattan, then x, then z. */
-    private static final List<int[]> OFFSETS = offsets();
+    /** Radii with a cached offset order; larger ones are sorted on every call. */
+    private static final int CACHED = 16;
+    /** Offsets from a plot to a rail per radius, nearest first: Chebyshev distance, then Manhattan, then x, then z. */
+    private static final List<List<int[]>> OFFSETS = new ArrayList<>(Collections.nCopies(CACHED + 1, null));
 
     private PlotReach() {
     }
 
-    private static List<int[]> offsets() {
+    private static synchronized List<int[]> offsets(int radius) {
+        if (radius > CACHED) {
+            return sorted(radius);
+        }
+        List<int[]> cached = OFFSETS.get(radius);
+        if (cached == null) {
+            cached = sorted(radius);
+            OFFSETS.set(radius, cached);
+        }
+        return cached;
+    }
+
+    private static List<int[]> sorted(int radius) {
         List<int[]> offsets = new ArrayList<>();
-        for (int dx = -FieldStrip.RADIUS; dx <= FieldStrip.RADIUS; dx++) {
-            for (int dz = -FieldStrip.RADIUS; dz <= FieldStrip.RADIUS; dz++) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
                 offsets.add(new int[] {dx, dz});
             }
         }
@@ -46,10 +60,11 @@ public final class PlotReach {
 
     /**
      * The plots worked from each rail, nearest first. Plots with no rail
-     * within reach on their level are left out; rails without plots map to
-     * an empty list.
+     * within radius blocks on their level are left out; rails without plots
+     * map to an empty list.
      */
-    public static Map<FieldPos, List<FieldPos>> assign(Collection<FieldPos> rails, Collection<FieldPos> plots) {
+    public static Map<FieldPos, List<FieldPos>> assign(Collection<FieldPos> rails, Collection<FieldPos> plots, int radius) {
+        List<int[]> offsets = offsets(Math.max(0, radius));
         Set<FieldPos> railSet = new HashSet<>(rails);
         Map<FieldPos, List<FieldPos>> byRail = new LinkedHashMap<>();
         Map<FieldPos, Integer> rank = new HashMap<>();
@@ -60,8 +75,8 @@ public final class PlotReach {
             if (railSet.contains(plot)) {
                 continue;
             }
-            for (int i = 0; i < OFFSETS.size(); i++) {
-                int[] offset = OFFSETS.get(i);
+            for (int i = 0; i < offsets.size(); i++) {
+                int[] offset = offsets.get(i);
                 FieldPos rail = new FieldPos(plot.x() + offset[0], plot.y(), plot.z() + offset[1]);
                 if (railSet.contains(rail)) {
                     byRail.get(rail).add(plot);

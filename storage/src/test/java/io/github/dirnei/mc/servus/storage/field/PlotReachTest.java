@@ -24,7 +24,7 @@ class PlotReachTest {
     @Test
     void middleRailWorksItsCrossColumn() {
         List<FieldPos> rails = row(0, 4);
-        Map<FieldPos, List<FieldPos>> reach = PlotReach.assign(rails, FieldStrip.plots(rails));
+        Map<FieldPos, List<FieldPos>> reach = PlotReach.assign(rails, FieldStrip.plots(rails, 4), 4);
         List<FieldPos> middle = reach.get(new FieldPos(2, 0, 0));
         assertEquals(8, middle.size());
         for (FieldPos plot : middle) {
@@ -35,7 +35,7 @@ class PlotReachTest {
     @Test
     void endRailsTakeTheEndColumns() {
         List<FieldPos> rails = row(0, 4);
-        Map<FieldPos, List<FieldPos>> reach = PlotReach.assign(rails, FieldStrip.plots(rails));
+        Map<FieldPos, List<FieldPos>> reach = PlotReach.assign(rails, FieldStrip.plots(rails, 4), 4);
         // The end rail works its own cross column and the four columns beyond it.
         assertEquals(8 + 4 * 9, reach.get(new FieldPos(0, 0, 0)).size());
         assertEquals(8 + 4 * 9, reach.get(new FieldPos(4, 0, 0)).size());
@@ -46,8 +46,8 @@ class PlotReachTest {
         List<FieldPos> rails = new ArrayList<>(row(0, 3));
         rails.add(new FieldPos(3, 0, 1));
         rails.add(new FieldPos(3, 0, 2));
-        Set<FieldPos> plots = FieldStrip.plots(rails);
-        Map<FieldPos, List<FieldPos>> reach = PlotReach.assign(rails, plots);
+        Set<FieldPos> plots = FieldStrip.plots(rails, 4);
+        Map<FieldPos, List<FieldPos>> reach = PlotReach.assign(rails, plots, 4);
         Set<FieldPos> seen = new HashSet<>();
         int total = 0;
         for (Map.Entry<FieldPos, List<FieldPos>> entry : reach.entrySet()) {
@@ -55,7 +55,7 @@ class PlotReachTest {
                 assertTrue(seen.add(plot), "worked twice: " + plot);
                 total++;
                 int distance = Math.max(Math.abs(plot.x() - entry.getKey().x()), Math.abs(plot.z() - entry.getKey().z()));
-                assertTrue(distance <= FieldStrip.RADIUS, "too far: " + plot);
+                assertTrue(distance <= 4, "too far: " + plot);
             }
         }
         assertEquals(plots.size(), total);
@@ -74,7 +74,7 @@ class PlotReachTest {
     void plotsBeyondReachAndRailsAreLeftOut() {
         List<FieldPos> rails = row(0, 0);
         Map<FieldPos, List<FieldPos>> reach = PlotReach.assign(rails,
-                List.of(new FieldPos(5, 0, 0), new FieldPos(0, 0, 0), new FieldPos(1, 1, 0), new FieldPos(4, 0, 4)));
+                List.of(new FieldPos(5, 0, 0), new FieldPos(0, 0, 0), new FieldPos(1, 1, 0), new FieldPos(4, 0, 4)), 4);
         List<FieldPos> worked = reach.get(new FieldPos(0, 0, 0));
         assertEquals(List.of(new FieldPos(4, 0, 4)), worked);
         assertFalse(worked.contains(new FieldPos(5, 0, 0)));
@@ -84,12 +84,20 @@ class PlotReachTest {
     void tiesAreStable() {
         List<FieldPos> rails = List.of(new FieldPos(0, 0, 0), new FieldPos(2, 0, 0));
         FieldPos between = new FieldPos(1, 0, 3);
-        Map<FieldPos, List<FieldPos>> first = PlotReach.assign(rails, List.of(between));
-        Map<FieldPos, List<FieldPos>> second = PlotReach.assign(List.of(rails.get(1), rails.get(0)), List.of(between));
+        Map<FieldPos, List<FieldPos>> first = PlotReach.assign(rails, List.of(between), 4);
+        Map<FieldPos, List<FieldPos>> second = PlotReach.assign(List.of(rails.get(1), rails.get(0)), List.of(between), 4);
         assertEquals(first.get(new FieldPos(0, 0, 0)), second.get(new FieldPos(0, 0, 0)));
     }
 
     private static Map<FieldPos, List<FieldPos>> reachOf(List<FieldPos> rails) {
-        return PlotReach.assign(rails, FieldStrip.plots(rails));
+        return PlotReach.assign(rails, FieldStrip.plots(rails, 4), 4);
+    }
+
+    @Test
+    void radiusTwoLeavesFarPlotsOut() {
+        List<FieldPos> rails = row(0, 0);
+        Map<FieldPos, List<FieldPos>> reach = PlotReach.assign(rails,
+                List.of(new FieldPos(2, 0, 2), new FieldPos(3, 0, 0)), 2);
+        assertEquals(List.of(new FieldPos(2, 0, 2)), reach.get(new FieldPos(0, 0, 0)));
     }
 }
