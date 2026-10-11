@@ -55,7 +55,7 @@ Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.se
 
 **Core idea:** alchemy after Paracelsus. Matter is split into the three principles, Salt, Sulfur and Mercury, and products are made again from them. Paracelsus' elemental spirits do the work, and gnomes grow ore veins instead of the world generating them. The story is Paracelsus' own life, told by his journal, which is also the tech tree.
 
-Decided in the alchemy rethink (replaces the Factorio style design of M2 and M3, which nothing released depends on):
+Decided:
 - **Two audiences, one path.** Nothing forces a factory, everything rewards one. A casual player does alchemy with a handful of blocks and buckets; a planner pipes the principles, balances the ratios and lets the Crafting CPU order. Both reach the same chapters. No task ever asks for a sustained throughput.
 - **Tria Prima.** The Calciner splits matter into Salt, Sulfur and Mercury, three fluids that travel through the Fluid Pipe and wait in Fluid Tanks. Salt leaves the fire as Ash, as in the lore, and the Purifier leaches the Ash with water into liquid Salt. The Coagulator makes products from a fixed ratio of the three. Every input and every product has its own ratio, so surplus of one principle is normal and goes to the Sink or to a later converter. In Nigredo the Calciner takes almost anything (cobble, wood, dirt, ore), so the early game needs no ore source but the pickaxe. Machines with several tanks assign a tank per side in the Fluids tab of the side panel, so each pipe arm and its channel carry one principle.
 - **Machines are built, not placed.** The alchemy machines become multiblocks of vanilla blocks and custom parts with fixed ports by position instead of side configuration and GUIs. The player forms one by using Paracelsus' Journal on its controller (never the carrot); the journal shows each build as a schematic with Visualize, generated from the same layout that forming checks, and the formed build is drawn as one model. The Calciner comes first: a brick furnace with an Alembic, whose Ash Pan gives Ash, Receiver Mercury and Hood Sulfur into two Fluid Tank columns; the Coagulator follows with three Principle Vats over a casting table, and the Athanor stands on a diamond brick hearth and drinks from three Fluid Tanks two blocks out, which never touch. The Purifier is a Leaching Vat on a log, with a Catch Basin for the Salt and a Residue Crock for the Caput Mortuum beside the log, so each output has its own port; the Caput Mortuum is kept for a later diamond. Forming any build plays a sound and sends particles up from every block.
@@ -98,8 +98,7 @@ Historical claims in the journal text are checked again when it is written.
 
 ### 2.2 Servus: Foundation
 
-The base mod: the shared API (networks, production and stock capabilities, side config, placement assist, config), the Configuration Carrot, the goggles, the transport content and the general utilities below. It was Servus Lib plus Servus: Logistics until M8. Pumps, the Sink, the Chunk Loader and the Coal Generator moved here from Manufacturing in the alchemy rethink, because they are not alchemy and Storage needs them as much: a warehouse voids overflow and runs overnight, and Foundation's fluid line gets its own source. Foundation has no research, so all of them use plain crafting recipes.
-
+The base mod: the shared API (networks, production and stock capabilities, side config, placement assist, config), the Configuration Carrot, the goggles, the transport content and the general utilities below. Pumps, the Sink, the Chunk Loader and the Coal Generator live here because they are not alchemy and Storage needs them as much: a warehouse voids overflow and runs overnight, and the fluid line gets its own source. Everything in Foundation uses plain crafting recipes.
 
 - **Utility Duct**: one block with several lines (Item Pipe, Power Cable and Fluid Pipe). Each line is placed as its own item and adds to a duct that lacks it.
 - Per side and per line modes (in and out, pull in, push out, disabled) and one of eight colored channels per line and side, set in an endpoint GUI that the Configuration Carrot (the wrench role) opens on the arm that touches an inventory or machine. Items, energy and fluids only flow between sides on the same channel. A bare hand opens nothing; sneak carrot removes the facade panel it hits, elsewhere the duct.
@@ -140,28 +139,25 @@ Shuttles are **simulated as data** on the warehouse network and only rendered mo
 Decided: every elevator shaft has one simulated **lift car**. A shuttle that changes level stops on the rail beside the shaft, calls the car and waits; the car serves calls in the order they were made and carries one shuttle per trip at `lift_speed` from `warehouse.json`, then stays parked where it stopped. A shuttle that only crosses a shaft on one floor does not call the car; it drives over the floor's deck, two flaps hinged between the corner posts that fold up while the car is at or passing that floor, and the car waits for it. A floor without a rail beside it shows only its posts, and the top segment carries a head with the motor beam. Segments work like scaffolding: players walk into them from the side and climb inside, stand on every level from above and sneak to sink down, and a click with an elevator on any segment places the next one on top of the shaft. Breaking a segment under a riding shuttle drops its cargo at its garage.
 
 Decided (field work): everything stays in Storage.
-- **Shuttle Workshop:** a block that fits modules into a shuttle item. A shuttle has two module slots, a tool slot (Harvester, later Lumber and more) and a utility slot (Cargo Hold). Modules are a data component on the shuttle item, so the fleet tracks every shuttle stack in its garages instead of a count per garage and matches a job to a shuttle with the modules it needs. A plain shuttle carries one stack; a Cargo Hold carries N stacks (N from `warehouse.json`).
+- **Shuttle tiers:** the shuttle comes as Shuttle Mk1, Mk2 and Mk3, three items with their own base model. The tier sets how many stacks, and so how many jobs that share a way, a shuttle carries per trip (examples 2, 4 and 8) and the max count of each count upgrade. Mk1 is crafted; Mk2 and Mk3 are built from the tier below in the Shuttle Workshop, never in a crafting grid.
+- **Shuttle Workshop:** the workbench for shuttles. One install slot takes every module: count upgrades (Speed, Handling) go up by one per item up to the tier's max and come back out one at a time; a tool (Harvester, later Lumber) replaces the fitted tool, which comes back. Modules and counts are a data component on the shuttle item, so the fleet tracks every shuttle stack in its garages and matches a job to a shuttle with the modules it needs. A tier build takes supplies from a datapack build sheet and then finishes either at once or by hand in a short minigame on the shuttle model that cannot fail; only a build by hand engraves a name plate, so only Mk2 and Mk3 shuttles carry a name, shown on the shuttle in the world and wherever the mod names it. The workshop keeps the shuttle, the supplies and the build progress.
+- **Speed and Handling:** Speed works between stops (travel speed), Handling at stops (loading, unloading and field work per plot). Base values and the effect per count are datapack numbers; the base shuttle is slower than before so Speed matters.
+- **Looks:** a shuttle shows what it is: the tier's body and hold, Speed parts, a Handling part, its tool on the front and sides, and its name plate. Shuttles are drawn bigger than the first carts.
 - **Farm Rail:** a Warehouse Rail variant that joins the warehouse rail graph like any rail. One connected run of farm rails is one field. It is not waterlogged; while its field has water it hydrates farmland 4 blocks to each side through NeoForge `FarmlandWaterManager` tickets (not saved, re-added on load).
 - **Field Head:** one block per field. Water comes in through the fluid pipe into a buffer; a GUI shows the field and sets one crop for the field or a harvest only mode. The head learns which plots are ripe from `CropGrowEvent.Post` and `BonemealEvent`, plus one pass over the field when it loads, never by scanning per tick. It sends a harvest run once a share of the field is ripe; the share is set per head in its GUI (default from JSON) and a bar shows how close the field is. A field covers only the soil its rails see in straight lines at 90 degrees, plus the corner squares at run ends and outer bends along an L; a pipe, a path, a wall or water ends its line, nothing is seen around it.
-- **Harvester shuttles** serve fields only, never warehouse jobs. A run tills dirt and grass inside the 4 block strip at farmland height, plants, harvests until the cargo is full, then puts the harvest away and comes back. Replanting takes seeds from the harvest first and picks them from the warehouse only when short. One harvester works a field at a time.
+- **Field range:** how far a field reaches to each side of its rails is the Field Head's radius: 2 blocks at the start, raised to 3 and 4 by upgrades in the head. Hydration, the ripe share and the plots the rails see all use it.
+- **Harvester shuttles** serve fields only, never warehouse jobs. A run tills dirt and grass inside the field's strip at farmland height, plants, harvests until the cargo is full, then puts the harvest away and comes back. Replanting takes seeds from the harvest first and picks them from the warehouse only when short. One harvester works a field at a time. A harvester is too wide for the lift car: it crosses a shaft on its own floor but never rides up or down, so its field, its garage and the storage it fills share a floor.
 - Trees come later as their own change with a Lumber module.
 
 ### 2.4 Integration: Storage + Manufacturing (autocrafting)
 
 **USP: production on demand.** Nothing runs without an order. A classic pipe line (Outbound Station, pipe, chest, hopper, furnace, hopper, Inbound Station) produces until storage is full or the input runs out; a machine on the data cable produces exactly what was ordered and then waits.
 
-What M7 built and what M8 does with it:
-- **Foundation production API** (production and stock capabilities, `OrderPlanner`): kept. The data cable finds its members through it and the CPU plans with it.
-- **Work orders, bill of materials explosion, reservations**: kept, but they move from the Warehouse Controller to the Crafting CPU, and their steps run over the cable instead of through stations.
-- **Min/max stock levels** per item ("keep 500 to 1,000 iron gears"): kept on the controller; a rule hands its order to the CPU on the controller's data network.
-- **Inbound Station**: kept as the put-away entry of the warehouse. It no longer credits order steps.
-- **Outbound Station**: kept as a plain buffer with keep slots for pipe lines that run all the time. It no longer feeds work orders. Station fronts, like machine fronts, never move items.
-- **Crafting Station**: kept; it loses its own recipe list once patterns exist and becomes the hands of the CPU.
-- **Order Board**: removed by the CPU change; the Production Terminal takes its place right after.
-
 **One route for orders.** Everything on demand runs over the data cable; everything that runs all the time uses stations and pipes. There is no second order route through Outbound Stations.
 
-Decided for M8 (on-demand autocrafting):
+- **Foundation production API** (production and stock capabilities, `OrderPlanner`): the data cable finds its members through it and the CPU plans with it. Work orders, bill of materials explosion and reservations live on the Crafting CPU.
+- **Min/max stock levels** per item ("keep 500 to 1,000 iron ingots") live on the controller; a rule hands its order to the CPU on the controller's data network.
+- **Stations:** the Inbound Station is the put-away entry of the warehouse; the Outbound Station is a plain buffer with keep slots for pipe lines that run all the time. Station fronts, like machine fronts, never move items.
 - **Data cable** (Servus: Foundation): the Data line of the Utility Duct. Like redstone, not like a real network: place it and it works, no addresses, channels or priorities. It never pushes or pulls on its own; it only routes packets for an order. Members are found by the capabilities they expose. The line itself is instant: items do not travel and distance does not matter. Throughput is set where items cross between the warehouse and the line, at the Packing Station (decided in `m8-packing-station`), and by the bandwidth of the cable (decided in `m8-data-bandwidth`): the data line comes in tiers, Data Cable (32 items per second shared by both directions, simplex), Duplex Data Cable (32 each way) and Fast Data Cable (128 each way), with stats in datapack JSON. A delivery moves no faster than the slowest duct on its path; deliveries that cross a duct share its budget in creation order, and a delivery takes the shortest path with the most bandwidth, no max flow. A higher tier cable used on a duct replaces the line in place and drops the old cable. Load shows in the duct summary, with the goggles (duct colours) and in the Production Terminal's Machines tab. Item pipes stay useful: they move items all the time and work with any mod.
 - **Packing Station** (Storage). Sits on a rail and on the cable and converts between the physical warehouse and the digital line: shuttles bring items into its To network buffer and it packs them into packets, and arriving packets are unpacked into its To storage buffer and handed to shuttles for put-away. It converts `items_per_second` (8 by default, datapack JSON) in each direction, the two directions independent; the cable's bandwidth is the other limit. Items wait at their source until it can take them (the terminal's Input row shrinks as it converts, crate picks are released as its buffer has room). Its GUI shows both buffers read-only with a status line. A warehouse may have several; each adds its own rate. The controller picks the Packing Station with the shortest shuttle trip; on a tie any of them. It has upgrade slots (`upgrade_slots`, 2 by default) for Speed Upgrades, each multiplying its rate (x2 by default).
 - **Upgrades** (decided in `m8-data-bandwidth`): Foundation owns upgrade items and the upgrade slot API, so every Servus mod can use them without depending on each other. The Speed Upgrade is crafted from vanilla materials; its multiplier comes from `upgrades.json`. Manufacturing may add better upgrade items later through the same API (an `UpgradeItem` or the `servus_foundation:upgrades` tag plus a JSON entry); Foundation never depends on Manufacturing.
@@ -192,7 +188,7 @@ The bridge lives in Servus: Foundation as a small API (see section 3).
 7. **Pure logic separated from Minecraft.** Graph algorithms, BOM planning, ratio math, order scheduling live in plain Java classes with no Minecraft types, unit tested with JUnit.
 8. **Persistence:** network and journal progress in `SavedData`, block state in block entities using 1.21 data components and codecs.
 
-### Servus: Foundation API (initial sketch)
+### Servus: Foundation API
 
 - `ServusNetwork` base: graph of nodes, mailbox, tick hook, split and merge handling
 - `NetworkManager`: owns all networks per level, routes block events to the right network
@@ -215,123 +211,33 @@ Keep the API small at first and grow it only when a second mod actually needs so
 
 Each milestone ends in something playable or testable.
 
-### M0: Repository and build
-- Multi project Gradle setup with ModDevGradle, all four mods registered with empty main classes
-- Shared versions in `gradle.properties`
-- Run configs for client, server, data generation and GameTests
-- GitHub Actions: build plus unit tests on every push
-- Verify all four mods load together and each loads alone with Lib
+### Done
+What every finished milestone built lives in `openspec/specs/`; the archived changes under `openspec/changes/archive/` hold the reasons.
 
-### M1: Servus Lib foundations
-- Network graph library (pure Java) with split and merge, plus JUnit tests
-- Mailbox and tick scheduler
-- `NetworkManager` hooked into block place and break events
-- Configuration Carrot, the item that fills the wrench role
-- Config scaffolding
+| Milestone | Built |
+|---|---|
+| M0 Repository and build | multi project Gradle with ModDevGradle, run configs, CI |
+| M1 Foundations | network graph with split and merge, mailbox tick, `NetworkManager`, Configuration Carrot, config |
+| M2, M3 Factorio style Manufacturing | superseded by M9; what lived on: pumps, Sink, Chunk Loader, side config, JEI, the docs site and Balance lab |
+| M4 Storage first slice | crate family, Heavy Duty Rack with sections, Warehouse Controller, terminal, foreign inventory indexing |
+| M5 Logistics | Utility Duct with item, power and fluid lines, modes, channels, filters, priorities, facades, goggles, Fluid Tank |
+| M6 Storage automation | rails, elevators with lift cars, simulated shuttles, garages, Inbound Station, Zone Labels, placement assist |
+| M7 Autocrafting integration | production API, work orders, stock rules, Outbound Station, Crafting Station |
+| M8 On-demand autocrafting | Servus: Foundation merge, data cable with tiers, Packing Station, Storage Terminal, Crafting CPU, Production Terminal, Pattern Storage, Machine Adapter |
+| M9 Alchemy | Tria Prima, Calciner, Purifier, Coagulator and Athanor builds, journal, Elixir of Sight, Gnome Hollow, facade panels, beam engine Burner Pump |
 
-### M2: Manufacturing first playable slice
-Built, then superseded by the alchemy rethink (M9). Deposits, extractors, the Burner Smelter, the Assembler, the Research Lab and the packs go away there.
-
-- Deposit blocks and worldgen for iron, copper, coal, stone
-- Burner Extractor, Burner Smelter (fuel handling, fixed rates)
-- Coal Generator (FE)
-- Assembler Mk1 with recipe selection GUI
-- Adjacent output push; items and energy travel through the Logistics Utility Duct
-- Items: iron gear, copper wire, Red Pack
-- Research Lab, tech tree data format, team progress, first five techs
-- Minimal tech tree screen
-- GameTest: the reference balanced block produces 1 Red Pack per 5 s
-
-**Checkpoint: play it.** Is Tier 1 fun? Adjust numbers before building more.
-
-### M3: Manufacturing Tier 1 completion
-Built. Pumps, Sink and Chunk Loader move to Foundation in M9; the other machines are superseded by the alchemy rethink. The docs site and Balance lab stay.
-
-- Electric Extractor, Crusher, Stone Processing
-- Burner Pump and Electric Pump
-- Sink and Chimney
-- JEI or EMI integration for machine recipes
-- Chunk loader upgrade with FE upkeep and config caps
-- Balance pass
-- Documentation site and Balance lab: public docs plus an in browser lab that reads the game data exported by the Manufacturing data run, shows production chains, research times and a recipe graph of every Servus recipe with raw costs per item, lets us edit numbers and draft new items, recipes and machines, and exports the result as a proposal. A target rate planner that designs a whole build follows after the first release.
-
-### M4: Storage first playable slice
-- Crates with front item display
-- Crate family: Crate, Double Crate and Quad Crate with per compartment display (block entity renderer)
-- Heavy Duty Rack: chest sized bay with a GUI, sections of the same facing and wood that share one GUI and are served by shuttles from any front rail, a sample display and climbable side posts
-- Warehouse Controller with adjacency networking
-- Storage Terminal with search and pull
-- Indexing of foreign inventories with batched polling
-
-### M5: Logistics first release
-- Utility Duct with item and energy channels
-- Fluid Pipe line
-- Per side modes, filters, priorities
-- Facades and goggles overlay
-- Dynamic baked model, per part shapes
-- Fluid Tank
-
-### M6: Storage automation
-- Rails as network connections
-- Rail Elevator for multi level warehouses
-- Simulated shuttles with client rendering
-- Inbound station, Zone Labels with put-away filters, unzoned storage as overflow
-- Shuttle Garage, rack picks by shuttle, terminal requests
-- Sneak placement assist for rails, ducts and elevators
-
-### M7: Autocrafting integration
-- Lib API for production and stock
-- Work orders, BOM explosion, reservations
-- Outbound Station feeds machines, Inbound Station collects their output
-- Min/max stock rules
-- Order board screen
-- Storage only Crafting Station fallback
-
-### M8: On-demand autocrafting
-One change per item:
-One change per item, in this order. Each one builds only on the ones before it and leaves the game playable, so nothing is built twice:
-1. `m8-foundation-merge`: Servus Lib and Servus: Logistics become one mod, Servus: Foundation (`servus_foundation`); Manufacturing and Storage depend only on it.
-2. `m8-data-cable`: data network with members found by capability, carried by a Data line of the Utility Duct (the standalone Data Cable block goes away).
-3. `m8-cable-packets`: packets over the cable with size and speed from datapack JSON; a packet is delivered into a member's item handler and results are taken from it. Tested with a command or GameTests, no player feature yet.
-4. `m8-access-point`: Foundation `data_link` capability for members without production or stock; the Packing Station (under its first name) on rail and cable (shuttles to packets and back, shortest shuttle trip wins); Warehouse Controller as a cable member.
-5. `m8-item-terminal-cable`: Storage Terminal joins the cable instead of the warehouse; requests are delivered as packets through a Packing Station.
-6. `m8-crafting-cpu`: 3x3x3 multiblock on the cable. Work orders and the order book move from the controller to the CPU, stock rules and terminal shortfalls hand their orders to it, steps run over the cable on producers with the recipes they report today (Assembler, Crafting Station with its own list). Removes the Outbound Station order route, the Inbound Station step credit and the Order Board block; `/servus_warehouse orders` stays for diagnosis. More CPUs run more orders in parallel.
-7. `m8-production-terminal`: terminal on the cable with Machines and Orders tabs, built on the CPU's orders.
-8. `m8-pattern-storage`: patterns, Pattern Storage with N patterns per block, the Patterns tab in the Production Terminal with the editor and JEI transfer and a capacity bar; the CPU plans crafting recipes from patterns.
-9. `m8-station-hands`: the Crafting Station drops its own recipe list and editor and crafts the pattern jobs the CPU sends it.
-10. `m8-machine-adapter`: Foundation Machine Adapter with side roles, upkeep and profiles for the vanilla furnace, smoker and blast furnace.
-11. `m8-native-machines`: Manufacturing machines report upkeep; burner machines join with fuel upkeep.
-12. `m8-persist-production` (play test follow-up): requests, CPU orders, station jobs and Packing Station shipments are saved and survive restarts and chunk unloads; an unloaded CPU pauses its orders instead of cancelling them.
-13. `m8-storage-terminal` (play test follow-up): the Counter Terminal becomes the Storage Terminal with an Input row that stores what is put in, an Output row for deliveries, and the crafting grid in a popup behind a Craft button.
-14. `m8-packing-station` (play test follow-up): the converter between warehouse and data line is renamed Packing Station, gets a read-only GUI with To storage and To network rows and a status line, and becomes the throughput limit: the data network turns instant, the station converts `items_per_second` per direction, and items wait at their source (the terminal's Input row drains at the station's pace).
-15. `m8-data-bandwidth` (play test follow-up): data cable tiers with a bandwidth, simplex and duplex cables, cables upgraded in the world, Packing Station speed upgrades, load shown with the goggles and in the Production Terminal. Replaces the old High-Speed Data Cable idea.
-
-### M9: Manufacturing becomes alchemy
-One change per item, in this order. Nothing is released, so the old content is removed, not migrated. Each change leaves the game playable:
-1. `m9-foundation-utilities`: Burner and Electric Pump, Sink and Chimney, Chunk Loader and Coal Generator move to Foundation with plain crafting recipes.
-1b. `m9-burner-pump-steam-engine` (play feel follow-up): the Burner Pump becomes a small beam engine two blocks tall, placed and broken as one, with a rocking beam and chimney smoke while it burns; it gives water through the back and sides of its lower half. Both pumps place on the water surface the player looks at.
-1c. `m9-facade-jei` (play feel follow-up to M5): example facades (stone, stone bricks, oak planks, bricks, deepslate tiles) in the Servus creative tab and in JEI as separate entries, each with its own example recipe and an information page explaining that any full block works.
-1d. `m9-facade-panels` (play feel follow-up to M5): facades become one pixel panels on single duct faces; a solid panel closes its face for every line and network, a Hollow Facade lets the duct through; hollow facades come from a ring of eight facades.
-2. `m9-tria-prima`: Salt, Sulfur and Mercury as fluids, the Calciner and the Coagulator with principle ratios from datapack JSON, both on the data cable with the production capability. Removes deposits and their worldgen, the extractors, the Burner Smelter, the Assembler, the Crusher, Stone Processing and the gear, wire and pack items.
-2b. `m9-side-config-tabs` (after the play check of the alchemy machines): the side configuration gets layers, Items and a Fluids layer that assigns one tank per side, as tabs in the side panel and a layer on the Configuration Carrot switched on the air. The Calciner and the Coagulator use it.
-3. `m9-journal`: Modonomicon dependency and Paracelsus' journal, chapters with count and first time tasks per team, chapter completion unlocks recipes. Replaces the Research Lab, packs and techs.
-4. `m9-athanor`: the Athanor with its altar crafts drawing principles and its structure tiers as the stage gate (Nigredo and Albedo first).
-5. `m9-elixir-of-sight`: the Elixir of Sight and the Elemental Sight effect, with the client render hook that shows hidden things only under it.
-6. `m9-gnome-hollow`: vein seeds by ore tag, ripening fed by principles, binding a gnome, a fixed rate forever, the vein drawn only under Elemental Sight, production capability for the Crafting CPU.
-6b. `m9-calciner-multiblock`: the Calciner as a one block deep brick furnace with Firebox, Ash Pan, Alembic, Receiver and Sulfur Hood, a Fluid Tank column each for Mercury and Sulfur joined by spout and Copper Duct, formed with the Journal, fixed ports, no GUI or side configuration, one formed model, a schematic page with Visualize and a Jade tooltip.
-6b2. `m9-salt-leaching`: the Ash Pan gives Ash instead of liquid Salt, and the Purifier build (Leaching Vat on a log, Catch Basin and Residue Crock beside the log) leaches Ash with water into liquid Salt and leaves Caput Mortuum; Villach asks to purify once.
-6c. `m9-coagulator-multiblock`: the Coagulator as a build: three Principle Vats (Sulfur, Salt, Mercury from left to right) over the casting table between Stone Bricks, formed with the Journal, the Vats as input ports, items at the table; the recipe GUI stays for now, without the side panel.
-6d. `m9-athanor-multiblock`: the Athanor stands on a diamond hearth of 13 Bricks with three non touching Fluid Tanks on its tips it drinks from, the Albedo ring fills the hearth layer out to 5 by 5 and its Salt Crystal Blocks grow only on the Athanor, and is formed with the Journal; it crafts only when formed; the hearth and every shipped tier are journal schematics with Visualize, generated from the hearth layout and the tier data.
-7. Balance pass and the docs Balance lab on the new data.
+### M9: what is left
+- Balance pass and the docs Balance lab on the new data.
 - Later: Citrinitas and Rubedo, Salamanders, Undines and Sylphs, endless works at the end.
 
 **Checkpoint: play it.** Is Nigredo to Albedo fun for a casual player and for a planner? Adjust before Citrinitas.
 
 ### M10: Field work
-One change per item, in this order. Decided on 2026-10-11 that M10 may start before the M9 balance pass:
-1. `m10-shuttle-workshop`: the Shuttle Workshop with a tool slot and a utility slot per shuttle, modules as a data component, the Cargo Hold module, and a fleet that tracks every shuttle stack and matches jobs by module. Built: the workshop keeps no items (like a crafting table), a Cargo Hold shuttle takes queued jobs that share its way (same source and destination, or same station and target) up to `cargo_hold_stacks`, jobs name the modules they need, and a tool module can mark its shuttle field only so it never takes warehouse jobs.
-2. `m10-farm-rail-field-head`: the Farm Rail on the warehouse rail graph, fields as connected farm rail runs, the Field Head with water from the pipe, a buffer, a GUI with one crop or harvest only, hydration tickets, and ripeness from crop and bonemeal events. Built: the Farm Rail is a Warehouse Rail subclass (same block entity, shuttles drive over it), a field is the farm rails linked to each other, the head beside it serves it (a second head stands aside), hydration covers the farmland one below the rails in the 9 by 9 square around each rail, ripeness also follows block break, place and trample events, and harvest due means a crop or harvest only is set and `harvest_share` of the planted plots are ripe (`storage/field.json`).
-3. `m10-harvester`: the Harvester module and field jobs: till, plant and harvest in batches, put-away of the harvest, seeds from the harvest first and the warehouse second. Built: the warehouse polls the heads of its fields every `field_check_interval` ticks and sends one harvester per field; the head also tracks plots to till and to plant; the harvester stops at each farm rail with work and works the plots nearest to that rail (so 4 blocks out), one per `work_ticks`; a field run carries at least `harvester_stacks` stacks so a crop and its seeds fit without a Cargo Hold; seeds come from the warehouse only when nothing is ripe; spare seeds stay aboard while plots remain to plant; the harvest goes through the normal put-away routing and a full warehouse makes the harvester wait at its garage (all in `storage/field.json`).
+One change per item, in this order. Decided on 2026-10-11 that M10 may start before the M9 balance pass. Built: `m10-shuttle-workshop` (workshop, modules as a data component, fleet matching by module), `m10-farm-rail-field-head` (Farm Rail, fields, Field Head with water, crop choice, ripeness from events) and `m10-harvester` (field jobs: till, plant, harvest, put-away, seeds). Next, decided on 2026-10-11:
+1. `m10-shuttle-tiers`: Shuttle Mk1, Mk2 and Mk3 with stacks and max counts per tier, Speed and Handling count upgrades, one install slot in the Shuttle Workshop, tier builds from datapack build sheets that finish at once, a slower base shuttle. Removes the Cargo Hold, `cargo_hold_stacks` and `harvester_stacks`.
+2. `m10-shuttle-looks`: shuttles drawn from parts (tier body, Speed parts, Handling part, tool) on the rails and as items, bigger than before.
+3. `m10-shuttle-build-minigame`: the tier build by hand on the shuttle model, and the name plate it engraves.
+4. `m10-field-range`: the field radius from the Field Head (2 at the start, upgrades to 3 and 4), and harvesters that never ride a lift car.
 - Later: `m10-lumber` with a Lumber module for tree fields.
 
 ### M11: Wireless and scale
