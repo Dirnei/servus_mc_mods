@@ -2,20 +2,23 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "C": {
-      "item": "minecraft:chest"
-    },
     "I": {
       "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "R": {
+      "item": "minecraft:redstone"
     }
   },
   "pattern": [
-    "I I",
-    "ICI",
-    "III"
+    "IRI",
+    "RPR",
+    "IRI"
   ],
   "result": {
     "count": 1,
-    "id": "servus_storage:cargo_hold"
+    "id": "servus_storage:handling_upgrade"
   }
 }

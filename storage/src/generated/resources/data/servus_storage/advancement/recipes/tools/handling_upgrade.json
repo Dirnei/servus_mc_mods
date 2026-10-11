@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "servus_storage:cargo_hold"
+        "recipe": "servus_storage:handling_upgrade"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "servus_storage:cargo_hold"
+      "servus_storage:handling_upgrade"
     ]
   }
 }

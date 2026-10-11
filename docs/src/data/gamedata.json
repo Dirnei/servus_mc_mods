@@ -685,21 +685,6 @@
         {"item": "servus_manufacturing:sulfur_hood", "count": 1}
       ]
     },
-    "servus_storage:cargo_hold": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["I I", "ICI", "III"],
-      "key": {
-        "C": {"item": "minecraft:chest"},
-        "I": {"item": "minecraft:iron_ingot"}
-      },
-      "inputs": [
-        {"item": "minecraft:chest", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 7}
-      ],
-      "outputs": [
-        {"item": "servus_storage:cargo_hold", "count": 1}
-      ]
-    },
     "servus_storage:crafting_cpu": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "RCR", "PPP"],
@@ -810,6 +795,42 @@
       ],
       "outputs": [
         {"item": "servus_storage:field_head", "count": 1}
+      ]
+    },
+    "servus_storage:handling_upgrade": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IRI", "RPR", "IRI"],
+      "key": {
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"item": "minecraft:piston"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"item": "minecraft:iron_ingot", "count": 4},
+        {"item": "minecraft:piston", "count": 1},
+        {"item": "minecraft:redstone", "count": 4}
+      ],
+      "outputs": [
+        {"item": "servus_storage:handling_upgrade", "count": 1}
+      ]
+    },
+    "servus_storage:harvester": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["ISI", "IHI", " P "],
+      "key": {
+        "H": {"item": "minecraft:iron_hoe"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"item": "minecraft:hopper"},
+        "S": {"item": "minecraft:shears"}
+      },
+      "inputs": [
+        {"item": "minecraft:hopper", "count": 1},
+        {"item": "minecraft:iron_hoe", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 4},
+        {"item": "minecraft:shears", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:harvester", "count": 1}
       ]
     },
     "servus_storage:heavy_rack": {
@@ -1137,6 +1158,9 @@
     "minecraft:iron_bars": {
       "name": "Iron Bars"
     },
+    "minecraft:iron_hoe": {
+      "name": "Iron Hoe"
+    },
     "minecraft:iron_ingot": {
       "name": "Iron Ingot"
     },
@@ -1146,11 +1170,17 @@
     "minecraft:paper": {
       "name": "Paper"
     },
+    "minecraft:piston": {
+      "name": "Piston"
+    },
     "minecraft:quartz": {
       "name": "Nether Quartz"
     },
     "minecraft:redstone": {
       "name": "Redstone Dust"
+    },
+    "minecraft:shears": {
+      "name": "Shears"
     },
     "minecraft:stick": {
       "name": "Stick"
@@ -1248,9 +1278,6 @@
     "servus_manufacturing:sulfur_hood": {
       "name": "Sulfur Hood"
     },
-    "servus_storage:cargo_hold": {
-      "name": "Cargo Hold"
-    },
     "servus_storage:crafting_cpu": {
       "name": "Crafting CPU"
     },
@@ -1271,6 +1298,12 @@
     },
     "servus_storage:field_head": {
       "name": "Field Head"
+    },
+    "servus_storage:handling_upgrade": {
+      "name": "Handling Upgrade"
+    },
+    "servus_storage:harvester": {
+      "name": "Harvester"
     },
     "servus_storage:heavy_rack": {
       "name": "Heavy Duty Rack"
@@ -1297,7 +1330,7 @@
       "name": "Warehouse Rail"
     },
     "servus_storage:shuttle": {
-      "name": "Shuttle"
+      "name": "Shuttle Mk1"
     },
     "servus_storage:shuttle_garage": {
       "name": "Shuttle Garage"

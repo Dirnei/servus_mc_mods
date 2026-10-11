@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "servus_storage:item/cargo_hold"
+    "layer0": "servus_storage:item/shuttle_mk2"
   }
 }
