@@ -11,7 +11,7 @@
 ## 3. Workshop server side
 
 - [x] 3.1 `ShuttleWorkshopBlockEntity`: `handBuild` and `buildStep` saved and clamped, `startHandBuild`, `reportStep`, `cancelHandBuild`, `engrave`, locks on both handlers, no reset in `onContentsChanged` (design D3). `ShuttleWorkshopMenu`: buttons 4 and 5, locked slots and buttons while a build runs, two data slots, `reportStep` and `engrave` entry points; `ShuttleBuildStepPayload` and `EngraveShuttlePayload` registered in `ServusStoragePayloads` (design D4). Verify: `gradlew build`, and grep that every new payload `TYPE` is registered.
-- [ ] 3.2 GameTests in `ShuttleModuleGameTests`: `handBuildLocksAndCancels`, `handBuildStepsInOrder`, `engraveFinishesWithPlate`, `buildNowKeepsPlate`, `handBuildSurvivesSaveAndLoad`, `installKeepsBuildStep`. Verify: `gradlew :storage:runGameTestServer` green.
+- [x] 3.2 GameTests in `ShuttleModuleGameTests`: `handBuildLocksAndCancels`, `handBuildStepsInOrder`, `engraveFinishesWithPlate`, `buildNowKeepsPlate`, `handBuildSurvivesSaveAndLoad`, `installKeepsBuildStep`. Verify: `gradlew :storage:runGameTestServer` green.
 
 ## 4. Client
 
