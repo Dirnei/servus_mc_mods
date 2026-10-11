@@ -3,7 +3,10 @@ package io.github.dirnei.mc.servus.storage.field;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
+import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.rail.RailBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -28,7 +31,12 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
@@ -50,6 +58,7 @@ import net.neoforged.neoforge.common.ticket.AABBTicket;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
@@ -62,6 +71,9 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * the water level in steps and the crop; see {@link FieldHeadLook}.
  */
 public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, WoodHolder {
+
+    /** Items that hold a field's copper stage for one aging step. */
+    public static final TagKey<Item> ANTI_CORROSION = ItemTags.create(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "anti_corrosion"));
 
     private final WoodSlot woodSlot = new WoodSlot(this);
 
@@ -104,6 +116,26 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             return Math.max(1, FieldRadius.maxUpgrades(StorageStatsManager.INSTANCE.fieldRadius(), StorageStatsManager.INSTANCE.fieldMaxRadius()));
         }
     };
+    /** Anti-corrosion upkeep: one item holds the stage for one aging step. */
+    private final ItemStackHandler antiCorrosion = new ItemStackHandler(1) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            setChanged();
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return isAntiCorrosion(stack);
+        }
+    };
+    private final IItemHandler insertOnly = new InsertOnly();
+    private final UpkeepHolder upkeep = new AntiCorrosionUpkeep();
+    /** The corrosion stage of the served field; meaningful while {@link #stageKnown}. */
+    private int stage = FieldCorrosion.COPPER;
+    /** Whether the head decides its field's stage: it served the field before this refresh. */
+    private boolean stageKnown;
+    /** Hydration water counted toward the next aging step. */
+    private long agedWater;
     private boolean harvestOnly;
     /** The ripe percent that calls a harvest; 0 follows {@code harvest_share} from {@code field.json}. */
     private int harvestPercent;
@@ -310,10 +342,28 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         }
         rechecks.clear();
         recheckAll();
+        joinStage(members);
         if (hydrated) {
             dropTickets();
             addTickets();
         }
+    }
+
+    /**
+     * The field takes the head's stage when the head served it before, else the
+     * youngest stage its rails already have (copper when none); every rail
+     * that differs is set.
+     */
+    private void joinStage(Set<BlockPos> members) {
+        List<Integer> stages = new ArrayList<>(members.size());
+        for (BlockPos rail : members) {
+            if (level.getBlockEntity(rail) instanceof RailBlockEntity railEntity) {
+                stages.add(railEntity.corrosion());
+            }
+        }
+        int joined = FieldCorrosion.join(stageKnown ? stage : FieldCorrosion.LOOSE, stages);
+        stageKnown = true;
+        setStage(joined == FieldCorrosion.LOOSE ? FieldCorrosion.COPPER : joined);
     }
 
     private void unserve(FieldStatus why, Set<BlockPos> members) {
@@ -328,15 +378,26 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         dropTickets();
         hydrated = false;
         lookDirty = true;
+        stageKnown = false;
+        agedWater = 0;
     }
 
     // Water and hydration
 
     private void useWater() {
+        if (stage == FieldCorrosion.CORRODED) {
+            // Corroded rails no longer water the field: no water used, so no further aging.
+            if (hydrated) {
+                hydrated = false;
+                dropTickets();
+            }
+            return;
+        }
         int need = FieldWater.use(rails.size(), StorageStatsManager.INSTANCE.fieldWaterPerRail());
         if (!hydrated) {
             if (tank.getFluidAmount() >= need) {
                 tank.drain(need, IFluidHandler.FluidAction.EXECUTE);
+                age(need);
                 hydrated = true;
                 countdown = StorageStatsManager.INSTANCE.fieldWaterInterval();
                 addTickets();
@@ -350,6 +411,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             tank.drain(need, IFluidHandler.FluidAction.EXECUTE);
             countdown = StorageStatsManager.INSTANCE.fieldWaterInterval();
             renewTickets();
+            age(need);
         } else {
             hydrated = false;
             dropTickets();
@@ -379,6 +441,99 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     private void dropTickets() {
         tickets.forEach(AABBTicket::invalidate);
         tickets.clear();
+    }
+
+    // Corrosion
+
+    /**
+     * Counts water as used by hydration: every {@code corrosion_water} mB one
+     * aging step is due, held by one anti-corrosion item or else moving the
+     * field's copper one stage older. Server side; does nothing while the head
+     * serves no field.
+     */
+    public void age(int water) {
+        if (status != FieldStatus.SERVING || water <= 0) {
+            return;
+        }
+        ItemStack held = antiCorrosion.getStackInSlot(0);
+        FieldCorrosion.Aged aged = FieldCorrosion.age(stage, agedWater, water, StorageStatsManager.INSTANCE.fieldCorrosionWater(),
+                held.getCount());
+        agedWater = aged.counted();
+        if (aged.itemsUsed() > 0) {
+            antiCorrosion.extractItem(0, aged.itemsUsed(), false);
+        }
+        if (aged.stage() != stage) {
+            setStage(aged.stage());
+        }
+        setChanged();
+    }
+
+    /** Sets the stage of the served field on the head and on every rail of the field. */
+    public void setStage(int newStage) {
+        stage = FieldCorrosion.clamp(newStage);
+        if (status == FieldStatus.SERVING && level != null && !level.isClientSide()) {
+            for (BlockPos rail : rails) {
+                if (level.isLoaded(rail) && level.getBlockEntity(rail) instanceof RailBlockEntity railEntity) {
+                    railEntity.setCorrosion(stage);
+                }
+            }
+        }
+        applyCorrodedLook();
+        setChanged();
+    }
+
+    /** The corrosion stage of the served field, {@link FieldCorrosion#LOOSE} while the head serves none. */
+    public int corrosion() {
+        return status == FieldStatus.SERVING ? stage : FieldCorrosion.LOOSE;
+    }
+
+    /** Hydration water counted toward the next aging step. */
+    public long agedWater() {
+        return agedWater;
+    }
+
+    /** Percent of the way to the next aging step. */
+    public int corrosionProgress() {
+        return FieldCorrosion.progress(agedWater, StorageStatsManager.INSTANCE.fieldCorrosionWater());
+    }
+
+    /** Whether the item may go into the anti-corrosion slot. */
+    public static boolean isAntiCorrosion(ItemStack stack) {
+        return stack.is(ANTI_CORROSION);
+    }
+
+    /** The anti-corrosion slot. */
+    public ItemStackHandler antiCorrosion() {
+        return antiCorrosion;
+    }
+
+    /** What hoppers and ducts see: anti-corrosion items go in, nothing comes out. */
+    public IItemHandler itemHandler() {
+        return insertOnly;
+    }
+
+    /** The anti-corrosion slot as upkeep of the data line. */
+    public UpkeepHolder upkeep() {
+        return upkeep;
+    }
+
+    /** Takes the anti-corrosion items out, for dropping when the head breaks. */
+    public ItemStack takeAntiCorrosion() {
+        ItemStack held = antiCorrosion.getStackInSlot(0).copy();
+        antiCorrosion.setStackInSlot(0, ItemStack.EMPTY);
+        return held;
+    }
+
+    /** Shows the rust rim on top while the served field is corroded. */
+    private void applyCorrodedLook() {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        boolean corroded = status == FieldStatus.SERVING && stage == FieldCorrosion.CORRODED;
+        BlockState state = level.getBlockState(worldPosition);
+        if (state.hasProperty(FieldHeadBlock.CORRODED) && state.getValue(FieldHeadBlock.CORRODED) != corroded) {
+            level.setBlock(worldPosition, state.setValue(FieldHeadBlock.CORRODED, corroded), Block.UPDATE_CLIENTS);
+        }
     }
 
     // Ripeness
@@ -661,6 +816,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         if (state.hasProperty(FieldHeadBlock.RIPE) && state.getValue(FieldHeadBlock.RIPE) != step) {
             level.setBlock(worldPosition, state.setValue(FieldHeadBlock.RIPE, step), Block.UPDATE_CLIENTS);
         }
+        applyCorrodedLook();
     }
 
     /** The water level of the windows: synced steps on the client, the tank on the server. */
@@ -714,6 +870,11 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         if (harvestPercent > 0) {
             tag.putInt("HarvestPercent", harvestPercent);
         }
+        tag.put("AntiCorrosion", antiCorrosion.serializeNBT(registries));
+        if (stageKnown) {
+            tag.putInt("Corrosion", stage);
+        }
+        tag.putLong("CorrosionWater", agedWater);
     }
 
     @Override
@@ -729,6 +890,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             rangeUpgrades.deserializeNBT(registries, tag.getCompound("RangeUpgrades"));
         }
         harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(tag.getInt("HarvestPercent")) : 0;
+        if (tag.contains("AntiCorrosion", CompoundTag.TAG_COMPOUND)) {
+            antiCorrosion.deserializeNBT(registries, tag.getCompound("AntiCorrosion"));
+        }
+        stageKnown = tag.contains("Corrosion");
+        stage = stageKnown ? FieldCorrosion.clamp(tag.getInt("Corrosion")) : FieldCorrosion.COPPER;
+        agedWater = Math.max(0, tag.getLong("CorrosionWater"));
         if (tag.contains("WaterLevel")) {
             clientWaterLevel = tag.getByte("WaterLevel");
         }
@@ -778,6 +945,66 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     @Override
     public ModelData getModelData() {
         return woodSlot.modelData();
+    }
+
+    /** Takes anti-corrosion items into the upkeep slot; gives nothing out. */
+    private final class InsertOnly implements IItemHandler {
+
+        @Override
+        public int getSlots() {
+            return 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return antiCorrosion.getStackInSlot(slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            return antiCorrosion.insertItem(slot, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return antiCorrosion.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return antiCorrosion.isItemValid(slot, stack);
+        }
+    }
+
+    /** The anti-corrosion slot kept at {@code anti_corrosion_level} by the data line. */
+    private final class AntiCorrosionUpkeep implements UpkeepHolder {
+
+        @Override
+        public ItemStack upkeepItem() {
+            ItemStack held = antiCorrosion.getStackInSlot(0);
+            if (!held.isEmpty()) {
+                return held.copyWithCount(1);
+            }
+            return BuiltInRegistries.ITEM.getTag(ANTI_CORROSION)
+                    .flatMap(set -> set.stream().findFirst())
+                    .map(holder -> new ItemStack(holder.value()))
+                    .orElse(ItemStack.EMPTY);
+        }
+
+        @Override
+        public int upkeepLevel() {
+            return StorageStatsManager.INSTANCE.fieldAntiCorrosionLevel();
+        }
+
+        @Override
+        public int upkeepCount() {
+            return antiCorrosion.getStackInSlot(0).getCount();
+        }
     }
 
     /** Fills the tank with water; never drains. */

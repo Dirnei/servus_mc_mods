@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.Containers;
@@ -36,15 +37,17 @@ public class FieldHeadBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     /** The step of the ripe share bar on the front: empty, gold steps, or green when a harvest is due. */
     public static final IntegerProperty RIPE = IntegerProperty.create("ripe", FieldHeadLook.EMPTY, FieldHeadLook.READY);
+    /** The served field's rails are corroded: a rust rim on the top plate. */
+    public static final BooleanProperty CORRODED = BooleanProperty.create("corroded");
 
     public FieldHeadBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(RIPE, FieldHeadLook.EMPTY));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(RIPE, FieldHeadLook.EMPTY).setValue(CORRODED, false));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, RIPE);
+        builder.add(FACING, RIPE, CORRODED);
     }
 
     @Override
@@ -98,6 +101,7 @@ public class FieldHeadBlock extends BaseEntityBlock {
         if (!state.is(newState.getBlock()) && !level.isClientSide() && level.getBlockEntity(pos) instanceof FieldHeadBlockEntity head) {
             FieldHeads.headRemoved(level, head);
             Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), head.takeRangeUpgrades());
+            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), head.takeAntiCorrosion());
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

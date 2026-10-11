@@ -51,6 +51,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_FIELD_CHECK_INTERVAL = 40;
     public static final int DEFAULT_FIELD_RADIUS = 2;
     public static final int DEFAULT_FIELD_MAX_RADIUS = 4;
+    public static final int DEFAULT_FIELD_CORROSION_WATER = 64000;
+    public static final int DEFAULT_FIELD_ANTI_CORROSION_LEVEL = 8;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
@@ -100,6 +102,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int fieldCheckInterval = DEFAULT_FIELD_CHECK_INTERVAL;
     private volatile int fieldRadius = DEFAULT_FIELD_RADIUS;
     private volatile int fieldMaxRadius = DEFAULT_FIELD_MAX_RADIUS;
+    private volatile int fieldCorrosionWater = DEFAULT_FIELD_CORROSION_WATER;
+    private volatile int fieldAntiCorrosionLevel = DEFAULT_FIELD_ANTI_CORROSION_LEVEL;
 
     private StorageStatsManager() {
         super(GSON, DIRECTORY);
@@ -141,6 +145,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         fieldCheckInterval = intField(files.get(FIELD), "field_check_interval", DEFAULT_FIELD_CHECK_INTERVAL);
         fieldRadius = intField(files.get(FIELD), "radius", DEFAULT_FIELD_RADIUS);
         fieldMaxRadius = intField(files.get(FIELD), "max_radius", DEFAULT_FIELD_MAX_RADIUS);
+        fieldCorrosionWater = intField(files.get(FIELD), "corrosion_water", DEFAULT_FIELD_CORROSION_WATER);
+        fieldAntiCorrosionLevel = intField(files.get(FIELD), "anti_corrosion_level", DEFAULT_FIELD_ANTI_CORROSION_LEVEL);
         shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
@@ -338,6 +344,16 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     /** The largest field radius Range Upgrades reach. */
     public int fieldMaxRadius() {
         return fieldMaxRadius;
+    }
+
+    /** mB of hydration water per aging step of a field's copper rails. */
+    public int fieldCorrosionWater() {
+        return fieldCorrosionWater;
+    }
+
+    /** How many anti-corrosion items the data line keeps in a Field Head. */
+    public int fieldAntiCorrosionLevel() {
+        return fieldAntiCorrosionLevel;
     }
 
     /** Shuttle speed, stop times and tiers from {@code shuttle.json}. */

@@ -7,5 +7,7 @@
   "work_ticks": 10,
   "field_check_interval": 40,
   "radius": 2,
-  "max_radius": 4
+  "max_radius": 4,
+  "corrosion_water": 64000,
+  "anti_corrosion_level": 8
 }
