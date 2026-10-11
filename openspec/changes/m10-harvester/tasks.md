@@ -24,7 +24,7 @@
 
 ## 6. Plan and docs
 
-- [ ] 6.1 `PLAN.md` M10 item 3 notes what was built; `docs/src/content/docs/mods/storage.md` gets the Harvester. Verify: `openspec validate m10-harvester`.
+- [x] 6.1 `PLAN.md` M10 item 3 notes what was built; `docs/src/content/docs/mods/storage.md` gets the Harvester. Verify: `openspec validate m10-harvester`.
 
 ## 7. Integration
 
