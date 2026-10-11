@@ -79,4 +79,15 @@ class FieldRipenessTest {
         field.clear();
         assertEquals(0, field.plantable());
     }
+
+    @Test
+    void growingIsPlantedButNotRipe() {
+        FieldRipeness<String> field = new FieldRipeness<>();
+        field.update("a", PlotState.GROWING);
+        field.update("b", PlotState.RIPE);
+        field.update("c", PlotState.PLANTABLE);
+        assertEquals(java.util.Set.of("a"), field.growing());
+        field.update("a", PlotState.RIPE);
+        assertTrue(field.growing().isEmpty());
+    }
 }

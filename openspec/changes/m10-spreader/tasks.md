@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/field/FertilizeMode.java`, `FertilizePlan.java`, `FertilizeStatus.java` and `FieldRipeness.growing()` per design.md; JUnit tests `FertilizePlanTest` (fetch is the min of plots x doses, stock above the reserve and room; stock equal to the reserve fetches nothing; reserve 0 may take all; targets per mode, none at or above the threshold, none when off; interval passed with no call yet and after the interval, not before; due needs targets, stock above the reserve and the interval; reserve steps clamp at 0 and the max), `FertilizeStatusTest` (order of the reasons, problems) and a `growing` case in the existing `FieldRipenessTest`, under `storage/src/test/java/io/github/dirnei/mc/servus/storage/field/`. Run `gradlew :storage:test`.
+- [x] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/field/FertilizeMode.java`, `FertilizePlan.java`, `FertilizeStatus.java` and `FieldRipeness.growing()` per design.md; JUnit tests `FertilizePlanTest` (fetch is the min of plots x doses, stock above the reserve and room; stock equal to the reserve fetches nothing; reserve 0 may take all; targets per mode, none at or above the threshold, none when off; interval passed with no call yet and after the interval, not before; due needs targets, stock above the reserve and the interval; reserve steps clamp at 0 and the max), `FertilizeStatusTest` (order of the reasons, problems) and a `growing` case in the existing `FieldRipenessTest`, under `storage/src/test/java/io/github/dirnei/mc/servus/storage/field/`. Run `gradlew :storage:test`.
 
 ## 2. Module, data and look
 

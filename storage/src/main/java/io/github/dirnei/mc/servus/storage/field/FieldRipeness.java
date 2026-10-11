@@ -74,6 +74,13 @@ public final class FieldRipeness<T> {
         return Collections.unmodifiableSet(ripe);
     }
 
+    /** Planted plots whose crop is not ripe yet. */
+    public Set<T> growing() {
+        Set<T> growing = new HashSet<>(planted);
+        growing.removeAll(ripe);
+        return growing;
+    }
+
     /** Empty plots on dirt or grass. */
     public int tillable() {
         return tillable.size();
