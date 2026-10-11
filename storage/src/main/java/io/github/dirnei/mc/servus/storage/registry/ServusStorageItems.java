@@ -58,10 +58,13 @@ public final class ServusStorageItems {
     public static final DeferredItem<ShuttleModuleItem> CARGO_HOLD = ITEMS.registerItem("cargo_hold",
             properties -> new ShuttleModuleItem(new ModuleSpec("cargo_hold", ModuleSlot.UTILITY, false, true), properties),
             new Item.Properties().stacksTo(16));
+    public static final DeferredItem<ShuttleModuleItem> HARVESTER = ITEMS.registerItem("harvester",
+            properties -> new ShuttleModuleItem(new ModuleSpec(ModuleSpec.HARVESTER, ModuleSlot.TOOL, true, false), properties),
+            new Item.Properties().stacksTo(16));
     public static final DeferredItem<ZoneLabelItem> ZONE_LABEL = ITEMS.registerItem("zone_label", ZoneLabelItem::new, new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE, CARGO_HOLD, FARM_RAIL, FIELD_HEAD, ZONE_LABEL);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE, CARGO_HOLD, HARVESTER, FARM_RAIL, FIELD_HEAD, ZONE_LABEL);
 
     private ServusStorageItems() {
     }

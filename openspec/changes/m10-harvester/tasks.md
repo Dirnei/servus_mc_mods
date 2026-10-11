@@ -6,7 +6,7 @@
 
 ## 2. Harvester module and data
 
-- [ ] 2.1 `HARVESTER` in `ServusStorageItems` (creative tab), `JobNeeds.HARVESTER`; `work_ticks`, `harvester_stacks`, `field_check_interval` in `field.json` and `StorageStatsManager` with test setters (design D1, D9). Verify: `gradlew build`.
+- [x] 2.1 `HARVESTER` in `ServusStorageItems` (creative tab), `JobNeeds.HARVESTER`; `work_ticks`, `harvester_stacks`, `field_check_interval` in `field.json` and `StorageStatsManager` with test setters (design D1, D9). Verify: `gradlew build`.
 - [ ] 2.2 Datagen: item model, recipe, lang (item, tooltip) in `storage/.../datagen/`; placeholder `item/harvester.png` via the png helper. Verify: `gradlew runData`, then `gradlew build`.
 
 ## 3. Open plots in the head

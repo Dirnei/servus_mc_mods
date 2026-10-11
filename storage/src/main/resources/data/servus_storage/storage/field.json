@@ -3,5 +3,8 @@
   "water_per_rail": 1,
   "water_interval": 100,
   "max_rails": 128,
-  "harvest_share": 0.5
+  "harvest_share": 0.5,
+  "work_ticks": 10,
+  "harvester_stacks": 2,
+  "field_check_interval": 40
 }

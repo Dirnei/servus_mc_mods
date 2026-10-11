@@ -10,4 +10,7 @@ package io.github.dirnei.mc.servus.storage.shuttle.module;
  * @param cargoHold whether it lets the shuttle carry several stacks
  */
 public record ModuleSpec(String id, ModuleSlot slot, boolean fieldOnly, boolean cargoHold) {
+
+    /** The id of the Harvester module, which field jobs ask for. */
+    public static final String HARVESTER = "harvester";
 }

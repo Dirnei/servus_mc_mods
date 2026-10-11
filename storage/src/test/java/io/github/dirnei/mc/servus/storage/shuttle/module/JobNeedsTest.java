@@ -27,7 +27,7 @@ class JobNeedsTest {
 
     @Test
     void neededModuleMustBeFitted() {
-        JobNeeds harvest = new JobNeeds(Set.of("harvester"), true);
+        JobNeeds harvest = JobNeeds.HARVESTER;
         assertTrue(harvest.fits(FIELD));
         assertFalse(harvest.fits(CARGO));
         assertFalse(harvest.fits(ShuttleProfile.PLAIN));
