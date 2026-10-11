@@ -6,7 +6,7 @@
 
 ## 2. Module, data and look
 
-- [ ] 2.1 `storage/.../shuttle/module/ModuleSpec.java` (`SPREADER`), `JobNeeds.java` (`SPREADER`), `storage/.../registry/ServusStorageItems.java` (Spreader, creative tab), `storage/.../crate/StorageStatsManager.java` (four field numbers, test setters, reserve floor 0), `storage/src/main/resources/data/servus_storage/storage/field.json`, item texture `storage/src/main/resources/assets/servus_storage/textures/item/spreader.png`. Run `gradlew build`.
+- [x] 2.1 `storage/.../shuttle/module/ModuleSpec.java` (`SPREADER`), `JobNeeds.java` (`SPREADER`), `storage/.../registry/ServusStorageItems.java` (Spreader, creative tab), `storage/.../crate/StorageStatsManager.java` (four field numbers, test setters, reserve floor 0), `storage/src/main/resources/data/servus_storage/storage/field.json`, item texture `storage/src/main/resources/assets/servus_storage/textures/item/spreader.png`. Run `gradlew build`.
 - [ ] 2.2 Datagen: `ServusStorageItemTagsProvider` (fertilizer tag), `ServusStorageRecipeProvider` (Spreader), `ServusStorageBlockStateProvider` (item model), `ShuttleModels` (`tool_spreader`), `ServusStorageLanguageProvider` (item, tooltip, tag). Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 3. Head

@@ -53,6 +53,10 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_FIELD_MAX_RADIUS = 4;
     public static final int DEFAULT_FIELD_CORROSION_WATER = 64000;
     public static final int DEFAULT_FIELD_ANTI_CORROSION_LEVEL = 8;
+    public static final int DEFAULT_FERTILIZE_INTERVAL = 600;
+    public static final int DEFAULT_DOSES_PER_PLOT = 2;
+    public static final int DEFAULT_FERTILIZER_RESERVE = 64;
+    public static final double DEFAULT_FERTILIZE_SHARE = 0.5;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
@@ -104,6 +108,10 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int fieldMaxRadius = DEFAULT_FIELD_MAX_RADIUS;
     private volatile int fieldCorrosionWater = DEFAULT_FIELD_CORROSION_WATER;
     private volatile int fieldAntiCorrosionLevel = DEFAULT_FIELD_ANTI_CORROSION_LEVEL;
+    private volatile int fertilizeInterval = DEFAULT_FERTILIZE_INTERVAL;
+    private volatile int dosesPerPlot = DEFAULT_DOSES_PER_PLOT;
+    private volatile int fertilizerReserve = DEFAULT_FERTILIZER_RESERVE;
+    private volatile double fertilizeShare = DEFAULT_FERTILIZE_SHARE;
 
     private StorageStatsManager() {
         super(GSON, DIRECTORY);
@@ -147,6 +155,10 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         fieldMaxRadius = intField(files.get(FIELD), "max_radius", DEFAULT_FIELD_MAX_RADIUS);
         fieldCorrosionWater = intField(files.get(FIELD), "corrosion_water", DEFAULT_FIELD_CORROSION_WATER);
         fieldAntiCorrosionLevel = intField(files.get(FIELD), "anti_corrosion_level", DEFAULT_FIELD_ANTI_CORROSION_LEVEL);
+        fertilizeInterval = intField(files.get(FIELD), "fertilize_interval", DEFAULT_FERTILIZE_INTERVAL);
+        dosesPerPlot = intField(files.get(FIELD), "doses_per_plot", DEFAULT_DOSES_PER_PLOT);
+        fertilizerReserve = countField(files.get(FIELD), "fertilizer_reserve", DEFAULT_FERTILIZER_RESERVE);
+        fertilizeShare = Math.min(1.0, doubleField(files.get(FIELD), "fertilize_share", DEFAULT_FERTILIZE_SHARE));
         shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
@@ -154,6 +166,14 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private static double doubleField(JsonElement element, String field, double fallback) {
         if (element instanceof JsonObject object && object.has(field)) {
             return Math.max(0.01, object.get(field).getAsDouble());
+        }
+        return fallback;
+    }
+
+    /** Like {@link #intField} but 0 is allowed. */
+    private static int countField(JsonElement element, String field, int fallback) {
+        if (element instanceof JsonObject object && object.has(field)) {
+            return Math.max(0, object.get(field).getAsInt());
         }
         return fallback;
     }
@@ -354,6 +374,36 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     /** How many anti-corrosion items the data line keeps in a Field Head. */
     public int fieldAntiCorrosionLevel() {
         return fieldAntiCorrosionLevel;
+    }
+
+    /** Ticks a field waits at least between two calls for a Spreader. */
+    public int fertilizeInterval() {
+        return fertilizeInterval;
+    }
+
+    /** For tests: sets the fertilize interval as if a datapack had been loaded. */
+    public void setFertilizeInterval(int ticks) {
+        fertilizeInterval = ticks;
+    }
+
+    /** Doses a plot gets in one round of a Spreader. */
+    public int dosesPerPlot() {
+        return dosesPerPlot;
+    }
+
+    /** For tests: sets the doses per plot as if a datapack had been loaded. */
+    public void setDosesPerPlot(int doses) {
+        dosesPerPlot = doses;
+    }
+
+    /** The Keep in stock reserve of a Field Head that was never set. */
+    public int fertilizerReserve() {
+        return fertilizerReserve;
+    }
+
+    /** The ripe share below which a head in Until ripe share mode calls a Spreader, until set per head. */
+    public double fertilizeShare() {
+        return fertilizeShare;
     }
 
     /** Shuttle speed, stop times and tiers from {@code shuttle.json}. */

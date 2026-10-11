@@ -16,6 +16,9 @@ public record JobNeeds(Set<String> modules, boolean field) {
     /** Field jobs: a shuttle with a Harvester. */
     public static final JobNeeds HARVESTER = new JobNeeds(Set.of(ModuleSpec.HARVESTER), true);
 
+    /** Fertilize runs: a shuttle with a Spreader. */
+    public static final JobNeeds SPREADER = new JobNeeds(Set.of(ModuleSpec.SPREADER), true);
+
     public JobNeeds {
         modules = Set.copyOf(modules);
     }

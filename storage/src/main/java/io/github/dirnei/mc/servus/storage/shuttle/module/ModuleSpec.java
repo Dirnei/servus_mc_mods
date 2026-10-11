@@ -12,4 +12,7 @@ public record ModuleSpec(String id, boolean fieldOnly, boolean wide) {
 
     /** The id of the Harvester module, which field jobs ask for. */
     public static final String HARVESTER = "harvester";
+
+    /** The id of the Spreader module, which fertilize runs ask for. */
+    public static final String SPREADER = "spreader";
 }

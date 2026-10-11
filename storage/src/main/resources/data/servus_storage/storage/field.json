@@ -9,5 +9,9 @@
   "radius": 2,
   "max_radius": 4,
   "corrosion_water": 64000,
-  "anti_corrosion_level": 8
+  "anti_corrosion_level": 8,
+  "fertilize_interval": 600,
+  "doses_per_plot": 2,
+  "fertilizer_reserve": 64,
+  "fertilize_share": 0.5
 }
