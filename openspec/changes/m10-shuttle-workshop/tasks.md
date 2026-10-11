@@ -6,7 +6,7 @@
 
 ## 2. Modules on the shuttle item
 
-- [ ] 2.1 `ShuttleModules` record with codecs and `profile(ItemStack, int)`, `ShuttleModuleItem`, `ShuttleItem` with the module tooltip; register `SHUTTLE_MODULES` in `ServusStorageComponents`, `CARGO_HOLD` and the `ShuttleItem` in `ServusStorageItems` (creative tab), `cargo_hold_stacks` in `warehouse.json` and `StorageStatsManager` (design D2, D7). Verify: `gradlew build`.
+- [x] 2.1 `ShuttleModules` record with codecs and `profile(ItemStack, int)`, `ShuttleModuleItem`, `ShuttleItem` with the module tooltip; register `SHUTTLE_MODULES` in `ServusStorageComponents`, `CARGO_HOLD` and the `ShuttleItem` in `ServusStorageItems` (creative tab), `cargo_hold_stacks` in `warehouse.json` and `StorageStatsManager` (design D2, D7). Verify: `gradlew build`.
 
 ## 3. Shuttle Workshop
 

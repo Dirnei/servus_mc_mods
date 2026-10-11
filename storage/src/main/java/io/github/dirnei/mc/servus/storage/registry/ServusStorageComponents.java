@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.registry;
 
 import io.github.dirnei.mc.servus.storage.pattern.StoredPatterns;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -31,6 +32,12 @@ public final class ServusStorageComponents {
             COMPONENTS.registerComponentType("patterns", builder -> builder
                     .persistent(StoredPatterns.CODEC)
                     .networkSynchronized(StoredPatterns.STREAM_CODEC));
+
+    /** The modules fitted into a Shuttle item; missing means a plain shuttle. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ShuttleModules>> SHUTTLE_MODULES =
+            COMPONENTS.registerComponentType("shuttle_modules", builder -> builder
+                    .persistent(ShuttleModules.CODEC)
+                    .networkSynchronized(ShuttleModules.STREAM_CODEC));
 
     private ServusStorageComponents() {
     }

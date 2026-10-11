@@ -6,6 +6,10 @@ import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackItem;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorItem;
 import io.github.dirnei.mc.servus.storage.rail.RailAssist;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ModuleSlot;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ModuleSpec;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModuleItem;
 import io.github.dirnei.mc.servus.storage.zone.ZoneLabelItem;
 import java.util.List;
 import net.minecraft.world.item.BlockItem;
@@ -46,11 +50,14 @@ public final class ServusStorageItems {
             properties -> new WoodBlockItem(ServusStorageBlocks.CRAFTING_STATION.get(), properties));
     public static final DeferredItem<WoodBlockItem> CRAFTING_CPU = ITEMS.registerItem("crafting_cpu",
             properties -> new WoodBlockItem(ServusStorageBlocks.CRAFTING_CPU.get(), properties));
-    public static final DeferredItem<Item> SHUTTLE = ITEMS.registerSimpleItem("shuttle", new Item.Properties().stacksTo(16));
+    public static final DeferredItem<ShuttleItem> SHUTTLE = ITEMS.registerItem("shuttle", ShuttleItem::new, new Item.Properties().stacksTo(16));
+    public static final DeferredItem<ShuttleModuleItem> CARGO_HOLD = ITEMS.registerItem("cargo_hold",
+            properties -> new ShuttleModuleItem(new ModuleSpec("cargo_hold", ModuleSlot.UTILITY, false, true), properties),
+            new Item.Properties().stacksTo(16));
     public static final DeferredItem<ZoneLabelItem> ZONE_LABEL = ITEMS.registerItem("zone_label", ZoneLabelItem::new, new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE, ZONE_LABEL);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(CRATE, DOUBLE_CRATE, QUAD_CRATE, HEAVY_RACK, WAREHOUSE_CONTROLLER, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE, CARGO_HOLD, ZONE_LABEL);
 
     private ServusStorageItems() {
     }
