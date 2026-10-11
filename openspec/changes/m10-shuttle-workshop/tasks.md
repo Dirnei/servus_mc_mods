@@ -26,5 +26,5 @@
 
 ## 6. Integration
 
-- [ ] 6.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch with all three mods happens in the user's play check (6.2).
+- [x] 6.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch with all three mods happens in the user's play check (6.2).
 - [ ] 6.2 Play check in game by the user from main: craft a workshop and a Cargo Hold, fit it, tooltip, put the shuttle in a garage, request more than a stack from a rack and watch one trip, garage slot lock. Verify: the user confirms in game.
