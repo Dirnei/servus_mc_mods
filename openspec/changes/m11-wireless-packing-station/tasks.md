@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/site/WirelessCost.java` (cost per item, cost of n rounded up, items a buffer pays for, items movable this tick) and `RemoteSite.java` (online, sleeping, unreachable) per design.md; JUnit tests `WirelessCostTest` (500 blocks: 14 per item, 10 items 140; fractions round up; empty buffer pays nothing; movable is the smallest limit; nothing negative) and `RemoteSiteTest` under `storage/src/test/java/io/github/dirnei/mc/servus/storage/site/`. Run `gradlew :storage:test`.
+- [x] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/site/WirelessCost.java` (cost per item, cost of n rounded up, items a buffer pays for, items movable this tick) and `RemoteSite.java` (online, sleeping, unreachable) per design.md; JUnit tests `WirelessCostTest` (500 blocks: 14 per item, 10 items 140; fractions round up; empty buffer pays nothing; movable is the smallest limit; nothing negative) and `RemoteSiteTest` under `storage/src/test/java/io/github/dirnei/mc/servus/storage/site/`. Run `gradlew :storage:test`.
 
 ## 2. Block and data
 
