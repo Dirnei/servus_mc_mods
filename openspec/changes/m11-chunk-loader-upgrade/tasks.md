@@ -15,7 +15,7 @@
 
 ## 4. GameTests
 
-- [ ] 4.1 `storage/.../gametest/SiteWakeGameTests.java`: `recordKeepsNameSpanAndStock`, `wakeLoadsAndReleasesAfterGrace` (forced chunks equal the span, the team counts one loader, after the grace none and nothing forced; lamp orange while awake), `overCapacityNeverWakes`, `noUpgradeWaits`, `teamCapWaitsThenWakes` (four fake loaders of the test team: waits with team limit, one freed: wakes), `queuedJobKeepsSiteAwake`, `brokenControllerDropsRecordAndWake`, `wakeCommandReports`. Each test uses its own team id. Run `gradlew :storage:runGameTestServer`; all storage GameTests stay green.
+- [x] 4.1 `storage/.../gametest/SiteWakeGameTests.java`: `recordKeepsNameSpanAndStock`, `wakeLoadsAndReleasesAfterGrace` (forced chunks equal the span, the team counts one loader, after the grace none and nothing forced; lamp orange while awake), `overCapacityNeverWakes`, `noUpgradeWaits`, `teamCapWaitsThenWakes` (four fake loaders of the test team: waits with team limit, one freed: wakes), `queuedJobKeepsSiteAwake`, `brokenControllerDropsRecordAndWake`, `wakeCommandReports`. Each test uses its own team id. Run `gradlew :storage:runGameTestServer`; all storage GameTests stay green.
 
 ## 5. Docs and plan
 
