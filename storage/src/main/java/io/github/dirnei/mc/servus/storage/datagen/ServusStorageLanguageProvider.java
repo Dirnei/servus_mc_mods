@@ -112,8 +112,10 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), "Shuttle Workshop");
         add(ServusStorageBlocks.FARM_RAIL.get(), "Farm Rail");
         add(ServusStorageBlocks.FIELD_HEAD.get(), "Field Head");
-        add("gui.servus_storage.field_head.harvest_only_on", "Harvest only: on");
-        add("gui.servus_storage.field_head.harvest_only_off", "Harvest only: off");
+        add("gui.servus_storage.field_head.crop_picker", "Crop");
+        add("gui.servus_storage.field_head.crop_none", "None, harvest only");
+        add("gui.servus_storage.field_head.crop_no_stock", "None in the warehouse: the first planting needs seeds there");
+        add("gui.servus_storage.picker.search", "Search");
         add("gui.servus_storage.field_head.water", "Water %s / %s mB");
         add("gui.servus_storage.field_head.size", "%s rails, %s plots");
         add("gui.servus_storage.field_head.radius", "Radius %s");
