@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/site/WakeMachine.java` and `WakeAllowance.java` per design.md; JUnit tests `WakeMachineTest` (asleep stays asleep unwanted, wanted and allowed loads, wanted and refused waits with the reason then loads once allowed, waiting unwanted falls asleep, awake while busy stays, grace counts down and releases, new work in grace returns to awake, zero grace releases at once, over capacity while awake releases) and `WakeAllowanceTest` (order of reasons, registered site never hits the cap, cap reached, allowed) under `storage/src/test/java/io/github/dirnei/mc/servus/storage/site/`. Run `gradlew :storage:test`.
+- [x] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/site/WakeMachine.java` and `WakeAllowance.java` per design.md; JUnit tests `WakeMachineTest` (asleep stays asleep unwanted, wanted and allowed loads, wanted and refused waits with the reason then loads once allowed, waiting unwanted falls asleep, awake while busy stays, grace counts down and releases, new work in grace returns to awake, zero grace releases at once, over capacity while awake releases) and `WakeAllowanceTest` (order of reasons, registered site never hits the cap, cap reached, allowed) under `storage/src/test/java/io/github/dirnei/mc/servus/storage/site/`. Run `gradlew :storage:test`.
 
 ## 2. Registry
 
