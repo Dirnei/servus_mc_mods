@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.field.FertilizePlan;
 import io.github.dirnei.mc.servus.storage.field.FieldCargo;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldRoute;
@@ -35,6 +36,7 @@ import io.github.dirnei.mc.servus.storage.field.PlotWork;
 import io.github.dirnei.mc.servus.storage.field.SeedPlan;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
@@ -113,10 +115,10 @@ public final class ShuttleFleet {
 
     /**
      * Where a shuttle is heading. Field runs drive TO_FIELD, work a rail while
-     * WORKING, fetch seeds TO_SEEDS, put the harvest away TO_STORE and wait at
-     * home in WAIT_STORE while nothing has room for it.
+     * WORKING, fetch seeds TO_SEEDS or fertilizer TO_SUPPLY, put the cargo
+     * away TO_STORE and wait at home in WAIT_STORE while nothing has room for it.
      */
-    private enum Leg { TO_SOURCE, TO_TARGET, TO_STATION, TO_TERMINAL, WAITING_ROOM, HOME, TO_FIELD, WORKING, TO_SEEDS, TO_STORE, WAIT_STORE }
+    private enum Leg { TO_SOURCE, TO_TARGET, TO_STATION, TO_TERMINAL, WAITING_ROOM, HOME, TO_FIELD, WORKING, TO_SEEDS, TO_SUPPLY, TO_STORE, WAIT_STORE }
 
     private static final int SYNC_INTERVAL = 5;
     /** Garage slots the out mask can tell apart; container data travels as a short. */
@@ -347,6 +349,7 @@ public final class ShuttleFleet {
             case PickJob pick -> host.dockRails(Conversions.toNodePos(pick.source()));
             case PutAwayJob putAway -> host.dockRails(Conversions.toNodePos(putAway.station()));
             case FieldJob field -> fieldRails(field.head());
+            case FertilizeJob fertilize -> fieldRails(fertilize.head());
         };
     }
 
@@ -525,7 +528,7 @@ public final class ShuttleFleet {
                 } else {
                     // Field work needs a shuttle: a field job nobody fits is dropped, the field asks again later.
                     taken.add(job);
-                    if (!(job instanceof FieldJob)) {
+                    if (!job.needs().field()) {
                         instant.add(job);
                     }
                 }
@@ -545,7 +548,7 @@ public final class ShuttleFleet {
             }
             taken.add(job);
             if (best == null) {
-                if (!(job instanceof FieldJob)) {
+                if (!job.needs().field()) {
                     instant.add(job);
                 }
                 continue;
@@ -553,6 +556,11 @@ public final class ShuttleFleet {
             best.loads.add(new Load(job));
             if (job instanceof FieldJob field) {
                 startRun(best, field);
+                syncPending = true;
+                continue;
+            }
+            if (job instanceof FertilizeJob fertilize) {
+                startSpread(best, fertilize);
                 syncPending = true;
                 continue;
             }
@@ -660,8 +668,8 @@ public final class ShuttleFleet {
             arrivePick(shuttle, pick);
         } else if (shuttle.lead() instanceof PutAwayJob putAway) {
             arrivePutAway(shuttle, putAway);
-        } else if (shuttle.lead() instanceof FieldJob) {
-            // Called every tick while the harvester stands still; only changes need a sync.
+        } else if (shuttle.lead() instanceof FieldJob || shuttle.lead() instanceof FertilizeJob) {
+            // Called every tick while a field shuttle stands still; only changes need a sync.
             arriveField(shuttle);
             return;
         }
@@ -806,11 +814,13 @@ public final class ShuttleFleet {
 
     private void park(Shuttle shuttle) {
         releaseLift(shuttle);
-        if (shuttle.run != null) {
-            for (ItemStack stack : shuttle.run.everything()) {
+        FieldRun fieldRun = shuttle.fieldRun();
+        if (fieldRun != null) {
+            for (ItemStack stack : fieldRun.everything()) {
                 Block.popResource(host.level(), shuttle.garage.pos, stack);
             }
             shuttle.run = null;
+            shuttle.spread = null;
         }
         shuttle.loads.clear();
         shuttle.leg = Leg.HOME;
@@ -823,12 +833,14 @@ public final class ShuttleFleet {
      * as missing.
      */
     private void dropCargo(Shuttle shuttle) {
-        if (shuttle.run != null) {
+        FieldRun fieldRun = shuttle.fieldRun();
+        if (fieldRun != null) {
             // A field run is not queued again; the warehouse sends a new one when the field still has work.
-            for (ItemStack stack : shuttle.run.everything()) {
+            for (ItemStack stack : fieldRun.everything()) {
                 Block.popResource(host.level(), shuttle.garage.pos, stack);
             }
             shuttle.run = null;
+            shuttle.spread = null;
             shuttle.loads.clear();
             return;
         }
@@ -861,7 +873,12 @@ public final class ShuttleFleet {
 
     /** Whether some garage with a rail has a shuttle with a Harvester. */
     public boolean hasFieldShuttles() {
-        return anyFits(JobNeeds.HARVESTER);
+        return hasFieldShuttles(JobNeeds.HARVESTER);
+    }
+
+    /** Whether some garage with a rail has a shuttle for field jobs with these needs. */
+    public boolean hasFieldShuttles(JobNeeds needs) {
+        return anyFits(needs);
     }
 
     /**
@@ -870,6 +887,11 @@ public final class ShuttleFleet {
      * wide for one.
      */
     public boolean fieldReachable(BlockPos head) {
+        return fieldReachable(head, JobNeeds.HARVESTER);
+    }
+
+    /** Like {@link #fieldReachable(BlockPos)} for shuttles with these needs. */
+    public boolean fieldReachable(BlockPos head, JobNeeds needs) {
         Set<NodePos> rails = fieldRails(head);
         if (rails.isEmpty()) {
             return false;
@@ -879,13 +901,48 @@ public final class ShuttleFleet {
                 continue;
             }
             for (Shuttle shuttle : garage.shuttles) {
-                if (JobNeeds.HARVESTER.fits(shuttle.profile)
+                if (needs.fits(shuttle.profile)
                         && !RailPaths.find(garage.home, rails::contains, ways(shuttle)).isEmpty()) {
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    /** Queues a fertilize run for the field of that head. */
+    public void requestFertilize(FertilizeJob job) {
+        jobs.add(job);
+        syncPending = true;
+    }
+
+    /** Whether a fertilize run for that head is queued or under way. */
+    public boolean hasFertilizeJob(BlockPos head) {
+        for (ShuttleJob job : jobs) {
+            if (job instanceof FertilizeJob fertilize && fertilize.head().equals(head)) {
+                return true;
+            }
+        }
+        for (Garage garage : garages.values()) {
+            for (Shuttle shuttle : garage.shuttles) {
+                if (shuttle.spread != null && shuttle.spread.head.equals(head)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** The item of the Spreader whose run serves that head, or empty when none is out for it. */
+    public Optional<ItemStack> spreadWorker(BlockPos head) {
+        for (Garage garage : garages.values()) {
+            for (Shuttle shuttle : garage.shuttles) {
+                if (shuttle.spread != null && shuttle.spread.head.equals(head)) {
+                    return Optional.of(shuttle.item);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /** Whether a field run for that head is queued or under way. */
@@ -1091,12 +1148,40 @@ public final class ShuttleFleet {
     }
 
     private void arriveField(Shuttle shuttle) {
-        HarvestRun run = shuttle.run;
-        if (run == null) {
+        FieldRun fieldRun = shuttle.fieldRun();
+        if (fieldRun == null) {
             park(shuttle);
             syncPending = true;
             return;
         }
+        switch (shuttle.leg) {
+            case TO_STORE -> {
+                if (fieldRun.storeTarget != null) {
+                    insertAll(fieldRun, fieldRun.storeTarget, storable(shuttle, at(shuttle)));
+                    fieldRun.storeTarget = null;
+                }
+                continueStore(shuttle);
+            }
+            case WAIT_STORE -> {
+                if (--fieldRun.waitTimer <= 0) {
+                    fieldRun.waitTimer = FieldRun.STORE_RETRY_TICKS;
+                    if (anyStorable(shuttle)) {
+                        continueStore(shuttle);
+                    }
+                }
+            }
+            default -> {
+                if (shuttle.spread != null) {
+                    arriveSpread(shuttle);
+                } else {
+                    arriveHarvest(shuttle);
+                }
+            }
+        }
+    }
+
+    private void arriveHarvest(Shuttle shuttle) {
+        HarvestRun run = shuttle.run;
         switch (shuttle.leg) {
             case TO_FIELD -> beginStop(shuttle);
             case WORKING -> work(shuttle);
@@ -1106,22 +1191,16 @@ public final class ShuttleFleet {
                 }
                 turn(shuttle);
             }
-            case TO_STORE -> {
-                if (run.storeTarget != null) {
-                    insertAll(run, run.storeTarget, storable(shuttle, at(shuttle)));
-                    run.storeTarget = null;
-                }
-                continueStore(shuttle);
-            }
-            case WAIT_STORE -> {
-                if (--run.waitTimer <= 0) {
-                    run.waitTimer = HarvestRun.STORE_RETRY_TICKS;
-                    if (anyStorable(shuttle)) {
-                        continueStore(shuttle);
-                    }
-                }
-            }
             default -> turn(shuttle);
+        }
+    }
+
+    /** What the field shuttle does after a put-away: the next step of its kind of run. */
+    private void nextStep(Shuttle shuttle) {
+        if (shuttle.spread != null) {
+            spreadTurn(shuttle);
+        } else {
+            turn(shuttle);
         }
     }
 
@@ -1339,7 +1418,7 @@ public final class ShuttleFleet {
 
     /** Puts the stacks on their way into storage one target after another, then decides again. */
     private void continueStore(Shuttle shuttle) {
-        HarvestRun run = shuttle.run;
+        FieldRun run = shuttle.fieldRun();
         run.store.removeIf(ItemStack::isEmpty);
         NodePos from = at(shuttle);
         Predicate<BlockPos> reachable = storable(shuttle, from);
@@ -1376,11 +1455,11 @@ public final class ShuttleFleet {
             waitStore(shuttle);
             return;
         }
-        turn(shuttle);
+        nextStep(shuttle);
     }
 
     /** Inserts every stack on its way into storage whose put-away routing picks this target, so zones keep applying. */
-    private void insertAll(HarvestRun run, BlockPos target, Predicate<BlockPos> reachable) {
+    private void insertAll(FieldRun run, BlockPos target, Predicate<BlockPos> reachable) {
         for (int i = 0; i < run.store.size(); i++) {
             ItemStack stack = run.store.get(i);
             if (host.putAwayTarget(stack, reachable).filter(target::equals).isPresent()) {
@@ -1421,7 +1500,7 @@ public final class ShuttleFleet {
 
     private boolean anyStorable(Shuttle shuttle) {
         Predicate<BlockPos> reachable = storable(shuttle, at(shuttle));
-        for (ItemStack stack : shuttle.run.store) {
+        for (ItemStack stack : shuttle.fieldRun().store) {
             Optional<BlockPos> target = host.putAwayTarget(stack, reachable);
             if (target.isPresent()) {
                 return true;
@@ -1432,8 +1511,8 @@ public final class ShuttleFleet {
 
     /** Nothing has room for the cargo: drive home with it and try again now and then. */
     private void waitStore(Shuttle shuttle) {
-        HarvestRun run = shuttle.run;
-        run.waitTimer = HarvestRun.STORE_RETRY_TICKS;
+        FieldRun run = shuttle.fieldRun();
+        run.waitTimer = FieldRun.STORE_RETRY_TICKS;
         NodePos home = shuttle.garage.home;
         if (shuttle.leg == Leg.WAIT_STORE && shuttle.motion.arrived()) {
             return;
@@ -1448,10 +1527,261 @@ public final class ShuttleFleet {
         syncPending = true;
     }
 
-    /** The harvester lost its way: it is back in its garage and its cargo drops there. */
+    /** The field shuttle lost its way: it is back in its garage and its cargo drops there. */
     private void lose(Shuttle shuttle) {
         park(shuttle);
         syncPending = true;
+    }
+
+    // Fertilize runs
+
+    /** Starts a Spreader on a fertilize run with the head's fertilizer; a head without one ends the run at once. */
+    private void startSpread(Shuttle shuttle, FertilizeJob job) {
+        FieldHeadBlockEntity head = servingHead(job.head());
+        if (head == null || !head.fertilizing()) {
+            shuttle.loads.clear();
+            return;
+        }
+        shuttle.spread = new SpreadRun(job.head(), shuttle.profile.stacks(), ItemKey.of(head.fertilizer()),
+                StorageStatsManager.INSTANCE.dosesPerPlot());
+        spreadTurn(shuttle);
+    }
+
+    /** The head of a fertilize run while it serves the field and still fertilizes with the run's fertilizer, else null. */
+    private FieldHeadBlockEntity spreadHead(SpreadRun run) {
+        FieldHeadBlockEntity head = servingHead(run.head);
+        if (head == null || !head.fertilizing() || !ItemKey.of(head.fertilizer()).equals(run.fertilizer)) {
+            return null;
+        }
+        return head;
+    }
+
+    /**
+     * Decides what a Spreader does next: pick fertilizer above the reserve
+     * while the fetch is not over, dose the next rail with plots that need a
+     * dose while it carries fertilizer, else put what it carries away and go home.
+     */
+    private void spreadTurn(Shuttle shuttle) {
+        SpreadRun run = shuttle.spread;
+        syncPending = true;
+        if (!host.isTravelNode(at(shuttle))) {
+            lose(shuttle);
+            return;
+        }
+        FieldHeadBlockEntity head = spreadHead(run);
+        if (head != null && !run.fetched) {
+            if (run.toFetch < 0) {
+                int max = run.fertilizer.stack(1).getMaxStackSize();
+                run.toFetch = FertilizePlan.toFetch(head.fertilizeTargetCount(), run.doses, host.available(run.fertilizer),
+                        head.reserve(), run.cargo.room(run.fertilizer, max));
+            }
+            if (run.toFetch > 0 && fetchFertilizer(shuttle, head)) {
+                return;
+            }
+            run.fetched = true;
+        }
+        if (head != null && run.cargo.count(run.fertilizer) > 0 && goToDose(shuttle, head)) {
+            return;
+        }
+        if (!run.cargo.isEmpty()) {
+            for (FieldCargo.Entry<ItemKey> entry : run.cargo.unload(null, 0)) {
+                run.store.add(entry.key().stack(entry.count()));
+            }
+            continueStore(shuttle);
+            return;
+        }
+        shuttle.loads.clear();
+        shuttle.spread = null;
+        goHome(shuttle);
+    }
+
+    /** Drives to the next storage block holding the fertilizer; blocks no rail reaches give their part at once. False when none is left. */
+    private boolean fetchFertilizer(Shuttle shuttle, FieldHeadBlockEntity head) {
+        SpreadRun run = shuttle.spread;
+        for (BlockPos source : host.sourcesHolding(run.fertilizer)) {
+            if (!run.sourcesTried.add(source)) {
+                continue;
+            }
+            Set<NodePos> dock = host.dockRails(Conversions.toNodePos(source));
+            List<NodePos> path = dock.isEmpty() ? List.of() : RailPaths.find(at(shuttle), dock::contains, ways(shuttle));
+            if (!path.isEmpty()) {
+                run.source = source;
+                shuttle.leg = Leg.TO_SUPPLY;
+                shuttle.motion = new ShuttleMotion(path);
+                return true;
+            }
+            if (!host.isRack(source) && (dock.isEmpty() || !shuttle.profile.liftless())) {
+                loadFertilizer(run, head, source);
+                if (run.toFetch <= 0) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Takes the fertilizer still to fetch from the source, never the stock at or below the reserve. */
+    private void loadFertilizer(SpreadRun run, FieldHeadBlockEntity head, BlockPos source) {
+        int max = run.fertilizer.stack(1).getMaxStackSize();
+        int amount = FertilizePlan.toFetch(1, run.toFetch, host.available(run.fertilizer), head.reserve(), run.cargo.room(run.fertilizer, max));
+        if (amount <= 0) {
+            run.toFetch = 0;
+            return;
+        }
+        ItemStack taken = host.extractFrom(source, run.fertilizer, amount);
+        run.toFetch -= taken.getCount();
+        if (!taken.isEmpty()) {
+            for (FieldCargo.Entry<ItemKey> left : run.cargo.add(List.of(new FieldCargo.Entry<>(run.fertilizer, taken.getCount(), max)))) {
+                host.insertAt(source, left.key().stack(left.count()));
+            }
+        }
+    }
+
+    private void arriveSpread(Shuttle shuttle) {
+        SpreadRun run = shuttle.spread;
+        switch (shuttle.leg) {
+            case TO_SUPPLY -> {
+                FieldHeadBlockEntity head = spreadHead(run);
+                if (run.source != null && head != null) {
+                    loadFertilizer(run, head, run.source);
+                }
+                run.source = null;
+                spreadTurn(shuttle);
+            }
+            case TO_FIELD -> beginDose(shuttle);
+            case WORKING -> dose(shuttle);
+            default -> spreadTurn(shuttle);
+        }
+    }
+
+    /** The plots worked from that rail that need a dose now. */
+    private static List<BlockPos> doseQueue(SpreadRun run, FieldHeadBlockEntity head, BlockPos rail, Set<BlockPos> targets) {
+        List<BlockPos> plots = run.reach(head.rails(), head.plots(), head.radius()).get(rail);
+        List<BlockPos> queue = new ArrayList<>();
+        if (plots != null) {
+            for (BlockPos plot : plots) {
+                if (targets.contains(plot)) {
+                    queue.add(plot);
+                }
+            }
+        }
+        return queue;
+    }
+
+    /** Drives to the nearest rail of the field with plots that need a dose; false when none can be reached. */
+    private boolean goToDose(Shuttle shuttle, FieldHeadBlockEntity head) {
+        SpreadRun run = shuttle.spread;
+        Set<BlockPos> targets = head.fertilizeTargets();
+        if (targets.isEmpty()) {
+            return false;
+        }
+        Predicate<NodePos> hasWork = node -> {
+            BlockPos rail = Conversions.toBlockPos(node);
+            return head.rails().contains(rail) && !run.visited.contains(rail) && !doseQueue(run, head, rail, targets).isEmpty();
+        };
+        NodePos from = at(shuttle);
+        Optional<NodePos> stop;
+        if (head.rails().contains(Conversions.toBlockPos(from))) {
+            stop = FieldRoute.next(from, node -> fieldNeighbours(head, node), hasWork);
+        } else {
+            List<NodePos> path = RailPaths.find(from, hasWork, ways(shuttle));
+            stop = path.isEmpty() ? Optional.empty() : Optional.of(path.get(path.size() - 1));
+        }
+        if (stop.isEmpty()) {
+            return false;
+        }
+        NodePos goal = stop.get();
+        List<NodePos> path = RailPaths.find(from, goal::equals, ways(shuttle));
+        if (path.isEmpty()) {
+            return false;
+        }
+        shuttle.leg = Leg.TO_FIELD;
+        shuttle.motion = new ShuttleMotion(path);
+        return true;
+    }
+
+    /** At a rail with plots that need a dose: queue them. */
+    private void beginDose(Shuttle shuttle) {
+        SpreadRun run = shuttle.spread;
+        FieldHeadBlockEntity head = spreadHead(run);
+        if (head == null) {
+            spreadTurn(shuttle);
+            return;
+        }
+        run.queue.clear();
+        run.queue.addAll(doseQueue(run, head, Conversions.toBlockPos(at(shuttle)), head.fertilizeTargets()));
+        run.countdown = workTicks(shuttle);
+        shuttle.leg = Leg.WORKING;
+        syncPending = true;
+    }
+
+    /** One tick at a rail: wait out the work time, then dose the next plot that still needs it. */
+    private void dose(Shuttle shuttle) {
+        SpreadRun run = shuttle.spread;
+        if (!host.isTravelNode(at(shuttle))) {
+            lose(shuttle);
+            return;
+        }
+        FieldHeadBlockEntity head = spreadHead(run);
+        if (head == null) {
+            run.queue.clear();
+            spreadTurn(shuttle);
+            return;
+        }
+        if (--run.countdown > 0) {
+            return;
+        }
+        BlockPos plot = nextDosePlot(run, head);
+        if (plot != null) {
+            run.queue.poll();
+            dosePlot(run, head, plot);
+            if (run.cargo.count(run.fertilizer) > 0 && nextDosePlot(run, head) != null) {
+                run.countdown = workTicks(shuttle);
+                syncPending = true;
+                return;
+            }
+        }
+        // This rail is done, or the fertilizer is used up: on to the next rail or home.
+        run.queue.clear();
+        run.visited.add(Conversions.toBlockPos(at(shuttle)));
+        spreadTurn(shuttle);
+    }
+
+    /** Drops leading plots that no longer need a dose and returns the first one that does, or null. */
+    private BlockPos nextDosePlot(SpreadRun run, FieldHeadBlockEntity head) {
+        Set<BlockPos> targets = head.fertilizeTargets();
+        while (!run.queue.isEmpty()) {
+            BlockPos plot = run.queue.peek();
+            if (targets.contains(plot) && host.level().isLoaded(plot)) {
+                return plot;
+            }
+            run.queue.poll();
+        }
+        return null;
+    }
+
+    /**
+     * Gives the plot its round: up to the run's doses, each one fertilizer
+     * item applied like bone meal, while the crop grows and is not ripe. The
+     * bone meal event lets the head see the growth; the head looks at once too.
+     */
+    private void dosePlot(SpreadRun run, FieldHeadBlockEntity head, BlockPos plot) {
+        ServerLevel level = host.level();
+        for (int i = 0; i < run.doses && run.cargo.count(run.fertilizer) > 0; i++) {
+            if (HarvesterWork.classify(level, plot) != PlotState.GROWING) {
+                break;
+            }
+            ItemStack dose = run.fertilizer.stack(1);
+            if (!BoneMealItem.applyBonemeal(dose, level, plot, null)) {
+                break;
+            }
+            if (dose.isEmpty()) {
+                run.cargo.take(run.fertilizer, 1);
+            }
+            level.levelEvent(1505, plot, 15);
+        }
+        head.dosed(plot);
+        head.recheckNow(plot);
     }
 
     // Lifts
@@ -1921,6 +2251,8 @@ public final class ShuttleFleet {
         final List<Load> loads = new ArrayList<>();
         /** The field run of a harvester out on a field job, else null. */
         HarvestRun run;
+        /** The fertilize run of a Spreader out on a fertilize job, else null. */
+        SpreadRun spread;
         Leg leg = Leg.HOME;
         final int id = nextShuttleId++;
         /** Bottom of the shaft whose car the shuttle calls, rides or crosses; null when none. */
@@ -1959,10 +2291,16 @@ public final class ShuttleFleet {
             return loads.isEmpty() ? null : loads.get(0).job;
         }
 
+        /** The field run of either kind the shuttle is out on, else null. */
+        FieldRun fieldRun() {
+            return run != null ? run : spread;
+        }
+
         /** The cargo drawn on the cart: the first load that holds something. */
         ItemStack shownCargo() {
-            if (run != null) {
-                return run.shown();
+            FieldRun fieldRun = fieldRun();
+            if (fieldRun != null) {
+                return fieldRun.shown();
             }
             for (Load load : loads) {
                 if (!load.cargo.isEmpty()) {

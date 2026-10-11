@@ -597,7 +597,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         }
     }
 
-    private void recheckNow(BlockPos plot) {
+    /** Reads the plot now, after a block on it changed. */
+    public void recheckNow(BlockPos plot) {
         if (level != null && level.isLoaded(plot)) {
             update(plot, level.getBlockState(plot));
         }
