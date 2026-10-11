@@ -21,7 +21,7 @@
 
 ## 5. Tests and docs
 
-- [ ] 5.1 GameTests `storage/.../gametest/RailCorrosionGameTests.java`: agingWithoutUpkeep, honeycombHoldsStage, corrodedStopsHydration, axeScrapesField, wornAxeRefused, placedRailAdoptsStage, droppedRailIsFresh, headlessJoinTakesYoungest, hopperFillsUpkeep, waterUseCountsForAging; keep field, harvester and rail tests green; `gradlew :storage:runGameTestServer`
+- [x] 5.1 GameTests `storage/.../gametest/RailCorrosionGameTests.java`: agingWithoutUpkeep, honeycombHoldsStage, corrodedStopsHydration, axeScrapesField, wornAxeRefused, freshCopperNotScraped, placedRailAdoptsStage, droppedRailIsFresh, headlessJoinTakesYoungest, hopperFillsUpkeep, waterUseCountsForAging; keep field, harvester and rail tests green; `gradlew :storage:runGameTestServer`
 - [ ] 5.2 Docs `docs/src/content/docs/mods/storage.md` (Farm Rail, Field Head, command) and `PLAN.md` M10 lists the change; `gradlew build`
 
 ## 6. Verification
