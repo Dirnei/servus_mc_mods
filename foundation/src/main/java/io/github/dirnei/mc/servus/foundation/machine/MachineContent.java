@@ -56,7 +56,8 @@ public final class MachineContent {
             BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new,
                     () -> machine().noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<PumpItem> BURNER_PUMP_ITEM =
-            ITEMS.registerItem("burner_pump", properties -> new PumpItem(BURNER_PUMP.get(), properties));
+            ITEMS.registerItem("burner_pump", properties -> new PumpItem(BURNER_PUMP.get(), properties),
+            Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BurnerPumpBlockEntity>> BURNER_PUMP_ENTITY =
             BLOCK_ENTITIES.register("burner_pump", () -> new BlockEntityType<>(BurnerPumpBlockEntity::new, BURNER_PUMP.get()));
     public static final DeferredHolder<MenuType<?>, MenuType<BurnerPumpMenu>> BURNER_PUMP_MENU =
@@ -65,7 +66,8 @@ public final class MachineContent {
     public static final DeferredBlock<ElectricPumpBlock> ELECTRIC_PUMP =
             BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new, () -> machine().noOcclusion());
     public static final DeferredItem<PumpItem> ELECTRIC_PUMP_ITEM =
-            ITEMS.registerItem("electric_pump", properties -> new PumpItem(ELECTRIC_PUMP.get(), properties));
+            ITEMS.registerItem("electric_pump", properties -> new PumpItem(ELECTRIC_PUMP.get(), properties),
+            Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricPumpBlockEntity>> ELECTRIC_PUMP_ENTITY =
             BLOCK_ENTITIES.register("electric_pump", () -> new BlockEntityType<>(ElectricPumpBlockEntity::new, ELECTRIC_PUMP.get()));
     public static final DeferredHolder<MenuType<?>, MenuType<ElectricPumpMenu>> ELECTRIC_PUMP_MENU =

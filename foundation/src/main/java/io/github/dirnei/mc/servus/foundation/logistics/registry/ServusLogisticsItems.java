@@ -29,7 +29,8 @@ public final class ServusLogisticsItems {
             properties -> new DataCableItem(ServusLogisticsBlocks.UTILITY_DUCT.get(), 0x3C3E44, "fast", properties));
 
     public static final DeferredItem<FluidTankItem> FLUID_TANK = ITEMS.registerItem("fluid_tank",
-            properties -> new FluidTankItem(ServusLogisticsBlocks.FLUID_TANK.get(), properties));
+            properties -> new FluidTankItem(ServusLogisticsBlocks.FLUID_TANK.get(), properties),
+            Item.Properties::useBlockDescriptionPrefix);
 
     public static final DeferredItem<FacadeItem> FACADE = ITEMS.registerItem("facade",
             properties -> new FacadeItem(properties, false));

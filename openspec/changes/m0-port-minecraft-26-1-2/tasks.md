@@ -9,30 +9,32 @@ Work happens on branch `feature/port-26.1.2`. Foundation may not compile between
 
 ## 2. Foundation
 
-- [ ] 2.1 Mechanical renames across `foundation/src` (design D2): `Identifier`, `EnumProperty<Direction>`, `InteractionResult`, `ChunkPos` factories, NBT `Optional` getters, `isClientSide()`. Verify: error count of `gradlew :foundation:compileJava` drops, no new kinds of errors.
-- [ ] 2.2 Registration (design D2): ids in block and item properties for every `DeferredRegister` in `registry/`, `logistics/registry/`, `machine/`, `wood/`; `new BlockEntityType<>(...)`; block items with `useBlockDescriptionPrefix()`; menus and creative tabs. Verify: compile errors in the registry classes gone.
-- [ ] 2.3 Blocks and block entities (design D3): `ValueInput`/`ValueOutput` persistence in every block entity, `preRemoveSideEffects`/`affectNeighborsAfterRemoval` instead of `onRemove`, new `updateShape`/`neighborChanged` signatures, `useItemOn`/`useWithoutItem` results, update packets. Verify: compile errors in `block/`, `machine/`, `logistics/duct`, `logistics/tank`, `adapter/` gone apart from transfer and client code.
-- [ ] 2.4 Transfer API (design D4): Foundation inventories, tanks and energy buffers on `ItemStacksResourceHandler`, `FluidStacksResourceHandler`, `SimpleEnergyHandler`; side wrappers; capability registration with `Capabilities.Item/Fluid/Energy.BLOCK`; network code (`logistics/network`, `fluid/`, `energy/`, `data/`, `adapter/`, `machine/sink`, `machine/pump`) with transactions; menus with `ResourceHandlerSlot`. Verify: compile errors in those packages gone.
-- [ ] 2.5 Data reload listeners, payloads, commands, config, chunk tickets (`config/`, `data/`, `command/`, `machine/loader`, `upgrade/`, `team/`). Verify: compile errors there gone.
-- [ ] 2.6 Recipes and JEI (design D8): `FacadeRecipe`, `HollowFacadeRecipe`, other `CustomRecipe`s with serializers, server recipe lookups through `recipeAccess()`, client recipe pickers, `integration/jei`. Verify: compile errors there gone.
-- [ ] 2.7 Screens and menus (design D6): every `Screen`/`AbstractContainerScreen` and widget in `client/`, `logistics/client/`, `machine/menu`, `adapter/` on `GuiGraphicsExtractor`. Verify: compile errors there gone.
-- [ ] 2.8 Block entity renderers and world overlays (design D6): `FluidTankRenderer`, pump renderers, `SideMarkerRenderer`, `DuctOverlayRenderer`, `PlacementAssistRenderer`, goggles overlay. Verify: compile errors there gone.
-- [ ] 2.9 Block models (design D6): `UtilityDuctModel`, `PanelQuads`, `WoodModel`, block colours, model registration. Verify: `gradlew :foundation:compileJava` green.
-- [ ] 2.10 Datagen (design D7): block state, block model and item model providers, recipes, loot, tags, lang under `datagen/` and `logistics/datagen/`; `gradlew :foundation:runData` regenerates `foundation/src/generated/resources`. Verify: `runData` green and the generated diff reviewed (format changes only).
-- [ ] 2.11 GameTests (design D5): `@ServusGameTest` and the `ServusGameTests` registrar, all Foundation test classes switched, `GameTestHelper` call changes. Verify: `gradlew :foundation:runGameTestServer` green with all tests registered (97 or more).
-- [ ] 2.12 Unit tests in `foundation/src/test`: compile and pass. Verify: `gradlew :foundation:test` green.
-- [ ] 2.13 Foundation full build. Verify: `gradlew :foundation:build` green.
+- [x] 2.1 Mechanical renames across `foundation/src` (design D2): `Identifier`, `EnumProperty<Direction>`, `InteractionResult`, `ChunkPos` factories, NBT `Optional` getters, `isClientSide()`. Verify: error count of `gradlew :foundation:compileJava` drops, no new kinds of errors.
+- [x] 2.2 Registration (design D2): ids in block and item properties for every `DeferredRegister` in `registry/`, `logistics/registry/`, `machine/`, `wood/`; `new BlockEntityType<>(...)`; block items with `useBlockDescriptionPrefix()`; menus and creative tabs. Verify: compile errors in the registry classes gone.
+- [x] 2.3 Blocks and block entities (design D3): `ValueInput`/`ValueOutput` persistence in every block entity, `preRemoveSideEffects`/`affectNeighborsAfterRemoval` instead of `onRemove`, new `updateShape`/`neighborChanged` signatures, `useItemOn`/`useWithoutItem` results, update packets. Verify: compile errors in `block/`, `machine/`, `logistics/duct`, `logistics/tank`, `adapter/` gone apart from transfer and client code.
+- [x] 2.4 Transfer API (design D4): Foundation inventories, tanks and energy buffers on `ItemStacksResourceHandler`, `FluidStacksResourceHandler`, `SimpleEnergyHandler`; side wrappers; capability registration with `Capabilities.Item/Fluid/Energy.BLOCK`; network code (`logistics/network`, `fluid/`, `energy/`, `data/`, `adapter/`, `machine/sink`, `machine/pump`) with transactions; menus with `ResourceHandlerSlot`. Verify: compile errors in those packages gone.
+- [x] 2.5 Data reload listeners, payloads, commands, config, chunk tickets (`config/`, `data/`, `command/`, `machine/loader`, `upgrade/`, `team/`). Verify: compile errors there gone.
+- [x] 2.6 Recipes and JEI (design D8): `FacadeRecipe`, `HollowFacadeRecipe`, other `CustomRecipe`s with serializers, server recipe lookups through `recipeAccess()`, client recipe pickers, `integration/jei`. Verify: compile errors there gone.
+- [x] 2.7 Screens and menus (design D6): every `Screen`/`AbstractContainerScreen` and widget in `client/`, `logistics/client/`, `machine/menu`, `adapter/` on `GuiGraphicsExtractor`. Verify: compile errors there gone.
+- [x] 2.8 Block entity renderers and world overlays (design D6): `FluidTankRenderer`, pump renderers, `SideMarkerRenderer`, `DuctOverlayRenderer`, `PlacementAssistRenderer`, goggles overlay. Verify: compile errors there gone.
+- [x] 2.9 Block models (design D6): `UtilityDuctModel`, `PanelQuads`, `WoodModel`, block colours, model registration. Verify: `gradlew :foundation:compileJava` green.
+- [x] 2.10 Datagen (design D7): block state, block model and item model providers, recipes, loot, tags, lang under `datagen/` and `logistics/datagen/`; `gradlew :foundation:runData` regenerates `foundation/src/generated/resources`. Verify: `runData` green and the generated diff reviewed (format changes only).
+- [x] 2.11 GameTests (design D5): `@ServusGameTest` and the `ServusGameTests` registrar, all Foundation test classes switched, `GameTestHelper` call changes. Verify: `gradlew :foundation:runGameTestServer` green with all tests registered (97 or more).
+- [x] 2.12 Unit tests in `foundation/src/test`: compile and pass. Verify: `gradlew :foundation:test` green.
+- [x] 2.13 Foundation full build. Verify: `gradlew :foundation:build` green.
+
+Results of section 2 (2026-10-12): `:foundation:build` green, 263 unit tests green, `:foundation:runGameTestServer` 98 of 98 required tests passed (97 Foundation tests plus vanilla's `always_pass`), `:foundation:runData` green with format only diffs in the generated resources.
 
 ## 3. Foundation play check
 
 - [ ] 3.1 The user launches the client from the port branch with Foundation alone: ducts with panels and facades, tank rendering, wood blocks, goggles and carrot overlays, the duct, machine, sink and adapter GUIs. Verify: the user confirms in game.
 
-## 4. Storage (later run)
+## 4. Storage
 
 - [ ] 4.1 `settings.gradle` includes `storage`; `storage/build.gradle` JEI 26.1.2 API. Verify: `gradlew :storage:compileJava` sets up.
 - [ ] 4.2 Port Storage by the same areas as section 2 (renames, registration, block entities, transfer, menus and screens, renderers and shuttle models, datagen, GameTests, unit tests). Verify: `gradlew :storage:build`, `:storage:test`, `:storage:runGameTestServer` green.
 
-## 5. Manufacturing (later run)
+## 5. Manufacturing
 
 - [ ] 5.1 `settings.gradle` includes `manufacturing`; Modonomicon, Jade and FTB versions for 26.1.2 in `gradle.properties` (or dropped from the dev runs if none exist); root combined runs and their dev only mods back on. Verify: `gradlew :manufacturing:compileJava` sets up.
 - [ ] 5.2 Port Manufacturing by the same areas as section 2, plus the Modonomicon book and the multiblocks. Verify: `gradlew :manufacturing:build`, `:manufacturing:test`, `:manufacturing:runGameTestServer` green.

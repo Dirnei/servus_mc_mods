@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
+import net.minecraft.world.item.Item;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import io.github.dirnei.mc.servus.foundation.wood.WoodBlockItem;
@@ -33,7 +34,8 @@ public final class AdapterContent {
                     .requiresCorrectToolForDrops());
 
     public static final DeferredItem<WoodBlockItem> ITEM = ITEMS.registerItem("machine_adapter",
-            properties -> new WoodBlockItem(BLOCK.get(), properties));
+            properties -> new WoodBlockItem(BLOCK.get(), properties),
+            Item.Properties::useBlockDescriptionPrefix);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MachineAdapterBlockEntity>> BLOCK_ENTITY =
             BLOCK_ENTITIES.register("machine_adapter", () -> new BlockEntityType<>(MachineAdapterBlockEntity::new, BLOCK.get()));
