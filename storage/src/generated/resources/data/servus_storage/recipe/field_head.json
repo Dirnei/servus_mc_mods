@@ -3,7 +3,7 @@
   "category": "misc",
   "key": {
     "B": {
-      "item": "minecraft:bucket"
+      "item": "servus_foundation:fluid_tank"
     },
     "C": {
       "item": "minecraft:composter"

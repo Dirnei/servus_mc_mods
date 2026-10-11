@@ -24,7 +24,7 @@ PLAN.md leaves the art direction open ("Art style and texture direction"); this 
 ```
 IBI
 PCP
-PRP   I iron ingot, B bucket, C composter, P planks, R farm rail
+PRP   I iron ingot, B Fluid Tank (Foundation), C composter, P planks, R farm rail
 ```
 
 ### Facing

@@ -24,4 +24,5 @@
 ## 6. Verification
 
 - [x] 6.1 Full `gradlew build`, unit tests and storage GameTests green
+- [x] 6.3 Play check fix: the Field Head recipe takes a Foundation Fluid Tank instead of a bucket (`datagen/ServusStorageRecipeProvider.java`, design); `gradlew :storage:runData`, `gradlew build`
 - [ ] 6.2 Play check by the user in game with all three mods: wood per recipe, facing, ripe bar steps and green, water window rising and biome tint, crop icon size on the plate

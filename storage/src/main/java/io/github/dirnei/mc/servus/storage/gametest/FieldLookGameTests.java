@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadLook;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.ArrayList;
 import java.util.List;
@@ -137,7 +138,7 @@ public final class FieldLookGameTests {
         helper.succeed();
     }
 
-    /** The recipe takes planks and the head remembers them. */
+    /** The recipe takes planks and a Fluid Tank, and the head remembers the planks. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void recipeRecordsWood(GameTestHelper helper) {
         RecipeHolder<?> holder = helper.getLevel().getRecipeManager()
@@ -146,7 +147,7 @@ public final class FieldLookGameTests {
         CraftingRecipe recipe = (CraftingRecipe) holder.value();
         List<ItemStack> grid = new ArrayList<>();
         for (Item item : new Item[] {
-                Items.IRON_INGOT, Items.BUCKET, Items.IRON_INGOT,
+                Items.IRON_INGOT, ServusLogisticsItems.FLUID_TANK.get(), Items.IRON_INGOT,
                 Items.BIRCH_PLANKS, Items.COMPOSTER, Items.BIRCH_PLANKS,
                 Items.BIRCH_PLANKS, ServusStorageItems.FARM_RAIL.get(), Items.BIRCH_PLANKS}) {
             grid.add(new ItemStack(item));

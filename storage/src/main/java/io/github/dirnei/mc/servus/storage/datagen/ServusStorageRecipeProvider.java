@@ -21,6 +21,7 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import io.github.dirnei.mc.servus.foundation.datagen.WoodRecipes;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 
 final class ServusStorageRecipeProvider extends RecipeProvider {
 
@@ -109,7 +110,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .save(WoodRecipes.output(output));
 
         // Steel heads on sleepers in the wood of the planks.
-        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.RAIL.get(), 8)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.RAIL.get(), 16)
                 .pattern("I I")
                 .pattern("IPI")
                 .pattern("I I")
@@ -218,7 +219,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .save(output);
 
         // Copper heads on sleepers in the wood of the planks.
-        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.FARM_RAIL.get(), 8)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.FARM_RAIL.get(), 16)
                 .pattern("C C")
                 .pattern("CPC")
                 .pattern("C C")
@@ -232,7 +233,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .pattern("PCP")
                 .pattern("PRP")
                 .define('I', Items.IRON_INGOT)
-                .define('B', Items.BUCKET)
+                .define('B', ServusLogisticsItems.FLUID_TANK.get())
                 .define('C', Items.COMPOSTER)
                 .define('P', ItemTags.PLANKS)
                 .define('R', ServusStorageItems.FARM_RAIL.get())
