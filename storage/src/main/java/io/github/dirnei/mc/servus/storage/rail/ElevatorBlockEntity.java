@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
+import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.storage.network.WarehouseEvent;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -9,18 +11,25 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * Connector node: joins the warehouse graph but holds no stock. The lowest
  * segment of a shaft also carries where its lift car is parked, so a player
  * who loads the chunk later sees the car there. That height is never saved.
+ * The lowest segment also keeps the shaft's Speed upgrades; every segment has
+ * the slots, but the others stay empty.
  */
 public class ElevatorBlockEntity extends StorageNodeBlockEntity {
 
     private static final String LIFT_Y = "LiftY";
+    private static final String UPGRADES = "Upgrades";
 
     private float liftY = Float.NaN;
+    private boolean loading;
+    private final LiftUpgradeSlots upgrades = new LiftUpgradeSlots(StorageStatsManager.INSTANCE.liftUpgradeSlots(), this::upgradesChanged);
 
     public ElevatorBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.ELEVATOR.get(), pos, state);
@@ -29,6 +38,32 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity {
     @Override
     public NodeKind kind() {
         return NodeKind.ELEVATOR;
+    }
+
+    /** The shaft's Speed upgrades; only the lowest segment holds any. */
+    public LiftUpgradeSlots upgrades() {
+        return upgrades;
+    }
+
+    /** How many Speed upgrades the slots hold. */
+    public int upgradeCount() {
+        int count = 0;
+        for (int slot = 0; slot < upgrades.getSlots(); slot++) {
+            if (!upgrades.getStackInSlot(slot).isEmpty()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private void upgradesChanged() {
+        if (loading) {
+            return;
+        }
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            network().ifPresent(network -> network.post(new WarehouseEvent.LiftUpgradesChanged(worldPosition)));
+        }
     }
 
     /** Where the shaft's car is parked, or NaN when unknown. */
@@ -56,10 +91,25 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity {
     }
 
     @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put(UPGRADES, upgrades.serializeNBT(registries));
+    }
+
+    @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         if (tag.contains(LIFT_Y)) {
             liftY = tag.getFloat(LIFT_Y);
+        }
+        if (tag.contains(UPGRADES)) {
+            ItemStackHandler saved = new ItemStackHandler();
+            saved.deserializeNBT(registries, tag.getCompound(UPGRADES));
+            loading = true;
+            for (int i = 0; i < upgrades.getSlots(); i++) {
+                upgrades.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
+            }
+            loading = false;
         }
     }
 }

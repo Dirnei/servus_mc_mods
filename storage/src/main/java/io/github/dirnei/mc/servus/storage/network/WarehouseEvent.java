@@ -24,4 +24,8 @@ public sealed interface WarehouseEvent {
     /** The output slots of the terminal at {@code pos} changed; held deliveries may fit now. */
     record OutputChanged(BlockPos pos) implements WarehouseEvent {
     }
+
+    /** The Speed upgrades of the elevator segment at {@code pos} changed; its car reads them again. */
+    record LiftUpgradesChanged(BlockPos pos) implements WarehouseEvent {
+    }
 }

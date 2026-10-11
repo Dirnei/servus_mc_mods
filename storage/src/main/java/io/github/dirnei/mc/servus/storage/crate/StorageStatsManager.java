@@ -30,6 +30,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final double DEFAULT_LIFT_SPEED = 0.1;
     public static final int DEFAULT_LIFT_HANDOVER_TICKS = 10;
     public static final double DEFAULT_LIFT_ACCEL = 0.005;
+    public static final int DEFAULT_LIFT_UPGRADE_SLOTS = 4;
+    public static final double DEFAULT_LIFT_SPEED_PER_UPGRADE = 0.05;
+    public static final double DEFAULT_LIFT_ACCEL_PER_UPGRADE = 0.0025;
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
     public static final int DEFAULT_INBOUND_BUFFER_SLOTS = 9;
@@ -76,6 +79,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile double liftSpeed = DEFAULT_LIFT_SPEED;
     private volatile int liftHandoverTicks = DEFAULT_LIFT_HANDOVER_TICKS;
     private volatile double liftAccel = DEFAULT_LIFT_ACCEL;
+    private volatile int liftUpgradeSlots = DEFAULT_LIFT_UPGRADE_SLOTS;
+    private volatile double liftSpeedPerUpgrade = DEFAULT_LIFT_SPEED_PER_UPGRADE;
+    private volatile double liftAccelPerUpgrade = DEFAULT_LIFT_ACCEL_PER_UPGRADE;
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
     private volatile int inboundBufferSlots = DEFAULT_INBOUND_BUFFER_SLOTS;
@@ -114,6 +120,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         liftSpeed = doubleField(files.get(WAREHOUSE), "lift_speed", DEFAULT_LIFT_SPEED);
         liftHandoverTicks = intField(files.get(WAREHOUSE), "lift_handover_ticks", DEFAULT_LIFT_HANDOVER_TICKS);
         liftAccel = Math.max(0.0001, doubleField(files.get(WAREHOUSE), "lift_accel", DEFAULT_LIFT_ACCEL));
+        liftUpgradeSlots = Math.max(0, intField(files.get(WAREHOUSE), "lift_upgrade_slots", DEFAULT_LIFT_UPGRADE_SLOTS));
+        liftSpeedPerUpgrade = Math.max(0, doubleField(files.get(WAREHOUSE), "lift_speed_per_upgrade", DEFAULT_LIFT_SPEED_PER_UPGRADE));
+        liftAccelPerUpgrade = Math.max(0, doubleField(files.get(WAREHOUSE), "lift_accel_per_upgrade", DEFAULT_LIFT_ACCEL_PER_UPGRADE));
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
         inboundBufferSlots = intField(files.get(WAREHOUSE), "inbound_buffer_slots", DEFAULT_INBOUND_BUFFER_SLOTS);
@@ -232,6 +241,21 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     /** Speed the lift car gains per tick when it starts and loses when it brakes. */
     public double liftAccel() {
         return liftAccel;
+    }
+
+    /** Speed upgrade slots of an elevator shaft. */
+    public int liftUpgradeSlots() {
+        return liftUpgradeSlots;
+    }
+
+    /** Blocks per tick each Speed upgrade adds to the lift car's top speed. */
+    public double liftSpeedPerUpgrade() {
+        return liftSpeedPerUpgrade;
+    }
+
+    /** What each Speed upgrade adds to the lift car's acceleration. */
+    public double liftAccelPerUpgrade() {
+        return liftAccelPerUpgrade;
     }
 
 
