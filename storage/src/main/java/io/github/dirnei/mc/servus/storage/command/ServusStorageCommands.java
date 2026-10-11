@@ -14,7 +14,10 @@ import java.util.Optional;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
+import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -82,7 +85,10 @@ public final class ServusStorageCommands {
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .executes(ServusStorageCommands::field)
                                 .then(Commands.literal("recheck")
-                                        .executes(ServusStorageCommands::fieldRecheck))))
+                                        .executes(ServusStorageCommands::fieldRecheck))
+                                .then(Commands.literal("age")
+                                        .then(Commands.argument("water", IntegerArgumentType.integer(1))
+                                                .executes(ServusStorageCommands::fieldAge)))))
                 .then(Commands.literal("take")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
@@ -105,7 +111,10 @@ public final class ServusStorageCommands {
                         + ", to till " + head.tillableCount() + ", to plant " + head.plantableCount(),
                 "Water " + head.water() + " / " + head.capacity() + " mB, " + (head.hydrated() ? "hydrated" : "dry"),
                 mode + ", harvest " + (head.harvestDue() ? "due" : "not due"),
-                "Work: " + (head.work() == null ? "none" : head.work().name().toLowerCase(java.util.Locale.ROOT)));
+                "Work: " + (head.work() == null ? "none" : head.work().name().toLowerCase(java.util.Locale.ROOT)),
+                "Corrosion: " + (head.corrosion() == FieldCorrosion.LOOSE ? "none" : FieldCorrosion.name(head.corrosion())
+                        + ", " + head.agedWater() + " / " + StorageStatsManager.INSTANCE.fieldCorrosionWater() + " mB to the next step, "
+                        + head.antiCorrosion().getStackInSlot(0).getCount() + " anti-corrosion"));
         for (String line : lines) {
             source.sendSuccess(() -> Component.literal(line), false);
         }
@@ -123,6 +132,20 @@ public final class ServusStorageCommands {
         source.sendSuccess(() -> Component.literal("Rechecked " + head.plots().size() + " plots: planted "
                 + head.plantedCount() + ", ripe " + head.ripeCount()), false);
         return head.ripeCount();
+    }
+
+    /** Counts water as used for aging, like hydration does, to reach a stage quickly. */
+    private static int fieldAge(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        if (!(source.getLevel().getBlockEntity(pos) instanceof FieldHeadBlockEntity head) || head.status() != FieldStatus.SERVING) {
+            source.sendFailure(Component.literal("No serving Field Head at " + pos.toShortString()));
+            return 0;
+        }
+        head.age(IntegerArgumentType.getInteger(context, "water"));
+        source.sendSuccess(() -> Component.literal("Field is " + FieldCorrosion.name(head.corrosion()) + ", "
+                + head.agedWater() + " mB toward the next step"), false);
+        return head.corrosion();
     }
 
     private static int take(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
