@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.gametest;
 
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DataCableItem;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
@@ -10,7 +10,6 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsI
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -24,12 +23,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** Data cable tiers: mixed tiers link, ducts drop their tier, higher tiers replace lower ones in place. */
-@GameTestHolder(ServusFoundationIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class DataCableTierGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -40,7 +35,7 @@ public final class DataCableTierGameTests {
     /** A duct carrying the data line in the tier of {@code cable}, with its connection flags refreshed. */
     private static UtilityDuctBlockEntity dataDuct(GameTestHelper helper, BlockPos pos, DataCableItem cable) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         duct.addDataLine(cable.tierId());
         BlockPos absolute = helper.absolutePos(pos);
         BlockState state = helper.getLevel().getBlockState(absolute);
@@ -64,7 +59,7 @@ public final class DataCableTierGameTests {
     }
 
     /** A Data Cable duct and a Fast Data Cable duct that touch form one data network. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void mixedTiersOneNetwork(GameTestHelper helper) {
         UtilityDuctBlockEntity slow = dataDuct(helper, new BlockPos(3, 1, 3), ServusLogisticsItems.DATA_CABLE.get());
         UtilityDuctBlockEntity fast = dataDuct(helper, new BlockPos(4, 1, 3), ServusLogisticsItems.FAST_DATA_CABLE.get());
@@ -79,7 +74,7 @@ public final class DataCableTierGameTests {
     }
 
     /** A broken duct carrying a Fast Data Cable line drops one Fast Data Cable and no base cable. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void brokenFastDuctDropsFast(GameTestHelper helper) {
         BlockPos pos = new BlockPos(3, 1, 3);
         dataDuct(helper, pos, ServusLogisticsItems.FAST_DATA_CABLE.get());
@@ -94,7 +89,7 @@ public final class DataCableTierGameTests {
     }
 
     /** A Fast Data Cable used on a Data Cable duct replaces the line in place and drops the old cable. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void upgradeCableDropsOld(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos pos = new BlockPos(3, 1, 3);
@@ -107,7 +102,7 @@ public final class DataCableTierGameTests {
         held.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, held,
                 new BlockHitResult(Vec3.atCenterOf(absolute).relative(Direction.NORTH, 0.5), Direction.NORTH, absolute, false)));
         helper.runAfterDelay(1, () -> {
-            UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+            UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
             helper.assertTrue(duct.dataTierId().equals(ServusLogisticsItems.FAST_DATA_CABLE.get().tierId()),
                     "the duct carries the Fast Data Cable line, got " + duct.dataTierId());
             helper.assertTrue(held.getCount() == 2, "one Fast Data Cable is used up, holds " + held.getCount());
@@ -121,7 +116,7 @@ public final class DataCableTierGameTests {
     }
 
     /** A Data Cable used on a Fast Data Cable duct changes nothing there and places a new duct beside it. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void noDowngrade(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos pos = new BlockPos(3, 1, 3);
@@ -129,26 +124,26 @@ public final class DataCableTierGameTests {
         use(helper, player, ServusLogisticsItems.DATA_CABLE.get(), pos, Direction.EAST);
         use(helper, player, ServusLogisticsItems.FAST_DATA_CABLE.get(), pos, Direction.SOUTH);
         helper.runAfterDelay(1, () -> {
-            UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+            UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
             helper.assertTrue(duct.dataTierId().equals(ServusLogisticsItems.FAST_DATA_CABLE.get().tierId()),
                     "the duct keeps the Fast Data Cable line, got " + duct.dataTierId());
             helper.assertTrue(dropped(helper, ServusLogisticsItems.FAST_DATA_CABLE.get()) == 0, "nothing drops");
-            helper.assertTrue(helper.<UtilityDuctBlockEntity>getBlockEntity(pos.east()).dataTierId()
+            helper.assertTrue(helper.getBlockEntity(pos.east(), UtilityDuctBlockEntity.class).dataTierId()
                     .equals(ServusLogisticsItems.DATA_CABLE.get().tierId()), "the Data Cable is placed beside it");
-            helper.assertTrue(helper.<UtilityDuctBlockEntity>getBlockEntity(pos.south()).has(Line.DATA),
+            helper.assertTrue(helper.getBlockEntity(pos.south(), UtilityDuctBlockEntity.class).has(Line.DATA),
                     "an equal tier places a new duct beside it as well");
             helper.succeed();
         });
     }
 
     /** A Duplex Data Cable used on a bare duct side places a duct of its tier. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void placedCableKeepsTier(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         dataDuct(helper, new BlockPos(3, 1, 3), ServusLogisticsItems.DATA_CABLE.get());
         player.setShiftKeyDown(true);
         use(helper, player, ServusLogisticsItems.DUPLEX_DATA_CABLE.get(), new BlockPos(3, 1, 3), Direction.EAST);
-        UtilityDuctBlockEntity placed = helper.getBlockEntity(new BlockPos(4, 1, 3));
+        UtilityDuctBlockEntity placed = helper.getBlockEntity(new BlockPos(4, 1, 3), UtilityDuctBlockEntity.class);
         helper.assertTrue(placed.has(Line.DATA), "the new duct carries the data line");
         helper.assertTrue(placed.dataTierId().equals(ServusLogisticsItems.DUPLEX_DATA_CABLE.get().tierId()),
                 "the new duct is a Duplex Data Cable, got " + placed.dataTierId());

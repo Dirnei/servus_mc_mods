@@ -1,11 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.logistics.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.chat.Component;
 import io.github.dirnei.mc.servus.foundation.data.DataSummary;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctModelData;
@@ -19,7 +20,6 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -46,11 +46,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder(ServusFoundationIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class ServusLogisticsGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -74,7 +70,7 @@ public final class ServusLogisticsGameTests {
      */
     private static UtilityDuctBlockEntity duct(GameTestHelper helper, BlockPos pos, Line... lines) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         for (Line line : lines) {
             duct.addLine(line);
         }
@@ -86,11 +82,11 @@ public final class ServusLogisticsGameTests {
 
     private static ChestBlockEntity chest(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, Blocks.CHEST.defaultBlockState());
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, ChestBlockEntity.class);
     }
 
     private static int count(GameTestHelper helper, BlockPos pos, Item item) {
-        ChestBlockEntity chest = helper.getBlockEntity(pos);
+        ChestBlockEntity chest = helper.getBlockEntity(pos, ChestBlockEntity.class);
         int total = 0;
         for (int slot = 0; slot < chest.getContainerSize(); slot++) {
             ItemStack stack = chest.getItem(slot);
@@ -102,7 +98,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** Chest A pulls into channel 1; chest B on channel 1 gets everything, chest C on channel 2 nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void itemsStayOnTheirChannel(GameTestHelper helper) {
         chest(helper, CHEST_A).setItem(0, new ItemStack(Items.COBBLESTONE, 20));
         chest(helper, CHEST_B);
@@ -123,7 +119,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** The pull in side's filter lists cobblestone only; dirt stays, and the other channel sees nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void pullInHonoursFilterAndChannel(GameTestHelper helper) {
         ChestBlockEntity source = chest(helper, CHEST_A);
         source.setItem(0, new ItemStack(Items.COBBLESTONE, 10));
@@ -152,7 +148,7 @@ public final class ServusLogisticsGameTests {
      * the item line reaches both neighbours, the energy line none; adding the
      * energy line to the west duct and removing the chest update the masks.
      */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void armsFollowLinesAndNeighbours(GameTestHelper helper) {
         BlockPos centre = new BlockPos(6, 1, 6);
         BlockPos chestPos = centre.east();
@@ -187,32 +183,31 @@ public final class ServusLogisticsGameTests {
     }
 
     /** Stone plus a nugget gives six stone facades, an ingot does not, a slab gives nothing, and a duct takes and returns a facade. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void facadeRecipeAndApplication(GameTestHelper helper) {
-        Optional<RecipeHolder<CraftingRecipe>> stone = helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING,
+        Optional<RecipeHolder<CraftingRecipe>> stone = helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING,
                 CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.IRON_NUGGET))), helper.getLevel());
         helper.assertTrue(stone.isPresent(), "stone plus a nugget should match the facade recipe");
         ItemStack result = stone.get().value().assemble(
-                CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.IRON_NUGGET))),
-                helper.getLevel().registryAccess());
+                CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.IRON_NUGGET))));
         helper.assertTrue(result.is(ServusLogisticsItems.FACADE.get()) && result.getCount() == 6,
                 "result should be six facades");
         helper.assertTrue(FacadeItem.blockOf(result) == Blocks.STONE, "facade should remember stone");
-        helper.assertTrue(helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING,
+        helper.assertTrue(helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING,
                         CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.GOLD_NUGGET))), helper.getLevel()).isPresent(),
                 "a gold nugget works too");
-        Optional<RecipeHolder<CraftingRecipe>> ingot = helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING,
+        Optional<RecipeHolder<CraftingRecipe>> ingot = helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING,
                 CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE), new ItemStack(Items.IRON_INGOT))), helper.getLevel());
         helper.assertTrue(ingot.isEmpty() || !(ingot.get().value() instanceof io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe),
                 "an iron ingot no longer makes facades");
 
-        Optional<RecipeHolder<CraftingRecipe>> slab = helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING,
+        Optional<RecipeHolder<CraftingRecipe>> slab = helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING,
                 CraftingInput.of(2, 1, List.of(new ItemStack(Items.STONE_SLAB), new ItemStack(Items.IRON_NUGGET))), helper.getLevel());
         helper.assertTrue(slab.isEmpty() || !(slab.get().value() instanceof io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe),
                 "a slab must not make a facade");
 
         helper.setBlock(DUCT, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(DUCT);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(DUCT, UtilityDuctBlockEntity.class);
         duct.addLine(Line.ITEM);
         duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
         helper.assertTrue(duct.panel(Direction.NORTH) != null && duct.panel(Direction.NORTH).is(Blocks.STONE), "duct should carry the stone panel");
@@ -224,14 +219,14 @@ public final class ServusLogisticsGameTests {
     }
 
     /** Every example facade shown in the creative tab and in JEI comes from the facade recipe. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void facadeExamplesAreCraftable(GameTestHelper helper) {
         for (Block block : FacadeItem.EXAMPLES) {
             CraftingInput input = CraftingInput.of(2, 1, List.of(new ItemStack(block), new ItemStack(Items.IRON_NUGGET)));
             Optional<RecipeHolder<CraftingRecipe>> recipe =
-                    helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
+                    helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
             helper.assertTrue(recipe.isPresent(), "no facade recipe for " + block);
-            ItemStack result = recipe.get().value().assemble(input, helper.getLevel().registryAccess());
+            ItemStack result = recipe.get().value().assemble(input);
             helper.assertTrue(result.is(ServusLogisticsItems.FACADE.get()) && result.getCount() == 6 && FacadeItem.blockOf(result) == block,
                     "six facades of " + block + " expected, got " + result);
         }
@@ -256,7 +251,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** A facade covers the clicked face only, and a covered face takes no second panel. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void panelOnClickedFace(GameTestHelper helper) {
         UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
         ItemStack left = usePanel(helper, DUCT, Direction.NORTH, FacadeItem.of(Blocks.STONE, 2));
@@ -274,7 +269,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** A solid panel between two item ducts removes both arms and splits the network; taking it off joins them. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void solidPanelSplitsDucts(GameTestHelper helper) {
         UtilityDuctBlockEntity west = duct(helper, DUCT, Line.ITEM);
         UtilityDuctBlockEntity east = duct(helper, DUCT.east(), Line.ITEM);
@@ -295,22 +290,22 @@ public final class ServusLogisticsGameTests {
     }
 
     /** A solid panel toward a chest removes the endpoint and the item handler on that side. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void solidPanelClosesEndpoint(GameTestHelper helper) {
         chest(helper, DUCT.north());
         UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
         helper.assertTrue(duct.isEndpoint(Direction.NORTH), "the chest is an endpoint");
         duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
         helper.assertTrue(!duct.isEndpoint(Direction.NORTH), "no endpoint behind the panel");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(DUCT), Direction.NORTH) == null,
+        helper.assertTrue(ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(DUCT), Direction.NORTH)) == null,
                 "no item handler on the covered side");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(DUCT), Direction.SOUTH) != null,
+        helper.assertTrue(ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(DUCT), Direction.SOUTH)) != null,
                 "the other sides keep theirs");
         helper.succeed();
     }
 
     /** A hollow panel between two ducts keeps the arms and the network. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void hollowPanelKeepsNetwork(GameTestHelper helper) {
         UtilityDuctBlockEntity west = duct(helper, DUCT, Line.ITEM);
         UtilityDuctBlockEntity east = duct(helper, DUCT.east(), Line.ITEM);
@@ -323,7 +318,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** Sneaking with the carrot on a panel takes off that panel only and keeps the duct. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void carrotRemovesOnePanel(GameTestHelper helper) {
         UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
         duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
@@ -346,7 +341,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** Breaking a duct drops its line and both kinds of panel. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void breakingDropsPanels(GameTestHelper helper) {
         UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM);
         duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
@@ -362,7 +357,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** Eight stone facades around an empty centre give eight hollow stone facades; a mixed ring gives nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void hollowRingRecipe(GameTestHelper helper) {
         List<ItemStack> ring = new java.util.ArrayList<>();
         for (int i = 0; i < 9; i++) {
@@ -370,20 +365,20 @@ public final class ServusLogisticsGameTests {
         }
         CraftingInput input = CraftingInput.of(3, 3, ring);
         Optional<RecipeHolder<CraftingRecipe>> recipe =
-                helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
+                helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
         helper.assertTrue(recipe.isPresent(), "the ring matches");
-        ItemStack result = recipe.get().value().assemble(input, helper.getLevel().registryAccess());
+        ItemStack result = recipe.get().value().assemble(input);
         helper.assertTrue(result.is(ServusLogisticsItems.HOLLOW_FACADE.get()) && result.getCount() == 8 && FacadeItem.blockOf(result) == Blocks.STONE,
                 "eight hollow stone facades expected, got " + result);
         ring.set(0, FacadeItem.of(Blocks.OAK_PLANKS, 1));
         Optional<RecipeHolder<CraftingRecipe>> mixed =
-                helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, ring), helper.getLevel());
+                helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, ring), helper.getLevel());
         helper.assertTrue(mixed.isEmpty(), "a mixed ring makes nothing");
         helper.succeed();
     }
 
     /** A Data Cable adds the data line to an item duct; two data ducts form one network with no members. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void dataLineOnAnItemDuct(GameTestHelper helper) {
         UtilityDuctBlockEntity first = duct(helper, DUCT, Line.ITEM);
         UtilityDuctBlockEntity second = duct(helper, DUCT.east(), Line.DATA);
@@ -412,7 +407,7 @@ public final class ServusLogisticsGameTests {
     }
 
     private static FluidStack fluid(GameTestHelper helper, BlockPos pos) {
-        FluidView handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), null);
+        FluidView handler = FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), null));
         return handler == null ? FluidStack.EMPTY : handler.getFluidInTank(0);
     }
 
@@ -423,11 +418,11 @@ public final class ServusLogisticsGameTests {
 
     private static String describe(GameTestHelper helper, BlockPos pos) {
         FluidStack stack = fluid(helper, pos);
-        return stack.isEmpty() ? "nothing" : stack.getAmount() + " mB of " + stack.getFluidHolder().getRegisteredName();
+        return stack.isEmpty() ? "nothing" : stack.getAmount() + " mB of " + stack.typeHolder().getRegisteredName();
     }
 
     /** A water cauldron on a pull in side empties into an empty cauldron on a default side, the whole 1,000 mB at once. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void fluidFlowsFromPullInToDefaultSide(GameTestHelper helper) {
         waterCauldron(helper, CHEST_A);
         emptyCauldron(helper, CHEST_C);
@@ -445,7 +440,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** A full and an empty cauldron on default sides: the water moves once and never back. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void fluidDoesNotRunBackOnDefaultSides(GameTestHelper helper) {
         waterCauldron(helper, CHEST_A);
         emptyCauldron(helper, CHEST_C);
@@ -466,7 +461,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** Only the cauldron on the pull in side's channel receives the water. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void fluidStaysOnItsChannel(GameTestHelper helper) {
         waterCauldron(helper, CHEST_A);
         emptyCauldron(helper, CHEST_B);
@@ -486,7 +481,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** Water and lava on one channel: each empty cauldron ends up with one whole fluid, never a mix, and both sources empty. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void mixedFluidsReachMatchingSinks(GameTestHelper helper) {
         BlockPos ductD = DUCT_C.east();
         waterCauldron(helper, CHEST_A);
@@ -511,7 +506,7 @@ public final class ServusLogisticsGameTests {
     }
 
     /** Fluid filled into a duct side goes straight to the cauldron on its channel; a full cauldron refuses more. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void fluidPushedIntoADuctPassesOn(GameTestHelper helper) {
         emptyCauldron(helper, CHEST_C);
         duct(helper, DUCT_A, Line.FLUID);
@@ -519,7 +514,7 @@ public final class ServusLogisticsGameTests {
         duct(helper, DUCT_C, Line.FLUID);
 
         helper.runAfterDelay(2, () -> {
-            FluidView duct = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH);
+            FluidView duct = FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH));
             helper.assertTrue(duct != null, "the duct should expose a fluid handler on an in and out side");
             FluidStack water = new FluidStack(Fluids.WATER, 1000);
             helper.assertTrue(duct.fill(water, true) == 1000, "a simulated fill should report room for 1000 mB");
@@ -531,16 +526,16 @@ public final class ServusLogisticsGameTests {
             helper.assertTrue(duct.getTankCapacity(0) == 0 && duct.drain(1000, false).isEmpty(),
                     "the duct keeps and gives nothing");
 
-            UtilityDuctBlockEntity a = helper.getBlockEntity(DUCT_A);
+            UtilityDuctBlockEntity a = helper.getBlockEntity(DUCT_A, UtilityDuctBlockEntity.class);
             a.setMode(Line.FLUID, Direction.NORTH, SideMode.OUTPUT);
-            helper.assertTrue(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH) == null,
+            helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH)) == null,
                     "a push out side exposes no fluid handler");
             helper.succeed();
         });
     }
 
     /** A duct with all three lines is the thickest size and drops one item per line. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void threeLineDuctDropsThreeItems(GameTestHelper helper) {
         UtilityDuctBlockEntity duct = duct(helper, DUCT, Line.ITEM, Line.ENERGY);
         AABB two = helper.getBlockState(DUCT).getShape(helper.getLevel(), helper.absolutePos(DUCT)).bounds();
@@ -571,30 +566,30 @@ public final class ServusLogisticsGameTests {
      * A line item on a duct that already carries the line places a new duct against the face;
      * a different line is added; sneaking always places.
      */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void lineItemPlacesBesideAFullDuct(GameTestHelper helper) {
         duct(helper, DUCT, Line.ITEM);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         useLine(helper, player, ServusLogisticsItems.ITEM_PIPE.get(), DUCT, Direction.EAST);
-        UtilityDuctBlockEntity east = helper.getBlockEntity(DUCT.east());
+        UtilityDuctBlockEntity east = helper.getBlockEntity(DUCT.east(), UtilityDuctBlockEntity.class);
         helper.assertTrue(east.has(Line.ITEM), "an Item Pipe on an item duct places a new duct to the east");
 
         useLine(helper, player, ServusLogisticsItems.POWER_CABLE.get(), DUCT, Direction.EAST);
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(DUCT);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(DUCT, UtilityDuctBlockEntity.class);
         helper.assertTrue(duct.has(Line.ENERGY), "a Power Cable is added to a duct that lacks it");
         helper.assertBlockNotPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), DUCT.east().east());
 
         player.setShiftKeyDown(true);
         useLine(helper, player, ServusLogisticsItems.FLUID_PIPE.get(), DUCT, Direction.UP);
-        UtilityDuctBlockEntity above = helper.getBlockEntity(DUCT.above());
+        UtilityDuctBlockEntity above = helper.getBlockEntity(DUCT.above(), UtilityDuctBlockEntity.class);
         helper.assertTrue(above.has(Line.FLUID), "a sneak click places a new Fluid Pipe duct above");
         helper.assertFalse(duct.has(Line.FLUID), "a sneak click does not add the line to the clicked duct");
         helper.succeed();
     }
 
     /** Sneaking walks the run of ducts carrying the held line: east along a row, along it from its top face, up a column, and not into another line. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void sneakLineExtendsRun(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         for (int x = 1; x <= 6; x++) {
@@ -608,9 +603,9 @@ public final class ServusLogisticsGameTests {
         player.setShiftKeyDown(true);
 
         useLine(helper, player, ServusLogisticsItems.ITEM_PIPE.get(), new BlockPos(2, 1, 9), Direction.EAST);
-        UtilityDuctBlockEntity end = helper.getBlockEntity(new BlockPos(7, 1, 9));
+        UtilityDuctBlockEntity end = helper.getBlockEntity(new BlockPos(7, 1, 9), UtilityDuctBlockEntity.class);
         helper.assertTrue(end.has(Line.ITEM), "the new Item Pipe duct should land past the sixth duct");
-        helper.assertTrue(helper.<UtilityDuctBlockEntity>getBlockEntity(new BlockPos(2, 1, 9)).lines().size() == 1,
+        helper.assertTrue(helper.getBlockEntity(new BlockPos(2, 1, 9), UtilityDuctBlockEntity.class).lines().size() == 1,
                 "the clicked duct should stay unchanged");
 
         BlockPos fourth = helper.absolutePos(new BlockPos(4, 1, 9));
@@ -618,12 +613,12 @@ public final class ServusLogisticsGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, pipe);
         pipe.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, pipe,
                 new BlockHitResult(new Vec3(fourth.getX() + 0.7, fourth.getY() + 0.75, fourth.getZ() + 0.5), Direction.UP, fourth, false)));
-        helper.assertTrue(helper.<UtilityDuctBlockEntity>getBlockEntity(new BlockPos(8, 1, 9)).has(Line.ITEM),
+        helper.assertTrue(helper.getBlockEntity(new BlockPos(8, 1, 9), UtilityDuctBlockEntity.class).has(Line.ITEM),
                 "a hit on the top of a straight pipe east of centre should land past the east end");
         helper.assertBlockNotPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), new BlockPos(4, 2, 9));
 
         useLine(helper, player, ServusLogisticsItems.POWER_CABLE.get(), new BlockPos(9, 1, 2), Direction.UP);
-        UtilityDuctBlockEntity top = helper.getBlockEntity(new BlockPos(9, 5, 2));
+        UtilityDuctBlockEntity top = helper.getBlockEntity(new BlockPos(9, 5, 2), UtilityDuctBlockEntity.class);
         helper.assertTrue(top.has(Line.ENERGY), "the new Power Cable duct should land on top of the column");
 
         BlockPos fluid = helper.absolutePos(new BlockPos(1, 1, 11));
@@ -632,7 +627,7 @@ public final class ServusLogisticsGameTests {
         held.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, held,
                 new BlockHitResult(Vec3.atCenterOf(fluid).relative(Direction.EAST, 0.5), Direction.EAST, fluid, false)));
         helper.assertTrue(held.getCount() == 1, "a run blocked by another line keeps the stack");
-        helper.assertFalse(helper.<UtilityDuctBlockEntity>getBlockEntity(new BlockPos(2, 1, 11)).has(Line.FLUID),
+        helper.assertFalse(helper.getBlockEntity(new BlockPos(2, 1, 11), UtilityDuctBlockEntity.class).has(Line.FLUID),
                 "the Item Pipe duct in the way gets no Fluid Pipe");
         helper.assertBlockNotPresent(ServusLogisticsBlocks.UTILITY_DUCT.get(), new BlockPos(3, 1, 11));
         helper.succeed();

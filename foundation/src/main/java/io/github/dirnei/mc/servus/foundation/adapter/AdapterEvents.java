@@ -9,7 +9,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 
 /** Event hooks of the Machine Adapter. */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID)
@@ -35,11 +34,6 @@ public final class AdapterEvents {
             if (event.getTabKey().equals(ServusFoundationCreativeTabs.SERVUS_KEY)) {
                 event.accept(AdapterContent.ITEM.get());
             }
-        }
-
-        @SubscribeEvent
-        public static void onRegisterGameTests(RegisterGameTestsEvent event) {
-            event.register(AdapterGameTests.class);
         }
 
         @SubscribeEvent

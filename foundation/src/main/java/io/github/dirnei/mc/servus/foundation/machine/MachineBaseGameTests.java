@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
@@ -18,7 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -27,13 +26,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The shared machine rules and fuel upkeep, on Foundation's own burner machines. */
-@GameTestHolder(ServusFoundationIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class MachineBaseGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -51,15 +46,15 @@ public final class MachineBaseGameTests {
     }
 
     /** A Pull side takes what the machine accepts from the neighbour and leaves the rest. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void machinePullsFromNeighbour(GameTestHelper helper) {
         helper.setBlock(POS, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
         BlockPos chestPos = POS.west();
         helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.COAL, 4));
         chest.setItem(1, new ItemStack(Items.DIAMOND, 3));
-        MachineBlockEntity generator = helper.getBlockEntity(POS);
+        MachineBlockEntity generator = helper.getBlockEntity(POS, MachineBlockEntity.class);
         helper.assertTrue(generator.relativeSide(Direction.WEST) == RelativeSide.RIGHT,
                 "west is the right side of a machine facing north, as the player sees it");
         generator.sideConfig().set(RelativeSide.RIGHT, SideMode.PULL);
@@ -70,22 +65,22 @@ public final class MachineBaseGameTests {
     }
 
     /** The front of a machine takes nothing, gives nothing and cannot be set to anything else. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void machineFrontIsClosed(GameTestHelper helper) {
         helper.setBlock(POS, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
-        MachineBlockEntity generator = helper.getBlockEntity(POS);
+        MachineBlockEntity generator = helper.getBlockEntity(POS, MachineBlockEntity.class);
         helper.assertTrue(generator.sideMode(Direction.NORTH) == SideMode.DISABLED, "the front starts closed");
         helper.assertTrue(generator.cycleFace(Direction.NORTH) == SideMode.DISABLED, "the front cannot be cycled");
         generator.sideConfig().set(RelativeSide.FRONT, SideMode.INPUT);
         helper.assertTrue(generator.sideMode(Direction.NORTH) == SideMode.DISABLED, "the front cannot be set");
-        ItemView front = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(POS), Direction.NORTH);
+        ItemView front = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(POS), Direction.NORTH));
         helper.assertTrue(front == null || front.insertItem(0, new ItemStack(Items.COAL, 4), false).getCount() == 4,
                 "nothing goes in at the front");
         helper.succeed();
     }
 
     /** Foundation's burner machines keep coal at 16 in their fuel slot, on every side. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void burnerMachinesExposeUpkeep(GameTestHelper helper) {
         List<Block> burners = List.of(MachineContent.BURNER_PUMP.get(), MachineContent.COAL_GENERATOR.get());
         for (int i = 0; i < burners.size(); i++) {
@@ -103,7 +98,7 @@ public final class MachineBaseGameTests {
             }
         }
         BlockPos generatorPos = new BlockPos(4, 2, 3);
-        CoalGeneratorBlockEntity generator = helper.getBlockEntity(generatorPos);
+        CoalGeneratorBlockEntity generator = helper.getBlockEntity(generatorPos, CoalGeneratorBlockEntity.class);
         generator.inventory().setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 5));
         helper.assertTrue(upkeep(helper, generatorPos, Direction.NORTH).upkeepCount() == 5, "5 coal in the fuel slot count 5");
         generator.inventory().setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.CHARCOAL, 5));
@@ -114,7 +109,7 @@ public final class MachineBaseGameTests {
 
     private static void dataDuct(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         duct.addLine(Line.DATA);
         BlockPos absolute = helper.absolutePos(pos);
         BlockState state = helper.getLevel().getBlockState(absolute);
@@ -127,7 +122,7 @@ public final class MachineBaseGameTests {
     }
 
     /** On a data line the Coal Generator is an upkeep only member. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void generatorJoinsTheDataLineForUpkeep(GameTestHelper helper) {
         BlockPos generator = new BlockPos(5, 2, 3);
         BlockPos duct = new BlockPos(4, 2, 3);

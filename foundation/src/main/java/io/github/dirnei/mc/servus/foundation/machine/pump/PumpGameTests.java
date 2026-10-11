@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
@@ -22,7 +24,6 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.InteractionHand;
@@ -46,13 +47,9 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The pumps on a pond: water into a buffer, fixed sides, stubs and energy. */
-@GameTestHolder(ServusFoundationIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class PumpGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -71,7 +68,7 @@ public final class PumpGameTests {
      */
     private static void duct(GameTestHelper helper, BlockPos pos, Line... lines) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         for (Line line : lines) {
             duct.addLine(line);
         }
@@ -113,17 +110,17 @@ public final class PumpGameTests {
     }
 
     private static FluidView pumpFluid(GameTestHelper helper, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(PUMP), side);
+        return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(PUMP), side));
     }
 
     private static int buffered(GameTestHelper helper) {
-        PumpMachine pump = helper.getBlockEntity(PUMP);
+        PumpMachine pump = (PumpMachine) helper.getBlockEntity(PUMP, BlockEntity.class);
         return pump.pump().tank().getFluidAmount();
     }
 
     private static void burnerPump(GameTestHelper helper, int coal) {
         placeBurnerPump(helper, PUMP);
-        MachineBlockEntity pump = helper.getBlockEntity(PUMP);
+        MachineBlockEntity pump = helper.getBlockEntity(PUMP, MachineBlockEntity.class);
         pump.inventory().setStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, coal));
     }
 
@@ -140,7 +137,7 @@ public final class PumpGameTests {
     }
 
     /** A Burner Pump on a pond fills the cauldron beside it through an Auto side, and the pond stays. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void burnerPumpFillsAdjacentCauldron(GameTestHelper helper) {
         pool(helper, 4);
         burnerPump(helper, 4);
@@ -157,12 +154,12 @@ public final class PumpGameTests {
     }
 
     /** A pump on a lone source block does nothing and keeps its fuel. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void pumpOnLoneSourceBurnsNoFuel(GameTestHelper helper) {
         pool(helper, 1);
         burnerPump(helper, 1);
         helper.runAfterDelay(60, () -> {
-            BurnerPumpBlockEntity pump = helper.getBlockEntity(PUMP);
+            BurnerPumpBlockEntity pump = helper.getBlockEntity(PUMP, BurnerPumpBlockEntity.class);
             helper.assertTrue(pump.inventory().getStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL).getCount() == 1, "the coal must stay");
             helper.assertTrue(!pump.isBurning(), "nothing burns");
             helper.assertTrue(buffered(helper) == 0, "no water from a lone source, got " + buffered(helper));
@@ -172,7 +169,7 @@ public final class PumpGameTests {
     }
 
     /** Removing the neighbouring sources stops the pump at the start of its next cycle. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void pumpStopsWhenSourceIsDrained(GameTestHelper helper) {
         pool(helper, 4);
         burnerPump(helper, 4);
@@ -196,15 +193,15 @@ public final class PumpGameTests {
     }
 
     /** A pump has no side settings: every side is fixed, the carrot changes nothing, fuel goes in by automation. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void pumpSidesAreFixed(GameTestHelper helper) {
         burnerPump(helper, 0);
-        MachineBlockEntity pump = helper.getBlockEntity(PUMP);
+        MachineBlockEntity pump = helper.getBlockEntity(PUMP, MachineBlockEntity.class);
         for (RelativeSide side : RelativeSide.values()) {
             helper.assertTrue(pump.sideConfig().isLocked(side), "side " + side + " should be fixed");
         }
         helper.assertTrue(pump.cycleFace(Direction.WEST) == SideMode.AUTO, "a side stays Auto when cycled");
-        ItemView west = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(PUMP), Direction.WEST);
+        ItemView west = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(PUMP), Direction.WEST));
         helper.assertTrue(west != null, "a side takes fuel by automation");
         ItemStack left = west.insertItem(new ItemStack(Items.COAL, 3), false);
         helper.assertTrue(left.isEmpty() && pump.inventory().getStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL).getCount() == 3,
@@ -217,7 +214,7 @@ public final class PumpGameTests {
     }
 
     /** Stubs show toward ducts and fluid blocks on every face but the front and the bottom, sized like the arm they meet. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void pumpStubsFollowNeighbours(GameTestHelper helper) {
         burnerPump(helper, 0);
         helper.setBlock(PUMP.east(), Blocks.CAULDRON.defaultBlockState());
@@ -228,7 +225,7 @@ public final class PumpGameTests {
         helper.assertTrue(stub(helper, PumpBlock.NORTH) == 0, "the front never gets a stub");
         helper.assertTrue(stub(helper, PumpBlock.WEST) == 0, "stone gets no stub");
         helper.assertTrue(stub(helper, PumpBlock.SOUTH) == 1, "an Item Pipe that brings fuel gets a thin stub");
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(PUMP.south());
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(PUMP.south(), UtilityDuctBlockEntity.class);
         duct.addLine(Line.FLUID);
         helper.assertTrue(stub(helper, PumpBlock.SOUTH) == 2, "a second line grows the stub");
         duct.addLine(Line.ENERGY);
@@ -240,14 +237,14 @@ public final class PumpGameTests {
     }
 
     /** A Power Cable meets an Electric Pump with a stub on its sides, but no cable reaches its front. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void electricPumpStubForPowerCable(GameTestHelper helper) {
         helper.setBlock(PUMP, facing(MachineContent.ELECTRIC_PUMP.get(), Direction.NORTH));
         duct(helper, PUMP.east(), Line.ENERGY);
         duct(helper, PUMP.north(), Line.ENERGY);
         helper.assertTrue(stub(helper, PumpBlock.EAST) == 1, "a Power Cable on the side gets a thin stub");
         helper.assertTrue(stub(helper, PumpBlock.NORTH) == 0, "the front takes no power and gets no stub");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(PUMP), Direction.NORTH) == null,
+        helper.assertTrue(EnergyView.of(helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(PUMP), Direction.NORTH)) == null,
                 "no energy through the front");
         duct(helper, PUMP.above(), Line.FLUID);
         helper.assertTrue(stub(helper, PumpBlock.UP) == 1, "a Fluid Pipe on top reaches the outlet");
@@ -255,14 +252,14 @@ public final class PumpGameTests {
     }
 
     /** A pump never accepts fluid, and its front and bottom are fixed Off. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void pumpRefusesFluidAndClosesFrontAndBottom(GameTestHelper helper) {
         burnerPump(helper, 0);
         FluidView side = pumpFluid(helper, Direction.EAST);
         helper.assertTrue(side != null, "a side is Auto and offers the buffer");
         helper.assertTrue(side.fill(new FluidStack(Fluids.WATER, 1000), false) == 0, "a pump accepts nothing");
         helper.assertTrue(buffered(helper) == 0, "the buffer stays empty");
-        MachineBlockEntity pump = helper.getBlockEntity(PUMP);
+        MachineBlockEntity pump = helper.getBlockEntity(PUMP, MachineBlockEntity.class);
         helper.assertTrue(pump.sideMode(Direction.DOWN) == SideMode.DISABLED, "the bottom starts Off");
         helper.assertTrue(pump.cycleFace(Direction.DOWN) == SideMode.DISABLED, "the bottom cannot be cycled");
         helper.assertTrue(pumpFluid(helper, Direction.DOWN) == null, "no water through the bottom");
@@ -271,12 +268,12 @@ public final class PumpGameTests {
     }
 
     /** An Electric Pump idles without energy and runs once energy arrives. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void electricPumpIdlesWithoutEnergy(GameTestHelper helper) {
         pool(helper, 4);
         helper.setBlock(PUMP, facing(MachineContent.ELECTRIC_PUMP.get(), Direction.NORTH));
         helper.runAfterDelay(60, () -> {
-            PoweredMachineBlockEntity pump = helper.getBlockEntity(PUMP);
+            PoweredMachineBlockEntity pump = helper.getBlockEntity(PUMP, PoweredMachineBlockEntity.class);
             helper.assertTrue(buffered(helper) == 0, "no water without energy");
             pump.energyStorage().receiveEnergy(8000, false);
             helper.runAfterDelay(30, () -> {
@@ -287,11 +284,11 @@ public final class PumpGameTests {
     }
 
     /** A powered pump fills its buffer, then pauses without spending energy, and the pond stays. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void electricPumpFillsBufferThenPauses(GameTestHelper helper) {
         pool(helper, 4);
         helper.setBlock(PUMP, facing(MachineContent.ELECTRIC_PUMP.get(), Direction.NORTH));
-        PoweredMachineBlockEntity pump = helper.getBlockEntity(PUMP);
+        PoweredMachineBlockEntity pump = helper.getBlockEntity(PUMP, PoweredMachineBlockEntity.class);
         pump.energyStorage().receiveEnergy(8000, false);
         helper.runAfterDelay(200, () -> {
             helper.assertTrue(buffered(helper) == 4000, "the buffer should be full, got " + buffered(helper));
@@ -305,17 +302,17 @@ public final class PumpGameTests {
     }
 
     /** A Coal Generator beside an Electric Pump fills the pump's buffer without a cable. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void generatorPowersAdjacentPump(GameTestHelper helper) {
         BlockPos pump = new BlockPos(3, 1, 3);
         // Facing north, the pump takes energy on its east side.
         helper.setBlock(pump, facing(MachineContent.ELECTRIC_PUMP.get(), Direction.NORTH));
         BlockPos generator = pump.east();
         helper.setBlock(generator, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
-        MachineBlockEntity burner = helper.getBlockEntity(generator);
+        MachineBlockEntity burner = helper.getBlockEntity(generator, MachineBlockEntity.class);
         burner.inventory().setStackInSlot(0, new ItemStack(Items.COAL, 4));
         helper.succeedWhen(() -> {
-            PoweredMachineBlockEntity powered = helper.getBlockEntity(pump);
+            PoweredMachineBlockEntity powered = helper.getBlockEntity(pump, PoweredMachineBlockEntity.class);
             helper.assertTrue(powered.energyStorage().getEnergyStored() > 0, "the pump should receive energy from the generator");
         });
     }
@@ -325,7 +322,7 @@ public final class PumpGameTests {
      * and pump A on channel 1, generator B (no fuel) and pump B on channel 2. Only
      * pump A gets energy, so channels keep energy apart.
      */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void energyStaysOnItsChannel(GameTestHelper helper) {
         for (int z = 1; z <= 4; z++) {
             duct(helper, new BlockPos(7, 2, z), Line.ENERGY);
@@ -335,19 +332,19 @@ public final class PumpGameTests {
         BlockPos generatorB = new BlockPos(6, 2, 3);
         BlockPos pumpB = new BlockPos(8, 2, 3);
         helper.setBlock(generatorA, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
-        MachineBlockEntity fuelled = helper.getBlockEntity(generatorA);
+        MachineBlockEntity fuelled = helper.getBlockEntity(generatorA, MachineBlockEntity.class);
         fuelled.inventory().setStackInSlot(0, new ItemStack(Items.COAL, 64));
         helper.setBlock(generatorB, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
         // Facing north, a pump takes energy on its west side, where the cable runs.
         helper.setBlock(pumpA, facing(MachineContent.ELECTRIC_PUMP.get(), Direction.NORTH));
         helper.setBlock(pumpB, facing(MachineContent.ELECTRIC_PUMP.get(), Direction.NORTH));
-        UtilityDuctBlockEntity ductB = helper.getBlockEntity(new BlockPos(7, 2, 3));
+        UtilityDuctBlockEntity ductB = helper.getBlockEntity(new BlockPos(7, 2, 3), UtilityDuctBlockEntity.class);
         ductB.setChannel(Line.ENERGY, Direction.WEST, 1);
         ductB.setChannel(Line.ENERGY, Direction.EAST, 1);
 
         helper.runAfterDelay(60, () -> {
-            PoweredMachineBlockEntity a = helper.getBlockEntity(pumpA);
-            PoweredMachineBlockEntity b = helper.getBlockEntity(pumpB);
+            PoweredMachineBlockEntity a = helper.getBlockEntity(pumpA, PoweredMachineBlockEntity.class);
+            PoweredMachineBlockEntity b = helper.getBlockEntity(pumpB, PoweredMachineBlockEntity.class);
             helper.assertTrue(a.energyStorage().getEnergyStored() > 0, "pump A on channel 1 should receive energy");
             helper.assertTrue(b.energyStorage().getEnergyStored() == 0,
                     "pump B on channel 2 must stay empty, got " + b.energyStorage().getEnergyStored());
@@ -356,17 +353,17 @@ public final class PumpGameTests {
     }
 
     /** The Electric Pump is crafted by hand from a Burner Pump, iron, copper and redstone; no assembler, no research. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void electricPumpIsHandCrafted(GameTestHelper helper) {
         ItemStack c = new ItemStack(Items.COPPER_INGOT);
         ItemStack r = new ItemStack(Items.REDSTONE);
         ItemStack i = new ItemStack(Items.IRON_INGOT);
         ItemStack p = new ItemStack(MachineContent.BURNER_PUMP_ITEM.get());
         CraftingInput input = CraftingInput.of(3, 3, List.of(c, r, c, i, p, i, c, r, c));
-        Optional<RecipeHolder<CraftingRecipe>> recipe = helper.getLevel().getRecipeManager()
+        Optional<RecipeHolder<CraftingRecipe>> recipe = helper.getLevel().recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
         helper.assertTrue(recipe.isPresent(), "the Electric Pump pattern should match a crafting recipe");
-        ItemStack result = recipe.get().value().assemble(input, helper.getLevel().registryAccess());
+        ItemStack result = recipe.get().value().assemble(input);
         helper.assertTrue(result.is(MachineContent.ELECTRIC_PUMP_ITEM.get()), "the result should be an Electric Pump, got " + result);
         helper.succeed();
     }
@@ -392,7 +389,7 @@ public final class PumpGameTests {
     }
 
     /** One item fills the clicked spot and the block above, facing the same way. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void burnerPumpPlacesTwoHalves(GameTestHelper helper) {
         helper.setBlock(ENGINE.below(), Blocks.STONE.defaultBlockState());
         ItemStack left = placeWithItem(helper, ENGINE);
@@ -401,13 +398,13 @@ public final class PumpGameTests {
         helper.assertTrue(isHalf(helper, ENGINE.above(), DoubleBlockHalf.UPPER), "the upper half is placed above");
         helper.assertTrue(helper.getBlockState(ENGINE).getValue(MachineBlock.FACING) == helper.getBlockState(ENGINE.above()).getValue(MachineBlock.FACING),
                 "both halves face the same way");
-        helper.assertTrue(helper.getBlockEntity(ENGINE) instanceof BurnerPumpBlockEntity, "the lower half holds the machine");
+        helper.assertTrue(helper.getBlockEntity(ENGINE, BlockEntity.class) instanceof BurnerPumpBlockEntity, "the lower half holds the machine");
         helper.assertTrue(helper.getLevel().getBlockEntity(helper.absolutePos(ENGINE.above())) == null, "the upper half has no block entity");
         helper.succeed();
     }
 
     /** Without room above nothing is placed and the item stays. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void burnerPumpNeedsRoomAbove(GameTestHelper helper) {
         helper.setBlock(ENGINE.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(ENGINE.above(), Blocks.STONE.defaultBlockState());
@@ -426,7 +423,7 @@ public final class PumpGameTests {
         helper.setBlock(pos.below(), Blocks.WATER.defaultBlockState());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         Vec3 feet = Vec3.atBottomCenterOf(helper.absolutePos(pos.above(2)));
-        player.moveTo(feet.x, feet.y, feet.z, 0, 90);
+        player.snapTo(feet.x, feet.y, feet.z, 0, 90);
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         BlockPos floor = helper.absolutePos(pos.below(2));
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(floor).add(0, 0.5, 0), Direction.UP, floor, false);
@@ -435,7 +432,7 @@ public final class PumpGameTests {
     }
 
     /** Clicking through the water puts the Burner Pump on the surface, not on the pond floor. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void burnerPumpPlacesOnWaterSurface(GameTestHelper helper) {
         ItemStack left = placeOnWater(helper, ENGINE, new ItemStack(MachineContent.BURNER_PUMP_ITEM.get()));
         helper.assertTrue(left.isEmpty(), "the item is used up");
@@ -446,7 +443,7 @@ public final class PumpGameTests {
     }
 
     /** The Electric Pump lands on the water surface the same way. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void electricPumpPlacesOnWaterSurface(GameTestHelper helper) {
         ItemStack left = placeOnWater(helper, ENGINE, new ItemStack(MachineContent.ELECTRIC_PUMP_ITEM.get()));
         helper.assertTrue(left.isEmpty(), "the item is used up");
@@ -464,12 +461,12 @@ public final class PumpGameTests {
     }
 
     /** Breaking either half removes both and drops one pump plus the fuel. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void breakingEitherHalfDropsOnePump(GameTestHelper helper) {
         BlockPos second = ENGINE.east(3);
         for (BlockPos pos : new BlockPos[] {ENGINE, second}) {
             placeBurnerPump(helper, pos);
-            MachineBlockEntity pump = helper.getBlockEntity(pos);
+            MachineBlockEntity pump = helper.getBlockEntity(pos, MachineBlockEntity.class);
             pump.inventory().setStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 5));
         }
         helper.getLevel().destroyBlock(helper.absolutePos(ENGINE.above()), true);
@@ -485,27 +482,27 @@ public final class PumpGameTests {
     }
 
     /** The upper half offers nothing, and a duct beside it does not connect. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void burnerPumpUpperHalfHasNoCapabilities(GameTestHelper helper) {
         placeBurnerPump(helper, ENGINE);
         BlockPos top = helper.absolutePos(ENGINE.above());
         for (Direction side : Direction.values()) {
-            helper.assertTrue(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, top, side) == null, "no fluid on " + side);
-            helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, top, side) == null, "no items on " + side);
+            helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, top, side)) == null, "no fluid on " + side);
+            helper.assertTrue(ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, top, side)) == null, "no items on " + side);
         }
         duct(helper, ENGINE.above().east(), Line.FLUID);
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(ENGINE.above().east());
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(ENGINE.above().east(), UtilityDuctBlockEntity.class);
         helper.assertFalse(duct.hasArm(Line.FLUID, Direction.WEST), "the duct shows no arm toward the upper half");
         helper.succeed();
     }
 
     /** The lower half's top faces the upper half: no water, no fuel, no stub. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void burnerPumpTopFaceClosed(GameTestHelper helper) {
         placeBurnerPump(helper, ENGINE);
         BlockPos pos = helper.absolutePos(ENGINE);
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, pos, Direction.UP) == null, "no water upward");
-        ItemView above = helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP);
+        helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, pos, Direction.UP)) == null, "no water upward");
+        ItemView above = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP));
         helper.assertTrue(above == null || above.insertItem(new ItemStack(Items.COAL, 2), false).getCount() == 2,
                 "no fuel from above");
         helper.assertTrue(helper.getBlockState(ENGINE).getValue(PumpBlock.UP) == 0, "no stub on top");
@@ -513,7 +510,7 @@ public final class PumpGameTests {
     }
 
     /** Right clicking the chimney reaches the machine below. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void burnerPumpUpperHalfLeadsToTheEngine(GameTestHelper helper) {
         placeBurnerPump(helper, ENGINE);
         BlockState upper = helper.getBlockState(ENGINE.above());

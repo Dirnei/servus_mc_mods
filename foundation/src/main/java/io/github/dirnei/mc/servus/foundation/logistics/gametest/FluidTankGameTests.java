@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.gametest;
 
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlock;
@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -35,12 +34,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** GameTests of the Fluid Tank: forming, splitting, one fluid rule, buckets and drops. */
-@GameTestHolder(ServusFoundationIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class FluidTankGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -64,13 +59,13 @@ public final class FluidTankGameTests {
     }
 
     private static FluidView handler(GameTestHelper helper, BlockPos pos) {
-        FluidView handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), Direction.UP);
+        FluidView handler = FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), Direction.UP));
         helper.assertTrue(handler != null, "tank at " + pos.toShortString() + " should expose a fluid handler");
         return handler;
     }
 
     private static FluidTankBlockEntity entity(GameTestHelper helper, BlockPos pos) {
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, FluidTankBlockEntity.class);
     }
 
     private static FluidStack water(int amount) {
@@ -114,7 +109,7 @@ public final class FluidTankGameTests {
     }
 
     /** Two stacked blocks form one tank; water filled at the top drains from the bottom. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void twoBlocksShareOneTank(GameTestHelper helper) {
         BlockPos bottom = new BlockPos(2, 1, 2);
         BlockPos top = bottom.above();
@@ -148,7 +143,7 @@ public final class FluidTankGameTests {
     }
 
     /** An L of three blocks is a pair and a single; the fourth block forms one 2 by 2 tank holding all their fluid. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void floorFormsWithTheFourthBlock(GameTestHelper helper) {
         BlockPos a = new BlockPos(2, 1, 2);
         BlockPos b = a.east();
@@ -184,7 +179,7 @@ public final class FluidTankGameTests {
     }
 
     /** A block on top of a 2 by 2 tank leaves it formed; completing the top layer grows it to 2 by 2 by 2. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void blockOnTopKeepsTheTankAndALayerGrowsIt(GameTestHelper helper) {
         BlockPos min = new BlockPos(2, 1, 2);
         box(helper, min, new BlockPos(3, 1, 3));
@@ -215,7 +210,7 @@ public final class FluidTankGameTests {
     }
 
     /** A 2 by 2 by 2 tank fills bottom up; breaking a corner regroups the other seven and keeps their fluid. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void brokenCornerRegroupsAndKeepsShares(GameTestHelper helper) {
         BlockPos min = new BlockPos(2, 1, 2);
         BlockPos max = new BlockPos(3, 2, 3);
@@ -250,7 +245,7 @@ public final class FluidTankGameTests {
     }
 
     /** A single block touching a 2 by 2 by 2 tank leaves the tank formed and works on its own. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void neighbourBlockLeavesTheBoxFormed(GameTestHelper helper) {
         BlockPos min = new BlockPos(2, 1, 2);
         BlockPos max = new BlockPos(3, 2, 3);
@@ -269,7 +264,7 @@ public final class FluidTankGameTests {
     }
 
     /** A stack of tank items on top of a 2 by 2 tank places a whole layer and uses four items. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void stackOnTopPlacesAWholeLayer(GameTestHelper helper) {
         BlockPos min = new BlockPos(2, 1, 2);
         box(helper, min, new BlockPos(3, 1, 3));
@@ -290,7 +285,7 @@ public final class FluidTankGameTests {
     }
 
     /** Too few items, sneaking or a blocked spot place one block instead of a layer. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void layerFallsBackToOneBlock(GameTestHelper helper) {
         BlockPos few = new BlockPos(1, 1, 1);
         BlockPos sneak = new BlockPos(5, 1, 1);
@@ -323,7 +318,7 @@ public final class FluidTankGameTests {
     }
 
     /** A water bucket empties into an empty tank, an empty bucket takes it back out. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void bucketsFillAndEmpty(GameTestHelper helper) {
         BlockPos pos = new BlockPos(2, 1, 2);
         tank(helper, pos);
@@ -347,7 +342,7 @@ public final class FluidTankGameTests {
     }
 
     /** A tank holding water accepts no lava, single or formed. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void waterTankRefusesLava(GameTestHelper helper) {
         BlockPos single = new BlockPos(2, 1, 2);
         BlockPos formed = new BlockPos(6, 1, 6);
@@ -368,7 +363,7 @@ public final class FluidTankGameTests {
     }
 
     /** A tank block cannot be placed between a water and a lava tank, but next to water alone it can. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void placementBetweenWaterAndLavaIsRefused(GameTestHelper helper) {
         BlockPos waterTank = new BlockPos(2, 1, 2);
         BlockPos lavaTank = new BlockPos(4, 1, 2);
@@ -393,7 +388,7 @@ public final class FluidTankGameTests {
     }
 
     /** A full single block drops an item carrying its water, and placing it elsewhere restores the water. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void movedFullBlockKeepsItsWater(GameTestHelper helper) {
         BlockPos from = new BlockPos(2, 1, 2);
         BlockPos to = new BlockPos(7, 1, 7);
@@ -424,7 +419,7 @@ public final class FluidTankGameTests {
     }
 
     /** A tower of four half full renders the lower two full; its empty top drops empty and the rest keeps the fluid. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void towerFillsBottomUpAndKeepsFluidWhenTopBreaks(GameTestHelper helper) {
         BlockPos base = new BlockPos(2, 1, 2);
         for (int i = 0; i < 4; i++) {
@@ -460,23 +455,23 @@ public final class FluidTankGameTests {
     }
 
     /** Copper, glass and stone bricks craft a tank with a stone brick floor; glass in the floor slot crafts nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void recipeTakesTheFloorBlock(GameTestHelper helper) {
         var level = helper.getLevel();
         CraftingInput bricks = tankGrid(Items.STONE_BRICKS);
-        Optional<RecipeHolder<CraftingRecipe>> match = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, bricks, level);
+        Optional<RecipeHolder<CraftingRecipe>> match = level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, bricks, level);
         helper.assertTrue(match.isPresent(), "copper, glass and stone bricks should match the tank recipe");
-        ItemStack result = match.get().value().assemble(bricks, level.registryAccess());
+        ItemStack result = match.get().value().assemble(bricks);
         helper.assertTrue(result.is(ServusLogisticsItems.FLUID_TANK.get()) && result.getCount() == 1, "result should be one tank");
         helper.assertTrue(FluidTankItem.floor(result) == Blocks.STONE_BRICKS, "the tank should remember stone bricks");
-        Optional<RecipeHolder<CraftingRecipe>> glass = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING,
+        Optional<RecipeHolder<CraftingRecipe>> glass = level.recipeAccess().getRecipeFor(RecipeType.CRAFTING,
                 tankGrid(Items.GLASS), level);
         helper.assertTrue(glass.isEmpty() || !(glass.get().value() instanceof FluidTankRecipe), "glass must not be a floor");
         helper.succeed();
     }
 
     /** A placed tank takes its floor from the item and drops it again. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void floorTravelsWithTheItem(GameTestHelper helper) {
         BlockPos pos = new BlockPos(3, 1, 3);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -496,7 +491,7 @@ public final class FluidTankGameTests {
     }
 
     /** A creative player scooping with an empty bucket keeps it and gets a filled bucket, like with vanilla water. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void creativeBucketGetsFilled(GameTestHelper helper) {
         BlockPos pos = new BlockPos(3, 1, 3);
         tank(helper, pos);

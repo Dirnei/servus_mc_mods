@@ -2,8 +2,6 @@ package io.github.dirnei.mc.servus.foundation.machine;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
-import io.github.dirnei.mc.servus.foundation.machine.pump.PumpGameTests;
-import io.github.dirnei.mc.servus.foundation.machine.sink.SinkGameTests;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkStatsManager;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
@@ -13,7 +11,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 
 /** Event hooks of the shared machine base and the machines Foundation owns. */
 @EventBusSubscriber(modid = ServusFoundationIds.MOD_ID)
@@ -40,14 +37,6 @@ public final class MachineEvents {
             if (event.getTabKey().equals(ServusFoundationCreativeTabs.SERVUS_KEY)) {
                 MachineContent.creativeTabOrder().forEach(event::accept);
             }
-        }
-
-        @SubscribeEvent
-        public static void onRegisterGameTests(RegisterGameTestsEvent event) {
-            event.register(MachineGameTests.class);
-            event.register(MachineBaseGameTests.class);
-            event.register(PumpGameTests.class);
-            event.register(SinkGameTests.class);
         }
 
         @SubscribeEvent

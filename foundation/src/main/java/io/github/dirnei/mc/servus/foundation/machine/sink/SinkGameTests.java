@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine.sink;
 
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -38,13 +37,9 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import net.neoforged.neoforge.fluids.FluidStack;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The Sink: forming with the carrot, voiding through every outer face, chimney rates and the trash GUI. */
-@GameTestHolder(ServusFoundationIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class SinkGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -63,7 +58,7 @@ public final class SinkGameTests {
      */
     private static void duct(GameTestHelper helper, BlockPos pos, Line... lines) {
         helper.setBlock(pos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
-        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos);
+        UtilityDuctBlockEntity duct = helper.getBlockEntity(pos, UtilityDuctBlockEntity.class);
         for (Line line : lines) {
             duct.addLine(line);
         }
@@ -109,7 +104,7 @@ public final class SinkGameTests {
         for (int i = 1; i <= chimneys; i++) {
             helper.setBlock(column.above(i), MachineContent.CHIMNEY.get().defaultBlockState());
         }
-        return helper.getBlockEntity(SINK);
+        return helper.getBlockEntity(SINK, SinkBlockEntity.class);
     }
 
     private static boolean formed(GameTestHelper helper, BlockPos pos) {
@@ -131,7 +126,7 @@ public final class SinkGameTests {
     }
 
     /** The carrot forms a cube from each of the four front blocks, for all four facings. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkFormsFromEachFrontPart(GameTestHelper helper) {
         // North, clicked on the controller itself (front lower east).
         sinkBox(helper, new BlockPos(1, 0, 1), null);
@@ -153,7 +148,7 @@ public final class SinkGameTests {
     }
 
     /** Seven blocks in a 2x2x2 shape do not form; the top face does not form either. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkSevenBlocksDoNotForm(GameTestHelper helper) {
         BlockPos min = new BlockPos(2, 0, 2);
         sinkBox(helper, min, new BlockPos(2, 1, 3));
@@ -170,7 +165,7 @@ public final class SinkGameTests {
     }
 
     /** Casings next to a formed Sink never take its blocks; they form once their own cube is complete. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkFormingIgnoresFormedNeighbour(GameTestHelper helper) {
         sink(helper, 0);
         // Four casings east of the formed cube: only the cube with the formed blocks would be complete.
@@ -191,7 +186,7 @@ public final class SinkGameTests {
     }
 
     /** Breaking one block unforms the other seven and drops one plain Sink block; repairing and the carrot form it again. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkBreakingUnformsAndReforms(GameTestHelper helper) {
         sink(helper, 0);
         BlockPos broken = new BlockPos(2, 1, 3);
@@ -216,7 +211,7 @@ public final class SinkGameTests {
     }
 
     /** The sneak carrot dismantles one block of a formed Sink into a plain Sink item and unforms the rest. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkSneakCarrotDismantlesOneBlock(GameTestHelper helper) {
         sink(helper, 0);
         carrot(helper, SINK, Direction.NORTH, true);
@@ -229,28 +224,28 @@ public final class SinkGameTests {
     }
 
     private static ItemView sinkItems(GameTestHelper helper, BlockPos pos, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(pos), side);
+        return ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(pos), side));
     }
 
     private static FluidView sinkFluid(GameTestHelper helper, BlockPos pos, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), side);
+        return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), side));
     }
 
     private static EnergyView sinkEnergy(GameTestHelper helper, BlockPos pos, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), side);
+        return EnergyView.of(helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), side));
     }
 
     /** Hoppers pointing into the side of the controller and into the back of another part empty; the items appear nowhere. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void hopperEmptiesIntoSink(GameTestHelper helper) {
         sink(helper, 5);
         BlockPos east = new BlockPos(4, 0, 2);
         helper.setBlock(east, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.WEST));
-        HopperBlockEntity intoController = helper.getBlockEntity(east);
+        HopperBlockEntity intoController = helper.getBlockEntity(east, HopperBlockEntity.class);
         intoController.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
         BlockPos back = new BlockPos(2, 0, 4);
         helper.setBlock(back, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.NORTH));
-        HopperBlockEntity intoBack = helper.getBlockEntity(back);
+        HopperBlockEntity intoBack = helper.getBlockEntity(back, HopperBlockEntity.class);
         intoBack.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
         helper.succeedWhen(() -> {
             helper.assertTrue(intoController.isEmpty(), "the hopper at the side should empty into the Sink");
@@ -260,7 +255,7 @@ public final class SinkGameTests {
     }
 
     /** A hopper pointing into a front face keeps its items: the front offers no capability. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void sinkFrontRefuses(GameTestHelper helper) {
         sink(helper, 5);
         for (BlockPos front : List.of(new BlockPos(2, 0, 2), SINK, new BlockPos(2, 1, 2), new BlockPos(3, 1, 2))) {
@@ -270,7 +265,7 @@ public final class SinkGameTests {
         }
         BlockPos hopperPos = new BlockPos(2, 0, 1);
         helper.setBlock(hopperPos, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.SOUTH));
-        HopperBlockEntity hopper = helper.getBlockEntity(hopperPos);
+        HopperBlockEntity hopper = helper.getBlockEntity(hopperPos, HopperBlockEntity.class);
         hopper.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(hopper.getItem(0).getCount() == 5, "the hopper at the front should keep its items");
@@ -279,7 +274,7 @@ public final class SinkGameTests {
     }
 
     /** Without a chimney the item rate of 4 per second takes 4 of a 64 stack; all faces share the budget. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkBaseRateTakesFourItems(GameTestHelper helper) {
         sink(helper, 0);
         ItemView top = sinkItems(helper, new BlockPos(3, 1, 2), Direction.UP);
@@ -295,7 +290,7 @@ public final class SinkGameTests {
     }
 
     /** Five Chimney blocks void everything at once: energy on the back of one block, fluid on top of another. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkWithFiveChimneysIsUnlimited(GameTestHelper helper) {
         SinkBlockEntity sink = sink(helper, 5);
         helper.assertTrue(sink.chimneyHeight() == 5, "five Chimney blocks, height " + sink.chimneyHeight());
@@ -313,7 +308,7 @@ public final class SinkGameTests {
     }
 
     /** Below the unlimited height energy and fluid follow the rate of the height, shared by all blocks. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkRateGrowsWithChimney(GameTestHelper helper) {
         sink(helper, 2);
         // Height 2: 400 FE and 200 mB per tick, one second of carry over in an idle Sink.
@@ -328,7 +323,7 @@ public final class SinkGameTests {
     }
 
     /** Nothing can be taken out of a Sink. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkGivesNothing(GameTestHelper helper) {
         sink(helper, 0);
         ItemView items = sinkItems(helper, SINK, Direction.DOWN);
@@ -341,7 +336,7 @@ public final class SinkGameTests {
     }
 
     /** Unformed casings offer no capability on any face, and a hopper keeps its items. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void sinkCasingsExposeNothing(GameTestHelper helper) {
         sinkBox(helper, new BlockPos(2, 0, 2), null);
         for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(2, 0, 2), new BlockPos(3, 1, 3))) {
@@ -353,7 +348,7 @@ public final class SinkGameTests {
         }
         BlockPos hopperPos = new BlockPos(4, 0, 2);
         helper.setBlock(hopperPos, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.WEST));
-        HopperBlockEntity hopper = helper.getBlockEntity(hopperPos);
+        HopperBlockEntity hopper = helper.getBlockEntity(hopperPos, HopperBlockEntity.class);
         hopper.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(hopper.getItem(0).getCount() == 5, "the hopper should keep its items");
@@ -362,7 +357,7 @@ public final class SinkGameTests {
     }
 
     /** Voiding through any block turns the controller active; after the active time without voiding it turns idle. */
-    @GameTest(template = EMPTY, timeoutTicks = 120)
+    @ServusGameTest(timeoutTicks = 120)
     public static void sinkActiveWhileVoiding(GameTestHelper helper) {
         sink(helper, 0);
         BlockPos back = new BlockPos(2, 1, 3);
@@ -388,7 +383,7 @@ public final class SinkGameTests {
     }
 
     /** Three Chimney blocks on a corner give height 3, only the top one shows the cap, and the cap moves up. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkCountsItsChimney(GameTestHelper helper) {
         SinkBlockEntity sink = sink(helper, 3);
         BlockPos column = new BlockPos(2, 1, 3);
@@ -404,7 +399,7 @@ public final class SinkGameTests {
     }
 
     /** Five Chimney blocks on the front left corner make the Sink unlimited. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkFiveOnACornerIsUnlimited(GameTestHelper helper) {
         SinkBlockEntity sink = sink(helper, 0);
         chimneyColumn(helper, new BlockPos(3, 1, 2), 5);
@@ -416,7 +411,7 @@ public final class SinkGameTests {
     }
 
     /** With two columns the tallest counts; shortening it falls back to the other one. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkTallestColumnCounts(GameTestHelper helper) {
         SinkBlockEntity sink = sink(helper, 0);
         chimneyColumn(helper, new BlockPos(3, 1, 3), 2);
@@ -432,7 +427,7 @@ public final class SinkGameTests {
     }
 
     /** Breaking the second of four Chimney blocks leaves a height of 1; filling the gap joins the column again. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkChimneyMiddleRemoved(GameTestHelper helper) {
         SinkBlockEntity sink = sink(helper, 4);
         BlockPos column = new BlockPos(2, 1, 3);
@@ -446,7 +441,7 @@ public final class SinkGameTests {
     }
 
     /** Chimney blocks on stone or on unformed casings are decorative; forming the cube counts a column already there. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void chimneyWithoutSinkIsDecorative(GameTestHelper helper) {
         BlockPos base = new BlockPos(8, 0, 8);
         helper.setBlock(base, Blocks.STONE.defaultBlockState());
@@ -458,16 +453,16 @@ public final class SinkGameTests {
 
         sinkBox(helper, new BlockPos(2, 0, 2), null);
         chimneyColumn(helper, new BlockPos(2, 1, 3), 3);
-        SinkBlockEntity casing = helper.getBlockEntity(SINK);
+        SinkBlockEntity casing = helper.getBlockEntity(SINK, SinkBlockEntity.class);
         helper.assertTrue(casing.chimneyHeight() == 0, "a casing counts no chimney, got " + casing.chimneyHeight());
         carrot(helper, SINK, Direction.NORTH, false);
-        SinkBlockEntity sink = helper.getBlockEntity(SINK);
+        SinkBlockEntity sink = helper.getBlockEntity(SINK, SinkBlockEntity.class);
         helper.assertTrue(sink.chimneyHeight() == 3, "forming counts the column already standing, got " + sink.chimneyHeight());
         helper.succeed();
     }
 
     /** A lava bucket used on any formed block is emptied whatever the rate; on a casing it stays full. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkEmptiesLavaBucket(GameTestHelper helper) {
         sink(helper, 0);
         // Use up the fluid budget first: the bucket must not depend on it.
@@ -494,7 +489,7 @@ public final class SinkGameTests {
     }
 
     /** Shift clicking a stack into the trash slot voids all of it at once, even without a chimney; unforming closes the GUI. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkTrashSlotVoidsStack(GameTestHelper helper) {
         SinkBlockEntity sink = sink(helper, 0);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -515,7 +510,7 @@ public final class SinkGameTests {
     }
 
     /** The GUI data shows height 5 and Unlimited (-1) for all three rates with five Chimney blocks. */
-    @GameTest(template = EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void sinkGuiShowsUnlimited(GameTestHelper helper) {
         SinkBlockEntity sink = sink(helper, 5);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
