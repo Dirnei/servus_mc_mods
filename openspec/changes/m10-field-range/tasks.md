@@ -3,7 +3,7 @@
 ## 1. Pure logic
 
 - [x] 1.1 Radius as an argument: `FieldStrip.plots/boxes`, `FieldReach.connected`, `PlotReach.assign` take the radius, `RADIUS` removed, `PlotReach` caches offsets per radius; new `FieldRadius` (`of`, `maxUpgrades`) in `storage/.../field/` (design D1). JUnit: update `FieldStripTest`, `FieldReachTest`, `PlotReachTest` for radius 2 and 4; new `FieldRadiusTest` (base, upgrades, clamp at max, max below base). Verify: `gradlew :storage:test`.
-- [ ] 1.2 `ModuleSpec.wide`, `ShuttleProfile.liftless`, new pure `LiftlessSteps.filter` in `storage/.../shuttle/`; `FieldWork` gets `NO_WAY` and a `reachable` argument after `harvester` (design D4, D6). JUnit: `ShuttleProfileTest` (Harvester liftless, plain not), new `LiftlessStepsTest` (vertical dropped, horizontal through a shaft node kept), `FieldWorkTest` (`NO_WAY` order). Verify: `gradlew :storage:test`.
+- [x] 1.2 `ModuleSpec.wide`, `ShuttleProfile.liftless`, new pure `LiftlessSteps.filter` in `storage/.../shuttle/`; `FieldWork` gets `NO_WAY` and a `reachable` argument after `harvester` (design D4, D6). JUnit: `ShuttleProfileTest` (Harvester liftless, plain not), new `LiftlessStepsTest` (vertical dropped, horizontal through a shaft node kept), `FieldWorkTest` (`NO_WAY` order). Verify: `gradlew :storage:test`.
 
 ## 2. Field Head radius
 

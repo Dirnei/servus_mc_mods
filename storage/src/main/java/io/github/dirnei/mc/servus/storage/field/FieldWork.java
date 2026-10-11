@@ -13,6 +13,8 @@ public enum FieldWork {
     NO_CROP,
     /** No garage of the warehouse holds a shuttle with a Harvester. */
     NO_HARVESTER,
+    /** No Harvester shuttle can reach the field without riding a lift car. */
+    NO_WAY,
     /** A field run is queued or under way. */
     WORKING,
     /** Enough is ripe; a run goes out at the next check. */
@@ -44,6 +46,7 @@ public enum FieldWork {
      * @param online     that warehouse has exactly one controller
      * @param cropSet    a crop or harvest only is set
      * @param harvester  a garage of the warehouse holds a Harvester shuttle
+     * @param reachable  some Harvester shuttle reaches the field without a lift
      * @param working    a run for this field is queued or under way
      * @param harvestDue the ripe share reached the threshold
      * @param plantMode  a crop is set and harvest only is off
@@ -53,7 +56,7 @@ public enum FieldWork {
      * @param planted    plots holding a crop
      * @param seeds      the warehouse holds the crop item
      */
-    public static FieldWork of(boolean linked, boolean online, boolean cropSet, boolean harvester, boolean working,
+    public static FieldWork of(boolean linked, boolean online, boolean cropSet, boolean harvester, boolean reachable, boolean working,
             boolean harvestDue, boolean plantMode, boolean hydrated, int tillable, int plantable, int planted, boolean seeds) {
         if (!linked) {
             return NOT_LINKED;
@@ -66,6 +69,9 @@ public enum FieldWork {
         }
         if (!harvester) {
             return NO_HARVESTER;
+        }
+        if (!reachable) {
+            return NO_WAY;
         }
         if (working) {
             return WORKING;

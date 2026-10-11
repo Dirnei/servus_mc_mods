@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 
 class ShuttleProfileTest {
 
-    static final ModuleSpec HARVESTER = new ModuleSpec("harvester", true);
-    static final ModuleSpec PROBE = new ModuleSpec("probe", false);
+    static final ModuleSpec HARVESTER = new ModuleSpec("harvester", true, true);
+    static final ModuleSpec PROBE = new ModuleSpec("probe", false, false);
 
     private static ShuttleProfile profile(int tier, Optional<ModuleSpec> tool, int speed, int handling) {
         return ShuttleProfile.of(ShuttleTiers.DEFAULT, tier, tool, speed, handling);
@@ -29,6 +29,13 @@ class ShuttleProfileTest {
         assertTrue(profile(1, Optional.of(HARVESTER), 0, 0).fieldOnly());
         assertFalse(profile(1, Optional.of(PROBE), 0, 0).fieldOnly());
         assertFalse(profile(1, Optional.empty(), 0, 0).fieldOnly());
+    }
+
+    @Test
+    void liftlessComesFromAWideTool() {
+        assertTrue(profile(1, Optional.of(HARVESTER), 0, 0).liftless());
+        assertFalse(profile(1, Optional.of(PROBE), 0, 0).liftless());
+        assertFalse(ShuttleProfile.plain().liftless());
     }
 
     @Test

@@ -61,7 +61,7 @@ public final class ServusStorageItems {
             properties -> new ShuttleItem(3, properties), new Item.Properties().stacksTo(16));
     public static final DeferredItem<Item> HANDLING_UPGRADE = ITEMS.registerSimpleItem("handling_upgrade");
     public static final DeferredItem<ShuttleModuleItem> HARVESTER = ITEMS.registerItem("harvester",
-            properties -> new ShuttleModuleItem(new ModuleSpec(ModuleSpec.HARVESTER, true), properties),
+            properties -> new ShuttleModuleItem(new ModuleSpec(ModuleSpec.HARVESTER, true, true), properties),
             new Item.Properties().stacksTo(16));
     public static final DeferredItem<ZoneLabelItem> ZONE_LABEL = ITEMS.registerItem("zone_label", ZoneLabelItem::new, new Item.Properties().stacksTo(1));
 

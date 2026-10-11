@@ -7,30 +7,30 @@ import org.junit.jupiter.api.Test;
 class FieldWorkTest {
 
     private static FieldWork plant(boolean hydrated, int tillable, int plantable, int planted, boolean seeds) {
-        return FieldWork.of(true, true, true, true, false, false, true, hydrated, tillable, plantable, planted, seeds);
+        return FieldWork.of(true, true, true, true, true, false, false, true, hydrated, tillable, plantable, planted, seeds);
     }
 
     @Test
     void firstMissingPieceWins() {
-        assertEquals(FieldWork.NOT_LINKED, FieldWork.of(false, false, false, false, false, false, false, false, 0, 0, 0, false));
-        assertEquals(FieldWork.NO_CONTROLLER, FieldWork.of(true, false, false, false, false, false, false, false, 0, 0, 0, false));
-        assertEquals(FieldWork.NO_CROP, FieldWork.of(true, true, false, true, false, false, false, true, 5, 0, 0, true));
-        assertEquals(FieldWork.NO_HARVESTER, FieldWork.of(true, true, true, false, false, false, true, true, 5, 0, 0, true));
+        assertEquals(FieldWork.NOT_LINKED, FieldWork.of(false, false, false, false, true, false, false, false, false, 0, 0, 0, false));
+        assertEquals(FieldWork.NO_CONTROLLER, FieldWork.of(true, false, false, false, true, false, false, false, false, 0, 0, 0, false));
+        assertEquals(FieldWork.NO_CROP, FieldWork.of(true, true, false, true, true, false, false, false, true, 5, 0, 0, true));
+        assertEquals(FieldWork.NO_HARVESTER, FieldWork.of(true, true, true, false, true, false, false, true, true, 5, 0, 0, true));
     }
 
     @Test
     void runUnderWayShowsWorking() {
-        assertEquals(FieldWork.WORKING, FieldWork.of(true, true, true, true, true, true, true, false, 0, 0, 0, false));
+        assertEquals(FieldWork.WORKING, FieldWork.of(true, true, true, true, true, true, true, true, false, 0, 0, 0, false));
     }
 
     @Test
     void harvestDueBeforePlanting() {
-        assertEquals(FieldWork.HARVEST_DUE, FieldWork.of(true, true, true, true, false, true, true, false, 0, 0, 4, false));
+        assertEquals(FieldWork.HARVEST_DUE, FieldWork.of(true, true, true, true, true, false, true, true, false, 0, 0, 4, false));
     }
 
     @Test
     void harvestOnlyWaits() {
-        assertEquals(FieldWork.WAITING_RIPE, FieldWork.of(true, true, true, true, false, false, false, false, 3, 3, 2, false));
+        assertEquals(FieldWork.WAITING_RIPE, FieldWork.of(true, true, true, true, true, false, false, false, false, 3, 3, 2, false));
     }
 
     @Test
@@ -58,5 +58,11 @@ class FieldWorkTest {
     @Test
     void unknownIdFallsBack() {
         assertEquals(FieldWork.NOT_LINKED, FieldWork.byId(99));
+    }
+
+    @Test
+    void noWayComesAfterTheHarvester() {
+        assertEquals(FieldWork.NO_WAY, FieldWork.of(true, true, true, true, false, true, true, true, true, 5, 0, 0, true));
+        assertEquals(FieldWork.NO_HARVESTER, FieldWork.of(true, true, true, false, false, false, true, true, true, 5, 0, 0, true));
     }
 }
