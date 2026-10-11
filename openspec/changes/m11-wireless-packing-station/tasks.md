@@ -11,7 +11,7 @@
 
 ## 3. Transfers
 
-- [ ] 3.1 `PackingStationBlockEntity`/`WirelessPackingStationBlockEntity`: wireless sending per tick with cost, rate, room and ledger; `WarehouseNetwork.java`: `shipThrough`, `shipWireless`, `wirelessTeams`, record update; `SiteRecord`/`SiteRegistry`: wireless teams. Run `gradlew build`.
+- [x] 3.1 `PackingStationBlockEntity`/`WirelessPackingStationBlockEntity`: wireless sending per tick with cost, rate, room and ledger; `WarehouseNetwork.java`: `shipThrough`, `shipWireless`, `wirelessTeams`, record update; `SiteRecord`/`SiteRegistry`: wireless teams. Run `gradlew build`.
 
 ## 4. Terminal and controller
 

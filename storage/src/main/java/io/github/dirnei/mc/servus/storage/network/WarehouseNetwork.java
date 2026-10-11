@@ -630,11 +630,34 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 candidates.add(point);
             }
         }
+        return shipThrough(candidates, target, key, amount, requestId, "no_packing_station");
+    }
+
+    /**
+     * Sends items over the wireless line to a Wireless Packing Station of
+     * another site: picked into this warehouse's Wireless Packing Station of the
+     * team with the shortest shuttle trip, then moved by that station.
+     *
+     * @return refusal keys: {@code offline}, {@code no_wireless_station}, {@code out_of_stock},
+     *         {@code needs_shuttle} or {@code no_rail}
+     */
+    public Shipping shipWireless(BlockPos receiver, ItemKey key, int amount, int requestId, java.util.UUID team) {
+        if (status() != Status.ONLINE || level == null) {
+            return new Shipping("offline", Optional.empty(), null);
+        }
+        List<PackingStationBlockEntity> candidates = new ArrayList<>(wirelessStations(team));
+        candidates.removeIf(point -> point.getBlockPos().equals(receiver));
+        return shipThrough(candidates, receiver, key, amount, requestId, "no_wireless_station");
+    }
+
+    /** Plans the picks into the candidate with the shortest shuttle trip and opens its shipment to the target. */
+    private Shipping shipThrough(List<PackingStationBlockEntity> candidates, BlockPos target, ItemKey key, int amount, int requestId,
+                                 String none) {
         candidates.sort(java.util.Comparator.comparing(point -> point.getBlockPos().asLong()));
         List<BlockPos> racks = sourcesHolding(key).stream().filter(this::isRack).toList();
         Optional<PackingStationBlockEntity> chosen = PackingStationChoice.choose(candidates, point -> trip(racks, point.getBlockPos()));
         if (chosen.isEmpty()) {
-            return new Shipping("no_packing_station", Optional.empty(), null);
+            return new Shipping(none, Optional.empty(), null);
         }
         BlockPos destination = chosen.get().getBlockPos();
         boolean reachable = fleet.canReach(destination);
