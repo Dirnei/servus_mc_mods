@@ -16,7 +16,7 @@
 
 ## 4. GameTests
 
-- [ ] 4.1 Storage GameTests in `ServusStorageGameTests`: `liftUpgradesLiveInTheBottom` (menu opened from the top segment, upgrades land in the bottom, a Handling Upgrade is refused), `liftUpgradesMoveDown` (segment placed below takes them), `liftUpgradesClimbWhenBottomBreaks` and `liftUpgradesDropWithLastSegment`, `upgradedCarIsFaster` (the car's count and its speed after the same number of ticks). Verify: `gradlew :storage:runGameTestServer` green.
+- [x] 4.1 Storage GameTests in `ServusStorageGameTests`: `liftUpgradesLiveInTheBottom` (menu opened from the top segment, upgrades land in the bottom, a Handling Upgrade is refused), `liftUpgradesMoveDown` (segment placed below takes them), `liftUpgradesClimbWhenBottomIsReplaced` and `liftUpgradesDropWithTheBottom`, `upgradedCarIsFaster` (the car's count and its speed after the same number of ticks). Verify: `gradlew :storage:runGameTestServer` green.
 
 ## 5. Docs
 

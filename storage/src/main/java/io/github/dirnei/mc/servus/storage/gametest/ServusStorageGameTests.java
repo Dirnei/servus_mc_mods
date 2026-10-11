@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import java.util.ArrayList;
+import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
+import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
+import io.github.dirnei.mc.servus.storage.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
@@ -2257,6 +2261,98 @@ public final class ServusStorageGameTests {
                 helper.runAfterDelay(420, () -> {
                     helper.assertTrue(terminal.outputCount(Items.BREAD) == 10 && terminal.outputCount(Items.APPLE) == 10,
                             "both loads arrive, output has " + terminal.outputCount(Items.BREAD) + " bread and " + terminal.outputCount(Items.APPLE) + " apples");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** The shaft's upgrade menu opened from the top segment works on the lowest one; only Speed Upgrades go in. */
+    @GameTest(template = EMPTY)
+    public static void liftUpgradesLiveInTheBottom(GameTestHelper helper) {
+        liftBase(helper, 0);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ElevatorBlockEntity bottom = ElevatorBlock.bottomOf(helper.getLevel(), helper.absolutePos(LC_TOP));
+        helper.assertTrue(bottom != null && bottom.getBlockPos().equals(helper.absolutePos(LC_BOTTOM)), "the top segment finds the lowest one");
+        ElevatorMenu menu = new ElevatorMenu(1, player.getInventory(), bottom);
+        helper.assertFalse(menu.getSlot(0).mayPlace(new ItemStack(ServusStorageItems.HANDLING_UPGRADE.get())), "a Handling Upgrade does not fit");
+        ItemStack rest = menu.getSlot(0).safeInsert(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get(), 3));
+        helper.assertTrue(rest.getCount() == 2, "one Speed Upgrade goes in, two stay, left " + rest.getCount());
+        ElevatorBlockEntity top = helper.getBlockEntity(LC_TOP);
+        helper.assertTrue(bottom.upgradeCount() == 1 && top.upgradeCount() == 0, "the lowest segment keeps the upgrade");
+        helper.succeed();
+    }
+
+    /** A segment placed under a shaft becomes its lowest one and takes the upgrades over. */
+    @GameTest(template = EMPTY)
+    public static void liftUpgradesMoveDown(GameTestHelper helper) {
+        helper.setBlock(new BlockPos(2, 0, 2), Blocks.STONE.defaultBlockState());
+        helper.setBlock(new BlockPos(2, 1, 2), Blocks.STONE.defaultBlockState());
+        helper.setBlock(new BlockPos(2, 2, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        helper.setBlock(new BlockPos(2, 3, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        ElevatorBlockEntity old = helper.getBlockEntity(new BlockPos(2, 2, 2));
+        old.upgrades().insertAll(List.of(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get()), new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get())));
+        helper.setBlock(new BlockPos(2, 1, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        ElevatorBlockEntity lowest = helper.getBlockEntity(new BlockPos(2, 1, 2));
+        helper.assertTrue(lowest.upgradeCount() == 2, "the new lowest segment holds both upgrades, has " + lowest.upgradeCount());
+        helper.assertTrue(old.upgradeCount() == 0, "the old lowest segment holds none");
+        helper.succeed();
+    }
+
+    /** A lowest segment replaced by a block the shaft stands on hands its upgrades to the segment above. */
+    @GameTest(template = EMPTY)
+    public static void liftUpgradesClimbWhenBottomIsReplaced(GameTestHelper helper) {
+        helper.setBlock(new BlockPos(2, 0, 2), Blocks.STONE.defaultBlockState());
+        for (int y = 1; y <= 3; y++) {
+            helper.setBlock(new BlockPos(2, y, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        }
+        ElevatorBlockEntity bottom = helper.getBlockEntity(new BlockPos(2, 1, 2));
+        bottom.upgrades().insertAll(List.of(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get()), new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get())));
+        helper.setBlock(new BlockPos(2, 1, 2), Blocks.STONE.defaultBlockState());
+        ElevatorBlockEntity next = helper.getBlockEntity(new BlockPos(2, 2, 2));
+        helper.assertTrue(next.upgradeCount() == 2, "the segment above holds both upgrades, has " + next.upgradeCount());
+        helper.assertItemEntityNotPresent(ServusFoundationItems.SPEED_UPGRADE.get(), new BlockPos(2, 1, 2), 4);
+        helper.succeed();
+    }
+
+    /** Breaking the lowest segment brings the shaft down like scaffolding; the upgrades drop where it was. */
+    @GameTest(template = EMPTY)
+    public static void liftUpgradesDropWithTheBottom(GameTestHelper helper) {
+        helper.setBlock(new BlockPos(2, 0, 2), Blocks.STONE.defaultBlockState());
+        for (int y = 1; y <= 3; y++) {
+            helper.setBlock(new BlockPos(2, y, 2), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        }
+        ElevatorBlockEntity bottom = helper.getBlockEntity(new BlockPos(2, 1, 2));
+        bottom.upgrades().insertAll(List.of(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get()), new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get())));
+        helper.setBlock(new BlockPos(2, 1, 2), Blocks.AIR.defaultBlockState());
+        helper.runAfterDelay(2, () -> {
+            helper.assertBlockNotPresent(ServusStorageBlocks.ELEVATOR.get(), new BlockPos(2, 3, 2));
+            helper.assertItemEntityCountIs(ServusFoundationItems.SPEED_UPGRADE.get(), new BlockPos(2, 1, 2), 1.5, 2);
+            helper.succeed();
+        });
+    }
+
+    /** Four Speed Upgrades make the car faster: it reaches the top floor before a plain car could. */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void upgradedCarIsFaster(GameTestHelper helper) {
+        liftBase(helper, 0);
+        ElevatorBlockEntity bottomSegment = helper.getBlockEntity(LC_BOTTOM);
+        List<ItemStack> four = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            four.add(new ItemStack(ServusFoundationItems.SPEED_UPGRADE.get()));
+        }
+        helper.runAfterDelay(10, () -> {
+            bottomSegment.upgrades().insertAll(four);
+            BlockPos bottom = helper.absolutePos(LC_BOTTOM);
+            helper.runAfterDelay(2, () -> {
+                WarehouseNetwork network = liftNetwork(helper);
+                helper.assertTrue(network.lift(bottom).upgrades() == 4, "the car knows its four upgrades, has " + network.lift(bottom).upgrades());
+                network.lift(bottom).call(-1, bottom.getY() + 2);
+                // A plain car (0.1 top, 0.005 accel) needs about 40 ticks for two floors; the upgraded one about 25.
+                helper.runAfterDelay(28, () -> {
+                    helper.assertTrue(network.lift(bottom).y() == bottom.getY() + 2,
+                            "the upgraded car is at the top floor, at " + (network.lift(bottom).y() - bottom.getY()));
+                    network.lift(bottom).remove(-1);
                     helper.succeed();
                 });
             });

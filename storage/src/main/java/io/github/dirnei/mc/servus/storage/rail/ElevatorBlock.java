@@ -69,12 +69,18 @@ public class ElevatorBlock extends ConnectableBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide()) {
-            int bottomY = LiftUpgrades.bottom(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
-            if (level.getBlockEntity(pos.atY(bottomY)) instanceof ElevatorBlockEntity bottom) {
+            ElevatorBlockEntity bottom = bottomOf(level, pos);
+            if (bottom != null) {
                 player.openMenu(bottom, buf -> ElevatorMenu.writeOpening(buf, bottom));
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    /** The lowest segment of the shaft the segment at pos belongs to, which keeps the upgrades; null when there is none. */
+    public static ElevatorBlockEntity bottomOf(Level level, BlockPos pos) {
+        int bottomY = LiftUpgrades.bottom(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
+        return level.getBlockEntity(pos.atY(bottomY)) instanceof ElevatorBlockEntity bottom ? bottom : null;
     }
 
     /** The whole block is the outline, so a segment is easy to target, like scaffolding. */
@@ -138,8 +144,10 @@ public class ElevatorBlock extends ConnectableBlock {
     }
 
     /**
-     * A removed lowest segment hands its upgrades to the segment above, which
-     * is the new lowest; with none left above they drop.
+     * A removed lowest segment hands its upgrades to the segment above when
+     * that one still stands (the new block holds it up) and so becomes the new
+     * lowest. Otherwise the shaft above breaks like scaffolding and the
+     * upgrades drop where the lowest segment was.
      */
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
@@ -147,7 +155,9 @@ public class ElevatorBlock extends ConnectableBlock {
                 && level.getBlockEntity(pos) instanceof ElevatorBlockEntity removed && removed.upgradeCount() > 0) {
             List<ItemStack> items = removed.upgrades().takeAll();
             OptionalInt heir = LiftUpgrades.heirOnRemove(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
-            if (heir.isPresent() && level.getBlockEntity(pos.atY(heir.getAsInt())) instanceof ElevatorBlockEntity next) {
+            BlockPos heirPos = heir.isPresent() ? pos.atY(heir.getAsInt()) : null;
+            if (heirPos != null && level.getBlockState(heirPos).canSurvive(level, heirPos)
+                    && level.getBlockEntity(heirPos) instanceof ElevatorBlockEntity next) {
                 items = next.upgrades().insertAll(items);
             }
             items.forEach(stack -> Block.popResource(level, pos, stack));

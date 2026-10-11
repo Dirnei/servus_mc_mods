@@ -27,21 +27,21 @@ A right click with an empty hand on any segment of a shaft SHALL open the elevat
 ### Requirement: Upgrades follow the lowest segment
 When the lowest segment of a shaft changes, its upgrades SHALL move with it, with no scan per tick:
 - A segment placed directly below a shaft SHALL become its lowest segment and take its upgrades.
-- When the lowest segment is broken, its upgrades SHALL move to the segment above it; they SHALL drop only when no segment is left above.
+- When the lowest segment is removed and the segment above still stands (the block that took its place holds it up), the segment above SHALL become the lowest and take the upgrades. When the segments above lose their footing and break like scaffolding, the upgrades SHALL drop where the lowest segment was.
 - A segment placed between two shafts SHALL join them; the upper shaft's upgrades SHALL move into the joined shaft's lowest segment, and upgrades that find no free slot SHALL drop.
-- When a segment in the middle of a shaft is broken, the lower part SHALL keep the upgrades and the upper part SHALL start without any.
+- When a segment in the middle of a shaft is broken, the lower part SHALL keep the upgrades; the segments above it lose their footing and break.
 
 #### Scenario: Segment placed below
 - **WHEN** a shaft with two Speed Upgrades gets a new segment placed under its lowest one
 - **THEN** the new lowest segment holds the two upgrades and the old one holds none
 
-#### Scenario: Bottom broken
-- **WHEN** the lowest segment of a three segment shaft with two Speed Upgrades is broken and the shaft above still stands
+#### Scenario: Bottom replaced by a block the shaft stands on
+- **WHEN** the lowest segment of a three segment shaft with two Speed Upgrades is replaced by stone
 - **THEN** the segment above holds the two upgrades and none drop
 
-#### Scenario: Last segment broken
-- **WHEN** the only segment of a shaft with two Speed Upgrades is broken
-- **THEN** the two upgrades drop
+#### Scenario: Bottom broken
+- **WHEN** the lowest segment of a three segment shaft with two Speed Upgrades is broken
+- **THEN** the shaft above breaks too and the two upgrades drop where the lowest segment was
 
 ### Requirement: Speed upgrades make the car faster
 Each Speed Upgrade in a shaft SHALL raise its car's top speed and its acceleration by amounts from the warehouse stats file (examples `lift_speed_per_upgrade` 0.05 and `lift_accel_per_upgrade` 0.0025 blocks per tick, on top of `lift_speed` and `lift_accel`). The car SHALL read its upgrade count when the shaft or its upgrades change, never per tick. Clients SHALL draw the car with the same speed and acceleration.
