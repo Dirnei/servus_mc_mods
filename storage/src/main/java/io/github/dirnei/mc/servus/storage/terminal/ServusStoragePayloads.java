@@ -20,7 +20,9 @@ import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
+import io.github.dirnei.mc.servus.storage.field.ChooseFertilizerPayload;
 import io.github.dirnei.mc.servus.storage.field.ChooseFieldCropPayload;
+import io.github.dirnei.mc.servus.storage.field.FieldFertilizerStockPayload;
 import io.github.dirnei.mc.servus.storage.field.FieldCropStockPayload;
 import io.github.dirnei.mc.servus.storage.shuttle.module.EngraveShuttlePayload;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleBuildStepPayload;
@@ -90,6 +92,14 @@ public final class ServusStoragePayloads {
                 });
         registrar.playToServer(ChooseFieldCropPayload.TYPE, ChooseFieldCropPayload.STREAM_CODEC,
                 (payload, context) -> FieldHeadMenu.choose(context.player(), payload.crop()));
+        registrar.playToClient(FieldFertilizerStockPayload.TYPE, FieldFertilizerStockPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player().containerMenu instanceof FieldHeadMenu menu) {
+                        menu.acceptFertilizerStock(payload);
+                    }
+                });
+        registrar.playToServer(ChooseFertilizerPayload.TYPE, ChooseFertilizerPayload.STREAM_CODEC,
+                (payload, context) -> FieldHeadMenu.chooseFertilizer(context.player(), payload.fertilizer()));
         registrar.playToServer(ShuttleBuildStepPayload.TYPE, ShuttleBuildStepPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player

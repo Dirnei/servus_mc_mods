@@ -193,6 +193,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         return switch (page) {
             case FIELD -> new ItemStack(Items.WHEAT);
             case WATER -> new ItemStack(Items.WATER_BUCKET);
+            case FERTILIZER -> new ItemStack(Items.BONE_MEAL);
             case UPGRADES -> new ItemStack(ServusStorageItems.RANGE_UPGRADE.get());
         };
     }
