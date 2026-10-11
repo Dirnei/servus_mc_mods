@@ -192,6 +192,18 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_chest", has(Items.CHEST))
                 .save(WoodRecipes.output(output));
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.WIRELESS_PACKING_STATION.get())
+                .pattern(" E ")
+                .pattern("IXI")
+                .pattern("PRP")
+                .define('E', Items.ENDER_EYE)
+                .define('I', Items.IRON_INGOT)
+                .define('X', ServusStorageItems.PACKING_STATION.get())
+                .define('R', Items.REDSTONE)
+                .define('P', ItemTags.PLANKS)
+                .unlockedBy("has_packing_station", has(ServusStorageItems.PACKING_STATION.get()))
+                .save(WoodRecipes.output(output));
+
         ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ServusStorageItems.ZONE_LABEL.get())
                 .requires(Items.PAPER)
                 .requires(Tags.Items.DYES)

@@ -1,0 +1,30 @@
+{
+  "type": "servus_foundation:wood_shaped",
+  "category": "misc",
+  "key": {
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "tag": "minecraft:planks"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "X": {
+      "item": "servus_storage:packing_station"
+    }
+  },
+  "pattern": [
+    " E ",
+    "IXI",
+    "PRP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_storage:wireless_packing_station"
+  }
+}
