@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.wood;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -23,6 +24,12 @@ public final class Wood {
     public static final ModelProperty<ResourceLocation> PROPERTY = new ModelProperty<>();
     /** The board texture of layered models; quads with this sprite show the wood. */
     public static final ResourceLocation BOARD = ResourceLocation.fromNamespaceAndPath("servus_foundation", "block/wood_board");
+    /**
+     * Further textures a block swaps besides its wood, from its model data:
+     * texture name to the texture drawn in its place (block atlas), for
+     * material looks such as copper stages. Items never carry it.
+     */
+    public static final ModelProperty<Map<ResourceLocation, ResourceLocation>> SWAPS = new ModelProperty<>();
 
     private static final Set<ResourceLocation> BLOCKS = new LinkedHashSet<>();
 

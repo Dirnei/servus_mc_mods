@@ -17,6 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
@@ -34,7 +35,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class WoodModel implements IDynamicBakedModel {
 
-    private record QuadKey(ResourceLocation wood, @Nullable BlockState state, @Nullable Direction side, @Nullable RenderType renderType) {
+    private record QuadKey(ResourceLocation wood, Map<ResourceLocation, ResourceLocation> swaps, @Nullable BlockState state,
+                           @Nullable Direction side, @Nullable RenderType renderType) {
     }
 
     private final BakedModel base;
@@ -65,6 +67,20 @@ public final class WoodModel implements IDynamicBakedModel {
         return wood != null ? wood : Wood.DEFAULT;
     }
 
+    /** The further swaps of a block, none for items. */
+    private Map<ResourceLocation, ResourceLocation> swapsOf(ModelData data) {
+        if (fixedWood != null) {
+            return Map.of();
+        }
+        Map<ResourceLocation, ResourceLocation> swaps = data.get(Wood.SWAPS);
+        return swaps != null ? swaps : Map.of();
+    }
+
+    /** A texture of the block atlas. */
+    private static TextureAtlasSprite atlasSprite(ResourceLocation texture) {
+        return Minecraft.getInstance().getModelManager().getAtlas(InventoryMenu.BLOCK_ATLAS).getSprite(texture);
+    }
+
     /** The particle sprite of the planks block's default model. */
     private static TextureAtlasSprite spriteOf(ResourceLocation wood) {
         return Minecraft.getInstance().getBlockRenderer().getBlockModel(Wood.block(wood).defaultBlockState())
@@ -75,11 +91,20 @@ public final class WoodModel implements IDynamicBakedModel {
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand,
                                     ModelData extraData, @Nullable RenderType renderType) {
         ResourceLocation wood = woodOf(extraData);
-        return quads.computeIfAbsent(new QuadKey(wood, state, side, renderType), key -> {
+        Map<ResourceLocation, ResourceLocation> swaps = swapsOf(extraData);
+        return quads.computeIfAbsent(new QuadKey(wood, swaps, state, side, renderType), key -> {
             TextureAtlasSprite sprite = spriteOf(wood);
             List<BakedQuad> result = new ArrayList<>();
             for (BakedQuad quad : base.getQuads(state, side, rand, ModelData.EMPTY, renderType)) {
-                result.add(quad.getSprite().contents().name().equals(Wood.BOARD) ? retexture(quad, sprite) : quad);
+                ResourceLocation name = quad.getSprite().contents().name();
+                ResourceLocation swap = swaps.get(name);
+                if (name.equals(Wood.BOARD)) {
+                    result.add(retexture(quad, sprite));
+                } else if (swap != null) {
+                    result.add(retexture(quad, atlasSprite(swap)));
+                } else {
+                    result.add(quad);
+                }
             }
             return List.copyOf(result);
         });
