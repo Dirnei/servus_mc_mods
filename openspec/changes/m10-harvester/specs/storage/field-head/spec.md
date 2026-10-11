@@ -27,11 +27,19 @@ The Field Head SHALL show in its GUI, and the field command SHALL print, what it
 - **THEN** the GUI says work is ready and a harvester is coming
 
 ### Requirement: Plots in sight of the rails
-A field's plots SHALL be the positions at rail level within 4 blocks of a farm rail that are joined to a rail through a chain of open plots, stepping north, east, south and west. A plot is open when it holds air, a crop or a replaceable plant such as short grass, over dirt, a grass block or farmland. A path, a block, water or a gap between rail and soil ends the field there; filling the gap brings the plots behind it back. The harvester clears a replaceable plant before it tills or plants.
+A field's plots SHALL be the positions at rail level within 4 blocks of a farm rail that the rails see in straight lines. Every rail looks straight out, at 90 degrees, on each side without a farm rail next to it; the first plot that is not open ends that line. Where a rail has two such sides at a right angle, at the end of a run or on the outside of a bend, it also sees the corner between them along an L: straight out on one side, then 90 degrees towards the other, every plot of the L open. Nothing is seen around a blocker. A plot is open when it holds air, a crop or a replaceable plant such as short grass, over dirt, a grass block or farmland; pipes, garages, the Field Head, paths, water and gaps without soil are not. Filling a gap brings the plots behind it back. The harvester clears a replaceable plant before it tills or plants.
 
 #### Scenario: Dirt behind a gap
 - **WHEN** dirt lies two plots beside a rail and the plot between holds no soil
 - **THEN** the far dirt is not part of the field and is not counted to till
+
+#### Scenario: Pipe beside the rail
+- **WHEN** a pipe stands on the plot next to a middle rail of a run
+- **THEN** the plots straight behind the pipe are out of sight, even when soil around the pipe would join them
+
+#### Scenario: Corner at the end of a run
+- **WHEN** the plots past the end rail and beside it are soil
+- **THEN** the corner square between them is part of the field
 
 #### Scenario: Gap filled
 - **WHEN** the player puts dirt into the gap

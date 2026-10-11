@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.field;
 
-import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -8,13 +7,17 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Which plots the rails of a field can see: the open plots joined to a rail
- * through a chain of open plots, stepping north, east, south and west on the
- * rails' level. A path, a wall or water between rail and soil ends the field
- * there. Pure, no Minecraft imports.
+ * Which plots the rails of a field can see, on the rails' level. Every rail
+ * looks straight out, at 90 degrees, on each side without a farm rail next to
+ * it; the first plot that is not open ends that line. Where a rail has two
+ * such sides at a right angle, at the end of a run or on the outside of a
+ * bend, it also sees the corner between them along an L: straight out on one
+ * side, then 90 degrees towards the other, every plot of the L open. Nothing
+ * is seen around a blocker. Pure, no Minecraft imports.
  */
 public final class FieldReach {
 
+    /** North, east, south, west; a direction's right angles are its neighbours in this order. */
     private static final int[][] STEPS = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
 
     private FieldReach() {
@@ -26,19 +29,43 @@ public final class FieldReach {
      * @param open       whether a candidate holds soil a harvester can work
      */
     public static Set<FieldPos> connected(Collection<FieldPos> rails, Set<FieldPos> candidates, Predicate<FieldPos> open) {
+        Set<FieldPos> railSet = new HashSet<>(rails);
         Set<FieldPos> reached = new LinkedHashSet<>();
-        Set<FieldPos> seen = new HashSet<>();
-        ArrayDeque<FieldPos> queue = new ArrayDeque<>(rails);
-        while (!queue.isEmpty()) {
-            FieldPos from = queue.poll();
-            for (int[] step : STEPS) {
-                FieldPos next = new FieldPos(from.x() + step[0], from.y(), from.z() + step[1]);
-                if (candidates.contains(next) && seen.add(next) && open.test(next)) {
-                    reached.add(next);
-                    queue.add(next);
+        Predicate<FieldPos> seen = plot -> candidates.contains(plot) && open.test(plot);
+        for (FieldPos rail : rails) {
+            boolean[] free = new boolean[STEPS.length];
+            for (int d = 0; d < STEPS.length; d++) {
+                free[d] = !railSet.contains(step(rail, d, 1));
+            }
+            for (int d = 0; d < STEPS.length; d++) {
+                if (!free[d]) {
+                    continue;
+                }
+                for (int i = 1; i <= FieldStrip.RADIUS; i++) {
+                    FieldPos out = step(rail, d, i);
+                    if (!seen.test(out)) {
+                        break;
+                    }
+                    reached.add(out);
+                    for (int turn : new int[] {(d + 1) % 4, (d + 3) % 4}) {
+                        if (!free[turn]) {
+                            continue;
+                        }
+                        for (int j = 1; j <= FieldStrip.RADIUS; j++) {
+                            FieldPos corner = step(out, turn, j);
+                            if (!seen.test(corner)) {
+                                break;
+                            }
+                            reached.add(corner);
+                        }
+                    }
                 }
             }
         }
         return reached;
+    }
+
+    private static FieldPos step(FieldPos from, int direction, int distance) {
+        return new FieldPos(from.x() + STEPS[direction][0] * distance, from.y(), from.z() + STEPS[direction][1] * distance);
     }
 }
