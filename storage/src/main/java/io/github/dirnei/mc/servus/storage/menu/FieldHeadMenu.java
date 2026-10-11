@@ -22,21 +22,24 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The Field Head GUI: one ghost slot for the crop, a harvest only toggle, the
- * Range Upgrade and anti-corrosion slots, the field's numbers as container
- * data, the player inventory.
+ * The Field Head GUI in three tabs: Field (ghost slot for the crop, harvest
+ * only toggle), Water (anti-corrosion slot) and Upgrades (Range Upgrade slot);
+ * the field's numbers as container data, the player inventory always below.
+ * The tab is client view state; head slots off the shown tab are inactive.
  */
 public class FieldHeadMenu extends AbstractContainerMenu {
 
     public static final int CROP_X = 8;
-    public static final int CROP_Y = 20;
-    public static final int RANGE_X = 128;
+    public static final int CROP_Y = 18;
+    public static final int RANGE_X = 8;
+    public static final int RANGE_Y = 18;
+    public static final int CROP_SLOT = 0;
     public static final int RANGE_SLOT = 1;
     public static final int ANTI_CORROSION_SLOT = 2;
     public static final int ANTI_CORROSION_X = 8;
-    public static final int ANTI_CORROSION_Y = 88;
-    public static final int INVENTORY_Y = 118;
-    public static final int HOTBAR_Y = 176;
+    public static final int ANTI_CORROSION_Y = 58;
+    public static final int INVENTORY_Y = 96;
+    public static final int HOTBAR_Y = 154;
     public static final int INVENTORY_START = 3;
     public static final int BUTTON_HARVEST_ONLY = 0;
     public static final int BUTTON_THRESHOLD_DOWN = 1;
@@ -68,15 +71,39 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     private final DataSlot corrosionProgress = DataSlot.standalone();
     /** The worker name last sent to the player; null before the first send. */
     private String sentWorker;
+    /** The tab the screen shows; client side view state, the server never learns it. */
+    private Page page = Page.FIELD;
+
+    /** The tabs of the GUI, in order. */
+    public enum Page {
+        FIELD, WATER, UPGRADES;
+
+        public static final Page[] VALUES = values();
+    }
 
     public FieldHeadMenu(int containerId, Inventory playerInventory, FieldHeadBlockEntity head) {
         super(ServusStorageMenus.FIELD_HEAD.get(), containerId);
         this.head = head;
         this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(head.getLevel(), head.getBlockPos());
-        addSlot(new GhostSlot(head::cropHandler, 0, CROP_X, CROP_Y));
-        addSlot(new SlotItemHandler(head.rangeUpgrades(), 0, RANGE_X, CROP_Y));
-        addSlot(new SlotItemHandler(head.antiCorrosion(), 0, ANTI_CORROSION_X, ANTI_CORROSION_Y));
+        addSlot(new GhostSlot(head::cropHandler, 0, CROP_X, CROP_Y) {
+            @Override
+            public boolean isActive() {
+                return shows(CROP_SLOT);
+            }
+        });
+        addSlot(new SlotItemHandler(head.rangeUpgrades(), 0, RANGE_X, RANGE_Y) {
+            @Override
+            public boolean isActive() {
+                return shows(RANGE_SLOT);
+            }
+        });
+        addSlot(new SlotItemHandler(head.antiCorrosion(), 0, ANTI_CORROSION_X, ANTI_CORROSION_Y) {
+            @Override
+            public boolean isActive() {
+                return shows(ANTI_CORROSION_SLOT);
+            }
+        });
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < COLUMNS; column++) {
                 addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
@@ -142,6 +169,30 @@ public class FieldHeadMenu extends AbstractContainerMenu {
                 PacketDistributor.sendToPlayer(server, new FieldWorkerPayload(worker));
             }
         }
+    }
+
+    /** The page a head slot belongs to, null for the player inventory. */
+    public static Page pageOf(int slot) {
+        return switch (slot) {
+            case CROP_SLOT -> Page.FIELD;
+            case RANGE_SLOT -> Page.UPGRADES;
+            case ANTI_CORROSION_SLOT -> Page.WATER;
+            default -> null;
+        };
+    }
+
+    /** Head slots are active on the server, and on the client only on their page. */
+    private boolean shows(int slot) {
+        return !player.level().isClientSide() || pageOf(slot) == page;
+    }
+
+    /** The tab the screen shows. */
+    public Page page() {
+        return page;
+    }
+
+    public void setPage(Page page) {
+        this.page = page;
     }
 
     public FieldHeadBlockEntity head() {
