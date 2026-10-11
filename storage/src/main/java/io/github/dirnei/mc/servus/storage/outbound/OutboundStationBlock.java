@@ -93,14 +93,6 @@ public class OutboundStationBlock extends BaseEntityBlock implements Wrenchable 
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof OutboundStationBlockEntity station) {
-            station.dropContents(level, pos);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);

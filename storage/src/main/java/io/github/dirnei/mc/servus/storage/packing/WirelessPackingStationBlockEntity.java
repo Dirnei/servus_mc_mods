@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.packing;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
@@ -21,8 +24,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.energy.EnergyStorage;
-import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 
 /**
  * A Packing Station whose far side is a wireless line instead of the data
@@ -37,19 +38,23 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
     private static final int SENDING_TICKS = 20;
 
     /** The FE buffer: takes FE from any side, never gives any out. */
-    private final class StationEnergy extends EnergyStorage {
+    private final class StationEnergy extends SimpleEnergyHandler {
 
         StationEnergy(int capacity) {
             super(capacity, capacity, 0);
         }
 
         @Override
-        public int receiveEnergy(int toReceive, boolean simulate) {
-            int received = super.receiveEnergy(toReceive, simulate);
-            if (received > 0 && !simulate) {
-                setChanged();
-            }
-            return received;
+        protected void onEnergyChanged(int previousAmount) {
+            setChanged();
+        }
+
+        int getEnergyStored() {
+            return energy;
+        }
+
+        int getMaxEnergyStored() {
+            return capacity;
         }
 
         void spend(long amount) {
@@ -57,7 +62,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
             setChanged();
         }
 
-        void set(int amount) {
+        void setStored(int amount) {
             energy = Math.max(0, Math.min(capacity, amount));
         }
     }
@@ -88,7 +93,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
         network().ifPresent(WarehouseNetwork::wirelessChanged);
     }
 
-    public EnergyView energy() {
+    public EnergyHandler energy() {
         return energy;
     }
 
@@ -99,7 +104,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
 
     /** For GameTests: sets the FE stored. */
     public void setEnergy(int amount) {
-        energy.set(amount);
+        energy.setStored(amount);
         setChanged();
     }
 
@@ -148,7 +153,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
         if (max <= 0) {
             return 0;
         }
-        return max - intake().insertItemStacked(key.stack(max), true).getCount();
+        return max - Transfer.insertItemStacked(intake(), key.stack(max), true).getCount();
     }
 
     /**
@@ -192,7 +197,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
                 return;
             }
             ItemStack taken = takeOutgoing(shipment.key(), moved);
-            ItemStack left = to.intake().insertItemStacked(taken, false);
+            ItemStack left = Transfer.insertItemStacked(to.intake(), taken, false);
             int arrived = taken.getCount() - left.getCount();
             if (!left.isEmpty()) {
                 outgoing().insertItemStacked(left, false);
@@ -305,6 +310,6 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         team = tag.read("Team", UUIDUtil.CODEC).isPresent() ? tag.read("Team", UUIDUtil.CODEC).orElseThrow() : null;
-        energy.set(input.getIntOr("Energy", 0));
+        energy.setStored(input.getIntOr("Energy", 0));
     }
 }

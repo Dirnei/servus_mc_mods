@@ -343,7 +343,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /** Tag ids of an item, as the pure plan sees them. */
     public static Set<String> tagsOf(ItemKey key) {
-        return key.stack(1).getTags().map(tag -> tag.location().toString()).collect(Collectors.toSet());
+        return key.stack(1).typeHolder().tags().map(tag -> tag.location().toString()).collect(Collectors.toSet());
     }
 
     /** Sources with a non empty filter, as the pure plan sees them. */

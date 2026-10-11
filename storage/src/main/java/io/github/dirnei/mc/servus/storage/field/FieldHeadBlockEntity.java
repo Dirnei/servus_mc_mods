@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.field;
 
+import net.minecraft.world.Containers;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
@@ -63,9 +67,7 @@ import net.neoforged.neoforge.model.data.ModelData;
 import net.neoforged.neoforge.common.FarmlandWaterManager;
 import net.neoforged.neoforge.common.ticket.AABBTicket;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
@@ -93,7 +95,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             syncWaterLevel();
         }
     };
-    private final FluidView fillOnly = new FillOnly();
+    private final LegacyFluidHandler fillOnly = new FillOnly();
     private final ItemSlots crop = new ItemSlots(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -137,7 +139,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             return isAntiCorrosion(stack);
         }
     };
-    private final ItemView insertOnly = new InsertOnly();
+    private final LegacyItemHandler insertOnly = new InsertOnly();
     private final UpkeepHolder upkeep = new AntiCorrosionUpkeep();
     /** The corrosion stage of the served field; meaningful while {@link #stageKnown}. */
     private int stage = FieldCorrosion.COPPER;
@@ -530,7 +532,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     /** What hoppers and ducts see: anti-corrosion items go in, nothing comes out. */
-    public ItemView itemHandler() {
+    public ResourceHandler<ItemResource> itemHandler() {
         return insertOnly;
     }
 
@@ -1028,7 +1030,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     }
 
     /** The fluid handler other blocks and pipes see: takes water, gives nothing back. */
-    public FluidView fluidHandler() {
+    public ResourceHandler<FluidResource> fluidHandler() {
         return fillOnly;
     }
 
@@ -1139,15 +1141,15 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         HolderLookup.Provider registries = input.lookup();
         woodSlot.load(input);
         tank.readFromNBT(registries, tag.getCompoundOrEmpty("Water"));
-        if (tag.contains("Crop", CompoundTag.TAG_COMPOUND)) {
+        if (tag.contains("Crop")) {
             crop.deserializeNBT(registries, tag.getCompoundOrEmpty("Crop"));
         }
         harvestOnly = input.getBooleanOr("HarvestOnly", false);
-        if (tag.contains("RangeUpgrades", CompoundTag.TAG_COMPOUND)) {
+        if (tag.contains("RangeUpgrades")) {
             rangeUpgrades.deserializeNBT(registries, tag.getCompoundOrEmpty("RangeUpgrades"));
         }
         harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(input.getIntOr("HarvestPercent", 0)) : 0;
-        if (tag.contains("AntiCorrosion", CompoundTag.TAG_COMPOUND)) {
+        if (tag.contains("AntiCorrosion")) {
             antiCorrosion.deserializeNBT(registries, tag.getCompoundOrEmpty("AntiCorrosion"));
         }
         stageKnown = tag.contains("Corrosion");
@@ -1259,7 +1261,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             if (!held.isEmpty()) {
                 return held.copyWithCount(1);
             }
-            return BuiltInRegistries.ITEM.getTag(ANTI_CORROSION)
+            return BuiltInRegistries.ITEM.get(ANTI_CORROSION)
                     .flatMap(set -> set.stream().findFirst())
                     .map(holder -> new ItemStack(holder.value()))
                     .orElse(ItemStack.EMPTY);
@@ -1313,5 +1315,19 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         public FluidStack drain(int maxDrain, boolean simulate) {
             return FluidStack.EMPTY;
         }
+    }
+
+    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+        FieldHeadBlockEntity head = this;
+        FieldHeads.headRemoved(level, head);
+        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), head.takeRangeUpgrades());
+        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), head.takeAntiCorrosion());
     }
 }

@@ -81,14 +81,6 @@ public class StorageTerminalBlock extends BaseEntityBlock implements Wrenchable 
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof StorageTerminalBlockEntity terminal) {
-            terminal.dropOutput(level, pos);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide() ? null
                 : createTickerHelper(type, ServusStorageBlockEntities.STORAGE_TERMINAL.get(), StorageTerminalBlockEntity::serverTick);

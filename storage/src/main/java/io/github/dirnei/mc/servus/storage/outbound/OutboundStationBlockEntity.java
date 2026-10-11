@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.outbound;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -76,7 +79,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     };
 
     /** The outside view on Output sides: takes only, never inserts. */
-    private final ItemView extractOnly = new ItemView() {
+    private final LegacyItemHandler extractOnly = new LegacyItemHandler() {
         @Override
         public int getSlots() {
             return buffer.getSlots();
@@ -157,7 +160,7 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     }
 
     /** The item handler a neighbour on that side sees: the extract view where extraction is allowed, nothing elsewhere. */
-    public ItemView handlerFor(Direction side) {
+    public ResourceHandler<ItemResource> handlerFor(Direction side) {
         if (side == null || sideMode(side).allowsExtract()) {
             return extractOnly;
         }
@@ -378,5 +381,17 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
     @Override
     public ModelData getModelData() {
         return woodSlot.modelData();
+    }
+
+    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+        OutboundStationBlockEntity station = this;
+        station.dropContents(level, pos);
     }
 }

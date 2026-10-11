@@ -48,7 +48,7 @@ public final class StockRules {
         ListTag list = new ListTag();
         for (StockRule rule : rules.values()) {
             CompoundTag tag = new CompoundTag();
-            tag.put("Item", rule.key().ValueIo.saveStack(registries, stack(1)));
+            tag.put("Item", ValueIo.saveStack(registries, rule.key().stack(1)));
             tag.putInt("Min", rule.min());
             tag.putInt("Max", rule.max());
             list.add(tag);

@@ -97,14 +97,6 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof ShuttleGarageBlockEntity garage) {
-            garage.dropShuttles(level, pos);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();

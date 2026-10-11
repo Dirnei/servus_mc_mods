@@ -6,8 +6,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * A ghost slot that reads and writes through whichever handler the supplier
@@ -17,10 +16,10 @@ public class GhostSlot extends Slot {
 
     private static final Container NONE = new SimpleContainer(0);
 
-    private final Supplier<IItemHandler> handler;
+    private final Supplier<ItemSlots> handler;
     private final int index;
 
-    public GhostSlot(Supplier<IItemHandler> handler, int index, int x, int y) {
+    public GhostSlot(Supplier<ItemSlots> handler, int index, int x, int y) {
         super(NONE, index, x, y);
         this.handler = handler;
         this.index = index;
@@ -28,14 +27,15 @@ public class GhostSlot extends Slot {
 
     @Override
     public ItemStack getItem() {
-        IItemHandler current = handler.get();
+        ItemSlots current = handler.get();
         return current == null ? ItemStack.EMPTY : current.getStackInSlot(index);
     }
 
     @Override
     public void set(ItemStack stack) {
-        if (handler.get() instanceof IItemHandlerModifiable modifiable) {
-            modifiable.setStackInSlot(index, stack);
+        ItemSlots current = handler.get();
+        if (current != null) {
+            current.setStackInSlot(index, stack);
         }
         setChanged();
     }

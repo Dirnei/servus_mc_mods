@@ -74,7 +74,7 @@ public class ShuttleItem extends Item {
             tooltip.accept(Component.translatable("tooltip.servus_storage.shuttle.plain").withStyle(ChatFormatting.GRAY));
             return;
         }
-        modules.tool().ifPresent(item -> tooltip.accept(Component.translatable("tooltip.servus_storage.shuttle.tool", item.getDescription())
+        modules.tool().ifPresent(item -> tooltip.accept(Component.translatable("tooltip.servus_storage.shuttle.tool", Component.translatable(item.getDescriptionId()))
                 .withStyle(ChatFormatting.GRAY)));
         if (modules.speed() > 0) {
             tooltip.accept(Component.translatable("tooltip.servus_storage.shuttle.speed", modules.speed()).withStyle(ChatFormatting.GRAY));

@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.station;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -64,7 +67,7 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     };
 
     /** The outside view: inserts only, so nothing drains the dock. */
-    private final ItemView intake = new ItemView() {
+    private final LegacyItemHandler intake = new LegacyItemHandler() {
         @Override
         public int getSlots() {
             return buffer.getSlots();
@@ -129,7 +132,7 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     }
 
     /** The insert only handler exposed as the item capability. */
-    public ItemView intake() {
+    public LegacyItemHandler intake() {
         return intake;
     }
 
@@ -146,7 +149,7 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     }
 
     /** The item handler a neighbour on that side sees: the intake where insertion is allowed, nothing elsewhere. */
-    public ItemView handlerFor(Direction side) {
+    public ResourceHandler<ItemResource> handlerFor(Direction side) {
         if (side == null || sideMode(side).allowsInsert()) {
             return intake;
         }
@@ -365,5 +368,17 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
     @Override
     public ModelData getModelData() {
         return woodSlot.modelData();
+    }
+
+    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+        InboundStationBlockEntity station = this;
+        station.dropContents(level, pos);
     }
 }

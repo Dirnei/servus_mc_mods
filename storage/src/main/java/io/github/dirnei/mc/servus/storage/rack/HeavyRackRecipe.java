@@ -1,12 +1,9 @@
 package io.github.dirnei.mc.servus.storage.rack;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
-import io.github.dirnei.mc.servus.storage.registry.ServusStorageRecipes;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,23 +11,49 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageRecipes;
 
 /**
  * The shaped rack recipe that remembers the wood: the planks in the grid,
- * read in order, pick the wood through {@link RackWood}.
+ * read in order, pick the wood through {@link RackWood}. It reads and writes
+ * like a shaped recipe, so recipe viewers show it as one.
  */
 public class HeavyRackRecipe extends ShapedRecipe {
 
-    public HeavyRackRecipe(ShapedRecipe base) {
-        super(base.getGroup(), base.category(), base.pattern, base.getResultItem(RegistryAccess.EMPTY), base.showNotification());
+    /** Same fields as a shaped recipe. */
+    public static final MapCodec<HeavyRackRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+                    Recipe.CommonInfo.MAP_CODEC.forGetter(o -> o.commonInfo),
+                    CraftingRecipe.CraftingBookInfo.MAP_CODEC.forGetter(o -> o.bookInfo),
+                    ShapedRecipePattern.MAP_CODEC.forGetter(o -> o.pattern),
+                    ItemStackTemplate.CODEC.fieldOf("result").forGetter(o -> o.result))
+            .apply(i, HeavyRackRecipe::new));
+    public static final StreamCodec<RegistryFriendlyByteBuf, HeavyRackRecipe> STREAM_CODEC = StreamCodec.composite(
+            Recipe.CommonInfo.STREAM_CODEC, o -> o.commonInfo,
+            CraftingRecipe.CraftingBookInfo.STREAM_CODEC, o -> o.bookInfo,
+            ShapedRecipePattern.STREAM_CODEC, o -> o.pattern,
+            ItemStackTemplate.STREAM_CODEC, o -> o.result,
+            HeavyRackRecipe::new);
+    public static final RecipeSerializer<HeavyRackRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+
+    private final ItemStackTemplate result;
+
+    public HeavyRackRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo, ShapedRecipePattern pattern,
+            ItemStackTemplate result) {
+        super(commonInfo, bookInfo, pattern, result);
+        this.result = result;
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-        ItemStack result = super.assemble(input, registries);
+    public ItemStack assemble(CraftingInput input) {
+        ItemStack result = super.assemble(input);
         List<String> planks = new ArrayList<>();
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
@@ -46,26 +69,9 @@ public class HeavyRackRecipe extends ShapedRecipe {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return ServusStorageRecipes.HEAVY_RACK.get();
-    }
-
-    /** Reads and writes the recipe exactly like a shaped recipe. */
-    public static class Serializer implements RecipeSerializer<HeavyRackRecipe> {
-
-        private static final MapCodec<HeavyRackRecipe> CODEC =
-                ShapedRecipe.Serializer.CODEC.xmap(HeavyRackRecipe::new, recipe -> recipe);
-        private static final StreamCodec<RegistryFriendlyByteBuf, HeavyRackRecipe> STREAM_CODEC =
-                ShapedRecipe.Serializer.STREAM_CODEC.map(HeavyRackRecipe::new, recipe -> recipe);
-
-        @Override
-        public MapCodec<HeavyRackRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, HeavyRackRecipe> streamCodec() {
-            return STREAM_CODEC;
-        }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public RecipeSerializer<ShapedRecipe> getSerializer() {
+        // ShapedRecipe narrows the return type to its own serializer; ours decodes to the subclass.
+        return (RecipeSerializer) ServusStorageRecipes.HEAVY_RACK.get();
     }
 }

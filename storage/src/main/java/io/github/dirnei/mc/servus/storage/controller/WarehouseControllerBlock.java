@@ -99,14 +99,6 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
 
     /** Chunk Loader Upgrades drop when the controller goes. */
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
-            controller.upgrades().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);

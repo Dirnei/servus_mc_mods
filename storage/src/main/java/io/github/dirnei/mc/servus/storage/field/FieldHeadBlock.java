@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -96,13 +95,4 @@ public class FieldHeadBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && !level.isClientSide() && level.getBlockEntity(pos) instanceof FieldHeadBlockEntity head) {
-            FieldHeads.headRemoved(level, head);
-            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), head.takeRangeUpgrades());
-            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), head.takeAntiCorrosion());
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
 }

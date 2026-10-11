@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
+import io.github.dirnei.mc.servus.storage.shuttle.LiftUpgrades;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import java.util.OptionalInt;
+import java.util.List;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -135,5 +140,23 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuP
             }
             loading = false;
         }
+    }
+
+    /** Upgrades go to the heir segment of the shaft, or drop (moved from the block's removal hook in 26.1). */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null || upgradeCount() <= 0) {
+            return;
+        }
+        List<ItemStack> items = upgrades().takeAll();
+        OptionalInt heir = LiftUpgrades.heirOnRemove(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
+        BlockPos heirPos = heir.isPresent() ? pos.atY(heir.getAsInt()) : null;
+        if (heirPos != null && level.getBlockState(heirPos).canSurvive(level, heirPos)
+                && level.getBlockEntity(heirPos) instanceof ElevatorBlockEntity next) {
+            items = next.upgrades().insertAll(items);
+        }
+        items.forEach(stack -> Block.popResource(level, pos, stack));
     }
 }

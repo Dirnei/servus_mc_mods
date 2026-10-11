@@ -12,8 +12,8 @@ public final class ServusStorageRecipes {
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
             DeferredRegister.create(Registries.RECIPE_SERIALIZER, ServusStorageIds.MOD_ID);
 
-    public static final DeferredHolder<RecipeSerializer<?>, HeavyRackRecipe.Serializer> HEAVY_RACK =
-            RECIPE_SERIALIZERS.register("heavy_rack", HeavyRackRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<HeavyRackRecipe>> HEAVY_RACK =
+            RECIPE_SERIALIZERS.register("heavy_rack", () -> HeavyRackRecipe.SERIALIZER);
 
     private ServusStorageRecipes() {
     }

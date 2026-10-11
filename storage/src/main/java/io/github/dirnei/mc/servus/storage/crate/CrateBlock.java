@@ -138,8 +138,8 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
 
     private static void insertAllMatching(CrateBlockEntity crate, int compartment, Player player) {
         Inventory inventory = player.getInventory();
-        for (int slot = 0; slot < inventory.items.size(); slot++) {
-            ItemStack stack = inventory.items.get(slot);
+        for (int slot = 0; slot < inventory.getNonEquipmentItems().size(); slot++) {
+            ItemStack stack = inventory.getNonEquipmentItems().get(slot);
             if (stack.isEmpty() || crate.isEmpty(compartment) || !crate.matches(compartment, stack)) {
                 continue;
             }
@@ -156,18 +156,6 @@ public class CrateBlock extends BaseEntityBlock implements Wrenchable {
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         StorageNodeBlockEntity.neighborsChanged(level, pos);
-    }
-
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof CrateBlockEntity crate) {
-            for (int i = 0; i < crate.compartments(); i++) {
-                while (!crate.isEmpty(i)) {
-                    Block.popResource(level, pos, crate.extract(i, crate.type(i).getMaxStackSize(), false));
-                }
-            }
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

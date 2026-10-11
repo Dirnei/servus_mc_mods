@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.pattern;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -56,7 +57,7 @@ public record EncodedPattern(Identifier recipe, List<ItemStack> template, ItemSt
      * recipe is gone.
      */
     public static ItemStack assembledResult(Level level, Identifier recipe, List<ItemStack> template, ItemStack fallback) {
-        var holder = level.recipeAccess().byKey(recipe);
+        var holder = ServusRecipes.byId(level, recipe);
         if (holder.isEmpty() || !(holder.get().value() instanceof CraftingRecipe crafting)) {
             return fallback.copy();
         }
@@ -66,12 +67,12 @@ public record EncodedPattern(Identifier recipe, List<ItemStack> template, ItemSt
         }
         CraftingInput input = CraftingInput.of(3, 3, cells);
         if (crafting.matches(input, level)) {
-            ItemStack assembled = crafting.assemble(input, level.registryAccess());
+            ItemStack assembled = crafting.assemble(input);
             if (!assembled.isEmpty()) {
                 return assembled;
             }
         }
-        ItemStack plain = crafting.getResultItem(level.registryAccess());
+        ItemStack plain = ServusRecipes.displayResult(level, crafting);
         return plain.isEmpty() ? fallback.copy() : plain.copy();
     }
 

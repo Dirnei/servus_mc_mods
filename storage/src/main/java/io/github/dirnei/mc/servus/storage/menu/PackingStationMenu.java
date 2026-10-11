@@ -15,7 +15,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import io.github.dirnei.mc.servus.foundation.upgrade.UpgradeSlots;
 import io.github.dirnei.mc.servus.foundation.upgrade.Upgrades;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -35,8 +35,8 @@ public class PackingStationMenu extends AbstractContainerMenu {
     /** A slot that shows a system buffer and refuses every click. */
     public static final class ReadOnlySlot extends ResourceHandlerSlot {
 
-        public ReadOnlySlot(ItemView handler, int index, int x, int y) {
-            super(handler, index, x, y);
+        public ReadOnlySlot(ItemSlots handler, int index, int x, int y) {
+            super(handler, handler::set, index, x, y);
         }
 
         @Override
@@ -73,7 +73,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
     }
 
     private PackingStationMenu(int containerId, Inventory playerInventory, PackingStationBlockEntity point,
-                               ItemView toStorage, ItemView toNetwork, ItemView upgrades) {
+                               ItemSlots toStorage, ItemSlots toNetwork, ItemSlots upgrades) {
         super(ServusStorageMenus.PACKING_STATION.get(), containerId);
         this.point = point;
         this.player = playerInventory.player;
@@ -104,7 +104,7 @@ public class PackingStationMenu extends AbstractContainerMenu {
         }
     }
 
-    private void addRow(ItemView handler, int y) {
+    private void addRow(ItemSlots handler, int y) {
         for (int slot = 0; slot < handler.getSlots(); slot++) {
             addSlot(new ReadOnlySlot(handler, slot, 8 + (slot % COLUMNS) * 18, y + (slot / COLUMNS) * 18));
         }

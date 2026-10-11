@@ -43,7 +43,7 @@ public final class SiteRecord {
 
     /** The key of a site: its dimension and its controller position. */
     public static String key(ResourceKey<Level> dimension, BlockPos pos) {
-        return dimension.location() + "@" + pos.asLong();
+        return dimension.identifier() + "@" + pos.asLong();
     }
 
     public String key() {
@@ -106,7 +106,7 @@ public final class SiteRecord {
 
     CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        tag.putString("Dim", dimension.location().toString());
+        tag.putString("Dim", dimension.identifier().toString());
         tag.putLong("Pos", pos.asLong());
         tag.putString("Name", name);
         if (team != null) {
@@ -124,7 +124,7 @@ public final class SiteRecord {
         });
         tag.put("Stock", items);
         ListTag teams = new ListTag();
-        wireless.forEach(id -> teams.add(net.minecraft.nbt.NbtUtils.createUUID(id)));
+        wireless.forEach(id -> teams.add(new net.minecraft.nbt.IntArrayTag(net.minecraft.core.UUIDUtil.uuidToIntArray(id))));
         tag.put("Wireless", teams);
         return tag;
     }
@@ -143,7 +143,7 @@ public final class SiteRecord {
         record.upgrades = tag.getIntOr("Upgrades", 0);
         record.lastSeen = tag.getLongOr("Seen", 0L);
         for (Tag raw : tag.getListOrEmpty("Wireless")) {
-            record.wireless.add(net.minecraft.nbt.NbtUtils.loadUUID(raw));
+            record.wireless.add(net.minecraft.core.UUIDUtil.uuidFromIntArray(((net.minecraft.nbt.IntArrayTag) raw).getAsIntArray()));
         }
         ListTag items = tag.getListOrEmpty("Stock");
         for (int i = 0; i < items.size(); i++) {

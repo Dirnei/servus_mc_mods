@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.storage.controller.ChunkLoaderUpgradeSlots;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -20,7 +21,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -56,7 +56,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     }
 
     private WarehouseControllerMenu(int containerId, Inventory playerInventory, WarehouseControllerBlockEntity controller,
-                                    BlockPos pos, ItemView upgrades, String name) {
+                                    BlockPos pos, ItemSlots upgrades, String name) {
         super(ServusStorageMenus.WAREHOUSE_CONTROLLER.get(), containerId);
         this.controller = controller;
         this.player = playerInventory.player;

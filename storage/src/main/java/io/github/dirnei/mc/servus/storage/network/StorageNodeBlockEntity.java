@@ -98,7 +98,7 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         HolderLookup.Provider registries = input.lookup();
-        zone = tag.contains("Zone", CompoundTag.TAG_COMPOUND) ? ZoneDefinition.load(tag.getCompoundOrEmpty("Zone"), registries) : null;
+        zone = tag.contains("Zone") ? ZoneDefinition.load(tag.getCompoundOrEmpty("Zone"), registries) : null;
     }
 
     // Linking

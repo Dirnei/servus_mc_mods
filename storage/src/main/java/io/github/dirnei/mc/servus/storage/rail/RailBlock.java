@@ -71,7 +71,7 @@ public class RailBlock extends ConnectableBlock {
     }
 
     @Override
-    protected boolean connectsTo(LevelAccessor level, BlockPos neighborPos, BlockState neighborState, Direction direction) {
+    protected boolean connectsTo(LevelReader level, BlockPos neighborPos, BlockState neighborState, Direction direction) {
         if (!direction.getAxis().isHorizontal()) {
             return false;
         }
@@ -82,13 +82,13 @@ public class RailBlock extends ConnectableBlock {
     }
 
     /** Whether the neighbour is a storage block, station or garage that takes a rail on the side facing this rail. */
-    private static boolean docksTo(LevelAccessor level, BlockPos neighborPos, Direction direction) {
+    private static boolean docksTo(LevelReader level, BlockPos neighborPos, Direction direction) {
         return level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node && node.docksRail()
                 && node.acceptsRail(Conversions.toSide(direction.getOpposite()));
     }
 
     /** Whether the rail draws a dock piece towards the neighbour: linked nodes that show one, not garages. */
-    private static boolean showsDockTo(LevelAccessor level, BlockPos neighborPos, Direction direction) {
+    private static boolean showsDockTo(LevelReader level, BlockPos neighborPos, Direction direction) {
         return docksTo(level, neighborPos, direction)
                 && level.getBlockEntity(neighborPos) instanceof StorageNodeBlockEntity node && node.showsDock();
     }
@@ -108,7 +108,7 @@ public class RailBlock extends ConnectableBlock {
     protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
                                      Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         state = super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
-        level.scheduleTick(pos, this, 1);
+        ticks.scheduleTick(pos, this, 1);
         if (direction.getAxis().isHorizontal()) {
             state = state.setValue(dock(direction), showsDockTo(level, neighborPos, direction));
         }

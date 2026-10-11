@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.controller;
 
+import net.minecraft.world.level.Level;
 import net.minecraft.core.UUIDUtil;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.world.level.storage.ValueInput;
@@ -299,7 +300,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
             span.add(key);
         }
         span.add(homeChunk());
-        if (tag.contains("ChunkLoaderUpgrades", CompoundTag.TAG_COMPOUND)) {
+        if (tag.contains("ChunkLoaderUpgrades")) {
             ChunkLoaderUpgradeSlots saved = new ChunkLoaderUpgradeSlots(0, null);
             saved.deserializeNBT(registries, tag.getCompoundOrEmpty("ChunkLoaderUpgrades"));
             for (int slot = 0; slot < upgrades.getSlots(); slot++) {
@@ -349,5 +350,17 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     @Override
     public ModelData getModelData() {
         return woodSlot.modelData();
+    }
+
+    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+        WarehouseControllerBlockEntity controller = this;
+        controller.upgrades().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
     }
 }

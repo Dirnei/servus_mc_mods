@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.order;
 
+import net.minecraft.world.item.crafting.Recipe;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;

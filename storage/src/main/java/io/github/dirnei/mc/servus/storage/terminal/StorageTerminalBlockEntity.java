@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.terminal;
 
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import net.minecraft.world.level.storage.ValueInput;
@@ -118,10 +120,10 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             storeSoon = true;
         }
     };
-    private final ItemView packets = new RoutingHandler();
+    private final LegacyItemHandler packets = new RoutingHandler();
     /** The running move of each input slot, or null. */
     private final Delivery[] inputMoves = new Delivery[TerminalLayout.Storage.ROW_SLOTS];
-    private final ItemView[] inputViews = new ItemView[TerminalLayout.Storage.ROW_SLOTS];
+    private final LegacyItemHandler[] inputViews = new LegacyItemHandler[TerminalLayout.Storage.ROW_SLOTS];
     private boolean storeSoon;
     private String inputRefusal;
     private final List<Request> requests = new ArrayList<>();
@@ -146,7 +148,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     }
 
     /** What automation and packets see: items a request waits for go to the output, the rest to the input. */
-    public ItemView packetHandler() {
+    public ResourceHandler<ItemResource> packetHandler() {
         return packets;
     }
 
@@ -271,7 +273,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
                 continue;
             }
             inputMoves[i] = DataPackets.move(server, worldPosition, point.get(), stack.copyWithCount(1), stack.getCount(),
-                    inputViews[i]).orElse(null);
+                    new ItemView(inputViews[i])).orElse(null);
         }
     }
 
@@ -403,8 +405,8 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
         woodSlot.save(output);
-        tag.put("Output", output.serializeNBT(registries));
-        tag.put("Input", input.serializeNBT(registries));
+        tag.put("Output", this.output.serializeNBT(registries));
+        tag.put("Input", this.input.serializeNBT(registries));
         ListTag list = new ListTag();
         for (Request request : requests) {
             CompoundTag entry = new CompoundTag();
@@ -444,15 +446,15 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         if (tag.contains("Output")) {
             ItemSlots saved = new ItemSlots();
             saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Output"));
-            for (int i = 0; i < output.getSlots(); i++) {
-                output.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
+            for (int i = 0; i < this.output.getSlots(); i++) {
+                this.output.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         }
         if (tag.contains("Input")) {
             ItemSlots saved = new ItemSlots();
             saved.deserializeNBT(registries, tag.getCompoundOrEmpty("Input"));
-            for (int i = 0; i < input.getSlots(); i++) {
-                input.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
+            for (int i = 0; i < this.input.getSlots(); i++) {
+                this.input.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
             }
         }
         requests.clear();
@@ -599,5 +601,17 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         carrier.leave();
+    }
+
+    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+        StorageTerminalBlockEntity terminal = this;
+        terminal.dropOutput(level, pos);
     }
 }

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module;
 
+import net.minecraft.world.level.Level;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
@@ -273,5 +274,17 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
         }
         handBuild = input.getBooleanOr("HandBuild", false);
         buildStep = Math.max(0, input.getIntOr("BuildStep", 0));
+    }
+
+    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+        ShuttleWorkshopBlockEntity workshop = this;
+        workshop.dropContents();
     }
 }

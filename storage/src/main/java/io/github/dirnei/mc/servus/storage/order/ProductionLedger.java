@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.order;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -67,7 +68,7 @@ public final class ProductionLedger extends SavedData {
 
     public static ProductionLedger get(ServerLevel level) {
         ProductionLedger ledger = level.getDataStorage().computeIfAbsent(
-                new SavedData.Factory<>(ProductionLedger::new, ProductionLedger::load, null), NAME);
+                ValueIo.tagSavedData(NAME, ProductionLedger::new, ProductionLedger::load, (data, tag, registries) -> data.save(tag, registries)));
         ledger.level = level;
         return ledger;
     }
@@ -140,7 +141,6 @@ public final class ProductionLedger extends SavedData {
 
     // Persistence
 
-    @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putLong("NextTransfer", nextTransfer);
         tag.putInt("NextRequest", nextRequest);

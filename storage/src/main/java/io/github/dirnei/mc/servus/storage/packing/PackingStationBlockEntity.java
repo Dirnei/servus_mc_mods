@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.packing;
 
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import net.minecraft.world.level.storage.ValueInput;
@@ -116,7 +118,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     private ServerLevel shippingLevel;
     private Shipment runningFor;
     private int sendTimer;
-    private final ItemView[] faces = new ItemView[6];
+    private final LegacyItemHandler[] faces = new LegacyItemHandler[6];
     private final RateBudget toStorage = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
     private final RateBudget toNetwork = new RateBudget(StorageStatsManager.INSTANCE.packingItemsPerSecond());
     private final UpgradeSlots upgrades = new UpgradeSlots(StorageStatsManager.INSTANCE.packingUpgradeSlots(), this::setChanged);
@@ -145,11 +147,11 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
      * face, so a producer that pushes its outputs in on its own is counted.
      */
     @Override
-    public ItemView handlerFor(Direction side) {
+    public ResourceHandler<ItemResource> handlerFor(Direction side) {
         if (side == null) {
             return intake();
         }
-        ItemView handler = faces[side.ordinal()];
+        LegacyItemHandler handler = faces[side.ordinal()];
         if (handler == null) {
             handler = new PushCredit(side);
             faces[side.ordinal()] = handler;
@@ -471,7 +473,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
                 continue;
             }
             // The items stay in the To network buffer until the move takes them at the station's rate.
-            Optional<Delivery> started = DataPackets.move(server, worldPosition, shipment.target, shipment.key.stack(1), count, outgoing);
+            Optional<Delivery> started = DataPackets.move(server, worldPosition, shipment.target, shipment.key.stack(1), count, new ItemView(outgoing));
             if (started.isEmpty() || started.get().ended() && started.get().state() == Delivery.State.FAILED) {
                 // Refused at once: this shipment cannot be served.
                 ledger().end(shipment.transfer);

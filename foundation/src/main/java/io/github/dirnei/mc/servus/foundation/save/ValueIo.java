@@ -3,6 +3,12 @@ package io.github.dirnei.mc.servus.foundation.save;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import java.util.UUID;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -100,6 +106,25 @@ public final class ValueIo {
     public static ItemStack parseStack(HolderLookup.Provider registries, Tag tag) {
         return ItemStack.OPTIONAL_CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), tag).result()
                 .orElse(ItemStack.EMPTY);
+    }
+
+    /** Saves a saved data object as a compound tag, the 1.21.1 way. */
+    @FunctionalInterface
+    public interface TagSaver<T> {
+        CompoundTag save(T data, CompoundTag tag, HolderLookup.Provider registries);
+    }
+
+    /**
+     * A saved data type for data that still loads from and saves to a compound
+     * tag with the registries, what {@code SavedData.Factory} offered before 1.21.5.
+     * The id keeps the old file name in the minecraft namespace.
+     */
+    public static <T extends SavedData> SavedDataType<T> tagSavedData(String name, Supplier<T> constructor,
+            BiFunction<CompoundTag, HolderLookup.Provider, T> load, TagSaver<T> save) {
+        return new SavedDataType<>(Identifier.withDefaultNamespace(name), level -> constructor.get(), level -> {
+            HolderLookup.Provider registries = level == null ? RegistryAccess.EMPTY : level.registryAccess();
+            return CompoundTag.CODEC.xmap(tag -> load.apply(tag, registries), data -> save.save(data, new CompoundTag(), registries));
+        });
     }
 
     /** A block position as a tag, what {@code NbtUtils#writeBlockPos} did. */

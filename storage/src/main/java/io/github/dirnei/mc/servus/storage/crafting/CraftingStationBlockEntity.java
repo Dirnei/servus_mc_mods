@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.crafting;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import net.minecraft.world.level.storage.ValueInput;
@@ -109,8 +112,8 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     private int pushTimer;
 
     private final SideConfig sides = SideConfig.machine();
-    private final java.util.Map<Direction, ItemView> sideHandlers = new java.util.EnumMap<>(Direction.class);
-    private final ItemView anySide = new SideHandler(null);
+    private final java.util.Map<Direction, LegacyItemHandler> sideHandlers = new java.util.EnumMap<>(Direction.class);
+    private final LegacyItemHandler anySide = new SideHandler(null);
 
     /** All thirteen slots for automation: inputs take only used items, outputs only give, both only where the side allows it. */
     private final class SideHandler extends LegacyItemHandler {
@@ -173,7 +176,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     }
 
     /** The handler a neighbour on that side sees, or the unrestricted view for a null side. */
-    public ItemView handlerFor(Direction side) {
+    public ResourceHandler<ItemResource> handlerFor(Direction side) {
         if (side == null) {
             return anySide;
         }
@@ -358,7 +361,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         if (!crafting.matches(input, level)) {
             return Optional.empty();
         }
-        ItemStack result = crafting.assemble(input, level.registryAccess());
+        ItemStack result = crafting.assemble(input);
         NonNullList<ItemStack> remainders = crafting.getRemainingItems(input);
         if (!fits(result, remainders)) {
             return Optional.empty();
@@ -419,13 +422,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     }
 
     private static Optional<RecipeHolder<CraftingRecipe>> resolve(Level level, Identifier id) {
-        return level.recipeAccess().byKey(id)
-                .filter(holder -> holder.value() instanceof CraftingRecipe)
-                .map(holder -> {
-                    @SuppressWarnings("unchecked")
-                    RecipeHolder<CraftingRecipe> crafting = (RecipeHolder<CraftingRecipe>) holder;
-                    return crafting;
-                });
+        return ServusRecipes.crafting(level, id);
     }
 
     private void pushOutputs() {
@@ -657,5 +654,17 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         carrier.leave();
+    }
+
+    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+        CraftingStationBlockEntity station = this;
+        station.dropContents(level, pos);
     }
 }

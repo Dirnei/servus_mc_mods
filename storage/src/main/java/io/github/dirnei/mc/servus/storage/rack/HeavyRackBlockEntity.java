@@ -299,4 +299,23 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
+
+    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+        HeavyRackBlockEntity rack = this;
+        ItemSlots items = rack.items();
+        for (int i = 0; i < items.getSlots(); i++) {
+            ItemStack stack = items.getStackInSlot(i);
+            if (!stack.isEmpty()) {
+                Block.popResource(level, pos, stack);
+                items.setStackInSlot(i, ItemStack.EMPTY);
+            }
+        }
+    }
 }

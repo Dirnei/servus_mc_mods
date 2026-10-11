@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.field;
 
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -41,7 +42,7 @@ public final class FieldEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onBreak(BlockEvent.BreakEvent event) {
+    public static void onBreak(BreakBlockEvent event) {
         if (!event.isCanceled()) {
             queue(event.getLevel(), event.getPos());
             queue(event.getLevel(), event.getPos().above());

@@ -150,11 +150,11 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
 
     /** A formed block went away: the master cancels its orders and every other block of the cube unforms. */
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide() && isFormed(state) && !newState.is(this)) {
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+        if (isFormed(state)) {
             unform(level, masterPos(pos, state), state.getValue(PART));
         }
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     private void unform(Level level, BlockPos origin, int removedPart) {

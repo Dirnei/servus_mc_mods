@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.pattern;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +12,6 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.Level;
 
@@ -28,7 +28,7 @@ public final class CraftingGrid {
         if (cells.stream().allMatch(ItemStack::isEmpty)) {
             return Optional.empty();
         }
-        return level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, CraftingInput.of(3, 3, cells), level);
+        return ServusRecipes.craftingFor(level, CraftingInput.of(3, 3, cells));
     }
 
     /** "2 Oak Planks, 1 Coal" for a list of stacks with counts. */
@@ -45,7 +45,7 @@ public final class CraftingGrid {
 
     /** The template laid out by a vanilla crafting recipe, one ingredient item per cell, for the recipe viewer. */
     public static Optional<List<ItemStack>> templateOf(Level level, Identifier id) {
-        Optional<RecipeHolder<?>> holder = level.recipeAccess().byKey(id);
+        Optional<RecipeHolder<?>> holder = ServusRecipes.byId(level, id);
         if (holder.isEmpty() || !(holder.get().value() instanceof CraftingRecipe recipe)) {
             return Optional.empty();
         }
@@ -54,13 +54,13 @@ public final class CraftingGrid {
             cells.add(ItemStack.EMPTY);
         }
         int width = recipe instanceof ShapedRecipe shaped ? shaped.getWidth() : 3;
-        List<Ingredient> ingredients = recipe.getIngredients();
+        List<Optional<Ingredient>> ingredients = ServusRecipes.gridIngredients(recipe);
         for (int i = 0; i < ingredients.size() && i < GRID; i++) {
-            ItemStack[] items = ingredients.get(i).getItems();
-            if (items.length > 0) {
+            ItemStack item = ingredients.get(i).map(ServusRecipes::firstItem).orElse(ItemStack.EMPTY);
+            if (!item.isEmpty()) {
                 int cell = width == 3 ? i : (i / width) * 3 + i % width;
                 if (cell < GRID) {
-                    cells.set(cell, items[0].copyWithCount(1));
+                    cells.set(cell, item.copyWithCount(1));
                 }
             }
         }

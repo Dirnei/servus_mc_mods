@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.packing;
 
+import io.github.dirnei.mc.servus.foundation.block.TooltipBlock;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.component.TooltipDisplay;
 import java.util.function.Consumer;
 import com.mojang.serialization.MapCodec;
@@ -30,7 +32,7 @@ import io.github.dirnei.mc.servus.foundation.wood.Wood;
  * arriving packets for storage. Right click shows both buffers read-only; the
  * carrot dismantles it while sneaking. Its sides have no modes.
  */
-public class PackingStationBlock extends InboundStationBlock {
+public class PackingStationBlock extends InboundStationBlock implements TooltipBlock {
 
     public static final MapCodec<PackingStationBlock> CODEC = simpleCodec(PackingStationBlock::new);
 
@@ -57,8 +59,7 @@ public class PackingStationBlock extends InboundStationBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
+    public void appendTooltip(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         tooltip.accept(Component.translatable(tooltipKey()).withStyle(ChatFormatting.GRAY));
     }
 

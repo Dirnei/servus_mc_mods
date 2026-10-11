@@ -91,14 +91,6 @@ public class InboundStationBlock extends BaseEntityBlock implements Wrenchable {
         StorageNodeBlockEntity.neighborsChanged(level, pos);
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof InboundStationBlockEntity station) {
-            station.dropContents(level, pos);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
     /** The carrot cycles the clicked side; sneaking dismantles and keeps the side modes on the item. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {

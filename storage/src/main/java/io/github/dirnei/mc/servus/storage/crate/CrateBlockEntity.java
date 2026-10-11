@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.crate;
 
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -21,7 +23,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
  * Bulk storage in one, two or four compartments. Each compartment locks to
@@ -109,7 +110,7 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
         return total;
     }
 
-    public ItemView handler() {
+    public ResourceHandler<ItemResource> handler() {
         return handler;
     }
 
@@ -240,7 +241,7 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
         for (int i = 0; i < types.length; i++) {
             CompoundTag entry = new CompoundTag();
             if (!isEmpty(i)) {
-                entry.put("Type", types[i].save(registries));
+                entry.put("Type", ValueIo.saveStack(registries, types[i]));
                 entry.putInt("Count", counts[i]);
             }
             list.add(entry);
@@ -278,5 +279,21 @@ public class CrateBlockEntity extends StorageNodeBlockEntity {
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+        CrateBlockEntity crate = this;
+        for (int i = 0; i < crate.compartments(); i++) {
+            while (!crate.isEmpty(i)) {
+                Block.popResource(level, pos, crate.extract(i, crate.type(i).getMaxStackSize(), false));
+            }
+        }
     }
 }

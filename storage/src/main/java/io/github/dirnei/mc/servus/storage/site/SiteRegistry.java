@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.site;
 
+import net.minecraft.world.level.saveddata.SavedDataType;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -27,12 +28,13 @@ import net.minecraft.world.level.saveddata.SavedData;
 public final class SiteRegistry extends SavedData {
 
     private static final String NAME = "servus_storage_sites";
-    private static final Factory<SiteRegistry> FACTORY = new Factory<>(SiteRegistry::new, SiteRegistry::load, null);
+    private static final SavedDataType<SiteRegistry> FACTORY = ValueIo.tagSavedData(NAME, SiteRegistry::new, SiteRegistry::load,
+            (s, tag, registries) -> s.save(tag, registries));
 
     private final Map<String, SiteRecord> sites = new LinkedHashMap<>();
 
     public static SiteRegistry get(MinecraftServer server) {
-        return server.overworld().getDataStorage().computeIfAbsent(FACTORY, NAME);
+        return server.overworld().getDataStorage().computeIfAbsent(FACTORY);
     }
 
     public static SiteRegistry of(ServerLevel level) {
@@ -141,7 +143,6 @@ public final class SiteRegistry extends SavedData {
         return registry;
     }
 
-    @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         sites.values().forEach(record -> list.add(record.save(registries)));

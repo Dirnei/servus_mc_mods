@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.production;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.adapter.MachineAdapterBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
@@ -164,7 +165,7 @@ public final class ProductionView {
 
     /** crafting, smelting, ... from the recipe's type, working when the recipe is not a known one. */
     private static String verb(ServerLevel level, Identifier recipe) {
-        return level.recipeAccess().byKey(recipe)
+        return ServusRecipes.byId(level, recipe)
                 .map(holder -> BuiltInRegistries.RECIPE_TYPE.getKey(holder.value().getType()))
                 .map(Identifier::getPath)
                 .orElse("working");

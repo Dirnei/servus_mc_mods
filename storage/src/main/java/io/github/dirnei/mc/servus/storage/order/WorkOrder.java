@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.order;
 
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.core.BlockPos;
 
 import io.github.dirnei.mc.servus.storage.network.ItemKey;

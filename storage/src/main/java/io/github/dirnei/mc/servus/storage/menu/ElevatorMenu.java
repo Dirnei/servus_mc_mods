@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.storage.rail.LiftUpgradeSlots;
@@ -13,7 +14,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /**
@@ -35,7 +35,7 @@ public class ElevatorMenu extends AbstractContainerMenu {
         this(containerId, playerInventory, ContainerLevelAccess.create(bottom.getLevel(), bottom.getBlockPos()), bottom.upgrades());
     }
 
-    private ElevatorMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, ItemView upgrades) {
+    private ElevatorMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, ItemSlots upgrades) {
         super(ServusStorageMenus.ELEVATOR.get(), containerId);
         this.access = access;
         this.upgradeSlots = upgrades.getSlots();

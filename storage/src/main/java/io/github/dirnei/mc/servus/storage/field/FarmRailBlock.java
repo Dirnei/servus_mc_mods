@@ -11,7 +11,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LevelEvent;
@@ -106,7 +105,7 @@ public class FarmRailBlock extends RailBlock {
         for (BlockPos rail : rails) {
             level.levelEvent(null, LevelEvent.PARTICLES_SCRAPE, rail, 0);
         }
-        stack.hurtAndBreak(count, player, LivingEntity.getSlotForHand(hand));
+        stack.hurtAndBreak(count, player, hand.asEquipmentSlot());
         return InteractionResult.SUCCESS;
     }
 
@@ -136,10 +135,8 @@ public class FarmRailBlock extends RailBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        super.onRemove(state, level, pos, newState, movedByPiston);
-        if (!level.isClientSide() && !state.is(newState.getBlock())) {
-            FieldHeads.railChanged(level, pos);
-        }
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+        FieldHeads.railChanged(level, pos);
     }
 }

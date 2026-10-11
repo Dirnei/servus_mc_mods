@@ -7,7 +7,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 /**
  * What a client needs to draw one shuttle: its path, where on it the shuttle
@@ -34,7 +33,7 @@ public record ShuttleView(List<BlockPos> path, int segment, float progress, Driv
                 Drive::new);
     }
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ShuttleView> STREAM_CODEC = NeoForgeStreamCodecs.composite(
+    public static final StreamCodec<RegistryFriendlyByteBuf, ShuttleView> STREAM_CODEC = StreamCodec.composite(
             BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()), ShuttleView::path,
             ByteBufCodecs.VAR_INT, ShuttleView::segment,
             ByteBufCodecs.FLOAT, ShuttleView::progress,

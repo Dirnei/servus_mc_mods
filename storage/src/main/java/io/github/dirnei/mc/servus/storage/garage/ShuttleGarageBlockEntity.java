@@ -266,4 +266,16 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
     public ModelData getModelData() {
         return woodSlot.modelData();
     }
+
+    /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Level level = this.level;
+        if (level == null) {
+            return;
+        }
+        ShuttleGarageBlockEntity garage = this;
+        garage.dropShuttles(level, pos);
+    }
 }

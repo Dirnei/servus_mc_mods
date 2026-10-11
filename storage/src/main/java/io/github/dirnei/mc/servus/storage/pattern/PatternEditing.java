@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.pattern;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,12 +45,12 @@ public final class PatternEditing {
             return "no_match";
         }
         // The result as the recipe really crafts it from these cells, components included.
-        ItemStack result = EncodedPattern.assembledResult(level, match.get().id(), cells,
-                match.get().value().getResultItem(level.registryAccess()));
+        ItemStack result = EncodedPattern.assembledResult(level, match.get().id().identifier(), cells,
+                ServusRecipes.displayResult(level, match.get().value()));
         if (result.isEmpty()) {
             return "no_match";
         }
-        EncodedPattern pattern = new EncodedPattern(match.get().id(), cells, result);
+        EncodedPattern pattern = new EncodedPattern(match.get().id().identifier(), cells, result);
         if (PatternLibrary.contains(level, network, pattern, editing)) {
             return "duplicate";
         }

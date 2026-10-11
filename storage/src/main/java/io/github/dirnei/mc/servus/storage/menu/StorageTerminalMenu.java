@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -37,7 +38,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -181,11 +181,10 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         }
         CraftingInput input = craftSlots.asCraftInput();
         ItemStack result = ItemStack.EMPTY;
-        Optional<RecipeHolder<CraftingRecipe>> recipe = level.getServer().recipeAccess()
-                .getRecipeFor(RecipeType.CRAFTING, input, level, (RecipeHolder<CraftingRecipe>) null);
+        Optional<RecipeHolder<CraftingRecipe>> recipe = ServusRecipes.craftingFor(level, input);
         // Players that are not ServerPlayers (GameTest mock players) skip the limited crafting check.
-        if (recipe.isPresent() && (!(player instanceof ServerPlayer serverPlayer) || resultSlots.setRecipeUsed(level, serverPlayer, recipe.get()))) {
-            ItemStack assembled = recipe.get().value().assemble(input, level.registryAccess());
+        if (recipe.isPresent() && (!(player instanceof ServerPlayer serverPlayer) || resultSlots.setRecipeUsed(serverPlayer, recipe.get()))) {
+            ItemStack assembled = recipe.get().value().assemble(input);
             if (assembled.isItemEnabled(level.enabledFeatures())) {
                 result = assembled;
             }
@@ -318,8 +317,8 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     private ItemStack takeFromInventory(ItemStack like, int count) {
         Inventory inventory = player.getInventory();
         ItemStack result = ItemStack.EMPTY;
-        for (int i = 0; i < inventory.items.size() && result.getCount() < count; i++) {
-            ItemStack stack = inventory.items.get(i);
+        for (int i = 0; i < inventory.getNonEquipmentItems().size() && result.getCount() < count; i++) {
+            ItemStack stack = inventory.getNonEquipmentItems().get(i);
             if (!ItemStack.isSameItemSameComponents(stack, like)) {
                 continue;
             }
@@ -471,7 +470,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         }
         if (index == resultIndex) {
             ItemStack original = stack.copy();
-            access.execute((level, pos) -> stack.getItem().onCraftedBy(stack, level, player));
+            access.execute((level, pos) -> stack.getItem().onCraftedBy(stack, player));
             if (!moveItemStackTo(stack, inventoryStart, gridStart, true)) {
                 return ItemStack.EMPTY;
             }

@@ -37,7 +37,6 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -269,21 +268,6 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         StorageNodeBlockEntity.neighborsChanged(level, pos);
-    }
-
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof HeavyRackBlockEntity rack) {
-            ItemSlots items = rack.items();
-            for (int i = 0; i < items.getSlots(); i++) {
-                ItemStack stack = items.getStackInSlot(i);
-                if (!stack.isEmpty()) {
-                    Block.popResource(level, pos, stack);
-                    items.setStackInSlot(i, ItemStack.EMPTY);
-                }
-            }
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

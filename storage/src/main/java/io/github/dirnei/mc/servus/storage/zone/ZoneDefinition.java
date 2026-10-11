@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.zone;
 
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;

@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.storage.order;
 
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.production.OrderPlanner;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;

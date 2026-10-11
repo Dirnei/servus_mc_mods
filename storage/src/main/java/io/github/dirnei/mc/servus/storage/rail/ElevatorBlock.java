@@ -2,8 +2,6 @@ package io.github.dirnei.mc.servus.storage.rail;
 
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
-import java.util.OptionalInt;
-import java.util.List;
 import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
 import io.github.dirnei.mc.servus.storage.shuttle.LiftUpgrades;
 import net.minecraft.world.InteractionHand;
@@ -18,7 +16,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -52,7 +49,7 @@ public class ElevatorBlock extends ConnectableBlock {
     }
 
     @Override
-    protected boolean connectsTo(LevelAccessor level, BlockPos neighborPos, BlockState neighborState, Direction direction) {
+    protected boolean connectsTo(LevelReader level, BlockPos neighborPos, BlockState neighborState, Direction direction) {
         if (direction.getAxis().isVertical()) {
             return neighborState.getBlock() instanceof ElevatorBlock;
         }
@@ -151,22 +148,6 @@ public class ElevatorBlock extends ConnectableBlock {
      * lowest. Otherwise the shaft above breaks like scaffolding and the
      * upgrades drop where the lowest segment was.
      */
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide() && !state.is(newState.getBlock())
-                && level.getBlockEntity(pos) instanceof ElevatorBlockEntity removed && removed.upgradeCount() > 0) {
-            List<ItemStack> items = removed.upgrades().takeAll();
-            OptionalInt heir = LiftUpgrades.heirOnRemove(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
-            BlockPos heirPos = heir.isPresent() ? pos.atY(heir.getAsInt()) : null;
-            if (heirPos != null && level.getBlockState(heirPos).canSurvive(level, heirPos)
-                    && level.getBlockEntity(heirPos) instanceof ElevatorBlockEntity next) {
-                items = next.upgrades().insertAll(items);
-            }
-            items.forEach(stack -> Block.popResource(level, pos, stack));
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new ElevatorBlockEntity(pos, state);
