@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.storage.field.FieldCropStockPayload;
+import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -222,6 +226,34 @@ public final class HarvesterGameTests {
                         + held(farm.crate(), Items.WHEAT_SEEDS));
                 helper.succeed();
             });
+        });
+    }
+
+    /**
+     * The crop picker's stock: the menu counts the crop items the warehouse
+     * holds, only non zero ones, and follows the crate as seeds come in.
+     */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void menuCropStockCounts(GameTestHelper helper) {
+        Farm farm = farm(helper, harvester());
+        farm.crate().insert(new ItemStack(Items.WHEAT_SEEDS, 40), false);
+        farm.crate().insert(new ItemStack(Items.COBBLESTONE, 5), false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        FieldHeadMenu menu = new FieldHeadMenu(1, player.getInventory(), farm.head());
+        ResourceLocation wheat = BuiltInRegistries.ITEM.getKey(Items.WHEAT_SEEDS);
+        ResourceLocation beetroot = BuiltInRegistries.ITEM.getKey(Items.BEETROOT_SEEDS);
+        TerminalWiring.when(helper, () -> menu.stockPayload().counts().getOrDefault(wheat, 0L) == 40, 150,
+                () -> "the menu should count 40 wheat seeds, got " + menu.stockPayload(), () -> {
+            FieldCropStockPayload payload = menu.stockPayload();
+            helper.assertTrue(payload.networked(), "the head's field is on a warehouse");
+            helper.assertTrue(!payload.counts().containsKey(beetroot), "beetroot seeds hold none and are not sent");
+            helper.assertTrue(!payload.counts().containsKey(BuiltInRegistries.ITEM.getKey(Items.COBBLESTONE)), "cobblestone is no crop");
+            helper.assertTrue(FieldHeadBlockEntity.cropItems().contains(Items.BEETROOT_SEEDS)
+                    && FieldHeadBlockEntity.cropItems().contains(Items.CARROT)
+                    && !FieldHeadBlockEntity.cropItems().contains(Items.COBBLESTONE), "the crop items come from the registry");
+            farm.crate().insert(new ItemStack(Items.BEETROOT_SEEDS, 3), false);
+            TerminalWiring.when(helper, () -> menu.stockPayload().counts().getOrDefault(beetroot, 0L) == 3, 40,
+                    () -> "the menu should follow the crate to 3 beetroot seeds, got " + menu.stockPayload(), helper::succeed);
         });
     }
 

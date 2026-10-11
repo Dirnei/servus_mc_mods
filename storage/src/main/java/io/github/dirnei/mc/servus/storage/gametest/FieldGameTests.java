@@ -500,6 +500,18 @@ public final class FieldGameTests {
         helper.succeed();
     }
 
+    /** A head whose field is on no warehouse sends no counts to the crop picker. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void menuCropStockWithoutWarehouse(GameTestHelper helper) {
+        FieldHeadBlockEntity head = field(helper, 3, 5);
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(head.status() == FieldStatus.SERVING, "the head should serve its rails");
+            FieldHeadMenu menu = new FieldHeadMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(), head);
+            helper.assertTrue(!menu.stockPayload().networked() && menu.stockPayload().counts().isEmpty(), "no warehouse, no counts");
+            helper.succeed();
+        });
+    }
+
     /**
      * Each head slot sits on its tab, and shift click routes honeycomb and a
      * Range Upgrade into their slots and back whatever tab is shown.

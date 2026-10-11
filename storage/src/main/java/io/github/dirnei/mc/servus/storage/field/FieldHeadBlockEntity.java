@@ -676,13 +676,14 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     /**
      * The warehouse stock of every crop item with a non zero count, keyed by
-     * item id; empty while the head serves no field on a warehouse. Server side.
+     * item id; empty while the head serves no field on a warehouse with its
+     * one controller. Server side.
      */
     public Optional<Map<ResourceLocation, Long>> cropStock() {
         if (status != FieldStatus.SERVING || rails.isEmpty()) {
             return Optional.empty();
         }
-        return network().map(warehouse -> {
+        return network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).map(warehouse -> {
             Map<ResourceLocation, Long> counts = new HashMap<>();
             for (Item item : cropItems()) {
                 long count = warehouse.stockCount(ItemKey.of(new ItemStack(item)));

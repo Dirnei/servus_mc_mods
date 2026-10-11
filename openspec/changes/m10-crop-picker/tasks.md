@@ -17,7 +17,7 @@
 
 ## 4. Tests
 
-- [ ] 4.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/gametest/FieldGameTests.java`: replace `menuSetsCropAndHarvestOnly` with `menuChoosesCropById` (wheat by id sets the crop and clears harvest only, harvest only entry, cobblestone and an unknown id refused, no item needed), adapt `menuTabsRouteShiftClick` to the new slot indices, and `menuCropStockCounts` (a head on a warehouse counts the seeds in a crate, a head without one reports no stock). Run `gradlew :storage:runGameTestServer`.
+- [x] 4.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/gametest/FieldGameTests.java`: replace `menuSetsCropAndHarvestOnly` with `menuChoosesCropById` (wheat by id sets the crop and clears harvest only, harvest only entry, cobblestone and an unknown id refused, no item needed), adapt `menuTabsRouteShiftClick` to the new slot indices, add `menuCropStockWithoutWarehouse` (lone farm rails, no counts); `storage/src/main/java/io/github/dirnei/mc/servus/storage/gametest/HarvesterGameTests.java`: `menuCropStockCounts` (a head on a warehouse counts the seeds in a crate, non crops and zero counts are not sent, a new stack is followed). Run `gradlew :storage:runGameTestServer`.
 
 ## 5. Docs and plan
 
