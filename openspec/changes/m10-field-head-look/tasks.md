@@ -1,6 +1,6 @@
 ## 1. Pure logic
 
-- [ ] 1.1 Add `storage/.../field/FieldHeadLook.java` (ripe step 0..5 and water level 0..8, no Minecraft imports) and JUnit `storage/src/test/.../field/FieldHeadLookTest.java` (ripeStepEmpty, ripeStepProgress, ripeStepBelowDueStaysGold, ripeStepDue, waterLevelEmptyAndFull, waterLevelSteps, waterLevelZeroCapacity); `gradlew :storage:test`
+- [x] 1.1 Add `storage/.../field/FieldHeadLook.java` (ripe step 0..5 and water level 0..8, no Minecraft imports) and JUnit `storage/src/test/.../field/FieldHeadLookTest.java` (ripeStepEmpty, ripeStepProgress, ripeStepBelowDueStaysGold, ripeStepDue, waterLevelEmptyAndFull, waterLevelSteps, waterLevelZeroCapacity); `gradlew :storage:test`
 
 ## 2. Block, wood and state
 
