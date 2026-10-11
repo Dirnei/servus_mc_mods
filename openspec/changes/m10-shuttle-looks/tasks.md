@@ -12,7 +12,7 @@
 
 - [x] 3.1 Add `storage/.../client/ShuttleItemModel.java` (wrapper with per look key overrides and the composed model) and register the part models in `ModelEvent.RegisterAdditional` and the wrapper in `ModelEvent.ModifyBakingResult` in `ServusStorageClient`. Verify: `gradlew build` green.
 - [x] 3.2 Update `storage/.../client/ShuttleGarageRenderer.java`: full scale, cargo only for open holds, park spacing 0.25, heading `atan2(dx, dz)`. Verify: `gradlew build` and the storage GameTests green.
-- [ ] 3.3 Describe the shuttle looks in `docs/src/content/docs/mods/storage.md`. Verify: docs tests green.
+- [x] 3.3 Describe the shuttle looks in `docs/src/content/docs/mods/storage.md`. Verify: docs tests green.
 
 ## 4. Integration
 
