@@ -21,7 +21,7 @@
 
 ## 5. Docs and plan
 
-- [ ] 5.1 `docs/src/content/docs/mods/storage.md` (Field Head GUI) and `PLAN.md` M10 list (`m10-crop-picker`). Run `openspec validate m10-crop-picker`.
+- [x] 5.1 `docs/src/content/docs/mods/storage.md` (Field Head GUI) and `PLAN.md` M10 list (`m10-crop-picker`). Run `openspec validate m10-crop-picker`.
 
 ## 6. Verification
 
