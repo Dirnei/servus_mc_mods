@@ -1,6 +1,6 @@
 ## 1. Pure geometry
 
-- [ ] 1.1 Add `storage/.../rail/RailLook.java` (pieces per mask, boxes for single, end, straight, curve, cross, dock and dock inline, rotation; no Minecraft imports) and JUnit `storage/src/test/.../rail/RailLookTest.java` (pieceForEveryMask, rotationRoundTrip, straightGaugeAndSleepers, curveMeetsEdgesAtGauge, curveIsSymmetric, crossHeadsDoNotOverlap, boxesStayInsideBlock, dockInlineReachesBeam); `gradlew :storage:test`
+- [x] 1.1 Add `storage/.../rail/RailLook.java` (pieces per mask, boxes for single, end, straight, curve, cross, dock and dock inline, rotation; no Minecraft imports) and JUnit `storage/src/test/.../rail/RailLookTest.java` (pieceForEveryMask, rotationRoundTrip, straightGaugeAndSleepers, curveMeetsEdgesAtGauge, curveIsSymmetric, crossHeadsDoNotOverlap, boxesStayInsideBlock, dockInlineReachesBeam); `gradlew :storage:test`
 
 ## 2. Wood rails
 
