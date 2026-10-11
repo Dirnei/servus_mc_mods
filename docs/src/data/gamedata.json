@@ -976,6 +976,25 @@
         {"item": "servus_storage:rail", "count": 8}
       ]
     },
+    "servus_storage:range_upgrade": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["ISI", "WCW", "ISI"],
+      "key": {
+        "C": {"item": "minecraft:composter"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "S": {"item": "minecraft:wheat_seeds"},
+        "W": {"item": "minecraft:bone_meal"}
+      },
+      "inputs": [
+        {"item": "minecraft:bone_meal", "count": 2},
+        {"item": "minecraft:composter", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 4},
+        {"item": "minecraft:wheat_seeds", "count": 2}
+      ],
+      "outputs": [
+        {"item": "servus_storage:range_upgrade", "count": 1}
+      ]
+    },
     "servus_storage:shuttle": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["I I", "RBR", "III"],
@@ -1089,6 +1108,9 @@
     "minecraft:blast_furnace": {
       "name": "Blast Furnace"
     },
+    "minecraft:bone_meal": {
+      "name": "Bone Meal"
+    },
     "minecraft:book": {
       "name": "Book"
     },
@@ -1184,6 +1206,9 @@
     },
     "minecraft:stick": {
       "name": "Stick"
+    },
+    "minecraft:wheat_seeds": {
+      "name": "Wheat Seeds"
     },
     "servus_foundation:burner_pump": {
       "name": "Burner Pump"
@@ -1328,6 +1353,9 @@
     },
     "servus_storage:rail": {
       "name": "Warehouse Rail"
+    },
+    "servus_storage:range_upgrade": {
+      "name": "Range Upgrade"
     },
     "servus_storage:shuttle": {
       "name": "Shuttle Mk1"

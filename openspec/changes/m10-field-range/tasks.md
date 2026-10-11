@@ -18,7 +18,7 @@
 
 ## 4. Docs and plan
 
-- [ ] 4.1 `docs/src/content/docs/mods/storage.md`: field radius, Range Upgrade, harvesters and lifts; `PLAN.md` M10 item 4 marked built with the decisions. Verify: `openspec validate m10-field-range`, docs tests green.
+- [x] 4.1 `docs/src/content/docs/mods/storage.md`: field radius, Range Upgrade, harvesters and lifts; `PLAN.md` M10 item 4 marked built with the decisions. Verify: `openspec validate m10-field-range`, docs tests green.
 
 ## 5. Integration
 
