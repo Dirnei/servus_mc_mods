@@ -108,14 +108,15 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_redstone", has(Items.REDSTONE))
                 .save(WoodRecipes.output(output));
 
+        // Steel heads on sleepers in the wood of the planks.
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.RAIL.get(), 8)
-                .pattern("III")
-                .pattern(" S ")
-                .pattern("III")
+                .pattern("I I")
+                .pattern("IPI")
+                .pattern("I I")
                 .define('I', Items.IRON_INGOT)
-                .define('S', Items.STICK)
+                .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
-                .save(output);
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.ELEVATOR.get(), 4)
                 .pattern("III")
@@ -216,14 +217,15 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE_MK1.get()))
                 .save(output);
 
+        // Copper heads on sleepers in the wood of the planks.
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.FARM_RAIL.get(), 8)
-                .pattern("RRR")
-                .pattern("RCR")
-                .pattern("RRR")
-                .define('R', ServusStorageItems.RAIL.get())
-                .define('C', Items.COMPOSTER)
-                .unlockedBy("has_rail", has(ServusStorageItems.RAIL.get()))
-                .save(output);
+                .pattern("C C")
+                .pattern("CPC")
+                .pattern("C C")
+                .define('C', Items.COPPER_INGOT)
+                .define('P', ItemTags.PLANKS)
+                .unlockedBy("has_copper_ingot", has(Items.COPPER_INGOT))
+                .save(WoodRecipes.output(output));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.FIELD_HEAD.get())
                 .pattern("IBI")

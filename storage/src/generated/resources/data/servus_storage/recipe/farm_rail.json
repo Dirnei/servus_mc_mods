@@ -1,18 +1,18 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "servus_foundation:wood_shaped",
   "category": "misc",
   "key": {
     "C": {
-      "item": "minecraft:composter"
+      "item": "minecraft:copper_ingot"
     },
-    "R": {
-      "item": "servus_storage:rail"
+    "P": {
+      "tag": "minecraft:planks"
     }
   },
   "pattern": [
-    "RRR",
-    "RCR",
-    "RRR"
+    "C C",
+    "CPC",
+    "C C"
   ],
   "result": {
     "count": 8,

@@ -1,0 +1,108 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#wood"
+        },
+        "east": {
+          "texture": "#wood"
+        },
+        "north": {
+          "texture": "#wood"
+        },
+        "south": {
+          "texture": "#wood"
+        },
+        "up": {
+          "texture": "#wood"
+        },
+        "west": {
+          "texture": "#wood"
+        }
+      },
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        1,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#head"
+        },
+        "east": {
+          "texture": "#head"
+        },
+        "north": {
+          "texture": "#head"
+        },
+        "south": {
+          "texture": "#head"
+        },
+        "up": {
+          "texture": "#head"
+        },
+        "west": {
+          "texture": "#head"
+        }
+      },
+      "from": [
+        2,
+        1,
+        1
+      ],
+      "to": [
+        4,
+        2,
+        4
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#head"
+        },
+        "east": {
+          "texture": "#head"
+        },
+        "north": {
+          "texture": "#head"
+        },
+        "south": {
+          "texture": "#head"
+        },
+        "up": {
+          "texture": "#head"
+        },
+        "west": {
+          "texture": "#head"
+        }
+      },
+      "from": [
+        12,
+        1,
+        1
+      ],
+      "to": [
+        14,
+        2,
+        4
+      ]
+    }
+  ],
+  "textures": {
+    "dock": "servus_storage:block/rail_dock",
+    "head": "servus_storage:block/rail_head",
+    "particle": "servus_storage:block/rail_head",
+    "wood": "servus_foundation:block/wood_board"
+  }
+}

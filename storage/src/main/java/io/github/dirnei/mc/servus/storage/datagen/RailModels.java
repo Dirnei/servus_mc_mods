@@ -1,91 +1,137 @@
 package io.github.dirnei.mc.servus.storage.datagen;
 
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
+import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
-import io.github.dirnei.mc.servus.storage.rail.RailCenter;
+import io.github.dirnei.mc.servus.storage.rail.RailLook;
+import io.github.dirnei.mc.servus.storage.rail.RailLook.Box;
+import io.github.dirnei.mc.servus.storage.rail.RailLook.Piece;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ModelBuilder;
 import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 
-/** Datagen for the flat rail: a centre plate shaped by the connections (straight, curve or cross), one arm per connected side, a dock piece per side that touches a storage block, and a flat item sprite. */
+/**
+ * Datagen for the track rails: one model per {@link RailLook} piece (single,
+ * end, straight, curve, cross) picked by the sides that carry rail, a dock
+ * beam per dock side and the track up to the beam when the rail runs straight
+ * into it. Sleepers use the wood board texture so {@code WoodModel} shows the
+ * rail's wood; heads use one texture per rail type.
+ */
 final class RailModels {
+
+    private static final BooleanProperty[] CONNECTED = {ConnectableBlock.NORTH, ConnectableBlock.EAST, ConnectableBlock.SOUTH, ConnectableBlock.WEST};
+    private static final BooleanProperty[] DOCK = {RailBlock.DOCK_NORTH, RailBlock.DOCK_EAST, RailBlock.DOCK_SOUTH, RailBlock.DOCK_WEST};
 
     private RailModels() {
     }
 
     static void rail(BlockStateProvider provider, Block block, String name) {
-        ResourceLocation texture = provider.modLoc("block/" + name);
-        BlockModelBuilder center = center(provider, name + "_center", texture);
-        BlockModelBuilder curve = center(provider, name + "_center_curve", provider.modLoc("block/" + name + "_curve"));
-        BlockModelBuilder cross = center(provider, name + "_center_cross", provider.modLoc("block/" + name + "_cross"));
-        BlockModelBuilder arm = provider.models().getBuilder(name + "_arm")
-                .texture("particle", texture).texture("skin", texture)
-                .element().from(5, 0, 0).to(11, 1, 5)
-                .allFaces((direction, face) -> face.texture("#skin")).end();
-
+        ResourceLocation head = provider.modLoc("block/" + name + "_head");
         ResourceLocation dockTexture = provider.modLoc("block/" + name + "_dock");
-        BlockModelBuilder dock = provider.models().getBuilder(name + "_dock")
-                .texture("particle", texture).texture("skin", texture).texture("dock", dockTexture)
-                .element().from(5, 0, 1).to(7, 1, 5)
-                .allFaces((direction, face) -> face.texture("#dock")).end()
-                .element().from(9, 0, 1).to(11, 1, 5)
-                .allFaces((direction, face) -> face.texture("#dock")).end()
-                .element().from(4, 0, 0).to(12, 3, 1)
-                .allFaces((direction, face) -> face.texture("#dock")).end();
+        Map<Piece, BlockModelBuilder> pieces = new EnumMap<>(Piece.class);
+        for (Piece piece : Piece.values()) {
+            pieces.put(piece, model(provider, name + "_" + piece.name().toLowerCase(java.util.Locale.ROOT), head, dockTexture,
+                    RailLook.boxes(piece)));
+        }
+        BlockModelBuilder dock = model(provider, name + "_dock", head, dockTexture, RailLook.dock());
+        BlockModelBuilder dockInline = model(provider, name + "_dock_inline", head, dockTexture, RailLook.dockInline());
 
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
         for (int mask = 0; mask < 16; mask++) {
-            centerPart(builder, mask, center, curve, cross);
+            piecePart(builder, mask, pieces);
         }
-        builder.part().modelFile(arm).addModel().condition(ConnectableBlock.NORTH, true).condition(RailBlock.DOCK_NORTH, false);
-        builder.part().modelFile(arm).rotationY(90).addModel().condition(ConnectableBlock.EAST, true).condition(RailBlock.DOCK_EAST, false);
-        builder.part().modelFile(arm).rotationY(180).addModel().condition(ConnectableBlock.SOUTH, true).condition(RailBlock.DOCK_SOUTH, false);
-        builder.part().modelFile(arm).rotationY(270).addModel().condition(ConnectableBlock.WEST, true).condition(RailBlock.DOCK_WEST, false);
-        builder.part().modelFile(dock).addModel().condition(RailBlock.DOCK_NORTH, true);
-        builder.part().modelFile(dock).rotationY(90).addModel().condition(RailBlock.DOCK_EAST, true);
-        builder.part().modelFile(dock).rotationY(180).addModel().condition(RailBlock.DOCK_SOUTH, true);
-        builder.part().modelFile(dock).rotationY(270).addModel().condition(RailBlock.DOCK_WEST, true);
-
-        provider.itemModels().withExistingParent(name, "item/generated").texture("layer0", texture);
-    }
-
-    private static BlockModelBuilder center(BlockStateProvider provider, String model, ResourceLocation texture) {
-        return provider.models().getBuilder(model)
-                .texture("particle", texture).texture("skin", texture)
-                .element().from(5, 0, 5).to(11, 1, 11)
-                .allFaces((direction, face) -> face.texture("#skin")).end();
-    }
-
-    /** One centre part for a rail mask (bits north, east, south, west), conditioned on all four sides so exactly one applies. */
-    private static void centerPart(MultiPartBlockStateBuilder builder, int mask, BlockModelBuilder center,
-                                   BlockModelBuilder curve, BlockModelBuilder cross) {
-        boolean north = (mask & 1) != 0;
-        boolean east = (mask & 2) != 0;
-        boolean south = (mask & 4) != 0;
-        boolean west = (mask & 8) != 0;
-        RailCenter shape = RailCenter.of(north, east, south, west);
-        BlockModelBuilder model = switch (shape.shape()) {
-            case STRAIGHT -> center;
-            case CURVE -> curve;
-            case CROSS -> cross;
-        };
-        int rotation = shape.rotation();
-        MultiPartBlockStateBuilder.PartBuilder part = builder.part().modelFile(model).rotationY(rotation).addModel();
-        side(part, ConnectableBlock.NORTH, RailBlock.DOCK_NORTH, north);
-        side(part, ConnectableBlock.EAST, RailBlock.DOCK_EAST, east);
-        side(part, ConnectableBlock.SOUTH, RailBlock.DOCK_SOUTH, south);
-        side(part, ConnectableBlock.WEST, RailBlock.DOCK_WEST, west);
-    }
-
-    /** A side runs rail into the centre when it connects without a dock; a dock is drawn on its own and leaves the centre alone. */
-    private static void side(MultiPartBlockStateBuilder.PartBuilder part, BooleanProperty connected, BooleanProperty dock, boolean rail) {
-        if (rail) {
-            part.nestedGroup().condition(connected, true).condition(dock, false).end();
-        } else {
-            part.nestedGroup().useOr().condition(connected, false).condition(dock, true).end();
+        for (int i = 0; i < 4; i++) {
+            int rotation = i * 90;
+            builder.part().modelFile(dock).rotationY(rotation).addModel().condition(DOCK[i], true);
+            // The track up to the beam when no rail comes in from the sides beside the dock.
+            MultiPartBlockStateBuilder.PartBuilder inline = builder.part().modelFile(dockInline).rotationY(rotation).addModel();
+            inline.nestedGroup().condition(DOCK[i], true).end();
+            notRail(inline, (i + 1) % 4);
+            notRail(inline, (i + 3) % 4);
         }
+
+        provider.itemModels().withExistingParent(name, provider.modLoc("block/" + name + "_straight"))
+                .transforms()
+                .transform(ItemDisplayContext.GUI).rotation(50, 45, 0).translation(0, 2, 0).scale(0.8F).end()
+                .transform(ItemDisplayContext.FIXED).rotation(-90, 0, 0).translation(0, 0, -1).scale(0.6F).end()
+                .transform(ItemDisplayContext.GROUND).rotation(0, 0, 0).translation(0, 3, 0).scale(0.35F).end()
+                .end();
+    }
+
+    /** A model of boxes: sleepers in the wood board texture, heads and dock beams in their own textures. */
+    private static BlockModelBuilder model(BlockStateProvider provider, String model, ResourceLocation head, ResourceLocation dock,
+                                           List<Box> boxes) {
+        BlockModelBuilder builder = provider.models().withExistingParent(model, "minecraft:block/block")
+                .texture("particle", head).texture("head", head).texture("wood", Wood.BOARD).texture("dock", dock);
+        for (Box box : boxes) {
+            String texture = switch (box.part()) {
+                case SLEEPER -> "#wood";
+                case HEAD -> "#head";
+                case DOCK -> "#dock";
+            };
+            ModelBuilder<BlockModelBuilder>.ElementBuilder element = builder.element()
+                    .from((float) box.x0(), (float) box.y0(), (float) box.z0())
+                    .to((float) box.x1(), (float) box.y1(), (float) box.z1());
+            element.allFaces((direction, face) -> {
+                face.texture(texture);
+                if (direction == Direction.DOWN && box.y0() == 0) {
+                    face.cullface(Direction.DOWN);
+                }
+            });
+            element.end();
+        }
+        return builder;
+    }
+
+    /** The piece for a mask of sides that carry rail (bits north, east, south, west), conditioned on all four sides. */
+    private static void piecePart(MultiPartBlockStateBuilder builder, int mask, Map<Piece, BlockModelBuilder> pieces) {
+        boolean[] rail = new boolean[4];
+        for (int i = 0; i < 4; i++) {
+            rail[i] = (mask & (1 << i)) != 0;
+        }
+        RailLook.Placed placed = RailLook.of(rail[0], rail[1], rail[2], rail[3]);
+        BlockModelBuilder model = pieces.get(placed.piece());
+        if (mask == 0) {
+            // A rail without rail sides lies along its docks: east west when a dock lies east or west and none north or south.
+            MultiPartBlockStateBuilder.PartBuilder across = builder.part().modelFile(model).rotationY(90).addModel();
+            sides(across, rail);
+            across.nestedGroup().condition(RailBlock.DOCK_NORTH, false).end();
+            across.nestedGroup().condition(RailBlock.DOCK_SOUTH, false).end();
+            across.nestedGroup().useOr().condition(RailBlock.DOCK_EAST, true).condition(RailBlock.DOCK_WEST, true).end();
+            MultiPartBlockStateBuilder.PartBuilder along = builder.part().modelFile(model).addModel();
+            sides(along, rail);
+            along.nestedGroup().useOr()
+                    .nestedGroup().condition(RailBlock.DOCK_NORTH, true).endNestedGroup()
+                    .nestedGroup().condition(RailBlock.DOCK_SOUTH, true).endNestedGroup()
+                    .nestedGroup().condition(RailBlock.DOCK_EAST, false).condition(RailBlock.DOCK_WEST, false).endNestedGroup()
+                    .end();
+            return;
+        }
+        MultiPartBlockStateBuilder.PartBuilder part = builder.part().modelFile(model).rotationY(placed.rotation()).addModel();
+        sides(part, rail);
+    }
+
+    private static void sides(MultiPartBlockStateBuilder.PartBuilder part, boolean[] rail) {
+        for (int i = 0; i < 4; i++) {
+            if (rail[i]) {
+                part.nestedGroup().condition(CONNECTED[i], true).condition(DOCK[i], false).end();
+            } else {
+                notRail(part, i);
+            }
+        }
+    }
+
+    /** A side carries no rail: not connected, or a dock, which is drawn on its own. */
+    private static void notRail(MultiPartBlockStateBuilder.PartBuilder part, int side) {
+        part.nestedGroup().useOr().condition(CONNECTED[side], false).condition(DOCK[side], true).end();
     }
 }

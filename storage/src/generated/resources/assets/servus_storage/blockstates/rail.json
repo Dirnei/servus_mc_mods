@@ -2,7 +2,8 @@
   "multipart": [
     {
       "apply": {
-        "model": "servus_storage:block/rail_center"
+        "model": "servus_storage:block/rail_single",
+        "y": 90
       },
       "when": {
         "AND": [
@@ -45,13 +46,92 @@
                 "dock_west": "true"
               }
             ]
+          },
+          {
+            "dock_north": "false"
+          },
+          {
+            "dock_south": "false"
+          },
+          {
+            "OR": [
+              {
+                "dock_east": "true"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
           }
         ]
       }
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center"
+        "model": "servus_storage:block/rail_single"
+      },
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "dock_north": "true"
+              },
+              {
+                "dock_south": "true"
+              },
+              {
+                "dock_east": "false",
+                "dock_west": "false"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/rail_end"
       },
       "when": {
         "AND": [
@@ -94,7 +174,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center",
+        "model": "servus_storage:block/rail_end",
         "y": 90
       },
       "when": {
@@ -138,7 +218,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center_curve"
+        "model": "servus_storage:block/rail_curve"
       },
       "when": {
         "AND": [
@@ -175,7 +255,8 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center"
+        "model": "servus_storage:block/rail_end",
+        "y": 180
       },
       "when": {
         "AND": [
@@ -218,7 +299,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center"
+        "model": "servus_storage:block/rail_straight"
       },
       "when": {
         "AND": [
@@ -255,7 +336,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center_curve",
+        "model": "servus_storage:block/rail_curve",
         "y": 90
       },
       "when": {
@@ -293,7 +374,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center_cross"
+        "model": "servus_storage:block/rail_cross"
       },
       "when": {
         "AND": [
@@ -324,8 +405,8 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center",
-        "y": 90
+        "model": "servus_storage:block/rail_end",
+        "y": 270
       },
       "when": {
         "AND": [
@@ -368,7 +449,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center_curve",
+        "model": "servus_storage:block/rail_curve",
         "y": 270
       },
       "when": {
@@ -406,7 +487,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center",
+        "model": "servus_storage:block/rail_straight",
         "y": 90
       },
       "when": {
@@ -444,7 +525,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center_cross"
+        "model": "servus_storage:block/rail_cross"
       },
       "when": {
         "AND": [
@@ -475,7 +556,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center_curve",
+        "model": "servus_storage:block/rail_curve",
         "y": 180
       },
       "when": {
@@ -513,7 +594,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center_cross"
+        "model": "servus_storage:block/rail_cross"
       },
       "when": {
         "AND": [
@@ -544,7 +625,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center_cross"
+        "model": "servus_storage:block/rail_cross"
       },
       "when": {
         "AND": [
@@ -575,7 +656,7 @@
     },
     {
       "apply": {
-        "model": "servus_storage:block/rail_center_cross"
+        "model": "servus_storage:block/rail_cross"
       },
       "when": {
         "AND": [
@@ -596,45 +677,6 @@
             "west": "true"
           }
         ]
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/rail_arm"
-      },
-      "when": {
-        "dock_north": "false",
-        "north": "true"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/rail_arm",
-        "y": 90
-      },
-      "when": {
-        "dock_east": "false",
-        "east": "true"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/rail_arm",
-        "y": 180
-      },
-      "when": {
-        "dock_south": "false",
-        "south": "true"
-      }
-    },
-    {
-      "apply": {
-        "model": "servus_storage:block/rail_arm",
-        "y": 270
-      },
-      "when": {
-        "dock_west": "false",
-        "west": "true"
       }
     },
     {
@@ -643,6 +685,38 @@
       },
       "when": {
         "dock_north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/rail_dock_inline"
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_north": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -656,6 +730,39 @@
     },
     {
       "apply": {
+        "model": "servus_storage:block/rail_dock_inline",
+        "y": 90
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_east": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
         "model": "servus_storage:block/rail_dock",
         "y": 180
       },
@@ -665,11 +772,77 @@
     },
     {
       "apply": {
+        "model": "servus_storage:block/rail_dock_inline",
+        "y": 180
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_south": "true"
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
         "model": "servus_storage:block/rail_dock",
         "y": 270
       },
       "when": {
         "dock_west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/rail_dock_inline",
+        "y": 270
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_west": "true"
+          },
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          }
+        ]
       }
     }
   ]

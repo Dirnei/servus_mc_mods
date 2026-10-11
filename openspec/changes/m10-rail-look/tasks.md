@@ -9,7 +9,7 @@
 ## 3. Textures and datagen
 
 - [x] 3.1 Draw `rail_head` (steel) and `farm_rail_head` (copper with verdigris) with a Python PIL generator in the job tmp dir; delete `rail`, `rail_curve`, `rail_cross`, `farm_rail`, `farm_rail_curve`, `farm_rail_cross`; `gradlew build`
-- [ ] 3.2 Rewrite `datagen/RailModels.java` (piece models from `RailLook`, multipart per mask, dock beam and inline parts, item model from the straight piece); `ServusStorageBlockLoot` (rails in `WOODEN`); `ServusStorageRecipeProvider` (iron and planks, copper and planks through `WoodRecipes.output`); `gradlew :storage:runData`, `gradlew build`
+- [x] 3.2 Rewrite `datagen/RailModels.java` (piece models from `RailLook`, multipart per mask, dock beam and inline parts, item model from the straight piece); `ServusStorageBlockLoot` (rails in `WOODEN`); `ServusStorageRecipeProvider` (iron and planks, copper and planks through `WoodRecipes.output`); `gradlew :storage:runData`, `gradlew build`
 
 ## 4. Renderers
 

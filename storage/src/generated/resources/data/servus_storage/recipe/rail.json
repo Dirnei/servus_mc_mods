@@ -1,18 +1,18 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "servus_foundation:wood_shaped",
   "category": "misc",
   "key": {
     "I": {
       "item": "minecraft:iron_ingot"
     },
-    "S": {
-      "item": "minecraft:stick"
+    "P": {
+      "tag": "minecraft:planks"
     }
   },
   "pattern": [
-    "III",
-    " S ",
-    "III"
+    "I I",
+    "IPI",
+    "I I"
   ],
   "result": {
     "count": 8,

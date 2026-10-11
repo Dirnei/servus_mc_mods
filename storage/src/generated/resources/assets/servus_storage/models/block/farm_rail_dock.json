@@ -1,8 +1,10 @@
 {
+  "parent": "minecraft:block/block",
   "elements": [
     {
       "faces": {
         "down": {
+          "cullface": "down",
           "texture": "#dock"
         },
         "east": {
@@ -22,76 +24,12 @@
         }
       },
       "from": [
-        5,
-        0,
-        1
-      ],
-      "to": [
-        7,
         1,
-        5
-      ]
-    },
-    {
-      "faces": {
-        "down": {
-          "texture": "#dock"
-        },
-        "east": {
-          "texture": "#dock"
-        },
-        "north": {
-          "texture": "#dock"
-        },
-        "south": {
-          "texture": "#dock"
-        },
-        "up": {
-          "texture": "#dock"
-        },
-        "west": {
-          "texture": "#dock"
-        }
-      },
-      "from": [
-        9,
-        0,
-        1
-      ],
-      "to": [
-        11,
-        1,
-        5
-      ]
-    },
-    {
-      "faces": {
-        "down": {
-          "texture": "#dock"
-        },
-        "east": {
-          "texture": "#dock"
-        },
-        "north": {
-          "texture": "#dock"
-        },
-        "south": {
-          "texture": "#dock"
-        },
-        "up": {
-          "texture": "#dock"
-        },
-        "west": {
-          "texture": "#dock"
-        }
-      },
-      "from": [
-        4,
         0,
         0
       ],
       "to": [
-        12,
+        15,
         3,
         1
       ]
@@ -99,7 +37,8 @@
   ],
   "textures": {
     "dock": "servus_storage:block/farm_rail_dock",
-    "particle": "servus_storage:block/farm_rail",
-    "skin": "servus_storage:block/farm_rail"
+    "head": "servus_storage:block/farm_rail_head",
+    "particle": "servus_storage:block/farm_rail_head",
+    "wood": "servus_foundation:block/wood_board"
   }
 }
