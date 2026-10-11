@@ -29,5 +29,5 @@
 
 ## 7. Integration
 
-- [ ] 7.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch happens in the user's play check (7.2).
+- [x] 7.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch happens in the user's play check (7.2).
 - [ ] 7.2 Play check in game by the user from main: craft farm rails and a Field Head, lay a field next to a warehouse, pipe water from a pump into the head, watch farmland stay wet 4 blocks out, set wheat in the GUI, bone meal crops and see the ripe count and harvest due. Verify: the user confirms in game.
