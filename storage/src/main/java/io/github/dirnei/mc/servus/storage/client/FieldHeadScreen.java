@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
@@ -33,6 +34,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int BAR_W = 12;
     private static final int BAR_H = 64;
     private static final int LINES_Y = 42;
+    /** Rows the inventory moves down for the corrosion row; the panel texture is drawn in two parts. */
+    private static final int SHIFT = FieldHeadMenu.INVENTORY_Y - 96;
+    private static final int SPLIT = 84;
+    private static final int CORROSION_TEXT_X = 30;
 
     private Button toggle;
     private Button down;
@@ -41,7 +46,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     public FieldHeadScreen(FieldHeadMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 178;
+        this.imageHeight = 178 + SHIFT;
     }
 
     @Override
@@ -93,13 +98,21 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 && mouseX >= rangeLeft && mouseX < rangeLeft + 16 && mouseY >= rangeTop && mouseY < rangeTop + 16) {
             graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.range_slot", menu.radius()), mouseX, mouseY);
         }
+        int slotLeft = leftPos + FieldHeadMenu.ANTI_CORROSION_X;
+        int slotTop = topPos + FieldHeadMenu.ANTI_CORROSION_Y;
+        if (menu.getCarried().isEmpty() && !menu.slots.get(FieldHeadMenu.ANTI_CORROSION_SLOT).hasItem()
+                && mouseX >= slotLeft && mouseX < slotLeft + 16 && mouseY >= slotTop && mouseY < slotTop + 16) {
+            graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.anti_corrosion_slot"), mouseX, mouseY);
+        }
         renderTooltip(graphics, mouseX, mouseY);
     }
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, SPLIT);
+        graphics.blit(TEXTURE, leftPos, topPos + SPLIT, 0, SPLIT - SHIFT, imageWidth, imageHeight - SPLIT);
         sunken(graphics, leftPos + FieldHeadMenu.CROP_X - 1, topPos + FieldHeadMenu.CROP_Y - 1, 18, 18);
+        sunken(graphics, leftPos + FieldHeadMenu.ANTI_CORROSION_X - 1, topPos + FieldHeadMenu.ANTI_CORROSION_Y - 1, 18, 18);
         sunken(graphics, leftPos + FieldHeadMenu.RANGE_X - 1, topPos + FieldHeadMenu.CROP_Y - 1, 18, 18);
         int barLeft = leftPos + BAR_X;
         int barTop = topPos + BAR_Y;
@@ -159,6 +172,15 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                     ? Component.translatable("gui.servus_storage.field_head.work.working_named", worker)
                     : Component.translatable("gui.servus_storage.field_head.work." + work.name().toLowerCase(Locale.ROOT));
             graphics.drawString(font, line, 8, y + 34, colour, false);
+        }
+        int stage = menu.corrosion();
+        if (stage >= FieldCorrosion.COPPER) {
+            Component corrosion = stage == FieldCorrosion.CORRODED
+                    ? Component.translatable("gui.servus_storage.field_head.corroded")
+                    : Component.translatable("gui.servus_storage.field_head.corrosion",
+                            Component.translatable("gui.servus_storage.field_head.stage." + FieldCorrosion.name(stage)), menu.corrosionProgress());
+            graphics.drawString(font, corrosion, CORROSION_TEXT_X, FieldHeadMenu.ANTI_CORROSION_Y + 4,
+                    stage == FieldCorrosion.CORRODED ? COLOUR_WARN : COLOUR_TEXT, false);
         }
     }
 }

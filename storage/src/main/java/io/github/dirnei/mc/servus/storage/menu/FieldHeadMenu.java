@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
+import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
@@ -22,7 +23,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The Field Head GUI: one ghost slot for the crop, a harvest only toggle, the
- * field's numbers as container data, the player inventory.
+ * Range Upgrade and anti-corrosion slots, the field's numbers as container
+ * data, the player inventory.
  */
 public class FieldHeadMenu extends AbstractContainerMenu {
 
@@ -30,9 +32,12 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     public static final int CROP_Y = 20;
     public static final int RANGE_X = 128;
     public static final int RANGE_SLOT = 1;
-    public static final int INVENTORY_Y = 96;
-    public static final int HOTBAR_Y = 154;
-    public static final int INVENTORY_START = 2;
+    public static final int ANTI_CORROSION_SLOT = 2;
+    public static final int ANTI_CORROSION_X = 8;
+    public static final int ANTI_CORROSION_Y = 88;
+    public static final int INVENTORY_Y = 118;
+    public static final int HOTBAR_Y = 176;
+    public static final int INVENTORY_START = 3;
     public static final int BUTTON_HARVEST_ONLY = 0;
     public static final int BUTTON_THRESHOLD_DOWN = 1;
     public static final int BUTTON_THRESHOLD_UP = 2;
@@ -58,6 +63,9 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     private final DataSlot work = DataSlot.standalone();
     private final DataSlot threshold = DataSlot.standalone();
     private final DataSlot radius = DataSlot.standalone();
+    /** The served field's corrosion stage plus one; zero while the head serves no field. */
+    private final DataSlot corrosion = DataSlot.standalone();
+    private final DataSlot corrosionProgress = DataSlot.standalone();
     /** The worker name last sent to the player; null before the first send. */
     private String sentWorker;
 
@@ -68,6 +76,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         this.access = ContainerLevelAccess.create(head.getLevel(), head.getBlockPos());
         addSlot(new GhostSlot(head::cropHandler, 0, CROP_X, CROP_Y));
         addSlot(new SlotItemHandler(head.rangeUpgrades(), 0, RANGE_X, CROP_Y));
+        addSlot(new SlotItemHandler(head.antiCorrosion(), 0, ANTI_CORROSION_X, ANTI_CORROSION_Y));
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < COLUMNS; column++) {
                 addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
@@ -76,7 +85,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         for (int column = 0; column < COLUMNS; column++) {
             addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
         }
-        for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags, work, threshold, radius}) {
+        for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags, work, threshold, radius, corrosion, corrosionProgress}) {
             addDataSlot(slot);
         }
         update();
@@ -108,6 +117,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         work.set(reason == null ? 0 : reason.ordinal() + 1);
         threshold.set(head.harvestPercent());
         radius.set(head.radius());
+        corrosion.set(head.corrosion() + 1);
+        corrosionProgress.set(head.corrosionProgress());
         flags.set((head.hydrated() ? FLAG_HYDRATED : 0) | (head.harvestOnly() ? FLAG_HARVEST_ONLY : 0) | (head.harvestDue() ? FLAG_DUE : 0));
     }
 
@@ -178,6 +189,16 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** How far the field reaches to each side of its rails. */
     public int radius() {
         return radius.get();
+    }
+
+    /** The served field's corrosion stage, {@link FieldCorrosion#LOOSE} while the head serves none. */
+    public int corrosion() {
+        return corrosion.get() - 1;
+    }
+
+    /** Percent of the way to the next aging step. */
+    public int corrosionProgress() {
+        return corrosionProgress.get();
     }
 
     public boolean hydrated() {
@@ -252,8 +273,16 @@ public class FieldHeadMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, INVENTORY_START, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
+        } else if (index == ANTI_CORROSION_SLOT) {
+            if (!moveItemStackTo(stack, INVENTORY_START, slots.size(), true)) {
+                return ItemStack.EMPTY;
+            }
         } else if (slots.get(RANGE_SLOT).mayPlace(stack)) {
             if (!moveItemStackTo(stack, RANGE_SLOT, RANGE_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (slots.get(ANTI_CORROSION_SLOT).mayPlace(stack)) {
+            if (!moveItemStackTo(stack, ANTI_CORROSION_SLOT, ANTI_CORROSION_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
         } else {
