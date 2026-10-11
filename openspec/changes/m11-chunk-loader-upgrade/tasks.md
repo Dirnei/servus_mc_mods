@@ -19,7 +19,7 @@
 
 ## 5. Docs and plan
 
-- [ ] 5.1 `docs/src/content/docs/mods/storage.md` (waking a site, hard limit, team cap, FTB Chunks, grace time, commands) and `PLAN.md` (M11 item 2 with a Built note). Run `openspec validate m11-chunk-loader-upgrade`.
+- [x] 5.1 `docs/src/content/docs/mods/storage.md` (waking a site, hard limit, team cap, FTB Chunks, grace time, commands) and `PLAN.md` (M11 item 2 with a Built note). Run `openspec validate m11-chunk-loader-upgrade`.
 
 ## 6. Verification
 
