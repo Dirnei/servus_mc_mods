@@ -2,23 +2,25 @@ package io.github.dirnei.mc.servus.foundation.logistics.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import io.github.dirnei.mc.servus.foundation.client.BlockSubmit;
+import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlock;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlockEntity;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.neoforged.neoforge.model.data.ModelData;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Draws the fluid of one tank block as a box from the block bottom up to its
@@ -27,7 +29,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * one continuous body of fluid. A block with nothing of its tank below it
  * also draws its floor: the block it was crafted with, squashed to a plate.
  */
-public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEntity> {
+public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEntity, FluidTankRenderer.State> {
 
     /** Gap between the fluid and the glass on sides that are not joined. */
     private static final float INSET = 0.01F;
@@ -38,25 +40,46 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
     /** Gap between the floor's top and the fluid's bottom, so the two surfaces never fight. */
     private static final float FLUID_GAP = 0.005F;
 
+    /** What one frame draws of a tank block, read from the block entity on the render thread. */
+    public static final class State extends BlockEntityRenderState {
+        @Nullable BlockState floor;
+        float fx0;
+        float fx1;
+        float fz0;
+        float fz1;
+        @Nullable TextureAtlasSprite sprite;
+        int color;
+        int light;
+        @Nullable Box box;
+        /** Faces of the fluid box to draw, one bit per direction. */
+        int faces;
+    }
+
     public FluidTankRenderer(BlockEntityRendererProvider.Context context) {
     }
 
     @Override
-    public void render(FluidTankBlockEntity tank, float partialTick, PoseStack poseStack, MultiBufferSource buffers,
-                       int packedLight, int packedOverlay) {
+    public State createRenderState() {
+        return new State();
+    }
+
+    @Override
+    public void extractRenderState(FluidTankBlockEntity tank, State state, float partialTick, Vec3 cameraPosition,
+                                   ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(tank, state, partialTick, cameraPosition, breakProgress);
+        state.floor = null;
+        state.box = null;
         BlockState tankState = tank.getBlockState();
-        if (tankState.getBlock() instanceof FluidTankBlock && !joined(tankState, Direction.DOWN)) {
-            poseStack.pushPose();
+        if (!(tankState.getBlock() instanceof FluidTankBlock)) {
+            return;
+        }
+        if (!joined(tankState, Direction.DOWN)) {
+            state.floor = tank.floor().defaultBlockState();
             // Inset on sides that are not joined, so the floor's edges stay off the glass and frame planes.
-            float fx0 = joined(tankState, Direction.WEST) ? 0 : INSET;
-            float fx1 = joined(tankState, Direction.EAST) ? 1 : 1 - INSET;
-            float fz0 = joined(tankState, Direction.NORTH) ? 0 : INSET;
-            float fz1 = joined(tankState, Direction.SOUTH) ? 1 : 1 - INSET;
-            poseStack.translate(fx0, FLOOR_LIFT, fz0);
-            poseStack.scale(fx1 - fx0, FLOOR, fz1 - fz0);
-            Minecraft.getInstance().getBlockRenderer().renderSingleBlock(tank.floor().defaultBlockState(), poseStack, buffers,
-                    packedLight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
-            poseStack.popPose();
+            state.fx0 = joined(tankState, Direction.WEST) ? 0 : INSET;
+            state.fx1 = joined(tankState, Direction.EAST) ? 1 : 1 - INSET;
+            state.fz0 = joined(tankState, Direction.NORTH) ? 0 : INSET;
+            state.fz1 = joined(tankState, Direction.SOUTH) ? 1 : 1 - INSET;
         }
         FluidStack fluid = tank.rawShare();
         int capacity = tank.capacityPerBlock();
@@ -67,44 +90,61 @@ public final class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlo
         if (fill <= 0.0F) {
             return;
         }
-        BlockState state = tank.getBlockState();
-        if (!(state.getBlock() instanceof FluidTankBlock)) {
-            return;
-        }
-        IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
-        Identifier still = extensions.getStillTexture(fluid);
-        if (still == null) {
-            return;
-        }
-        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(still);
-        int color = extensions.getTintColor(fluid);
+        state.sprite = FluidSprites.still(fluid);
+        state.color = FluidSprites.tint(fluid);
         int fluidLight = fluid.getFluidType().getLightLevel(fluid);
-        int light = LightTexture.pack(Math.max(LightTexture.block(packedLight), fluidLight), LightTexture.sky(packedLight));
+        int packedLight = state.lightCoords;
+        state.light = LightCoordsUtil.pack(Math.max(LightCoordsUtil.block(packedLight), fluidLight), LightCoordsUtil.sky(packedLight));
 
-        boolean down = joined(state, Direction.DOWN);
-        boolean up = joined(state, Direction.UP);
-        float x0 = joined(state, Direction.WEST) ? 0 : INSET;
-        float x1 = joined(state, Direction.EAST) ? 1 : 1 - INSET;
-        float z0 = joined(state, Direction.NORTH) ? 0 : INSET;
-        float z1 = joined(state, Direction.SOUTH) ? 1 : 1 - INSET;
+        boolean down = joined(tankState, Direction.DOWN);
+        boolean up = joined(tankState, Direction.UP);
+        float x0 = joined(tankState, Direction.WEST) ? 0 : INSET;
+        float x1 = joined(tankState, Direction.EAST) ? 1 : 1 - INSET;
+        float z0 = joined(tankState, Direction.NORTH) ? 0 : INSET;
+        float z1 = joined(tankState, Direction.SOUTH) ? 1 : 1 - INSET;
         float y0 = down ? 0 : FLOOR + FLOOR_LIFT + FLUID_GAP;
         float yMax = up ? 1 : 1 - INSET;
         float y1 = y0 + (yMax - y0) * fill;
-
-        // The translucent block sheet is drawn after solid buffers, so the floor below the fluid is never hidden by it.
-        VertexConsumer consumer = buffers.getBuffer(Sheets.translucentCullBlockSheet());
-        PoseStack.Pose pose = poseStack.last();
-        Box box = new Box(x0, y0, z0, x1, y1, z1);
+        state.box = new Box(x0, y0, z0, x1, y1, z1);
+        int faces = 0;
         for (Direction face : Direction.values()) {
             boolean skip = switch (face) {
                 // The surface shows unless the block is full and the one above continues the fluid.
                 case UP -> up && fill >= 1.0F;
-                default -> joined(state, face);
+                default -> joined(tankState, face);
             };
             if (!skip) {
-                quad(consumer, pose, box, face, sprite, color, light);
+                faces |= 1 << face.ordinal();
             }
         }
+        state.faces = faces;
+    }
+
+    @Override
+    public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        if (state.floor != null) {
+            poseStack.pushPose();
+            poseStack.translate(state.fx0, FLOOR_LIFT, state.fz0);
+            poseStack.scale(state.fx1 - state.fx0, FLOOR, state.fz1 - state.fz0);
+            BlockSubmit.block(poseStack, collector, state.floor, state.lightCoords);
+            poseStack.popPose();
+        }
+        Box box = state.box;
+        TextureAtlasSprite sprite = state.sprite;
+        if (box == null || sprite == null) {
+            return;
+        }
+        int faces = state.faces;
+        int color = state.color;
+        int light = state.light;
+        // The translucent block sheet is drawn after solid buffers, so the floor below the fluid is never hidden by it.
+        collector.submitCustomGeometry(poseStack, Sheets.translucentBlockSheet(), (pose, consumer) -> {
+            for (Direction face : Direction.values()) {
+                if ((faces & (1 << face.ordinal())) != 0) {
+                    quad(consumer, pose, box, face, sprite, color, light);
+                }
+            }
+        });
     }
 
     private static boolean joined(BlockState state, Direction side) {

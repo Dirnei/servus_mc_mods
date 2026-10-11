@@ -1,14 +1,22 @@
 package io.github.dirnei.mc.servus.foundation.client;
 
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.core.Direction;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import java.util.List;
+import java.util.ArrayList;
+import com.mojang.blaze3d.vertex.QuadInstance;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.placement.PlacementAssists;
 import java.util.Optional;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
@@ -18,7 +26,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * Draws a translucent ghost and an arrow where a sneak click with an
@@ -42,10 +49,7 @@ public final class PlacementAssistRenderer {
     }
 
     @SubscribeEvent
-    public static void onRenderLevelStage(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
-            return;
-        }
+    public static void onRenderLevelStage(RenderLevelStageEvent.AfterTranslucentBlocks event) {
         Optional<PlacementAssistPreview.Preview> preview = PlacementAssistPreview.current();
         if (preview.isEmpty()) {
             return;
@@ -54,7 +58,7 @@ public final class PlacementAssistRenderer {
         PlacementAssists.Target target = preview.get().target();
         BlockState state = preview.get().state();
 
-        Vec3 camera = event.getCamera().getPosition();
+        Vec3 camera = event.getLevelRenderState().cameraRenderState.pos;
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
         BlockPos pos = target.pos();
@@ -64,16 +68,29 @@ public final class PlacementAssistRenderer {
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.5F, 0.5F);
         poseStack.mulPose(target.direction().getRotation());
-        arrow(buffers.getBuffer(RenderType.debugQuads()), poseStack.last());
+        arrow(buffers.getBuffer(RenderTypes.debugQuads()), poseStack.last());
         poseStack.popPose();
-        buffers.endBatch(RenderType.debugQuads());
+        buffers.endBatch(RenderTypes.debugQuads());
 
         if (state != null) {
-            RenderType ghostType = Sheets.translucentCullBlockSheet();
-            minecraft.getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),
-                    new AlphaConsumer(buffers.getBuffer(ghostType)), state,
-                    minecraft.getBlockRenderer().getBlockModel(state), 1.0F, 1.0F, 1.0F,
-                    LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, ghostType);
+            RenderType ghostType = Sheets.translucentBlockSheet();
+            VertexConsumer consumer = buffers.getBuffer(ghostType);
+            List<BlockStateModelPart> parts = new ArrayList<>();
+            minecraft.getModelManager().getBlockStateModelSet().get(state).collectParts(RandomSource.create(42), parts);
+            QuadInstance instance = new QuadInstance();
+            instance.setColor(GHOST_ALPHA << 24 | 0xFFFFFF);
+            instance.setLightCoords(LightCoordsUtil.FULL_BRIGHT);
+            instance.setOverlayCoords(OverlayTexture.NO_OVERLAY);
+            for (BlockStateModelPart part : parts) {
+                for (BakedQuad quad : part.getQuads(null)) {
+                    consumer.putBakedQuad(poseStack.last(), quad, instance);
+                }
+                for (Direction direction : Direction.values()) {
+                    for (BakedQuad quad : part.getQuads(direction)) {
+                        consumer.putBakedQuad(poseStack.last(), quad, instance);
+                    }
+                }
+            }
             buffers.endBatch(ghostType);
         }
         poseStack.popPose();
@@ -97,45 +114,5 @@ public final class PlacementAssistRenderer {
 
     private static void vertex(VertexConsumer consumer, PoseStack.Pose pose, boolean xPlane, float side, float y) {
         consumer.addVertex(pose, xPlane ? side : 0.0F, y, xPlane ? 0.0F : side).setColor(R, G, B, A);
-    }
-
-    /** Passes vertices through with a fixed alpha, so a block model draws as a ghost. */
-    private record AlphaConsumer(VertexConsumer delegate) implements VertexConsumer {
-
-        @Override
-        public VertexConsumer addVertex(float x, float y, float z) {
-            delegate.addVertex(x, y, z);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer setColor(int red, int green, int blue, int alpha) {
-            delegate.setColor(red, green, blue, GHOST_ALPHA);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer setUv(float u, float v) {
-            delegate.setUv(u, v);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer setUv1(int u, int v) {
-            delegate.setUv1(u, v);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer setUv2(int u, int v) {
-            delegate.setUv2(u, v);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer setNormal(float x, float y, float z) {
-            delegate.setNormal(x, y, z);
-            return this;
-        }
     }
 }

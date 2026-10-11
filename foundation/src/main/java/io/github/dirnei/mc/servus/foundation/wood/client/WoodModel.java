@@ -5,172 +5,92 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.ItemOverrides;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.SimpleModelWrapper;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.geometry.QuadCollection;
+import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.ChunkRenderTypeSet;
-import net.neoforged.neoforge.client.model.IDynamicBakedModel;
-import net.neoforged.neoforge.client.model.IQuadTransformer;
+import net.neoforged.neoforge.client.model.DynamicBlockStateModel;
 import net.neoforged.neoforge.model.data.ModelData;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * The baked model of a wood block: board quads ({@link Wood#BOARD}) are
+ * The block state model of a wood block: board quads ({@link Wood#BOARD}) are
  * retextured onto the planks sprite of the block's wood, every other quad
- * passes through. The block reads the wood from its model data; the item
- * model resolves a copy with the stack's wood. A resource reload builds new
- * wrappers, which drops every cache.
+ * passes through, unless the block's swaps name another texture for it. The
+ * block reads the wood from its model data; items use {@link WoodItemModel}.
+ * A resource reload builds new wrappers, which drops every cache.
  */
-public final class WoodModel implements IDynamicBakedModel {
+public final class WoodModel implements DynamicBlockStateModel {
 
-    private record QuadKey(Identifier wood, Map<Identifier, Identifier> swaps, @Nullable BlockState state,
-                           @Nullable Direction side, @Nullable RenderType renderType) {
+    private record PartKey(BlockStateModelPart part, Identifier wood, Map<Identifier, Identifier> swaps) {
     }
 
-    private final BakedModel base;
-    private final @Nullable Identifier fixedWood;
-    private final Map<QuadKey, List<BakedQuad>> quads = new ConcurrentHashMap<>();
-    private final Map<Identifier, WoodModel> itemModels = new ConcurrentHashMap<>();
-    private final ItemOverrides overrides = new ItemOverrides() {
-        @Override
-        public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
-            return itemModels.computeIfAbsent(Wood.of(stack), key -> new WoodModel(base, key));
-        }
-    };
+    private final BlockStateModel base;
+    private final Map<PartKey, BlockStateModelPart> parts = new ConcurrentHashMap<>();
 
-    public WoodModel(BakedModel base) {
-        this(base, null);
-    }
-
-    private WoodModel(BakedModel base, @Nullable Identifier fixedWood) {
+    public WoodModel(BlockStateModel base) {
         this.base = base;
-        this.fixedWood = fixedWood;
     }
 
-    private Identifier woodOf(ModelData data) {
-        if (fixedWood != null) {
-            return fixedWood;
-        }
+    private static Identifier woodOf(ModelData data) {
         Identifier wood = data.get(Wood.PROPERTY);
         return wood != null ? wood : Wood.DEFAULT;
     }
 
-    /** The further swaps of a block, none for items. */
-    private Map<Identifier, Identifier> swapsOf(ModelData data) {
-        if (fixedWood != null) {
-            return Map.of();
-        }
+    private static Map<Identifier, Identifier> swapsOf(ModelData data) {
         Map<Identifier, Identifier> swaps = data.get(Wood.SWAPS);
         return swaps != null ? swaps : Map.of();
     }
 
-    /** A texture of the block atlas. */
-    private static TextureAtlasSprite atlasSprite(Identifier texture) {
-        return Minecraft.getInstance().getModelManager().getAtlas(InventoryMenu.BLOCK_ATLAS).getSprite(texture);
-    }
-
-    /** The particle sprite of the planks block's default model. */
-    private static TextureAtlasSprite spriteOf(Identifier wood) {
-        return Minecraft.getInstance().getBlockRenderer().getBlockModel(Wood.block(wood).defaultBlockState())
-                .getParticleIcon(ModelData.EMPTY);
-    }
-
     @Override
-    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand,
-                                    ModelData extraData, @Nullable RenderType renderType) {
-        Identifier wood = woodOf(extraData);
-        Map<Identifier, Identifier> swaps = swapsOf(extraData);
-        return quads.computeIfAbsent(new QuadKey(wood, swaps, state, side, renderType), key -> {
-            TextureAtlasSprite sprite = spriteOf(wood);
-            List<BakedQuad> result = new ArrayList<>();
-            for (BakedQuad quad : base.getQuads(state, side, rand, ModelData.EMPTY, renderType)) {
-                Identifier name = quad.getSprite().contents().name();
-                Identifier swap = swaps.get(name);
-                if (name.equals(Wood.BOARD)) {
-                    result.add(retexture(quad, sprite));
-                } else if (swap != null) {
-                    result.add(retexture(quad, atlasSprite(swap)));
-                } else {
-                    result.add(quad);
-                }
-            }
-            return List.copyOf(result);
-        });
-    }
-
-    /** Copies a quad with every vertex UV moved from its sprite to the same spot on another. */
-    private static BakedQuad retexture(BakedQuad quad, TextureAtlasSprite sprite) {
-        TextureAtlasSprite old = quad.getSprite();
-        int[] vertices = quad.getVertices().clone();
-        for (int i = 0; i < 4; i++) {
-            int offset = i * IQuadTransformer.STRIDE + IQuadTransformer.UV0;
-            float u = Float.intBitsToFloat(vertices[offset]);
-            float v = Float.intBitsToFloat(vertices[offset + 1]);
-            vertices[offset] = Float.floatToRawIntBits(sprite.getU(old.getUOffset(u)));
-            vertices[offset + 1] = Float.floatToRawIntBits(sprite.getV(old.getVOffset(v)));
+    public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random,
+                             List<BlockStateModelPart> output) {
+        ModelData data = level.getModelData(pos);
+        Identifier wood = woodOf(data);
+        Map<Identifier, Identifier> swaps = swapsOf(data);
+        List<BlockStateModelPart> baseParts = new ArrayList<>();
+        base.collectParts(level, pos, state, random, baseParts);
+        for (BlockStateModelPart part : baseParts) {
+            output.add(parts.computeIfAbsent(new PartKey(part, wood, swaps), key -> retexture(part, wood, swaps)));
         }
-        return new BakedQuad(vertices, quad.getTintIndex(), quad.getDirection(), sprite, quad.isShade(), quad.hasAmbientOcclusion());
+    }
+
+    private static BlockStateModelPart retexture(BlockStateModelPart part, Identifier wood, Map<Identifier, Identifier> swaps) {
+        TextureAtlasSprite planks = WoodTextures.spriteOf(wood);
+        QuadCollection.Builder builder = new QuadCollection.Builder();
+        for (BakedQuad quad : part.getQuads(null)) {
+            builder.addUnculledFace(WoodTextures.apply(quad, planks, swaps));
+        }
+        for (Direction direction : Direction.values()) {
+            for (BakedQuad quad : part.getQuads(direction)) {
+                builder.addCulledFace(direction, WoodTextures.apply(quad, planks, swaps));
+            }
+        }
+        return new SimpleModelWrapper(builder.build(), part.useAmbientOcclusion(), part.particleMaterial());
     }
 
     @Override
-    public ChunkRenderTypeSet getRenderTypes(BlockState state, RandomSource rand, ModelData data) {
-        return base.getRenderTypes(state, rand, data);
+    public Material.Baked particleMaterial(BlockAndTintGetter level, BlockPos pos, BlockState state) {
+        Identifier wood = woodOf(level.getModelData(pos));
+        return new Material.Baked(WoodTextures.spriteOf(wood), false);
     }
 
     @Override
-    public List<RenderType> getRenderTypes(ItemStack stack, boolean fabulous) {
-        return base.getRenderTypes(stack, fabulous);
+    public Material.Baked particleMaterial() {
+        return base.particleMaterial();
     }
 
     @Override
-    public TextureAtlasSprite getParticleIcon(ModelData data) {
-        return spriteOf(woodOf(data));
-    }
-
-    @Override
-    public boolean useAmbientOcclusion() {
-        return base.useAmbientOcclusion();
-    }
-
-    @Override
-    public boolean isGui3d() {
-        return base.isGui3d();
-    }
-
-    @Override
-    public boolean usesBlockLight() {
-        return base.usesBlockLight();
-    }
-
-    @Override
-    public boolean isCustomRenderer() {
-        return false;
-    }
-
-    @Override
-    public TextureAtlasSprite getParticleIcon() {
-        return base.getParticleIcon();
-    }
-
-    @Override
-    public ItemTransforms getTransforms() {
-        return base.getTransforms();
-    }
-
-    @Override
-    public ItemOverrides getOverrides() {
-        return fixedWood == null ? overrides : ItemOverrides.EMPTY;
+    @BakedQuad.MaterialFlags
+    public int materialFlags() {
+        return base.materialFlags();
     }
 }

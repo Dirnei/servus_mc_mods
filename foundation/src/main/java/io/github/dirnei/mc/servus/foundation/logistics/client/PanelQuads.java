@@ -6,30 +6,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.BlockElementFace;
-import net.minecraft.client.renderer.block.model.BlockFaceUV;
-import net.minecraft.client.renderer.block.model.FaceBakery;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.BlockModelRotation;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.ChunkRenderTypeSet;
-import net.neoforged.neoforge.client.model.QuadTransformers;
-import net.neoforged.neoforge.model.data.ModelData;
-import org.joml.Vector3f;
+import net.neoforged.neoforge.client.model.quad.MutableQuad;
 
 /**
  * Bakes the quads of one duct panel: the boxes of {@link DuctShapes#panel}
- * with, on every box face, the sprite and tint of the panel block's own quads
- * facing that way, one baked quad per source quad so overlays like the grass
- * side survive. UVs are the box's pixel extent, as vanilla picks them for a
- * block model element. Results are cached per block state, side and
- * hollowness; the cache lives as long as the duct model, which is rebuilt on
- * every resource reload. A panel is drawn in one render type of its block
- * (see {@link #renderType}), so quads are never emitted twice.
+ * with, on every box face, the sprite, render layer and tint of the panel
+ * block's own quads facing that way, one baked quad per source quad so
+ * overlays like the grass side survive. UVs follow the box's position, as
+ * vanilla picks them for a block model element. Results are cached per block
+ * state, side and hollowness; the cache lives as long as the duct model, which
+ * is rebuilt on every resource reload.
  */
 final class PanelQuads {
 
@@ -37,8 +32,6 @@ final class PanelQuads {
     static final int PANEL_TINT_BASE = 200;
     /** Room per side for the panel block's own tint indices. */
     static final int TINTS_PER_SIDE = 16;
-
-    private static final FaceBakery BAKERY = new FaceBakery();
 
     private record Key(BlockState state, Direction side, boolean hollow) {
     }
@@ -49,47 +42,46 @@ final class PanelQuads {
     private final Map<Key, List<BakedQuad>> cache = new ConcurrentHashMap<>();
     private final Map<Key, List<BakedQuad>> seeThrough = new ConcurrentHashMap<>();
 
-    /** The render type a panel of the block is drawn in: the first one its model uses, solid without any. */
-    static RenderType renderType(BlockState state, RandomSource rand) {
-        ChunkRenderTypeSet types = modelOf(state).getRenderTypes(state, rand, ModelData.EMPTY);
-        for (RenderType type : types) {
-            return type;
-        }
-        return RenderType.solid();
-    }
-
     /** The quads of a panel of {@code state} on {@code side}. */
     List<BakedQuad> quads(BlockState state, Direction side, boolean hollow) {
         return cache.computeIfAbsent(new Key(state, side, hollow), PanelQuads::bake);
     }
 
-    /** The same quads at half alpha, for the translucent pass while the player reveals ducts. */
+    /** The same quads at half alpha in the translucent layer, while the player reveals ducts. */
     List<BakedQuad> seeThroughQuads(BlockState state, Direction side, boolean hollow) {
-        return seeThrough.computeIfAbsent(new Key(state, side, hollow),
-                key -> QuadTransformers.applyingColor(SEE_THROUGH).process(quads(state, side, hollow)));
+        return seeThrough.computeIfAbsent(new Key(state, side, hollow), key -> {
+            List<BakedQuad> result = new ArrayList<>();
+            MutableQuad quad = new MutableQuad();
+            for (BakedQuad source : quads(state, side, hollow)) {
+                quad.setFrom(source);
+                quad.setColor(SEE_THROUGH);
+                quad.setSprite(source.materialInfo().sprite(), ChunkSectionLayer.TRANSLUCENT, Sheets.translucentBlockItemSheet());
+                result.add(quad.toBakedQuad());
+            }
+            return List.copyOf(result);
+        });
     }
 
-    private static BakedModel modelOf(BlockState state) {
-        return Minecraft.getInstance().getBlockRenderer().getBlockModel(state);
+    private static BlockStateModel modelOf(BlockState state) {
+        return Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(state);
     }
 
     private static List<BakedQuad> bake(Key key) {
-        BakedModel model = modelOf(key.state());
-        // A fixed seed keeps blocks with random variants stable across rebuilds.
-        RandomSource rand = RandomSource.create(42);
+        BlockStateModel model = modelOf(key.state());
         List<BakedQuad> quads = new ArrayList<>();
         for (DuctShapes.Box box : DuctShapes.panel(key.side().ordinal(), key.hollow())) {
             for (Direction face : Direction.values()) {
-                List<BakedQuad> sources = sources(model, key.state(), face, rand);
+                List<BakedQuad> sources = sources(model, face);
                 if (sources.isEmpty()) {
-                    quads.add(bakeFace(box, face, model.getParticleIcon(ModelData.EMPTY), -1));
+                    quads.add(bakeFace(box, face, model.particleMaterial(), -1));
                     continue;
                 }
                 for (BakedQuad source : sources) {
-                    int tint = source.isTinted()
-                            ? PANEL_TINT_BASE + key.side().ordinal() * TINTS_PER_SIDE + Math.floorMod(source.getTintIndex(), TINTS_PER_SIDE)
+                    int sourceTint = source.materialInfo().tintIndex();
+                    int tint = sourceTint >= 0
+                            ? PANEL_TINT_BASE + key.side().ordinal() * TINTS_PER_SIDE + Math.floorMod(sourceTint, TINTS_PER_SIDE)
                             : -1;
-                    quads.add(bakeFace(box, face, source.getSprite(), tint));
+                    quads.add(bakeFace(box, face, source, tint));
                 }
             }
         }
@@ -97,34 +89,46 @@ final class PanelQuads {
     }
 
     /** The block's quads facing a direction: its culled face quads, else its unculled ones facing that way. */
-    private static List<BakedQuad> sources(BakedModel model, BlockState state, Direction face, RandomSource rand) {
-        rand.setSeed(42);
-        List<BakedQuad> culled = model.getQuads(state, face, rand, ModelData.EMPTY, null);
-        if (!culled.isEmpty()) {
-            return culled;
-        }
-        rand.setSeed(42);
+    private static List<BakedQuad> sources(BlockStateModel model, Direction face) {
+        // A fixed seed keeps blocks with random variants stable across rebuilds.
+        List<BlockStateModelPart> parts = new ArrayList<>();
+        model.collectParts(RandomSource.create(42), parts);
+        List<BakedQuad> culled = new ArrayList<>();
         List<BakedQuad> facing = new ArrayList<>();
-        for (BakedQuad quad : model.getQuads(state, null, rand, ModelData.EMPTY, null)) {
-            if (quad.getDirection() == face) {
-                facing.add(quad);
+        for (BlockStateModelPart part : parts) {
+            culled.addAll(part.getQuads(face));
+            for (BakedQuad quad : part.getQuads(null)) {
+                if (quad.direction() == face) {
+                    facing.add(quad);
+                }
             }
         }
-        return facing;
+        return culled.isEmpty() ? facing : culled;
     }
 
-    private static BakedQuad bakeFace(DuctShapes.Box b, Direction face, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite,
-                                      int tint) {
-        float[] uvs = switch (face) {
-            case DOWN -> new float[] {b.x0(), 16 - b.z1(), b.x1(), 16 - b.z0()};
-            case UP -> new float[] {b.x0(), b.z0(), b.x1(), b.z1()};
-            case NORTH -> new float[] {16 - b.x1(), 16 - b.y1(), 16 - b.x0(), 16 - b.y0()};
-            case SOUTH -> new float[] {b.x0(), 16 - b.y1(), b.x1(), 16 - b.y0()};
-            case WEST -> new float[] {b.z0(), 16 - b.y1(), b.z1(), 16 - b.y0()};
-            case EAST -> new float[] {16 - b.z1(), 16 - b.y1(), 16 - b.z0(), 16 - b.y0()};
-        };
-        BlockElementFace element = new BlockElementFace(null, tint, "", new BlockFaceUV(uvs, 0));
-        return BAKERY.bakeQuad(new Vector3f(b.x0(), b.y0(), b.z0()), new Vector3f(b.x1(), b.y1(), b.z1()), element, sprite, face,
-                BlockModelRotation.X0_Y0, null, true);
+    private static MutableQuad boxFace(DuctShapes.Box b, Direction face) {
+        return new MutableQuad().setCubeFace(face, b.x0() / 16F, b.y0() / 16F, b.z0() / 16F,
+                b.x1() / 16F, b.y1() / 16F, b.z1() / 16F);
+    }
+
+    /** A box face with the sprite and layer of a source quad. */
+    private static BakedQuad bakeFace(DuctShapes.Box b, Direction face, BakedQuad source, int tint) {
+        BakedQuad.MaterialInfo info = source.materialInfo();
+        return boxFace(b, face)
+                .setSprite(info.sprite(), info.layer(), info.itemRenderType())
+                .bakeUvsFromPosition()
+                .setTintIndex(tint)
+                .setShade(true)
+                .toBakedQuad();
+    }
+
+    /** A box face with the block's particle sprite, for blocks without a quad facing that way. */
+    private static BakedQuad bakeFace(DuctShapes.Box b, Direction face, Material.Baked material, int tint) {
+        return boxFace(b, face)
+                .setSprite(material)
+                .bakeUvsFromPosition()
+                .setTintIndex(tint)
+                .setShade(true)
+                .toBakedQuad();
     }
 }

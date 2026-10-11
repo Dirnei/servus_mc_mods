@@ -1,5 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.client;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.block.SidedBlockEntity;
@@ -12,8 +19,6 @@ import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.side.SideTank;
 import java.util.List;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
@@ -28,12 +33,19 @@ import org.joml.Matrix4f;
  * A carrot set to Fluids shows the Fluids layer instead: tank sides framed in
  * the tank's colour, All sides in a neutral blue, Off sides bare.
  */
-public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity> implements BlockEntityRenderer<T> {
+public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity>
+        implements BlockEntityRenderer<T, SideMarkerRenderer.State> {
 
     private static final float FRAME = 1.0F / 16.0F;
     private static final float OFFSET = 1.0F / 256.0F;
     private static final float GLYPH = 4.0F / 16.0F;
     private static final float STROKE = 1.5F / 16.0F;
+
+    /** Per face what to draw this frame: no mode means nothing on that face. */
+    public static final class State extends BlockEntityRenderState {
+        final SideMode[] modes = new SideMode[6];
+        final int[] colors = new int[6];
+    }
 
     public SideMarkerRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -50,16 +62,22 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity> implem
     }
 
     @Override
-    public void render(T blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int packedLight, int packedOverlay) {
+    public State createRenderState() {
+        return new State();
+    }
+
+    @Override
+    public void extractRenderState(T blockEntity, State state, float partialTick, Vec3 cameraPosition,
+                                   ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTick, cameraPosition, breakProgress);
+        java.util.Arrays.fill(state.modes, null);
         if (!configuring()) {
             return;
         }
-        VertexConsumer buffer = buffers.getBuffer(RenderType.debugQuads());
-        Matrix4f pose = poseStack.last().pose();
         Player player = Minecraft.getInstance().player;
         FluidSides fluids = blockEntity.fluidSides();
         if (fluids != null && player != null && ConfigurationCarrotItem.heldLayer(player) == SideLayer.FLUIDS) {
-            renderFluids(blockEntity, fluids, buffer, pose);
+            extractFluids(blockEntity, fluids, state);
             return;
         }
         for (Direction direction : Direction.values()) {
@@ -67,14 +85,12 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity> implem
                 continue;
             }
             SideMode mode = blockEntity.sideMode(direction);
-            int color = SideConfigPanel.color(mode);
-            Face face = new Face(direction);
-            face.frame(buffer, pose, color);
-            face.glyph(buffer, pose, mode, color);
+            state.modes[direction.ordinal()] = mode;
+            state.colors[direction.ordinal()] = SideConfigPanel.color(mode);
         }
     }
 
-    private void renderFluids(T blockEntity, FluidSides fluids, VertexConsumer buffer, Matrix4f pose) {
+    private void extractFluids(T blockEntity, FluidSides fluids, State state) {
         List<SideTank> tanks = blockEntity.sideTanks();
         for (Direction direction : Direction.values()) {
             RelativeSide side = blockEntity.relativeSide(direction);
@@ -82,16 +98,35 @@ public class SideMarkerRenderer<T extends BlockEntity & SidedBlockEntity> implem
                 continue;
             }
             int value = fluids.value(side);
-            int color = SideConfigPanel.fluidColor(value, tanks);
-            Face face = new Face(direction);
-            face.frame(buffer, pose, color);
             int tank = fluids.tank(side);
-            if (tank < 0) {
-                face.glyph(buffer, pose, SideMode.AUTO, color);
-            } else {
-                face.glyph(buffer, pose, tanks.get(tank).input() ? SideMode.PULL : SideMode.PUSH, color);
-            }
+            state.colors[direction.ordinal()] = SideConfigPanel.fluidColor(value, tanks);
+            state.modes[direction.ordinal()] = tank < 0 ? SideMode.AUTO : tanks.get(tank).input() ? SideMode.PULL : SideMode.PUSH;
         }
+    }
+
+    @Override
+    public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        SideMode[] modes = state.modes.clone();
+        int[] colors = state.colors.clone();
+        boolean any = false;
+        for (SideMode mode : modes) {
+            any |= mode != null;
+        }
+        if (!any) {
+            return;
+        }
+        collector.submitCustomGeometry(poseStack, RenderTypes.debugQuads(), (pose, buffer) -> {
+            Matrix4f matrix = pose.pose();
+            for (Direction direction : Direction.values()) {
+                SideMode mode = modes[direction.ordinal()];
+                if (mode == null) {
+                    continue;
+                }
+                Face face = new Face(direction);
+                face.frame(buffer, matrix, colors[direction.ordinal()]);
+                face.glyph(buffer, matrix, mode, colors[direction.ordinal()]);
+            }
+        });
     }
 
     /** Geometry of one block face: its centre just outside the block and two in plane axes. */

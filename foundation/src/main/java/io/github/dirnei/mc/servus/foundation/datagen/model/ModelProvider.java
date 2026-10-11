@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen.model;
 
 import com.google.gson.JsonObject;
+import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -94,7 +95,12 @@ public class ModelProvider<T extends ModelBuilder<T>> {
             if (folder.equals("item") && location.getPath().startsWith("item/")) {
                 Identifier itemId = location.withPath(location.getPath().substring("item/".length()));
                 if (!itemId.getPath().contains("/") && BuiltInRegistries.ITEM.containsKey(itemId)) {
-                    futures.add(DataProvider.saveStable(cache, itemDefinition(location), items.json(itemId)));
+                    JsonObject definition = itemDefinition(location);
+                    if (Wood.isWoodBlock(itemId)) {
+                        // Wood block items retexture their boards per stack.
+                        definition.getAsJsonObject("model").addProperty("type", "servus_foundation:wood");
+                    }
+                    futures.add(DataProvider.saveStable(cache, definition, items.json(itemId)));
                 }
             }
         });

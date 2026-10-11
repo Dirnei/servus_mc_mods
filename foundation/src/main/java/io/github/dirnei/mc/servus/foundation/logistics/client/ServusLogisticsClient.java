@@ -8,11 +8,13 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsB
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsMenus;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
+import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -40,42 +42,41 @@ public final class ServusLogisticsClient {
     }
 
     @SubscribeEvent
-    public static void onRegisterBlockColors(RegisterColorHandlersEvent.Block event) {
-        event.register(new DuctBlockColor(), ServusLogisticsBlocks.UTILITY_DUCT.get());
+    public static void onRegisterBlockTints(RegisterColorHandlersEvent.BlockTintSources event) {
+        event.register(DuctBlockColor.sources(), ServusLogisticsBlocks.UTILITY_DUCT.get());
     }
 
-    /** The duct part model names: per line set the centres and an arm per direction. */
-    private static List<String> partNames() {
-        return DuctParts.allNames();
+    /** One standalone model key per duct part, so the parts are loaded and baked with the block models. */
+    private static final Map<String, StandaloneModelKey<BlockStateModelPart>> PART_KEYS = new HashMap<>();
+
+    private static StandaloneModelKey<BlockStateModelPart> partKey(String name) {
+        return PART_KEYS.computeIfAbsent(name, n -> new StandaloneModelKey<>(() -> DuctParts.id(n).toString()));
     }
 
     /** Loads the part models the dynamic duct model is composed from. */
     @SubscribeEvent
-    public static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
-        for (String name : partNames()) {
-            event.register(ModelResourceLocation.standalone(DuctParts.id(name)));
+    public static void onRegisterStandalone(ModelEvent.RegisterStandalone event) {
+        for (String name : DuctParts.allNames()) {
+            event.register(partKey(name), SimpleUnbakedStandaloneModel.simpleModelWrapper(DuctParts.id(name)));
         }
     }
 
-    /** Wraps every duct block state model so it composes parts and facades can take over. */
+    /** Wraps every duct block state model so it composes parts and panels can take over. */
     @SubscribeEvent
     public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
-        Map<ModelResourceLocation, BakedModel> models = event.getModels();
-        BakedModel missing = models.get(ModelBakery.MISSING_MODEL_VARIANT);
-        Map<String, BakedModel> parts = new HashMap<>();
-        for (String name : partNames()) {
-            BakedModel part = models.get(ModelResourceLocation.standalone(DuctParts.id(name)));
-            if (part != null && part != missing) {
+        ModelBakery.BakingResult result = event.getBakingResult();
+        Map<String, BlockStateModelPart> parts = new HashMap<>();
+        for (String name : DuctParts.allNames()) {
+            BlockStateModelPart part = result.standaloneModels().get(partKey(name));
+            if (part != null) {
                 parts.put(name, part);
             }
         }
-        for (Map.Entry<ModelResourceLocation, BakedModel> entry : models.entrySet()) {
-            ModelResourceLocation key = entry.getKey();
-            if (key.id().getNamespace().equals(ServusFoundationIds.MOD_ID)
-                    && key.id().getPath().equals("utility_duct")
-                    && !key.variant().equals("inventory")
-                    && !(entry.getValue() instanceof UtilityDuctModel)) {
-                entry.setValue(new UtilityDuctModel(entry.getValue(), parts));
+        Map<BlockState, BlockStateModel> models = result.blockStateModels();
+        for (BlockState state : ServusLogisticsBlocks.UTILITY_DUCT.get().getStateDefinition().getPossibleStates()) {
+            BlockStateModel model = models.get(state);
+            if (model != null && !(model instanceof UtilityDuctModel)) {
+                models.put(state, new UtilityDuctModel(model, parts));
             }
         }
     }

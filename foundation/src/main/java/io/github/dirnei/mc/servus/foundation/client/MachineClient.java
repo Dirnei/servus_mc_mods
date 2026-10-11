@@ -43,11 +43,11 @@ public final class MachineClient {
 
     /** The Sink fan and the Burner Pump beam and rods are standalone models drawn by block entity renderers. */
     @SubscribeEvent
-    public static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
-        event.register(SinkRenderer.FAN_MODEL);
-        event.register(BurnerPumpRenderer.BEAM_MODEL);
-        event.register(BurnerPumpRenderer.ROD_MODEL);
-        event.register(BurnerPumpRenderer.PISTON_MODEL);
+    public static void onRegisterStandaloneModels(ModelEvent.RegisterStandalone event) {
+        ModelKeys.register(event, SinkRenderer.FAN_MODEL, "block/sink_fan");
+        ModelKeys.register(event, BurnerPumpRenderer.BEAM_MODEL, "block/burner_pump_beam");
+        ModelKeys.register(event, BurnerPumpRenderer.ROD_MODEL, "block/burner_pump_rod");
+        ModelKeys.register(event, BurnerPumpRenderer.PISTON_MODEL, "block/burner_pump_piston");
     }
 
     /** Every machine draws its side modes on the block. */

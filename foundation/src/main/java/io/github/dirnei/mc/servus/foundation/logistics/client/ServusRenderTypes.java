@@ -1,24 +1,38 @@
 package io.github.dirnei.mc.servus.foundation.logistics.client;
 
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.CompareOp;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 
-/** Render types of Servus: Logistics. */
+/** Render types of the Foundation logistics. */
+@EventBusSubscriber(modid = ServusFoundationIds.MOD_ID, value = Dist.CLIENT)
 public final class ServusRenderTypes {
 
-    /** Translucent coloured quads drawn through everything, for the hidden duct overlay. */
+    /** Translucent coloured quads drawn through everything, without culling and without writing depth. */
+    public static final RenderPipeline OVERLAY_PIPELINE = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "pipeline/duct_overlay"))
+            .withCull(false)
+            .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
+            .build();
+
+    /** For the hidden duct overlay and the placement ghost arrow. */
     public static final RenderType OVERLAY = RenderType.create("servus_duct_overlay",
-            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 1536, false, true,
-            RenderType.CompositeState.builder()
-                    .setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
-                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-                    .setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
-                    .setCullState(RenderStateShard.NO_CULL)
-                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
-                    .createCompositeState(false));
+            RenderSetup.builder(OVERLAY_PIPELINE).sortOnUpload().createRenderSetup());
 
     private ServusRenderTypes() {
+    }
+
+    @SubscribeEvent
+    public static void onRegisterPipelines(RegisterRenderPipelinesEvent event) {
+        event.registerPipeline(OVERLAY_PIPELINE);
     }
 }

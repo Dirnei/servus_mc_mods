@@ -10,97 +10,98 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.ItemOverrides;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.SimpleModelWrapper;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.geometry.QuadCollection;
+import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.ChunkRenderTypeSet;
-import net.neoforged.neoforge.client.model.IDynamicBakedModel;
-import net.neoforged.neoforge.client.model.IQuadTransformer;
+import net.neoforged.neoforge.client.model.DynamicBlockStateModel;
+import net.neoforged.neoforge.client.model.quad.MutableQuad;
 import net.neoforged.neoforge.model.data.ModelData;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * The duct's baked model, composed from the part models by the lines and arms
- * the block entity reports, plus one panel per covered face (see
- * {@link PanelQuads}). The centre part follows the line set, each arm
- * the lines connected on that side, and an arm's ring faces (the tinted ones)
- * only show when the side is an endpoint. A data line tier other than the
- * base one swaps every data containing texture ({@code duct_data},
- * {@code duct_*_data}, {@code duct_*_data_v}) for the tier's variant
- * ({@code <name>_<skin>}), remapping the UVs onto the variant's sprite.
+ * The duct's block state model, composed from the part models by the lines and
+ * arms the block entity reports, plus one panel per covered face (see
+ * {@link PanelQuads}). The centre part follows the line set, each arm the
+ * lines connected on that side, and an arm's ring faces (the tinted ones) only
+ * show when the side is an endpoint. A data line tier other than the base one
+ * swaps every data containing texture ({@code duct_data}, {@code duct_*_data},
+ * {@code duct_*_data_v}) for the tier's variant ({@code <name>_<skin>}),
+ * remapping the UVs onto the variant's sprite.
  */
-public final class UtilityDuctModel implements IDynamicBakedModel {
+public final class UtilityDuctModel implements DynamicBlockStateModel {
 
     private static final Pattern DATA_TEXTURE = Pattern.compile("block/duct_(?:[a-z]+_)*data(?:_v)?");
 
-    private final BakedModel base;
-    private final Map<String, BakedModel> parts;
+    private final BlockStateModel base;
+    private final Map<String, BlockStateModelPart> parts;
     /** Reskinned quads by skin, keyed by the original quad (identity). */
     private final Map<String, Map<BakedQuad, BakedQuad>> skinned = new ConcurrentHashMap<>();
+    private final PanelQuads panelQuads = new PanelQuads();
 
     /**
      * @param parts part models by {@link DuctParts} name; a missing name falls back to the base model
      */
-    public UtilityDuctModel(BakedModel base, Map<String, BakedModel> parts) {
+    public UtilityDuctModel(BlockStateModel base, Map<String, BlockStateModelPart> parts) {
         this.base = base;
         this.parts = parts;
     }
 
-    private final PanelQuads panelQuads = new PanelQuads();
-
-    private BakedModel part(String name) {
-        return parts.getOrDefault(name, base);
+    /** The unculled quads of a part, or of the base model when the part is missing. */
+    private List<BakedQuad> partQuads(String name) {
+        BlockStateModelPart part = parts.get(name);
+        if (part != null) {
+            return part.getQuads(null);
+        }
+        List<BlockStateModelPart> baseParts = new ArrayList<>();
+        base.collectParts(RandomSource.create(42), baseParts);
+        List<BakedQuad> quads = new ArrayList<>();
+        baseParts.forEach(basePart -> quads.addAll(basePart.getQuads(null)));
+        return quads;
     }
 
     @Override
-    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand,
-                                    ModelData extraData, @Nullable RenderType renderType) {
-        Integer lines = extraData.get(DuctModelData.LINES);
+    public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random,
+                             List<BlockStateModelPart> output) {
+        ModelData data = level.getModelData(pos);
+        Integer lines = data.get(DuctModelData.LINES);
         if (lines == null) {
-            return base.getQuads(state, side, rand, extraData, renderType);
+            base.collectParts(level, pos, state, random, output);
+            return;
         }
-        if (side != null) {
-            return List.of();
-        }
-        List<BakedQuad> quads = renderType == null || base.getRenderTypes(state, rand, extraData).contains(renderType)
-                ? ductQuads(state, rand, extraData, renderType, lines) : new ArrayList<>();
-        PanelSet panels = extraData.get(DuctModelData.PANELS);
+        List<BakedQuad> quads = ductQuads(data, lines);
+        PanelSet panels = data.get(DuctModelData.PANELS);
         if (panels != null) {
             boolean seeThrough = PanelReveal.revealing();
             for (Direction face : Direction.values()) {
                 BlockState panel = panels.state(face);
-                if (panel == null) {
-                    continue;
-                }
-                if (seeThrough) {
-                    if (renderType == null || renderType == RenderType.translucent()) {
-                        quads.addAll(panelQuads.seeThroughQuads(panel, face, panels.isHollow(face)));
-                    }
-                } else if (renderType == null || renderType == PanelQuads.renderType(panel, rand)) {
-                    quads.addAll(panelQuads.quads(panel, face, panels.isHollow(face)));
+                if (panel != null) {
+                    quads.addAll(seeThrough ? panelQuads.seeThroughQuads(panel, face, panels.isHollow(face))
+                            : panelQuads.quads(panel, face, panels.isHollow(face)));
                 }
             }
         }
-        return quads;
+        QuadCollection.Builder builder = new QuadCollection.Builder();
+        quads.forEach(builder::addUnculledFace);
+        output.add(new SimpleModelWrapper(builder.build(), true, particleMaterial(level, pos, state)));
     }
 
     /** The centre and arm parts for the lines and arms in the model data, reskinned for the data tier. */
-    private List<BakedQuad> ductQuads(@Nullable BlockState state, RandomSource rand, ModelData extraData,
-                                      @Nullable RenderType renderType, int lines) {
-        int[] arms = extraData.get(DuctModelData.ARMS);
-        Integer endpoints = extraData.get(DuctModelData.ENDPOINTS);
+    private List<BakedQuad> ductQuads(ModelData data, int lines) {
+        int[] arms = data.get(DuctModelData.ARMS);
+        Integer endpoints = data.get(DuctModelData.ENDPOINTS);
         int linesMask = DuctParts.normalize(lines);
-        List<BakedQuad> quads = new ArrayList<>(part(DuctParts.centerName(linesMask, runAxis(arms)))
-                .getQuads(state, null, rand, ModelData.EMPTY, renderType));
+        List<BakedQuad> quads = new ArrayList<>(partQuads(DuctParts.centerName(linesMask, runAxis(arms))));
         for (Direction direction : Direction.values()) {
             int armLines = 0;
             for (Line line : Line.VALUES) {
@@ -112,13 +113,13 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
                 continue;
             }
             boolean endpoint = endpoints != null && (endpoints & DuctModelData.bit(direction)) != 0;
-            for (BakedQuad quad : part(DuctParts.armName(direction, armLines)).getQuads(state, null, rand, ModelData.EMPTY, renderType)) {
-                if (endpoint || !quad.isTinted()) {
+            for (BakedQuad quad : partQuads(DuctParts.armName(direction, armLines))) {
+                if (endpoint || quad.materialInfo().tintIndex() < 0) {
                     quads.add(quad);
                 }
             }
         }
-        String skin = extraData.get(DuctModelData.DATA_SKIN);
+        String skin = data.get(DuctModelData.DATA_SKIN);
         if (skin != null && !skin.isEmpty() && (linesMask & (1 << Line.DATA.ordinal())) != 0) {
             Map<BakedQuad, BakedQuad> cache = skinned.computeIfAbsent(skin, key -> new ConcurrentHashMap<>());
             quads.replaceAll(quad -> cache.computeIfAbsent(quad, original -> reskin(original, skin)));
@@ -131,25 +132,20 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
      * the data line, the quad itself otherwise or when the variant is missing.
      */
     private static BakedQuad reskin(BakedQuad quad, String skin) {
-        TextureAtlasSprite from = quad.getSprite();
+        TextureAtlasSprite from = quad.materialInfo().sprite();
         Identifier name = from.contents().name();
         if (!DATA_TEXTURE.matcher(name.getPath()).matches()) {
             return quad;
         }
-        TextureAtlasSprite to = Minecraft.getInstance().getModelManager().getAtlas(InventoryMenu.BLOCK_ATLAS)
+        TextureAtlasSprite to = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS)
                 .getSprite(name.withSuffix("_" + skin));
         if (to.contents().name().equals(MissingTextureAtlasSprite.getLocation())) {
             return quad;
         }
-        int[] vertices = quad.getVertices().clone();
-        for (int i = 0; i + IQuadTransformer.STRIDE <= vertices.length; i += IQuadTransformer.STRIDE) {
-            int u = i + IQuadTransformer.UV0;
-            int v = u + 1;
-            vertices[u] = Float.floatToRawIntBits(to.getU(from.getUOffset(Float.intBitsToFloat(vertices[u]))));
-            vertices[v] = Float.floatToRawIntBits(to.getV(from.getVOffset(Float.intBitsToFloat(vertices[v]))));
-        }
-        return new BakedQuad(vertices, quad.getTintIndex(), quad.getDirection(), to, quad.isShade(),
-                quad.hasAmbientOcclusion());
+        BakedQuad.MaterialInfo info = quad.materialInfo();
+        return new MutableQuad().setFrom(quad)
+                .setSpriteAndMoveUv(to, info.layer(), info.itemRenderType())
+                .toBakedQuad();
     }
 
     /** The axis the centre's bands run along: the one axis every arm lies on, Z without arms, null for a junction. */
@@ -175,63 +171,31 @@ public final class UtilityDuctModel implements IDynamicBakedModel {
     }
 
     @Override
-    public ChunkRenderTypeSet getRenderTypes(BlockState state, RandomSource rand, ModelData data) {
-        ChunkRenderTypeSet types = base.getRenderTypes(state, rand, data);
-        PanelSet panels = data.get(DuctModelData.PANELS);
-        if (panels == null) {
-            return types;
-        }
-        List<RenderType> panelTypes = new ArrayList<>();
-        for (Direction face : Direction.values()) {
-            BlockState panel = panels.state(face);
-            if (panel != null) {
-                panelTypes.add(PanelReveal.revealing() ? RenderType.translucent() : PanelQuads.renderType(panel, rand));
+    public Material.Baked particleMaterial(BlockAndTintGetter level, BlockPos pos, BlockState state) {
+        Integer lines = level.getModelData(pos).get(DuctModelData.LINES);
+        if (lines != null && DuctParts.normalize(lines) != DuctParts.ITEM) {
+            BlockStateModelPart part = parts.get(DuctParts.centerName(lines));
+            if (part != null) {
+                return part.particleMaterial();
             }
         }
-        return ChunkRenderTypeSet.union(types, ChunkRenderTypeSet.of(panelTypes));
+        return base.particleMaterial();
     }
 
     @Override
-    public TextureAtlasSprite getParticleIcon(ModelData data) {
-        Integer lines = data.get(DuctModelData.LINES);
-        if (lines != null && DuctParts.normalize(lines) != DuctParts.ITEM) {
-            return part(DuctParts.centerName(lines)).getParticleIcon(ModelData.EMPTY);
-        }
-        return base.getParticleIcon(data);
+    public Material.Baked particleMaterial() {
+        return base.particleMaterial();
     }
 
     @Override
-    public boolean useAmbientOcclusion() {
-        return base.useAmbientOcclusion();
+    @BakedQuad.MaterialFlags
+    public int materialFlags() {
+        return base.materialFlags();
     }
 
     @Override
-    public boolean isGui3d() {
-        return base.isGui3d();
-    }
-
-    @Override
-    public boolean usesBlockLight() {
-        return base.usesBlockLight();
-    }
-
-    @Override
-    public boolean isCustomRenderer() {
-        return false;
-    }
-
-    @Override
-    public TextureAtlasSprite getParticleIcon() {
-        return base.getParticleIcon();
-    }
-
-    @Override
-    public ItemTransforms getTransforms() {
-        return base.getTransforms();
-    }
-
-    @Override
-    public ItemOverrides getOverrides() {
-        return base.getOverrides();
+    @BakedQuad.MaterialFlags
+    public int materialFlags(BlockAndTintGetter level, BlockPos pos, BlockState state) {
+        return materialFlags();
     }
 }
