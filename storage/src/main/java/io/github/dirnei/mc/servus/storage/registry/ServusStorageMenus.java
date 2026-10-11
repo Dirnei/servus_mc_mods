@@ -36,6 +36,9 @@ public final class ServusStorageMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<io.github.dirnei.mc.servus.storage.menu.PackingStationMenu>> PACKING_STATION =
             MENUS.register("packing_station", () -> IMenuTypeExtension.create(io.github.dirnei.mc.servus.storage.menu.PackingStationMenu::fromNetwork));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu>> WAREHOUSE_CONTROLLER =
+            MENUS.register("warehouse_controller", () -> IMenuTypeExtension.create(io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu::fromNetwork));
+
     public static final DeferredHolder<MenuType<?>, MenuType<ElevatorMenu>> ELEVATOR =
             MENUS.register("elevator", () -> IMenuTypeExtension.create(ElevatorMenu::fromNetwork));
 

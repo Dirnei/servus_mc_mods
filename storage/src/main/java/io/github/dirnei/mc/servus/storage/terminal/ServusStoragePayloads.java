@@ -121,6 +121,17 @@ public final class ServusStoragePayloads {
                         menu.setKeep(payload.slot(), payload.item(), payload.amount());
                     }
                 });
+        registrar.playToClient(io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload.TYPE,
+                io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload.STREAM_CODEC,
+                (payload, context) -> io.github.dirnei.mc.servus.storage.client.ClientSiteStatus.update(payload));
+        registrar.playToServer(io.github.dirnei.mc.servus.storage.controller.RenameSitePayload.TYPE,
+                io.github.dirnei.mc.servus.storage.controller.RenameSitePayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu menu) {
+                        menu.rename(payload.name());
+                    }
+                });
         registrar.playToServer(SetLabelNamePayload.TYPE, SetLabelNamePayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player

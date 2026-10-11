@@ -29,7 +29,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** Right click prints the warehouse summary. */
+/** Right click with an empty hand opens the site GUI. */
 public class WarehouseControllerBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<WarehouseControllerBlock> CODEC = simpleCodec(WarehouseControllerBlock::new);
@@ -77,10 +77,9 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
-            Component message = controller.network().map(network -> network.summary())
-                    .orElse(Component.literal("Warehouse: not in a network"));
-            player.displayClientMessage(message, false);
+        if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer
+                && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
+            serverPlayer.openMenu(controller, buf -> io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu.writeOpening(buf, controller));
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }

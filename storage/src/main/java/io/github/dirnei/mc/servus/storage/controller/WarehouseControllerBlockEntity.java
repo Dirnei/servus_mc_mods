@@ -36,7 +36,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.client.model.data.ModelData;
 
 /** Exactly one per network makes the warehouse online. Shuttles live in garages. */
-public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity implements WoodHolder {
+public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity implements WoodHolder, net.minecraft.world.MenuProvider {
 
     private final WoodSlot woodSlot = new WoodSlot(this);
 
@@ -131,6 +131,27 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     /** Whether the site's upgrades cover its span. */
     public SiteCapacity.State siteState() {
         return SiteCapacity.state(span.size(), upgrades.count(), StorageStatsManager.INSTANCE.chunksPerUpgrade());
+    }
+
+    /** The wake line of the GUI; empty while there is nothing to say. */
+    public net.minecraft.network.chat.Component wakeLine() {
+        return net.minecraft.network.chat.Component.empty();
+    }
+
+    /** Whether the wake line explains a problem. */
+    public boolean wakeAlert() {
+        return false;
+    }
+
+    @Override
+    public net.minecraft.network.chat.Component getDisplayName() {
+        return net.minecraft.network.chat.Component.literal(displayName());
+    }
+
+    @Override
+    public net.minecraft.world.inventory.AbstractContainerMenu createMenu(int containerId, net.minecraft.world.entity.player.Inventory playerInventory,
+                                                                         net.minecraft.world.entity.player.Player player) {
+        return new io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu(containerId, playerInventory, this);
     }
 
     private void upgradesChanged() {
