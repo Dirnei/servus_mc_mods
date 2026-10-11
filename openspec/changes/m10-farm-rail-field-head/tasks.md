@@ -21,7 +21,7 @@
 
 ## 5. GameTests
 
-- [ ] 5.1 `FieldGameTests` in the storage gametest package: `farmRailJoinsWarehouse`, `farmRailLinksToWarehouseRail`, `farmRailNotWaterloggable`, `fieldSplitsAndJoins`, `headWithoutRail`, `secondHeadIsIdle`, `headTakesWaterOnly`, `hydrationReachesFourBlocks`, `hydrationEndsWhenDry`, `hydrationEndsWithRail`, `ripeAfterGrowth`, `ripeAfterBonemeal`, `breakForgetsRipe`, `harvestDueNeedsCropAndShare`, `menuSetsCropAndHarvestOnly`. Verify: `gradlew :storage:runGameTestServer` green.
+- [x] 5.1 `FieldGameTests` in the storage gametest package: `farmRailIsARail` (joins the warehouse, links to a Warehouse Rail, not waterloggable), `fieldSplitsAndJoins`, `oneHeadPerField` (no rail, second head idle until the first is broken), `headTakesWaterOnly`, `headFillsThroughThePipe`, `hydrationReachesFourBlocks`, `hydrationEndsWhenDry`, `hydrationEndsWithRail`, `ripeAfterGrowth`, `ripeAfterBonemeal`, `breakForgetsRipe`, `harvestDueNeedsCropAndShare`, `menuSetsCropAndHarvestOnly`. Verify: `gradlew :storage:runGameTestServer` green.
 
 ## 6. Plan and docs
 
