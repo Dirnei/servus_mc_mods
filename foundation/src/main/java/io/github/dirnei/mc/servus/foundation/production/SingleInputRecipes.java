@@ -15,6 +15,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 
 /**
  * Production recipes from every recipe of a type that has exactly one
@@ -35,7 +36,7 @@ public final class SingleInputRecipes {
      * @param ticks time per batch of a recipe
      */
     public List<ProductionRecipe> list(ServerLevel level, RecipeType<?> type, ToIntFunction<Recipe<?>> ticks) {
-        RecipeManager manager = level.getRecipeManager();
+        RecipeManager manager = level.recipeAccess();
         if (manager != cachedManager || type != cachedType) {
             cachedManager = manager;
             cachedType = type;
@@ -58,24 +59,43 @@ public final class SingleInputRecipes {
         }
         List<ProductionRecipe> recipes = new ArrayList<>();
         Set<Identifier> ids = new HashSet<>();
-        for (Object entry : manager.getAllRecipesFor((RecipeType) type)) {
+        for (Object entry : manager.recipeMap().byType((RecipeType) type)) {
             RecipeHolder<?> holder = (RecipeHolder<?>) entry;
             Recipe<?> recipe = holder.value();
-            List<Ingredient> ingredients = recipe.getIngredients().stream().filter(ingredient -> !ingredient.isEmpty()).toList();
-            ItemStack result = recipe.getResultItem(level.registryAccess());
-            if (ingredients.size() != 1 || result.isEmpty()) {
+            // Recipes are not synced in 26.1; on the server the placement info lists the ingredients.
+            List<Ingredient> ingredients = recipe.placementInfo().isImpossibleToPlace() ? List.of()
+                    : recipe.placementInfo().ingredients().stream().filter(ingredient -> !ingredient.isEmpty()).toList();
+            if (ingredients.size() != 1) {
                 continue;
             }
             int time = Math.max(1, ticks.applyAsInt(recipe));
-            for (ItemStack input : ingredients.get(0).getItems()) {
+            ingredients.get(0).items().forEach(holderItem -> {
+                ItemStack input = new ItemStack(holderItem);
+                ItemStack result = resultFor(recipe, input);
+                if (result.isEmpty()) {
+                    return;
+                }
                 Identifier item = BuiltInRegistries.ITEM.getKey(input.getItem());
-                Identifier recipeId = holder.id().withSuffix("/" + item.getNamespace() + "/" + item.getPath());
+                Identifier recipeId = holder.id().identifier().withSuffix("/" + item.getNamespace() + "/" + item.getPath());
                 if (ids.add(recipeId)) {
                     recipes.add(new ProductionRecipe(recipeId, List.of(input.copyWithCount(1)), List.of(result.copy()), time));
                 }
-            }
+            });
         }
         recipes.sort(Comparator.comparing(recipe -> recipe.id().toString()));
         return List.copyOf(recipes);
+    }
+
+    /**
+     * The result of a one item recipe for {@code input}. Recipes no longer have a fixed result
+     * item, so the recipe is assembled; recipes that do not take a single item give nothing.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static ItemStack resultFor(Recipe<?> recipe, ItemStack input) {
+        try {
+            return ((Recipe) recipe).assemble(new SingleRecipeInput(input));
+        } catch (ClassCastException e) {
+            return ItemStack.EMPTY;
+        }
     }
 }

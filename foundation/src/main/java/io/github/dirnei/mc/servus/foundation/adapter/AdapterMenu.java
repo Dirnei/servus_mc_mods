@@ -12,7 +12,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * The adapter's upkeep GUI: a ghost slot for the upkeep item, the level with
@@ -53,15 +53,10 @@ public class AdapterMenu extends AbstractContainerMenu {
     }
 
     /** A one slot view of the adapter's upkeep item. */
-    private final IItemHandlerModifiable ghost = new IItemHandlerModifiable() {
+    private final ItemSlots ghost = new ItemSlots(1) {
         @Override
         public void setStackInSlot(int slot, ItemStack stack) {
             adapter.setUpkeepItem(stack);
-        }
-
-        @Override
-        public int getSlots() {
-            return 1;
         }
 
         @Override
@@ -70,23 +65,8 @@ public class AdapterMenu extends AbstractContainerMenu {
         }
 
         @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return stack;
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return ItemStack.EMPTY;
-        }
-
-        @Override
         public int getSlotLimit(int slot) {
             return 1;
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return true;
         }
     };
 

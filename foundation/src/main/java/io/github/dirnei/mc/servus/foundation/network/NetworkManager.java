@@ -58,7 +58,7 @@ public final class NetworkManager {
     public <N> ServusNetwork<N, ?> join(BlockPos pos, NetworkNode<N> node) {
         ServusNetwork<N, ?> network = joinTyped(node.networkType(), Conversions.toNodePos(pos), node.networkNode());
         ServusFoundation.LOGGER.debug("{} joined {} network {} (size {}) in {}", pos.toShortString(),
-                node.networkType().id(), network.id(), network.size(), dimension.location());
+                node.networkType().id(), network.id(), network.size(), dimension.identifier());
         return network;
     }
 
@@ -69,7 +69,7 @@ public final class NetworkManager {
         if (set.graph().contains(nodePos)) {
             set.nodeRemoved(nodePos);
             ServusFoundation.LOGGER.debug("{} left {} network; {} networks remain in {}", pos.toShortString(),
-                    node.networkType().id(), set.networks().size(), dimension.location());
+                    node.networkType().id(), set.networks().size(), dimension.identifier());
         }
     }
 

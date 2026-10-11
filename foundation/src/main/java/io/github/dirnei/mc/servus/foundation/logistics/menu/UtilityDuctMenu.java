@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.menu;
 
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
@@ -18,7 +19,6 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
 
 /**
  * The endpoint configuration of one duct side: per present line (Item Pipe,
@@ -118,7 +118,7 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         return data.get(DATA_PRIORITY);
     }
 
-    private IItemHandler filter() {
+    private ItemSlots filter() {
         return duct.filter(side);
     }
 
@@ -187,7 +187,7 @@ public class UtilityDuctMenu extends AbstractContainerMenu {
         if (index >= UtilityDuctBlockEntity.FILTER_SLOTS && index < slots.size()) {
             ItemStack stack = slots.get(index).getItem();
             if (!stack.isEmpty()) {
-                IItemHandler filter = filter();
+                ItemSlots filter = filter();
                 for (int i = 0; i < UtilityDuctBlockEntity.FILTER_SLOTS; i++) {
                     if (filter.getStackInSlot(i).isEmpty()) {
                         ((GhostSlot) slots.get(i)).setGhost(stack);

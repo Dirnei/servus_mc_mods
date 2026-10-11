@@ -42,7 +42,7 @@ public final class ServusFoundationCommands {
     private static int move(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         BlockPos from = BlockPosArgument.getLoadedBlockPos(context, "from");
         BlockPos to = BlockPosArgument.getLoadedBlockPos(context, "to");
-        ItemStack like = ItemArgument.getItem(context, "item").createItemStack(1, false);
+        ItemStack like = ItemArgument.getItem(context, "item").createItemStack(1);
         int count = IntegerArgumentType.getInteger(context, "count");
         Optional<Delivery> delivery = DataPackets.move(context.getSource().getLevel(), from, to, like, count);
         if (delivery.isEmpty()) {

@@ -18,7 +18,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -81,7 +80,7 @@ public abstract class ConnectableBlock extends BaseEntityBlock implements Wrench
     }
 
     /** Whether this block connects to the neighbour in that direction. */
-    protected abstract boolean connectsTo(LevelAccessor level, BlockPos neighborPos, BlockState neighborState, Direction direction);
+    protected abstract boolean connectsTo(LevelReader level, BlockPos neighborPos, BlockState neighborState, Direction direction);
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {

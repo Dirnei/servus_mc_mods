@@ -19,7 +19,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.level.LevelReader;
@@ -59,7 +58,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     /** A side connects when any line has an arm there; see {@link UtilityDuctBlockEntity#computeArm}. */
     @Override
-    protected boolean connectsTo(LevelAccessor level, BlockPos neighborPos, BlockState neighborState, Direction direction) {
+    protected boolean connectsTo(LevelReader level, BlockPos neighborPos, BlockState neighborState, Direction direction) {
         BlockPos pos = neighborPos.relative(direction.getOpposite());
         if (!(level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct)) {
             return false;
