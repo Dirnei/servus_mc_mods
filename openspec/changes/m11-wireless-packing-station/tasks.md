@@ -24,7 +24,7 @@
 
 ## 6. Docs and plan
 
-- [ ] 6.1 `docs/src/content/docs/mods/storage.md` (Wireless Packing Station, sites in the terminal and the controller) and `PLAN.md` (section 2.3 item 6, M11 item 3 with a Built note). Run `gradlew :manufacturing:runData` for the docs gamedata, the docs tests, and `openspec validate m11-wireless-packing-station`.
+- [x] 6.1 `docs/src/content/docs/mods/storage.md` (Wireless Packing Station, sites in the terminal and the controller) and `PLAN.md` (section 2.3 item 6, M11 item 3 with a Built note). Run `gradlew :manufacturing:runData` for the docs gamedata, the docs tests, and `openspec validate m11-wireless-packing-station`.
 
 ## 7. Verification
 

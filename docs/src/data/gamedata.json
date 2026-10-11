@@ -1124,6 +1124,27 @@
         {"item": "servus_storage:warehouse_controller", "count": 1}
       ]
     },
+    "servus_storage:wireless_packing_station": {
+      "type": "servus_foundation:wood_shaped",
+      "pattern": [" E ", "IXI", "PRP"],
+      "key": {
+        "E": {"item": "minecraft:ender_eye"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"},
+        "R": {"item": "minecraft:redstone"},
+        "X": {"item": "servus_storage:packing_station"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 2},
+        {"item": "minecraft:ender_eye", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 1},
+        {"item": "servus_storage:packing_station", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:wireless_packing_station", "count": 1}
+      ]
+    },
     "servus_storage:zone_label": {
       "type": "minecraft:crafting_shapeless",
       "inputs": [
@@ -1201,6 +1222,9 @@
     },
     "minecraft:dropper": {
       "name": "Dropper"
+    },
+    "minecraft:ender_eye": {
+      "name": "Eye of Ender"
     },
     "minecraft:ender_pearl": {
       "name": "Ender Pearl"
@@ -1426,6 +1450,9 @@
     },
     "servus_storage:warehouse_controller": {
       "name": "Warehouse Controller"
+    },
+    "servus_storage:wireless_packing_station": {
+      "name": "Wireless Packing Station"
     },
     "servus_storage:zone_label": {
       "name": "Zone Label"
