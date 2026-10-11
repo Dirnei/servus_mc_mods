@@ -25,7 +25,7 @@
 
 ## 6. Plan and docs
 
-- [ ] 6.1 `PLAN.md` M10 item 2 notes what was built; `docs/src/content/docs/mods/storage.md` gets the Farm Rail and the Field Head. Verify: `openspec validate m10-farm-rail-field-head`.
+- [x] 6.1 `PLAN.md` M10 item 2 notes what was built; `docs/src/content/docs/mods/storage.md` gets the Farm Rail and the Field Head. Verify: `openspec validate m10-farm-rail-field-head`.
 
 ## 7. Integration
 
