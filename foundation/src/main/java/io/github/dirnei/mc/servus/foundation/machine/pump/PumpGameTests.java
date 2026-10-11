@@ -12,17 +12,14 @@ import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpMachine;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
-import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -37,9 +34,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
-import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -49,13 +44,11 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The pumps on a pond: water into a buffer, fixed sides, stubs and energy. */
 @GameTestHolder(ServusFoundationIds.MOD_ID)
@@ -119,7 +112,7 @@ public final class PumpGameTests {
         return true;
     }
 
-    private static IFluidHandler pumpFluid(GameTestHelper helper, Direction side) {
+    private static FluidView pumpFluid(GameTestHelper helper, Direction side) {
         return helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(PUMP), side);
     }
 
@@ -156,7 +149,7 @@ public final class PumpGameTests {
         helper.setBlock(cauldron, Blocks.CAULDRON.defaultBlockState());
         helper.succeedWhen(() -> {
             helper.assertTrue(cauldronFull(helper, cauldron), "the cauldron should fill with water");
-            IFluidHandler east = pumpFluid(helper, Direction.EAST);
+            FluidView east = pumpFluid(helper, Direction.EAST);
             helper.assertTrue(east != null && east.getFluidInTank(0).is(Fluids.WATER) && east.getFluidInTank(0).getAmount() > 0,
                     "the pump buffer should hold water again after filling the cauldron");
             helper.assertTrue(poolIntact(helper), "the pond must stay unchanged");
@@ -211,9 +204,9 @@ public final class PumpGameTests {
             helper.assertTrue(pump.sideConfig().isLocked(side), "side " + side + " should be fixed");
         }
         helper.assertTrue(pump.cycleFace(Direction.WEST) == SideMode.AUTO, "a side stays Auto when cycled");
-        IItemHandler west = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(PUMP), Direction.WEST);
+        ItemView west = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(PUMP), Direction.WEST);
         helper.assertTrue(west != null, "a side takes fuel by automation");
-        ItemStack left = ItemHandlerHelper.insertItem(west, new ItemStack(Items.COAL, 3), false);
+        ItemStack left = west.insertItem(new ItemStack(Items.COAL, 3), false);
         helper.assertTrue(left.isEmpty() && pump.inventory().getStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL).getCount() == 3,
                 "the coal should go into the fuel slot");
         helper.succeed();
@@ -265,9 +258,9 @@ public final class PumpGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 60)
     public static void pumpRefusesFluidAndClosesFrontAndBottom(GameTestHelper helper) {
         burnerPump(helper, 0);
-        IFluidHandler side = pumpFluid(helper, Direction.EAST);
+        FluidView side = pumpFluid(helper, Direction.EAST);
         helper.assertTrue(side != null, "a side is Auto and offers the buffer");
-        helper.assertTrue(side.fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE) == 0, "a pump accepts nothing");
+        helper.assertTrue(side.fill(new FluidStack(Fluids.WATER, 1000), false) == 0, "a pump accepts nothing");
         helper.assertTrue(buffered(helper) == 0, "the buffer stays empty");
         MachineBlockEntity pump = helper.getBlockEntity(PUMP);
         helper.assertTrue(pump.sideMode(Direction.DOWN) == SideMode.DISABLED, "the bottom starts Off");
@@ -512,8 +505,8 @@ public final class PumpGameTests {
         placeBurnerPump(helper, ENGINE);
         BlockPos pos = helper.absolutePos(ENGINE);
         helper.assertTrue(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, pos, Direction.UP) == null, "no water upward");
-        IItemHandler above = helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP);
-        helper.assertTrue(above == null || ItemHandlerHelper.insertItem(above, new ItemStack(Items.COAL, 2), false).getCount() == 2,
+        ItemView above = helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP);
+        helper.assertTrue(above == null || above.insertItem(new ItemStack(Items.COAL, 2), false).getCount() == 2,
                 "no fuel from above");
         helper.assertTrue(helper.getBlockState(ENGINE).getValue(PumpBlock.UP) == 0, "no stub on top");
         helper.succeed();

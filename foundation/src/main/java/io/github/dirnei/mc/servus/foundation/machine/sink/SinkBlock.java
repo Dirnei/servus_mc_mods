@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.machine.sink;
 
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.LevelReader;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
@@ -20,7 +24,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -33,7 +36,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
  * A Sink block. Eight of them in a 2x2x2 cube form the Sink when the carrot
@@ -160,11 +163,11 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
 
     /** A formed block went away: every other block of the same Sink turns back into a casing. */
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide() && isFormed(state) && !newState.is(this)) {
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+        if (isFormed(state)) {
             unformRest(level, pos, state);
         }
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     private void unformRest(Level level, BlockPos pos, BlockState removed) {
@@ -207,15 +210,15 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
 
     /** A change right above a top block may change a chimney column. */
     @Override
-    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level,
-                                     BlockPos pos, BlockPos neighborPos) {
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         if (direction == Direction.UP && !level.isClientSide() && isFormed(state) && SinkLayout.isTop(state.getValue(PART))) {
             SinkBlockEntity sink = controller(level, pos, state);
             if (sink != null) {
                 sink.recountChimney();
             }
         }
-        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        return super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
     }
 
     // Interaction
@@ -237,8 +240,8 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
             return InteractionResult.PASS;
         }
         SinkBlockEntity sink = controller(level, pos, state);
-        if (sink != null && FluidUtil.getFluidHandler(stack).isPresent()
-                && FluidUtil.interactWithFluidHandler(player, hand, sink.manualFluidHandler())) {
+        if (sink != null && ItemAccess.forStack(stack).getCapability(Capabilities.Fluid.ITEM) != null
+                && FluidUtil.interactWithFluidHandler(player, hand, pos, sink.manualFluidHandler(), null)) {
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;

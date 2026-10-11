@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
-import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;

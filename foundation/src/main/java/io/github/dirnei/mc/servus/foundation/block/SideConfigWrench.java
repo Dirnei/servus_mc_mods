@@ -43,7 +43,7 @@ public final class SideConfigWrench {
         if (player != null && player.isShiftKeyDown()) {
             dropContents.run();
             ItemStack drop = new ItemStack(block);
-            blockEntity.saveToItem(drop, level.registryAccess());
+            BlockEntityItems.saveToItem(blockEntity, drop, level.registryAccess());
             Block.popResource(level, pos, drop);
             level.removeBlock(pos, false);
             return InteractionResult.SUCCESS;

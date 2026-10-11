@@ -47,7 +47,7 @@ public final class SingleInputRecipes {
     /** The recipe type with that id, or null. */
     public static RecipeType<?> type(String id) {
         Identifier location = Identifier.tryParse(id);
-        return location == null ? null : BuiltInRegistries.RECIPE_TYPE.get(location);
+        return location == null ? null : BuiltInRegistries.RECIPE_TYPE.getValue(location);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

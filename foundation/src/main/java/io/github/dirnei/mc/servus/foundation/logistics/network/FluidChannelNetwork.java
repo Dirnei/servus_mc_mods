@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.network;
 
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.fluid.FluidRouting;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
@@ -25,8 +27,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /**
  * The Fluid Pipe network of a set of connected utility ducts. Every tick it
@@ -81,11 +82,11 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
         final BlockPos target;
         final SideMode mode;
         final int channel;
-        final BlockCapabilityCache<IFluidHandler, Direction> cache;
+        final BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> cache;
         /** An in and out side whose block has received fluid acts only as a sink from then on. */
         boolean receiving;
 
-        Endpoint(BlockPos target, SideMode mode, int channel, BlockCapabilityCache<IFluidHandler, Direction> cache) {
+        Endpoint(BlockPos target, SideMode mode, int channel, BlockCapabilityCache<ResourceHandler<FluidResource>, Direction> cache) {
             this.target = target;
             this.mode = mode;
             this.channel = DuctChannels.clamp(channel);
@@ -97,27 +98,27 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
         }
 
         /** The neighbour's handler, null when there is none or it is another duct. */
-        IFluidHandler handler() {
-            IFluidHandler handler = cache.getCapability();
-            return handler instanceof DuctFluidHandler ? null : handler;
+        FluidView handler() {
+            FluidView handler = FluidView.of(cache.getCapability());
+            return handler == null || handler.handler() instanceof DuctFluidHandler ? null : handler;
         }
     }
 
     /** An endpoint as a routing source. */
-    private record Source(IFluidHandler handler, FluidRouting.Offer<FluidKey> offer) implements FluidRouting.Source<FluidKey> {
+    private record Source(FluidView handler, FluidRouting.Offer<FluidKey> offer) implements FluidRouting.Source<FluidKey> {
 
         @Override
         public int drain(FluidKey key, int amount) {
-            return handler.drain(key.stack(amount), FluidAction.EXECUTE).getAmount();
+            return handler.drain(key.stack(amount), false).getAmount();
         }
     }
 
     /** An endpoint as a routing sink. */
-    private record Sink(IFluidHandler handler, Endpoint endpoint) implements FluidRouting.Sink<FluidKey> {
+    private record Sink(FluidView handler, Endpoint endpoint) implements FluidRouting.Sink<FluidKey> {
 
         @Override
         public int fill(FluidKey key, int amount, boolean simulate) {
-            int filled = handler.fill(key.stack(amount), simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE);
+            int filled = handler.fill(key.stack(amount), simulate ? true : false);
             if (!simulate && filled > 0 && endpoint.inAndOut()) {
                 endpoint.receiving = true;
             }
@@ -213,13 +214,13 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
         Map<Endpoint, Source> offers = new HashMap<>();
         Set<FluidKey> offered = new LinkedHashSet<>();
         for (Endpoint endpoint : channel) {
-            IFluidHandler handler = endpoint.handler();
+            FluidView handler = endpoint.handler();
             if (handler == null) {
                 continue;
             }
             boolean mayGive = endpoint.mode.allowsInsert() && !endpoint.receiving;
             if (mayGive) {
-                FluidStack available = handler.drain(Integer.MAX_VALUE, FluidAction.SIMULATE);
+                FluidStack available = handler.drain(Integer.MAX_VALUE, true);
                 if (!available.isEmpty()) {
                     FluidKey key = FluidKey.of(available);
                     offers.put(endpoint, new Source(handler, new FluidRouting.Offer<>(key, available.getAmount())));
@@ -241,7 +242,7 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
             return;
         }
         for (Endpoint endpoint : undecided) {
-            IFluidHandler handler = endpoint.handler();
+            FluidView handler = endpoint.handler();
             if (accepts(handler, offered)) {
                 sinks.add(new Sink(handler, endpoint));
             } else if (offers.containsKey(endpoint)) {
@@ -253,9 +254,9 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
         }
     }
 
-    private static boolean accepts(IFluidHandler handler, Set<FluidKey> keys) {
+    private static boolean accepts(FluidView handler, Set<FluidKey> keys) {
         for (FluidKey key : keys) {
-            if (handler.fill(key.stack(Integer.MAX_VALUE), FluidAction.SIMULATE) > 0) {
+            if (handler.fill(key.stack(Integer.MAX_VALUE), true) > 0) {
                 return true;
             }
         }
@@ -269,7 +270,7 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
      *
      * @return the amount accepted (or that would be accepted)
      */
-    public int fill(FluidStack resource, BlockPos origin, int channel, FluidAction action) {
+    public int fill(FluidStack resource, BlockPos origin, int channel, boolean simulate) {
         if (resource.isEmpty() || level == null) {
             return 0;
         }
@@ -282,11 +283,11 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
                 if (endpoint.channel != clamped || !endpoint.mode.allowsExtract() || endpoint.target.equals(origin)) {
                     continue;
                 }
-                IFluidHandler handler = endpoint.handler();
+                FluidView handler = endpoint.handler();
                 if (handler == null) {
                     continue;
                 }
-                int accepted = handler.fill(key.stack(resource.getAmount()), FluidAction.SIMULATE);
+                int accepted = handler.fill(key.stack(resource.getAmount()), true);
                 if (accepted > 0) {
                     sinks.add(new Sink(handler, endpoint));
                     room += accepted;
@@ -296,7 +297,7 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
         if (sinks.isEmpty()) {
             return 0;
         }
-        if (action.simulate()) {
+        if (simulate) {
             return (int) Math.min(resource.getAmount(), room);
         }
         int[] left = {resource.getAmount()};

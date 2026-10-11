@@ -45,7 +45,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -412,7 +412,7 @@ public final class ServusLogisticsGameTests {
     }
 
     private static FluidStack fluid(GameTestHelper helper, BlockPos pos) {
-        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), null);
+        FluidView handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), null);
         return handler == null ? FluidStack.EMPTY : handler.getFluidInTank(0);
     }
 
@@ -519,16 +519,16 @@ public final class ServusLogisticsGameTests {
         duct(helper, DUCT_C, Line.FLUID);
 
         helper.runAfterDelay(2, () -> {
-            IFluidHandler duct = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH);
+            FluidView duct = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH);
             helper.assertTrue(duct != null, "the duct should expose a fluid handler on an in and out side");
             FluidStack water = new FluidStack(Fluids.WATER, 1000);
-            helper.assertTrue(duct.fill(water, IFluidHandler.FluidAction.SIMULATE) == 1000, "a simulated fill should report room for 1000 mB");
+            helper.assertTrue(duct.fill(water, true) == 1000, "a simulated fill should report room for 1000 mB");
             helper.assertTrue(holds(helper, CHEST_C, Fluids.WATER, 0), "a simulated fill must not move fluid");
-            int filled = duct.fill(water, IFluidHandler.FluidAction.EXECUTE);
+            int filled = duct.fill(water, false);
             helper.assertTrue(filled == 1000, "the duct should accept 1000 mB, got " + filled);
             helper.assertTrue(holds(helper, CHEST_C, Fluids.WATER, 1000), "the cauldron should hold the water, got " + describe(helper, CHEST_C));
-            helper.assertTrue(duct.fill(water, IFluidHandler.FluidAction.EXECUTE) == 0, "with every sink full the duct accepts nothing");
-            helper.assertTrue(duct.getTankCapacity(0) == 0 && duct.drain(1000, IFluidHandler.FluidAction.EXECUTE).isEmpty(),
+            helper.assertTrue(duct.fill(water, false) == 0, "with every sink full the duct accepts nothing");
+            helper.assertTrue(duct.getTankCapacity(0) == 0 && duct.drain(1000, false).isEmpty(),
                     "the duct keeps and gives nothing");
 
             UtilityDuctBlockEntity a = helper.getBlockEntity(DUCT_A);

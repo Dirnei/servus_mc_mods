@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
@@ -27,13 +31,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
@@ -104,7 +106,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         super(AdapterContent.BLOCK_ENTITY.get(), pos, state);
     }
 
-    public IItemHandler itemHandler() {
+    public ResourceHandler<ItemResource> itemHandler() {
         return handler;
     }
 
@@ -154,7 +156,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
     }
 
     /** The machine's item handler on the side with the role, if the profile has one. */
-    IItemHandler machineHandler(MachineProfile.Role role) {
+    ItemView machineHandler(MachineProfile.Role role) {
         if (level == null) {
             return null;
         }
@@ -164,7 +166,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         }
         BlockState state = machineState();
         Optional<Side> side = ProfileSides.firstOf(profile.get(), role, machineFacing(state));
-        return side.map(value -> level.getCapability(Capabilities.Item.BLOCK, machinePos(), Conversions.toDirection(value)))
+        return side.map(value -> ItemView.of(level.getCapability(Capabilities.Item.BLOCK, machinePos(), Conversions.toDirection(value))))
                 .orElse(null);
     }
 
@@ -179,12 +181,12 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
             return List.of();
         }
         return recipes.list(server, SingleInputRecipes.type(profile.get().recipeType()),
-                recipe -> recipe instanceof AbstractCookingRecipe cooking ? cooking.getCookingTime() : DEFAULT_TICKS);
+                recipe -> recipe instanceof AbstractCookingRecipe cooking ? cooking.cookingTime() : DEFAULT_TICKS);
     }
 
     /** The recipe of the item in the machine's ingredient side, while there is one. */
     private Optional<Identifier> active() {
-        IItemHandler ingredients = machineHandler(MachineProfile.Role.INGREDIENTS);
+        ItemView ingredients = machineHandler(MachineProfile.Role.INGREDIENTS);
         if (ingredients == null) {
             return Optional.empty();
         }
@@ -216,7 +218,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
 
     /** Upkeep items in the machine's upkeep side right now. */
     public int upkeepCount() {
-        IItemHandler upkeep = machineHandler(MachineProfile.Role.UPKEEP);
+        ItemView upkeep = machineHandler(MachineProfile.Role.UPKEEP);
         if (upkeep == null || upkeepItem.isEmpty()) {
             return 0;
         }
@@ -265,12 +267,12 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         if (expected() <= 0 || upkeepItem.isEmpty() || !ItemStack.isSameItemSameComponents(stack, upkeepItem)) {
             return stack;
         }
-        IItemHandler upkeep = machineHandler(MachineProfile.Role.UPKEEP);
+        ItemView upkeep = machineHandler(MachineProfile.Role.UPKEEP);
         if (upkeep == null) {
             return stack;
         }
         int offered = Math.min(stack.getCount(), expected);
-        ItemStack left = ItemHandlerHelper.insertItemStacked(upkeep, stack.copyWithCount(offered), simulate);
+        ItemStack left = upkeep.insertItemStacked(stack.copyWithCount(offered), simulate);
         int taken = offered - left.getCount();
         if (!simulate) {
             expected -= taken;
@@ -290,7 +292,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
             return;
         }
         Identifier id = Identifier.tryParse(profile.upkeepItem());
-        upkeepItem = id == null || profile.upkeepItem().isEmpty() ? ItemStack.EMPTY : new ItemStack(BuiltInRegistries.ITEM.get(id));
+        upkeepItem = id == null || profile.upkeepItem().isEmpty() ? ItemStack.EMPTY : new ItemStack(BuiltInRegistries.ITEM.getValue(id));
         upkeepLevel = Math.max(MIN_LEVEL, Math.min(MAX_LEVEL, profile.upkeepLevel()));
         upkeepSet = true;
         setChanged();
@@ -299,23 +301,23 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
     // Saving
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        woodSlot.save(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        woodSlot.save(output);
         if (!upkeepItem.isEmpty()) {
-            tag.put("upkeep", upkeepItem.save(registries));
+            output.store("upkeep", ItemStack.CODEC, upkeepItem);
         }
-        tag.putInt("level", upkeepLevel);
-        tag.putBoolean("set", upkeepSet);
+        output.putInt("level", upkeepLevel);
+        output.putBoolean("set", upkeepSet);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        woodSlot.load(tag);
-        upkeepItem = tag.contains("upkeep") ? ItemStack.parseOptional(registries, tag.getCompound("upkeep")) : ItemStack.EMPTY;
-        upkeepLevel = tag.contains("level") ? tag.getInt("level") : MachineProfile.DEFAULT_LEVEL;
-        upkeepSet = tag.getBoolean("set");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        woodSlot.load(input);
+        upkeepItem = input.read("upkeep", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        upkeepLevel = input.getIntOr("level", MachineProfile.DEFAULT_LEVEL);
+        upkeepSet = input.getBooleanOr("set", false);
     }
 
     @Override
@@ -369,9 +371,9 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
 
     @Override
     @SuppressWarnings("deprecation")
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        WoodSlot.removeFromTag(tag);
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
     }
 
     @Override

@@ -29,7 +29,7 @@ public final class ServusFoundationCommands {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal(ServusFoundationIds.MOD_ID)
-                .requires(source -> source.hasPermission(2))
+                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(Commands.literal("data")
                         .then(Commands.literal("move")
                                 .then(Commands.argument("from", BlockPosArgument.blockPos())

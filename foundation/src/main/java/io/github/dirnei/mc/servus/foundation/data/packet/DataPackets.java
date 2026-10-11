@@ -17,7 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
  * Starts deliveries over the data line and finds them again by id. The data
@@ -65,7 +65,7 @@ public final class DataPackets {
      * member at {@code from} still decides the route and its transfer gate.
      */
     public static Optional<Delivery> move(ServerLevel level, BlockPos from, BlockPos to, ItemStack like, int amount,
-                                          IItemHandler source) {
+                                          ItemView source) {
         if (like.isEmpty() || amount < 1) {
             return Optional.empty();
         }

@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataSummary;
@@ -19,7 +21,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -72,8 +74,9 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     /** A neighbour was placed, removed or changed: the block entity refreshes its arms. */
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
             duct.neighbourChanged();
         }
@@ -171,7 +174,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
     }
 
     @Override
-    public BlockState getAppearance(BlockState state, BlockAndTintGetter level, BlockPos pos, Direction side, BlockState queryState, BlockPos queryPos) {
+    public BlockState getAppearance(BlockState state, BlockAndLightGetter level, BlockPos pos, Direction side, BlockState queryState, BlockPos queryPos) {
         if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && duct.closed(side)) {
             return duct.panel(side);
         }
@@ -194,22 +197,9 @@ public class UtilityDuctBlock extends ConnectableBlock {
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
-            for (Line line : duct.lines()) {
-                Block.popResource(level, pos, new ItemStack(duct.lineItem(line)));
-            }
-            for (ItemStack panel : duct.dropPanels()) {
-                Block.popResource(level, pos, panel);
-            }
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
     /**
      * Sneak wrench on a panel takes that panel off; anywhere else it removes
-     * the duct, whose lines and panels drop through {@link #onRemove}. Without
+     * the duct, whose lines and panels drop when its block entity is removed. Without
      * sneaking, a click on an arm that ends at an inventory or machine opens
      * that side's endpoint GUI; the centre, an arm toward another duct and a
      * panel open nothing.
@@ -266,7 +256,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
     }
 
     @Override
-    public ItemStack getCloneItemStack(BlockState state, net.minecraft.world.phys.HitResult target, LevelReader level, BlockPos pos, Player player) {
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
         if (level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && !duct.lines().isEmpty()) {
             return new ItemStack(duct.lineItem(duct.lines().iterator().next()));
         }

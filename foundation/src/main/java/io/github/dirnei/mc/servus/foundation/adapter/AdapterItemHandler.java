@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
  * The adapter's item handler on every face. Slot 0 takes items and always
@@ -10,7 +10,7 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
  * else to its ingredient side. The slots after it mirror the machine's output
  * side for extraction.
  */
-public final class AdapterItemHandler implements IItemHandler {
+public final class AdapterItemHandler extends LegacyItemHandler {
 
     private final MachineAdapterBlockEntity adapter;
 
@@ -18,13 +18,13 @@ public final class AdapterItemHandler implements IItemHandler {
         this.adapter = adapter;
     }
 
-    private IItemHandler output() {
+    private ItemView output() {
         return adapter.machineHandler(MachineProfile.Role.OUTPUT);
     }
 
     @Override
     public int getSlots() {
-        IItemHandler output = output();
+        ItemView output = output();
         return 1 + (output == null ? 0 : output.getSlots());
     }
 
@@ -34,7 +34,7 @@ public final class AdapterItemHandler implements IItemHandler {
             // The input slot always reads empty, so stacking inserters (packets) offer it any item.
             return ItemStack.EMPTY;
         }
-        IItemHandler output = output();
+        ItemView output = output();
         return output == null || slot - 1 >= output.getSlots() ? ItemStack.EMPTY : output.getStackInSlot(slot - 1);
     }
 
@@ -47,8 +47,8 @@ public final class AdapterItemHandler implements IItemHandler {
         if (rest.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        IItemHandler ingredients = adapter.machineHandler(MachineProfile.Role.INGREDIENTS);
-        return ingredients == null ? rest : ItemHandlerHelper.insertItemStacked(ingredients, rest, simulate);
+        ItemView ingredients = adapter.machineHandler(MachineProfile.Role.INGREDIENTS);
+        return ingredients == null ? rest : ingredients.insertItemStacked(rest, simulate);
     }
 
     @Override
@@ -56,7 +56,7 @@ public final class AdapterItemHandler implements IItemHandler {
         if (slot == 0) {
             return ItemStack.EMPTY;
         }
-        IItemHandler output = output();
+        ItemView output = output();
         return output == null || slot - 1 >= output.getSlots() ? ItemStack.EMPTY : output.extractItem(slot - 1, amount, simulate);
     }
 

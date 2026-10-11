@@ -1,12 +1,13 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -64,7 +65,7 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
             upkeepId = id;
             Identifier location = Identifier.tryParse(id);
             upkeepStack = location == null || !BuiltInRegistries.ITEM.containsKey(location)
-                    ? ItemStack.EMPTY : new ItemStack(BuiltInRegistries.ITEM.get(location));
+                    ? ItemStack.EMPTY : new ItemStack(BuiltInRegistries.ITEM.getValue(location));
         }
         return upkeepStack;
     }
@@ -111,14 +112,18 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         if (fuel.isEmpty()) {
             return;
         }
-        int time = fuel.getBurnTime(RecipeType.SMELTING);
+        if (level == null) {
+            return;
+        }
+        int time = fuel.getBurnTime(RecipeType.SMELTING, level.fuelValues());
         if (time <= 0) {
             return;
         }
         time = Math.max(1, time / stats().fuelDivisor());
         burnTime = time;
         burnDuration = time;
-        ItemStack remainder = fuel.getCraftingRemainingItem();
+        ItemStackTemplate remainderTemplate = fuel.getCraftingRemainder();
+        ItemStack remainder = remainderTemplate == null ? ItemStack.EMPTY : remainderTemplate.create();
         fuel.shrink(1);
         if (fuel.isEmpty()) {
             inventory.setStackInSlot(fuelSlot(), remainder);
@@ -146,16 +151,16 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.putInt("BurnTime", burnTime);
-        tag.putInt("BurnDuration", burnDuration);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt("BurnTime", burnTime);
+        output.putInt("BurnDuration", burnDuration);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        burnTime = tag.getInt("BurnTime");
-        burnDuration = tag.getInt("BurnDuration");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        burnTime = input.getIntOr("BurnTime", 0);
+        burnDuration = input.getIntOr("BurnDuration", 0);
     }
 }

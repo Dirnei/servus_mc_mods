@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 /**
  * The fluid handler a utility duct shows to one neighbour. One tank of
@@ -12,7 +12,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
  * the blocks on the filling side's channel of the Fluid Pipe network, never
  * back to the filling neighbour. Nothing can be drained.
  */
-public final class DuctFluidHandler implements IFluidHandler {
+public final class DuctFluidHandler extends LegacyFluidHandler {
 
     private final UtilityDuctBlockEntity duct;
     private final Direction side;
@@ -43,24 +43,24 @@ public final class DuctFluidHandler implements IFluidHandler {
     }
 
     @Override
-    public int fill(FluidStack resource, FluidAction action) {
+    public int fill(FluidStack resource, boolean simulate) {
         if (resource.isEmpty() || !duct.has(Line.FLUID) || !duct.mode(Line.FLUID, side).allowsInsert()) {
             return 0;
         }
         BlockPos origin = duct.getBlockPos().relative(side);
         int channel = duct.channel(Line.FLUID, side);
         return duct.<FluidChannelNetwork>network(Line.FLUID)
-                .map(network -> network.fill(resource, origin, channel, action))
+                .map(network -> network.fill(resource, origin, channel, simulate))
                 .orElse(0);
     }
 
     @Override
-    public FluidStack drain(FluidStack resource, FluidAction action) {
+    public FluidStack drain(FluidStack resource, boolean simulate) {
         return FluidStack.EMPTY;
     }
 
     @Override
-    public FluidStack drain(int maxDrain, FluidAction action) {
+    public FluidStack drain(int maxDrain, boolean simulate) {
         return FluidStack.EMPTY;
     }
 }

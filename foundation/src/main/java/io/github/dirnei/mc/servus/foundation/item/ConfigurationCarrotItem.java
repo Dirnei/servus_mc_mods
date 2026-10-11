@@ -1,11 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.item;
 
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.function.Consumer;
 import net.minecraft.core.Direction;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigWrench;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationComponents;
 import io.github.dirnei.mc.servus.foundation.side.SideLayer;
-import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -103,10 +104,10 @@ public class ConfigurationCarrotItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("message.servus_foundation.carrot_layer", SideConfigWrench.layerName(layer(stack)))
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("message.servus_foundation.carrot_layer", SideConfigWrench.layerName(layer(stack)))
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.servus_foundation.carrot_layer_hint").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.accept(Component.translatable("tooltip.servus_foundation.carrot_layer_hint").withStyle(ChatFormatting.DARK_GRAY));
     }
 
     private static EnumProperty<Direction> facingProperty(BlockState state) {

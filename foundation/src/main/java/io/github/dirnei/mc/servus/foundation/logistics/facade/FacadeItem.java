@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.facade;
 
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.function.Consumer;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlock;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsComponents;
@@ -69,8 +71,8 @@ public class FacadeItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("item.servus_foundation.facade.hint"));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.accept(Component.translatable("item.servus_foundation.facade.hint"));
     }
 
     @Override

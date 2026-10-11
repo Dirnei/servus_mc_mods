@@ -100,14 +100,6 @@ public abstract class MachineBlock extends BaseEntityBlock implements Wrenchable
         }
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
-            machine.dropContents();
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
     /** The carrot cycles the clicked side; sneaking dismantles and keeps the configuration on the item. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {

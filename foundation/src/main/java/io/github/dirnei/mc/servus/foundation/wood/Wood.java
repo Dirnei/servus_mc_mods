@@ -57,7 +57,7 @@ public final class Wood {
 
     /** The planks block of a wood id. */
     public static Block block(Identifier wood) {
-        return BuiltInRegistries.BLOCK.get(or(wood));
+        return BuiltInRegistries.BLOCK.getValue(or(wood));
     }
 
     /** Copies the wood of a block entity onto a drop built by hand. */

@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.network;
 
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
@@ -23,7 +25,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
  * The Item Pipe network of a set of connected utility ducts. Holds no items.
@@ -40,7 +42,7 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
             new NetworkType<>(ID, (from, fromNode, side, to, toNode) -> UtilityDuctBlockEntity.sideOpen(fromNode, side), ItemChannelNetwork::new);
 
     private record Endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int priority,
-                            int channel, BlockCapabilityCache<IItemHandler, Direction> cache) {
+                            int channel, BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> cache) {
 
         boolean allows(ItemStack stack) {
             return duct.filterAllows(side, stack);
@@ -154,8 +156,8 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
 
     /** One pull from a pull in side: the first slot whose items pass the filter and the channel accepts. */
     private void pull(Endpoint source, int perPull) {
-        IItemHandler handler = source.cache().getCapability();
-        if (handler == null || handler instanceof DuctItemHandler) {
+        ItemView handler = ItemView.of(source.cache().getCapability());
+        if (handler == null || handler.handler() instanceof DuctItemHandler) {
             return;
         }
         for (int slot = 0; slot < handler.getSlots(); slot++) {
@@ -203,7 +205,7 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
                 remaining.shrink(amount);
                 continue;
             }
-            IItemHandler handler = offer.target().cache().getCapability();
+            ItemView handler = ItemView.of(offer.target().cache().getCapability());
             if (handler == null) {
                 continue;
             }
@@ -227,15 +229,15 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
         if (endpoint.target().equals(origin) || !endpoint.allows(stack)) {
             return 0;
         }
-        IItemHandler handler = endpoint.cache().getCapability();
-        if (handler == null || handler instanceof DuctItemHandler) {
+        ItemView handler = ItemView.of(endpoint.cache().getCapability());
+        if (handler == null || handler.handler() instanceof DuctItemHandler) {
             return 0;
         }
         ItemStack left = insertAnySlot(handler, stack, true);
         return stack.getCount() - left.getCount();
     }
 
-    private static ItemStack insertAnySlot(IItemHandler handler, ItemStack stack, boolean simulate) {
+    private static ItemStack insertAnySlot(ItemView handler, ItemStack stack, boolean simulate) {
         ItemStack remaining = stack.copy();
         for (int slot = 0; slot < handler.getSlots() && !remaining.isEmpty(); slot++) {
             remaining = handler.insertItem(slot, remaining, simulate);

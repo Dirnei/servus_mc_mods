@@ -7,17 +7,21 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 
 /**
  * Shared by both pumps: the infinite water check below the pump, the water
@@ -40,8 +44,8 @@ public final class PumpLogic {
     private static final int PUSH_INTERVAL = 10;
     private static final Direction[] HORIZONTAL = {Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
 
-    private final FluidTank tank;
-    private final IFluidHandler drainOnly;
+    private final FluidSlot tank;
+    private final ResourceHandler<FluidResource> drainOnly;
     private boolean sourceValid;
     /** Set on load and by neighbour changes: check the source on the next tick, whatever the progress. */
     private boolean checkRequested = true;
@@ -53,7 +57,7 @@ public final class PumpLogic {
      * @param changed  called when the buffer changes, usually the block entity's {@code setChanged}
      */
     public PumpLogic(int capacity, Runnable changed) {
-        this.tank = new FluidTank(capacity, stack -> stack.is(Fluids.WATER)) {
+        this.tank = new FluidSlot(capacity, stack -> stack.is(Fluids.WATER)) {
             @Override
             protected void onContentsChanged() {
                 changed.run();
@@ -62,7 +66,7 @@ public final class PumpLogic {
         this.drainOnly = new DrainOnlyHandler(tank);
     }
 
-    public FluidTank tank() {
+    public FluidSlot tank() {
         return tank;
     }
 
@@ -94,7 +98,7 @@ public final class PumpLogic {
 
     /** One finished cycle: water into the buffer. */
     public void finishWork(MachineStats stats) {
-        tank.fill(new FluidStack(Fluids.WATER, stats.fluidPerCycle()), IFluidHandler.FluidAction.EXECUTE);
+        tank.fill(new FluidStack(Fluids.WATER, stats.fluidPerCycle()), false);
     }
 
     /** Five block reads: the block below and its four horizontal neighbours. Nothing is written. */
@@ -130,20 +134,20 @@ public final class PumpLogic {
             if (!sideModes.apply(direction).pushes()) {
                 continue;
             }
-            IFluidHandler neighbour = level.getCapability(Capabilities.Fluid.BLOCK,
+            ResourceHandler<FluidResource> neighbour = level.getCapability(Capabilities.Fluid.BLOCK,
                     pos.relative(direction), direction.getOpposite());
             if (neighbour == null) {
                 continue;
             }
-            int filled = neighbour.fill(tank.getFluid().copy(), IFluidHandler.FluidAction.EXECUTE);
+            int filled = Transfer.fill(neighbour, tank.getFluid().copy(), false);
             if (filled > 0) {
-                tank.drain(filled, IFluidHandler.FluidAction.EXECUTE);
+                tank.drain(filled, false);
             }
         }
     }
 
     /** What a neighbour sees from {@code side}: the drain only buffer, or nothing on sides that do not give out. */
-    public IFluidHandler sideHandler(SideMode mode) {
+    public ResourceHandler<FluidResource> sideHandler(SideMode mode) {
         return mode.allowsExtract() ? drainOnly : null;
     }
 
@@ -152,53 +156,37 @@ public final class PumpLogic {
         return BuiltInRegistries.FLUID.getId(tank.getFluid().getFluid());
     }
 
-    public void save(CompoundTag tag, HolderLookup.Provider registries) {
-        tag.put("Water", tank.writeToNBT(registries, new CompoundTag()));
-        tag.putBoolean("SourceValid", sourceValid);
+    public void save(ValueOutput output) {
+        tank.save(output, "Water");
+        output.putBoolean("SourceValid", sourceValid);
     }
 
-    public void load(CompoundTag tag, HolderLookup.Provider registries) {
-        tank.readFromNBT(registries, tag.getCompound("Water"));
-        sourceValid = tag.getBoolean("SourceValid");
+    public void load(ValueInput input) {
+        tank.load(input, "Water");
+        sourceValid = input.getBooleanOr("SourceValid", false);
         checkRequested = true;
     }
 
     /** The buffer as automation sees it: water can be drained, nothing can be filled. */
-    private record DrainOnlyHandler(FluidTank tank) implements IFluidHandler {
+    private static final class DrainOnlyHandler extends DelegatingResourceHandler<FluidResource> {
 
-        @Override
-        public int getTanks() {
-            return 1;
+        private DrainOnlyHandler(FluidSlot tank) {
+            super(tank);
         }
 
         @Override
-        public FluidStack getFluidInTank(int index) {
-            return tank.getFluid();
+        public boolean isValid(int index, FluidResource resource) {
+            return resource.isEmpty();
         }
 
         @Override
-        public int getTankCapacity(int index) {
-            return tank.getCapacity();
-        }
-
-        @Override
-        public boolean isFluidValid(int index, FluidStack stack) {
-            return false;
-        }
-
-        @Override
-        public int fill(FluidStack resource, FluidAction action) {
+        public int insert(int index, FluidResource resource, int amount, TransactionContext transaction) {
             return 0;
         }
 
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            return tank.drain(resource, action);
-        }
-
-        @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            return tank.drain(maxDrain, action);
+        public int insert(FluidResource resource, int amount, TransactionContext transaction) {
+            return 0;
         }
     }
 }

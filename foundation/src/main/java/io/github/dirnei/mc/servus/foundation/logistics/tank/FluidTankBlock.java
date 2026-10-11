@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.tank;
 
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
 import com.mojang.serialization.MapCodec;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
@@ -20,9 +22,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.fluids.FluidActionResult;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
  * A glass Fluid Tank block. The six boolean properties say whether the block
@@ -50,13 +51,13 @@ public class FluidTankBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
+    protected boolean propagatesSkylightDown(BlockState state) {
         return true;
     }
 
     /** Light passes through like glass, so the middle of a big tank is as bright as its edges. */
     @Override
-    protected int getLightBlock(BlockState state, BlockGetter level, BlockPos pos) {
+    protected int getLightDampening(BlockState state) {
         return 0;
     }
 
@@ -92,35 +93,14 @@ public class FluidTankBlock extends BaseEntityBlock {
         if (stack.isEmpty()) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        if (FluidUtil.getFluidHandler(stack).isEmpty()) {
+        if (ItemAccess.forStack(stack).getCapability(Capabilities.Fluid.ITEM) == null) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide() && !fillInCreative(stack, level, pos, player, hitResult.getDirection())) {
-            FluidUtil.interactWithFluidHandler(player, hand, level, pos, hitResult.getDirection());
+        if (!level.isClientSide()) {
+            // Creative players keep their container, like with a vanilla bucket (ItemAccess handles it).
+            FluidUtil.interactWithFluidHandler(player, hand, level, pos, hitResult.getDirection(), null);
         }
         return InteractionResult.SUCCESS;
-    }
-
-    /**
-     * Creative players get what vanilla buckets give them: the empty container stays in the hand
-     * and a filled one goes into the inventory unless it holds one already. NeoForge's helper
-     * would drain the tank and hand out nothing.
-     */
-    private static boolean fillInCreative(ItemStack stack, Level level, BlockPos pos, Player player, Direction side) {
-        if (!player.getAbilities().instabuild) {
-            return false;
-        }
-        return FluidUtil.getFluidHandler(level, pos, side).map(handler -> {
-            FluidActionResult filled = FluidUtil.tryFillContainer(stack.copyWithCount(1), handler, Integer.MAX_VALUE, player, true);
-            if (!filled.isSuccess()) {
-                return false;
-            }
-            ItemStack result = filled.getResult();
-            if (!player.getInventory().contains(result)) {
-                player.getInventory().add(result);
-            }
-            return true;
-        }).orElse(false);
     }
 
     /** An empty hand reads the tank: fluid, amount and capacity. */

@@ -3,21 +3,43 @@ package io.github.dirnei.mc.servus.foundation.transfer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemUtil;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Old style one shot operations (simulate flag, stacks in and out) on any
  * transfer API handler, for code that moves things between handlers from a
- * block entity tick. Every call opens and closes its own root transaction, so
- * none of them may be called while a transaction is open.
+ * block entity tick or from a legacy style handler. Every call opens its own
+ * transaction, nested in the one open on this thread if there is one.
  */
 public final class Transfer {
 
     private Transfer() {
+    }
+
+    /**
+     * The transaction open on this thread, or null. Simulations run by the
+     * legacy style handlers happen inside the caller's transaction, so the
+     * helpers below nest into it instead of opening a root they may not open.
+     */
+    @SuppressWarnings("deprecation")
+    public static @Nullable TransactionContext current() {
+        return Transaction.getCurrentOpenedTransaction();
+    }
+
+    /**
+     * Opens a transaction nested in the current one, or a root transaction when
+     * none is open. A committed nested transaction only takes effect when the
+     * outer one commits; an uncommitted one (a simulation) is always undone.
+     */
+    public static Transaction open() {
+        return Transaction.open(current());
     }
 
     // Items
@@ -29,12 +51,27 @@ public final class Transfer {
 
     /** Inserts into one slot; returns what did not fit. */
     public static ItemStack insertItem(ResourceHandler<ItemResource> handler, int slot, ItemStack stack, boolean simulate) {
-        return ItemUtil.insertItemReturnRemaining(handler, slot, stack, simulate, null);
+        return ItemUtil.insertItemReturnRemaining(handler, slot, stack, simulate, Transfer.current());
     }
 
     /** Inserts into the handler slot by slot from the first; returns what did not fit. */
     public static ItemStack insertItem(ResourceHandler<ItemResource> handler, ItemStack stack, boolean simulate) {
-        return ItemUtil.insertItemReturnRemaining(handler, stack, simulate, null);
+        return ItemUtil.insertItemReturnRemaining(handler, stack, simulate, Transfer.current());
+    }
+
+    /** Inserts into slots that already hold the item first, then into empty ones; returns what did not fit. */
+    public static ItemStack insertItemStacked(ResourceHandler<ItemResource> handler, ItemStack stack, boolean simulate) {
+        if (stack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        try (Transaction tx = Transfer.open()) {
+            int inserted = ResourceHandlerUtil.insertStacking(handler, ItemResource.of(stack), stack.getCount(), tx);
+            if (!simulate) {
+                tx.commit();
+            }
+            int left = stack.getCount() - inserted;
+            return left <= 0 ? ItemStack.EMPTY : stack.copyWithCount(left);
+        }
     }
 
     /** Takes up to {@code amount} of whatever is in a slot. */
@@ -43,7 +80,7 @@ public final class Transfer {
         if (resource.isEmpty() || amount <= 0) {
             return ItemStack.EMPTY;
         }
-        try (Transaction tx = Transaction.openRoot()) {
+        try (Transaction tx = Transfer.open()) {
             int extracted = handler.extract(slot, resource, amount, tx);
             if (!simulate) {
                 tx.commit();
@@ -57,7 +94,7 @@ public final class Transfer {
         if (resource.isEmpty() || amount <= 0) {
             return 0;
         }
-        try (Transaction tx = Transaction.openRoot()) {
+        try (Transaction tx = Transfer.open()) {
             int extracted = handler.extract(resource, amount, tx);
             if (!simulate) {
                 tx.commit();
@@ -79,7 +116,7 @@ public final class Transfer {
         if (stack.isEmpty()) {
             return 0;
         }
-        try (Transaction tx = Transaction.openRoot()) {
+        try (Transaction tx = Transfer.open()) {
             int filled = handler.insert(FluidResource.of(stack), stack.getAmount(), tx);
             if (!simulate) {
                 tx.commit();
@@ -94,7 +131,7 @@ public final class Transfer {
             return FluidStack.EMPTY;
         }
         FluidResource resource = FluidResource.of(stack);
-        try (Transaction tx = Transaction.openRoot()) {
+        try (Transaction tx = Transfer.open()) {
             int drained = handler.extract(resource, stack.getAmount(), tx);
             if (!simulate) {
                 tx.commit();
@@ -128,7 +165,7 @@ public final class Transfer {
         if (amount <= 0) {
             return 0;
         }
-        try (Transaction tx = Transaction.openRoot()) {
+        try (Transaction tx = Transfer.open()) {
             int inserted = handler.insert(amount, tx);
             if (!simulate) {
                 tx.commit();
@@ -142,7 +179,7 @@ public final class Transfer {
         if (amount <= 0) {
             return 0;
         }
-        try (Transaction tx = Transaction.openRoot()) {
+        try (Transaction tx = Transfer.open()) {
             int extracted = handler.extract(amount, tx);
             if (!simulate) {
                 tx.commit();

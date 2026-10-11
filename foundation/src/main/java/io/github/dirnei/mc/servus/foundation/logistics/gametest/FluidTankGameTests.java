@@ -34,8 +34,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -64,8 +63,8 @@ public final class FluidTankGameTests {
         }
     }
 
-    private static IFluidHandler handler(GameTestHelper helper, BlockPos pos) {
-        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), Direction.UP);
+    private static FluidView handler(GameTestHelper helper, BlockPos pos) {
+        FluidView handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), Direction.UP);
         helper.assertTrue(handler != null, "tank at " + pos.toShortString() + " should expose a fluid handler");
         return handler;
     }
@@ -127,12 +126,12 @@ public final class FluidTankGameTests {
                     assertCapacity(helper, bottom, 2 * cap());
                     assertCapacity(helper, top, 2 * cap());
                     helper.assertTrue(joined(helper, bottom, Direction.UP) && joined(helper, top, Direction.DOWN), "the two blocks should be joined");
-                    int filled = handler(helper, top).fill(water(cap() + 4000), FluidAction.EXECUTE);
+                    int filled = handler(helper, top).fill(water(cap() + 4000), false);
                     helper.assertTrue(filled == cap() + 4000, "the top should take all the water, took " + filled);
                     assertAmount(helper, bottom, cap() + 4000);
                     assertShare(helper, bottom, cap());
                     assertShare(helper, top, 4000);
-                    FluidStack drained = handler(helper, bottom).drain(3000, FluidAction.EXECUTE);
+                    FluidStack drained = handler(helper, bottom).drain(3000, false);
                     helper.assertTrue(drained.getAmount() == 3000 && drained.is(Fluids.WATER), "the bottom should give 3000 mB of water");
                     assertAmount(helper, top, cap() + 1000);
                 })
@@ -163,8 +162,8 @@ public final class FluidTankGameTests {
                 .thenExecute(() -> {
                     assertCapacity(helper, a, 2 * cap());
                     assertCapacity(helper, c, cap());
-                    handler(helper, a).fill(water(1000), FluidAction.EXECUTE);
-                    handler(helper, c).fill(water(1000), FluidAction.EXECUTE);
+                    handler(helper, a).fill(water(1000), false);
+                    handler(helper, c).fill(water(1000), false);
                     assertAmount(helper, b, 1000);
                     assertAmount(helper, c, 1000);
                     helper.assertTrue(joined(helper, a, Direction.EAST) && !joined(helper, a, Direction.SOUTH), "the pair joins, the single does not");
@@ -192,7 +191,7 @@ public final class FluidTankGameTests {
         helper.startSequence()
                 .thenIdle(2)
                 .thenExecute(() -> {
-                    handler(helper, min).fill(water(2 * cap()), FluidAction.EXECUTE);
+                    handler(helper, min).fill(water(2 * cap()), false);
                     tank(helper, min.above());
                 })
                 .thenIdle(2)
@@ -225,7 +224,7 @@ public final class FluidTankGameTests {
                 .thenIdle(2)
                 .thenExecute(() -> {
                     assertCapacity(helper, min, 8 * cap());
-                    handler(helper, max).fill(water(6 * cap()), FluidAction.EXECUTE);
+                    handler(helper, max).fill(water(6 * cap()), false);
                 })
                 .thenIdle(1)
                 .thenExecute(() -> {
@@ -359,8 +358,8 @@ public final class FluidTankGameTests {
                 .thenIdle(2)
                 .thenExecute(() -> {
                     for (BlockPos pos : List.of(single, formed)) {
-                        handler(helper, pos).fill(water(1000), FluidAction.EXECUTE);
-                        int lava = handler(helper, pos).fill(new FluidStack(Fluids.LAVA, 1000), FluidAction.EXECUTE);
+                        handler(helper, pos).fill(water(1000), false);
+                        int lava = handler(helper, pos).fill(new FluidStack(Fluids.LAVA, 1000), false);
                         helper.assertTrue(lava == 0, "the water tank at " + pos.toShortString() + " took " + lava + " mB of lava");
                         assertAmount(helper, pos, 1000);
                     }
@@ -381,8 +380,8 @@ public final class FluidTankGameTests {
         helper.startSequence()
                 .thenIdle(2)
                 .thenExecute(() -> {
-                    handler(helper, waterTank).fill(water(1000), FluidAction.EXECUTE);
-                    handler(helper, lavaTank).fill(new FluidStack(Fluids.LAVA, 1000), FluidAction.EXECUTE);
+                    handler(helper, waterTank).fill(water(1000), false);
+                    handler(helper, lavaTank).fill(new FluidStack(Fluids.LAVA, 1000), false);
                     InteractionResult refused = placeItem(helper, player, between, new ItemStack(ServusLogisticsItems.FLUID_TANK.get()));
                     helper.assertTrue(refused == InteractionResult.FAIL, "placing between water and lava should fail, got " + refused);
                     helper.assertBlockNotPresent(ServusLogisticsBlocks.FLUID_TANK.get(), between);
@@ -404,7 +403,7 @@ public final class FluidTankGameTests {
         helper.startSequence()
                 .thenIdle(2)
                 .thenExecute(() -> {
-                    handler(helper, from).fill(water(cap()), FluidAction.EXECUTE);
+                    handler(helper, from).fill(water(cap()), false);
                     BlockPos absolute = helper.absolutePos(from);
                     List<ItemStack> drops = Block.getDrops(helper.getLevel().getBlockState(absolute), helper.getLevel(), absolute,
                             helper.getLevel().getBlockEntity(absolute));
@@ -434,7 +433,7 @@ public final class FluidTankGameTests {
         helper.startSequence()
                 .thenIdle(2)
                 .thenExecute(() -> {
-                    handler(helper, base.above(3)).fill(water(2 * cap()), FluidAction.EXECUTE);
+                    handler(helper, base.above(3)).fill(water(2 * cap()), false);
                     assertShare(helper, base, cap());
                     assertShare(helper, base.above(1), cap());
                     assertShare(helper, base.above(2), 0);
@@ -507,7 +506,7 @@ public final class FluidTankGameTests {
         helper.startSequence()
                 .thenIdle(2)
                 .thenExecute(() -> {
-                    handler(helper, pos).fill(water(cap()), FluidAction.EXECUTE);
+                    handler(helper, pos).fill(water(cap()), false);
                     ItemStack bucket = new ItemStack(Items.BUCKET);
                     player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
                     BlockPos absolute = helper.absolutePos(pos);

@@ -5,26 +5,38 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
 /** Which chunk loaders each team has registered, for the per team cap. */
 public final class ChunkLoaderData extends SavedData {
 
-    private static final String NAME = "servus_chunk_loaders";
-    private static final Factory<ChunkLoaderData> FACTORY = new Factory<>(ChunkLoaderData::new, ChunkLoaderData::load, null);
+    /** One team and its loaders, the saved form. */
+    private record TeamEntry(UUID team, List<String> loaders) {
+        static final Codec<TeamEntry> CODEC = RecordCodecBuilder.create(i -> i.group(
+                UUIDUtil.CODEC.fieldOf("Team").forGetter(TeamEntry::team),
+                Codec.STRING.listOf().fieldOf("Loaders").forGetter(TeamEntry::loaders)).apply(i, TeamEntry::new));
+    }
+
+    private static final Codec<ChunkLoaderData> CODEC = RecordCodecBuilder.create(i -> i.group(
+            TeamEntry.CODEC.listOf().optionalFieldOf("Teams", List.of()).forGetter(ChunkLoaderData::entries))
+            .apply(i, ChunkLoaderData::fromEntries));
+
+    private static final SavedDataType<ChunkLoaderData> TYPE = new SavedDataType<>(
+            Identifier.withDefaultNamespace("servus_chunk_loaders"), ChunkLoaderData::new, CODEC);
 
     private final Map<UUID, Set<String>> loaders = new HashMap<>();
 
     public static ChunkLoaderData get(MinecraftServer server) {
-        return server.overworld().getDataStorage().computeIfAbsent(FACTORY, NAME);
+        return server.overworld().getDataStorage().computeIfAbsent(TYPE);
     }
 
     static String key(ServerLevel level, BlockPos pos) {
@@ -57,32 +69,17 @@ public final class ChunkLoaderData extends SavedData {
         }
     }
 
-    private static ChunkLoaderData load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static ChunkLoaderData fromEntries(List<TeamEntry> entries) {
         ChunkLoaderData data = new ChunkLoaderData();
-        ListTag teams = tag.getList("Teams", Tag.TAG_COMPOUND);
-        for (int i = 0; i < teams.size(); i++) {
-            CompoundTag entry = teams.getCompound(i);
-            Set<String> set = new LinkedHashSet<>();
-            for (Tag t : entry.getList("Loaders", Tag.TAG_STRING)) {
-                set.add(t.getAsString());
-            }
-            data.loaders.put(entry.getUUID("Team"), set);
+        for (TeamEntry entry : entries) {
+            data.loaders.put(entry.team(), new LinkedHashSet<>(entry.loaders()));
         }
         return data;
     }
 
-    @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        ListTag teams = new ListTag();
-        loaders.forEach((team, set) -> {
-            CompoundTag entry = new CompoundTag();
-            entry.putUUID("Team", team);
-            ListTag list = new ListTag();
-            set.forEach(key -> list.add(StringTag.valueOf(key)));
-            entry.put("Loaders", list);
-            teams.add(entry);
-        });
-        tag.put("Teams", teams);
-        return tag;
+    private List<TeamEntry> entries() {
+        return loaders.entrySet().stream()
+                .map(e -> new TeamEntry(e.getKey(), List.copyOf(e.getValue())))
+                .toList();
     }
 }

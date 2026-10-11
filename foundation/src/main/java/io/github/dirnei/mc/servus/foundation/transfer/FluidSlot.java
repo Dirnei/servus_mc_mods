@@ -13,8 +13,8 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  * Servus code used on the old fluid tank. It is a full
  * {@code ResourceHandler<FluidResource>} and can be exposed as a capability.
  *
- * <p>{@code fill} and {@code drain} open their own transaction and must only
- * be called outside of one, like the old tank methods.
+ * <p>{@code fill} and {@code drain} open their own transaction, nested in
+ * the one open on this thread if there is one.
  */
 public class FluidSlot extends FluidStacksResourceHandler {
 
@@ -82,7 +82,7 @@ public class FluidSlot extends FluidStacksResourceHandler {
         if (resource.isEmpty()) {
             return 0;
         }
-        try (Transaction tx = Transaction.openRoot()) {
+        try (Transaction tx = Transfer.open()) {
             int filled = insert(0, FluidResource.of(resource), resource.getAmount(), tx);
             if (!simulate) {
                 tx.commit();
@@ -106,7 +106,7 @@ public class FluidSlot extends FluidStacksResourceHandler {
             return FluidStack.EMPTY;
         }
         FluidResource key = FluidResource.of(resource);
-        try (Transaction tx = Transaction.openRoot()) {
+        try (Transaction tx = Transfer.open()) {
             int drained = extract(0, key, resource.getAmount(), tx);
             if (!simulate) {
                 tx.commit();

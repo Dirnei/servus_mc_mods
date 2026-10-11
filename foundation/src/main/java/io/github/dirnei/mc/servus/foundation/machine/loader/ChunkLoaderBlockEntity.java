@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.machine.loader;
 
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
@@ -11,8 +14,6 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
@@ -115,7 +116,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
             return;
         }
         ChunkPos chunk = ChunkPos.containing(worldPosition);
-        ChunkLoaderTickets.CONTROLLER.forceChunk(server, worldPosition, chunk.x, chunk.z, wanted, true);
+        ChunkLoaderTickets.CONTROLLER.forceChunk(server, worldPosition, chunk.x(), chunk.z(), wanted, true);
         ticketHeld = wanted;
         setChanged();
     }
@@ -165,19 +166,19 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         if (owner != null) {
-            tag.putUUID("Owner", owner);
+            ValueIo.putUuid(output, "Owner", owner);
         }
-        tag.putBoolean("Ticket", ticketHeld);
+        output.putBoolean("Ticket", ticketHeld);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        owner = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
-        ticketHeld = tag.getBoolean("Ticket");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        owner = ValueIo.getUuid(input, "Owner");
+        ticketHeld = input.getBooleanOr("Ticket", false);
     }
 
     @Override

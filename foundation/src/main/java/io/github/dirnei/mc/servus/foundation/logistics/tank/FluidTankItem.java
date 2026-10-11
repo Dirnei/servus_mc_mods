@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.tank;
 
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.function.Consumer;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsComponents;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
@@ -152,16 +154,16 @@ public class FluidTankItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         FluidStack fluid = fluid(stack);
         if (fluid.isEmpty()) {
-            tooltip.add(Component.translatable("tooltip.servus_foundation.fluid_tank.empty").withStyle(ChatFormatting.GRAY));
+            tooltip.accept(Component.translatable("tooltip.servus_foundation.fluid_tank.empty").withStyle(ChatFormatting.GRAY));
         } else {
-            tooltip.add(Component.translatable("tooltip.servus_foundation.fluid_tank.fluid", fluid.getHoverName(), fluid.getAmount())
+            tooltip.accept(Component.translatable("tooltip.servus_foundation.fluid_tank.fluid", fluid.getHoverName(), fluid.getAmount())
                     .withStyle(ChatFormatting.GRAY));
         }
-        tooltip.add(Component.translatable("tooltip.servus_foundation.fluid_tank.floor", floor(stack).getName())
+        tooltip.accept(Component.translatable("tooltip.servus_foundation.fluid_tank.floor", floor(stack).getName())
                 .withStyle(ChatFormatting.GRAY));
     }
 }

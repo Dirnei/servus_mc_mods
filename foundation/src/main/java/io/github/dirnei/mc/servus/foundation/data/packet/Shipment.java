@@ -10,7 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
  * One running delivery inside a data network. The network is instant: each
@@ -30,7 +30,7 @@ public final class Shipment {
     /** For a move: what to take, how many are still to take, and an optional view of the source. */
     private final ItemStack like;
     private int toTake;
-    private final IItemHandler sourceView;
+    private final ItemView sourceView;
 
     private Direction targetFace = Direction.UP;
     private Direction sourceFace = Direction.UP;
@@ -39,7 +39,7 @@ public final class Shipment {
     private int retry;
 
     private Shipment(Delivery delivery, BlockPos from, BlockPos to, ItemStack pending, ItemStack like, int toTake,
-                     IItemHandler sourceView) {
+                     ItemView sourceView) {
         this.delivery = delivery;
         this.from = from.immutable();
         this.to = to.immutable();
@@ -53,7 +53,7 @@ public final class Shipment {
         return new Shipment(delivery, from, to, stack.copy(), ItemStack.EMPTY, 0, null);
     }
 
-    static Shipment move(Delivery delivery, BlockPos from, BlockPos to, ItemStack like, int amount, IItemHandler sourceView) {
+    static Shipment move(Delivery delivery, BlockPos from, BlockPos to, ItemStack like, int amount, ItemView sourceView) {
         return new Shipment(delivery, from, to, ItemStack.EMPTY, like.copyWithCount(1), amount, sourceView);
     }
 

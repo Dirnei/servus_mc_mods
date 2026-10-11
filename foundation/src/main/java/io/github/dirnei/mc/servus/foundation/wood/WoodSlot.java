@@ -2,8 +2,8 @@ package io.github.dirnei.mc.servus.foundation.wood;
 
 import java.util.Objects;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -54,20 +54,20 @@ public final class WoodSlot {
     }
 
     /** From {@code removeComponentsFromTag}. */
-    public static void removeFromTag(CompoundTag tag) {
-        tag.remove(KEY);
+    public static void removeFromTag(ValueOutput output) {
+        output.discard(KEY);
     }
 
     /** From {@code saveAdditional} and {@code getUpdateTag}. */
-    public void save(CompoundTag tag) {
+    public void save(ValueOutput output) {
         if (wood != null) {
-            tag.putString(KEY, wood.toString());
+            output.putString(KEY, wood.toString());
         }
     }
 
     /** From {@code loadAdditional}; a changed wood redraws the block on the client. */
-    public void load(CompoundTag tag) {
-        Identifier loaded = tag.contains(KEY, Tag.TAG_STRING) ? Identifier.tryParse(tag.getString(KEY)) : null;
+    public void load(ValueInput input) {
+        Identifier loaded = input.getString(KEY).map(Identifier::tryParse).orElse(null);
         boolean changed = !Objects.equals(loaded, wood);
         wood = loaded;
         Level level = owner.getLevel();

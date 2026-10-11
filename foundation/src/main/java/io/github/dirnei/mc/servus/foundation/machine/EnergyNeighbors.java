@@ -6,7 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
 /**
  * Cached energy capabilities of the six neighbours of a position. NeoForge
@@ -14,7 +14,7 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
  */
 public final class EnergyNeighbors {
 
-    private final BlockCapabilityCache<IEnergyStorage, Direction>[] caches;
+    private final BlockCapabilityCache<EnergyHandler, Direction>[] caches;
 
     @SuppressWarnings("unchecked")
     public EnergyNeighbors(ServerLevel level, BlockPos pos) {
@@ -25,14 +25,14 @@ public final class EnergyNeighbors {
         }
     }
 
-    public IEnergyStorage get(Direction direction) {
+    public EnergyHandler get(Direction direction) {
         return caches[direction.ordinal()].getCapability();
     }
 
     /** Visits every neighbour that currently offers an energy capability. */
-    public void forEach(BiConsumer<Direction, IEnergyStorage> visitor) {
+    public void forEach(BiConsumer<Direction, EnergyHandler> visitor) {
         for (Direction direction : Direction.values()) {
-            IEnergyStorage storage = get(direction);
+            EnergyHandler storage = get(direction);
             if (storage != null) {
                 visitor.accept(direction, storage);
             }

@@ -18,8 +18,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  * and used in menus with {@code ResourceHandlerSlot}.
  *
  * <p>The {@code insertItem} and {@code extractItem} helpers open their own
- * transaction and must only be called outside of one (from block entity ticks
- * and menus), like the old handler methods.
+ * transaction, nested in the one open on this thread if there is one.
  */
 public class ItemSlots extends ItemStacksResourceHandler {
 
@@ -73,7 +72,7 @@ public class ItemSlots extends ItemStacksResourceHandler {
 
     /** Inserts into one slot and returns what did not fit. */
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-        return ItemUtil.insertItemReturnRemaining(this, slot, stack, simulate, null);
+        return ItemUtil.insertItemReturnRemaining(this, slot, stack, simulate, Transfer.current());
     }
 
     /** Takes up to {@code amount} items out of one slot. */
@@ -83,7 +82,7 @@ public class ItemSlots extends ItemStacksResourceHandler {
             return ItemStack.EMPTY;
         }
         ItemResource resource = ItemResource.of(current);
-        try (Transaction tx = Transaction.openRoot()) {
+        try (Transaction tx = Transfer.open()) {
             int extracted = extract(slot, resource, amount, tx);
             if (!simulate) {
                 tx.commit();

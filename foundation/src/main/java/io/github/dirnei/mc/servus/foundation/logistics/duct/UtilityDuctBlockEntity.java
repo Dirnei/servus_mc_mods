@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.data.CableTier;
 import io.github.dirnei.mc.servus.foundation.data.CableTiersManager;
 import io.github.dirnei.mc.servus.foundation.data.DataMembership;
@@ -20,6 +22,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwo
 import io.github.dirnei.mc.servus.foundation.logistics.network.ItemChannelNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import com.mojang.serialization.Codec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -34,10 +37,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -56,9 +56,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.model.data.ModelData;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * A utility duct: a set of lines (Item Pipe, Power Cable, Fluid Pipe, data line), each with a mode
@@ -82,7 +84,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     private final EnumSet<Line> lines = EnumSet.noneOf(Line.class);
     private final SideMode[][] modes = new SideMode[Line.VALUES.length][SIDES];
     private final byte[][] channels = new byte[Line.VALUES.length][SIDES];
-    private final ItemStackHandler[] filters = new ItemStackHandler[SIDES];
+    private final ItemSlots[] filters = new ItemSlots[SIDES];
     private final int[] priorities = new int[SIDES];
     private final int[] arms = new int[Line.VALUES.length];
     private int endpoints;
@@ -103,7 +105,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             Arrays.fill(row, SideMode.BOTH);
         }
         for (Direction direction : DIRECTIONS) {
-            filters[direction.ordinal()] = new ItemStackHandler(FILTER_SLOTS) {
+            filters[direction.ordinal()] = new ItemSlots(FILTER_SLOTS) {
                 @Override
                 protected void onContentsChanged(int slot) {
                     configChanged();
@@ -480,13 +482,13 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     // Filters and priorities (item line)
 
-    public ItemStackHandler filter(Direction side) {
+    public ItemSlots filter(Direction side) {
         return filters[side.ordinal()];
     }
 
     /** Whether the side's whitelist lets the stack through; an empty list passes everything. */
     public boolean filterAllows(Direction side, ItemStack stack) {
-        ItemStackHandler filter = filters[side.ordinal()];
+        ItemSlots filter = filters[side.ordinal()];
         boolean any = false;
         for (int i = 0; i < FILTER_SLOTS; i++) {
             ItemStack entry = filter.getStackInSlot(i);
@@ -558,7 +560,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     // Capabilities
 
     /** Item handler shown to the neighbour on {@code side}, null without an Item Pipe. */
-    public IItemHandler itemHandler(Direction side) {
+    public ResourceHandler<ItemResource> itemHandler(Direction side) {
         if (!has(Line.ITEM) || side == null || closed(side)) {
             return null;
         }
@@ -566,7 +568,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     }
 
     /** Fluid handler shown to the neighbour on {@code side}, null without a Fluid Pipe or when the side takes no input. */
-    public IFluidHandler fluidHandler(Direction side) {
+    public ResourceHandler<FluidResource> fluidHandler(Direction side) {
         if (!has(Line.FLUID) || side == null || closed(side) || !mode(Line.FLUID, side).allowsInsert()) {
             return null;
         }
@@ -725,14 +727,27 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         };
     }
 
+    /** The lines and panels drop when the duct is broken or replaced. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level == null) {
+            return;
+        }
+        for (Line line : lines()) {
+            Block.popResource(level, pos, new ItemStack(lineItem(line)));
+        }
+        for (ItemStack panel : dropPanels()) {
+            Block.popResource(level, pos, panel);
+        }
+    }
+
     // Persistence and sync
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        ListTag list = new ListTag();
-        lines.forEach(line -> list.add(StringTag.valueOf(line.id())));
-        tag.put("Lines", list);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.store("Lines", Codec.STRING.listOf(), lines.stream().map(Line::id).toList());
         CompoundTag modeTag = new CompoundTag();
         CompoundTag channelTag = new CompoundTag();
         for (Line line : Line.VALUES) {
@@ -755,27 +770,26 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
                 channelTag.put(line.id(), perSideChannels);
             }
         }
-        tag.put("Modes", modeTag);
-        tag.put("Channels", channelTag);
-        CompoundTag filterTag = new CompoundTag();
+        ValueIo.putTag(output, "Modes", modeTag);
+        ValueIo.putTag(output, "Channels", channelTag);
+        ValueOutput filterOut = output.child("Filters");
         CompoundTag priorityTag = new CompoundTag();
         for (Direction direction : DIRECTIONS) {
-            ItemStackHandler filter = filters[direction.ordinal()];
+            ItemSlots filter = filters[direction.ordinal()];
             boolean empty = true;
             for (int i = 0; i < FILTER_SLOTS && empty; i++) {
                 empty = filter.getStackInSlot(i).isEmpty();
             }
             if (!empty) {
-                filterTag.put(direction.getSerializedName(), filter.serializeNBT(registries));
+                filter.save(filterOut, direction.getSerializedName());
             }
             if (priorities[direction.ordinal()] != 0) {
                 priorityTag.putInt(direction.getSerializedName(), priorities[direction.ordinal()]);
             }
         }
-        tag.put("Filters", filterTag);
-        tag.put("Priorities", priorityTag);
-        tag.putIntArray("Arms", arms.clone());
-        tag.putInt("Endpoints", endpoints);
+        ValueIo.putTag(output, "Priorities", priorityTag);
+        output.putIntArray("Arms", arms.clone());
+        output.putInt("Endpoints", endpoints);
         if (hasPanels()) {
             CompoundTag panelTag = new CompoundTag();
             for (Direction side : DIRECTIONS) {
@@ -787,19 +801,19 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
                     panelTag.put(side.getSerializedName(), entry);
                 }
             }
-            tag.put("Panels", panelTag);
+            ValueIo.putTag(output, "Panels", panelTag);
         }
         if (has(Line.DATA) && !dataTier.equals(CableTiersManager.BASE_TIER)) {
-            tag.putString("DataTier", dataTier.toString());
+            output.putString("DataTier", dataTier.toString());
         }
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
         lines.clear();
-        for (Tag entry : tag.getList("Lines", Tag.TAG_STRING)) {
-            Line line = Line.byId(entry.getAsString());
+        for (String id : input.read("Lines", Codec.STRING.listOf()).orElse(List.of())) {
+            Line line = Line.byId(id);
             if (line != null) {
                 lines.add(line);
             }
@@ -810,13 +824,13 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         for (byte[] row : channels) {
             Arrays.fill(row, (byte) 0);
         }
-        CompoundTag modeTag = tag.getCompound("Modes");
-        CompoundTag channelTag = tag.getCompound("Channels");
+        CompoundTag modeTag = ValueIo.getTag(input, "Modes");
+        CompoundTag channelTag = ValueIo.getTag(input, "Channels");
         for (Line line : Line.VALUES) {
-            CompoundTag perSideModes = modeTag.getCompound(line.id());
-            CompoundTag perSideChannels = channelTag.getCompound(line.id());
+            CompoundTag perSideModes = modeTag.getCompoundOrEmpty(line.id());
+            CompoundTag perSideChannels = channelTag.getCompoundOrEmpty(line.id());
             for (Direction direction : DIRECTIONS) {
-                String name = perSideModes.getString(direction.getSerializedName());
+                String name = perSideModes.getStringOr(direction.getSerializedName(), "");
                 if (!name.isEmpty()) {
                     try {
                         modes[line.ordinal()][direction.ordinal()] = SideMode.valueOf(name.toUpperCase(Locale.ROOT));
@@ -825,45 +839,39 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
                     }
                 }
                 channels[line.ordinal()][direction.ordinal()] =
-                        (byte) DuctChannels.clamp(perSideChannels.getInt(direction.getSerializedName()));
+                        (byte) DuctChannels.clamp(perSideChannels.getIntOr(direction.getSerializedName(), 0));
             }
         }
-        CompoundTag filterTag = tag.getCompound("Filters");
-        CompoundTag priorityTag = tag.getCompound("Priorities");
+        ValueInput filterIn = input.childOrEmpty("Filters");
+        CompoundTag priorityTag = ValueIo.getTag(input, "Priorities");
         for (Direction direction : DIRECTIONS) {
-            ItemStackHandler filter = filters[direction.ordinal()];
-            ItemStackHandler saved = new ItemStackHandler();
-            if (filterTag.contains(direction.getSerializedName())) {
-                saved.deserializeNBT(registries, filterTag.getCompound(direction.getSerializedName()));
-            }
-            for (int i = 0; i < FILTER_SLOTS; i++) {
-                filter.setStackInSlot(i, i < saved.getSlots() ? saved.getStackInSlot(i) : ItemStack.EMPTY);
-            }
+            // Missing filters load as empty slots.
+            filters[direction.ordinal()].load(filterIn, direction.getSerializedName());
             priorities[direction.ordinal()] = Math.max(MIN_PRIORITY, Math.min(MAX_PRIORITY,
-                    priorityTag.getInt(direction.getSerializedName())));
+                    priorityTag.getIntOr(direction.getSerializedName(), 0)));
         }
-        int[] savedArms = tag.getIntArray("Arms");
+        int[] savedArms = input.getIntArray("Arms").orElse(new int[0]);
         Arrays.fill(arms, 0);
         for (int i = 0; i < arms.length && i < savedArms.length; i++) {
             arms[i] = savedArms[i];
         }
-        endpoints = tag.getInt("Endpoints");
+        endpoints = input.getIntOr("Endpoints", 0);
         Arrays.fill(panels, null);
         hollowPanels = 0;
-        CompoundTag panelTag = tag.getCompound("Panels");
+        CompoundTag panelTag = ValueIo.getTag(input, "Panels");
         for (Direction side : DIRECTIONS) {
             if (panelTag.contains(side.getSerializedName())) {
-                CompoundTag entry = panelTag.getCompound(side.getSerializedName());
-                BlockState panel = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), entry.getCompound("State"));
+                CompoundTag entry = panelTag.getCompoundOrEmpty(side.getSerializedName());
+                BlockState panel = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, entry.getCompoundOrEmpty("State"));
                 if (!panel.isAir()) {
                     panels[side.ordinal()] = panel;
-                    if (entry.getBoolean("Hollow")) {
+                    if (entry.getBooleanOr("Hollow", false)) {
                         hollowPanels |= DuctModelData.bit(side);
                     }
                 }
             }
         }
-        Identifier savedTier = tag.contains("DataTier") ? Identifier.tryParse(tag.getString("DataTier")) : null;
+        Identifier savedTier = input.getString("DataTier").map(Identifier::tryParse).orElse(null);
         dataTier = savedTier == null ? CableTiersManager.BASE_TIER : savedTier;
         if (level != null && level.isClientSide()) {
             requestModelDataUpdate();
@@ -888,9 +896,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        saveAdditional(tag, registries);
-        return tag;
+        return saveCustomOnly(registries);
     }
 
     @Override

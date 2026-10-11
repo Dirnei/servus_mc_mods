@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.foundation.machine.generator;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.EnergyNeighbors;
@@ -9,8 +12,6 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
@@ -103,17 +104,14 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
         }
         int rate = stats().energyPerTick();
         neighbors.forEach((direction, storage) -> {
-            if (!storage.canReceive()) {
-                return;
-            }
             int offered = Math.min(rate, energy.getEnergyStored());
             if (offered <= 0) {
                 return;
             }
-            int accepted = storage.receiveEnergy(offered, true);
+            int accepted = Transfer.receiveEnergy(storage, offered, true);
             if (accepted > 0) {
                 energy.extractEnergy(accepted, false);
-                storage.receiveEnergy(accepted, false);
+                Transfer.receiveEnergy(storage, accepted, false);
             }
         });
     }
@@ -128,15 +126,15 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.putInt("Energy", energy.getEnergyStored());
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt("Energy", energy.getEnergyStored());
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        energy.setEnergy(tag.getInt("Energy"));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        energy.setEnergy(input.getIntOr("Energy", 0));
     }
 
     @Override

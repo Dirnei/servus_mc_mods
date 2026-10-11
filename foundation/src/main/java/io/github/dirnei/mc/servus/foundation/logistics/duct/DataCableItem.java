@@ -1,8 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import net.minecraft.world.item.component.TooltipDisplay;
+import java.util.function.Consumer;
 import io.github.dirnei.mc.servus.foundation.data.CableTier;
 import io.github.dirnei.mc.servus.foundation.data.CableTiersManager;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -93,10 +94,10 @@ public class DataCableItem extends LineItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         CableTier tier = CableTiersManager.INSTANCE.tier(tierId());
-        tooltip.add(Component.translatable(tier.duplex() ? "tooltip.servus_foundation.data_cable.duplex"
+        tooltip.accept(Component.translatable(tier.duplex() ? "tooltip.servus_foundation.data_cable.duplex"
                 : "tooltip.servus_foundation.data_cable.simplex", (int) Math.round(tier.itemsPerSecond())));
     }
 }

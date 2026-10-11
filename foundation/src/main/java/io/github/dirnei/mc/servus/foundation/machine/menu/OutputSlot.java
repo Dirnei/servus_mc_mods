@@ -2,13 +2,13 @@ package io.github.dirnei.mc.servus.foundation.machine.menu;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 /** A machine output slot. Players can only take from it. */
-public class OutputSlot extends SlotItemHandler {
+public class OutputSlot extends ResourceHandlerSlot {
 
     public OutputSlot(MachineBlockEntity machine, int slot, int x, int y) {
-        super(machine.inventory(), slot, x, y);
+        super(machine.inventory(), machine.inventory()::set, slot, x, y);
     }
 
     @Override

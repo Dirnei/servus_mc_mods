@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.network;
 
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.energy.EnergyDistributor;
 import io.github.dirnei.mc.servus.foundation.energy.EnergySink;
@@ -24,7 +25,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 
 /**
  * The Power Cable network of a set of connected utility ducts. Every tick it
@@ -39,7 +40,7 @@ public final class EnergyChannelNetwork extends ServusNetwork<UtilityDuctBlockEn
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, EnergyChannelNetwork> TYPE =
             new NetworkType<>(ID, (from, fromNode, side, to, toNode) -> UtilityDuctBlockEntity.sideOpen(fromNode, side), EnergyChannelNetwork::new);
 
-    private record Endpoint(SideMode mode, int channel, BlockCapabilityCache<IEnergyStorage, Direction> cache) {
+    private record Endpoint(SideMode mode, int channel, BlockCapabilityCache<EnergyHandler, Direction> cache) {
     }
 
     private final Map<NodePos, List<Endpoint>> endpoints = new HashMap<>();
@@ -110,7 +111,7 @@ public final class EnergyChannelNetwork extends ServusNetwork<UtilityDuctBlockEn
         List<EnergySink>[] sinks = new List[DuctChannels.COUNT];
         for (List<Endpoint> list : endpoints.values()) {
             for (Endpoint endpoint : list) {
-                IEnergyStorage storage = endpoint.cache().getCapability();
+                EnergyView storage = EnergyView.of(endpoint.cache().getCapability());
                 if (storage == null) {
                     continue;
                 }

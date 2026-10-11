@@ -3,14 +3,14 @@ package io.github.dirnei.mc.servus.foundation.upgrade;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * Upgrade slots of a block: only upgrades go in, one per slot. The block
  * multiplies its rate with {@link #multiplier()}; the callback given to the
  * constructor runs when an upgrade goes in or out.
  */
-public class UpgradeSlots extends ItemStackHandler {
+public class UpgradeSlots extends ItemSlots {
 
     private final Runnable onChanged;
 

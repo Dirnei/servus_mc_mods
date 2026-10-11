@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.FurnaceBlock;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /** The Machine Adapter on a vanilla furnace: recipes, forwarding, upkeep routing and output. */
@@ -104,7 +104,7 @@ public final class AdapterGameTests {
     public static void adapterOffersOutput(GameTestHelper helper) {
         MachineAdapterBlockEntity adapter = onFurnace(helper);
         furnace(helper).setItem(2, new ItemStack(Items.STONE, 8));
-        IItemHandler handler = adapter.itemHandler();
+        ItemView handler = adapter.itemHandler();
         int taken = 0;
         for (int slot = 0; slot < handler.getSlots(); slot++) {
             taken += handler.extractItem(slot, 64, false).getCount();

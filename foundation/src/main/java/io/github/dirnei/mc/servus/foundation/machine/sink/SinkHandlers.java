@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.machine.sink;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyEnergyHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
 
 /**
  * The capability handlers of a Sink. They accept within the Sink's budget,
@@ -16,7 +16,7 @@ final class SinkHandlers {
     }
 
     /** One empty slot that takes any item. */
-    static final class Items implements IItemHandler {
+    static final class Items extends LegacyItemHandler {
 
         private final SinkBlockEntity sink;
         private final boolean unlimited;
@@ -73,7 +73,7 @@ final class SinkHandlers {
     }
 
     /** One endless empty tank that takes any fluid. */
-    static final class Fluid implements IFluidHandler {
+    static final class Fluid extends LegacyFluidHandler {
 
         private final SinkBlockEntity sink;
         private final boolean unlimited;
@@ -104,32 +104,32 @@ final class SinkHandlers {
         }
 
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
+        public int fill(FluidStack resource, boolean simulate) {
             if (resource.isEmpty()) {
                 return 0;
             }
             if (unlimited) {
-                if (action.execute()) {
+                if (!simulate) {
                     sink.markVoided();
                 }
                 return resource.getAmount();
             }
-            return (int) sink.grantFluid(resource.getAmount(), action.simulate());
+            return (int) sink.grantFluid(resource.getAmount(), simulate);
         }
 
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
+        public FluidStack drain(FluidStack resource, boolean simulate) {
             return FluidStack.EMPTY;
         }
 
         @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
+        public FluidStack drain(int maxDrain, boolean simulate) {
             return FluidStack.EMPTY;
         }
     }
 
     /** An energy storage that is always empty and takes FE within the budget. */
-    static final class Energy implements IEnergyStorage {
+    static final class Energy extends LegacyEnergyHandler {
 
         private final SinkBlockEntity sink;
 
@@ -155,16 +155,6 @@ final class SinkHandlers {
         @Override
         public int getMaxEnergyStored() {
             return Integer.MAX_VALUE;
-        }
-
-        @Override
-        public boolean canExtract() {
-            return false;
-        }
-
-        @Override
-        public boolean canReceive() {
-            return true;
         }
     }
 }

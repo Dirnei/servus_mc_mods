@@ -5,19 +5,12 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
-import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
-import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
 import io.github.dirnei.mc.servus.foundation.machine.sink.ChimneyBlock;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlock;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
-import io.github.dirnei.mc.servus.foundation.machine.pump.PumpMachine;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
-import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +18,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.tags.FluidTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -36,23 +28,19 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HopperBlock;
-import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The Sink: forming with the carrot, voiding through every outer face, chimney rates and the trash GUI. */
 @GameTestHolder(ServusFoundationIds.MOD_ID)
@@ -240,15 +228,15 @@ public final class SinkGameTests {
         helper.succeed();
     }
 
-    private static IItemHandler sinkItems(GameTestHelper helper, BlockPos pos, Direction side) {
+    private static ItemView sinkItems(GameTestHelper helper, BlockPos pos, Direction side) {
         return helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(pos), side);
     }
 
-    private static IFluidHandler sinkFluid(GameTestHelper helper, BlockPos pos, Direction side) {
+    private static FluidView sinkFluid(GameTestHelper helper, BlockPos pos, Direction side) {
         return helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), side);
     }
 
-    private static IEnergyStorage sinkEnergy(GameTestHelper helper, BlockPos pos, Direction side) {
+    private static EnergyView sinkEnergy(GameTestHelper helper, BlockPos pos, Direction side) {
         return helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), side);
     }
 
@@ -294,7 +282,7 @@ public final class SinkGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 60)
     public static void sinkBaseRateTakesFourItems(GameTestHelper helper) {
         sink(helper, 0);
-        IItemHandler top = sinkItems(helper, new BlockPos(3, 1, 2), Direction.UP);
+        ItemView top = sinkItems(helper, new BlockPos(3, 1, 2), Direction.UP);
         helper.assertTrue(top != null, "the top takes items");
         ItemStack simulated = top.insertItem(0, new ItemStack(Items.COBBLESTONE, 64), true);
         helper.assertTrue(simulated.getCount() == 60, "a simulated insert should leave 60, left " + simulated);
@@ -311,12 +299,12 @@ public final class SinkGameTests {
     public static void sinkWithFiveChimneysIsUnlimited(GameTestHelper helper) {
         SinkBlockEntity sink = sink(helper, 5);
         helper.assertTrue(sink.chimneyHeight() == 5, "five Chimney blocks, height " + sink.chimneyHeight());
-        IEnergyStorage energy = sinkEnergy(helper, new BlockPos(3, 0, 3), Direction.SOUTH);
+        EnergyView energy = sinkEnergy(helper, new BlockPos(3, 0, 3), Direction.SOUTH);
         helper.assertTrue(energy.receiveEnergy(10_000, false) == 10_000, "all energy should be accepted");
         helper.assertTrue(energy.receiveEnergy(10_000, false) == 10_000, "again in the same tick");
         helper.assertTrue(energy.getEnergyStored() == 0, "the Sink reports no stored energy");
-        IFluidHandler fluid = sinkFluid(helper, new BlockPos(3, 1, 2), Direction.UP);
-        helper.assertTrue(fluid.fill(new FluidStack(Fluids.WATER, 1_000_000), IFluidHandler.FluidAction.EXECUTE) == 1_000_000,
+        FluidView fluid = sinkFluid(helper, new BlockPos(3, 1, 2), Direction.UP);
+        helper.assertTrue(fluid.fill(new FluidStack(Fluids.WATER, 1_000_000), false) == 1_000_000,
                 "all water should be accepted");
         helper.assertTrue(fluid.getFluidInTank(0).isEmpty(), "the Sink reports no fluid");
         ItemStack left = sinkItems(helper, SINK, Direction.EAST).insertItem(0, new ItemStack(Items.COBBLESTONE, 64), false);
@@ -334,7 +322,7 @@ public final class SinkGameTests {
         helper.assertTrue(sinkEnergy(helper, SINK, Direction.EAST).receiveEnergy(100_000, false) == 0,
                 "another block of the same Sink gets nothing more this tick");
         helper.assertTrue(sinkFluid(helper, new BlockPos(2, 1, 3), Direction.UP)
-                        .fill(new FluidStack(Fluids.WATER, 100_000), IFluidHandler.FluidAction.EXECUTE) == 4_000,
+                        .fill(new FluidStack(Fluids.WATER, 100_000), false) == 4_000,
                 "one second of 200 mB per tick");
         helper.succeed();
     }
@@ -343,10 +331,10 @@ public final class SinkGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 60)
     public static void sinkGivesNothing(GameTestHelper helper) {
         sink(helper, 0);
-        IItemHandler items = sinkItems(helper, SINK, Direction.DOWN);
+        ItemView items = sinkItems(helper, SINK, Direction.DOWN);
         items.insertItem(0, new ItemStack(Items.COBBLESTONE, 2), false);
         helper.assertTrue(items.extractItem(0, 64, false).isEmpty(), "nothing can be extracted");
-        helper.assertTrue(sinkFluid(helper, SINK, Direction.DOWN).drain(1000, IFluidHandler.FluidAction.EXECUTE).isEmpty(),
+        helper.assertTrue(sinkFluid(helper, SINK, Direction.DOWN).drain(1000, false).isEmpty(),
                 "nothing can be drained");
         helper.assertTrue(sinkEnergy(helper, SINK, Direction.DOWN).extractEnergy(1000, false) == 0, "no energy can be extracted");
         helper.succeed();
@@ -483,7 +471,7 @@ public final class SinkGameTests {
     public static void sinkEmptiesLavaBucket(GameTestHelper helper) {
         sink(helper, 0);
         // Use up the fluid budget first: the bucket must not depend on it.
-        sinkFluid(helper, SINK, Direction.UP).fill(new FluidStack(Fluids.WATER, 100_000), IFluidHandler.FluidAction.EXECUTE);
+        sinkFluid(helper, SINK, Direction.UP).fill(new FluidStack(Fluids.WATER, 100_000), false);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bucket = new ItemStack(Items.LAVA_BUCKET);
         player.setItemInHand(InteractionHand.MAIN_HAND, bucket);

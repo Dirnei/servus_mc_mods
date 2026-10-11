@@ -12,8 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** Moving items into and out of data members, and placing items that have nowhere to go. Server thread only. */
 final class PacketIo {
@@ -23,9 +22,9 @@ final class PacketIo {
 
     /** The face of {@code member} that looks at {@code toward}. */
     static Direction face(BlockPos member, BlockPos toward) {
-        Direction direction = Direction.fromDelta(toward.getX() - member.getX(), toward.getY() - member.getY(),
-                toward.getZ() - member.getZ());
-        return direction == null ? Direction.UP : direction;
+        // Members are neighbours, so the nearest direction is the exact one.
+        return Direction.getNearest(toward.getX() - member.getX(), toward.getY() - member.getY(),
+                toward.getZ() - member.getZ(), Direction.UP);
     }
 
     /** Whether the target can take items at all on that face. */
@@ -40,9 +39,9 @@ final class PacketIo {
         if (stack.isEmpty() || !level.isLoaded(target)) {
             return stack;
         }
-        IItemHandler handler = level.getCapability(Capabilities.Item.BLOCK, target, face);
+        ItemView handler = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, target, face));
         if (handler != null) {
-            return ItemHandlerHelper.insertItemStacked(handler, stack.copy(), false);
+            return handler.insertItemStacked(stack.copy(), false);
         }
         StockSink sink = level.getCapability(ServusFoundationCapabilities.STOCK_SINK, target, face);
         return sink != null ? sink.insert(stack.copy()) : stack;
@@ -58,15 +57,15 @@ final class PacketIo {
         if (stack.isEmpty() || !level.isLoaded(target)) {
             return 0;
         }
-        IItemHandler handler = level.getCapability(Capabilities.Item.BLOCK, target, face);
+        ItemView handler = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, target, face));
         if (handler != null) {
-            return stack.getCount() - ItemHandlerHelper.insertItemStacked(handler, stack.copy(), true).getCount();
+            return stack.getCount() - handler.insertItemStacked(stack.copy(), true).getCount();
         }
         return level.getCapability(ServusFoundationCapabilities.STOCK_SINK, target, face) != null ? stack.getCount() : 0;
     }
 
     /** How many items like {@code like}, up to {@code max}, the source could give right now. */
-    static int available(ServerLevel level, BlockPos source, Direction face, IItemHandler view, ItemStack like, int max) {
+    static int available(ServerLevel level, BlockPos source, Direction face, ItemView view, ItemStack like, int max) {
         if (max <= 0) {
             return 0;
         }
@@ -80,11 +79,11 @@ final class PacketIo {
         if (provider != null) {
             return (int) Math.min(max, Math.max(0, provider.count(like)));
         }
-        IItemHandler handler = level.getCapability(Capabilities.Item.BLOCK, source, face);
+        ItemView handler = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, source, face));
         return handler == null ? 0 : count(handler, like, max);
     }
 
-    private static int count(IItemHandler handler, ItemStack like, int max) {
+    private static int count(ItemView handler, ItemStack like, int max) {
         int found = 0;
         for (int slot = 0; slot < handler.getSlots() && found < max; slot++) {
             if (ItemStack.isSameItemSameComponents(handler.getStackInSlot(slot), like)) {
@@ -95,17 +94,17 @@ final class PacketIo {
     }
 
     /** Takes up to {@code max} items like {@code like} from the source view, or from the source's capabilities without one. */
-    static ItemStack extract(ServerLevel level, BlockPos source, Direction face, IItemHandler view, ItemStack like, int max) {
+    static ItemStack extract(ServerLevel level, BlockPos source, Direction face, ItemView view, ItemStack like, int max) {
         return view != null ? take(view, like, max) : extract(level, source, face, like, max);
     }
 
     /** Gives items back to the source; returns what it did not take. */
-    static ItemStack giveBack(ServerLevel level, BlockPos source, Direction face, IItemHandler view, ItemStack stack) {
+    static ItemStack giveBack(ServerLevel level, BlockPos source, Direction face, ItemView view, ItemStack stack) {
         if (stack.isEmpty()) {
             return stack;
         }
         if (view != null) {
-            ItemStack rest = ItemHandlerHelper.insertItemStacked(view, stack.copy(), false);
+            ItemStack rest = view.insertItemStacked(stack.copy(), false);
             if (rest.isEmpty()) {
                 return rest;
             }
@@ -123,11 +122,11 @@ final class PacketIo {
         if (provider != null) {
             return provider.extract(like, max);
         }
-        IItemHandler handler = level.getCapability(Capabilities.Item.BLOCK, source, face);
+        ItemView handler = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, source, face));
         return handler == null ? ItemStack.EMPTY : take(handler, like, max);
     }
 
-    private static ItemStack take(IItemHandler handler, ItemStack like, int max) {
+    private static ItemStack take(ItemView handler, ItemStack like, int max) {
         ItemStack taken = ItemStack.EMPTY;
         for (int slot = 0; slot < handler.getSlots() && taken.getCount() < max; slot++) {
             if (!ItemStack.isSameItemSameComponents(handler.getStackInSlot(slot), like)) {

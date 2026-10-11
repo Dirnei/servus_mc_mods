@@ -367,6 +367,13 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         }
     }
 
+    /** Drops the inventory when the block is removed (replaces the old block removal hook). */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        dropContents();
+    }
+
     public void dropContents() {
         if (level == null) {
             return;

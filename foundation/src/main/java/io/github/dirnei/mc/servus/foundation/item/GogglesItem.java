@@ -1,28 +1,14 @@
 package io.github.dirnei.mc.servus.foundation.item;
 
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
-/** Engineer goggles: worn on the head, they reveal hidden Servus blocks. */
-public class GogglesItem extends Item implements Equipable {
+/** Engineer goggles: worn on the head, they reveal hidden Servus blocks. Right click swaps them onto the head. */
+public class GogglesItem extends Item {
 
     public GogglesItem(Properties properties) {
-        super(properties.stacksTo(1));
-    }
-
-    @Override
-    public EquipmentSlot getEquipmentSlot() {
-        return EquipmentSlot.HEAD;
-    }
-
-    @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        return swapWithEquipmentSlot(this, level, player, hand);
+        super(properties.stacksTo(1).equippable(EquipmentSlot.HEAD));
     }
 
     public static boolean isWearing(Player player) {

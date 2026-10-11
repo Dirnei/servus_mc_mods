@@ -20,7 +20,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 
 /**
  * A connected group of Fluid Tank blocks, split by {@link TankBoxes} into
@@ -256,7 +255,7 @@ public final class TankNetwork extends ServusNetwork<FluidTankBlockEntity, Void>
         return FluidStack.EMPTY;
     }
 
-    public int fill(NodePos pos, FluidStack resource, FluidAction action) {
+    public int fill(NodePos pos, FluidStack resource, boolean simulate) {
         ensureTotals();
         if (resource.isEmpty()) {
             return 0;
@@ -271,14 +270,14 @@ public final class TankNetwork extends ServusNetwork<FluidTankBlockEntity, Void>
         if (filled <= 0) {
             return 0;
         }
-        if (action.execute()) {
+        if (!simulate) {
             totals.put(box, total.isEmpty() ? resource.copyWithAmount(filled) : total.copyWithAmount(total.getAmount() + filled));
             layoutPending.add(box);
         }
         return filled;
     }
 
-    public FluidStack drain(NodePos pos, int maxDrain, FluidAction action) {
+    public FluidStack drain(NodePos pos, int maxDrain, boolean simulate) {
         ensureTotals();
         TankShape box = boxAt(pos);
         FluidStack total = totals.getOrDefault(box, FluidStack.EMPTY);
@@ -287,7 +286,7 @@ public final class TankNetwork extends ServusNetwork<FluidTankBlockEntity, Void>
             return FluidStack.EMPTY;
         }
         FluidStack result = total.copyWithAmount(drained);
-        if (action.execute()) {
+        if (!simulate) {
             int left = total.getAmount() - drained;
             totals.put(box, left == 0 ? FluidStack.EMPTY : total.copyWithAmount(left));
             layoutPending.add(box);
@@ -295,12 +294,12 @@ public final class TankNetwork extends ServusNetwork<FluidTankBlockEntity, Void>
         return result;
     }
 
-    public FluidStack drain(NodePos pos, FluidStack resource, FluidAction action) {
+    public FluidStack drain(NodePos pos, FluidStack resource, boolean simulate) {
         ensureTotals();
         if (resource.isEmpty() || !FluidStack.isSameFluidSameComponents(totals.getOrDefault(boxAt(pos), FluidStack.EMPTY), resource)) {
             return FluidStack.EMPTY;
         }
-        return drain(pos, resource.getAmount(), action);
+        return drain(pos, resource.getAmount(), simulate);
     }
 
     /** A block's share changed outside the network: re-sum on the next read. */

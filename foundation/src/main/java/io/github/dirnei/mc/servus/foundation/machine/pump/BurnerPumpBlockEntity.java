@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
@@ -10,15 +12,14 @@ import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /** Burns furnace fuel and pumps water while it stands on an infinite water source. */
 public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements PumpMachine {
@@ -45,7 +46,7 @@ public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements P
     }
 
     /** The fluid capability from {@code side}; null means no particular side. */
-    public IFluidHandler fluidHandler(Direction side) {
+    public ResourceHandler<FluidResource> fluidHandler(Direction side) {
         return pump.sideHandler(side == null ? SideMode.AUTO : sideMode(side));
     }
 
@@ -113,15 +114,15 @@ public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements P
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        pump.save(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        pump.save(output);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        pump.load(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        pump.load(input);
     }
 
     @Override

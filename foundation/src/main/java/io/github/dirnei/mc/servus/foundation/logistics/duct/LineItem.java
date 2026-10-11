@@ -81,10 +81,4 @@ public class LineItem extends BlockItem implements AssistedItem {
     protected boolean addTo(UtilityDuctBlockEntity duct) {
         return duct.addLine(line);
     }
-
-    /** Each line item has its own name instead of the shared block name. */
-    @Override
-    public String getDescriptionId() {
-        return getOrCreateDescriptionId();
-    }
 }

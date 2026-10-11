@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine.sink;
 
+import net.minecraft.world.level.storage.ValueInput;
 import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.core.BlockPos;
@@ -19,9 +20,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * A Sink block entity. Every block of the cube has one, but only the
@@ -208,23 +210,23 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
     // Capabilities
 
     /** The item handler automation sees on this part from {@code side}, or null on a casing or a front face. */
-    public IItemHandler itemHandler(Direction side) {
+    public ResourceHandler<ItemResource> itemHandler(Direction side) {
         SinkBlockEntity controller = acceptingController(side);
         return controller == null ? null : controller.itemHandler;
     }
 
-    public IFluidHandler fluidHandler(Direction side) {
+    public ResourceHandler<FluidResource> fluidHandler(Direction side) {
         SinkBlockEntity controller = acceptingController(side);
         return controller == null ? null : controller.fluidHandler;
     }
 
-    public IEnergyStorage energyStorage(Direction side) {
+    public EnergyHandler energyStorage(Direction side) {
         SinkBlockEntity controller = acceptingController(side);
         return controller == null ? null : controller.energyHandler;
     }
 
     /** A fluid handler without a rate limit, for buckets used by hand. */
-    public IFluidHandler manualFluidHandler() {
+    public ResourceHandler<FluidResource> manualFluidHandler() {
         return manualFluidHandler;
     }
 
@@ -248,11 +250,11 @@ public class SinkBlockEntity extends BlockEntity implements MenuProvider {
     // Persistence: nothing is saved; the height is recounted on load and only the client update tag carries it.
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("Height")) {
-            chimneyHeight = tag.getInt("Height");
-            chimneyColumn = tag.getInt("Column");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        if (input.getInt("Height").isPresent()) {
+            chimneyHeight = input.getIntOr("Height", 0);
+            chimneyColumn = input.getIntOr("Column", 0);
         }
     }
 

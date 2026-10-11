@@ -52,7 +52,7 @@ public final class DuctLoadSync {
     /** The load levels of the busy data ducts within range of the player. */
     static Map<Long, Integer> levels(ServerPlayer player) {
         Map<Long, Integer> levels = new TreeMap<>();
-        ServerLevel level = player.serverLevel();
+        ServerLevel level = player.level();
         double rangeSq = RANGE * RANGE;
         for (DataNetwork network : NetworkManager.of(level).set(DataNetwork.TYPE).networks()) {
             for (DataNetwork.DuctLoad load : network.loads()) {

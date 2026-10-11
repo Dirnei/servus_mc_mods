@@ -4,7 +4,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -49,7 +48,7 @@ public class PumpItem extends BlockItem {
             return super.use(level, player, hand);
         }
         InteractionResult result = super.useOn(new UseOnContext(player, hand, water));
-        return new InteractionResultHolder<>(result, player.getItemInHand(hand));
+        return result;
     }
 
     /** The spot above the water source the player looks at, or null when something else is nearer. */

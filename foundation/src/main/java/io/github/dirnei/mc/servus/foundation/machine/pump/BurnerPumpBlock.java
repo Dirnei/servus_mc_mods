@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.LevelReader;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
@@ -16,7 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -141,8 +144,8 @@ public class BurnerPumpBlock extends PumpBlock {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level,
-                                     BlockPos pos, BlockPos neighborPos) {
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         boolean upper = isUpper(state);
         if (direction == (upper ? Direction.DOWN : Direction.UP)) {
             if (!neighborState.is(this) || isUpper(neighborState) == upper) {
@@ -150,14 +153,14 @@ public class BurnerPumpBlock extends PumpBlock {
             }
             return upper ? state.setValue(FACING, neighborState.getValue(FACING)) : state;
         }
-        return upper ? state : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        return upper ? state : super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos,
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
                                    boolean movedByPiston) {
         if (!isUpper(state)) {
-            super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+            super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         }
     }
 

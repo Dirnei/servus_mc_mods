@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.foundation.logistics.network.ItemChannelNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
 
 /**
  * The item handler a utility duct shows to one neighbour. One virtual slot that
@@ -12,7 +12,7 @@ import net.neoforged.neoforge.items.IItemHandler;
  * inventory on the inserting side's channel of the Item Pipe network, never
  * back to the inserting neighbour.
  */
-public final class DuctItemHandler implements IItemHandler {
+public final class DuctItemHandler extends LegacyItemHandler {
 
     private final UtilityDuctBlockEntity duct;
     private final Direction side;
