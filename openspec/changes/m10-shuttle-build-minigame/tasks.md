@@ -15,7 +15,7 @@
 
 ## 4. Client
 
-- [ ] 4.1 `ShuttleWorkshopScreen` at 320 wide with the work panel: large shuttle, plate name, Build by hand and Cancel, step header and hint, the three boards drawn and played, step payload once per finished step, name box and Engrave with key handling (design D5). Lang for every new string through datagen. Verify: `gradlew runData`, then `gradlew build`.
+- [x] 4.1 `ShuttleWorkshopScreen` at 320 wide with the work panel: large shuttle, plate name, Build by hand and Cancel, step header and hint, the three boards drawn and played, step payload once per finished step, name box and Engrave with key handling (design D5). Lang for every new string through datagen. Verify: `gradlew runData`, then `gradlew build`.
 - [ ] 4.2 Plate text in `ShuttleGarageRenderer` on the side spot of the hold (design D7). Verify: `gradlew build`.
 
 ## 5. Field Head
