@@ -244,6 +244,17 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('C', Items.CHEST)
                 .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE.get()))
                 .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.HARVESTER.get())
+                .pattern("ISI")
+                .pattern("IHI")
+                .pattern(" P ")
+                .define('I', Items.IRON_INGOT)
+                .define('S', Items.SHEARS)
+                .define('H', Items.IRON_HOE)
+                .define('P', Items.HOPPER)
+                .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE.get()))
+                .save(output);
     }
 
     /** Saves a shaped recipe as the rack recipe, which remembers the planks' wood. */

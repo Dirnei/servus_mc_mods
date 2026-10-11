@@ -105,6 +105,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.garage.paused", "Paused");
         add(ServusStorageItems.SHUTTLE.get(), "Shuttle");
         add(ServusStorageItems.CARGO_HOLD.get(), "Cargo Hold");
+        add(ServusStorageItems.HARVESTER.get(), "Harvester");
         add(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), "Shuttle Workshop");
         add(ServusStorageBlocks.FARM_RAIL.get(), "Farm Rail");
         add(ServusStorageBlocks.FIELD_HEAD.get(), "Field Head");
@@ -133,6 +134,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("tooltip.servus_storage.module.tool", "Tool module for a shuttle");
         add("tooltip.servus_storage.module.utility", "Utility module for a shuttle");
         add("tooltip.servus_storage.module.cargo_hold", "Carries several stacks per trip");
+        add("tooltip.servus_storage.module.harvester", "Harvests, tills and plants fields; field work only");
         add(ServusStorageItems.ZONE_LABEL.get(), "Zone Label");
         add("gui.servus_storage.production.pattern_recipe", "%s %s from %s");
         add("message.servus_storage.pattern_storage.count", "%s of %s patterns");
