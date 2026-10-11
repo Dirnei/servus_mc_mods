@@ -213,8 +213,8 @@ public final class StorageTerminalRowsGameTests {
     public static void fullToStorageKeepsInput(GameTestHelper helper) {
         setup(helper, false, fixture -> {
             io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point =
-                    helper.getBlockEntity(TerminalWiring.packingStationPos(TERMINAL));
-            net.neoforged.neoforge.items.ItemSlots buffer = point.buffer();
+                    helper.getBlockEntity(TerminalWiring.packingStationPos(TERMINAL), io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity.class);
+            io.github.dirnei.mc.servus.foundation.transfer.ItemSlots buffer = point.buffer();
             // Nothing can be put away (no crate takes cobblestone or diamonds), so the buffer stays as it is.
             for (int slot = 0; slot < buffer.getSlots(); slot++) {
                 buffer.setStackInSlot(slot, slot == 0 ? new ItemStack(Items.COBBLESTONE, 48) : new ItemStack(Items.DIAMOND, 64));

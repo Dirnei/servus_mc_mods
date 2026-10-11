@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
@@ -65,7 +67,7 @@ public final class PatternResultGameTests {
 
     private static PatternStorageBlockEntity lone(GameTestHelper helper) {
         helper.setBlock(LONE, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
-        return helper.getBlockEntity(LONE);
+        return helper.getBlockEntity(LONE, PatternStorageBlockEntity.class);
     }
 
     private static boolean ready(GameTestHelper helper) {
@@ -111,7 +113,7 @@ public final class PatternResultGameTests {
         CompoundTag tag = storage.saveWithFullMetadata(registries);
         StoredPatterns old = new StoredPatterns(List.of(new StoredPatterns.Entry(0, rack(new ItemStack(ServusStorageItems.HEAVY_RACK.get())))));
         tag.put("Patterns", StoredPatterns.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), old).getOrThrow());
-        storage.loadWithComponents(tag, registries);
+        storage.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, registries, tag));
         ItemStack result = storage.pattern(0).orElseThrow().result();
         helper.assertTrue(result.has(ServusStorageComponents.RACK_WOOD.get()), "the old pattern should be refreshed to the oak rack");
         helper.succeed();

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
@@ -66,7 +67,7 @@ public final class RailLookGameTests {
 
     private static CraftingRecipe recipe(GameTestHelper helper, String id) {
         return (CraftingRecipe) helper.getLevel().recipeAccess()
-                .byKey(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, id))
+                .byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, id)))
                 .orElseThrow(() -> new AssertionError("no " + id + " recipe")).value();
     }
 

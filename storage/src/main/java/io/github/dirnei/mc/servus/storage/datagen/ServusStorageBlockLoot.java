@@ -10,6 +10,7 @@ import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 
 final class ServusStorageBlockLoot extends BlockLootSubProvider {
@@ -34,16 +35,16 @@ final class ServusStorageBlockLoot extends BlockLootSubProvider {
         SELF_DROPPING.forEach(this::dropSelf);
         for (Block block : WOODEN) {
             add(block, createSingleItemTable(block)
-                    .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                    .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                             .include(WoodContent.WOOD.get())));
         }
         // The rack keeps the wood it was crafted from.
         add(ServusStorageBlocks.HEAVY_RACK.get(), createSingleItemTable(ServusStorageBlocks.HEAVY_RACK.get())
-                .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                         .include(ServusStorageComponents.RACK_WOOD.get())));
         // Pattern Storage keeps its patterns.
         add(ServusStorageBlocks.PATTERN_STORAGE.get(), createSingleItemTable(ServusStorageBlocks.PATTERN_STORAGE.get())
-                .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                         .include(ServusStorageComponents.PATTERNS.get())
                         .include(WoodContent.WOOD.get())));
     }

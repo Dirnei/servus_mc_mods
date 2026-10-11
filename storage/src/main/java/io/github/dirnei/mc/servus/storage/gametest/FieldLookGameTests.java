@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
@@ -67,7 +69,7 @@ public final class FieldLookGameTests {
                     helper.getLevel(), helper.absolutePos(rail)));
         }
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        return helper.getBlockEntity(HEAD);
+        return helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class);
     }
 
     /** Grows the wheat at that x of the plot row to its last stage, the way random ticks do. */
@@ -137,7 +139,7 @@ public final class FieldLookGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void recipeRecordsWood(GameTestHelper helper) {
         RecipeHolder<?> holder = helper.getLevel().recipeAccess()
-                .byKey(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field_head"))
+                .byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field_head")))
                 .orElseThrow(() -> new AssertionError("no field_head recipe"));
         CraftingRecipe recipe = (CraftingRecipe) holder.value();
         List<ItemStack> grid = new ArrayList<>();
@@ -220,7 +222,7 @@ public final class FieldLookGameTests {
         CompoundTag empty = head.getUpdateTag(helper.getLevel().registryAccess());
         helper.assertTrue(empty.getByteOr("WaterLevel", (byte) 0) == 0, "an empty head sends level 0");
         int half = head.capacity() / 2;
-        head.fluidHandler().fill(new FluidStack(Fluids.WATER, half), false);
+        Transfer.fill(head.fluidHandler(), new FluidStack(Fluids.WATER, half), false);
         head.setCrop(new ItemStack(Items.CARROT));
         CompoundTag tag = head.getUpdateTag(helper.getLevel().registryAccess());
         int expected = FieldHeadLook.waterLevel(half, head.capacity());

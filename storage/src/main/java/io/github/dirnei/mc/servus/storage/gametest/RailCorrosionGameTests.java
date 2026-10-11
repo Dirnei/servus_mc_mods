@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
@@ -62,11 +63,11 @@ public final class RailCorrosionGameTests {
             rail(helper, x);
         }
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        return helper.getBlockEntity(HEAD);
+        return helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class);
     }
 
     private static int stage(GameTestHelper helper, int x) {
-        return ((RailBlockEntity) helper.getBlockEntity(new BlockPos(x, 1, RAIL_Z))).corrosion();
+        return helper.getBlockEntity(new BlockPos(x, 1, RAIL_Z), RailBlockEntity.class).corrosion();
     }
 
     private static void assertRails(GameTestHelper helper, int from, int to, int expected, String why) {
@@ -125,7 +126,7 @@ public final class RailCorrosionGameTests {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
             head.setStage(FieldCorrosion.WEATHERED);
-            ItemStack rest = head.itemHandler().insertItem(0, new ItemStack(Items.HONEYCOMB, 3), false);
+            ItemStack rest = Transfer.insertItem(head.itemHandler(), 0, new ItemStack(Items.HONEYCOMB, 3), false);
             helper.assertTrue(rest.isEmpty(), "the head takes honeycomb through its item handler");
             head.age(perStep());
             helper.assertTrue(head.corrosion() == FieldCorrosion.WEATHERED, "honeycomb holds weathered, got " + head.corrosion());
@@ -262,7 +263,7 @@ public final class RailCorrosionGameTests {
                     new BlockHitResult(Vec3.atCenterOf(floor).add(0, 0.5, 0), Direction.UP, floor, false)));
             helper.assertBlockPresent(ServusStorageBlocks.FARM_RAIL.get(), at);
             helper.runAfterDelay(2, () -> {
-                int placed = ((RailBlockEntity) helper.getBlockEntity(at)).corrosion();
+                int placed = helper.getBlockEntity(at, RailBlockEntity.class).corrosion();
                 helper.assertTrue(placed == FieldCorrosion.LOOSE, "the placed drop is fresh and loose, got " + placed);
                 helper.succeed();
             });
@@ -277,10 +278,10 @@ public final class RailCorrosionGameTests {
         }
         helper.runAfterDelay(2, () -> {
             for (int x : new int[] {3, 4}) {
-                ((RailBlockEntity) helper.getBlockEntity(new BlockPos(x, 1, RAIL_Z))).setCorrosion(FieldCorrosion.WEATHERED);
+                helper.getBlockEntity(new BlockPos(x, 1, RAIL_Z), RailBlockEntity.class).setCorrosion(FieldCorrosion.WEATHERED);
             }
             for (int x : new int[] {6, 7}) {
-                ((RailBlockEntity) helper.getBlockEntity(new BlockPos(x, 1, RAIL_Z))).setCorrosion(FieldCorrosion.EXPOSED);
+                helper.getBlockEntity(new BlockPos(x, 1, RAIL_Z), RailBlockEntity.class).setCorrosion(FieldCorrosion.EXPOSED);
             }
             rail(helper, 5);
             helper.succeedWhen(() -> assertRails(helper, 3, 7, FieldCorrosion.EXPOSED, "the joined field takes the younger stage"));
@@ -307,7 +308,7 @@ public final class RailCorrosionGameTests {
                     && head.antiCorrosion().getStackInSlot(0).getCount() == 2, "both honeycomb went in");
             helper.assertTrue(upkeep.upkeepCount() == 2, "the upkeep count follows the slot");
             helper.assertTrue(hopper.getItem(1).is(Items.WHEAT_SEEDS), "seeds are refused");
-            helper.assertTrue(head.itemHandler().extractItem(0, 1, true).isEmpty(), "automation takes nothing out");
+            helper.assertTrue(Transfer.extractItem(head.itemHandler(), 0, 1, true).isEmpty(), "automation takes nothing out");
         });
     }
 }

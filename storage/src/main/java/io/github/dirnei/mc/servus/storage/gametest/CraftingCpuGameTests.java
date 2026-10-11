@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import net.minecraft.world.InteractionResult;
@@ -101,7 +103,7 @@ public final class CraftingCpuGameTests {
         helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
         PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(0, StationJobs.sticks());
-        return helper.getBlockEntity(STATION);
+        return helper.getBlockEntity(STATION, CraftingStationBlockEntity.class);
     }
 
     /** Warehouse, terminal, station and the ducts to the first CPU's spot; the CPU itself when {@code withCpu}. */
@@ -462,7 +464,7 @@ public final class CraftingCpuGameTests {
         controller.rules().set(new StockRule(STICK, 8, 16));
         net.minecraft.nbt.CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());
         WarehouseControllerBlockEntity copy = new WarehouseControllerBlockEntity(helper.absolutePos(CONTROLLER), controller.getBlockState());
-        copy.loadWithComponents(tag, helper.getLevel().registryAccess());
+        copy.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
         StockRule rule = copy.rules().get(STICK);
         helper.assertTrue(rule != null && rule.min() == 8 && rule.max() == 16, "the rule should survive save and load: " + rule);
         helper.succeed();
@@ -478,11 +480,11 @@ public final class CraftingCpuGameTests {
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
         ItemStack cobble = new ItemStack(Items.COBBLESTONE);
         player.setItemInHand(InteractionHand.MAIN_HAND, cobble);
-        ItemInteractionResult withBlock = helper.getBlockState(at).useItemOn(cobble, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        InteractionResult withBlock = helper.getBlockState(at).useItemOn(cobble, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
         helper.assertTrue(withBlock == InteractionResult.TRY_WITH_EMPTY_HAND, "cobblestone should reach the summary, got " + withBlock);
         ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
-        ItemInteractionResult withCarrot = helper.getBlockState(at).useItemOn(carrot, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        InteractionResult withCarrot = helper.getBlockState(at).useItemOn(carrot, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
         helper.assertTrue(withCarrot == InteractionResult.PASS, "the carrot should keep its own use, got " + withCarrot);
         helper.succeed();
     }

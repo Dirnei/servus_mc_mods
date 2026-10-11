@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import net.minecraft.server.permissions.LevelBasedPermissionSet;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.packet.DataPackets;
 import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
@@ -210,7 +211,7 @@ public final class DataPacketGameTests {
             BlockPos from = helper.absolutePos(CONTROLLER);
             BlockPos to = helper.absolutePos(STATION);
             CommandSourceStack source = helper.getLevel().getServer().createCommandSourceStack()
-                    .withLevel(helper.getLevel()).withPermission(4).withSuppressedOutput();
+                    .withLevel(helper.getLevel()).withPermission(LevelBasedPermissionSet.OWNER).withSuppressedOutput();
             String command = "servus_foundation data move %d %d %d %d %d %d minecraft:oak_planks 8"
                     .formatted(from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ());
             helper.getLevel().getServer().getCommands().performPrefixedCommand(source, command);

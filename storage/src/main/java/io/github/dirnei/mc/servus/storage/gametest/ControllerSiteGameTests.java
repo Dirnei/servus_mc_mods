@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
@@ -55,7 +56,7 @@ public final class ControllerSiteGameTests {
     static WarehouseControllerBlockEntity controller(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
     }
 
     static void crate(GameTestHelper helper, BlockPos pos) {

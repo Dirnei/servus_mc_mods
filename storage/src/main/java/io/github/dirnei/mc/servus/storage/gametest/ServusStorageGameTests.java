@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.block.BlockEntityItems;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
@@ -257,10 +260,10 @@ public final class ServusStorageGameTests {
         helper.assertTrue(crate.insert(0, new ItemStack(Items.COBBLESTONE, 40), false) == 40, "compartment 0 takes cobblestone");
         helper.assertTrue(crate.insert(3, new ItemStack(Items.DIRT, 12), false) == 12, "compartment 3 takes dirt");
         helper.assertTrue(crate.insert(0, new ItemStack(Items.DIRT, 1), false) == 0, "compartment 0 refuses dirt");
-        helper.assertTrue(crate.handler().getSlots() == 4, "handler exposes four slots");
-        helper.assertTrue(crate.handler().getStackInSlot(0).getCount() == 40, "slot 0 reports 40 cobblestone");
-        helper.assertTrue(crate.handler().getStackInSlot(3).is(Items.DIRT), "slot 3 reports dirt");
-        helper.assertTrue(crate.handler().getStackInSlot(1).isEmpty(), "slot 1 is empty");
+        helper.assertTrue(crate.handler().size() == 4, "handler exposes four slots");
+        helper.assertTrue(Transfer.stackInSlot(crate.handler(), 0).getCount() == 40, "slot 0 reports 40 cobblestone");
+        helper.assertTrue(Transfer.stackInSlot(crate.handler(), 3).is(Items.DIRT), "slot 3 reports dirt");
+        helper.assertTrue(Transfer.stackInSlot(crate.handler(), 1).isEmpty(), "slot 1 is empty");
         helper.assertTrue(crate.insert(new ItemStack(Items.COBBLESTONE, 5), false) == 5 && crate.count(0) == 45,
                 "untargeted insert joins the cobblestone compartment");
         helper.assertTrue(crate.capacityPerCompartment() * 4 == crate.capacity(), "compartments split the capacity");
@@ -452,7 +455,7 @@ public final class ServusStorageGameTests {
                 new ItemStack(left), new ItemStack(middle), new ItemStack(right),
                 iron, ItemStack.EMPTY, iron));
         RecipeHolder<?> holder = helper.getLevel().recipeAccess()
-                .byKey(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "heavy_rack")).orElseThrow();
+                .byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "heavy_rack"))).orElseThrow();
         @SuppressWarnings("unchecked")
         CraftingRecipe recipe = ((RecipeHolder<CraftingRecipe>) holder).value();
         helper.assertTrue(recipe.matches(input, helper.getLevel()), "the rack recipe should match the grid");
@@ -493,7 +496,7 @@ public final class ServusStorageGameTests {
             helper.assertTrue(drops.size() == 1 && HeavyRackBlockEntity.woodOf(drops.get(0)).equals(idOf(Blocks.SPRUCE_PLANKS)),
                     "the dropped rack carries spruce, drops " + drops);
             ItemStack dismantled = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
-            rack.saveToItem(dismantled, helper.getLevel().registryAccess());
+            BlockEntityItems.saveToItem(rack, dismantled, helper.getLevel().registryAccess());
             helper.assertTrue(HeavyRackBlockEntity.woodOf(dismantled).equals(idOf(Blocks.SPRUCE_PLANKS)), "the dismantled rack carries spruce");
             helper.succeed();
         });
@@ -724,7 +727,7 @@ public final class ServusStorageGameTests {
         ItemStack rackItem = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, rackItem);
         BlockState state = helper.getBlockState(pos);
-        ItemInteractionResult result = state.useItemOn(rackItem, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        InteractionResult result = state.useItemOn(rackItem, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
         if (result == InteractionResult.PASS) {
             rackItem.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
         } else if (result == InteractionResult.TRY_WITH_EMPTY_HAND) {
@@ -914,7 +917,7 @@ public final class ServusStorageGameTests {
         helper.assertTrue(crate.zone().isEmpty() && crate.zoneFilter().isEmpty(), "sneak click should clear the zone");
 
         ItemStack drop = new ItemStack(ServusStorageBlocks.HEAVY_RACK.get());
-        rack.saveToItem(drop, helper.getLevel().registryAccess());
+        BlockEntityItems.saveToItem(rack, drop, helper.getLevel().registryAccess());
         helper.setBlock(ZL_RACK, Blocks.AIR.defaultBlockState());
         helper.setBlock(ZL_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         net.minecraft.world.item.BlockItem.updateCustomBlockEntityTag(helper.getLevel(), player, helper.absolutePos(ZL_RACK), drop);
@@ -1038,7 +1041,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(ST_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         TerminalWiring.railUnder(helper, ST_STATION);
-        return helper.getBlockEntity(ST_STATION);
+        return helper.getBlockEntity(ST_STATION, InboundStationBlockEntity.class);
     }
 
     /** A stack fed into the station lands in a crate within a few ticks when there are no shuttles. */
@@ -1048,7 +1051,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         CrateBlockEntity crate = helper.getBlockEntity(ST_CRATE, CrateBlockEntity.class);
         helper.runAfterDelay(5, () -> {
-            ItemStack left = station.intake().insertItem(new ItemStack(Items.COBBLESTONE, 64), false);
+            ItemStack left = Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
             helper.assertTrue(left.isEmpty(), "the intake should take a stack");
             helper.assertTrue(station.intake().extractItem(0, 64, false).isEmpty(), "the intake must refuse extraction");
             helper.runAfterDelay(10, () -> {
@@ -1070,7 +1073,7 @@ public final class ServusStorageGameTests {
         full.setZone(zone("Ores", List.of(), List.of("c:ores")));
         full.insert(new ItemStack(Items.IRON_ORE, 5000), false);
         helper.runAfterDelay(5, () -> {
-            station.intake().insertItem(new ItemStack(Items.IRON_ORE, 7), false);
+            Transfer.insertItem(station.intake(), new ItemStack(Items.IRON_ORE, 7), false);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty(), "the ore should wait in the buffer");
                 helper.assertTrue(blocked(helper, ST_STATION), "the lamp should be red");
@@ -1097,7 +1100,7 @@ public final class ServusStorageGameTests {
         ChestBlockEntity chest = helper.getBlockEntity(ST_CHEST, ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.BREAD, 30));
         helper.runAfterDelay(5, () -> {
-            station.intake().insertItem(new ItemStack(Items.BREAD, 10), false);
+            Transfer.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
             helper.runAfterDelay(15, () -> {
                 WarehouseControllerBlockEntity controller = helper.getBlockEntity(ST_CONTROLLER, WarehouseControllerBlockEntity.class);
                 WarehouseNetwork network = controller.network().orElseThrow();
@@ -1124,7 +1127,7 @@ public final class ServusStorageGameTests {
             placeRail(helper, DK_STATION.relative(direction));
         }
         InboundStationBlockEntity station = helper.getBlockEntity(DK_STATION, InboundStationBlockEntity.class);
-        station.intake().insertItem(new ItemStack(Items.BREAD, 10), false);
+        Transfer.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
         helper.runAfterDelay(2, () -> {
             for (Direction direction : Direction.Plane.HORIZONTAL) {
                 BlockState rail = helper.getBlockState(DK_STATION.relative(direction));
@@ -1172,7 +1175,7 @@ public final class ServusStorageGameTests {
         helper.assertTrue(garage.addShuttle(), "one shuttle fits");
 
         helper.runAfterDelay(10, () -> {
-            station.intake().insertItem(new ItemStack(Items.COBBLESTONE, 40), false);
+            Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
             helper.runAfterDelay(2, () -> helper.assertTrue(!station.isEmpty(), "the stack waits in the buffer until the shuttle arrives"));
             // The shuttle speeds up and brakes before it loads.
             helper.runAfterDelay(45, () -> {
@@ -1210,7 +1213,7 @@ public final class ServusStorageGameTests {
         helper.assertTrue(garage.addShuttle(), "one shuttle fits");
 
         helper.runAfterDelay(10, () -> {
-            station.intake().insertItem(new ItemStack(Items.COBBLESTONE, 40), false);
+            Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
             helper.runAfterDelay(70, () -> {
                 helper.assertTrue(crate.count() == 40, "the shuttle should have delivered 40 cobblestone, crate has " + crate.count());
                 helper.assertTrue(controller.network().orElseThrow().summary().getString().contains("0 busy"),
@@ -1410,7 +1413,7 @@ public final class ServusStorageGameTests {
         InboundStationBlockEntity station = helper.getBlockEntity(SW_STATION, InboundStationBlockEntity.class);
         HeavyRackBlockEntity rack = helper.getBlockEntity(SW_RACK, HeavyRackBlockEntity.class);
         helper.runAfterDelay(10, () -> {
-            station.intake().insertItem(new ItemStack(Items.BREAD, 10), false);
+            Transfer.insertItem(station.intake(), new ItemStack(Items.BREAD, 10), false);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty(), "the bread should wait: only a rack has room");
                 helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.NO_SHUTTLE, "reason should be no shuttle, was " + station.blockedReason());
@@ -1740,7 +1743,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(OS_STATION, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
         helper.setBlock(OS_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         TerminalWiring.railUnder(helper, OS_STATION);
-        return helper.getBlockEntity(OS_STATION);
+        return helper.getBlockEntity(OS_STATION, OutboundStationBlockEntity.class);
     }
 
     /** A keep slot pulls its amount out of storage into the buffer. */
@@ -1936,7 +1939,7 @@ public final class ServusStorageGameTests {
 
     private static CraftingStationBlockEntity plainStation(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
     }
 
     /** A station with a long sticks job, so it takes planks and crafts them. */
@@ -2066,7 +2069,7 @@ public final class ServusStorageGameTests {
         helper.assertTrue(garage.addShuttle(), "the garage takes a shuttle");
         HeavyRackBlockEntity rack = helper.getBlockEntity(RC_RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.COBBLESTONE, 30), false);
-        return helper.getBlockEntity(RC_CONTROLLER);
+        return helper.getBlockEntity(RC_CONTROLLER, WarehouseControllerBlockEntity.class);
     }
 
     /** Recall brings a shuttle that is out on a pick back inside at once; the pick is queued again. */

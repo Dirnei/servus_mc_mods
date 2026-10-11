@@ -47,7 +47,7 @@ public final class TerminalCableGameTests {
     private static StorageTerminalBlockEntity terminal(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
                 .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, StorageTerminalBlockEntity.class);
     }
 
     private static long stockOf(StorageTerminalMenu menu, Item item) {

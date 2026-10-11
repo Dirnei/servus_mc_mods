@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -94,12 +97,12 @@ public final class SpreaderGameTests {
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class);
         garage.shuttles().setStackInSlot(0, shuttle);
-        return new Farm(helper.getBlockEntity(HEAD), helper.getBlockEntity(CRATE));
+        return new Farm(helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class), helper.getBlockEntity(CRATE, CrateBlockEntity.class));
     }
 
     /** Water, bone meal as the fertilizer, that mode and that reserve. */
     private static void fertilize(Farm farm, FertilizeMode mode, int reserve) {
-        farm.head().fluidHandler().fill(new FluidStack(Fluids.WATER, 4000), false);
+        Transfer.fill(farm.head().fluidHandler(), new FluidStack(Fluids.WATER, 4000), false);
         farm.head().setFertilizer(new ItemStack(Items.BONE_MEAL));
         farm.head().setFertilizeMode(mode);
         farm.head().stepReserve(reserve - farm.head().reserve());
@@ -133,7 +136,7 @@ public final class SpreaderGameTests {
     }
 
     private static WarehouseNetwork network(GameTestHelper helper) {
-        return ((WarehouseControllerBlockEntity) helper.getBlockEntity(CONTROLLER)).network().orElseThrow();
+        return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class).network().orElseThrow();
     }
 
     private static int out(GameTestHelper helper) {
@@ -175,7 +178,7 @@ public final class SpreaderGameTests {
         Farm farm = farm(helper, spreader());
         farm.crate().insert(new ItemStack(Items.COBBLESTONE, 10), false);
         helper.runAfterDelay(2, () -> {
-            farm.head().fluidHandler().fill(new FluidStack(Fluids.WATER, 4000), false);
+            Transfer.fill(farm.head().fluidHandler(), new FluidStack(Fluids.WATER, 4000), false);
             farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));
             helper.runAfterDelay(120, () -> {
                 helper.assertTrue(farm.head().harvestDue(), "the harvest should be due");
@@ -328,7 +331,7 @@ public final class SpreaderGameTests {
         helper.assertTrue(!menu.clickMenuButton(player, 99), "unknown buttons are refused");
         CompoundTag tag = head.saveWithFullMetadata(helper.getLevel().registryAccess());
         FieldHeadBlockEntity copy = new FieldHeadBlockEntity(head.getBlockPos(), head.getBlockState());
-        copy.loadWithComponents(tag, helper.getLevel().registryAccess());
+        copy.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
         helper.assertTrue(copy.fertilizer().is(Items.BONE_MEAL) && copy.fertilizeMode() == FertilizeMode.UNTIL_RIPE
                 && copy.fertilizePercent() == head.fertilizePercent() && copy.reserve() == 21, "the settings should survive saving");
         helper.assertTrue(FieldHeadMenu.chooseFertilizer(player, Optional.empty()), "Off should be taken");

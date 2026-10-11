@@ -86,7 +86,7 @@ public final class FieldGameTests {
             farmRail(helper, new BlockPos(x, 1, RAIL_Z));
         }
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
-        return helper.getBlockEntity(HEAD);
+        return helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class);
     }
 
     private static FluidView fluid(GameTestHelper helper, BlockPos pos) {
@@ -116,7 +116,7 @@ public final class FieldGameTests {
     }
 
     private static Optional<WarehouseNetwork> network(GameTestHelper helper, BlockPos pos) {
-        return ((StorageNodeBlockEntity) helper.getBlockEntity(pos)).network();
+        return helper.getBlockEntity(pos, StorageNodeBlockEntity.class).network();
     }
 
     // Farm Rail
@@ -174,7 +174,7 @@ public final class FieldGameTests {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, terminalPos);
             new StorageTerminalMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(), terminal)
                     .request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 36);
-            WarehouseNetwork network = ((WarehouseControllerBlockEntity) helper.getBlockEntity(controllerPos)).network().orElseThrow();
+            WarehouseNetwork network = helper.getBlockEntity(controllerPos, WarehouseControllerBlockEntity.class).network().orElseThrow();
             helper.runAfterDelay(8, () -> {
                 helper.assertTrue(network.garageOut(helper.absolutePos(garagePos)) == 1, "the shuttle should be out over the farm rails");
                 TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 36, 500,

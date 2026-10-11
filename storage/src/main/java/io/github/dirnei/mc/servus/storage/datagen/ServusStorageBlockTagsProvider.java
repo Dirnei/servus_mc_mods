@@ -7,13 +7,11 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 final class ServusStorageBlockTagsProvider extends BlockTagsProvider {
 
-    ServusStorageBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
-                                   ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, ServusStorageIds.MOD_ID, existingFileHelper);
+    ServusStorageBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+        super(output, lookupProvider, ServusStorageIds.MOD_ID);
     }
 
     @Override

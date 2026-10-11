@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
@@ -78,7 +79,7 @@ public final class WirelessPackingStationGameTests {
 
     private static CrateBlockEntity crate(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, CrateBlockEntity.class);
     }
 
     private static WirelessPackingStationBlockEntity wireless(GameTestHelper helper, BlockPos pos, UUID team) {
@@ -185,7 +186,7 @@ public final class WirelessPackingStationGameTests {
                 helper.assertTrue(count(sites.crateA(), Items.IRON_INGOT) == 0, "nothing arrives without power");
                 helper.assertTrue(sites.wirelessB().status().alert() && sites.wirelessB().status().line().getString().contains("power"),
                         "the sender says the base needs power, was " + sites.wirelessB().status().line().getString());
-                sites.wirelessA().energy().receiveEnergy(500, false);
+                Transfer.receiveEnergy(sites.wirelessA().energy(), 500, false);
                 TerminalWiring.when(helper, () -> count(sites.crateA(), Items.IRON_INGOT) == 8, 200,
                         () -> "with power the iron arrives, had " + count(sites.crateA(), Items.IRON_INGOT), helper::succeed);
             });

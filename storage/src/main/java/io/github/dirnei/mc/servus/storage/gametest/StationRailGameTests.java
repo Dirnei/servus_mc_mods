@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -34,12 +35,12 @@ public final class StationRailGameTests {
     private static WarehouseControllerBlockEntity controller(GameTestHelper helper) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        return helper.getBlockEntity(CONTROLLER);
+        return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
     }
 
     private static CrateBlockEntity crate(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, CrateBlockEntity.class);
     }
 
     private static boolean lit(GameTestHelper helper, BlockPos pos) {
@@ -62,7 +63,7 @@ public final class StationRailGameTests {
         helper.runAfterDelay(5, () -> {
             helper.assertTrue(!sameWarehouse(helper, controller, STATION), "touching the controller is not enough");
             helper.assertTrue(!lit(helper, STATION), "the lamp is dark without a rail");
-            station.intake().insertItem(new ItemStack(Items.COBBLESTONE, 64), false);
+            Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
             helper.runAfterDelay(10, () -> {
                 helper.assertTrue(!station.isEmpty() && crate.count() == 0, "the cobblestone waits in the buffer");
                 TerminalWiring.railUnder(helper, STATION);

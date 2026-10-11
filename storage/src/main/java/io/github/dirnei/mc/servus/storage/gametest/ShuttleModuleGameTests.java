@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
@@ -340,7 +343,7 @@ public final class ShuttleModuleGameTests {
         menu.reportStep(1);
         CompoundTag saved = workshop.saveWithoutMetadata(helper.getLevel().registryAccess());
         workshop.cancelHandBuild();
-        workshop.loadWithComponents(saved, helper.getLevel().registryAccess());
+        workshop.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), saved));
         helper.assertTrue(workshop.handBuild(), "the build by hand is back");
         helper.assertTrue(workshop.buildStep() == 2, "on the third step, got step index " + workshop.buildStep());
         helper.assertTrue(workshop.supplies().extractItem(0, 1, true).isEmpty(), "and the supplies are locked again");
@@ -507,7 +510,7 @@ public final class ShuttleModuleGameTests {
         CrateBlockEntity crate = helper.getBlockEntity(PW_CRATE, CrateBlockEntity.class);
         helper.runAfterDelay(10, () -> {
             for (int i = 0; i < 3; i++) {
-                station.intake().insertItem(new ItemStack(Items.COBBLESTONE, 64), false);
+                Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
             }
             TerminalWiring.when(helper, station::isEmpty, 250, () -> "the shuttle should load the station", () -> {
                 helper.assertTrue(crate.count() == 0, "all three stacks left on one shuttle before any reached the crate, crate has " + crate.count());

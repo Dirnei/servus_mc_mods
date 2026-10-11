@@ -80,7 +80,7 @@ public final class TerminalWiring {
     }
 
     public static StorageTerminalBlockEntity at(GameTestHelper helper, BlockPos pos) {
-        return helper.getBlockEntity(terminalPos(pos));
+        return helper.getBlockEntity(terminalPos(pos), StorageTerminalBlockEntity.class);
     }
 
     /**

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
@@ -64,7 +65,7 @@ public final class PushedOutputGameTests {
         int count = station.outputs().getStackInSlot(0).getCount();
         ItemStack sticks = station.outputs().extractItem(0, count, false);
         PackingStationBlockEntity point = helper.getBlockEntity(TerminalWiring.packingStationPos(ACCESS), PackingStationBlockEntity.class);
-        ItemStack left = point.handlerFor(face).insertItem(sticks, false);
+        ItemStack left = Transfer.insertItem(point.handlerFor(face), sticks, false);
         helper.assertTrue(left.isEmpty(), "the Packing Station should take the sticks, left " + left);
     }
 

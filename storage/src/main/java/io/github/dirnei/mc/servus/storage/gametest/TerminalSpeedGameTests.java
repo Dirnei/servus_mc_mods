@@ -51,7 +51,12 @@ public final class TerminalSpeedGameTests {
     /** Stands in for the player's connection: the open path calls it, the test needs no packets. */
     static final ContainerSynchronizer QUIET = new ContainerSynchronizer() {
         @Override
-        public void sendInitialData(AbstractContainerMenu menu, NonNullList<ItemStack> items, ItemStack carried, int[] data) {
+        public void sendInitialData(AbstractContainerMenu menu, java.util.List<ItemStack> items, ItemStack carried, int[] data) {
+        }
+
+        @Override
+        public net.minecraft.world.inventory.RemoteSlot createSlot() {
+            return net.minecraft.world.inventory.RemoteSlot.PLACEHOLDER;
         }
 
         @Override

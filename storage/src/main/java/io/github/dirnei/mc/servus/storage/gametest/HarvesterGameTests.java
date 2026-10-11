@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.field.FieldCropStockPayload;
@@ -93,7 +94,7 @@ public final class HarvesterGameTests {
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class);
         garage.shuttles().setStackInSlot(0, shuttle);
-        return new Farm(helper.getBlockEntity(HEAD), garage, helper.getBlockEntity(CRATE));
+        return new Farm(helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class), garage, helper.getBlockEntity(CRATE, CrateBlockEntity.class));
     }
 
     private static Farm farm(GameTestHelper helper, ItemStack shuttle) {
@@ -101,7 +102,7 @@ public final class HarvesterGameTests {
     }
 
     private static void water(Farm farm) {
-        farm.head().fluidHandler().fill(new FluidStack(Fluids.WATER, 4000), false);
+        Transfer.fill(farm.head().fluidHandler(), new FluidStack(Fluids.WATER, 4000), false);
     }
 
     /** A crop of that age on farmland. */
@@ -132,7 +133,7 @@ public final class HarvesterGameTests {
     }
 
     private static WarehouseNetwork network(GameTestHelper helper) {
-        return ((WarehouseControllerBlockEntity) helper.getBlockEntity(CONTROLLER)).network().orElseThrow();
+        return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class).network().orElseThrow();
     }
 
     private static int out(GameTestHelper helper) {
@@ -538,11 +539,11 @@ public final class HarvesterGameTests {
         helper.setBlock(new BlockPos(9, y, 3), ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
         wheat[0] = new BlockPos(7, y, 4);
         crop(helper, wheat[0], Blocks.WHEAT, 7);
-        return helper.getBlockEntity(new BlockPos(9, y, 3));
+        return helper.getBlockEntity(new BlockPos(9, y, 3), FieldHeadBlockEntity.class);
     }
 
     private static WarehouseNetwork shaftNetwork(GameTestHelper helper) {
-        return ((WarehouseControllerBlockEntity) helper.getBlockEntity(SHAFT_CONTROLLER)).network().orElseThrow();
+        return helper.getBlockEntity(SHAFT_CONTROLLER, WarehouseControllerBlockEntity.class).network().orElseThrow();
     }
 
     /** Garage and field share the ground floor with the shaft between them: the harvester drives through, the car never moves. */

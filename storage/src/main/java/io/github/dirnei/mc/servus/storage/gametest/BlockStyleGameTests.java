@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -49,7 +50,7 @@ public final class BlockStyleGameTests {
 
     private static ItemStack craft(GameTestHelper helper, String recipe, int width, int height, List<ItemStack> grid) {
         RecipeHolder<?> holder = helper.getLevel().recipeAccess()
-                .byKey(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, recipe))
+                .byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, recipe)))
                 .orElseThrow(() -> new AssertionError("no recipe " + recipe));
         CraftingRecipe crafting = (CraftingRecipe) holder.value();
         CraftingInput input = CraftingInput.of(width, height, grid);

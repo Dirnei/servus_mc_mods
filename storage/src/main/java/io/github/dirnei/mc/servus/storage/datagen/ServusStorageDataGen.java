@@ -11,7 +11,6 @@ import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 @EventBusSubscriber(modid = ServusStorageIds.MOD_ID)
@@ -21,21 +20,16 @@ public final class ServusStorageDataGen {
     }
 
     @SubscribeEvent
-    public static void gather(GatherDataEvent event) {
+    public static void gather(GatherDataEvent.Client event) {
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
-        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         CompletableFuture<HolderLookup.Provider> lookup = event.getLookupProvider();
-
-        generator.addProvider(event.includeClient(), new ServusStorageLanguageProvider(output));
-        generator.addProvider(event.includeClient(), new ServusStorageBlockStateProvider(output, existingFileHelper));
-
-        ServusStorageBlockTagsProvider blockTags = generator.addProvider(event.includeServer(),
-                new ServusStorageBlockTagsProvider(output, lookup, existingFileHelper));
-        generator.addProvider(event.includeServer(),
-                new ServusStorageItemTagsProvider(output, lookup, blockTags.contentsGetter(), existingFileHelper));
-        generator.addProvider(event.includeServer(), new ServusStorageRecipeProvider(output, lookup));
-        generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
+        event.addProvider(new ServusStorageLanguageProvider(output));
+        event.addProvider(new ServusStorageBlockStateProvider(output));
+        event.addProvider(new ServusStorageBlockTagsProvider(output, lookup));
+        event.addProvider(new ServusStorageItemTagsProvider(output, lookup));
+        event.addProvider(new ServusStorageRecipeProvider.Runner(output, lookup));
+        event.addProvider(new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(ServusStorageBlockLoot::new, LootContextParamSets.BLOCK)),
                 lookup));
     }
