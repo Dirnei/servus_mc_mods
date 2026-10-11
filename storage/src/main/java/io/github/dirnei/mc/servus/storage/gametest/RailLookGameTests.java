@@ -125,7 +125,7 @@ public final class RailLookGameTests {
         });
     }
 
-    /** Iron ingots around birch planks make eight birch rails. */
+    /** Iron ingots around birch planks make sixteen birch rails. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void railRecipeRecordsWood(GameTestHelper helper) {
         CraftingRecipe recipe = recipe(helper, "rail");
@@ -135,12 +135,12 @@ public final class RailLookGameTests {
                 Items.IRON_INGOT, Items.AIR, Items.IRON_INGOT);
         helper.assertTrue(recipe.matches(input, helper.getLevel()), "the rail recipe should take birch planks");
         ItemStack result = recipe.assemble(input, helper.getLevel().registryAccess());
-        helper.assertTrue(result.is(ServusStorageItems.RAIL.get()) && result.getCount() == 8
-                && BIRCH.equals(result.get(WoodContent.WOOD.get())), "eight birch rails, got " + result + " " + result.get(WoodContent.WOOD.get()));
+        helper.assertTrue(result.is(ServusStorageItems.RAIL.get()) && result.getCount() == 16
+                && BIRCH.equals(result.get(WoodContent.WOOD.get())), "sixteen birch rails, got " + result + " " + result.get(WoodContent.WOOD.get()));
         helper.succeed();
     }
 
-    /** Copper ingots around spruce planks make eight spruce farm rails; iron does not. */
+    /** Copper ingots around spruce planks make sixteen spruce farm rails; iron does not. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void farmRailRecipeTakesCopper(GameTestHelper helper) {
         CraftingRecipe recipe = recipe(helper, "farm_rail");
@@ -150,8 +150,8 @@ public final class RailLookGameTests {
                 Items.COPPER_INGOT, Items.AIR, Items.COPPER_INGOT);
         helper.assertTrue(recipe.matches(copper, helper.getLevel()), "the farm rail recipe should take copper and planks");
         ItemStack result = recipe.assemble(copper, helper.getLevel().registryAccess());
-        helper.assertTrue(result.is(ServusStorageItems.FARM_RAIL.get()) && result.getCount() == 8
-                && SPRUCE.equals(result.get(WoodContent.WOOD.get())), "eight spruce farm rails, got " + result);
+        helper.assertTrue(result.is(ServusStorageItems.FARM_RAIL.get()) && result.getCount() == 16
+                && SPRUCE.equals(result.get(WoodContent.WOOD.get())), "sixteen spruce farm rails, got " + result);
         CraftingInput iron = grid(
                 Items.IRON_INGOT, Items.AIR, Items.IRON_INGOT,
                 Items.IRON_INGOT, Items.SPRUCE_PLANKS, Items.IRON_INGOT,

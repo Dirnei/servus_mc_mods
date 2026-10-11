@@ -44,7 +44,7 @@ The rail SHALL be craftable from vanilla materials in a batch, SHALL drop itself
 
 #### Scenario: Crafting
 - **WHEN** the player places iron ingots and planks in the rail pattern (for example two columns of three ingots with a plank between them)
-- **THEN** the result is several rails (for example eight) carrying the wood of the planks
+- **THEN** the result is several rails (for example sixteen) carrying the wood of the planks
 
 #### Scenario: Sneak dismantle
 - **WHEN** the player sneaks and uses the Configuration Carrot on a rail

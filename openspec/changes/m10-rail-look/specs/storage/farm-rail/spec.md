@@ -5,7 +5,7 @@ The Farm Rail SHALL have the track look of the Warehouse Rail with rail heads of
 
 #### Scenario: Crafting
 - **WHEN** the player places copper ingots and oak planks in the rail pattern
-- **THEN** the result is several farm rails (for example eight) carrying oak
+- **THEN** the result is several farm rails (for example sixteen) carrying oak
 
 #### Scenario: Next to a Warehouse Rail
 - **WHEN** a Farm Rail and a Warehouse Rail of the same wood lie in one run

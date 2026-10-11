@@ -775,14 +775,14 @@
         {"item": "minecraft:copper_ingot", "count": 6}
       ],
       "outputs": [
-        {"item": "servus_storage:farm_rail", "count": 8}
+        {"item": "servus_storage:farm_rail", "count": 16}
       ]
     },
     "servus_storage:field_head": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IBI", "PCP", "PRP"],
       "key": {
-        "B": {"item": "minecraft:bucket"},
+        "B": {"item": "servus_foundation:fluid_tank"},
         "C": {"item": "minecraft:composter"},
         "I": {"item": "minecraft:iron_ingot"},
         "P": {"tag": "minecraft:planks"},
@@ -790,9 +790,9 @@
       },
       "inputs": [
         {"tag": "minecraft:planks", "count": 4},
-        {"item": "minecraft:bucket", "count": 1},
         {"item": "minecraft:composter", "count": 1},
         {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "servus_foundation:fluid_tank", "count": 1},
         {"item": "servus_storage:farm_rail", "count": 1}
       ],
       "outputs": [
@@ -975,7 +975,7 @@
         {"item": "minecraft:iron_ingot", "count": 6}
       ],
       "outputs": [
-        {"item": "servus_storage:rail", "count": 8}
+        {"item": "servus_storage:rail", "count": 16}
       ]
     },
     "servus_storage:range_upgrade": {
@@ -1244,6 +1244,9 @@
     },
     "servus_foundation:fluid_pipe": {
       "name": "Fluid Pipe"
+    },
+    "servus_foundation:fluid_tank": {
+      "name": "Fluid Tank"
     },
     "servus_foundation:item_pipe": {
       "name": "Item Pipe"

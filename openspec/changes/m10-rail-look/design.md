@@ -45,7 +45,7 @@ The item model is the straight piece with its own display transforms (gui seen f
 
 ```
 I I      C C
-IPI      CPC     I iron ingot, C copper ingot, P planks; 8 rails each
+IPI      CPC     I iron ingot, C copper ingot, P planks; 16 rails each
 I I      C C
 ```
 
