@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEnti
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.field.FieldRadius;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
@@ -92,6 +93,18 @@ public final class FieldGameTests {
 
     private static IFluidHandler fluid(GameTestHelper helper, BlockPos pos) {
         return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), Direction.UP);
+    }
+
+    /** Puts that many Range Upgrades into the head. */
+    private static void widen(FieldHeadBlockEntity head, int upgrades) {
+        head.rangeUpgrades().setStackInSlot(0, new ItemStack(ServusStorageItems.RANGE_UPGRADE.get(), upgrades));
+    }
+
+    /** Dirt under the plots from one to four blocks north of rail 4, so the rails see that whole line. */
+    private static void dirtLine(GameTestHelper helper) {
+        for (int z = 1; z <= 4; z++) {
+            helper.setBlock(new BlockPos(4, 0, RAIL_Z + z), Blocks.DIRT.defaultBlockState());
+        }
     }
 
     private static boolean wet(GameTestHelper helper, int x, int y, int z) {
@@ -271,6 +284,7 @@ public final class FieldGameTests {
     @GameTest(template = EMPTY, timeoutTicks = 100)
     public static void hydrationReachesFourBlocks(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper, 3, 5);
+        widen(head, 2);
         helper.setBlock(new BlockPos(4, 0, RAIL_Z + 4), Blocks.FARMLAND.defaultBlockState());
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(!head.hydrated() && !wet(helper, 4, 0, RAIL_Z + 4), "no water, no hydration");
@@ -318,12 +332,12 @@ public final class FieldGameTests {
         helper.runAfterDelay(2, () -> {
             fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
             helper.runAfterDelay(2, () -> {
-                helper.assertTrue(wet(helper, 9, 0, RAIL_Z), "past the end rail should be wet");
+                helper.assertTrue(wet(helper, 7, 0, RAIL_Z), "past the end rail should be wet");
                 helper.setBlock(new BlockPos(5, 1, RAIL_Z), Blocks.AIR.defaultBlockState());
                 helper.runAfterDelay(2, () -> {
                     helper.assertTrue(head.rails().size() == 2, "two rails should remain");
-                    helper.assertTrue(!wet(helper, 9, 0, RAIL_Z), "the removed rail's ground should dry");
-                    helper.assertTrue(wet(helper, 8, 0, RAIL_Z), "the remaining rails keep their ground wet");
+                    helper.assertTrue(!wet(helper, 7, 0, RAIL_Z), "the removed rail's ground should dry");
+                    helper.assertTrue(wet(helper, 6, 0, RAIL_Z), "the remaining rails keep their ground wet");
                     helper.setBlock(HEAD, Blocks.AIR.defaultBlockState());
                     helper.runAfterDelay(1, () -> {
                         helper.assertTrue(!wet(helper, 4, 0, RAIL_Z + 2), "a removed head waters nothing");
@@ -516,6 +530,7 @@ public final class FieldGameTests {
         helper.setBlock(overgrown.below(), Blocks.GRASS_BLOCK.defaultBlockState());
         helper.setBlock(overgrown, Blocks.SHORT_GRASS.defaultBlockState());
         FieldHeadBlockEntity head = field(helper, 3, 5);
+        widen(head, 2);
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(head.tillableCount() == 2, "near and overgrown plots to till, the far one out of sight, got " + head.tillableCount());
             helper.assertTrue(!head.plots().contains(helper.absolutePos(far)), "the plot behind the gap is not part of the field");
@@ -529,6 +544,77 @@ public final class FieldGameTests {
             helper.assertBlockPresent(Blocks.DIRT, gap.below());
             helper.runAfterDelay(2, () -> {
                 helper.assertTrue(head.tillableCount() == 4, "filling the gap brings the far plot into sight, got " + head.tillableCount());
+                helper.succeed();
+            });
+        });
+    }
+
+    // Field radius
+
+    /** A head without upgrades reaches {@code radius} blocks: dirt two out is a plot, three out is not. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void radiusTwoByDefault(GameTestHelper helper) {
+        dirtLine(helper);
+        FieldHeadBlockEntity head = field(helper, 3, 5);
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(head.radius() == StorageStatsManager.INSTANCE.fieldRadius(), "the radius is the base, got " + head.radius());
+            helper.assertTrue(head.plots().contains(helper.absolutePos(new BlockPos(4, 1, RAIL_Z + 2))), "two out is a plot");
+            helper.assertTrue(!head.plots().contains(helper.absolutePos(new BlockPos(4, 1, RAIL_Z + 3))), "three out is not");
+            helper.succeed();
+        });
+    }
+
+    /** Two Range Upgrades widen the field to four blocks at once, plots and water alike. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rangeUpgradesWiden(GameTestHelper helper) {
+        dirtLine(helper);
+        helper.setBlock(new BlockPos(5, 0, RAIL_Z - 4), Blocks.FARMLAND.defaultBlockState());
+        FieldHeadBlockEntity head = field(helper, 3, 5);
+        helper.runAfterDelay(2, () -> {
+            fluid(helper, HEAD).fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
+            helper.runAfterDelay(2, () -> {
+                helper.assertTrue(head.hydrated() && !wet(helper, 5, 0, RAIL_Z - 4), "four out stays dry at radius two");
+                widen(head, 2);
+                helper.runAfterDelay(2, () -> {
+                    helper.assertTrue(head.radius() == 4, "two upgrades reach four, got " + head.radius());
+                    helper.assertTrue(head.plots().contains(helper.absolutePos(new BlockPos(4, 1, RAIL_Z + 4))), "four out is a plot now");
+                    helper.assertTrue(wet(helper, 5, 0, RAIL_Z - 4), "four out is kept wet now");
+                    head.rangeUpgrades().extractItem(0, 1, false);
+                    helper.runAfterDelay(2, () -> {
+                        helper.assertTrue(head.radius() == 3, "one upgrade reaches three, got " + head.radius());
+                        helper.assertTrue(!wet(helper, 5, 0, RAIL_Z - 4), "four out dries again");
+                        helper.assertTrue(!head.plots().contains(helper.absolutePos(new BlockPos(4, 1, RAIL_Z + 4))), "four out leaves the field");
+                        helper.succeed();
+                    });
+                });
+            });
+        });
+    }
+
+    /** The slot takes Range Upgrades only, and no more than the radius can still grow. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rangeUpgradeLimit(GameTestHelper helper) {
+        FieldHeadBlockEntity head = field(helper, 3, 5);
+        int room = FieldRadius.maxUpgrades(StorageStatsManager.INSTANCE.fieldRadius(), StorageStatsManager.INSTANCE.fieldMaxRadius());
+        ItemStack left = head.rangeUpgrades().insertItem(0, new ItemStack(ServusStorageItems.RANGE_UPGRADE.get(), room + 1), false);
+        helper.assertTrue(left.getCount() == 1, "one upgrade past the maximum is refused, left " + left.getCount());
+        ItemStack seeds = head.rangeUpgrades().insertItem(0, new ItemStack(Items.WHEAT_SEEDS), true);
+        helper.assertTrue(seeds.getCount() == 1, "the slot refuses other items");
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(head.radius() == StorageStatsManager.INSTANCE.fieldMaxRadius(), "the radius stops at the maximum");
+            helper.succeed();
+        });
+    }
+
+    /** Breaking the head drops its Range Upgrades. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void rangeUpgradesDropWithHead(GameTestHelper helper) {
+        FieldHeadBlockEntity head = field(helper, 3, 5);
+        widen(head, 2);
+        helper.runAfterDelay(2, () -> {
+            helper.destroyBlock(HEAD);
+            helper.runAfterDelay(1, () -> {
+                helper.assertItemEntityCountIs(ServusStorageItems.RANGE_UPGRADE.get(), HEAD, 2.0, 2);
                 helper.succeed();
             });
         });

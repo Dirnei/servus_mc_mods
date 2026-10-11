@@ -9,7 +9,7 @@
 
 - [x] 2.1 `field.json` `radius` and `max_radius`, `StorageStatsManager.fieldRadius/fieldMaxRadius`; `range_upgrade` item in `ServusStorageItems`, recipe, model, texture and lang through datagen; the head's `RangeUpgrades` handler with limit from `FieldRadius.maxUpgrades`, saved, `requestRefresh` on change, `radius()` used in `serve()` and `refreshReach()`; drop in `FieldHeadBlock.onRemove` (design D2, D3). `HarvestRun.reach` passes the head's radius. Verify: `gradlew runData`, `gradlew build`.
 - [x] 2.2 `FieldHeadMenu` upgrade slot (index 1, shift click into it) and a radius data slot; `FieldHeadScreen` draws the slot beside the shorter harvest only toggle and shows the radius in the size line; lang through datagen. Verify: `gradlew runData`, `gradlew build`.
-- [ ] 2.3 GameTests in the field GameTests: `radiusTwoByDefault` (dirt 2 out is a plot, 3 out is not), `rangeUpgradesWiden` (two upgrades reach 4, hydration ticket covers 4 out), `rangeUpgradeLimit` (third upgrade refused), `rangeUpgradesDropWithHead`. Fix existing field GameTests that assumed 4 blocks (give them two upgrades or move their soil in). Verify: `gradlew :storage:runGameTestServer` green.
+- [x] 2.3 GameTests in the field GameTests: `radiusTwoByDefault` (dirt 2 out is a plot, 3 out is not), `rangeUpgradesWiden` (two upgrades reach 4, hydration ticket covers 4 out), `rangeUpgradeLimit` (third upgrade refused), `rangeUpgradesDropWithHead`. Fix existing field GameTests that assumed 4 blocks (give them two upgrades or move their soil in). Verify: `gradlew :storage:runGameTestServer` green.
 
 ## 3. Harvesters and lifts
 
