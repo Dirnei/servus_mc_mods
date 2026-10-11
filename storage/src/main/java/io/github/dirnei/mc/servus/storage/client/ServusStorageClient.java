@@ -7,7 +7,12 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import io.github.dirnei.mc.servus.foundation.client.SideMarkerRenderer;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModuleItem;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.Item;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
@@ -47,7 +52,23 @@ public final class ServusStorageClient {
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.ELEVATOR.get(), ElevatorRenderer::new);
     }
 
-    /** Wraps every rack block state model and the rack item model so the boards show the rack's wood. */
+    /** The shuttle parts are standalone models the shuttle item model composes. */
+    @SubscribeEvent
+    public static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
+        List<String> tools = new ArrayList<>();
+        for (Item item : BuiltInRegistries.ITEM) {
+            if (item instanceof ShuttleModuleItem module) {
+                tools.add(module.spec().id());
+            }
+        }
+        ShuttleItemModel.parts(tools).forEach(event::register);
+    }
+
+    /**
+     * Wraps every rack block state model and the rack item model so the boards
+     * show the rack's wood, and the shuttle item models so they show the
+     * shuttle's parts.
+     */
     @SubscribeEvent
     public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
         for (Map.Entry<ModelResourceLocation, BakedModel> entry : event.getModels().entrySet()) {
@@ -56,6 +77,12 @@ public final class ServusStorageClient {
                     && key.id().getPath().equals("heavy_rack")
                     && !(entry.getValue() instanceof HeavyRackModel)) {
                 entry.setValue(new HeavyRackModel(entry.getValue()));
+            }
+            if (key.id().getNamespace().equals(ServusStorageIds.MOD_ID)
+                    && ModelResourceLocation.INVENTORY_VARIANT.equals(key.variant())
+                    && ShuttleItemModel.ITEMS.contains(key.id().getPath())
+                    && !(entry.getValue() instanceof ShuttleItemModel)) {
+                entry.setValue(new ShuttleItemModel(entry.getValue()));
             }
         }
     }
