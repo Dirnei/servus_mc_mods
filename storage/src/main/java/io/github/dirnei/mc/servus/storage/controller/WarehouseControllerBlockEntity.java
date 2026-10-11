@@ -50,6 +50,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private final Set<Long> span = new LinkedHashSet<>();
     private final ChunkLoaderUpgradeSlots upgrades =
             new ChunkLoaderUpgradeSlots(StorageStatsManager.INSTANCE.chunkLoaderUpgradeSlots(), this::upgradesChanged);
+    /** Set when the chunk unloads, so the removal that follows keeps the site's record. */
+    private boolean unloading;
 
     public WarehouseControllerBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(), pos, state);
@@ -75,6 +77,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         if (!cleaned.equals(siteName)) {
             siteName = cleaned;
             setChanged();
+            syncRecord();
         }
         return siteName;
     }
@@ -87,6 +90,30 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     public void setTeam(UUID team) {
         this.team = team;
         setChanged();
+        syncRecord();
+    }
+
+    /** Writes the site's record; only on the server and only while the controller is in the world. */
+    private void syncRecord() {
+        if (level instanceof ServerLevel server && !isRemoved()) {
+            io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(server).update(this);
+        }
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        unloading = true;
+        super.onChunkUnloaded();
+    }
+
+    /** A broken or dismantled controller takes its site with it; an unloading one keeps it. */
+    @Override
+    public void setRemoved() {
+        if (level instanceof ServerLevel server && !unloading && server.isLoaded(worldPosition)
+                && !(server.getBlockState(worldPosition).getBlock() instanceof WarehouseControllerBlock)) {
+            io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(server).remove(server.dimension(), worldPosition);
+        }
+        super.setRemoved();
     }
 
     /** The key of the chunk the controller stands in. */
@@ -109,6 +136,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         span.add(homeChunk());
         setChanged();
         refreshSiteLamp();
+        syncRecord();
     }
 
     /** A placed controller starts with its own chunk; a span carried in an item would point at the old place. */
@@ -117,6 +145,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         span.add(homeChunk());
         setChanged();
         refreshSiteLamp();
+        syncRecord();
     }
 
     public ChunkLoaderUpgradeSlots upgrades() {
@@ -157,6 +186,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private void upgradesChanged() {
         setChanged();
         refreshSiteLamp();
+        syncRecord();
     }
 
     /** What the activity lamp shows: red over capacity, green otherwise. */
@@ -185,7 +215,9 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     @Override
     public void onLoad() {
         super.onLoad();
+        unloading = false;
         refreshSiteLamp();
+        syncRecord();
         if (legacyShuttles > 0 && level instanceof ServerLevel) {
             Block.popResource(level, worldPosition, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get(), legacyShuttles));
             legacyShuttles = 0;

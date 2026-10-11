@@ -36,6 +36,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_RACK_DISPLAY_COUNT = 4;
     public static final int DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS = 4;
     public static final int DEFAULT_CHUNKS_PER_UPGRADE = 9;
+    public static final int DEFAULT_WAKE_GRACE_SECONDS = 30;
+    public static final int DEFAULT_SITE_SNAPSHOT_INTERVAL = 100;
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
     public static final int DEFAULT_INBOUND_BUFFER_SLOTS = 9;
     public static final int DEFAULT_PUT_AWAY_PER_TICK = 1;
@@ -93,6 +95,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int rackDisplayCount = DEFAULT_RACK_DISPLAY_COUNT;
     private volatile int chunkLoaderUpgradeSlots = DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS;
     private volatile int chunksPerUpgrade = DEFAULT_CHUNKS_PER_UPGRADE;
+    private volatile int wakeGraceTicks = DEFAULT_WAKE_GRACE_SECONDS * 20;
+    private volatile int siteSnapshotInterval = DEFAULT_SITE_SNAPSHOT_INTERVAL;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
     private volatile int inboundBufferSlots = DEFAULT_INBOUND_BUFFER_SLOTS;
     private volatile int putAwayPerTick = DEFAULT_PUT_AWAY_PER_TICK;
@@ -142,6 +146,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         rackDisplayCount = intField(files.get(RACK), "display_count", DEFAULT_RACK_DISPLAY_COUNT);
         chunkLoaderUpgradeSlots = countField(files.get(WAREHOUSE), "chunk_loader_upgrade_slots", DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS);
         chunksPerUpgrade = intField(files.get(WAREHOUSE), "chunks_per_upgrade", DEFAULT_CHUNKS_PER_UPGRADE);
+        wakeGraceTicks = countField(files.get(WAREHOUSE), "wake_grace_seconds", DEFAULT_WAKE_GRACE_SECONDS) * 20;
+        siteSnapshotInterval = intField(files.get(WAREHOUSE), "site_snapshot_interval", DEFAULT_SITE_SNAPSHOT_INTERVAL);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
         inboundBufferSlots = intField(files.get(WAREHOUSE), "inbound_buffer_slots", DEFAULT_INBOUND_BUFFER_SLOTS);
         putAwayPerTick = intField(files.get(WAREHOUSE), "put_away_per_tick", DEFAULT_PUT_AWAY_PER_TICK);
@@ -299,6 +305,26 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     /** Chunks one Chunk Loader Upgrade covers. */
     public int chunksPerUpgrade() {
         return chunksPerUpgrade;
+    }
+
+    /** Ticks a woken site stays loaded after its work is done. */
+    public int wakeGraceTicks() {
+        return wakeGraceTicks;
+    }
+
+    /** For GameTests: the grace time in ticks. */
+    public void setWakeGraceTicks(int ticks) {
+        wakeGraceTicks = Math.max(0, ticks);
+    }
+
+    /** Ticks between two stock reports of an online site. */
+    public int siteSnapshotInterval() {
+        return siteSnapshotInterval;
+    }
+
+    /** For GameTests: ticks between two stock reports. */
+    public void setSiteSnapshotInterval(int ticks) {
+        siteSnapshotInterval = Math.max(1, ticks);
     }
 
     /** For GameTests: chunks one upgrade covers. */

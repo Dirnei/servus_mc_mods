@@ -159,6 +159,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Set<BlockPos> indexedForeign = new HashSet<>();
     /** Set by every membership or source change; the controller's span is recomputed once on the next tick. */
     private boolean spanDirty = true;
+    private int snapshotTimer;
+    private long snapshotVersion = -1;
 
     public WarehouseNetwork(int id, NetworkSet<StorageNodeBlockEntity, WarehouseEvent, ?> owner) {
         super(id, owner);
@@ -1173,6 +1175,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (spanDirty && level != null && controllers == 1 && controllerPos != null) {
             updateSpan();
         }
+        if (level != null && controllers == 1 && ++snapshotTimer >= StorageStatsManager.INSTANCE.siteSnapshotInterval()) {
+            snapshotTimer = 0;
+            snapshotStock();
+        }
         if (level != null) {
             if (shaftsDirty) {
                 shaftsDirty = false;
@@ -1525,6 +1531,37 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         controller.setSpan(SiteChunks.merge(controller.span(), current,
                 key -> level.getChunkSource().hasChunk(SiteChunks.x(key), SiteChunks.z(key))));
+    }
+
+    /**
+     * Reports the index as the site's last known stock, only while every chunk
+     * of the site is loaded, so a site that unloads piece by piece keeps the
+     * stock it had as a whole.
+     */
+    private void snapshotStock() {
+        if (index.version() == snapshotVersion) {
+            return;
+        }
+        controller().ifPresent(controller -> {
+            for (long key : controller.span()) {
+                if (!level.getChunkSource().hasChunk(SiteChunks.x(key), SiteChunks.z(key))) {
+                    return;
+                }
+            }
+            snapshotVersion = index.version();
+            io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).updateStock(controller, index.entries(), level.getGameTime());
+        });
+    }
+
+    /**
+     * Whether the site's own work runs: shuttles out or jobs waiting, inbound
+     * buffers to drain, deliveries held or deferred. A woken site stays loaded
+     * while this is true.
+     */
+    public boolean siteBusy() {
+        return fleet.busy() > 0 || fleet.queued() > 0 || !pendingStations.isEmpty()
+                || held.values().stream().anyMatch(loads -> !loads.isEmpty())
+                || deferred.values().stream().anyMatch(picks -> !picks.isEmpty());
     }
 
     /** Writes the online state into every loaded stock holding member whose lamp is wrong. */

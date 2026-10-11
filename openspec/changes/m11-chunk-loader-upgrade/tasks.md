@@ -6,7 +6,7 @@
 
 ## 2. Registry
 
-- [ ] 2.1 `storage/.../site/SiteRecord.java`, `SiteRegistry.java` (SavedData, key, update, stock, remove, list), `storage/.../crate/StorageStatsManager.java` (`wake_grace_seconds`, `site_snapshot_interval`, setters), `storage/src/main/resources/data/servus_storage/storage/warehouse.json`; `WarehouseControllerBlockEntity` writes its record on changes and load, removes it when broken (unload flag), `WarehouseNetwork` snapshots the stock and offers `siteBusy()`. Run `gradlew build`.
+- [x] 2.1 `storage/.../site/SiteRecord.java`, `SiteRegistry.java` (SavedData, key, update, stock, remove, list), `storage/.../crate/StorageStatsManager.java` (`wake_grace_seconds`, `site_snapshot_interval`, setters), `storage/src/main/resources/data/servus_storage/storage/warehouse.json`; `WarehouseControllerBlockEntity` writes its record on changes and load, removes it when broken (unload flag), `WarehouseNetwork` snapshots the stock and offers `siteBusy()`. Run `gradlew build`.
 
 ## 3. Wakes
 
