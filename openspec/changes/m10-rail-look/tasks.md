@@ -24,6 +24,7 @@
 ## 6. Play check fixes
 
 - [x] 6.1 `rail/RailLook.java`: heads at 3..5 and 11..13 so they clear the lift car posts; `RailLookTest` (straightGaugeAndSleepers, curveMeetsEdgesAtGauge, crossHeadsDoNotOverlap) on the new gauge; design, spec delta and `PLAN.md`; `gradlew :storage:test`, `gradlew :storage:runData`
+- [x] 6.2 `datagen/ShuttleModels.java`: drive parts rebuilt so wheels (tread on the heads, disc with iron hub below the body) and tracks stand on the heads 3..5 and 11..13 at 0.8 scale; root cause recorded in design; spec delta `storage/shuttle-looks` and docs `storage.md`; `gradlew :storage:runData`, `gradlew build`, `gradlew :storage:runGameTestServer`
 
 ## 7. Verification
 

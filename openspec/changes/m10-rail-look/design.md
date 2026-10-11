@@ -65,6 +65,14 @@ The first play check showed heads at 2..4 and 12..14 running into the lift car: 
 ### Shuttles on the heads
 `ShuttleGarageRenderer.FLOOR` becomes `2 / 16`. The car's height comes from the lift and the car rail stands on the car the same way, so riding shuttles are lifted too. No other renderer places shuttles or cargo on rails.
 
+### Wheels that show (play check)
+The play check showed shuttles as boxes hovering over the rail. The composition was not at fault: `ShuttleLook.speedStep(0)` is 0, so `ShuttleItemModel.compose` always adds `drive_0`; `ServusStorageClient.onRegisterAdditional` registers every part from `ShuttleItemModel.parts` as a standalone model, the generated `models/shuttle/drive_*.json` exist and the client log shows no model errors; `renderStatic` resolves the item overrides. The cause was the drive geometry: the wheels were 1 model pixel wide coal slivers at x 1..2 and 14..15 (0.8 block pixels after scaling), y 0..3, so only 1.6 block pixels of thin black showed under the chassis (model y 2..4, block 3.6..5.2 above the ground), and after the heads moved inward they stood mostly beside the heads.
+
+The drive parts are rebuilt for the 0.8 scale around the block centre, where model x `(t - 8) / 0.8 + 8` lands on block pixel t (heads 3..5 and 11..13 give 1.75..4.25 and 11.75..14.25):
+- Wheels: a tread at x 2..4 and 12..14, y 0..2, under the chassis, which is block 3.2..4.8 and 11.2..12.8, on the heads. Outside the chassis a disc at x 1..2 and 14..15 as tall as the wheel (4 for four wheels at z 3 and 9, 3.5 for six wheels at z 2.25, 6.25 and 10.25), rounded by a full height core and a slightly inset full length band, with a 1 pixel iron hub at x 0.5..1 and 15..15.5. The disc rises above the chassis bottom, so the wheel reads as a wheel from the side.
+- Tracks: x 1.75..4.25 and 11.75..14.25, y 0..3, z 2..14, exactly the heads, with three iron road wheel hubs per side. The racing exhaust stacks stay at x 1..2 and 14..15 from y 3 on the track tops.
+- Every wheel and track bottom is model y 0, which `FLOOR` puts on the head tops (block y 2). The drive spans x 0.5..15.5, so the shuttle stays inside its block; the Handling mast (z 1..2) and the Harvester arms (from y 3) do not meet the drive, and the lift car's post sleeves (to x and z 3 and from 13) stay clear of the discs.
+
 ## Risks / Trade-offs
 
 - [Curve made of many small elements] about 60 boxes; baked once, fine for chunk meshing.

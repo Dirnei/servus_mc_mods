@@ -11,7 +11,7 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
  * hold per tier, a drive per Speed look step, a Handling part per step and a
  * model per tool. The item models of the three tiers are children of their
  * body; the client composes the rest per stack. Model +z is the front. The
- * body spans 2 to 14, the drive 1 to 15; only a tool reaches further. The
+ * body spans 2 to 14, the drive 0.5 to 15.5; only a tool reaches further. The
  * left side of the hold (x = 2, y 5 to 8, z 5 to 11) stays free for the name
  * plate. Textures are vanilla placeholders.
  */
@@ -64,10 +64,10 @@ final class ShuttleModels {
 
     private static void drives(BlockStateProvider provider) {
         BlockModelBuilder four = model(provider, "drive_0", WHEEL);
-        wheels(four, 3, 10);
+        wheels(four, 4, 3, 9);
 
         BlockModelBuilder six = model(provider, "drive_1", WHEEL);
-        wheels(six, 3, 6.5F, 10);
+        wheels(six, 3.5F, 2.25F, 6.25F, 10.25F);
 
         BlockModelBuilder tracks = model(provider, "drive_2", TRACK);
         tracks(tracks);
@@ -79,16 +79,39 @@ final class ShuttleModels {
         box(racing, 14, 3, 2, 15, 13, 3, COPPER);
     }
 
-    private static void wheels(BlockModelBuilder model, float... zs) {
+    /**
+     * Wheels of the given diameter starting at each z, on both sides. The
+     * shuttle is drawn at 0.8 scale around the block centre, so model x
+     * (t - 8) / 0.8 + 8 lands on block pixel t: the treads at 2..4 and 12..14
+     * stand on the rail heads 3..5 and 11..13 (block 3.2..4.8 and 11.2..12.8)
+     * under the chassis. Outside the chassis (x 1..2 and 14..15) each wheel
+     * shows a rounded disc taller than the chassis bottom with an iron hub, so
+     * it reads as a wheel from the side. Every wheel bottom is model y 0, the
+     * top of the heads.
+     */
+    private static void wheels(BlockModelBuilder model, float diameter, float... zs) {
+        float hub = 1;
         for (float z : zs) {
-            box(model, 1, 0, z, 2, 3, z + 3, WHEEL);
-            box(model, 14, 0, z, 15, 3, z + 3, WHEEL);
+            float mid = diameter / 2;
+            for (float[] side : new float[][] {{1, 2, 0.5F, 1, 2, 4}, {14, 15, 15, 15.5F, 12, 14}}) {
+                // The disc: a full height core and a slightly inset full length band round its corners.
+                box(model, side[0], 0, z + 0.5F, side[1], diameter, z + diameter - 0.5F, WHEEL);
+                box(model, side[0] + 0.1F, 0.5F, z, side[1] - 0.1F, diameter - 0.5F, z + diameter, WHEEL);
+                box(model, side[2], mid - hub / 2, z + mid - hub / 2, side[3], mid + hub / 2, z + mid + hub / 2, IRON);
+                // The tread under the chassis, on the head.
+                box(model, side[4], 0, z + 0.5F, side[5], 2, z + diameter - 0.5F, WHEEL);
+            }
         }
     }
 
+    /** Tracks at 1.75..4.25 and 11.75..14.25, exactly over the heads 3..5 and 11..13 at 0.8 scale, with iron road wheel hubs. */
     private static void tracks(BlockModelBuilder model) {
-        box(model, 1, 0, 2, 2.5F, 3, 14, TRACK);
-        box(model, 13.5F, 0, 2, 15, 3, 14, TRACK);
+        box(model, 1.75F, 0, 2, 4.25F, 3, 14, TRACK);
+        box(model, 11.75F, 0, 2, 14.25F, 3, 14, TRACK);
+        for (float z : new float[] {3.5F, 7.5F, 11.5F}) {
+            box(model, 1.25F, 1, z, 1.75F, 2, z + 1, IRON);
+            box(model, 14.25F, 1, z, 14.75F, 2, z + 1, IRON);
+        }
     }
 
     private static void handling(BlockStateProvider provider) {
