@@ -28,5 +28,5 @@
 
 ## 7. Integration
 
-- [ ] 7.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch happens in the user's play check (7.2).
+- [x] 7.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch happens in the user's play check (7.2).
 - [ ] 7.2 Play check in game by the user from main: build a Mk2 by hand (bolts, wires, weld), close the GUI mid build and come back, cancel one build, engrave a name, see it on the shuttle on the rails, in the garage tooltip and in the Field Head while it harvests, build a Mk3 with Build now and keep the plate. Verify: the user confirms in game.
