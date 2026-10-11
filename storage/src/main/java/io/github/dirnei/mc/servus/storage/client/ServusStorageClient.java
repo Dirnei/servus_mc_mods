@@ -28,6 +28,7 @@ public final class ServusStorageClient {
         event.register(ServusStorageMenus.INBOUND_STATION.get(), InboundStationScreen::new);
         event.register(ServusStorageMenus.ZONE_LABEL.get(), ZoneLabelScreen::new);
         event.register(ServusStorageMenus.SHUTTLE_GARAGE.get(), ShuttleGarageScreen::new);
+        event.register(ServusStorageMenus.SHUTTLE_WORKSHOP.get(), ShuttleWorkshopScreen::new);
         event.register(ServusStorageMenus.PACKING_STATION.get(), PackingStationScreen::new);
         event.register(ServusStorageMenus.OUTBOUND_STATION.get(), OutboundStationScreen::new);
         event.register(ServusStorageMenus.CRAFTING_STATION.get(), CraftingStationScreen::new);

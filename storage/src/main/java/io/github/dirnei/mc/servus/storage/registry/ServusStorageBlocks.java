@@ -16,6 +16,7 @@ import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlock;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleWorkshopBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -143,6 +144,13 @@ public final class ServusStorageBlocks {
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
                             .sound(SoundType.METAL));
+
+    public static final DeferredBlock<ShuttleWorkshopBlock> SHUTTLE_WORKSHOP =
+            BLOCKS.registerBlock("shuttle_workshop", ShuttleWorkshopBlock::new,
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.WOOD)
+                            .strength(2.5F)
+                            .sound(SoundType.WOOD));
 
     private ServusStorageBlocks() {
     }

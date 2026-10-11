@@ -10,7 +10,7 @@
 
 ## 3. Shuttle Workshop
 
-- [ ] 3.1 `ShuttleWorkshopBlock` in `storage/.../shuttle/module/`, registered in `ServusStorageBlocks` and `ServusStorageItems`; `ShuttleWorkshopMenu` with `ModuleContainer` and the module slot class in `storage/.../menu/`, `SHUTTLE_WORKSHOP` in `ServusStorageMenus`; `ShuttleWorkshopScreen` in `storage/.../client/` registered in `ServusStorageClient` (design D3). Verify: `gradlew build`.
+- [x] 3.1 `ShuttleWorkshopBlock` in `storage/.../shuttle/module/`, registered in `ServusStorageBlocks` and `ServusStorageItems`; `ShuttleWorkshopMenu` with `ModuleContainer` and the module slot class in `storage/.../menu/`, `SHUTTLE_WORKSHOP` in `ServusStorageMenus`; `ShuttleWorkshopScreen` in `storage/.../client/` registered in `ServusStorageClient` (design D3). Verify: `gradlew build`.
 - [ ] 3.2 Datagen: blockstate and block model, item models for workshop and Cargo Hold, loot, pickaxe tag, recipes (workshop, Cargo Hold), lang (block, item, tooltip lines, GUI labels) in `storage/.../datagen/`; placeholder textures `shuttle_workshop_top.png`, `shuttle_workshop_side.png`, `shuttle_workshop_bottom.png` and `item/cargo_hold.png` via the png helper. Verify: `gradlew runData`, then `gradlew build`.
 - [ ] 3.3 GameTests in `ServusStorageGameTests`: `workshopFitsCargoHold` (fit, take the shuttle out with the module, put it back and see the module, remove the module, plain shuttle stacks with a new one), `workshopRefusesWrongModules` (no module without a shuttle, Cargo Hold not in the tool slot, a stack of shuttles moves one), `workshopReturnsShuttleOnClose`. Verify: `gradlew :storage:runGameTestServer` green.
 
