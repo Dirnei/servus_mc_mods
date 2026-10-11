@@ -10,12 +10,14 @@ import java.util.List;
  *
  * @param baseSpeed      blocks per tick without Speed upgrades
  * @param speedPerCount  blocks per tick each Speed upgrade adds
+ * @param accel          speed gained per tick while a shuttle without Speed upgrades speeds up; it brakes as hard
+ * @param accelPerCount  what each Speed upgrade adds to that
  * @param stopTicks      ticks every loading or unloading stop takes
  * @param stackTicks     ticks a stop takes per stack moved there
  * @param handlingFactor what each Handling upgrade multiplies stop and work times by
  * @param tiers          Mk1 first; at least one
  */
-public record ShuttleTiers(double baseSpeed, double speedPerCount, int stopTicks, int stackTicks, double handlingFactor, List<Tier> tiers) {
+public record ShuttleTiers(double baseSpeed, double speedPerCount, double accel, double accelPerCount, int stopTicks, int stackTicks, double handlingFactor, List<Tier> tiers) {
 
     /** The upgrades counted on a shuttle. */
     public enum Kind { SPEED, HANDLING }
@@ -50,12 +52,20 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, int stopTicks
         }
     }
 
+    public static final double DEFAULT_ACCEL = 0.01;
+    public static final double DEFAULT_ACCEL_PER_COUNT = 0.0025;
+
     public static final ShuttleTiers DEFAULT = new ShuttleTiers(0.15, 0.04, 10, 4, 0.8, List.of(
             new Tier(2, 2, 2, List.of()),
             new Tier(4, 4, 4, List.of(new Supply("minecraft:gold_ingot", 16), new Supply("minecraft:chest", 2),
                     new Supply("minecraft:redstone", 16))),
             new Tier(8, 8, 8, List.of(new Supply("minecraft:diamond", 8), new Supply("minecraft:gold_block", 2),
                     new Supply("minecraft:ender_chest", 1)))));
+
+    /** Stats with the default acceleration. */
+    public ShuttleTiers(double baseSpeed, double speedPerCount, int stopTicks, int stackTicks, double handlingFactor, List<Tier> tiers) {
+        this(baseSpeed, speedPerCount, DEFAULT_ACCEL, DEFAULT_ACCEL_PER_COUNT, stopTicks, stackTicks, handlingFactor, tiers);
+    }
 
     public ShuttleTiers {
         if (tiers.isEmpty()) {
@@ -64,6 +74,8 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, int stopTicks
         tiers = List.copyOf(tiers);
         baseSpeed = Math.max(0.01, baseSpeed);
         speedPerCount = Math.max(0, speedPerCount);
+        accel = Math.max(0.0001, accel);
+        accelPerCount = Math.max(0, accelPerCount);
         stopTicks = Math.max(0, stopTicks);
         stackTicks = Math.max(0, stackTicks);
         handlingFactor = Math.max(0.01, Math.min(1, handlingFactor));
@@ -87,6 +99,11 @@ public record ShuttleTiers(double baseSpeed, double speedPerCount, int stopTicks
     /** Blocks per tick of a shuttle of that tier with that many Speed upgrades. */
     public double speed(int tier, int count) {
         return baseSpeed + speedPerCount * clamp(tier, Kind.SPEED, count);
+    }
+
+    /** Speed gained (and lost when braking) per tick by a shuttle of that tier with that many Speed upgrades. */
+    public double accel(int tier, int count) {
+        return accel + accelPerCount * clamp(tier, Kind.SPEED, count);
     }
 
     /** The factor that many Handling upgrades put on stop and work times. */

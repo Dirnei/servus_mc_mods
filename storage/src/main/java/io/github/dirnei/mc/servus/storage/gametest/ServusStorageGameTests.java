@@ -1177,7 +1177,8 @@ public final class ServusStorageGameTests {
         helper.runAfterDelay(10, () -> {
             ItemHandlerHelper.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 40), false);
             helper.runAfterDelay(2, () -> helper.assertTrue(!station.isEmpty(), "the stack waits in the buffer until the shuttle arrives"));
-            helper.runAfterDelay(30, () -> {
+            // The shuttle speeds up and brakes before it loads.
+            helper.runAfterDelay(45, () -> {
                 helper.assertTrue(station.isEmpty(), "the shuttle should have loaded the stack by now");
                 helper.assertTrue(crate.isEmpty(), "the crate must still be empty while the shuttle travels");
             });
@@ -1524,7 +1525,8 @@ public final class ServusStorageGameTests {
             helper.assertTrue(stockOf(menu, Items.BREAD) == 30, "the terminal lists the right bay's bread");
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 30);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request should go through, got " + menu.stock().message());
-            helper.runAfterDelay(160, () -> {
+            // Shuttles speed up and brake on every leg.
+            helper.runAfterDelay(220, () -> {
                 helper.assertTrue(terminal.outputCount(Items.BREAD) == 30, "the shuttle should have brought 30 bread, output has " + terminal.outputCount(Items.BREAD));
                 helper.assertTrue(right.isEmpty(), "the right bay should be empty");
                 helper.succeed();
@@ -2223,7 +2225,8 @@ public final class ServusStorageGameTests {
             helper.assertTrue(menu.stock().online(), "online");
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 20);
             helper.assertTrue(menu.stock().message().isEmpty(), "the request goes through, got " + menu.stock().message());
-            helper.runAfterDelay(200, () -> {
+            // Shuttles speed up and brake on every leg.
+            helper.runAfterDelay(260, () -> {
                 helper.assertTrue(terminal.outputCount(Items.BREAD) == 20, "the shuttle should have brought 20 bread, output has " + terminal.outputCount(Items.BREAD));
                 helper.assertTrue(rack.isEmpty(), "the rack should be empty");
                 helper.assertTrue(highest[0] == bottom.getY() + 2, "the car went up to the top floor, highest was " + highest[0]);
@@ -2246,8 +2249,8 @@ public final class ServusStorageGameTests {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 10);
             menu.request(ItemKey.of(new ItemStack(Items.APPLE)), 10);
-            // Two lift handover pauses come before the top rack's load.
-            helper.runAfterDelay(85, () -> {
+            // Two lift handover pauses and the shuttle speeding up and braking come before the top rack's load.
+            helper.runAfterDelay(100, () -> {
                 helper.assertTrue(top.isEmpty(), "the first caller rode up first and loaded the top rack");
                 helper.assertTrue(!middle.isEmpty(), "the second caller is still waiting for the car, although its floor is nearer");
                 helper.runAfterDelay(300, () -> {

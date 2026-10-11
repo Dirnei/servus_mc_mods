@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
+import io.github.dirnei.mc.servus.storage.shuttle.ShuttleDrive;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleLook;
@@ -67,7 +68,8 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
         int parked = 0;
 
         for (ShuttleView view : fleet.views()) {
-            double[] pos = positionAfter(view, elapsed);
+            double[] at = glide(view, elapsed);
+            double[] pos = position(view.path(), at);
             if (view.lift().isPresent()) {
                 // Riding: the car carries the shuttle, so its height comes from the car.
                 ClientLifts.Lift lift = ClientLifts.lift(view.lift().get());
@@ -75,7 +77,7 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
                     pos[1] = lift.yAt(now + partialTick);
                 }
             }
-            double yaw = headingAfter(view, elapsed);
+            double yaw = heading(view.path(), at);
             double offset = 0;
             if (!view.moving()) {
                 offset = parked * PARK_SPACING;
@@ -104,27 +106,21 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
         }
     }
 
-    /** Where the shuttle is after moving for the elapsed ticks since the sync. */
-    private static double[] positionAfter(ShuttleView view, double elapsed) {
+    /** Where on its path the shuttle is after driving the elapsed ticks since the sync: {segment, progress}. */
+    private static double[] glide(ShuttleView view, double elapsed) {
         List<BlockPos> path = view.path();
-        int segment = view.segment();
-        double progress = view.progress() + view.speed() * elapsed;
-        while (segment < path.size() - 1 && progress >= 1.0) {
-            progress -= 1.0;
-            segment++;
-        }
-        // Only the lift car moves a shuttle up or down: never guess past the start of a vertical step.
-        for (int i = view.segment(); i < Math.min(segment + 1, path.size() - 1); i++) {
-            if (!horizontal(path, i) && (i > view.segment() || view.progress() == 0)) {
-                segment = i;
-                progress = 0;
-                break;
-            }
-        }
+        ShuttleView.Drive drive = view.drive();
+        return ShuttleDrive.glide(path.size(), view.segment(), view.progress(), drive.speed(), drive.top(), drive.accel(), elapsed,
+                i -> !horizontal(path, i));
+    }
+
+    private static double[] position(List<BlockPos> path, double[] at) {
+        int segment = (int) at[0];
         if (segment >= path.size() - 1) {
             BlockPos end = path.get(path.size() - 1);
             return new double[] {end.getX(), end.getY(), end.getZ()};
         }
+        double progress = at[1];
         BlockPos from = path.get(segment);
         BlockPos to = path.get(segment + 1);
         return new double[] {
@@ -138,18 +134,11 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
      * the rail. On a vertical segment it keeps the heading of the last
      * horizontal one, or takes the next one when the path starts in a shaft.
      */
-    private static double headingAfter(ShuttleView view, double elapsed) {
-        List<BlockPos> path = view.path();
+    private static double heading(List<BlockPos> path, double[] at) {
         if (path.size() < 2) {
             return 0;
         }
-        int segment = view.segment();
-        double progress = view.progress() + view.speed() * elapsed;
-        while (segment < path.size() - 2 && progress >= 1.0) {
-            progress -= 1.0;
-            segment++;
-        }
-        int current = Math.min(segment, path.size() - 2);
+        int current = Math.min((int) at[0], path.size() - 2);
         for (int i = current; i >= 0; i--) {
             if (horizontal(path, i)) {
                 return yaw(path, i);

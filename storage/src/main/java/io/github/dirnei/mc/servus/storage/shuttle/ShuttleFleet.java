@@ -473,7 +473,10 @@ public final class ShuttleFleet {
                 if (!shuttle.motion.arrived()) {
                     moving = true;
                     boolean wasHeld = shuttle.motion.held();
-                    boolean done = shuttle.motion.advance(shuttle.profile.speed(), segment -> mayStart(shuttle, segment));
+                    boolean done = shuttle.motion.advance(drive(shuttle), segment -> mayStart(shuttle, segment));
+                    if (shuttle.motion.held()) {
+                        shuttle.speed = 0;
+                    }
                     observeLift(shuttle, shuttle.motion.currentNode());
                     if (wasHeld != shuttle.motion.held()) {
                         syncPending = true;
@@ -1641,6 +1644,31 @@ public final class ShuttleFleet {
     }
 
     /**
+     * The blocks the shuttle drives this tick: faster from tick to tick up to
+     * its top speed, braking for the end of its path and for the lift car. A
+     * new path starts from standing.
+     */
+    private double drive(Shuttle shuttle) {
+        ShuttleMotion motion = shuttle.motion;
+        if (motion != shuttle.speedFor) {
+            shuttle.speedFor = motion;
+            shuttle.speed = 0;
+        }
+        List<NodePos> path = motion.path();
+        double top = shuttle.profile.speed();
+        double toStop = ShuttleDrive.toStop(path.size(), motion.segment(), motion.progress(), i -> vertical(path, i));
+        shuttle.speed = ShuttleDrive.next(shuttle.speed, top, shuttle.profile.accel(), toStop);
+        // Standing at the start of a ride still knocks on the gate, which hands over to the car.
+        return Math.max(shuttle.speed, 1e-4);
+    }
+
+    private static boolean vertical(List<NodePos> path, int i) {
+        NodePos a = path.get(i);
+        NodePos b = path.get(i + 1);
+        return a.x() == b.x() && a.z() == b.z() && a.y() != b.y();
+    }
+
+    /**
      * Whether the shuttle still has to pause before the car takes it or
      * after it set it down; starts the pause the first time it is asked.
      */
@@ -1726,7 +1754,10 @@ public final class ShuttleFleet {
             for (NodePos node : motion.path()) {
                 path.add(Conversions.toBlockPos(node));
             }
-            float shown = shuttle.riding || motion.held() || shuttle.stop > 0 || shuttle.handover > 0 ? 0 : (float) shuttle.profile.speed();
+            boolean still = shuttle.riding || motion.held() || shuttle.stop > 0 || shuttle.handover > 0 || motion != shuttle.speedFor;
+            double top = shuttle.profile.speed();
+            ShuttleView.Drive shown = still ? ShuttleView.Drive.STILL
+                    : new ShuttleView.Drive((float) shuttle.speed, (float) top, (float) shuttle.profile.accel());
             Optional<BlockPos> lift = shuttle.riding && shuttle.lift != null ? Optional.of(shuttle.lift) : Optional.empty();
             list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.shownCargo(), lift, shuttle.item.copy()));
         }
@@ -1883,6 +1914,9 @@ public final class ShuttleFleet {
         /** Whether the car carries the shuttle right now, towards path node rideEnd. */
         boolean riding;
         int rideEnd;
+        /** Blocks driven last tick on the path speedFor; a new path starts from standing. */
+        double speed;
+        ShuttleMotion speedFor;
         /** Ticks left of the pause at a lift handover. */
         int handover;
         /** Whether that pause is over, so the waiting step may go on. */

@@ -87,4 +87,12 @@ class ShuttleTiersTest {
                 List.of(new BuildStep(StepKind.BOLTS, 20), new BuildStep(StepKind.WELD, 0)));
         assertEquals(List.of(new BuildStep(StepKind.BOLTS, 8), new BuildStep(StepKind.WELD, 1)), tier.steps());
     }
+
+    @Test
+    void speedUpgradesAlsoRaiseAcceleration() {
+        assertEquals(0.01, TIERS.accel(1, 0), 1e-9);
+        assertEquals(0.015, TIERS.accel(1, 2), 1e-9);
+        assertEquals(0.015, TIERS.accel(1, 5), 1e-9);
+        assertEquals(0.03, TIERS.accel(3, 8), 1e-9);
+    }
 }

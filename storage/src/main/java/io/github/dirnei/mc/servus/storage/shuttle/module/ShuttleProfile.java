@@ -12,9 +12,10 @@ import java.util.Set;
  * @param fieldOnly whether the shuttle serves fields only
  * @param stacks    how many stacks, and so how many jobs, it carries per trip
  * @param speed     blocks per tick between stops
+ * @param accel     speed gained per tick while it speeds up, lost while it brakes
  * @param handling  the factor its Handling upgrades put on stop and work times
  */
-public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks, double speed, double handling, boolean liftless) {
+public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks, double speed, double accel, double handling, boolean liftless) {
 
     public ShuttleProfile {
         modules = Set.copyOf(modules);
@@ -25,7 +26,7 @@ public record ShuttleProfile(Set<String> modules, boolean fieldOnly, int stacks,
         Set<String> ids = tool.map(spec -> Set.of(spec.id())).orElse(Set.of());
         boolean fieldOnly = tool.map(ModuleSpec::fieldOnly).orElse(false);
         boolean liftless = tool.map(ModuleSpec::wide).orElse(false);
-        return new ShuttleProfile(ids, fieldOnly, tiers.tier(tier).stacks(), tiers.speed(tier, speed), tiers.factor(tier, handling), liftless);
+        return new ShuttleProfile(ids, fieldOnly, tiers.tier(tier).stacks(), tiers.speed(tier, speed), tiers.accel(tier, speed), tiers.factor(tier, handling), liftless);
     }
 
     /** A Mk1 shuttle without tool or upgrades by the default stats. */

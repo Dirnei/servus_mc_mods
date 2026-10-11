@@ -16,14 +16,29 @@ import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
  * segment and the shuttle is drawn on the car. The shuttle item tells its
  * tier, upgrades and tool.
  */
-public record ShuttleView(List<BlockPos> path, int segment, float progress, float speed, ItemStack cargo, Optional<BlockPos> lift,
+public record ShuttleView(List<BlockPos> path, int segment, float progress, Drive drive, ItemStack cargo, Optional<BlockPos> lift,
                           ItemStack shuttle) {
+
+    /**
+     * How the shuttle drives on from here: its speed now, its top speed (0
+     * while it waits, so it stands still) and the speed it gains per tick.
+     */
+    public record Drive(float speed, float top, float accel) {
+
+        public static final Drive STILL = new Drive(0, 0, 0);
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, Drive> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.FLOAT, Drive::speed,
+                ByteBufCodecs.FLOAT, Drive::top,
+                ByteBufCodecs.FLOAT, Drive::accel,
+                Drive::new);
+    }
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ShuttleView> STREAM_CODEC = NeoForgeStreamCodecs.composite(
             BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()), ShuttleView::path,
             ByteBufCodecs.VAR_INT, ShuttleView::segment,
             ByteBufCodecs.FLOAT, ShuttleView::progress,
-            ByteBufCodecs.FLOAT, ShuttleView::speed,
+            Drive.STREAM_CODEC, ShuttleView::drive,
             ItemStack.OPTIONAL_STREAM_CODEC, ShuttleView::cargo,
             ByteBufCodecs.optional(BlockPos.STREAM_CODEC), ShuttleView::lift,
             ItemStack.OPTIONAL_STREAM_CODEC, ShuttleView::shuttle,

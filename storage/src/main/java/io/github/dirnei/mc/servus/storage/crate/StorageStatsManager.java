@@ -226,6 +226,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         return liftHandoverTicks;
     }
 
+
     public int rackSlots() {
         return rackSlots;
     }

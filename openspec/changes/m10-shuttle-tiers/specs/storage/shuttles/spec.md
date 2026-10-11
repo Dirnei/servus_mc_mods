@@ -82,3 +82,18 @@ A shuttle that rides a lift car SHALL drive into the car, stand still for a shor
 #### Scenario: Ride with pauses
 - **WHEN** a shuttle with full Speed rides the car from the ground floor to the second floor
 - **THEN** it drives into the car, stands still, rides up with the car, stands still at the second floor and then drives off, and it is never drawn above the car
+
+### Requirement: Shuttles speed up and brake
+A shuttle SHALL start every leg from standing, speed up by its acceleration each tick until it reaches its top speed, and brake at the same rate so it comes to a stop at the end of its leg and before a lift ride, never past it. The acceleration SHALL come from the shuttle stats file as a base plus a share per Speed upgrade (examples `accel` 0.01 and `accel_per_upgrade` 0.0025 blocks per tick per tick), so a faster shuttle accelerates harder but still needs a longer run to reach its top speed. A shuttle stopped by a gate (waiting for the car or a deck) SHALL start again from standing. Clients SHALL draw the same speeding up and braking.
+
+#### Scenario: Plain shuttle starts
+- **WHEN** a shuttle without Speed upgrades leaves its garage
+- **THEN** it reaches its top speed after about 15 ticks and about one block
+
+#### Scenario: Fast shuttle needs a longer run
+- **WHEN** a Mk3 shuttle with eight Speed upgrades leaves its garage
+- **THEN** it accelerates harder than a plain shuttle and reaches its top speed after about four blocks
+
+#### Scenario: Braking for the end of the leg
+- **WHEN** a shuttle at top speed nears the rail beside the rack it picks from
+- **THEN** it slows down and stands still on that rail without overshooting it

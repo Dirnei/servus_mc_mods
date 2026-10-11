@@ -1,5 +1,5 @@
 {
-  "speed": { "base": 0.15, "per_upgrade": 0.04 },
+  "speed": { "base": 0.15, "per_upgrade": 0.04, "accel": 0.01, "accel_per_upgrade": 0.0025 },
   "stops": { "stop_ticks": 10, "stack_ticks": 4, "handling_factor": 0.8 },
   "tiers": [
     { "stacks": 2, "max_speed": 2, "max_handling": 2 },

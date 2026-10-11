@@ -46,6 +46,8 @@ final class ShuttleStatsReader {
             return new ShuttleTiers(
                     number(speed, "base", fallback.baseSpeed()),
                     number(speed, "per_upgrade", fallback.speedPerCount()),
+                    number(speed, "accel", fallback.accel()),
+                    number(speed, "accel_per_upgrade", fallback.accelPerCount()),
                     integer(stops, "stop_ticks", fallback.stopTicks()),
                     integer(stops, "stack_ticks", fallback.stackTicks()),
                     number(stops, "handling_factor", fallback.handlingFactor()),

@@ -440,20 +440,21 @@ public final class ShuttleModuleGameTests {
      * trip takes about 94 ticks of driving and 28 of stops, with two Speed
      * upgrades about 62 and 28, so at 106 ticks only the fast one is done.
      */
-    private static void timedTrip(GameTestHelper helper, int speed, boolean doneAt106) {
+    private static void timedTrip(GameTestHelper helper, int speed, boolean doneByCheck) {
         fleetSetup(helper, shuttle(ServusStorageItems.SHUTTLE_MK1.get(), speed, 0, Optional.empty()), 0, 30);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = requestCobblestone(helper, 30);
-            helper.runAfterDelay(106, () -> {
+            // Shuttles speed up and brake on every leg, so the check comes a little later than travel alone.
+            helper.runAfterDelay(130, () -> {
                 int riding = network.ridingJobs();
-                helper.assertTrue(doneAt106 ? riding == 0 : riding == 1,
-                        (doneAt106 ? "the fast shuttle should have delivered" : "the slow shuttle should still carry the pick") + ", riding " + riding);
+                helper.assertTrue(doneByCheck ? riding == 0 : riding == 1,
+                        (doneByCheck ? "the fast shuttle should have delivered" : "the slow shuttle should still carry the pick") + ", riding " + riding);
                 TerminalWiring.when(helper, () -> network.ridingJobs() == 0, 200, () -> "the pick should be delivered", helper::succeed);
             });
         });
     }
 
-    /** A plain shuttle takes its stops: travel alone would be done by tick 106, with both stops it is not. */
+    /** A plain shuttle takes its stops: travel alone would be done by the check, with both stops it is not. */
     @GameTest(template = EMPTY, timeoutTicks = 400)
     public static void stopsDelayTheDelivery(GameTestHelper helper) {
         timedTrip(helper, 0, false);
