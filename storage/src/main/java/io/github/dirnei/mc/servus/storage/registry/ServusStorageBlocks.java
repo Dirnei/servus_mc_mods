@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
 import io.github.dirnei.mc.servus.storage.field.FarmRailBlock;
+import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
@@ -91,6 +92,13 @@ public final class ServusStorageBlocks {
                     .strength(1.0F)
                     .sound(SoundType.METAL)
                     .noOcclusion());
+
+    public static final DeferredBlock<FieldHeadBlock> FIELD_HEAD = BLOCKS.registerBlock("field_head", FieldHeadBlock::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .strength(2.5F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.METAL));
 
     public static final DeferredBlock<ElevatorBlock> ELEVATOR = BLOCKS.registerBlock("elevator", ElevatorBlock::new,
             BlockBehaviour.Properties.of()

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
+import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
@@ -94,6 +95,11 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HeavyRackBlockEntity>> HEAVY_RACK =
             BLOCK_ENTITIES.register("heavy_rack", () -> BlockEntityType.Builder
                     .of(HeavyRackBlockEntity::new, ServusStorageBlocks.HEAVY_RACK.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FieldHeadBlockEntity>> FIELD_HEAD =
+            BLOCK_ENTITIES.register("field_head", () -> BlockEntityType.Builder
+                    .of(FieldHeadBlockEntity::new, ServusStorageBlocks.FIELD_HEAD.get())
                     .build(null));
 
     private ServusStorageBlockEntities() {

@@ -88,6 +88,8 @@ public final class ServusStorageEvents {
 
         @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ServusStorageBlockEntities.FIELD_HEAD.get(),
+                    (head, side) -> head.fluidHandler());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.CRATE.get(),
                     (crate, side) -> crate.handler());
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ServusStorageBlockEntities.HEAVY_RACK.get(),
