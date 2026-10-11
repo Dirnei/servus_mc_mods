@@ -254,7 +254,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .pattern("ISI")
                 .pattern("WCW")
                 .pattern("ISI")
-                .define('I', Items.IRON_INGOT)
+                .define('I', Items.COPPER_INGOT)
                 .define('S', Items.WHEAT_SEEDS)
                 .define('W', Items.BONE_MEAL)
                 .define('C', Items.COMPOSTER)
