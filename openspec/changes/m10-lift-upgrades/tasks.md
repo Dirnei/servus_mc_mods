@@ -20,7 +20,7 @@
 
 ## 5. Docs
 
-- [ ] 5.1 `docs/src/content/docs/mods/storage.md`: elevator upgrades. `PLAN.md` M10: the change as a play check follow up with what was built. Verify: `openspec validate m10-lift-upgrades`, docs tests green.
+- [x] 5.1 `docs/src/content/docs/mods/storage.md`: elevator upgrades. `PLAN.md` M10: the change as a play check follow up with what was built. Verify: `openspec validate m10-lift-upgrades`, docs tests green.
 
 ## 6. Integration
 
