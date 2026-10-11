@@ -24,7 +24,7 @@
 
 ## 6. Docs and plan
 
-- [ ] 6.1 `docs/src/content/docs/mods/storage.md`: the build by hand, its steps and the name plate. `PLAN.md` M10 item 3 marked built with what was decided. Verify: `openspec validate m10-shuttle-build-minigame`, docs tests green.
+- [x] 6.1 `docs/src/content/docs/mods/storage.md`: the build by hand, its steps and the name plate. `PLAN.md` M10 item 3 marked built with what was decided. Verify: `openspec validate m10-shuttle-build-minigame`, docs tests green.
 
 ## 7. Integration
 
