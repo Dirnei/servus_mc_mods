@@ -4,7 +4,7 @@
 
 ## 2. Wood rails
 
-- [ ] 2.1 `RailBlockEntity` implements `WoodHolder` with a `WoodSlot` (save, load, update tag and packet, components, model data); new `rail/RailItem` (assist plus wood tooltip) for `ServusStorageItems.RAIL` and `FARM_RAIL`; `ServusStorage` registers both rails with `Wood.register`; `ConnectableBlock.onWrench` in Foundation stamps the wood on the dismantled item; `gradlew build`
+- [x] 2.1 `RailBlockEntity` implements `WoodHolder` with a `WoodSlot` (save, load, update tag and packet, components, model data); new `rail/RailItem` (assist plus wood tooltip) for `ServusStorageItems.RAIL` and `FARM_RAIL`; `ServusStorage` registers both rails with `Wood.register`; `ConnectableBlock.onWrench` in Foundation stamps the wood on the dismantled item; `gradlew build`
 
 ## 3. Textures and datagen
 

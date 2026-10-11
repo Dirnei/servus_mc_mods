@@ -1,11 +1,10 @@
 package io.github.dirnei.mc.servus.storage.registry;
 
-import io.github.dirnei.mc.servus.foundation.placement.AssistedBlockItem;
 import io.github.dirnei.mc.servus.foundation.wood.WoodBlockItem;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackItem;
 import io.github.dirnei.mc.servus.storage.rail.ElevatorItem;
-import io.github.dirnei.mc.servus.storage.rail.RailAssist;
+import io.github.dirnei.mc.servus.storage.rail.RailItem;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ModuleSpec;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModuleItem;
@@ -33,10 +32,10 @@ public final class ServusStorageItems {
             properties -> new WoodBlockItem(ServusStorageBlocks.PRODUCTION_TERMINAL.get(), properties));
     public static final DeferredItem<WoodBlockItem> PATTERN_STORAGE = ITEMS.registerItem("pattern_storage",
             properties -> new WoodBlockItem(ServusStorageBlocks.PATTERN_STORAGE.get(), properties));
-    public static final DeferredItem<AssistedBlockItem> RAIL = ITEMS.registerItem("rail",
-            properties -> new AssistedBlockItem(ServusStorageBlocks.RAIL.get(), RailAssist.INSTANCE, properties));
-    public static final DeferredItem<AssistedBlockItem> FARM_RAIL = ITEMS.registerItem("farm_rail",
-            properties -> new AssistedBlockItem(ServusStorageBlocks.FARM_RAIL.get(), RailAssist.INSTANCE, properties));
+    public static final DeferredItem<RailItem> RAIL = ITEMS.registerItem("rail",
+            properties -> new RailItem(ServusStorageBlocks.RAIL.get(), properties));
+    public static final DeferredItem<RailItem> FARM_RAIL = ITEMS.registerItem("farm_rail",
+            properties -> new RailItem(ServusStorageBlocks.FARM_RAIL.get(), properties));
     public static final DeferredItem<WoodBlockItem> FIELD_HEAD = ITEMS.registerItem("field_head",
             properties -> new WoodBlockItem(ServusStorageBlocks.FIELD_HEAD.get(), properties));
     public static final DeferredItem<ElevatorItem> ELEVATOR = ITEMS.registerItem("elevator",
