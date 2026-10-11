@@ -2,7 +2,7 @@
 
 ## 1. Pure module logic
 
-- [ ] 1.1 `ModuleSlot`, `ModuleSpec`, `ShuttleProfile`, `JobNeeds` and `CargoBatch` in `storage/src/main/java/.../storage/shuttle/module/` (design D1), no Minecraft imports. JUnit in `storage/src/test/java/.../storage/shuttle/module/`: `ShuttleProfileTest` (plain is one stack, a Cargo Hold takes the stack count given, field only when any module is, module ids collected), `JobNeedsTest` (warehouse needs fit plain and Cargo Hold profiles and refuse field only ones, a needed module must be fitted, a field job takes a field only profile), `CargoBatchTest` (queue order kept, stops at room, skips other ways, zero room takes nothing). Verify: `gradlew test`.
+- [x] 1.1 `ModuleSlot`, `ModuleSpec`, `ShuttleProfile`, `JobNeeds` and `CargoBatch` in `storage/src/main/java/.../storage/shuttle/module/` (design D1), no Minecraft imports. JUnit in `storage/src/test/java/.../storage/shuttle/module/`: `ShuttleProfileTest` (plain is one stack, a Cargo Hold takes the stack count given, field only when any module is, module ids collected), `JobNeedsTest` (warehouse needs fit plain and Cargo Hold profiles and refuse field only ones, a needed module must be fitted, a field job takes a field only profile), `CargoBatchTest` (queue order kept, stops at room, skips other ways, zero room takes nothing). Verify: `gradlew test`.
 
 ## 2. Modules on the shuttle item
 
