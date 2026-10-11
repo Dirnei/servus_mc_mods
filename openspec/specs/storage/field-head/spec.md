@@ -79,7 +79,7 @@ The plots of a field SHALL be the positions at the rail's level inside the hydra
 - **THEN** the head does not signal harvest due
 
 ### Requirement: Field Head GUI
-Right clicking a Field Head SHALL open a GUI that shows the water level and capacity, the field size in rails and plots and its radius, the planted and ripe plot counts, whether the field is hydrated and whether a harvest is due, or why the head serves no field. The GUI SHALL have one ghost slot for the crop of the field: clicking it with a seed or crop item that plants an age crop sets that crop without taking the item, clicking it with an empty hand clears it, and other items are refused. The GUI SHALL have the Range Upgrade slot of the field radius. A harvest only toggle SHALL set the field to harvest without planting; turning it on clears the crop and setting a crop turns it off. The crop and the mode SHALL be kept when the world is saved.
+Right clicking a Field Head SHALL open a GUI that shows the water level and capacity, the field size in rails and plots and its radius, the planted and ripe plot counts, whether the field is hydrated and whether a harvest is due, or why the head serves no field. The GUI SHALL have one ghost slot for the crop of the field: clicking it with a seed or crop item that plants an age crop sets that crop without taking the item, clicking it with an empty hand clears it, and other items are refused. The GUI SHALL have the Range Upgrade slot of the field radius. A harvest only toggle SHALL set the field to harvest without planting; turning it on clears the crop and setting a crop turns it off. The crop and the mode SHALL be kept when the world is saved. The GUI SHALL have the anti-corrosion upkeep slot and SHALL show the corrosion stage of the served field with the progress toward the next aging step, or, for a corroded field, that the rails are corroded and the field is not watered.
 
 #### Scenario: Set wheat
 - **WHEN** a player clicks the crop slot holding wheat seeds
@@ -97,12 +97,24 @@ Right clicking a Field Head SHALL open a GUI that shows the water level and capa
 - **WHEN** a player opens the GUI of a head holding one Range Upgrade with `radius` 2
 - **THEN** the GUI shows radius 3
 
+#### Scenario: Corroded field shown
+- **WHEN** a player opens the GUI of a head whose field is corroded
+- **THEN** the GUI says the rails are corroded and the field is not watered
+
+#### Scenario: Honeycomb by hand
+- **WHEN** a player shift clicks honeycomb in the head's GUI
+- **THEN** the honeycomb moves into the anti-corrosion slot
+
 ### Requirement: Field diagnostics
-`/servus_warehouse field <pos>` SHALL print, for the Field Head at that position, its status, rails, plots, planted and ripe counts, water level, crop or mode and whether a harvest is due. `/servus_warehouse field <pos> recheck` SHALL run the pass over all plots again.
+`/servus_warehouse field <pos>` SHALL print, for the Field Head at that position, its status, rails, plots, planted and ripe counts, water level, crop or mode, whether a harvest is due, the corrosion stage and the water counted toward the next aging step. `/servus_warehouse field <pos> recheck` SHALL run the pass over all plots again. `/servus_warehouse field <pos> age <mB>` SHALL count that much water as used for aging, with the same upkeep and stage rules as water used by hydration, so a stage can be reached quickly for testing.
 
 #### Scenario: Print a field
 - **WHEN** an operator runs the field command on a head serving four rails
-- **THEN** the output names four rails and the head's water level
+- **THEN** the output names four rails, the head's water level and the corrosion stage
+
+#### Scenario: Age by command
+- **WHEN** an operator runs the age command with `corrosion_water` mB on a head of a copper field without anti-corrosion items
+- **THEN** the field becomes exposed
 
 ### Requirement: Open plots tracking
 Besides planted and ripe plots, the head SHALL know which plots are open: a plot is to till when it is empty and stands on a dirt or grass block, and to plant when it is empty and stands on farmland. It SHALL learn this from the same events and passes as ripeness, and also from blocks broken or placed one below a plot and from blocks changed by a tool one below a plot. It SHALL NOT scan plots every tick.
@@ -194,3 +206,58 @@ How far a field reaches to each side of its farm rails SHALL be the radius of it
 #### Scenario: Upgrades drop with the head
 - **WHEN** a player breaks a Field Head holding two Range Upgrades
 - **THEN** the head and both upgrades drop
+
+### Requirement: Field Head wood and facing
+The Field Head SHALL look like a station: board panels in the wood of its recipe under the station iron frame. Its recipe SHALL take planks, the crafted item SHALL carry the wood picked from them, a placed head SHALL show that wood, and the drop of a broken head SHALL carry it again. The head SHALL have a horizontal facing, and its front SHALL face the player who places it.
+
+#### Scenario: Wood from the recipe
+- **WHEN** a player crafts a Field Head with birch planks
+- **THEN** the item names birch as its wood, the placed head shows birch boards, and breaking it drops a Field Head with birch
+
+#### Scenario: Front faces the player
+- **WHEN** a player looking north places a Field Head
+- **THEN** the head's front faces south, toward the player
+
+### Requirement: Ripe share bar
+The front of the Field Head SHALL show a ripe share bar in its lower panel: a small dark window that fills from the left with wheat gold in a few steps as the ripe share of the planted plots approaches the head's harvest threshold, and that is full and green while a harvest is due. The bar SHALL be empty when nothing is ripe or the head serves no field. The head SHALL change the bar only when its ripe count, planted count, crop, harvest only mode or threshold changes, never by looking at the field per tick.
+
+#### Scenario: Bar follows the ripe share
+- **WHEN** a head with wheat set and a threshold of 50 percent sees one of four planted plots ripe
+- **THEN** its bar shows wheat gold, part way filled, and not green
+
+#### Scenario: Bar turns green when due
+- **WHEN** the ripe share reaches the head's threshold and a harvest is due
+- **THEN** the bar is full and green
+
+#### Scenario: Lowering the threshold
+- **WHEN** the threshold is lowered in the GUI to the current ripe share
+- **THEN** the bar turns green without any crop changing
+
+### Requirement: Water window
+Each side of the Field Head SHALL show a dark glass window in its upper panel, with the head's water drawn as real water (its still texture and the biome's water tint) from the bottom of the window up to the fill share of the buffer. An empty buffer SHALL show the dark glass only. The client SHALL learn the water level in a few steps of the window height (for example eighths), and only when the step changes, not on every mB.
+
+#### Scenario: Water rises in the window
+- **WHEN** a pipe fills an empty head to half of its capacity
+- **THEN** the windows show water up to half their height
+
+#### Scenario: Small changes stay quiet
+- **WHEN** the field uses a few mB and the level stays within the same step
+- **THEN** nothing is sent to the clients for the water
+
+### Requirement: Crop icon on top
+The top of the Field Head SHALL show a dark inset plate with the field's crop item drawn flat on it. The plate SHALL stay empty when no crop is set or harvest only is on. Players near the head SHALL see a new crop on the plate as soon as it is set.
+
+#### Scenario: Crop shown on top
+- **WHEN** a player sets carrots as the field's crop
+- **THEN** the head's top shows a carrot on the plate
+
+#### Scenario: Harvest only clears the plate
+- **WHEN** harvest only is turned on
+- **THEN** the plate is empty
+
+### Requirement: Look steps are pure logic
+The mapping from planted count, ripe count, threshold and due state to a bar step, and from water amount and capacity to a window level, SHALL be pure Java without Minecraft imports and covered by JUnit tests. Any water above nothing SHALL show at least the lowest level, and only a full buffer SHALL show the top level.
+
+#### Scenario: Water levels
+- **WHEN** a buffer of 8000 mB holds 1 mB, 4000 mB or 8000 mB
+- **THEN** the window level is the lowest step, half, and full

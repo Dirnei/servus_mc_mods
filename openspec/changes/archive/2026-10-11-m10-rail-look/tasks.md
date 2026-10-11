@@ -30,4 +30,4 @@
 ## 7. Verification
 
 - [x] 7.1 Full `gradlew build`, unit tests and storage GameTests green
-- [ ] 7.2 Play check by the user in game: straight, end, curve, crossing and dock pieces of both rails in several woods, the item look, the elevator deck, car and ground floor rail, shuttles with their wheels on the heads on rails and on the lift car
+- [x] 7.2 Play check by the user in game: straight, end, curve, crossing and dock pieces of both rails in several woods, the item look, the elevator deck, car and ground floor rail, shuttles with their wheels on the heads on rails and on the lift car

@@ -27,4 +27,4 @@
 ## 6. Verification
 
 - [x] 6.1 Full `gradlew build`, unit tests and storage GameTests green
-- [ ] 6.2 Play check by the user in game: the four stage looks on straight, curve, crossing and dock pieces in two woods, honeycomb by hand, hopper and data line, a corroded field drying with the rust rim and GUI line, axe scrape with sound and particles and the worn axe message, placed and dropped rails taking or losing the stage
+- [x] 6.2 Play check by the user in game: the four stage looks on straight, curve, crossing and dock pieces in two woods, honeycomb by hand, hopper and data line, a corroded field drying with the rust rim and GUI line, axe scrape with sound and particles and the worn axe message, placed and dropped rails taking or losing the stage

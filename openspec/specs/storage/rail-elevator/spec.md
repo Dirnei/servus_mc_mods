@@ -108,7 +108,7 @@ An elevator segment SHALL NOT block players or other entities that are inside it
 - **THEN** that segment and every segment above it drop as items
 
 ### Requirement: Rail floors are decks
-A segment with at least one rail beside it SHALL have a deck that covers the shaft floor. Its rail SHALL lie at the same height as the Warehouse Rail outside, join every connected rail and look like an outside rail with the same connections: straight, curve or `#` crossing, with the lines of every arm running along that arm; the deck plate under it SHALL sit just below the segment. The deck SHALL fold away only on edges without a rail, so a folded deck never stands in the way of a shuttle: two flaps on the two free opposite edges, one flap on a free edge when no opposite pair is free, and four quarter plates pulled into the corner posts when rails lie on all four sides. The lowest segment of a shaft SHALL have no deck: its rail lies on the floor below like an outside rail and is covered by the car between the posts while the car stands there; the rail outside the posts stays, so it meets the car's rail without a gap.
+A segment with at least one rail beside it SHALL have a deck that covers the shaft floor. Its rail SHALL lie at the same height as the Warehouse Rail outside, join every connected rail and look like an outside rail with the same connections: straight, curve or `#` crossing, with the same gauge, steel heads and oak sleepers; the deck plate under it SHALL sit just below the segment. The deck SHALL fold away only on edges without a rail, so a folded deck never stands in the way of a shuttle: two flaps on the two free opposite edges, one flap on a free edge when no opposite pair is free, and four quarter plates pulled into the corner posts when rails lie on all four sides. The lowest segment of a shaft SHALL have no deck: its rail lies on the floor below like an outside rail and is covered by the car between the posts while the car stands there; the rail outside the posts stays, so it meets the car's rail without a gap.
 
 #### Scenario: Straight run
 - **WHEN** rails lie west and east of a segment
@@ -120,11 +120,11 @@ A segment with at least one rail beside it SHALL have a deck that covers the sha
 
 #### Scenario: Dead end entry
 - **WHEN** a single rail lies south of a segment
-- **THEN** the deck hangs on axles along the west and east edges and its rail runs from the south edge to the centre
+- **THEN** the deck hangs on axles along the west and east edges and its rail runs from the south edge past the centre
 
 #### Scenario: Ground floor
 - **WHEN** rails lie west and east of the lowest segment of a shaft and the car is up
-- **THEN** a plain rail lies on the floor through the segment with no flaps and nothing flickers against the floor, its lines running west to east without a crossing
+- **THEN** a plain rail lies on the floor through the segment with no flaps and nothing flickers against the floor, its heads running west to east without a crossing
 
 #### Scenario: Car parked on the ground floor
 - **WHEN** rails lie west and east of the lowest segment and the car stands there
@@ -133,6 +133,10 @@ A segment with at least one rail beside it SHALL have a deck that covers the sha
 #### Scenario: Crossing
 - **WHEN** rails lie on all four sides of a segment and the car comes to that floor
 - **THEN** the deck splits into four quarters that pull back into the corner posts and leave all four rail entries clear
+
+#### Scenario: Same gauge as outside
+- **WHEN** a steel rail with spruce sleepers runs into a shaft
+- **THEN** the deck rail's heads continue the outside heads without a step, on oak sleepers
 
 ### Requirement: One lift car per shaft
 Every shaft SHALL have exactly one lift car. The car SHALL be drawn as a platform at rail height with a sleeve around each corner post, and SHALL move only along its shaft at `lift_speed` (in `data/<ns>/storage/warehouse.json`, for example 0.1 blocks per tick). The car SHALL stay at the last floor it served and SHALL start at the lowest segment when the shaft is built or the world is loaded.
