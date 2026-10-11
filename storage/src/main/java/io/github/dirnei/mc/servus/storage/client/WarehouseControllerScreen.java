@@ -153,6 +153,24 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         renderSites(graphics, ClientSiteStatus.status());
     }
 
+    /** The site panel right of the GUI, so JEI keeps its item list clear of it. */
+    public List<net.minecraft.client.renderer.Rect2i> extraAreas() {
+        SiteStatusPayload status = ClientSiteStatus.status();
+        if (status == SiteStatusPayload.EMPTY) {
+            return List.of();
+        }
+        int rows = Math.max(1, Math.min(SITES_MAX, status.sites().size()));
+        return List.of(new net.minecraft.client.renderer.Rect2i(sitesLeft(), topPos, SITES_WIDTH, 18 + rows * SITE_ROW + 4));
+    }
+
+    /** A click on the site panel is not a click outside the GUI, so a carried stack is not dropped. */
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) {
+        boolean onPanel = extraAreas().stream().anyMatch(area -> mouseX >= area.getX() && mouseX < area.getX() + area.getWidth()
+                && mouseY >= area.getY() && mouseY < area.getY() + area.getHeight());
+        return !onPanel && super.hasClickedOutside(mouseX, mouseY, left, top, button);
+    }
+
     private int sitesLeft() {
         return leftPos + imageWidth + SITES_GAP;
     }

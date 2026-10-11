@@ -45,6 +45,13 @@ public final class ServusStorageJeiPlugin implements IModPlugin {
                 return screen.extraAreas();
             }
         });
+        registration.addGuiContainerHandler(io.github.dirnei.mc.servus.storage.client.WarehouseControllerScreen.class,
+                new IGuiContainerHandler<io.github.dirnei.mc.servus.storage.client.WarehouseControllerScreen>() {
+                    @Override
+                    public List<Rect2i> getGuiExtraAreas(io.github.dirnei.mc.servus.storage.client.WarehouseControllerScreen screen) {
+                        return screen.extraAreas();
+                    }
+                });
     }
 
     @Override
