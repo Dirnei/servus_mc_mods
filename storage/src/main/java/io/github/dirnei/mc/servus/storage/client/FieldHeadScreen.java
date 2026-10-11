@@ -1,7 +1,10 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.field.ChooseFertilizerPayload;
 import io.github.dirnei.mc.servus.storage.field.ChooseFieldCropPayload;
+import io.github.dirnei.mc.servus.storage.field.FertilizeMode;
+import io.github.dirnei.mc.servus.storage.field.FertilizeStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
@@ -17,6 +20,7 @@ import io.github.dirnei.mc.servus.storage.picker.PickerList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -27,11 +31,12 @@ import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The Field Head GUI in three tabs on the left edge, drawn like the Utility
+ * The Field Head GUI in four tabs on the left edge, drawn like the Utility
  * Duct tabs: Field (crop picker, ripe share, threshold, work status),
- * Water (water bar, anti-corrosion slot, corrosion stage) and Upgrades (Range
- * Upgrade slot, radius, field size). The player inventory is always below. A
- * tab whose page holds a problem gets a red marker.
+ * Water (water bar, anti-corrosion slot, corrosion stage), Fertilizer
+ * (fertilizer picker, mode, reserve, threshold, Spreader status) and Upgrades
+ * (Range Upgrade slot, radius, field size). The player inventory is always
+ * below. A tab whose page holds a problem gets a red marker.
  */
 public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
@@ -71,9 +76,28 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     // Upgrades page
     private static final int RADIUS_TEXT_X = 30;
     private static final int SIZE_Y = 44;
+    // Fertilizer page
+    private static final int MODE_Y = 37;
+    private static final int MODE_H = 13;
+    private static final int[] MODE_X = {8, 34, 110};
+    private static final int[] MODE_W = {24, 74, 58};
+    private static final int RESERVE_Y = 53;
+    private static final int[] RESERVE_X = {70, 90, 135, 150};
+    private static final int[] RESERVE_W = {18, 13, 13, 18};
+    private static final int RESERVE_TEXT_X = 104;
+    private static final int RESERVE_TEXT_W = 30;
+    private static final int FERTILIZE_Y = 65;
+    private static final int FERTILIZE_STATUS_Y = 79;
 
     private Button down;
     private final ItemPicker picker;
+    private final ItemPicker fertilizerPicker;
+    /** The fertilizer stock map last handed to its picker. */
+    private Map<ResourceLocation, Long> fertilizerPickerStock;
+    private final List<Button> modeButtons = new ArrayList<>();
+    private final List<Button> reserveButtons = new ArrayList<>();
+    private Button fertilizeDown;
+    private Button fertilizeUp;
     /** The stock map last handed to the picker, to hand it over only when the menu got a new one. */
     private Map<ResourceLocation, Long> pickerStock;
     private Button up;
@@ -85,6 +109,32 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         this.picker = new ItemPicker(Component.translatable("gui.servus_storage.field_head.crop_picker"), this::choose);
         picker.setEntries(CropPickerEntries.build());
         picker.setZeroHint(Component.translatable("gui.servus_storage.field_head.crop_no_stock"));
+        this.fertilizerPicker = new ItemPicker(Component.translatable("gui.servus_storage.field_head.fertilizer_picker"), this::chooseFertilizer);
+        fertilizerPicker.setEntries(FertilizerPickerEntries.build());
+        fertilizerPicker.setZeroHint(Component.translatable("gui.servus_storage.field_head.fertilizer_no_stock"));
+    }
+
+    /** Sends the picked fertilizer, or Off for the none entry, to the server. */
+    private void chooseFertilizer(ItemPicker.Entry entry) {
+        Optional<ResourceLocation> fertilizer = entry.isNone() ? Optional.empty() : Optional.ofNullable(ResourceLocation.tryParse(entry.id()));
+        PacketDistributor.sendToServer(new ChooseFertilizerPayload(fertilizer));
+    }
+
+    /** The picker of the shown page, null on pages without one. */
+    private ItemPicker pagePicker() {
+        return switch (menu.page()) {
+            case FIELD -> picker;
+            case FERTILIZER -> fertilizerPicker;
+            default -> null;
+        };
+    }
+
+    /** The picker whose popup is open, or null. */
+    private ItemPicker openPicker() {
+        if (picker.isOpen()) {
+            return picker;
+        }
+        return fertilizerPicker.isOpen() ? fertilizerPicker : null;
     }
 
     /** Sends the picked crop, or harvest only for the none entry, to the server. */
@@ -101,6 +151,12 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             pickerStock = menu.stock();
             picker.setStock(CropPickerEntries.keyed(pickerStock));
         }
+        ItemStack fertilizer = menu.fertilizer();
+        fertilizerPicker.setSelected(fertilizer.isEmpty() ? PickerList.NONE_ID : BuiltInRegistries.ITEM.getKey(fertilizer.getItem()).toString());
+        if (menu.fertilizerStock() != fertilizerPickerStock) {
+            fertilizerPickerStock = menu.fertilizerStock();
+            fertilizerPicker.setStock(CropPickerEntries.keyed(fertilizerPickerStock));
+        }
     }
 
     @Override
@@ -113,6 +169,27 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 .bounds(leftPos + 136, topPos + THRESHOLD_Y - 2, 14, 11).build());
         up = addRenderableWidget(Button.builder(Component.literal("+"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_UP))
                 .bounds(leftPos + 152, topPos + THRESHOLD_Y - 2, 14, 11).build());
+        fertilizerPicker.setButton(leftPos + FieldHeadMenu.PICKER_X, topPos + FieldHeadMenu.PICKER_Y, FieldHeadMenu.PICKER_WIDTH);
+        fertilizerPicker.setArea(leftPos, topPos, imageWidth, imageHeight);
+        modeButtons.clear();
+        for (FertilizeMode mode : FertilizeMode.values()) {
+            String key = "gui.servus_storage.field_head.fertilize_mode." + mode.name().toLowerCase(Locale.ROOT);
+            int index = mode.ordinal();
+            modeButtons.add(addRenderableWidget(Button.builder(Component.translatable(key), button -> press(FieldHeadMenu.BUTTON_FERTILIZE_MODE + index))
+                    .bounds(leftPos + MODE_X[index], topPos + MODE_Y, MODE_W[index], MODE_H)
+                    .tooltip(Tooltip.create(Component.translatable(key + ".tooltip"))).build()));
+        }
+        reserveButtons.clear();
+        for (int i = 0; i < FieldHeadMenu.RESERVE_STEPS.length; i++) {
+            int step = FieldHeadMenu.RESERVE_STEPS[i];
+            int id = FieldHeadMenu.BUTTON_RESERVE + i;
+            reserveButtons.add(addRenderableWidget(Button.builder(Component.literal(step > 0 ? "+" + step : String.valueOf(step)), button -> press(id))
+                    .bounds(leftPos + RESERVE_X[i], topPos + RESERVE_Y, RESERVE_W[i], 11).build()));
+        }
+        fertilizeDown = addRenderableWidget(Button.builder(Component.literal("-"), button -> press(FieldHeadMenu.BUTTON_FERTILIZE_DOWN))
+                .bounds(leftPos + 136, topPos + FERTILIZE_Y, 14, 11).build());
+        fertilizeUp = addRenderableWidget(Button.builder(Component.literal("+"), button -> press(FieldHeadMenu.BUTTON_FERTILIZE_UP))
+                .bounds(leftPos + 152, topPos + FERTILIZE_Y, 14, 11).build());
     }
 
     private void press(int id) {
@@ -151,6 +228,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 }
                 return serving() && !menu.hydrated() ? Component.translatable("gui.servus_storage.field_head.dry") : null;
             }
+            case FERTILIZER -> {
+                FertilizeStatus status = menu.fertilizeStatus();
+                return status != null && status.problem() ? fertilizeLine(status) : null;
+            }
             default -> {
                 return null;
             }
@@ -166,6 +247,13 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         return work == FieldWork.WORKING && !worker.isEmpty()
                 ? Component.translatable("gui.servus_storage.field_head.work.working_named", worker)
                 : Component.translatable("gui.servus_storage.field_head.work." + work.name().toLowerCase(Locale.ROOT));
+    }
+
+    private Component fertilizeLine(FertilizeStatus status) {
+        String spreader = ClientFieldWorker.spreader();
+        return status == FertilizeStatus.WORKING && !spreader.isEmpty()
+                ? Component.translatable("gui.servus_storage.field_head.fertilize.working_named", spreader)
+                : Component.translatable("gui.servus_storage.field_head.fertilize." + status.name().toLowerCase(Locale.ROOT));
     }
 
     // Tabs
@@ -223,16 +311,35 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         boolean serving = serving();
         down.visible = page == Page.FIELD && serving;
         up.visible = page == Page.FIELD && serving;
+        boolean fertilizerPage = page == Page.FERTILIZER;
+        FertilizeMode mode = menu.fertilizeMode();
+        for (int i = 0; i < modeButtons.size(); i++) {
+            modeButtons.get(i).visible = fertilizerPage;
+            modeButtons.get(i).active = mode.ordinal() != i;
+        }
+        for (Button button : reserveButtons) {
+            button.visible = fertilizerPage;
+        }
+        fertilizeDown.visible = fertilizerPage && mode == FertilizeMode.UNTIL_RIPE;
+        fertilizeUp.visible = fertilizerPage && mode == FertilizeMode.UNTIL_RIPE;
+        // The Fertilizer page needs the room of the inventory label for its status.
+        this.inventoryLabelY = fertilizerPage ? -10000 : FieldHeadMenu.INVENTORY_Y - 11;
         syncPicker();
-        if (picker.isOpen()) {
-            // While the picker is open nothing below it reacts to the mouse.
+        ItemPicker open = openPicker();
+        if (open != null) {
+            // While a picker is open nothing below it reacts to the mouse.
             super.render(graphics, -1, -1, partialTick);
-            picker.renderPopup(graphics, font, mouseX, mouseY, partialTick);
-            picker.renderTooltip(graphics, font, mouseX, mouseY);
+            open.renderPopup(graphics, font, mouseX, mouseY, partialTick);
+            open.renderTooltip(graphics, font, mouseX, mouseY);
             return;
         }
         super.render(graphics, mouseX, mouseY, partialTick);
-        if (page == Page.FIELD && picker.renderTooltip(graphics, font, mouseX, mouseY)) {
+        ItemPicker shown = pagePicker();
+        if (shown != null && shown.renderTooltip(graphics, font, mouseX, mouseY)) {
+            return;
+        }
+        if (fertilizerPage && inside(mouseX, mouseY, MARGIN, RESERVE_Y, RESERVE_X[0] - MARGIN, 11)) {
+            graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.reserve_tooltip"), mouseX, mouseY);
             return;
         }
         Page hovered = tabAt(mouseX, mouseY);
@@ -306,6 +413,10 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 }
                 sunken(graphics, leftPos + FieldHeadMenu.ANTI_CORROSION_X - 1, topPos + FieldHeadMenu.ANTI_CORROSION_Y - 1, 18, 18);
             }
+            case FERTILIZER -> {
+                fertilizerPicker.renderButton(graphics, font, mouseX, mouseY);
+                sunken(graphics, leftPos + RESERVE_TEXT_X, topPos + RESERVE_Y, RESERVE_TEXT_W, 11);
+            }
             case UPGRADES -> sunken(graphics, leftPos + FieldHeadMenu.RANGE_X - 1, topPos + FieldHeadMenu.RANGE_Y - 1, 18, 18);
         }
     }
@@ -328,7 +439,27 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         switch (menu.page()) {
             case FIELD -> renderFieldLabels(graphics);
             case WATER -> renderWaterLabels(graphics);
+            case FERTILIZER -> renderFertilizerLabels(graphics);
             case UPGRADES -> renderUpgradeLabels(graphics);
+        }
+    }
+
+    private void renderFertilizerLabels(GuiGraphics graphics) {
+        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.reserve"), MARGIN, RESERVE_Y + 2, COLOUR_TEXT, false);
+        String reserve = String.valueOf(menu.reserve());
+        graphics.drawString(font, reserve, RESERVE_TEXT_X + (RESERVE_TEXT_W - font.width(reserve)) / 2, RESERVE_Y + 2, COLOUR_TEXT, false);
+        if (menu.fertilizeMode() == FertilizeMode.UNTIL_RIPE) {
+            graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.fertilize_at", menu.fertilizePercent()),
+                    MARGIN, FERTILIZE_Y + 2, COLOUR_TEXT, false);
+        }
+        if (!serving()) {
+            wrapped(graphics, statusLine(), FERTILIZE_STATUS_Y, COLOUR_WARN);
+            return;
+        }
+        FertilizeStatus status = menu.fertilizeStatus();
+        if (status != null) {
+            int colour = status.problem() ? COLOUR_WARN : status == FertilizeStatus.WORKING ? COLOUR_DUE : COLOUR_TEXT;
+            wrapped(graphics, fertilizeLine(status), FERTILIZE_STATUS_Y, colour);
         }
     }
 
@@ -387,15 +518,17 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (picker.isOpen()) {
-            return picker.mouseClicked(mouseX, mouseY, button);
+        ItemPicker open = openPicker();
+        if (open != null) {
+            return open.mouseClicked(mouseX, mouseY, button);
         }
         Page tab = tabAt(mouseX, mouseY);
         if (tab != null) {
             menu.setPage(tab);
             return true;
         }
-        if (menu.page() == Page.FIELD && picker.mouseClicked(mouseX, mouseY, button)) {
+        ItemPicker shown = pagePicker();
+        if (shown != null && shown.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
@@ -403,26 +536,31 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        return picker.mouseDragged(mouseX, mouseY) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        ItemPicker open = openPicker();
+        return open != null && open.mouseDragged(mouseX, mouseY) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        return picker.mouseReleased() || super.mouseReleased(mouseX, mouseY, button);
+        ItemPicker open = openPicker();
+        return open != null && open.mouseReleased() || super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        return picker.mouseScrolled(scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        ItemPicker open = openPicker();
+        return open != null && open.mouseScrolled(scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        return picker.keyPressed(keyCode, scanCode, modifiers) || super.keyPressed(keyCode, scanCode, modifiers);
+        ItemPicker open = openPicker();
+        return open != null && open.keyPressed(keyCode, scanCode, modifiers) || super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
     public boolean charTyped(char codePoint, int modifiers) {
-        return picker.charTyped(codePoint, modifiers) || super.charTyped(codePoint, modifiers);
+        ItemPicker open = openPicker();
+        return open != null && open.charTyped(codePoint, modifiers) || super.charTyped(codePoint, modifiers);
     }
 }

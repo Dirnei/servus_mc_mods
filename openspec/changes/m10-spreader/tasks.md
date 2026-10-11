@@ -21,7 +21,7 @@
 ## 5. GUI
 
 - [x] 5.1 `storage/.../field/ChooseFertilizerPayload.java`, `FieldFertilizerStockPayload.java`, `FieldWorkerPayload.java` (second name), `storage/.../terminal/ServusStoragePayloads.java`, `storage/.../menu/FieldHeadMenu.java` (FERTILIZER page, data slots, buttons, `chooseFertilizer`, stock sync). Grep that every payload type is registered. Run `gradlew build`.
-- [ ] 5.2 `storage/.../client/FertilizerPickerEntries.java`, `ClientFieldWorker.java`, `FieldHeadScreen.java` (Fertilizer tab with picker, modes, reserve, threshold, status, red marker), lang keys in `ServusStorageLanguageProvider`. Run `gradlew :storage:runData`, then `gradlew build`.
+- [x] 5.2 `storage/.../client/FertilizerPickerEntries.java`, `ClientFieldWorker.java`, `FieldHeadScreen.java` (Fertilizer tab with picker, modes, reserve, threshold, status, red marker), lang keys in `ServusStorageLanguageProvider`. Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 6. GameTests
 
