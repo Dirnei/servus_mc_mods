@@ -163,14 +163,19 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         return SiteCapacity.state(span.size(), upgrades.count(), StorageStatsManager.INSTANCE.chunksPerUpgrade());
     }
 
-    /** The wake line of the GUI; empty while there is nothing to say. */
+    /** The wake line of the GUI; empty while nobody wakes the site. */
     public net.minecraft.network.chat.Component wakeLine() {
-        return net.minecraft.network.chat.Component.empty();
+        if (level == null) {
+            return net.minecraft.network.chat.Component.empty();
+        }
+        return io.github.dirnei.mc.servus.storage.site.SiteWakes.line(level.dimension(), worldPosition)
+                .orElse(net.minecraft.network.chat.Component.empty());
     }
 
-    /** Whether the wake line explains a problem. */
+    /** Whether the wake line explains a problem: the site waits to wake. */
     public boolean wakeAlert() {
-        return false;
+        return level != null && io.github.dirnei.mc.servus.storage.site.SiteWakes.status(level.dimension(), worldPosition)
+                .map(status -> status.state() == io.github.dirnei.mc.servus.storage.site.WakeMachine.State.WAITING).orElse(false);
     }
 
     @Override
@@ -192,7 +197,11 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
 
     /** What the activity lamp shows: red over capacity, green otherwise. */
     protected StorageNodeBlocks.Activity lampActivity() {
-        return siteState() == SiteCapacity.State.OVER ? StorageNodeBlocks.Activity.BLOCKED : StorageNodeBlocks.Activity.IDLE;
+        if (siteState() == SiteCapacity.State.OVER) {
+            return StorageNodeBlocks.Activity.BLOCKED;
+        }
+        boolean awake = level != null && io.github.dirnei.mc.servus.storage.site.SiteWakes.isAwake(level.dimension(), worldPosition);
+        return awake ? StorageNodeBlocks.Activity.WORKING : StorageNodeBlocks.Activity.IDLE;
     }
 
     /** Writes the activity lamp into the block state when it changed. */

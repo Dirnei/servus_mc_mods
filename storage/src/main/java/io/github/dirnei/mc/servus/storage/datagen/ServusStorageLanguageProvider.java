@@ -122,6 +122,15 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.controller.cannot_wake", "Cannot wake while nobody is near");
         add("gui.servus_storage.controller.upgrades", "Chunk Loader Upgrades");
         add("gui.servus_storage.controller.upgrades.tooltip", "Each upgrade covers more chunks of the site. A site larger than its upgrades cover never wakes");
+        add("gui.servus_storage.controller.wake.awake", "Awake for a transfer");
+        add("gui.servus_storage.controller.wake.grace", "Awake, sleeps in %s s");
+        add("gui.servus_storage.controller.wake.waiting", "Waiting to wake: %s");
+        add("gui.servus_storage.wake.reason.allowed", "allowed");
+        add("gui.servus_storage.wake.reason.no_upgrade", "no Chunk Loader Upgrade");
+        add("gui.servus_storage.wake.reason.over_capacity", "over capacity");
+        add("gui.servus_storage.wake.reason.no_owner", "no owner");
+        add("gui.servus_storage.wake.reason.ftb_chunks", "use FTB Chunks");
+        add("gui.servus_storage.wake.reason.team_limit", "team limit reached");
         add("gui.servus_storage.controller.map.tooltip", "The chunks of this site. The gold square holds the controller");
         add(ServusStorageItems.HARVESTER.get(), "Harvester");
         add(ServusStorageItems.SPREADER.get(), "Spreader");

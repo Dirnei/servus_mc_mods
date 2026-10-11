@@ -43,6 +43,11 @@ public final class ServusStorageCommands {
                 .then(Commands.literal("info")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .executes(ServusStorageCommands::info)))
+                .then(Commands.literal("wake")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .executes(ServusStorageCommands::wake)))
+                .then(Commands.literal("sites")
+                        .executes(ServusStorageCommands::sites))
                 .then(Commands.literal("zones")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .executes(ServusStorageCommands::zones)))
@@ -391,6 +396,43 @@ public final class ServusStorageCommands {
             source.sendSuccess(() -> Component.literal(text), false);
         }
         return zones.size();
+    }
+
+    /** Asks the site whose controller is at the position to wake; works on unloaded positions. */
+    private static int wake(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        var level = source.getLevel();
+        var status = io.github.dirnei.mc.servus.storage.site.SiteWakes.request(level, pos);
+        if (status.isEmpty()) {
+            source.sendFailure(Component.literal("No site has its controller at " + pos.toShortString()));
+            return 0;
+        }
+        String name = io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).site(level.dimension(), pos)
+                .map(io.github.dirnei.mc.servus.storage.site.SiteRecord::name).orElse("?");
+        var wake = status.get();
+        if (wake.awake()) {
+            source.sendSuccess(() -> Component.literal(name + " is awake, " + wake.forced() + " chunks loaded"), true);
+            return 1;
+        }
+        source.sendFailure(Component.literal(name + " does not wake: ")
+                .append(io.github.dirnei.mc.servus.storage.site.SiteWakes.reason(wake.reason())));
+        return 0;
+    }
+
+    /** Lists every site record. */
+    private static int sites(CommandContext<CommandSourceStack> context) {
+        CommandSourceStack source = context.getSource();
+        var sites = io.github.dirnei.mc.servus.storage.site.SiteRegistry.get(source.getServer()).all();
+        source.sendSuccess(() -> Component.literal(sites.size() + " sites"), false);
+        for (var site : sites) {
+            boolean awake = io.github.dirnei.mc.servus.storage.site.SiteWakes.isAwake(site.dimension(), site.pos());
+            String team = site.team().map(id -> id.toString().substring(0, 8)).orElse("no team");
+            source.sendSuccess(() -> Component.literal("  - " + site.name() + " at " + site.dimension().location() + " "
+                    + site.pos().toShortString() + ", team " + team + ", " + site.span().size() + " of " + site.capacity()
+                    + " chunks, " + (awake ? "awake" : "asleep") + ", " + site.stock().size() + " item types known"), false);
+        }
+        return sites.size();
     }
 
     private static int info(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
