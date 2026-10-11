@@ -76,7 +76,9 @@ Vanilla replaced annotated GameTests with registered test functions, test instan
 - Level overlays subscribe to `RenderLevelStageEvent.AfterTranslucentBlocks`; the camera comes from the level render state. The see through overlay type is a `RenderType` over an own `RenderPipeline` (no depth test) registered in `RegisterRenderPipelinesEvent`.
 - Block models: `BakedModel` is gone. `UtilityDuctModel` and `WoodModel` are NeoForge `DynamicBlockStateModel`s reading `ModelData` from `level.getModelData(pos)` in `collectParts`; quads are rebuilt with NeoForge's `MutableQuad` (panel faces, data tier reskin, wood boards). The duct's part models are standalone `BlockStateModelPart`s. Render layers are now chosen per quad from the texture's transparency (26.1), so `render_type` in model JSON and the old render type sets are gone; see through panels are quads in the translucent layer with half alpha vertex colour.
 - Block colours are `BlockTintSource` lists indexed by tint index; the duct registers one source per index up to its panel range.
-- Item models: wood block items use an own item model type `servus_foundation:wood` (`WoodItemModel`, registered in `RegisterItemModelsEvent`) that retextures the boards per stack.
+- Item models: wood block items use an own item model type `servus_foundation:wood` (`WoodItemModel`, registered in `RegisterItemModelsEvent`) that retextures the boards per stack. `WoodSkin` names the board texture, model data property and item reader, so the Storage rack reuses `WoodModel` and `WoodItemModel` with its own skin (`servus_storage:rack_wood`). Shuttle items use the item model type `servus_storage:shuttle`, which bakes the part models under `models/shuttle/` and composes body, drive, Handling and tool per stack.
+- Storage renderers extend `LiveBlockEntityRenderer`: the render state keeps the block entity and the old drawing code runs at submit time. Items go through `RenderSubmit.item` (item model resolver and `ItemStackRenderState`), text through `RenderSubmit.text` (`submitText`), and vertex code draws into a `RecordedGeometry` that is submitted as one custom geometry. This keeps the 1.21.1 drawing logic unchanged; a later cleanup can move reads into `extractRenderState`.
+- Blocks lost their tooltip hook; blocks that add item tooltip lines implement `TooltipBlock`, which `WoodBlockItem` calls.
 
 ### D7. Datagen
 
@@ -84,7 +86,7 @@ NeoForge removed its `BlockStateProvider`/`ItemModelProvider` builders (1.21.4);
 
 ### D8. Recipes and JEI
 
-Recipes are no longer synced to clients (1.21.2). Recipe serializers are `RecipeSerializer` records of a map codec and a stream codec; the facade and tank recipes have no settings and use unit codecs over one instance. `WoodRecipe` has its own codec with the shaped recipe fields. Server lookups use `ServerLevel.recipeAccess()`; `SingleInputRecipes` reads ingredients from the placement info and gets results by assembling the recipe for each input. The JEI plugin builds its example recipes with `Recipe.CommonInfo`, `CraftingBookInfo`, `ItemStackTemplate` results and NeoForge's `DataComponentIngredient` for facade ingredients (JEI 29.43.0.107).
+Recipes are no longer synced to clients (1.21.2). Recipe serializers are `RecipeSerializer` records of a map codec and a stream codec; the facade and tank recipes have no settings and use unit codecs over one instance. `WoodRecipe` has its own codec with the shaped recipe fields. Server lookups use `ServerLevel.recipeAccess()` through `production/ServusRecipes` (by id, crafting match, display result, grid ingredients), which answers empty on a client level; `SingleInputRecipes` reads ingredients from the placement info and gets results by assembling the recipe for each input. The JEI plugin builds its example recipes with `Recipe.CommonInfo`, `CraftingBookInfo`, `ItemStackTemplate` results and NeoForge's `DataComponentIngredient` for facade ingredients (JEI 29.43.0.107).
 
 ## Risks / Trade-offs
 
@@ -94,6 +96,9 @@ Recipes are no longer synced to clients (1.21.2). Recipe serializers are `Recipe
 - The other agent changes Foundation on main (M11 chunk loader team cap) in parallel. The user merges; conflicts will be in the files that both touch.
 
 ## Notes for the next run
+
+- Storage is ported (section 4): compile, 457 unit tests, 363 GameTests, datagen. The Production Terminal's recipe editor preview reads the recipe on the client; clients have no recipes since 1.21.2, so the preview shows no result until a server round trip is added (the saved pattern is matched and assembled on the server as before). The terminal's dynamic height no longer changes `imageHeight` (final in 26.1); `init` centres the panel from the layout instead.
+- Saved data that still saves to a compound tag uses `ValueIo.tagSavedData` (a `SavedDataType` over `CompoundTag.CODEC`); the file names stay the same.
 
 - Foundation is fully ported (section 2 of tasks.md). Rendering, GUIs and models compile and data generates, but nothing has been seen in game: section 3 is the user's play check.
 - The porting scripts used for Foundation (renames, registration, value IO, transfer bridges, GUI, GameTests, datagen imports) are kept in `C:/Users/Dirnei/AppData/Local/Temp/servus-helpers/port/`; run them on a module's sources first, then fix the rest by compile errors.

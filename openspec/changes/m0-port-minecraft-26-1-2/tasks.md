@@ -31,8 +31,10 @@ Results of section 2 (2026-10-12): `:foundation:build` green, 263 unit tests gre
 
 ## 4. Storage
 
-- [ ] 4.1 `settings.gradle` includes `storage`; `storage/build.gradle` JEI 26.1.2 API. Verify: `gradlew :storage:compileJava` sets up.
-- [ ] 4.2 Port Storage by the same areas as section 2 (renames, registration, block entities, transfer, menus and screens, renderers and shuttle models, datagen, GameTests, unit tests). Verify: `gradlew :storage:build`, `:storage:test`, `:storage:runGameTestServer` green.
+- [x] 4.1 `settings.gradle` includes `storage`; `storage/build.gradle` JEI 26.1.2 API. Verify: `gradlew :storage:compileJava` sets up.
+- [x] 4.2 Port Storage by the same areas as section 2 (renames, registration, block entities, transfer, menus and screens, renderers and shuttle models, datagen, GameTests, unit tests). Verify: `gradlew :storage:build`, `:storage:test`, `:storage:runGameTestServer` green.
+  Result: `:storage:build` green, 457 unit tests pass, `:storage:runGameTestServer` passes all 461 required tests (363 Storage, 97 Foundation, 1 vanilla), `:storage:runData` regenerates the resources.
+- [ ] 4.3 The user checks Storage in game: crate, rack (wood on block and item), shuttle look on rails and in inventories, elevator, field head water and crop, terminal screens and their dynamic height, JEI transfer. Verify: the user confirms in game.
 
 ## 5. Manufacturing
 
