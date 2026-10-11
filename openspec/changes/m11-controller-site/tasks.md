@@ -12,7 +12,7 @@
 ## 3. Controller site
 
 - [x] 3.1 `storage/.../controller/WarehouseControllerBlock.java` (`ACTIVITY` property, open the GUI, `setPlacedBy` resets span and sets the team, upgrades drop on removal and are taken out before a carrot dismantle), `WarehouseControllerBlockEntity.java` (name, team, span, upgrades, state, lamp, save and load, `MenuProvider`). Run `gradlew build`.
-- [ ] 3.2 `storage/.../network/WarehouseNetwork.java`: `spanDirty` from node add, remove, absorb and source changes, indexed foreign sources, span recompute once per tick with exactly one controller; `storage/.../command/ServusStorageCommands.java` info prints the site. Run `gradlew build`.
+- [x] 3.2 `storage/.../network/WarehouseNetwork.java`: `spanDirty` from node add, remove, absorb and source changes, indexed foreign sources, span recompute once per tick with exactly one controller; `storage/.../command/ServusStorageCommands.java` info prints the site. Run `gradlew build`.
 
 ## 4. GUI
 

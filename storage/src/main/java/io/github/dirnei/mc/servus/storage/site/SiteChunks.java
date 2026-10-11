@@ -42,16 +42,19 @@ public final class SiteChunks {
     }
 
     /**
-     * The new span: everything the loaded part of the site holds now, plus the
-     * chunks of the previous span that are not loaded, because their members
-     * left the network by unloading, not by being removed.
+     * The new span. While every chunk of the previous span is loaded, the
+     * network sees the whole site and the span is exactly what it holds now.
+     * While a part is not loaded, members beyond it may sit in a network of
+     * their own, so the span only grows: the previous chunks plus the new ones.
      */
     public static Set<Long> merge(Set<Long> previous, Set<Long> current, LongPredicate loaded) {
         Set<Long> merged = new LinkedHashSet<>(current);
+        boolean whole = true;
         for (long key : previous) {
-            if (!loaded.test(key)) {
-                merged.add(key);
-            }
+            whole &= loaded.test(key);
+        }
+        if (!whole) {
+            merged.addAll(previous);
         }
         return merged;
     }

@@ -402,6 +402,9 @@ public final class ServusStorageCommands {
         }
         WarehouseNetwork warehouse = network.get();
         source.sendSuccess(warehouse::summary, false);
+        warehouse.controller().ifPresent(controller -> source.sendSuccess(() -> Component.literal("Site " + controller.displayName() + ": "
+                + controller.span().size() + " of " + controller.capacity() + " chunks, " + controller.upgrades().count()
+                + " Chunk Loader Upgrades, " + controller.siteState().name().toLowerCase(java.util.Locale.ROOT)), false));
         List<Map.Entry<ItemKey, Long>> entries = warehouse.index().entries();
         int shown = 0;
         for (Map.Entry<ItemKey, Long> entry : entries) {

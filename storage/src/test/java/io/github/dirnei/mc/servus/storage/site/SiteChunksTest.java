@@ -39,6 +39,15 @@ class SiteChunksTest {
     }
 
     @Test
+    void partlyLoadedSiteNeverShrinks() {
+        long home = SiteChunks.key(0, 0);
+        long far = SiteChunks.key(1, 0);
+        long beyond = SiteChunks.key(2, 0);
+        Set<Long> merged = SiteChunks.merge(Set.of(home, far, beyond), Set.of(home), key -> key != beyond);
+        assertEquals(Set.of(home, far, beyond), merged);
+    }
+
+    @Test
     void mergeDropsLoadedChunksThatHoldNothing() {
         long home = SiteChunks.key(0, 0);
         long far = SiteChunks.key(1, 0);

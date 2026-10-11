@@ -16,7 +16,7 @@ Every Warehouse Controller SHALL be a site with a name of at most 32 characters,
 - **THEN** it is still named "North Mine"
 
 ### Requirement: Site chunk span
-The controller SHALL know the set of chunks its site spans: every chunk that holds a member of its network or an indexed inventory touching a stock member. The set SHALL be updated from member join and leave events and source changes, at most once per tick after a change, without scanning blocks. A chunk whose content unloads SHALL stay in the set; a chunk SHALL leave the set only while it is loaded and holds nothing of the site. The set SHALL be saved on the controller, SHALL NOT travel in a dismantled item, and a placed controller SHALL start with its own chunk. Only a network with exactly one controller SHALL update that controller's set.
+The controller SHALL know the set of chunks its site spans: every chunk that holds a member of its network or an indexed inventory touching a stock member. The set SHALL be updated from member join and leave events and source changes, at most once per tick after a change, without scanning blocks. A chunk whose content unloads SHALL stay in the set; a chunk SHALL leave the set only while every chunk of the set is loaded and it holds nothing of the site. The set SHALL be saved on the controller, SHALL NOT travel in a dismantled item, and a placed controller SHALL start with its own chunk. Only a network with exactly one controller SHALL update that controller's set.
 
 #### Scenario: Rail into the next chunk
 - **WHEN** a controller sits in one chunk and a rail run carries a crate into the neighbouring chunk

@@ -14,6 +14,7 @@ import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.shuttle.RequestPlan;
+import io.github.dirnei.mc.servus.storage.site.SiteChunks;
 import java.util.function.Predicate;
 import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
@@ -154,6 +155,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private int outboundTimer;
     private int fieldTimer;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
+    /** Foreign inventories that answered with an item handler: they count for the site's chunk span. */
+    private final Set<BlockPos> indexedForeign = new HashSet<>();
+    /** Set by every membership or source change; the controller's span is recomputed once on the next tick. */
+    private boolean spanDirty = true;
 
     public WarehouseNetwork(int id, NetworkSet<StorageNodeBlockEntity, WarehouseEvent, ?> owner) {
         super(id, owner);
@@ -196,6 +201,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             controllerPos = blockPos;
         }
         lampsDirty = true;
+        spanDirty = true;
         fleet.refreshHomes();
     }
 
@@ -223,6 +229,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         }
         lampsDirty = true;
+        spanDirty = true;
         rebuildCandidates();
         fleet.refreshHomes();
     }
@@ -257,6 +264,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         });
         pollOrderStale = true;
         lampsDirty = true;
+        indexedForeign.addAll(that.indexedForeign);
+        spanDirty = true;
         fleet.absorb(that.fleet);
     }
 
@@ -673,6 +682,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /** The position of the single controller, empty unless online. */
+    /** The controller of an online warehouse, when its chunk is loaded. */
+    public Optional<WarehouseControllerBlockEntity> controller() {
+        if (status() != Status.ONLINE || controllerPos == null) {
+            return Optional.empty();
+        }
+        return loaded(controllerPos) instanceof WarehouseControllerBlockEntity controller ? Optional.of(controller) : Optional.empty();
+    }
+
     public Optional<BlockPos> controllerPos() {
         return status() == Status.ONLINE ? Optional.ofNullable(controllerPos) : Optional.empty();
     }
@@ -1010,6 +1027,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         dirtyQueue.clear();
         dirtySet.clear();
         pollOrder.clear();
+        indexedForeign.clear();
         controllers = 0;
     }
 
@@ -1030,6 +1048,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     private void dropSource(BlockPos pos) {
         if (sources.remove(pos) != null) {
+            if (indexedForeign.remove(pos)) {
+                spanDirty = true;
+            }
             index.remove(pos);
             dirtySet.remove(pos);
             pollOrderStale = true;
@@ -1148,6 +1169,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     protected void onTick() {
         if (lampsDirty && level != null) {
             pushLamps();
+        }
+        if (spanDirty && level != null && controllers == 1 && controllerPos != null) {
+            updateSpan();
         }
         if (level != null) {
             if (shaftsDirty) {
@@ -1482,6 +1506,27 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return result;
     }
 
+    /**
+     * Hands the controller the chunks its site spans: every member and every
+     * indexed foreign inventory of this network, merged with the chunks it knew
+     * that are not loaded. In memory only, no block is looked at.
+     */
+    private void updateSpan() {
+        if (!(loaded(controllerPos) instanceof WarehouseControllerBlockEntity controller)) {
+            return;
+        }
+        spanDirty = false;
+        Set<Long> current = new LinkedHashSet<>();
+        for (NodePos member : members()) {
+            current.add(SiteChunks.ofBlock(member.x(), member.z()));
+        }
+        for (BlockPos pos : indexedForeign) {
+            current.add(SiteChunks.ofBlock(pos.getX(), pos.getZ()));
+        }
+        controller.setSpan(SiteChunks.merge(controller.span(), current,
+                key -> level.getChunkSource().hasChunk(SiteChunks.x(key), SiteChunks.z(key))));
+    }
+
     /** Writes the online state into every loaded stock holding member whose lamp is wrong. */
     private void pushLamps() {
         lampsDirty = false;
@@ -1514,6 +1559,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 dropSource(pos);
             }
             return;
+        }
+        if (!source.node() && indexedForeign.add(pos)) {
+            spanDirty = true;
         }
         Map<ItemKey, Integer> snapshot = new HashMap<>();
         for (int slot = 0; slot < handler.getSlots(); slot++) {
