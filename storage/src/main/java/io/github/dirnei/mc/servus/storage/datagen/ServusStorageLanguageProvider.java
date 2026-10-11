@@ -115,7 +115,8 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.harvest_only_on", "Harvest only: on");
         add("gui.servus_storage.field_head.harvest_only_off", "Harvest only: off");
         add("gui.servus_storage.field_head.water", "Water %s / %s mB");
-        add("gui.servus_storage.field_head.size", "Field: %s rails, %s plots");
+        add("gui.servus_storage.field_head.size", "%s rails, %s plots, radius %s");
+        add("gui.servus_storage.field_head.range_slot", "Radius %s: Range Upgrades widen the field");
         add("gui.servus_storage.field_head.ripe", "Ripe %s/%s");
         add("gui.servus_storage.field_head.ripe_tooltip", "%s of %s planted ripe (%s%%), harvest at %s%%");
         add("gui.servus_storage.field_head.harvest_at", "Harvest at %s%%");

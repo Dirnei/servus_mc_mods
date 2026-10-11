@@ -52,7 +52,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             if (minecraft != null && minecraft.gameMode != null) {
                 minecraft.gameMode.handleInventoryButtonClick(menu.containerId, FieldHeadMenu.BUTTON_HARVEST_ONLY);
             }
-        }).bounds(leftPos + 30, topPos + FieldHeadMenu.CROP_Y + 1, 110, 14).build());
+        }).bounds(leftPos + 30, topPos + FieldHeadMenu.CROP_Y + 1, 92, 14).build());
         down = addRenderableWidget(Button.builder(Component.literal("-"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_DOWN))
                 .bounds(leftPos + 116, topPos + LINES_Y + 20, 14, 11).build());
         up = addRenderableWidget(Button.builder(Component.literal("+"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_UP))
@@ -87,6 +87,12 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.ripe_tooltip",
                     menu.ripe(), menu.planted(), percent(menu.ripe(), menu.planted()), menu.threshold()), mouseX, mouseY);
         }
+        int rangeLeft = leftPos + FieldHeadMenu.RANGE_X;
+        int rangeTop = topPos + FieldHeadMenu.CROP_Y;
+        if (menu.getCarried().isEmpty() && !menu.slots.get(FieldHeadMenu.RANGE_SLOT).hasItem()
+                && mouseX >= rangeLeft && mouseX < rangeLeft + 16 && mouseY >= rangeTop && mouseY < rangeTop + 16) {
+            graphics.renderTooltip(font, Component.translatable("gui.servus_storage.field_head.range_slot", menu.radius()), mouseX, mouseY);
+        }
         renderTooltip(graphics, mouseX, mouseY);
     }
 
@@ -94,6 +100,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         sunken(graphics, leftPos + FieldHeadMenu.CROP_X - 1, topPos + FieldHeadMenu.CROP_Y - 1, 18, 18);
+        sunken(graphics, leftPos + FieldHeadMenu.RANGE_X - 1, topPos + FieldHeadMenu.CROP_Y - 1, 18, 18);
         int barLeft = leftPos + BAR_X;
         int barTop = topPos + BAR_Y;
         sunken(graphics, barLeft - 1, barTop - 1, BAR_W + 2, BAR_H + 2);
@@ -137,7 +144,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                     8, y, COLOUR_WARN, false);
             return;
         }
-        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.size", menu.rails(), menu.plots()), 8, y, COLOUR_TEXT, false);
+        graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.size", menu.rails(), menu.plots(), menu.radius()), 8, y, COLOUR_TEXT, false);
         graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.ripe", menu.ripe(), menu.planted()), 8, y + 10, COLOUR_TEXT, false);
         graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.harvest_at", menu.threshold()), 8, y + 22, COLOUR_TEXT, false);
         FieldWork work = menu.work();

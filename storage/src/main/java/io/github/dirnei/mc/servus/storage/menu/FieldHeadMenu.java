@@ -17,6 +17,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
@@ -27,9 +28,11 @@ public class FieldHeadMenu extends AbstractContainerMenu {
 
     public static final int CROP_X = 8;
     public static final int CROP_Y = 20;
+    public static final int RANGE_X = 128;
+    public static final int RANGE_SLOT = 1;
     public static final int INVENTORY_Y = 96;
     public static final int HOTBAR_Y = 154;
-    public static final int INVENTORY_START = 1;
+    public static final int INVENTORY_START = 2;
     public static final int BUTTON_HARVEST_ONLY = 0;
     public static final int BUTTON_THRESHOLD_DOWN = 1;
     public static final int BUTTON_THRESHOLD_UP = 2;
@@ -54,6 +57,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** The head's work reason plus one; zero while it serves no field. */
     private final DataSlot work = DataSlot.standalone();
     private final DataSlot threshold = DataSlot.standalone();
+    private final DataSlot radius = DataSlot.standalone();
     /** The worker name last sent to the player; null before the first send. */
     private String sentWorker;
 
@@ -63,6 +67,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(head.getLevel(), head.getBlockPos());
         addSlot(new GhostSlot(head::cropHandler, 0, CROP_X, CROP_Y));
+        addSlot(new SlotItemHandler(head.rangeUpgrades(), 0, RANGE_X, CROP_Y));
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < COLUMNS; column++) {
                 addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
@@ -71,7 +76,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         for (int column = 0; column < COLUMNS; column++) {
             addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
         }
-        for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags, work, threshold}) {
+        for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags, work, threshold, radius}) {
             addDataSlot(slot);
         }
         update();
@@ -102,6 +107,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         FieldWork reason = head.work();
         work.set(reason == null ? 0 : reason.ordinal() + 1);
         threshold.set(head.harvestPercent());
+        radius.set(head.radius());
         flags.set((head.hydrated() ? FLAG_HYDRATED : 0) | (head.harvestOnly() ? FLAG_HARVEST_ONLY : 0) | (head.harvestDue() ? FLAG_DUE : 0));
     }
 
@@ -169,6 +175,11 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return threshold.get();
     }
 
+    /** How far the field reaches to each side of its rails. */
+    public int radius() {
+        return radius.get();
+    }
+
     public boolean hydrated() {
         return (flags.get() & FLAG_HYDRATED) != 0;
     }
@@ -222,16 +233,41 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         }
     }
 
-    /** Shift clicking a seed in the inventory makes it the crop. */
+    /**
+     * Shift clicking a Range Upgrade moves it into the upgrade slot and back,
+     * shift clicking a seed in the inventory makes it the crop.
+     */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        if (index >= INVENTORY_START && index < slots.size() && !player.level().isClientSide()) {
-            ItemStack stack = slots.get(index).getItem();
-            if (FieldHeadBlockEntity.isCropItem(stack)) {
+        if (index < RANGE_SLOT || index >= slots.size()) {
+            return ItemStack.EMPTY;
+        }
+        Slot slot = slots.get(index);
+        ItemStack stack = slot.getItem();
+        if (stack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack before = stack.copy();
+        if (index == RANGE_SLOT) {
+            if (!moveItemStackTo(stack, INVENTORY_START, slots.size(), true)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (slots.get(RANGE_SLOT).mayPlace(stack)) {
+            if (!moveItemStackTo(stack, RANGE_SLOT, RANGE_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else {
+            if (FieldHeadBlockEntity.isCropItem(stack) && !player.level().isClientSide()) {
                 setCrop(stack);
             }
+            return ItemStack.EMPTY;
         }
-        return ItemStack.EMPTY;
+        if (stack.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+        return stack.getCount() == before.getCount() ? ItemStack.EMPTY : before;
     }
 
     @Override
