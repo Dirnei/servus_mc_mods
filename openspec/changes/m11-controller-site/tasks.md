@@ -25,7 +25,7 @@
 
 ## 6. Docs and plan
 
-- [ ] 6.1 `docs/src/content/docs/mods/storage.md` (controller GUI, sites, Chunk Loader Upgrade, chunk span and error state) and `PLAN.md` (M11 item 1 with a Built note, and that the upgrade item and slots came in this change). Run `openspec validate m11-controller-site`.
+- [x] 6.1 `docs/src/content/docs/mods/storage.md` (controller GUI, sites, Chunk Loader Upgrade, chunk span and error state) and `PLAN.md` (M11 item 1 with a Built note, and that the upgrade item and slots came in this change). Run `openspec validate m11-controller-site`.
 
 ## 7. Verification
 
