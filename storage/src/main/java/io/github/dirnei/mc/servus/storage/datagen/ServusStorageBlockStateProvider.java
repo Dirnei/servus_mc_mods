@@ -37,7 +37,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         oriented(ServusStorageBlocks.CRATE.get(), "crate", "crate");
         oriented(ServusStorageBlocks.DOUBLE_CRATE.get(), "double_crate", "crate");
         oriented(ServusStorageBlocks.QUAD_CRATE.get(), "quad_crate", "crate");
-        woodOriented(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "warehouse_controller");
+        station(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "warehouse_controller");
         woodOriented(ServusStorageBlocks.STORAGE_TERMINAL.get(), "storage_terminal");
         woodOriented(ServusStorageBlocks.PRODUCTION_TERMINAL.get(), "production_terminal");
         patternStorage(ServusStorageBlocks.PATTERN_STORAGE.get(), "pattern_storage");
@@ -55,6 +55,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
         itemModels().basicItem(ServusStorageItems.HANDLING_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.RANGE_UPGRADE.get());
+        itemModels().basicItem(ServusStorageItems.CHUNK_LOADER_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.HARVESTER.get());
         itemModels().basicItem(ServusStorageItems.SPREADER.get());
         ModelFile workshop = models().cubeBottomTop("shuttle_workshop", modLoc("block/shuttle_workshop_side"),

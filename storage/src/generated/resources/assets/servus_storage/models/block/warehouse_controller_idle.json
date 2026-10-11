@@ -83,8 +83,8 @@
     "board": "servus_foundation:block/wood_board",
     "down": "servus_storage:block/warehouse_controller_top",
     "east": "servus_storage:block/warehouse_controller_side",
-    "north": "servus_storage:block/warehouse_controller_front_online",
-    "particle": "servus_storage:block/warehouse_controller_front_online",
+    "north": "servus_storage:block/warehouse_controller_front_idle",
+    "particle": "servus_storage:block/warehouse_controller_front_idle",
     "south": "servus_storage:block/warehouse_controller_side",
     "up": "servus_storage:block/warehouse_controller_top",
     "west": "servus_storage:block/warehouse_controller_side"

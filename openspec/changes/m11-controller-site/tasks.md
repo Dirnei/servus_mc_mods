@@ -7,7 +7,7 @@
 ## 2. Item, data and block state
 
 - [x] 2.1 `storage/.../registry/ServusStorageItems.java` (Chunk Loader Upgrade, creative tab), `storage/.../crate/StorageStatsManager.java` (`chunk_loader_upgrade_slots`, `chunks_per_upgrade`), `storage/src/main/resources/data/servus_storage/storage/warehouse.json`, `storage/.../controller/ChunkLoaderUpgradeSlots.java`, item texture `textures/item/chunk_loader_upgrade.png`, controller front textures `warehouse_controller_front_idle/working/blocked.png`. Run `gradlew build`.
-- [ ] 2.2 Datagen: `ServusStorageBlockStateProvider` (controller through the activity lamp models, upgrade item model), `ServusStorageRecipeProvider` (upgrade recipe), `ServusStorageLanguageProvider` (item, tooltip, GUI strings). Run `gradlew :storage:runData`, then `gradlew build`.
+- [x] 2.2 Datagen: `ServusStorageBlockStateProvider` (controller through the activity lamp models, upgrade item model), `ServusStorageRecipeProvider` (upgrade recipe), `ServusStorageLanguageProvider` (item, tooltip, GUI strings). Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 3. Controller site
 
