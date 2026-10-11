@@ -17,7 +17,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -191,7 +191,7 @@ public class FluidTankBlockEntity extends NetworkBlockEntity<FluidTankBlockEntit
     }
 
     private static Block readFloor(CompoundTag tag) {
-        ResourceLocation id = ResourceLocation.tryParse(tag.getString(TAG_FLOOR));
+        Identifier id = Identifier.tryParse(tag.getString(TAG_FLOOR));
         return id == null || !BuiltInRegistries.BLOCK.containsKey(id) ? Blocks.COPPER_BLOCK : BuiltInRegistries.BLOCK.get(id);
     }
 

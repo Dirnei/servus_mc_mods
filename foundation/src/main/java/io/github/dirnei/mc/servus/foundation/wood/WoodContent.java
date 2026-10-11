@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.foundation.wood;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -18,13 +18,13 @@ public final class WoodContent {
             DeferredRegister.create(Registries.RECIPE_SERIALIZER, ServusFoundationIds.MOD_ID);
 
     /** The planks block a wood block was crafted from. */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> WOOD =
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Identifier>> WOOD =
             COMPONENTS.registerComponentType("wood", builder -> builder
-                    .persistent(ResourceLocation.CODEC)
-                    .networkSynchronized(ResourceLocation.STREAM_CODEC));
+                    .persistent(Identifier.CODEC)
+                    .networkSynchronized(Identifier.STREAM_CODEC));
 
-    public static final DeferredHolder<RecipeSerializer<?>, WoodRecipe.Serializer> WOOD_SHAPED =
-            RECIPE_SERIALIZERS.register("wood_shaped", WoodRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<WoodRecipe>> WOOD_SHAPED =
+            RECIPE_SERIALIZERS.register("wood_shaped", () -> WoodRecipe.SERIALIZER);
 
     private WoodContent() {
     }

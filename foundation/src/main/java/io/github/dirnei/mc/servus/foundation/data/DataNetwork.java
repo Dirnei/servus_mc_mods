@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
@@ -43,7 +43,7 @@ import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
  */
 public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "data");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "data");
 
     /** Ticks between upkeep checks of the members. */
     public static final int UPKEEP_INTERVAL = 40;

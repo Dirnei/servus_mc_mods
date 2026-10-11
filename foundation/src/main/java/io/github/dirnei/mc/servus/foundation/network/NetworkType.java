@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.foundation.graph.ConnectionRule;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkFactory;
 import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * One kind of network: duct, cable, warehouse. Content mods create one per
@@ -17,17 +17,17 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class NetworkType<N, E, T extends ServusNetwork<N, E>> {
 
-    private final ResourceLocation id;
+    private final Identifier id;
     private final ConnectionRule<N> rule;
     private final NetworkFactory<N, E, T> factory;
 
-    public NetworkType(ResourceLocation id, ConnectionRule<N> rule, NetworkFactory<N, E, T> factory) {
+    public NetworkType(Identifier id, ConnectionRule<N> rule, NetworkFactory<N, E, T> factory) {
         this.id = id;
         this.rule = rule;
         this.factory = factory;
     }
 
-    public ResourceLocation id() {
+    public Identifier id() {
         return id;
     }
 

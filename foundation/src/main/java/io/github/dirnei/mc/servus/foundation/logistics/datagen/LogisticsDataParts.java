@@ -8,7 +8,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsI
 import java.util.List;
 import java.util.function.Function;
 import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.critereon.InventoryChangeTrigger;
+import net.minecraft.advancements.criterion.InventoryChangeTrigger;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;

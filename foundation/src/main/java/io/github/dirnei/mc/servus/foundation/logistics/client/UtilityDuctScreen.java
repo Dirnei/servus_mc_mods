@@ -14,7 +14,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
@@ -27,8 +27,8 @@ import net.minecraft.world.item.ItemStack;
  */
 public class UtilityDuctScreen extends AbstractContainerScreen<UtilityDuctMenu> {
 
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "textures/gui/utility_duct.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "textures/gui/utility_duct.png");
     private static final int MARGIN = 8;
     private static final int MODE_Y = 18;
     private static final int MODE_HEIGHT = 20;

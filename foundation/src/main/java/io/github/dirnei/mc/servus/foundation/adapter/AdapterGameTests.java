@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionHand;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
@@ -15,7 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -74,7 +74,7 @@ public final class AdapterGameTests {
         helper.assertTrue(left.isEmpty(), "all cobblestone should be taken, left " + left);
         helper.assertTrue(furnace(helper).getItem(0).is(Items.COBBLESTONE) && furnace(helper).getItem(0).getCount() == 8,
                 "8 cobblestone in the ingredient slot, got " + furnace(helper).getItem(0));
-        Optional<ResourceLocation> active = adapter.production().active();
+        Optional<Identifier> active = adapter.production().active();
         helper.assertTrue(active.isPresent() && active.get().getPath().contains("stone"), "the cobblestone recipe is active, got " + active);
         // Expected upkeep still finds its way while the ingredient slot is taken.
         adapter.setUpkeepItem(new ItemStack(Items.COAL));
@@ -136,7 +136,7 @@ public final class AdapterGameTests {
             player.setItemInHand(InteractionHand.MAIN_HAND, held);
             ItemInteractionResult result = helper.getBlockState(ADAPTER)
                     .useItemOn(held, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
-            helper.assertTrue(result == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
+            helper.assertTrue(result == InteractionResult.TRY_WITH_EMPTY_HAND,
                     "holding " + held + " should reach the GUI, got " + result);
         }
         helper.succeed();

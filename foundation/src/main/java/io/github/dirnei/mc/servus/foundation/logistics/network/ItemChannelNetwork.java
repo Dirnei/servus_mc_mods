@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
@@ -34,7 +34,7 @@ import net.neoforged.neoforge.items.IItemHandler;
  */
 public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent> {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "item_channel");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "item_channel");
 
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, ItemChannelNetwork> TYPE =
             new NetworkType<>(ID, (from, fromNode, side, to, toNode) -> UtilityDuctBlockEntity.sideOpen(fromNode, side), ItemChannelNetwork::new);
@@ -85,7 +85,7 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
             }
             BlockPos target = blockPos.relative(direction);
             list.add(new Endpoint(duct, direction, target, mode, duct.priority(direction), duct.channel(Line.ITEM, direction),
-                    BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, level, target, direction.getOpposite())));
+                    BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, target, direction.getOpposite())));
         }
         endpoints.put(pos, list);
         planDirty = true;

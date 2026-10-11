@@ -60,7 +60,7 @@ public class LineItem extends BlockItem implements AssistedItem {
                     context.getItemInHand().shrink(1);
                 }
             }
-            return InteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         return super.useOn(context);
     }

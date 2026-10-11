@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.ToIntFunction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -46,7 +46,7 @@ public final class SingleInputRecipes {
 
     /** The recipe type with that id, or null. */
     public static RecipeType<?> type(String id) {
-        ResourceLocation location = ResourceLocation.tryParse(id);
+        Identifier location = Identifier.tryParse(id);
         return location == null ? null : BuiltInRegistries.RECIPE_TYPE.get(location);
     }
 
@@ -57,7 +57,7 @@ public final class SingleInputRecipes {
             return List.of();
         }
         List<ProductionRecipe> recipes = new ArrayList<>();
-        Set<ResourceLocation> ids = new HashSet<>();
+        Set<Identifier> ids = new HashSet<>();
         for (Object entry : manager.getAllRecipesFor((RecipeType) type)) {
             RecipeHolder<?> holder = (RecipeHolder<?>) entry;
             Recipe<?> recipe = holder.value();
@@ -68,8 +68,8 @@ public final class SingleInputRecipes {
             }
             int time = Math.max(1, ticks.applyAsInt(recipe));
             for (ItemStack input : ingredients.get(0).getItems()) {
-                ResourceLocation item = BuiltInRegistries.ITEM.getKey(input.getItem());
-                ResourceLocation recipeId = holder.id().withSuffix("/" + item.getNamespace() + "/" + item.getPath());
+                Identifier item = BuiltInRegistries.ITEM.getKey(input.getItem());
+                Identifier recipeId = holder.id().withSuffix("/" + item.getNamespace() + "/" + item.getPath());
                 if (ids.add(recipeId)) {
                     recipes.add(new ProductionRecipe(recipeId, List.of(input.copyWithCount(1)), List.of(result.copy()), time));
                 }

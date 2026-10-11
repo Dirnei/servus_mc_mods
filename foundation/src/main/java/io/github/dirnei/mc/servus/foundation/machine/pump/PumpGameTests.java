@@ -120,7 +120,7 @@ public final class PumpGameTests {
     }
 
     private static IFluidHandler pumpFluid(GameTestHelper helper, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(PUMP), side);
+        return helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(PUMP), side);
     }
 
     private static int buffered(GameTestHelper helper) {
@@ -211,7 +211,7 @@ public final class PumpGameTests {
             helper.assertTrue(pump.sideConfig().isLocked(side), "side " + side + " should be fixed");
         }
         helper.assertTrue(pump.cycleFace(Direction.WEST) == SideMode.AUTO, "a side stays Auto when cycled");
-        IItemHandler west = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(PUMP), Direction.WEST);
+        IItemHandler west = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(PUMP), Direction.WEST);
         helper.assertTrue(west != null, "a side takes fuel by automation");
         ItemStack left = ItemHandlerHelper.insertItem(west, new ItemStack(Items.COAL, 3), false);
         helper.assertTrue(left.isEmpty() && pump.inventory().getStackInSlot(BurnerPumpBlockEntity.SLOT_FUEL).getCount() == 3,
@@ -254,7 +254,7 @@ public final class PumpGameTests {
         duct(helper, PUMP.north(), Line.ENERGY);
         helper.assertTrue(stub(helper, PumpBlock.EAST) == 1, "a Power Cable on the side gets a thin stub");
         helper.assertTrue(stub(helper, PumpBlock.NORTH) == 0, "the front takes no power and gets no stub");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, helper.absolutePos(PUMP), Direction.NORTH) == null,
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(PUMP), Direction.NORTH) == null,
                 "no energy through the front");
         duct(helper, PUMP.above(), Line.FLUID);
         helper.assertTrue(stub(helper, PumpBlock.UP) == 1, "a Fluid Pipe on top reaches the outlet");
@@ -497,8 +497,8 @@ public final class PumpGameTests {
         placeBurnerPump(helper, ENGINE);
         BlockPos top = helper.absolutePos(ENGINE.above());
         for (Direction side : Direction.values()) {
-            helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, top, side) == null, "no fluid on " + side);
-            helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, top, side) == null, "no items on " + side);
+            helper.assertTrue(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, top, side) == null, "no fluid on " + side);
+            helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, top, side) == null, "no items on " + side);
         }
         duct(helper, ENGINE.above().east(), Line.FLUID);
         UtilityDuctBlockEntity duct = helper.getBlockEntity(ENGINE.above().east());
@@ -511,8 +511,8 @@ public final class PumpGameTests {
     public static void burnerPumpTopFaceClosed(GameTestHelper helper) {
         placeBurnerPump(helper, ENGINE);
         BlockPos pos = helper.absolutePos(ENGINE);
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, pos, Direction.UP) == null, "no water upward");
-        IItemHandler above = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, pos, Direction.UP);
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, pos, Direction.UP) == null, "no water upward");
+        IItemHandler above = helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP);
         helper.assertTrue(above == null || ItemHandlerHelper.insertItem(above, new ItemStack(Items.COAL, 2), false).getCount() == 2,
                 "no fuel from above");
         helper.assertTrue(helper.getBlockState(ENGINE).getValue(PumpBlock.UP) == 0, "no stub on top");

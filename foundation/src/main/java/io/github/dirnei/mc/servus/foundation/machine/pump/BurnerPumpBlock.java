@@ -123,7 +123,7 @@ public class BurnerPumpBlock extends PumpBlock {
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockPos pos = context.getClickedPos();
         Level level = context.getLevel();
-        if (pos.getY() >= level.getMaxBuildHeight() - 1 || !level.getBlockState(pos.above()).canBeReplaced(context)) {
+        if (pos.getY() >= level.getMaxY() + 1 - 1 || !level.getBlockState(pos.above()).canBeReplaced(context)) {
             return null;
         }
         return super.getStateForPlacement(context);

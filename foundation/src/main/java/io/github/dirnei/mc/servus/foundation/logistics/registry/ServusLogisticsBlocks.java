@@ -14,7 +14,7 @@ public final class ServusLogisticsBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(ServusFoundationIds.MOD_ID);
 
     public static final DeferredBlock<UtilityDuctBlock> UTILITY_DUCT = BLOCKS.registerBlock("utility_duct", UtilityDuctBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .strength(1.5F)
                     .sound(SoundType.METAL)
@@ -22,7 +22,7 @@ public final class ServusLogisticsBlocks {
                     .requiresCorrectToolForDrops());
 
     public static final DeferredBlock<FluidTankBlock> FLUID_TANK = BLOCKS.registerBlock("fluid_tank", FluidTankBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .strength(1.0F)
                     .sound(SoundType.GLASS)

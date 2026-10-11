@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.foundation.wood.Wood;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
@@ -22,9 +22,9 @@ public final class LayeredModels {
     }
 
     /** Front on north, the side texture on the other three sides, top and bottom texture above and below. */
-    public static ModelFile orientable(BlockStateProvider provider, String name, ResourceLocation side, ResourceLocation front,
-                                       ResourceLocation top) {
-        Map<Direction, ResourceLocation> faces = new EnumMap<>(Direction.class);
+    public static ModelFile orientable(BlockStateProvider provider, String name, Identifier side, Identifier front,
+                                       Identifier top) {
+        Map<Direction, Identifier> faces = new EnumMap<>(Direction.class);
         faces.put(Direction.NORTH, front);
         faces.put(Direction.SOUTH, side);
         faces.put(Direction.EAST, side);
@@ -35,7 +35,7 @@ public final class LayeredModels {
     }
 
     /** One overlay texture per face. */
-    public static ModelFile cube(BlockStateProvider provider, String name, Map<Direction, ResourceLocation> faces) {
+    public static ModelFile cube(BlockStateProvider provider, String name, Map<Direction, Identifier> faces) {
         // The board texture lives in Foundation; other mods' data runs only know their own resources.
         provider.models().existingFileHelper.trackGenerated(Wood.BOARD, ModelProvider.TEXTURE);
         BlockModelBuilder builder = provider.models().getBuilder(name)

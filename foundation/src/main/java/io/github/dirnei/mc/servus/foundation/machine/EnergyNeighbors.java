@@ -21,7 +21,7 @@ public final class EnergyNeighbors {
         caches = new BlockCapabilityCache[Direction.values().length];
         for (Direction direction : Direction.values()) {
             caches[direction.ordinal()] = BlockCapabilityCache.create(
-                    Capabilities.EnergyStorage.BLOCK, level, pos.relative(direction), direction.getOpposite());
+                    Capabilities.Energy.BLOCK, level, pos.relative(direction), direction.getOpposite());
         }
     }
 

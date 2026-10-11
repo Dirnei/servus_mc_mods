@@ -10,7 +10,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 final class ServusFoundationBlockStateProvider extends BlockStateProvider {
 
@@ -23,7 +23,7 @@ final class ServusFoundationBlockStateProvider extends BlockStateProvider {
         LogisticsDataParts.blockStates(this);
         MachineDataParts.blockStates(this);
         // directionalBlock turns the model's up face toward the facing: the port on top, the funnel below.
-        Map<Direction, ResourceLocation> adapterFaces = new EnumMap<>(Direction.class);
+        Map<Direction, Identifier> adapterFaces = new EnumMap<>(Direction.class);
         for (Direction direction : Direction.values()) {
             adapterFaces.put(direction, modLoc("block/machine_adapter_side"));
         }

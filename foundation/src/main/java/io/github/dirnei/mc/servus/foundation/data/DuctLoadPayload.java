@@ -6,7 +6,7 @@ import java.util.Map;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Server to client: the load levels of the busy data ducts near a player who
@@ -18,7 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 public record DuctLoadPayload(Map<Long, Integer> levels) implements CustomPacketPayload {
 
     public static final Type<DuctLoadPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "duct_load"));
+            new Type<>(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "duct_load"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, DuctLoadPayload> STREAM_CODEC = StreamCodec.of(
             (buf, payload) -> {

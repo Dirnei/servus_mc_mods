@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.item;
 
+import net.minecraft.core.Direction;
 import io.github.dirnei.mc.servus.foundation.block.SideConfigWrench;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationComponents;
@@ -12,7 +13,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -23,7 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.HitResult;
 
 /**
@@ -75,7 +75,7 @@ public class ConfigurationCarrotItem extends Item {
         if (player != null && player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }
-        DirectionProperty property = facingProperty(state);
+        EnumProperty<Direction> property = facingProperty(state);
         if (property == null) {
             return InteractionResult.PASS;
         }
@@ -83,23 +83,23 @@ public class ConfigurationCarrotItem extends Item {
             level.setBlock(pos, state.cycle(property), Block.UPDATE_ALL);
             level.playSound(null, pos, SoundEvents.ITEM_FRAME_ROTATE_ITEM, SoundSource.BLOCKS, 1.0f, 1.0f);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /** Used on the air: switches to the next layer and says which. A click that reached a block does nothing here. */
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE).getType() != HitResult.Type.MISS) {
-            return InteractionResultHolder.pass(stack);
+            return InteractionResult.PASS;
         }
         if (!level.isClientSide()) {
             SideLayer next = layer(stack).next();
             stack.set(ServusFoundationComponents.CARROT_LAYER.get(), next.name());
-            player.displayClientMessage(Component.translatable("message.servus_foundation.carrot_layer",
-                    SideConfigWrench.layerName(next)), true);
+            player.sendOverlayMessage(Component.translatable("message.servus_foundation.carrot_layer",
+                    SideConfigWrench.layerName(next)));
         }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -109,7 +109,7 @@ public class ConfigurationCarrotItem extends Item {
         tooltip.add(Component.translatable("tooltip.servus_foundation.carrot_layer_hint").withStyle(ChatFormatting.DARK_GRAY));
     }
 
-    private static DirectionProperty facingProperty(BlockState state) {
+    private static EnumProperty<Direction> facingProperty(BlockState state) {
         if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
             return BlockStateProperties.HORIZONTAL_FACING;
         }

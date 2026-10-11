@@ -8,7 +8,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -36,7 +36,7 @@ public final class PlacementAssistHud {
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
         event.registerAbove(VanillaGuiLayers.CROSSHAIR,
-                ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "placement_assist"), PlacementAssistHud::render);
+                Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "placement_assist"), PlacementAssistHud::render);
     }
 
     private static void render(GuiGraphics graphics, DeltaTracker deltaTracker) {

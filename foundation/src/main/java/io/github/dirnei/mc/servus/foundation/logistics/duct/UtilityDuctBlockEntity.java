@@ -42,7 +42,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -55,7 +55,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -95,7 +95,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     /** Six bit mask of the sides whose panel is hollow. */
     private int hollowPanels;
     /** The data line's tier: the id of the data cable item that placed it. */
-    private ResourceLocation dataTier = CableTiersManager.BASE_TIER;
+    private Identifier dataTier = CableTiersManager.BASE_TIER;
 
     public UtilityDuctBlockEntity(BlockPos pos, BlockState state) {
         super(ServusLogisticsBlockEntities.UTILITY_DUCT.get(), pos, state);
@@ -136,7 +136,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     }
 
     /** Adds the data line in the tier of the given cable item; see {@link #addLine(Line)}. */
-    public boolean addDataLine(ResourceLocation tier) {
+    public boolean addDataLine(Identifier tier) {
         if (has(Line.DATA)) {
             return false;
         }
@@ -145,7 +145,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     }
 
     /** The data line's tier id (the cable item id), the base Data Cable when unset. */
-    public ResourceLocation dataTierId() {
+    public Identifier dataTierId() {
         return dataTier;
     }
 
@@ -153,8 +153,8 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
      * Changes the data line's tier in place: sides, modes and connections stay.
      * Running deliveries pick their path again.
      */
-    public void setDataTier(ResourceLocation tier) {
-        ResourceLocation next = tier == null ? CableTiersManager.BASE_TIER : tier;
+    public void setDataTier(Identifier tier) {
+        Identifier next = tier == null ? CableTiersManager.BASE_TIER : tier;
         if (next.equals(dataTier)) {
             return;
         }
@@ -282,9 +282,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             return neighbour.has(line) && !neighbour.closed(side.getOpposite());
         }
         return switch (line) {
-            case ITEM -> realLevel.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, side.getOpposite()) != null;
-            case ENERGY -> realLevel.getCapability(Capabilities.EnergyStorage.BLOCK, neighborPos, side.getOpposite()) != null;
-            case FLUID -> realLevel.getCapability(Capabilities.FluidHandler.BLOCK, neighborPos, side.getOpposite()) != null;
+            case ITEM -> realLevel.getCapability(Capabilities.Item.BLOCK, neighborPos, side.getOpposite()) != null;
+            case ENERGY -> realLevel.getCapability(Capabilities.Energy.BLOCK, neighborPos, side.getOpposite()) != null;
+            case FLUID -> realLevel.getCapability(Capabilities.Fluid.BLOCK, neighborPos, side.getOpposite()) != null;
             case DATA -> DataMembership.isMember(realLevel, neighborPos, side.getOpposite());
         };
     }
@@ -863,7 +863,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
                 }
             }
         }
-        ResourceLocation savedTier = tag.contains("DataTier") ? ResourceLocation.tryParse(tag.getString("DataTier")) : null;
+        Identifier savedTier = tag.contains("DataTier") ? Identifier.tryParse(tag.getString("DataTier")) : null;
         dataTier = savedTier == null ? CableTiersManager.BASE_TIER : savedTier;
         if (level != null && level.isClientSide()) {
             requestModelDataUpdate();

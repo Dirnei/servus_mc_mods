@@ -28,7 +28,7 @@ public final class ChunkLoaderData extends SavedData {
     }
 
     static String key(ServerLevel level, BlockPos pos) {
-        return level.dimension().location() + "@" + pos.asLong();
+        return level.dimension().identifier() + "@" + pos.asLong();
     }
 
     public int countFor(UUID team) {

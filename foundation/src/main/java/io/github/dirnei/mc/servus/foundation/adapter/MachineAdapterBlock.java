@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
@@ -30,7 +30,7 @@ import io.github.dirnei.mc.servus.foundation.wood.Wood;
 public class MachineAdapterBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<MachineAdapterBlock> CODEC = simpleCodec(MachineAdapterBlock::new);
-    public static final DirectionProperty FACING = BlockStateProperties.FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
     public MachineAdapterBlock(Properties properties) {
         super(properties);
@@ -69,7 +69,7 @@ public class MachineAdapterBlock extends BaseEntityBlock implements Wrenchable {
         if (player instanceof ServerPlayer server && level.getBlockEntity(pos) instanceof MachineAdapterBlockEntity adapter) {
             server.openMenu(adapter, buf -> buf.writeBlockPos(pos));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -84,6 +84,6 @@ public class MachineAdapterBlock extends BaseEntityBlock implements Wrenchable {
             Block.popResource(level, pos, Wood.stamp(new ItemStack(this), level.getBlockEntity(pos)));
             level.removeBlock(pos, false);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

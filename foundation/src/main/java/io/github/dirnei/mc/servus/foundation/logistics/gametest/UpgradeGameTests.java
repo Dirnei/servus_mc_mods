@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -45,7 +45,7 @@ public final class UpgradeGameTests {
     /** A datapack multiplier overrides the item's default. */
     @GameTest(template = EMPTY, timeoutTicks = 20)
     public static void upgradeMultiplierFromData(GameTestHelper helper) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "speed_upgrade");
+        Identifier id = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "speed_upgrade");
         Double before = UpgradesManager.INSTANCE.multiplier(id);
         UpgradesManager.INSTANCE.set(id, 4);
         try {

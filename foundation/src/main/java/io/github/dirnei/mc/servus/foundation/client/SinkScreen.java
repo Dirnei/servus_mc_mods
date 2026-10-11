@@ -5,14 +5,14 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.SinkMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 /** Sink GUI: the trash slot, the chimney height and the three rates. */
 public class SinkScreen extends AbstractContainerScreen<SinkMenu> {
 
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "textures/gui/sink.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "textures/gui/sink.png");
     private static final int TEXT = 0xFF404040;
     private static final int HINT = 0xFF707070;
     private static final int LINE_X = 8;

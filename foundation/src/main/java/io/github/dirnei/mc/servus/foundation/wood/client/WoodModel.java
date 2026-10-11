@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
 import net.neoforged.neoforge.client.model.IDynamicBakedModel;
 import net.neoforged.neoforge.client.model.IQuadTransformer;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -35,14 +35,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class WoodModel implements IDynamicBakedModel {
 
-    private record QuadKey(ResourceLocation wood, Map<ResourceLocation, ResourceLocation> swaps, @Nullable BlockState state,
+    private record QuadKey(Identifier wood, Map<Identifier, Identifier> swaps, @Nullable BlockState state,
                            @Nullable Direction side, @Nullable RenderType renderType) {
     }
 
     private final BakedModel base;
-    private final @Nullable ResourceLocation fixedWood;
+    private final @Nullable Identifier fixedWood;
     private final Map<QuadKey, List<BakedQuad>> quads = new ConcurrentHashMap<>();
-    private final Map<ResourceLocation, WoodModel> itemModels = new ConcurrentHashMap<>();
+    private final Map<Identifier, WoodModel> itemModels = new ConcurrentHashMap<>();
     private final ItemOverrides overrides = new ItemOverrides() {
         @Override
         public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
@@ -54,35 +54,35 @@ public final class WoodModel implements IDynamicBakedModel {
         this(base, null);
     }
 
-    private WoodModel(BakedModel base, @Nullable ResourceLocation fixedWood) {
+    private WoodModel(BakedModel base, @Nullable Identifier fixedWood) {
         this.base = base;
         this.fixedWood = fixedWood;
     }
 
-    private ResourceLocation woodOf(ModelData data) {
+    private Identifier woodOf(ModelData data) {
         if (fixedWood != null) {
             return fixedWood;
         }
-        ResourceLocation wood = data.get(Wood.PROPERTY);
+        Identifier wood = data.get(Wood.PROPERTY);
         return wood != null ? wood : Wood.DEFAULT;
     }
 
     /** The further swaps of a block, none for items. */
-    private Map<ResourceLocation, ResourceLocation> swapsOf(ModelData data) {
+    private Map<Identifier, Identifier> swapsOf(ModelData data) {
         if (fixedWood != null) {
             return Map.of();
         }
-        Map<ResourceLocation, ResourceLocation> swaps = data.get(Wood.SWAPS);
+        Map<Identifier, Identifier> swaps = data.get(Wood.SWAPS);
         return swaps != null ? swaps : Map.of();
     }
 
     /** A texture of the block atlas. */
-    private static TextureAtlasSprite atlasSprite(ResourceLocation texture) {
+    private static TextureAtlasSprite atlasSprite(Identifier texture) {
         return Minecraft.getInstance().getModelManager().getAtlas(InventoryMenu.BLOCK_ATLAS).getSprite(texture);
     }
 
     /** The particle sprite of the planks block's default model. */
-    private static TextureAtlasSprite spriteOf(ResourceLocation wood) {
+    private static TextureAtlasSprite spriteOf(Identifier wood) {
         return Minecraft.getInstance().getBlockRenderer().getBlockModel(Wood.block(wood).defaultBlockState())
                 .getParticleIcon(ModelData.EMPTY);
     }
@@ -90,14 +90,14 @@ public final class WoodModel implements IDynamicBakedModel {
     @Override
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand,
                                     ModelData extraData, @Nullable RenderType renderType) {
-        ResourceLocation wood = woodOf(extraData);
-        Map<ResourceLocation, ResourceLocation> swaps = swapsOf(extraData);
+        Identifier wood = woodOf(extraData);
+        Map<Identifier, Identifier> swaps = swapsOf(extraData);
         return quads.computeIfAbsent(new QuadKey(wood, swaps, state, side, renderType), key -> {
             TextureAtlasSprite sprite = spriteOf(wood);
             List<BakedQuad> result = new ArrayList<>();
             for (BakedQuad quad : base.getQuads(state, side, rand, ModelData.EMPTY, renderType)) {
-                ResourceLocation name = quad.getSprite().contents().name();
-                ResourceLocation swap = swaps.get(name);
+                Identifier name = quad.getSprite().contents().name();
+                Identifier swap = swaps.get(name);
                 if (name.equals(Wood.BOARD)) {
                     result.add(retexture(quad, sprite));
                 } else if (swap != null) {

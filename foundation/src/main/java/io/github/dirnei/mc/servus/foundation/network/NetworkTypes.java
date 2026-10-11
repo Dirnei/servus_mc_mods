@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Registry of network types. Iteration order is registration order, which is
@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class NetworkTypes {
 
-    private static final Map<ResourceLocation, NetworkType<?, ?, ?>> TYPES = new LinkedHashMap<>();
+    private static final Map<Identifier, NetworkType<?, ?, ?>> TYPES = new LinkedHashMap<>();
 
     private NetworkTypes() {
     }

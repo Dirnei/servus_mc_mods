@@ -9,30 +9,30 @@ import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 /** Screen shared by all machines. The layout says which indicators to draw and on which background. */
 public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     /** Which indicators a machine screen shows, whether it has the side panel, and its background texture. */
-    public record Layout(boolean flame, boolean arrow, boolean energy, boolean fluid, boolean sidePanel, ResourceLocation texture) {
+    public record Layout(boolean flame, boolean arrow, boolean energy, boolean fluid, boolean sidePanel, Identifier texture) {
         /** The shared burner background: fuel, input, arrow and output. */
         public static final Layout BURNER = new Layout(true, true, false, gui(ServusFoundationIds.MOD_ID, "burner_machine"));
 
-        public Layout(boolean flame, boolean arrow, boolean energy, ResourceLocation texture) {
+        public Layout(boolean flame, boolean arrow, boolean energy, Identifier texture) {
             this(flame, arrow, energy, false, true, texture);
         }
 
         /** A GUI background at {@code <namespace>:textures/gui/<name>.png}. */
-        public static ResourceLocation gui(String namespace, String name) {
-            return ResourceLocation.fromNamespaceAndPath(namespace, "textures/gui/" + name + ".png");
+        public static Identifier gui(String namespace, String name) {
+            return Identifier.fromNamespaceAndPath(namespace, "textures/gui/" + name + ".png");
         }
     }
 
     /** The furnace's own flame and arrow, so machines burn like vanilla does. */
-    private static final ResourceLocation LIT_PROGRESS_SPRITE = ResourceLocation.withDefaultNamespace("container/furnace/lit_progress");
-    private static final ResourceLocation BURN_PROGRESS_SPRITE = ResourceLocation.withDefaultNamespace("container/furnace/burn_progress");
+    private static final Identifier LIT_PROGRESS_SPRITE = Identifier.withDefaultNamespace("container/furnace/lit_progress");
+    private static final Identifier BURN_PROGRESS_SPRITE = Identifier.withDefaultNamespace("container/furnace/burn_progress");
 
     /** Left edge of the energy bar; wider screens override. */
     protected int energyX() {

@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Names of the duct part models under {@code models/block/duct/}, shared by
@@ -113,8 +113,8 @@ public final class DuctParts {
         return names;
     }
 
-    public static ResourceLocation id(String name) {
-        return ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/duct/" + name);
+    public static Identifier id(String name) {
+        return Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/duct/" + name);
     }
 
     public static int ringTint(Line line, Direction side) {

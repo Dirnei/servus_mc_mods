@@ -13,7 +13,7 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -32,7 +32,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
     public static final int STATUS_TEAM_LIMIT = 2;
     public static final int STATUS_FTB_CHUNKS = 3;
     public static final int STATUS_NO_OWNER = 4;
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "chunk_loader");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "chunk_loader");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final String FTB_CHUNKS = "ftbchunks";
 
@@ -114,7 +114,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
         if (wanted == ticketHeld || !(level instanceof ServerLevel server)) {
             return;
         }
-        ChunkPos chunk = new ChunkPos(worldPosition);
+        ChunkPos chunk = ChunkPos.containing(worldPosition);
         ChunkLoaderTickets.CONTROLLER.forceChunk(server, worldPosition, chunk.x, chunk.z, wanted, true);
         ticketHeld = wanted;
         setChanged();
@@ -132,7 +132,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
     }
 
     @Override
-    protected ResourceLocation machineId() {
+    protected Identifier machineId() {
         return ID;
     }
 

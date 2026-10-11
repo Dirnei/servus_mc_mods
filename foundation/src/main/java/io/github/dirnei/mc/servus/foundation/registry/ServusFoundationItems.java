@@ -13,12 +13,12 @@ public final class ServusFoundationItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ServusFoundationIds.MOD_ID);
 
     public static final DeferredItem<ConfigurationCarrotItem> CONFIGURATION_CARROT =
-            ITEMS.registerItem("configuration_carrot", ConfigurationCarrotItem::new, new Item.Properties().stacksTo(1));
+            ITEMS.registerItem("configuration_carrot", ConfigurationCarrotItem::new, () -> new Item.Properties().stacksTo(1));
     public static final DeferredItem<GogglesItem> GOGGLES =
-            ITEMS.registerItem("engineer_goggles", GogglesItem::new, new Item.Properties());
+            ITEMS.registerItem("engineer_goggles", GogglesItem::new, () -> new Item.Properties());
 
     public static final DeferredItem<UpgradeItem> SPEED_UPGRADE =
-            ITEMS.registerItem("speed_upgrade", properties -> new UpgradeItem(2, properties), new Item.Properties().stacksTo(16));
+            ITEMS.registerItem("speed_upgrade", properties -> new UpgradeItem(2, properties), () -> new Item.Properties().stacksTo(16));
 
     private ServusFoundationItems() {
     }

@@ -4,12 +4,12 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.client.model.data.ModelProperty;
+import net.neoforged.neoforge.model.data.ModelProperty;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -19,44 +19,44 @@ import org.jetbrains.annotations.Nullable;
 public final class Wood {
 
     /** Boards of a block that remembers no wood. */
-    public static final ResourceLocation DEFAULT = BuiltInRegistries.BLOCK.getKey(Blocks.OAK_PLANKS);
+    public static final Identifier DEFAULT = BuiltInRegistries.BLOCK.getKey(Blocks.OAK_PLANKS);
     /** The wood in a block entity's model data. */
-    public static final ModelProperty<ResourceLocation> PROPERTY = new ModelProperty<>();
+    public static final ModelProperty<Identifier> PROPERTY = new ModelProperty<>();
     /** The board texture of layered models; quads with this sprite show the wood. */
-    public static final ResourceLocation BOARD = ResourceLocation.fromNamespaceAndPath("servus_foundation", "block/wood_board");
+    public static final Identifier BOARD = Identifier.fromNamespaceAndPath("servus_foundation", "block/wood_board");
     /**
      * Further textures a block swaps besides its wood, from its model data:
      * texture name to the texture drawn in its place (block atlas), for
      * material looks such as copper stages. Items never carry it.
      */
-    public static final ModelProperty<Map<ResourceLocation, ResourceLocation>> SWAPS = new ModelProperty<>();
+    public static final ModelProperty<Map<Identifier, Identifier>> SWAPS = new ModelProperty<>();
 
-    private static final Set<ResourceLocation> BLOCKS = new LinkedHashSet<>();
+    private static final Set<Identifier> BLOCKS = new LinkedHashSet<>();
 
     private Wood() {
     }
 
     /** Marks a block whose block state and item models show its wood. Call during mod construction. */
-    public static synchronized void register(ResourceLocation blockId) {
+    public static synchronized void register(Identifier blockId) {
         BLOCKS.add(blockId);
     }
 
-    public static synchronized boolean isWoodBlock(ResourceLocation blockId) {
+    public static synchronized boolean isWoodBlock(Identifier blockId) {
         return BLOCKS.contains(blockId);
     }
 
     /** The id itself when it names a block, else oak. */
-    public static ResourceLocation or(@Nullable ResourceLocation id) {
+    public static Identifier or(@Nullable Identifier id) {
         return id != null && BuiltInRegistries.BLOCK.containsKey(id) ? id : DEFAULT;
     }
 
     /** The wood an item carries; oak when none or unknown. */
-    public static ResourceLocation of(ItemStack stack) {
+    public static Identifier of(ItemStack stack) {
         return or(stack.get(WoodContent.WOOD.get()));
     }
 
     /** The planks block of a wood id. */
-    public static Block block(ResourceLocation wood) {
+    public static Block block(Identifier wood) {
         return BuiltInRegistries.BLOCK.get(or(wood));
     }
 

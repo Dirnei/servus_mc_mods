@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
@@ -41,7 +41,7 @@ public class BurnerPumpRenderer implements BlockEntityRenderer<BurnerPumpBlockEn
     }
 
     private static ModelResourceLocation model(String name) {
-        return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/" + name));
+        return ModelResourceLocation.standalone(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/" + name));
     }
 
     @Override

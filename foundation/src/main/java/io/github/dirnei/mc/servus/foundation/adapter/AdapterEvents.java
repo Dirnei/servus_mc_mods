@@ -7,7 +7,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 
@@ -19,8 +19,8 @@ public final class AdapterEvents {
     }
 
     @SubscribeEvent
-    public static void onAddReloadListeners(AddReloadListenerEvent event) {
-        event.addListener(MachineProfiles.INSTANCE);
+    public static void onAddReloadListeners(AddServerReloadListenersEvent event) {
+        event.addListener(MachineProfiles.LISTENER_ID, MachineProfiles.INSTANCE);
     }
 
     /** Mod bus hooks. */
@@ -46,7 +46,7 @@ public final class AdapterEvents {
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, AdapterContent.BLOCK_ENTITY.get(),
                     (adapter, side) -> adapter.production());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, AdapterContent.BLOCK_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, AdapterContent.BLOCK_ENTITY.get(),
                     (adapter, side) -> adapter.itemHandler());
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, AdapterContent.BLOCK_ENTITY.get(),
                     (adapter, side) -> adapter.upkeep());

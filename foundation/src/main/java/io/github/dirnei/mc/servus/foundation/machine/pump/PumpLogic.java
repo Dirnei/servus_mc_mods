@@ -130,7 +130,7 @@ public final class PumpLogic {
             if (!sideModes.apply(direction).pushes()) {
                 continue;
             }
-            IFluidHandler neighbour = level.getCapability(Capabilities.FluidHandler.BLOCK,
+            IFluidHandler neighbour = level.getCapability(Capabilities.Fluid.BLOCK,
                     pos.relative(direction), direction.getOpposite());
             if (neighbour == null) {
                 continue;

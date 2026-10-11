@@ -5,7 +5,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankBlock;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
@@ -48,8 +48,8 @@ final class FluidTankModels {
     }
 
     static void generate(BlockStateProvider provider) {
-        ResourceLocation glass = provider.modLoc("block/fluid_tank_glass");
-        ResourceLocation frame = provider.mcLoc("block/copper_block");
+        Identifier glass = provider.modLoc("block/fluid_tank_glass");
+        Identifier frame = provider.mcLoc("block/copper_block");
         MultiPartBlockStateBuilder multipart = provider.getMultipartBuilder(ServusLogisticsBlocks.FLUID_TANK.get());
 
         // The complete single block, for the item.
@@ -78,7 +78,7 @@ final class FluidTankModels {
                 .parent(new ModelFile.UncheckedModelFile(provider.modLoc("block/fluid_tank")));
     }
 
-    private static BlockModelBuilder base(BlockStateProvider provider, String name, ResourceLocation glass, ResourceLocation frame) {
+    private static BlockModelBuilder base(BlockStateProvider provider, String name, Identifier glass, Identifier frame) {
         return provider.models().getBuilder(name)
                 .parent(new ModelFile.UncheckedModelFile(provider.mcLoc("block/block")))
                 .renderType("cutout")

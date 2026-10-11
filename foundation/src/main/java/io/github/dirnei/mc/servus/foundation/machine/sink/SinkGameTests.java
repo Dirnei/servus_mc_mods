@@ -241,15 +241,15 @@ public final class SinkGameTests {
     }
 
     private static IItemHandler sinkItems(GameTestHelper helper, BlockPos pos, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), side);
+        return helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(pos), side);
     }
 
     private static IFluidHandler sinkFluid(GameTestHelper helper, BlockPos pos, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), side);
+        return helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), side);
     }
 
     private static IEnergyStorage sinkEnergy(GameTestHelper helper, BlockPos pos, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, helper.absolutePos(pos), side);
+        return helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(pos), side);
     }
 
     /** Hoppers pointing into the side of the controller and into the back of another part empty; the items appear nowhere. */

@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -43,7 +43,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
  */
 public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent> {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "fluid_channel");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "fluid_channel");
 
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, FluidChannelNetwork> TYPE =
             new NetworkType<>(ID, (from, fromNode, side, to, toNode) -> UtilityDuctBlockEntity.sideOpen(fromNode, side), FluidChannelNetwork::new);
@@ -159,7 +159,7 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
             }
             BlockPos target = blockPos.relative(direction);
             list.add(new Endpoint(target, mode, duct.channel(Line.FLUID, direction), BlockCapabilityCache.create(
-                    Capabilities.FluidHandler.BLOCK, level, target, direction.getOpposite())));
+                    Capabilities.Fluid.BLOCK, level, target, direction.getOpposite())));
         }
         endpoints.put(pos, list);
     }

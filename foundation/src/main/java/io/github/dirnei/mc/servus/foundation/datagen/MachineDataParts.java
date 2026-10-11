@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.critereon.InventoryChangeTrigger;
+import net.minecraft.advancements.criterion.InventoryChangeTrigger;
 import net.minecraft.core.Direction;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -183,7 +183,7 @@ final class MachineDataParts {
         return model;
     }
 
-    private static ModelFile pumpModel(BlockStateProvider provider, String name, ResourceLocation front) {
+    private static ModelFile pumpModel(BlockStateProvider provider, String name, Identifier front) {
         BlockModelBuilder model = provider.models().withExistingParent(name, provider.mcLoc("block/block"))
                 .texture("particle", provider.modLoc("block/machine_side"))
                 .texture("side", provider.modLoc("block/machine_side"))
@@ -209,8 +209,8 @@ final class MachineDataParts {
 
     /** Orientable machine with a lit and an unlit front, rotated by facing. */
     static void machine(BlockStateProvider provider, Block block, String name) {
-        ResourceLocation side = provider.modLoc("block/machine_side");
-        ResourceLocation top = provider.modLoc("block/machine_top");
+        Identifier side = provider.modLoc("block/machine_side");
+        Identifier top = provider.modLoc("block/machine_top");
         ModelFile unlit = provider.models().orientable(name, side, provider.modLoc("block/" + name + "_front"), top);
         ModelFile lit = provider.models().orientable(name + "_lit", side, provider.modLoc("block/" + name + "_front_lit"), top);
         provider.getVariantBuilder(block).forAllStates(state -> {

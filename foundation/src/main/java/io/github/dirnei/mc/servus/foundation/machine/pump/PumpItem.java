@@ -2,7 +2,6 @@ package io.github.dirnei.mc.servus.foundation.machine.pump;
 
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -44,7 +43,7 @@ public class PumpItem extends BlockItem {
 
     /** Clicking into the air over water that is out of block reach still finds the surface. */
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         BlockHitResult water = waterSurface(level, player);
         if (water == null) {
             return super.use(level, player, hand);

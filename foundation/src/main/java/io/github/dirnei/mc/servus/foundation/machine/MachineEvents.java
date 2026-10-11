@@ -11,7 +11,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 
@@ -23,9 +23,9 @@ public final class MachineEvents {
     }
 
     @SubscribeEvent
-    public static void onAddReloadListeners(AddReloadListenerEvent event) {
-        event.addListener(MachineStatsManager.INSTANCE);
-        event.addListener(SinkStatsManager.INSTANCE);
+    public static void onAddReloadListeners(AddServerReloadListenersEvent event) {
+        event.addListener(MachineStatsManager.LISTENER_ID, MachineStatsManager.INSTANCE);
+        event.addListener(SinkStatsManager.LISTENER_ID, SinkStatsManager.INSTANCE);
     }
 
     /** Mod bus hooks. */
@@ -52,32 +52,32 @@ public final class MachineEvents {
 
         @SubscribeEvent
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, MachineContent.COAL_GENERATOR_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, MachineContent.COAL_GENERATOR_ENTITY.get(),
                     (machine, side) -> machine.sideHandler(side));
-            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, MachineContent.COAL_GENERATOR_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Energy.BLOCK, MachineContent.COAL_GENERATOR_ENTITY.get(),
                     (machine, side) -> machine.energyStorage());
             // Burner machines keep their fuel slot stocked from the data line.
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, MachineContent.COAL_GENERATOR_ENTITY.get(),
                     (machine, side) -> machine.upkeep());
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, MachineContent.BURNER_PUMP_ENTITY.get(),
                     (machine, side) -> machine.upkeep());
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, MachineContent.BURNER_PUMP_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, MachineContent.BURNER_PUMP_ENTITY.get(),
                     (machine, side) -> machine.sideHandler(side));
-            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, MachineContent.BURNER_PUMP_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Fluid.BLOCK, MachineContent.BURNER_PUMP_ENTITY.get(),
                     (machine, side) -> machine.fluidHandler(side));
             // A pump takes energy only where it also gives water: not through its front or bottom.
-            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, MachineContent.ELECTRIC_PUMP_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Energy.BLOCK, MachineContent.ELECTRIC_PUMP_ENTITY.get(),
                     (machine, side) -> side == null || PumpBlock.givesWater(machine.getBlockState(), side) ? machine.energyStorage() : null);
-            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, MachineContent.ELECTRIC_PUMP_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Fluid.BLOCK, MachineContent.ELECTRIC_PUMP_ENTITY.get(),
                     (machine, side) -> machine.fluidHandler(side));
-            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, MachineContent.CHUNK_LOADER_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Energy.BLOCK, MachineContent.CHUNK_LOADER_ENTITY.get(),
                     (machine, side) -> machine.energyStorage());
             // Every formed Sink block hands out its controller's handlers, except on the front faces; casings offer none.
-            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, MachineContent.SINK_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Item.BLOCK, MachineContent.SINK_ENTITY.get(),
                     (sink, side) -> sink.itemHandler(side));
-            event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, MachineContent.SINK_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Fluid.BLOCK, MachineContent.SINK_ENTITY.get(),
                     (sink, side) -> sink.fluidHandler(side));
-            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, MachineContent.SINK_ENTITY.get(),
+            event.registerBlockEntity(Capabilities.Energy.BLOCK, MachineContent.SINK_ENTITY.get(),
                     (sink, side) -> sink.energyStorage(side));
         }
     }

@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -35,7 +35,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
  */
 public final class TankNetwork extends ServusNetwork<FluidTankBlockEntity, Void> {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "fluid_tank");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "fluid_tank");
 
     public static final NetworkType<FluidTankBlockEntity, Void, TankNetwork> TYPE =
             new NetworkType<>(ID, ConnectionRule.always(), TankNetwork::new);

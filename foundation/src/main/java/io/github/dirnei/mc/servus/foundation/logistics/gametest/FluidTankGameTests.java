@@ -65,7 +65,7 @@ public final class FluidTankGameTests {
     }
 
     private static IFluidHandler handler(GameTestHelper helper, BlockPos pos) {
-        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), Direction.UP);
+        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), Direction.UP);
         helper.assertTrue(handler != null, "tank at " + pos.toShortString() + " should expose a fluid handler");
         return handler;
     }

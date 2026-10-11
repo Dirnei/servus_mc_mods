@@ -11,7 +11,7 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
 
     public static final int SLOT_FUEL = 0;
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "coal_generator");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "coal_generator");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final MachineEnergyStorage energy;
@@ -44,7 +44,7 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
     }
 
     @Override
-    protected ResourceLocation machineId() {
+    protected Identifier machineId() {
         return ID;
     }
 

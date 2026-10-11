@@ -6,7 +6,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -40,7 +40,7 @@ public class DataCableItem extends LineItem {
     }
 
     /** The tier id: this item's registry id. */
-    public ResourceLocation tierId() {
+    public Identifier tierId() {
         return BuiltInRegistries.ITEM.getKey(this);
     }
 
@@ -70,7 +70,7 @@ public class DataCableItem extends LineItem {
                 }
                 Block.popResource(level, pos, new ItemStack(old));
             }
-            return InteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         return super.useOn(context);
     }
@@ -81,7 +81,7 @@ public class DataCableItem extends LineItem {
     }
 
     /** Whether this tier carries more than the given one. */
-    public boolean higherThan(ResourceLocation other) {
+    public boolean higherThan(Identifier other) {
         CableTiersManager tiers = CableTiersManager.INSTANCE;
         return tiers.tier(tierId()).capacity() > tiers.tier(other).capacity();
     }

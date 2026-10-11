@@ -4,11 +4,11 @@ import java.util.Objects;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -20,29 +20,29 @@ public final class WoodSlot {
     private static final String KEY = "Wood";
 
     private final BlockEntity owner;
-    private @Nullable ResourceLocation wood;
+    private @Nullable Identifier wood;
 
     public WoodSlot(BlockEntity owner) {
         this.owner = owner;
     }
 
     /** The wood shown, oak when none is set. */
-    public ResourceLocation wood() {
+    public Identifier wood() {
         return Wood.or(wood);
     }
 
     /** The wood as set, null when none. */
-    public @Nullable ResourceLocation raw() {
+    public @Nullable Identifier raw() {
         return wood;
     }
 
-    public void set(@Nullable ResourceLocation id) {
+    public void set(@Nullable Identifier id) {
         wood = id;
         owner.setChanged();
     }
 
     /** From {@code applyImplicitComponents}, with {@code input.get(WoodContent.WOOD.get())}: the placed item's wood. */
-    public void apply(@Nullable ResourceLocation id) {
+    public void apply(@Nullable Identifier id) {
         wood = id;
     }
 
@@ -67,7 +67,7 @@ public final class WoodSlot {
 
     /** From {@code loadAdditional}; a changed wood redraws the block on the client. */
     public void load(CompoundTag tag) {
-        ResourceLocation loaded = tag.contains(KEY, Tag.TAG_STRING) ? ResourceLocation.tryParse(tag.getString(KEY)) : null;
+        Identifier loaded = tag.contains(KEY, Tag.TAG_STRING) ? Identifier.tryParse(tag.getString(KEY)) : null;
         boolean changed = !Objects.equals(loaded, wood);
         wood = loaded;
         Level level = owner.getLevel();

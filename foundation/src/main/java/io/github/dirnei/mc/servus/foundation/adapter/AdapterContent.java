@@ -26,7 +26,7 @@ public final class AdapterContent {
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, ServusFoundationIds.MOD_ID);
 
     public static final DeferredBlock<MachineAdapterBlock> BLOCK = BLOCKS.registerBlock("machine_adapter", MachineAdapterBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_ORANGE)
                     .strength(2.0F)
                     .sound(SoundType.COPPER)
@@ -36,9 +36,7 @@ public final class AdapterContent {
             properties -> new WoodBlockItem(BLOCK.get(), properties));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MachineAdapterBlockEntity>> BLOCK_ENTITY =
-            BLOCK_ENTITIES.register("machine_adapter", () -> BlockEntityType.Builder
-                    .of(MachineAdapterBlockEntity::new, BLOCK.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("machine_adapter", () -> new BlockEntityType<>(MachineAdapterBlockEntity::new, BLOCK.get()));
 
     public static final DeferredHolder<MenuType<?>, MenuType<AdapterMenu>> MENU =
             MENUS.register("machine_adapter", () -> IMenuTypeExtension.create(AdapterMenu::fromNetwork));

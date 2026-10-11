@@ -5,7 +5,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -43,7 +43,7 @@ public final class FluidGauge {
         }
         int filled = (int) Math.min(height, Math.max(1, (long) fluid.getAmount() * height / capacity));
         IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
-        ResourceLocation still = extensions.getStillTexture(fluid);
+        Identifier still = extensions.getStillTexture(fluid);
         if (still == null) {
             return;
         }

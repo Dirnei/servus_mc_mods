@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
@@ -20,7 +20,7 @@ public final class ConnectableModels {
     public static void connectable(BlockStateProvider provider, Block block, String name, int radius, boolean withItem) {
         int lo = 8 - radius;
         int hi = 8 + radius;
-        ResourceLocation texture = provider.modLoc("block/" + name);
+        Identifier texture = provider.modLoc("block/" + name);
         BlockModelBuilder center = provider.models().getBuilder(name + "_center")
                 .texture("particle", texture).texture("skin", texture)
                 .element().from(lo, lo, lo).to(hi, hi, hi)

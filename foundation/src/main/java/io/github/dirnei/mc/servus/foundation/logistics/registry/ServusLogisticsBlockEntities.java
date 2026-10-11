@@ -14,14 +14,10 @@ public final class ServusLogisticsBlockEntities {
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ServusFoundationIds.MOD_ID);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<UtilityDuctBlockEntity>> UTILITY_DUCT =
-            BLOCK_ENTITIES.register("utility_duct", () -> BlockEntityType.Builder
-                    .of(UtilityDuctBlockEntity::new, ServusLogisticsBlocks.UTILITY_DUCT.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("utility_duct", () -> new BlockEntityType<>(UtilityDuctBlockEntity::new, ServusLogisticsBlocks.UTILITY_DUCT.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluidTankBlockEntity>> FLUID_TANK =
-            BLOCK_ENTITIES.register("fluid_tank", () -> BlockEntityType.Builder
-                    .of(FluidTankBlockEntity::new, ServusLogisticsBlocks.FLUID_TANK.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("fluid_tank", () -> new BlockEntityType<>(FluidTankBlockEntity::new, ServusLogisticsBlocks.FLUID_TANK.get()));
 
     private ServusLogisticsBlockEntities() {
     }

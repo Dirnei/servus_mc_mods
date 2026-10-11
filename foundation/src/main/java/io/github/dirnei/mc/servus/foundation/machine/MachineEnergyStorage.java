@@ -1,9 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
-import net.neoforged.neoforge.energy.EnergyStorage;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
 
 /** FE buffer of a machine with direct access for the owner. */
-public class MachineEnergyStorage extends EnergyStorage {
+public class MachineEnergyStorage extends SimpleEnergyHandler {
 
     private final Runnable onChanged;
 
@@ -13,21 +14,26 @@ public class MachineEnergyStorage extends EnergyStorage {
     }
 
     @Override
-    public int receiveEnergy(int toReceive, boolean simulate) {
-        int received = super.receiveEnergy(toReceive, simulate);
-        if (received > 0 && !simulate) {
-            onChanged.run();
-        }
-        return received;
+    protected void onEnergyChanged(int previousAmount) {
+        onChanged.run();
     }
 
-    @Override
+    /** Receives energy within the receive limit, outside of any transaction. */
+    public int receiveEnergy(int toReceive, boolean simulate) {
+        return Transfer.receiveEnergy(this, toReceive, simulate);
+    }
+
+    /** Extracts energy within the extract limit, outside of any transaction. */
     public int extractEnergy(int toExtract, boolean simulate) {
-        int extracted = super.extractEnergy(toExtract, simulate);
-        if (extracted > 0 && !simulate) {
-            onChanged.run();
-        }
-        return extracted;
+        return Transfer.extractEnergy(this, toExtract, simulate);
+    }
+
+    public int getEnergyStored() {
+        return energy;
+    }
+
+    public int getMaxEnergyStored() {
+        return capacity;
     }
 
     /** Takes energy out regardless of the extract limit. The owner spends its own energy this way. */

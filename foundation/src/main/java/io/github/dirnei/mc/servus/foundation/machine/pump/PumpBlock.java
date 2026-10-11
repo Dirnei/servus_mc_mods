@@ -116,7 +116,7 @@ public abstract class PumpBlock extends MachineBlock {
             }
             return Math.min(lines, MAX_STUB);
         }
-        return level.getCapability(Capabilities.FluidHandler.BLOCK, neighbour, face.getOpposite()) != null ? PLAIN_STUB : 0;
+        return level.getCapability(Capabilities.Fluid.BLOCK, neighbour, face.getOpposite()) != null ? PLAIN_STUB : 0;
     }
 
     /** The state with every stub matching its neighbour. Server only: the client gets the result through block updates. */

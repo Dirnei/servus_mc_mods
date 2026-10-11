@@ -2,11 +2,9 @@ package io.github.dirnei.mc.servus.foundation.logistics.facade;
 
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsRecipes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.Tags;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -20,15 +18,17 @@ public class FacadeRecipe extends CustomRecipe {
 
     public static final int RESULT_COUNT = 6;
 
-    public FacadeRecipe(CraftingBookCategory category) {
-        super(category);
+    /** The recipe has no settings, so one instance serves every recipe file. */
+    public static final FacadeRecipe INSTANCE = new FacadeRecipe();
+
+    private FacadeRecipe() {
     }
 
     /** Whether a block may be used as a facade: a solid full cube without a block entity. */
     public static boolean isFacadeable(Block block) {
         BlockState state = block.defaultBlockState();
         return !state.hasBlockEntity()
-                && state.isSolidRender(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
+                && state.isSolidRender()
                 && state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
     }
 
@@ -57,18 +57,14 @@ public class FacadeRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput input) {
         Block block = facadeBlock(input);
         return block == null ? ItemStack.EMPTY : FacadeItem.of(block, RESULT_COUNT);
     }
 
-    @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 2;
-    }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<FacadeRecipe> getSerializer() {
         return ServusLogisticsRecipes.FACADE.get();
     }
 }

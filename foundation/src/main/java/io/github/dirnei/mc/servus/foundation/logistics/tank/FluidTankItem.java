@@ -66,8 +66,8 @@ public class FluidTankItem extends BlockItem {
         if (!level.isClientSide() && mixesFluids(level, context.getClickedPos(), fluid(context.getItemInHand()))) {
             Player player = context.getPlayer();
             if (player != null) {
-                player.displayClientMessage(Component.translatable("message.servus_foundation.fluid_tank.mixed")
-                        .withStyle(ChatFormatting.RED), true);
+                player.sendOverlayMessage(Component.translatable("message.servus_foundation.fluid_tank.mixed")
+                        .withStyle(ChatFormatting.RED));
             }
             return InteractionResult.FAIL;
         }

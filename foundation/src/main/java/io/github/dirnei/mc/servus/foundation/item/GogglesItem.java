@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.item;
 
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Equipable;
@@ -22,7 +21,7 @@ public class GogglesItem extends Item implements Equipable {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         return swapWithEquipmentSlot(this, level, player, hand);
     }
 

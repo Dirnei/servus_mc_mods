@@ -7,7 +7,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -88,18 +87,18 @@ public class FluidTankBlock extends BaseEntityBlock {
      * tank blocks can be placed against a tank.
      */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.isEmpty()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (FluidUtil.getFluidHandler(stack).isEmpty()) {
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
         if (!level.isClientSide() && !fillInCreative(stack, level, pos, player, hitResult.getDirection())) {
             FluidUtil.interactWithFluidHandler(player, hand, level, pos, hitResult.getDirection());
         }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /**
@@ -128,9 +127,9 @@ public class FluidTankBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FluidTankBlockEntity tank) {
-            player.displayClientMessage(describe(tank.tankContent(), tank.tankCapacity()), true);
+            player.sendOverlayMessage(describe(tank.tankContent(), tank.tankCapacity()));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /** "Water: 3000 / 16000 mB", or "Empty, 16000 mB" for an empty tank. */

@@ -7,7 +7,7 @@ import io.github.dirnei.mc.servus.foundation.machine.sink.SinkLayout;
 import java.util.EnumSet;
 import java.util.Set;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
@@ -52,7 +52,7 @@ final class SinkModels {
      * (a player looking at the front), back is south.
      */
     private static ModelFile sinkPart(BlockStateProvider provider, int part) {
-        ResourceLocation bricks = provider.mcLoc("block/bricks");
+        Identifier bricks = provider.mcLoc("block/bricks");
         BlockModelBuilder model = provider.models().getBuilder("sink_part_" + part)
                 .parent(provider.models().getExistingFile(provider.mcLoc("block/block")))
                 .renderType("cutout")
@@ -114,7 +114,7 @@ final class SinkModels {
 
     /** Full brick block inside a column; the top block carries a wider cap with an open flue. */
     static void chimney(BlockStateProvider provider) {
-        ResourceLocation bricks = provider.mcLoc("block/bricks");
+        Identifier bricks = provider.mcLoc("block/bricks");
         // A slim shaft, ten pixels wide; the top block ends in a cap twelve pixels wide with an open flue.
         BlockModelBuilder column = provider.models().getBuilder("chimney")
                 .parent(provider.models().getExistingFile(provider.mcLoc("block/block")))

@@ -78,7 +78,7 @@ public final class MachineBaseGameTests {
         helper.assertTrue(generator.cycleFace(Direction.NORTH) == SideMode.DISABLED, "the front cannot be cycled");
         generator.sideConfig().set(RelativeSide.FRONT, SideMode.INPUT);
         helper.assertTrue(generator.sideMode(Direction.NORTH) == SideMode.DISABLED, "the front cannot be set");
-        IItemHandler front = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(POS), Direction.NORTH);
+        IItemHandler front = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(POS), Direction.NORTH);
         helper.assertTrue(front == null || front.insertItem(0, new ItemStack(Items.COAL, 4), false).getCount() == 4,
                 "nothing goes in at the front");
         helper.succeed();

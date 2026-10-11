@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.production;
 
 import java.util.List;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
  * @param outputs what one batch produces, one stack per item
  * @param ticks   how long one batch takes
  */
-public record ProductionRecipe(ResourceLocation id, List<ItemStack> inputs, List<ItemStack> outputs, int ticks) {
+public record ProductionRecipe(Identifier id, List<ItemStack> inputs, List<ItemStack> outputs, int ticks) {
 
     public ProductionRecipe {
         inputs = List.copyOf(inputs);

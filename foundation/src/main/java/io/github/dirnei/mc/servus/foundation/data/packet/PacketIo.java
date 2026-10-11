@@ -31,7 +31,7 @@ final class PacketIo {
     /** Whether the target can take items at all on that face. */
     static boolean accepts(ServerLevel level, BlockPos target, Direction face) {
         return level.isLoaded(target)
-                && (level.getCapability(Capabilities.ItemHandler.BLOCK, target, face) != null
+                && (level.getCapability(Capabilities.Item.BLOCK, target, face) != null
                 || level.getCapability(ServusFoundationCapabilities.STOCK_SINK, target, face) != null);
     }
 
@@ -40,7 +40,7 @@ final class PacketIo {
         if (stack.isEmpty() || !level.isLoaded(target)) {
             return stack;
         }
-        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, target, face);
+        IItemHandler handler = level.getCapability(Capabilities.Item.BLOCK, target, face);
         if (handler != null) {
             return ItemHandlerHelper.insertItemStacked(handler, stack.copy(), false);
         }
@@ -58,7 +58,7 @@ final class PacketIo {
         if (stack.isEmpty() || !level.isLoaded(target)) {
             return 0;
         }
-        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, target, face);
+        IItemHandler handler = level.getCapability(Capabilities.Item.BLOCK, target, face);
         if (handler != null) {
             return stack.getCount() - ItemHandlerHelper.insertItemStacked(handler, stack.copy(), true).getCount();
         }
@@ -80,7 +80,7 @@ final class PacketIo {
         if (provider != null) {
             return (int) Math.min(max, Math.max(0, provider.count(like)));
         }
-        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, source, face);
+        IItemHandler handler = level.getCapability(Capabilities.Item.BLOCK, source, face);
         return handler == null ? 0 : count(handler, like, max);
     }
 
@@ -123,7 +123,7 @@ final class PacketIo {
         if (provider != null) {
             return provider.extract(like, max);
         }
-        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, source, face);
+        IItemHandler handler = level.getCapability(Capabilities.Item.BLOCK, source, face);
         return handler == null ? ItemStack.EMPTY : take(handler, like, max);
     }
 

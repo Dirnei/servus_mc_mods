@@ -18,7 +18,7 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -40,10 +40,10 @@ import net.neoforged.neoforge.common.Tags;
 @JeiPlugin
 public final class ServusFoundationJeiPlugin implements IModPlugin {
 
-    private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "jei");
+    private static final Identifier UID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "jei");
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return UID;
     }
 
@@ -96,7 +96,7 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
         registration.addItemStackInfo(facades, Component.translatable("jei.servus_foundation.facade.info"));
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "jei/" + path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "jei/" + path);
     }
 }

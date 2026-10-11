@@ -14,7 +14,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +29,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
@@ -47,7 +46,7 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<SinkBlock> CODEC = simpleCodec(SinkBlock::new);
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final IntegerProperty PART = IntegerProperty.create("part", 0, SinkLayout.PARTS - 1);
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
@@ -222,27 +221,27 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
     // Interaction
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                               InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem) {
             // The carrot item handles the click instead of opening the GUI.
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
         if (!state.getValue(FORMED)) {
             // Casings let held items do their thing, so the cube can be built by clicking on it.
-            return stack.isEmpty() ? ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
-                    : ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return stack.isEmpty() ? InteractionResult.TRY_WITH_EMPTY_HAND
+                    : InteractionResult.PASS;
         }
         if (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof ChimneyBlock) {
             // Chimney blocks go on top without sneaking.
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
         SinkBlockEntity sink = controller(level, pos, state);
         if (sink != null && FluidUtil.getFluidHandler(stack).isPresent()
                 && FluidUtil.interactWithFluidHandler(player, hand, sink.manualFluidHandler())) {
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
@@ -254,7 +253,7 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
         if (sink != null) {
             player.openMenu(sink, sink.getBlockPos());
         } else if (!state.getValue(FORMED)) {
-            player.displayClientMessage(Component.translatable("message.servus_foundation.sink.casing"), true);
+            player.sendOverlayMessage(Component.translatable("message.servus_foundation.sink.casing"));
         }
         return InteractionResult.CONSUME;
     }
@@ -280,7 +279,7 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
         Direction face = context.getClickedFace();
         if (!tryForm(level, pos, face) && player != null) {
             String key = face.getAxis() == Direction.Axis.Y ? "side_face" : "incomplete";
-            player.displayClientMessage(Component.translatable("message.servus_foundation.sink." + key), true);
+            player.sendOverlayMessage(Component.translatable("message.servus_foundation.sink." + key));
         }
         return InteractionResult.SUCCESS;
     }

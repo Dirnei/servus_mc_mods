@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.foundation.production;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 
 /**
@@ -13,25 +13,25 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 public final class ServusFoundationCapabilities {
 
     public static final BlockCapability<ProductionProvider, Direction> PRODUCTION =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "production"), ProductionProvider.class);
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "production"), ProductionProvider.class);
 
     public static final BlockCapability<StockProvider, Direction> STOCK_PROVIDER =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "stock_provider"), StockProvider.class);
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "stock_provider"), StockProvider.class);
 
     public static final BlockCapability<StockSink, Direction> STOCK_SINK =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "stock_sink"), StockSink.class);
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "stock_sink"), StockSink.class);
 
     public static final BlockCapability<DataLink, Direction> DATA_LINK =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "data_link"), DataLink.class);
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "data_link"), DataLink.class);
 
     public static final BlockCapability<ItemSupplier, Direction> SUPPLIER =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "supplier"), ItemSupplier.class);
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "supplier"), ItemSupplier.class);
 
     public static final BlockCapability<UpkeepHolder, Direction> UPKEEP =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "upkeep"), UpkeepHolder.class);
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "upkeep"), UpkeepHolder.class);
 
     public static final BlockCapability<TransferGate, Direction> TRANSFER_GATE =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "transfer_gate"), TransferGate.class);
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "transfer_gate"), TransferGate.class);
 
     private ServusFoundationCapabilities() {
     }

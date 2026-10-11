@@ -58,7 +58,7 @@ public final class SideConfigWrench {
             message = message(side, blockEntity.cycleSide(side));
         }
         if (player != null) {
-            player.displayClientMessage(message, true);
+            player.sendOverlayMessage(message);
         }
         return InteractionResult.SUCCESS;
     }

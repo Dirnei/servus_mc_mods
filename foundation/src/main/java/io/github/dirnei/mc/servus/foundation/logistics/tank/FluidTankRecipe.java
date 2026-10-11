@@ -2,11 +2,9 @@ package io.github.dirnei.mc.servus.foundation.logistics.tank;
 
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsRecipes;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -24,8 +22,10 @@ public class FluidTankRecipe extends CustomRecipe {
     private static final int FLOOR_SLOT = 7;
     private static final int CENTRE_SLOT = 4;
 
-    public FluidTankRecipe(CraftingBookCategory category) {
-        super(category);
+    /** The recipe has no settings, so one instance serves every recipe file. */
+    public static final FluidTankRecipe INSTANCE = new FluidTankRecipe();
+
+    private FluidTankRecipe() {
     }
 
     /** The floor block the grid asks for, or null when the grid is not a tank recipe. */
@@ -63,18 +63,14 @@ public class FluidTankRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput input) {
         Block floor = floorOf(input);
         return floor == null ? ItemStack.EMPTY : FluidTankItem.withFloor(floor);
     }
 
-    @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width >= SIZE && height >= SIZE;
-    }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<FluidTankRecipe> getSerializer() {
         return ServusLogisticsRecipes.FLUID_TANK.get();
     }
 }

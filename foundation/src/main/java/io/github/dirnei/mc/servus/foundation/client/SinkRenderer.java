@@ -16,7 +16,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
@@ -28,7 +28,7 @@ import net.minecraft.world.phys.AABB;
 public class SinkRenderer implements BlockEntityRenderer<SinkBlockEntity> {
 
     public static final ModelResourceLocation FAN_MODEL = ModelResourceLocation.standalone(
-            ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/sink_fan"));
+            Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "block/sink_fan"));
 
     /** Degrees per tick without a chimney, and what each Chimney block adds. */
     private static final float BASE_SPEED = 6.0F;

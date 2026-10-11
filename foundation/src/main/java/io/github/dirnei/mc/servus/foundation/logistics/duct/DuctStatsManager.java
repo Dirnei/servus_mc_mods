@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.util.ExtraCodecs;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -7,18 +9,21 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.foundation.logistics.ServusLogisticsContent;
 import java.util.Map;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 /** Loads duct stats from {@code data/<ns>/duct/<name>.json}. */
-public final class DuctStatsManager extends SimpleJsonResourceReloadListener {
+public final class DuctStatsManager extends SimpleJsonResourceReloadListener<JsonElement> {
+
+    /** Key of this listener in the reload event. */
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_foundation", "duct_stats_manager");
 
     public static final String DIRECTORY = "duct";
 
     private static final Gson GSON = new GsonBuilder().create();
-    private static final ResourceLocation UTILITY_DUCT = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "utility_duct");
+    private static final Identifier UTILITY_DUCT = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "utility_duct");
 
     public static final DuctStatsManager INSTANCE = new DuctStatsManager();
 
@@ -28,11 +33,11 @@ public final class DuctStatsManager extends SimpleJsonResourceReloadListener {
     private volatile int energyPerTick = 512;
 
     private DuctStatsManager() {
-        super(GSON, DIRECTORY);
+        super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
         JsonElement duct = files.get(UTILITY_DUCT);
         itemsPerTick = intField(duct, "items_per_tick", 16);
         itemsPerPull = intField(duct, "items_per_pull", 8);

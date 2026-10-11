@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.machine.loader;
 
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
@@ -12,7 +12,7 @@ import net.neoforged.neoforge.common.world.chunk.TicketController;
 public final class ChunkLoaderTickets {
 
     public static final TicketController CONTROLLER =
-            new TicketController(ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "chunk_loader"));
+            new TicketController(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "chunk_loader"));
 
     private ChunkLoaderTickets() {
     }

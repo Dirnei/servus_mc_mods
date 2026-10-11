@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import java.math.BigDecimal;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -14,7 +14,7 @@ public final class Upgrades {
 
     /** Items of other mods that count as upgrades, with their multiplier in {@code upgrades.json}. */
     public static final TagKey<Item> TAG = TagKey.create(Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "upgrades"));
+            Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "upgrades"));
 
     private Upgrades() {
     }
@@ -29,7 +29,7 @@ public final class Upgrades {
         if (!isUpgrade(stack)) {
             return 1;
         }
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         Double fromData = UpgradesManager.INSTANCE.multiplier(id);
         if (fromData != null) {
             return fromData;

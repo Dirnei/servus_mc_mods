@@ -11,7 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -22,7 +22,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 /** Spends FE and pumps water while it stands on an infinite water source. No item slots. */
 public class ElectricPumpBlockEntity extends PoweredMachineBlockEntity implements PumpMachine {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "electric_pump");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "electric_pump");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final PumpLogic pump = new PumpLogic(DEFAULTS.fluidCapacity(), this::setChanged);
@@ -43,7 +43,7 @@ public class ElectricPumpBlockEntity extends PoweredMachineBlockEntity implement
     }
 
     @Override
-    protected ResourceLocation machineId() {
+    protected Identifier machineId() {
         return ID;
     }
 

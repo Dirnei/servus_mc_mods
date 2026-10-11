@@ -16,7 +16,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.inventory.ContainerData;
@@ -26,10 +26,15 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * Base block entity of every Servus machine. Owns the inventory, exposes it
@@ -59,11 +64,11 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
     private static final int PUSH_INTERVAL = 8;
 
-    protected final ItemStackHandler inventory;
+    protected final ItemSlots inventory;
     private final SideConfig sideConfig = new SideConfig();
     private FluidSides fluidSides;
-    private final IItemHandler autoHandler = new SideHandler(null);
-    private final Map<Direction, IItemHandler> sideHandlers = new EnumMap<>(Direction.class);
+    private final LegacyItemHandler autoHandler = new SideHandler(null);
+    private final Map<Direction, LegacyItemHandler> sideHandlers = new EnumMap<>(Direction.class);
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
@@ -89,7 +94,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         super(type, pos, state);
         // The raw inventory accepts anything so the machine itself can fill
         // output slots. Role rules live in the side handlers and the menu slots.
-        this.inventory = new ItemStackHandler(slots) {
+        this.inventory = new ItemSlots(slots) {
             @Override
             protected void onContentsChanged(int slot) {
                 setChanged();
@@ -102,7 +107,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     // Subclass contract
 
     /** Id used to look up stats in {@code data/<ns>/machine/}. */
-    protected abstract ResourceLocation machineId();
+    protected abstract Identifier machineId();
 
     protected abstract MachineStats defaultStats();
 
@@ -150,12 +155,12 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         return stats().workTicks();
     }
 
-    public ItemStackHandler inventory() {
+    public ItemSlots inventory() {
         return inventory;
     }
 
     /** The item handler automation sees from {@code side}; null means no particular side. */
-    public IItemHandler sideHandler(Direction side) {
+    public ResourceHandler<ItemResource> sideHandler(Direction side) {
         if (side == null) {
             return autoHandler;
         }
@@ -238,7 +243,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
 
     public boolean isItemValid(int slot, ItemStack stack) {
         if (isFuelSlot(slot)) {
-            return stack.getBurnTime(null) > 0;
+            return level != null && stack.getBurnTime(null, level.fuelValues()) > 0;
         }
         if (isInputSlot(slot)) {
             return acceptsInput(slot, stack);
@@ -288,7 +293,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
             if (!sideMode(direction).pulls()) {
                 continue;
             }
-            IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK,
+            ResourceHandler<ItemResource> neighbour = level.getCapability(Capabilities.Item.BLOCK,
                     worldPosition.relative(direction), direction.getOpposite());
             if (neighbour != null) {
                 pullFrom(neighbour);
@@ -296,9 +301,9 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
         }
     }
 
-    private boolean pullFrom(IItemHandler neighbour) {
-        for (int from = 0; from < neighbour.getSlots(); from++) {
-            ItemStack offered = neighbour.extractItem(from, 64, true);
+    private boolean pullFrom(ResourceHandler<ItemResource> neighbour) {
+        for (int from = 0; from < neighbour.size(); from++) {
+            ItemStack offered = Transfer.extractItem(neighbour, from, 64, true);
             if (offered.isEmpty()) {
                 continue;
             }
@@ -310,7 +315,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
                 if (moved <= 0) {
                     continue;
                 }
-                ItemStack taken = neighbour.extractItem(from, moved, false);
+                ItemStack taken = Transfer.extractItem(neighbour, from, moved, false);
                 if (!taken.isEmpty()) {
                     inventory.insertItem(slot, taken, false);
                     return true;
@@ -330,7 +335,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
             if (!sideMode(direction).pushes()) {
                 continue;
             }
-            IItemHandler neighbour = level.getCapability(Capabilities.ItemHandler.BLOCK,
+            ResourceHandler<ItemResource> neighbour = level.getCapability(Capabilities.Item.BLOCK,
                     worldPosition.relative(direction), direction.getOpposite());
             if (neighbour == null) {
                 continue;
@@ -343,7 +348,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
                 if (stack.isEmpty()) {
                     continue;
                 }
-                ItemStack remaining = ItemHandlerHelper.insertItem(neighbour, stack.copy(), false);
+                ItemStack remaining = Transfer.insertItem(neighbour, stack.copy(), false);
                 if (remaining.getCount() != stack.getCount()) {
                     inventory.setStackInSlot(slot, remaining);
                 }
@@ -377,35 +382,31 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     // Persistence
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Inventory", inventory.serializeNBT(registries));
-        tag.putInt("Progress", progress);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        inventory.save(output, "Inventory");
+        output.putInt("Progress", progress);
         if (!sideConfig.isDefault()) {
-            tag.putByteArray("Sides", sideConfig.toBytes());
+            ValueIo.putBytes(output, "Sides", sideConfig.toBytes());
         }
         FluidSides sides = fluidSides();
         if (sides != null && !sides.isDefault()) {
-            tag.putByteArray("FluidSides", sides.toBytes());
+            ValueIo.putBytes(output, "FluidSides", sides.toBytes());
         }
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("Inventory")) {
-            // Copy into the fixed size inventory: a saved size must never resize the machine.
-            ItemStackHandler saved = new ItemStackHandler();
-            saved.deserializeNBT(registries, tag.getCompound("Inventory"));
-            for (int slot = 0; slot < inventory.getSlots(); slot++) {
-                inventory.setStackInSlot(slot, slot < saved.getSlots() ? saved.getStackInSlot(slot) : ItemStack.EMPTY);
-            }
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        // Loads into the fixed size inventory: a saved size must never resize the machine.
+        if (input.child("Inventory").isPresent()) {
+            inventory.load(input, "Inventory");
         }
-        progress = tag.getInt("Progress");
-        sideConfig.fromBytes(tag.contains("Sides") ? tag.getByteArray("Sides") : new byte[0]);
+        progress = input.getIntOr("Progress", 0);
+        sideConfig.fromBytes(ValueIo.getBytes(input, "Sides"));
         FluidSides sides = fluidSides();
         if (sides != null) {
-            sides.fromBytes(tag.contains("FluidSides") ? tag.getByteArray("FluidSides") : new byte[0]);
+            sides.fromBytes(ValueIo.getBytes(input, "FluidSides"));
         }
     }
 
@@ -414,10 +415,10 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        tag.putByteArray("Sides", sideConfig.toBytes());
+        tag.putIntArray("Sides", ValueIo.toInts(sideConfig.toBytes()));
         FluidSides sides = fluidSides();
         if (sides != null) {
-            tag.putByteArray("FluidSides", sides.toBytes());
+            tag.putIntArray("FluidSides", ValueIo.toInts(sides.toBytes()));
         }
         return tag;
     }
@@ -435,7 +436,7 @@ public abstract class MachineBlockEntity extends BlockEntity implements MenuProv
     }
 
     /** Exposes the inventory to automation with slot role and side mode rules applied. */
-    private final class SideHandler implements IItemHandler {
+    private final class SideHandler extends LegacyItemHandler {
 
         private final Direction side;
 

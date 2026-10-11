@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
+import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
@@ -18,7 +19,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -37,7 +38,7 @@ import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
 import net.minecraft.core.component.DataComponentMap;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * A Machine Adapter: reports the faced machine's recipes from its profile,
@@ -94,7 +95,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         }
 
         @Override
-        public Optional<ResourceLocation> active() {
+        public Optional<Identifier> active() {
             return MachineAdapterBlockEntity.this.active();
         }
     };
@@ -163,7 +164,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         }
         BlockState state = machineState();
         Optional<Side> side = ProfileSides.firstOf(profile.get(), role, machineFacing(state));
-        return side.map(value -> level.getCapability(Capabilities.ItemHandler.BLOCK, machinePos(), Conversions.toDirection(value)))
+        return side.map(value -> level.getCapability(Capabilities.Item.BLOCK, machinePos(), Conversions.toDirection(value)))
                 .orElse(null);
     }
 
@@ -182,7 +183,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
     }
 
     /** The recipe of the item in the machine's ingredient side, while there is one. */
-    private Optional<ResourceLocation> active() {
+    private Optional<Identifier> active() {
         IItemHandler ingredients = machineHandler(MachineProfile.Role.INGREDIENTS);
         if (ingredients == null) {
             return Optional.empty();
@@ -288,7 +289,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
         if (upkeepSet) {
             return;
         }
-        ResourceLocation id = ResourceLocation.tryParse(profile.upkeepItem());
+        Identifier id = Identifier.tryParse(profile.upkeepItem());
         upkeepItem = id == null || profile.upkeepItem().isEmpty() ? ItemStack.EMPTY : new ItemStack(BuiltInRegistries.ITEM.get(id));
         upkeepLevel = Math.max(MIN_LEVEL, Math.min(MAX_LEVEL, profile.upkeepLevel()));
         upkeepSet = true;
@@ -355,7 +356,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements WoodHolder
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+    protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
     }

@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
-import net.neoforged.neoforge.client.model.data.ModelProperty;
+import net.neoforged.neoforge.model.data.ModelProperty;
 
 /**
  * Model data keys of the utility duct, kept out of client only classes. Side

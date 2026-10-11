@@ -302,9 +302,9 @@ public final class ServusLogisticsGameTests {
         helper.assertTrue(duct.isEndpoint(Direction.NORTH), "the chest is an endpoint");
         duct.setPanel(Direction.NORTH, Blocks.STONE.defaultBlockState(), false);
         helper.assertTrue(!duct.isEndpoint(Direction.NORTH), "no endpoint behind the panel");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(DUCT), Direction.NORTH) == null,
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(DUCT), Direction.NORTH) == null,
                 "no item handler on the covered side");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(DUCT), Direction.SOUTH) != null,
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(DUCT), Direction.SOUTH) != null,
                 "the other sides keep theirs");
         helper.succeed();
     }
@@ -412,7 +412,7 @@ public final class ServusLogisticsGameTests {
     }
 
     private static FluidStack fluid(GameTestHelper helper, BlockPos pos) {
-        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), null);
+        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), null);
         return handler == null ? FluidStack.EMPTY : handler.getFluidInTank(0);
     }
 
@@ -519,7 +519,7 @@ public final class ServusLogisticsGameTests {
         duct(helper, DUCT_C, Line.FLUID);
 
         helper.runAfterDelay(2, () -> {
-            IFluidHandler duct = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH);
+            IFluidHandler duct = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH);
             helper.assertTrue(duct != null, "the duct should expose a fluid handler on an in and out side");
             FluidStack water = new FluidStack(Fluids.WATER, 1000);
             helper.assertTrue(duct.fill(water, IFluidHandler.FluidAction.SIMULATE) == 1000, "a simulated fill should report room for 1000 mB");
@@ -533,7 +533,7 @@ public final class ServusLogisticsGameTests {
 
             UtilityDuctBlockEntity a = helper.getBlockEntity(DUCT_A);
             a.setMode(Line.FLUID, Direction.NORTH, SideMode.OUTPUT);
-            helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH) == null,
+            helper.assertTrue(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(DUCT_A), Direction.NORTH) == null,
                     "a push out side exposes no fluid handler");
             helper.succeed();
         });

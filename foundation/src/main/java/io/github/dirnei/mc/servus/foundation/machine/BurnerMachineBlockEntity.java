@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -62,7 +62,7 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         String id = stats().upkeepItem();
         if (!id.equals(upkeepId)) {
             upkeepId = id;
-            ResourceLocation location = ResourceLocation.tryParse(id);
+            Identifier location = Identifier.tryParse(id);
             upkeepStack = location == null || !BuiltInRegistries.ITEM.containsKey(location)
                     ? ItemStack.EMPTY : new ItemStack(BuiltInRegistries.ITEM.get(location));
         }

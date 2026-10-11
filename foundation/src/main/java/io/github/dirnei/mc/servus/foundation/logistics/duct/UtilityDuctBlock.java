@@ -13,7 +13,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -98,12 +97,12 @@ public class UtilityDuctBlock extends ConnectableBlock {
 
     /** Wrench, line and facade items handle the click themselves instead of opening the menu. */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem || stack.getItem() instanceof LineItem || stack.getItem() instanceof FacadeItem) {
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     /**
@@ -190,9 +189,9 @@ public class UtilityDuctBlock extends ConnectableBlock {
             return InteractionResult.PASS;
         }
         if (level instanceof ServerLevel) {
-            duct.dataNetwork().ifPresent(network -> player.displayClientMessage(DataSummary.of(network, pos, duct.dataTier()), true));
+            duct.dataNetwork().ifPresent(network -> player.sendOverlayMessage(DataSummary.of(network, pos, duct.dataTier())));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -230,7 +229,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
                     level.removeBlock(pos, false);
                 }
             }
-            return InteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         if (player == null || !(level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct)
                 || hitPanel(duct, context.getClickLocation(), pos, context.getClickedFace()) != null) {
@@ -243,7 +242,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
         if (!level.isClientSide()) {
             player.openMenu(duct.menuProvider(side), buf -> buf.writeBlockPos(pos).writeEnum(side));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /** The side whose panel contains the click location, or null. */

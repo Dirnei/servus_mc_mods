@@ -45,56 +45,46 @@ public final class MachineContent {
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, ServusFoundationIds.MOD_ID);
 
     public static final DeferredBlock<CoalGeneratorBlock> COAL_GENERATOR =
-            BLOCKS.registerBlock("coal_generator", CoalGeneratorBlock::new, machine());
+            BLOCKS.registerBlock("coal_generator", CoalGeneratorBlock::new, () -> machine());
     public static final DeferredItem<BlockItem> COAL_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(COAL_GENERATOR);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR_ENTITY =
-            BLOCK_ENTITIES.register("coal_generator", () -> BlockEntityType.Builder
-                    .of(CoalGeneratorBlockEntity::new, COAL_GENERATOR.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("coal_generator", () -> new BlockEntityType<>(CoalGeneratorBlockEntity::new, COAL_GENERATOR.get()));
     public static final DeferredHolder<MenuType<?>, MenuType<CoalGeneratorMenu>> COAL_GENERATOR_MENU =
             MENUS.register("coal_generator", () -> IMenuTypeExtension.create(CoalGeneratorMenu::fromNetwork));
 
     public static final DeferredBlock<BurnerPumpBlock> BURNER_PUMP =
             BLOCKS.registerBlock("burner_pump", BurnerPumpBlock::new,
-                    machine().noOcclusion().pushReaction(PushReaction.BLOCK));
+                    () -> machine().noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<PumpItem> BURNER_PUMP_ITEM =
             ITEMS.registerItem("burner_pump", properties -> new PumpItem(BURNER_PUMP.get(), properties));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BurnerPumpBlockEntity>> BURNER_PUMP_ENTITY =
-            BLOCK_ENTITIES.register("burner_pump", () -> BlockEntityType.Builder
-                    .of(BurnerPumpBlockEntity::new, BURNER_PUMP.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("burner_pump", () -> new BlockEntityType<>(BurnerPumpBlockEntity::new, BURNER_PUMP.get()));
     public static final DeferredHolder<MenuType<?>, MenuType<BurnerPumpMenu>> BURNER_PUMP_MENU =
             MENUS.register("burner_pump", () -> IMenuTypeExtension.create(BurnerPumpMenu::fromNetwork));
 
     public static final DeferredBlock<ElectricPumpBlock> ELECTRIC_PUMP =
-            BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new, machine().noOcclusion());
+            BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new, () -> machine().noOcclusion());
     public static final DeferredItem<PumpItem> ELECTRIC_PUMP_ITEM =
             ITEMS.registerItem("electric_pump", properties -> new PumpItem(ELECTRIC_PUMP.get(), properties));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricPumpBlockEntity>> ELECTRIC_PUMP_ENTITY =
-            BLOCK_ENTITIES.register("electric_pump", () -> BlockEntityType.Builder
-                    .of(ElectricPumpBlockEntity::new, ELECTRIC_PUMP.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("electric_pump", () -> new BlockEntityType<>(ElectricPumpBlockEntity::new, ELECTRIC_PUMP.get()));
     public static final DeferredHolder<MenuType<?>, MenuType<ElectricPumpMenu>> ELECTRIC_PUMP_MENU =
             MENUS.register("electric_pump", () -> IMenuTypeExtension.create(ElectricPumpMenu::fromNetwork));
 
-    public static final DeferredBlock<SinkBlock> SINK = BLOCKS.registerBlock("sink", SinkBlock::new, brick().noOcclusion());
+    public static final DeferredBlock<SinkBlock> SINK = BLOCKS.registerBlock("sink", SinkBlock::new, () -> brick().noOcclusion());
     public static final DeferredItem<BlockItem> SINK_ITEM = ITEMS.registerSimpleBlockItem(SINK);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SinkBlockEntity>> SINK_ENTITY =
-            BLOCK_ENTITIES.register("sink", () -> BlockEntityType.Builder
-                    .of(SinkBlockEntity::new, SINK.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("sink", () -> new BlockEntityType<>(SinkBlockEntity::new, SINK.get()));
     public static final DeferredHolder<MenuType<?>, MenuType<SinkMenu>> SINK_MENU =
             MENUS.register("sink", () -> IMenuTypeExtension.create(SinkMenu::fromNetwork));
-    public static final DeferredBlock<ChimneyBlock> CHIMNEY = BLOCKS.registerBlock("chimney", ChimneyBlock::new, brick().noOcclusion());
+    public static final DeferredBlock<ChimneyBlock> CHIMNEY = BLOCKS.registerBlock("chimney", ChimneyBlock::new, () -> brick().noOcclusion());
     public static final DeferredItem<BlockItem> CHIMNEY_ITEM = ITEMS.registerSimpleBlockItem(CHIMNEY);
 
     public static final DeferredBlock<ChunkLoaderBlock> CHUNK_LOADER =
-            BLOCKS.registerBlock("chunk_loader", ChunkLoaderBlock::new, machine());
+            BLOCKS.registerBlock("chunk_loader", ChunkLoaderBlock::new, () -> machine());
     public static final DeferredItem<BlockItem> CHUNK_LOADER_ITEM = ITEMS.registerSimpleBlockItem(CHUNK_LOADER);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChunkLoaderBlockEntity>> CHUNK_LOADER_ENTITY =
-            BLOCK_ENTITIES.register("chunk_loader", () -> BlockEntityType.Builder
-                    .of(ChunkLoaderBlockEntity::new, CHUNK_LOADER.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("chunk_loader", () -> new BlockEntityType<>(ChunkLoaderBlockEntity::new, CHUNK_LOADER.get()));
     public static final DeferredHolder<MenuType<?>, MenuType<ChunkLoaderMenu>> CHUNK_LOADER_MENU =
             MENUS.register("chunk_loader", () -> IMenuTypeExtension.create(ChunkLoaderMenu::fromNetwork));
 

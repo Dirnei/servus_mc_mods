@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -34,7 +34,7 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
  */
 public final class EnergyChannelNetwork extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent> {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "energy_channel");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "energy_channel");
 
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, EnergyChannelNetwork> TYPE =
             new NetworkType<>(ID, (from, fromNode, side, to, toNode) -> UtilityDuctBlockEntity.sideOpen(fromNode, side), EnergyChannelNetwork::new);
@@ -75,7 +75,7 @@ public final class EnergyChannelNetwork extends ServusNetwork<UtilityDuctBlockEn
                 continue;
             }
             list.add(new Endpoint(mode, duct.channel(Line.ENERGY, direction), BlockCapabilityCache.create(
-                    Capabilities.EnergyStorage.BLOCK, level, blockPos.relative(direction), direction.getOpposite())));
+                    Capabilities.Energy.BLOCK, level, blockPos.relative(direction), direction.getOpposite())));
         }
         endpoints.put(pos, list);
     }
