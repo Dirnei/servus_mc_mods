@@ -1,7 +1,7 @@
 # storage/rail-corrosion Specification
 
 ## Purpose
-TBD - created by archiving change m10-rail-corrosion. Update Purpose after archive.
+The copper heads of Farm Rails corrode per field as the Field Head waters it. Anti-corrosion items in the head hold the stage, a corroded field is no longer watered, and an axe scrapes the whole field back one stage at one durability per rail.
 
 ## Requirements
 
