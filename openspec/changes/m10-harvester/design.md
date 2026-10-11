@@ -78,7 +78,7 @@ Harvesting a ripe plot in plant mode takes one crop item out of the drops for it
 4. work left: `WORK`;
 5. `PUT_AWAY` with cargo, else `HOME`.
 
-The fleet computes the inputs at every turn: after assignment, after a work segment, after a put-away, after a fetch. Work left is "some rail of the field has work" (D5), false after a segment that did nothing (guard against loops) and false for till and plant work when the field is not hydrated. A fetch is tried once per turn; a failed fetch counts as no seeds. A put-away keeps up to one stack of the crop item while planting work is left.
+The fleet computes the inputs at every turn: after assignment, after a work segment, after a put-away, after a fetch. Work left is "some rail of the field has work" (D5), false after a segment that did nothing (guard against loops) and false for till and plant work when the field is not hydrated. A fetch is tried once per turn; a failed fetch counts as no seeds. A put-away keeps up to one stack of the crop item while planting work is left, never more than the plots to till and plant; when a harvest found no room because of kept seeds alone, the next put-away keeps none. A plot only counts as worked when something on it changed, so a plot whose crop cannot grow (too dark) ends the run instead of being revisited forever.
 
 ### D8. Field runs in the fleet
 
@@ -112,6 +112,7 @@ GameTests in `HarvesterGameTests`: harvest ripe wheat into a crate and replant f
 - [Farmland that dries without an event] is seen when the harvester reaches it or at the next field pass.
 - [Drops are random] the fit check uses the drops actually rolled for that plot; when they do not fit the roll is discarded and the crop stays, so nothing is lost or duplicated.
 - [A warehouse polling heads every 40 ticks] heads per level are few; nothing touches blocks.
+- [Plots where the crop cannot grow] (light below 8) stay plantable in the head; each run ends after one useless visit, but the warehouse sends a new run at a later check. Acceptable for now; a later change may let the head remember such plots.
 
 ## Migration Plan
 

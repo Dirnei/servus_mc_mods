@@ -35,7 +35,7 @@ A warehouse SHALL look at the Field Head of every field whose farm rails are par
 - **THEN** no field job is queued
 
 ### Requirement: Field run
-On a field run the harvester SHALL drive over the rails to the nearest farm rail of the field whose plots have work, work those plots, and then drive to the next nearest farm rail with work, until no rail has work it can do or its cargo is full. Each plot SHALL be worked from the farm rail nearest to it, so the harvester reaches at most 4 blocks, the strip of the field, to each side of the rail it stands on. Working a plot that needs something done SHALL take `work_ticks` ticks (in `field.json`, example 10); plots that need nothing SHALL cost no time. The harvester SHALL be drawn standing on the rail of the plots it works and moving between rails like other shuttles. After working a plot the head SHALL count the plot as it is now.
+On a field run the harvester SHALL drive over the rails to the nearest farm rail of the field whose plots have work, work those plots, and then drive to the next nearest farm rail with work, until no rail has work it can do or its cargo is full. A work segment in which nothing on the field changed (for example a crop that cannot grow on a dark plot) SHALL end the run. Each plot SHALL be worked from the farm rail nearest to it, so the harvester reaches at most 4 blocks, the strip of the field, to each side of the rail it stands on. Working a plot that needs something done SHALL take `work_ticks` ticks (in `field.json`, example 10); plots that need nothing SHALL cost no time. The harvester SHALL be drawn standing on the rail of the plots it works and moving between rails like other shuttles. After working a plot the head SHALL count the plot as it is now.
 
 #### Scenario: Rail by rail
 - **WHEN** a field of four farm rails in a row has ripe crops beside the first and the last rail
@@ -76,7 +76,7 @@ A harvester on a field run SHALL carry up to `max(stacks of the shuttle, harvest
 - **THEN** it drives to storage with a full cargo, puts it away and returns to harvest the rest
 
 ### Requirement: Seeds
-To plant, the harvester SHALL take the field's crop item from its cargo, which holds the harvest. When it puts the harvest away while plots remain to plant, it SHALL keep up to one stack of the crop item. Only when the field has no ripe plot left to harvest and the harvester carries fewer crop items than there are plots to plant SHALL it pick the shortfall, up to one stack and as far as its cargo has room, from the warehouse before it drives to the field. When the warehouse holds none, the harvester SHALL plant only what the harvest provides and leave the rest of the farmland empty.
+To plant, the harvester SHALL take the field's crop item from its cargo, which holds the harvest. When it puts the harvest away while plots remain to plant, it SHALL keep up to one stack of the crop item, no more than those plots need; when the kept seeds leave no room for the next harvest, the next put-away SHALL keep none. Only when the field has no ripe plot left to harvest and the harvester carries fewer crop items than there are plots to plant SHALL it pick the shortfall, up to one stack and as far as its cargo has room, from the warehouse before it drives to the field. When the warehouse holds none, the harvester SHALL plant only what the harvest provides and leave the rest of the farmland empty.
 
 #### Scenario: Replant from the harvest
 - **WHEN** a field with wheat set has only ripe wheat and the warehouse holds no wheat seeds

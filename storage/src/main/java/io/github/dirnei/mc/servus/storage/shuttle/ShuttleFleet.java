@@ -921,7 +921,7 @@ public final class ShuttleFleet {
                     host.available(crop), Integer.MAX_VALUE, max);
             room = cargoRoom > 0;
             run.seedAmount = Math.min(wanted, cargoRoom);
-            if (!room && run.cargo.count(crop) == run.cargo.entries().stream().mapToInt(FieldCargo.Entry::count).sum()) {
+            if (!room && run.cargo.count(crop) == cargoCount(run)) {
                 // Full of seeds already: putting away would only keep them again.
                 wanted = 0;
             }
@@ -939,11 +939,14 @@ public final class ShuttleFleet {
                 }
             }
             case PUT_AWAY -> {
-                boolean keep = crop != null && (workLeft || wanted > 0);
-                for (FieldCargo.Entry<ItemKey> entry : run.cargo.unload(keep ? crop : null, keep ? crop.stack(1).getMaxStackSize() : 0)) {
+                // Up to a stack of seeds stays aboard while plots remain to plant, no more than those plots need.
+                boolean keep = crop != null && (workLeft || wanted > 0) && !run.keepNothing;
+                int keepMax = keep ? Math.min(crop.stack(1).getMaxStackSize(), head.plantableCount() + head.tillableCount()) : 0;
+                for (FieldCargo.Entry<ItemKey> entry : run.cargo.unload(keepMax > 0 ? crop : null, keepMax)) {
                     run.store.add(entry.key().stack(entry.count()));
                 }
                 run.cargoFull = false;
+                run.keepNothing = false;
                 continueStore(shuttle);
             }
             case HOME -> {
@@ -1065,17 +1068,27 @@ public final class ShuttleFleet {
         BlockPos plot = nextPlot(run, head);
         if (plot != null) {
             run.queue.poll();
-            if (!workPlot(run, head, plot)) {
+            PlotResult result = workPlot(run, head, plot);
+            if (result == PlotResult.FULL) {
+                // Only seeds kept for planting took the room: the next put-away keeps nothing.
+                ItemKey crop = cropKey(head);
+                run.keepNothing = crop != null && run.cargo.count(crop) == cargoCount(run);
                 run.cargoFull = true;
                 run.queue.clear();
                 turn(shuttle);
                 return;
             }
-            run.worked = true;
             head.recheck(plot);
-            run.countdown = StorageStatsManager.INSTANCE.fieldWorkTicks();
-            syncPending = true;
-            if (nextPlot(run, head) != null) {
+            if (result == PlotResult.CHANGED) {
+                run.worked = true;
+                run.countdown = StorageStatsManager.INSTANCE.fieldWorkTicks();
+                syncPending = true;
+                if (nextPlot(run, head) != null) {
+                    return;
+                }
+            } else if (nextPlot(run, head) != null) {
+                // Nothing came of that plot (a crop that cannot grow there): straight on to the next one.
+                run.countdown = 1;
                 return;
             }
         }
@@ -1111,14 +1124,26 @@ public final class ShuttleFleet {
         return null;
     }
 
-    /** Harvests, tills and plants one plot; false when its harvest does not fit and the cargo is not empty. */
-    private boolean workPlot(HarvestRun run, FieldHeadBlockEntity head, BlockPos plot) {
+    /** What working one plot came to. */
+    private enum PlotResult { CHANGED, NOTHING, FULL }
+
+    private static int cargoCount(HarvestRun run) {
+        int count = 0;
+        for (FieldCargo.Entry<ItemKey> entry : run.cargo.entries()) {
+            count += entry.count();
+        }
+        return count;
+    }
+
+    /** Harvests, tills and plants one plot; FULL when its harvest does not fit and the cargo is not empty. */
+    private PlotResult workPlot(HarvestRun run, FieldHeadBlockEntity head, BlockPos plot) {
         ServerLevel level = host.level();
         boolean plants = run.stopPlants;
         ItemKey crop = plants ? cropKey(head) : null;
         PlotState state = HarvesterWork.classify(level, plot);
         PlotWork.Action action = PlotWork.plan(state, plants, crop != null && run.cargo.count(crop) > 0);
         boolean seedInHand = false;
+        boolean changed = false;
         if (action.harvest()) {
             List<FieldCargo.Entry<ItemKey>> drops = new ArrayList<>();
             for (ItemStack drop : HarvesterWork.rollDrops(level, plot)) {
@@ -1130,28 +1155,32 @@ public final class ShuttleFleet {
                 seedInHand = takeOne(drops, crop);
             }
             if (!run.cargo.fits(drops) && !run.cargo.isEmpty()) {
-                return false;
+                return PlotResult.FULL;
             }
             HarvesterWork.breakCrop(level, plot);
+            changed = true;
             for (FieldCargo.Entry<ItemKey> left : run.cargo.add(drops)) {
                 Block.popResource(level, plot, left.key().stack(left.count()));
             }
         }
         if (action.till()) {
-            HarvesterWork.till(level, plot);
+            changed |= HarvesterWork.till(level, plot);
         }
         if (crop != null && (action.plant() || seedInHand)) {
             if (seedInHand) {
-                if (!HarvesterWork.plant(level, plot, crop.stack(1))) {
+                if (HarvesterWork.plant(level, plot, crop.stack(1))) {
+                    changed = true;
+                } else {
                     for (FieldCargo.Entry<ItemKey> left : run.cargo.add(List.of(new FieldCargo.Entry<>(crop, 1, crop.stack(1).getMaxStackSize())))) {
                         Block.popResource(level, plot, left.key().stack(left.count()));
                     }
                 }
             } else if (run.cargo.count(crop) > 0 && HarvesterWork.plant(level, plot, crop.stack(1))) {
                 run.cargo.take(crop, 1);
+                changed = true;
             }
         }
-        return true;
+        return changed ? PlotResult.CHANGED : PlotResult.NOTHING;
     }
 
     /** Takes one of the key out of the drops; false when they hold none. */

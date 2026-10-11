@@ -39,6 +39,8 @@ final class HarvestRun {
     int countdown;
     /** The last harvest did not fit. */
     boolean cargoFull;
+    /** The cargo filled up with seeds kept for planting: the next put-away keeps none. */
+    boolean keepNothing;
     /** Something was done in the current work segment. */
     boolean worked;
     /** A work segment did nothing: the run has no more work it can do. */
