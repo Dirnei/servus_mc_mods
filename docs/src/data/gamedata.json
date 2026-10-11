@@ -764,15 +764,15 @@
       ]
     },
     "servus_storage:farm_rail": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["RRR", "RCR", "RRR"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["C C", "CPC", "C C"],
       "key": {
-        "C": {"item": "minecraft:composter"},
-        "R": {"item": "servus_storage:rail"}
+        "C": {"item": "minecraft:copper_ingot"},
+        "P": {"tag": "minecraft:planks"}
       },
       "inputs": [
-        {"item": "minecraft:composter", "count": 1},
-        {"item": "servus_storage:rail", "count": 8}
+        {"tag": "minecraft:planks", "count": 1},
+        {"item": "minecraft:copper_ingot", "count": 6}
       ],
       "outputs": [
         {"item": "servus_storage:farm_rail", "count": 8}
@@ -964,15 +964,15 @@
       ]
     },
     "servus_storage:rail": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["III", " S ", "III"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["I I", "IPI", "I I"],
       "key": {
         "I": {"item": "minecraft:iron_ingot"},
-        "S": {"item": "minecraft:stick"}
+        "P": {"tag": "minecraft:planks"}
       },
       "inputs": [
-        {"item": "minecraft:iron_ingot", "count": 6},
-        {"item": "minecraft:stick", "count": 1}
+        {"tag": "minecraft:planks", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 6}
       ],
       "outputs": [
         {"item": "servus_storage:rail", "count": 8}
