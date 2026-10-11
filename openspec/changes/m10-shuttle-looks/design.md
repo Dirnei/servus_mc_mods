@@ -51,7 +51,7 @@ Textures: vanilla block textures as placeholders (`oak_planks`, `iron_block`, `d
 Pure `ShuttleLook` in `storage/shuttle/module`: `speedStep(count)` gives 0 for 0, 1 for 1 to 2, 2 for 3 to 5, 3 for 6 or more; `handlingStep(count)` gives 0 for 0, 1 for 1 to 3, 2 for 4 or more; `openHold(tier)` is true for tier 1 only; `Key(int tier, int speedStep, int handlingStep, String tool)` with `of(tier, speed, handling, tool)`. The steps are visual, not balance, so they live in code, not in `shuttle.json`; a pack that changes max counts still gets sensible looks because the last step is open ended.
 
 ### D4. Renderer
-`ShuttleGarageRenderer` draws the stack at full scale (`ItemDisplayContext.NONE`, model space equals block space) with its bottom on the rail top, and the cargo item (0.35 scale, `FIXED`) inside the crate only when `ShuttleLook.openHold(tier)`. `PARK_SPACING` grows from 0.15 to 0.25. The heading becomes `atan2(dx, dz)`: the old `atan2(-dx, dz)` turned east and west legs backwards, invisible on the symmetric slab but wrong with a front tool.
+`ShuttleGarageRenderer` draws the stack at 0.8 scale (`ItemDisplayContext.NONE`, scaled about the model's bottom; decided in the play check, full scale looked too big) with its bottom on the rail top (1 pixel, the rail's height), and the cargo item (0.35 scale, `FIXED`) inside the crate only when `ShuttleLook.openHold(tier)`. `PARK_SPACING` grows from 0.15 to 0.25. The heading becomes `atan2(dx, dz)`: the old `atan2(-dx, dz)` turned east and west legs backwards, invisible on the symmetric slab but wrong with a front tool.
 
 ### PLAN.md open decisions
 Section 5 "Art style and texture direction" stays open; this change uses vanilla textures as placeholders and records the part layout, so final art only swaps textures.
@@ -70,3 +70,7 @@ Section 5 "Art style and texture direction" stays open; this change uses vanilla
 ## Migration Plan
 
 Unreleased: none.
+
+### Play check fixes
+- The composed model overrides `getRenderPasses` to return itself. `BakedModelWrapper` hands the pass to the wrapped base model, so without it only the body was drawn: no drive, Handling part or tool, and the body floated above the rail. Checked in `neoforge-21.1.255-sources.jar`: `BakedModelWrapper.getRenderPasses` returns `originalModel.getRenderPasses(...)`, `IBakedModelExtension.getRenderPasses` defaults to `List.of(self())`.
+- No name plate is drawn on the model; the plate shows only in the item name (decided in the play check).

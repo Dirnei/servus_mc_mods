@@ -84,11 +84,11 @@ Engrave SHALL finish the build like Build now, using exactly the sheet's supplie
 - **THEN** it carries no name plate, and only a tier build can give it one
 
 ### Requirement: The plate shows
-A shuttle with a name plate SHALL show the name on the side of its hold while it is drawn on the rails, SHALL carry the name in its item name (so tooltips, the garage GUI and every inventory show it), and the Field Head SHALL name the shuttle while that shuttle works its field. An anvil name SHALL NOT show on the shuttle in the world.
+A shuttle with a name plate SHALL carry the name in its item name (so tooltips, the garage GUI and every inventory show it), and the Field Head SHALL name the shuttle while that shuttle works its field. An anvil name SHALL NOT show on the shuttle in the world.
 
-#### Scenario: Plate in the world
+#### Scenario: No text on the model
 - **WHEN** a Mk2 shuttle with the plate "Berta" drives along a rail
-- **THEN** "Berta" is written on the side of its hold
+- **THEN** no text is drawn on the shuttle
 
 #### Scenario: Plate in the garage
 - **WHEN** the player hovers over a shuttle with the plate "Berta" in a garage slot

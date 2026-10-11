@@ -14,7 +14,7 @@ PLAN.md milestone M10 (Field work), next item 3: `m10-shuttle-build-minigame`.
 - The server owns the step order: the client plays a step and reports it done, the server only accepts the step that is next.
 - After the last step the GUI asks for a name. **Engrave** finishes the build like Build now and engraves the name as a **name plate**, a new data component on the shuttle (not the anvil name). An empty name finishes the build and keeps the shuttle's old plate.
 - A plate is kept through later builds and replaced by the next build by hand. Only builds make plates, so only Mk2 and Mk3 shuttles carry one; a Mk1 from the crafting grid never does.
-- The plate shows on the shuttle in the world (text on the free side spot of the hold that `m10-shuttle-looks` kept), in the item's name (so in tooltips and the garage GUI), and in the Field Head while that shuttle works the field.
+- The plate shows in the item's name (so in tooltips and the garage GUI), and in the Field Head while that shuttle works the field.
 - Installing an upgrade no longer resets build progress; a build only resets when it finishes or is cancelled.
 
 ## Capabilities
@@ -24,7 +24,6 @@ PLAN.md milestone M10 (Field work), next item 3: `m10-shuttle-build-minigame`.
 
 ### Modified Capabilities
 - `storage/shuttle-tiers`: Tier builds offer Build by hand next to Build now; the build sheet has steps.
-- `storage/shuttle-looks`: the free name plate spot is on the side of the hold and carries the plate text.
 
 ## Impact
 

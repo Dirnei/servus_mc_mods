@@ -8,9 +8,8 @@ PLAN.md M10 item 2, `m10-shuttle-looks`. Since `m10-shuttle-tiers` a shuttle has
 
 - A shuttle is drawn from parts: the tier's body and hold (Mk1 an open wooden crate, Mk2 a closed iron hold, Mk3 a closed diamond hold), drive parts that change with the Speed count, a Handling part that changes with the Handling count, and the fitted tool on the front and sides (the Harvester gets a reel that reaches out past the body).
 - The same composed shuttle shows on the rails and as the item in inventories, the garage and the workshop.
-- Shuttles are drawn about twice as big as before (a 12 pixel wide body at full block scale instead of a 0.6 scale slab), staying inside the rail's block so they do not clip racks; the tool may stick out sideways.
+- Shuttles are drawn bigger than before (the 12 pixel model at 0.8 scale instead of a 0.6 scale slab, decided in the play check), wheels on the rail top, staying inside the rail's block so they do not clip racks; the tool may stick out sideways.
 - Cargo shows on top only while the hold is open (Mk1); Mk2 and Mk3 holds are closed and show no cargo.
-- The body keeps a free spot on its back for the name plate that `m10-shuttle-build-minigame` engraves.
 
 ## Capabilities
 

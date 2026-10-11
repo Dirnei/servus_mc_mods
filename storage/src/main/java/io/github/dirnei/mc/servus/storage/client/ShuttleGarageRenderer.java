@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleLook;
 import java.util.List;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -23,24 +22,18 @@ import net.minecraft.world.phys.AABB;
  * Draws every shuttle of this garage: its own item, whose model shows the
  * shuttle's parts, at full block scale on the rail at the position
  * extrapolated from the last sync, with its cargo in the crate when the hold
- * is open. A shuttle riding a lift car is drawn at the car's height. A
- * shuttle with a name plate has its name written on the free side of its hold.
+ * is open. A shuttle riding a lift car is drawn at the car's height.
  */
 public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageBlockEntity> {
 
     private static final float CARGO_SCALE = 0.35F;
     /** Height of the cargo's centre above the shuttle's bottom: standing on the crate floor. */
     private static final double CARGO_Y = 4.0 / 16.0 + 0.5 * CARGO_SCALE;
-    private static final double RAIL_TOP = 2.0 / 16.0;
-    private static final double PARK_SPACING = 0.25;
-    /** The free side of the hold in model space (x = 2, y 5 to 8, z 5 to 11), from the model's centre, a hair outside. */
-    private static final double PLATE_X = 2.0 / 16.0 - 0.5 - 0.002;
-    private static final double PLATE_Y = 6.5 / 16.0 - 0.5;
-    /** The plate is six pixels long and three high; a short name is drawn no bigger than this per font unit. */
-    private static final float PLATE_LENGTH = 5.6F / 16.0F;
-    private static final float PLATE_MAX_SCALE = 0.25F / 16.0F;
-    private static final int PLATE_TEXT = 0xFFE8D8A0;
-    private static final int PLATE_BACKGROUND = 0xD0201810;
+    /** The rail is one pixel tall; the wheels stand on it. */
+    private static final double RAIL_TOP = 1.0 / 16.0;
+    /** The shuttle is drawn a little below block scale. */
+    private static final float SHUTTLE_SCALE = 0.8F;
+    private static final double PARK_SPACING = 0.25 * SHUTTLE_SCALE;
 
     public ShuttleGarageRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -92,14 +85,15 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
             int light = LevelRenderer.getLightColor(garage.getLevel(), railPos.above());
 
             poseStack.pushPose();
-            // The model's bottom stands on the rail top; NONE draws it around its centre at block scale.
-            poseStack.translate(pos[0] - origin.getX() + 0.5 + offset, pos[1] - origin.getY() + RAIL_TOP + 0.5,
+            // The model's bottom stands on the rail top; NONE draws it around its centre.
+            poseStack.translate(pos[0] - origin.getX() + 0.5 + offset, pos[1] - origin.getY() + RAIL_TOP,
                     pos[2] - origin.getZ() + 0.5);
             poseStack.mulPose(Axis.YP.rotationDegrees((float) yaw));
+            poseStack.scale(SHUTTLE_SCALE, SHUTTLE_SCALE, SHUTTLE_SCALE);
+            poseStack.translate(0.0, 0.5, 0.0);
             ItemStack cart = view.shuttle().isEmpty() ? plain : view.shuttle();
             Minecraft.getInstance().getItemRenderer().renderStatic(cart, ItemDisplayContext.NONE, light, packedOverlay,
                     poseStack, bufferSource, garage.getLevel(), 0);
-            ShuttleItem.plate(cart).ifPresent(plate -> drawPlate(plate, poseStack, bufferSource, light));
             if (!view.cargo().isEmpty() && ShuttleLook.openHold(ShuttleItem.tier(cart))) {
                 poseStack.translate(0.0, CARGO_Y - 0.5, 0.0);
                 poseStack.scale(CARGO_SCALE, CARGO_SCALE, CARGO_SCALE);
@@ -108,24 +102,6 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
             }
             poseStack.popPose();
         }
-    }
-
-    /**
-     * Writes the plate on the side of the hold. The pose stands at the model's
-     * centre, turned to the heading; the text faces outward and runs toward
-     * the front, on a dark plate.
-     */
-    private static void drawPlate(String plate, PoseStack poseStack, MultiBufferSource bufferSource, int light) {
-        Font font = Minecraft.getInstance().font;
-        int width = Math.max(1, font.width(plate));
-        float scale = Math.min(PLATE_MAX_SCALE, PLATE_LENGTH / width);
-        poseStack.pushPose();
-        poseStack.translate(PLATE_X, PLATE_Y, 0.0);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
-        poseStack.scale(scale, -scale, scale);
-        font.drawInBatch(plate, -width / 2.0F, -font.lineHeight / 2.0F, PLATE_TEXT, false, poseStack.last().pose(), bufferSource,
-                Font.DisplayMode.POLYGON_OFFSET, PLATE_BACKGROUND, light);
-        poseStack.popPose();
     }
 
     /** Where the shuttle is after moving for the elapsed ticks since the sync. */

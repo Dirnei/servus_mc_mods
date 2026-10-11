@@ -140,5 +140,11 @@ public final class ShuttleItemModel extends BakedModelWrapper<BakedModel> {
         public ItemOverrides getOverrides() {
             return ItemOverrides.EMPTY;
         }
+
+        /** The wrapper would hand the pass to the base, which draws the body alone. */
+        @Override
+        public List<BakedModel> getRenderPasses(ItemStack stack, boolean fabulous) {
+            return List.of(this);
+        }
     }
 }

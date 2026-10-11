@@ -10,7 +10,6 @@ A shuttle SHALL be drawn as a body with a hold, drive parts, a Handling part and
 - The drive SHALL follow the Speed count in look steps: no Speed shows plain wheels, and more Speed shows a bigger drive (for example 1 to 2, 3 to 5 and 6 or more). Each step SHALL look different from the others.
 - The Handling part SHALL follow the Handling count in look steps: no Handling shows nothing, a few show a small loading arm, many show the arm with a roller bed (for example 1 to 3 and 4 or more).
 - A fitted tool SHALL be drawn on the front of the shuttle and MAY reach out to the sides past the body; the Harvester shows a reel across the front.
-- The back of the body SHALL keep a free spot for a name plate.
 The front of the shuttle SHALL face the way it drives.
 
 #### Scenario: Two tiers side by side
@@ -37,7 +36,7 @@ A shuttle item SHALL show the same composed look as the shuttle on the rails, in
 - **THEN** the shuttle in the workshop slot shows the reel on its front
 
 ### Requirement: Shuttle size
-A shuttle body SHALL be about 12 pixels wide and long at full block scale, about twice the size of the first carts, and SHALL stay inside the block of the rail it stands on, so it does not reach into a rack or a station beside the rail. Only a tool MAY reach past the body to the sides. A shuttle standing on a lift car SHALL fit on the car.
+A shuttle SHALL be drawn a little below block scale (example 0.8, so a body of about 10 pixels), bigger than the first carts, with its wheels on the rail top, and SHALL stay inside the block of the rail it stands on, so it does not reach into a rack or a station beside the rail. Only a tool MAY reach past the body to the sides. A shuttle standing on a lift car SHALL fit on the car.
 
 #### Scenario: Passing a rack
 - **WHEN** a Mk3 shuttle drives along the rail in front of a rack
