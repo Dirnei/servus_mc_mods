@@ -9,7 +9,7 @@
 
 ## 3. Stage on rails and the head
 
-- [ ] 3.1 `rail/RailBlockEntity.java` (corrosion stage saved and synced, model data swap of `farm_rail_head`); `gradlew build`
+- [x] 3.1 `rail/RailBlockEntity.java` (corrosion stage saved and synced, model data swap of `farm_rail_head`); `gradlew build`
 - [ ] 3.2 `crate/StorageStatsManager.java` and `storage/field.json` (`corrosion_water`, `anti_corrosion_level`); `field/FieldHeadBlockEntity.java` (stage, join on serve, aging from used water, corroded stops hydration, anti-corrosion slot, upkeep holder, item view); `field/FieldHeadBlock.java` (`CORRODED`, slot drop); `field/FieldHeads.java` and `field/FarmRailBlock.java` (headless joins); `ServusStorageEvents.java` (item handler and upkeep capability); `gradlew build`
 - [ ] 3.3 `field/FarmRailBlock.java` axe scrape over the field with the durability check, sound and particles; `gradlew build`
 
