@@ -10,7 +10,7 @@
 
 ## 3. Wakes
 
-- [ ] 3.1 `storage/.../site/SiteTickets.java` (ticket controller with the validation callback, registration), `SiteWakes.java` (request, hold, release, tick, load and release of chunks and the team slot, state queries), `SiteEvents.java` (server tick, stopping, started). Run `gradlew build`.
+- [x] 3.1 `storage/.../site/SiteTickets.java` (ticket controller with the validation callback, registration), `SiteWakes.java` (request, hold, release, tick, load and release of chunks and the team slot, state queries), `SiteEvents.java` (server tick, stopping, started). Run `gradlew build`.
 - [ ] 3.2 Controller lamp and wake line from `SiteWakes`, lang keys in `ServusStorageLanguageProvider`; `ServusStorageCommands` (`wake <pos>`, `sites`). Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 4. GameTests

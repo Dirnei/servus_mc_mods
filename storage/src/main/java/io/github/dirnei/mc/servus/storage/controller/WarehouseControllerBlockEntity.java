@@ -112,6 +112,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         if (level instanceof ServerLevel server && !unloading && server.isLoaded(worldPosition)
                 && !(server.getBlockState(worldPosition).getBlock() instanceof WarehouseControllerBlock)) {
             io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(server).remove(server.dimension(), worldPosition);
+            io.github.dirnei.mc.servus.storage.site.SiteWakes.forget(server, worldPosition);
         }
         super.setRemoved();
     }
