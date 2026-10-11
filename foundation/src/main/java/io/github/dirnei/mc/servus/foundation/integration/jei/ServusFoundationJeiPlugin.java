@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.integration.jei;
 
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.ItemStackTemplate;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
@@ -28,7 +33,6 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
-import net.minecraft.core.NonNullList;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.Tags;
@@ -55,11 +59,6 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
             public Object getSubtypeData(ItemStack stack, UidContext context) {
                 return FacadeItem.blockOf(stack);
             }
-
-            @Override
-            public String getLegacyStringSubtypeInfo(ItemStack stack, UidContext context) {
-                return BuiltInRegistries.BLOCK.getKey(FacadeItem.blockOf(stack)).toString();
-            }
         };
         registration.registerSubtypeInterpreter(ServusLogisticsItems.FACADE.get(), byBlock);
         registration.registerSubtypeInterpreter(ServusLogisticsItems.HOLLOW_FACADE.get(), byBlock);
@@ -75,19 +74,19 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
                         'G', Ingredient.of(Items.GLASS),
                         'F', floors),
                 "CGC", "G G", "CFC");
-        ShapedRecipe tank = new ShapedRecipe("", CraftingBookCategory.MISC, tankPattern, FluidTankItem.withFloor(Blocks.STONE_BRICKS));
+        ShapedRecipe tank = new ShapedRecipe(INFO, BOOK, tankPattern, template(FluidTankItem.withFloor(Blocks.STONE_BRICKS)));
 
         List<RecipeHolder<CraftingRecipe>> recipes = new ArrayList<>();
         recipes.add(new RecipeHolder<>(id("fluid_tank_example"), tank));
         // One recipe per example, so each facade's result matches its block.
         for (Block block : FacadeItem.EXAMPLES) {
-            ShapelessRecipe facade = new ShapelessRecipe("", CraftingBookCategory.MISC,
-                    FacadeItem.of(block, FacadeRecipe.RESULT_COUNT),
-                    NonNullList.of(Ingredient.EMPTY, Ingredient.of(block), Ingredient.of(Tags.Items.NUGGETS)));
+            ShapelessRecipe facade = new ShapelessRecipe(INFO, BOOK,
+                    template(FacadeItem.of(block, FacadeRecipe.RESULT_COUNT)),
+                    List.of(Ingredient.of(block), Ingredient.of(BuiltInRegistries.ITEM.getOrThrow(Tags.Items.NUGGETS))));
             recipes.add(new RecipeHolder<>(id("facade_" + BuiltInRegistries.BLOCK.getKey(block).getPath()), facade));
-            ShapedRecipePattern ring = ShapedRecipePattern.of(Map.of('F', Ingredient.of(FacadeItem.of(block, 1))), "FFF", "F F", "FFF");
-            ShapedRecipe hollow = new ShapedRecipe("", CraftingBookCategory.MISC, ring,
-                    FacadeItem.of(block, HollowFacadeRecipe.RESULT_COUNT, true));
+            ShapedRecipePattern ring = ShapedRecipePattern.of(Map.of('F', DataComponentIngredient.of(false, FacadeItem.of(block, 1))), "FFF", "F F", "FFF");
+            ShapedRecipe hollow = new ShapedRecipe(INFO, BOOK, ring,
+                    template(FacadeItem.of(block, HollowFacadeRecipe.RESULT_COUNT, true)));
             recipes.add(new RecipeHolder<>(id("hollow_facade_" + BuiltInRegistries.BLOCK.getKey(block).getPath()), hollow));
         }
         registration.addRecipes(RecipeTypes.CRAFTING, recipes);
@@ -96,7 +95,14 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
         registration.addItemStackInfo(facades, Component.translatable("jei.servus_foundation.facade.info"));
     }
 
-    private static Identifier id(String path) {
-        return Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "jei/" + path);
+    private static final Recipe.CommonInfo INFO = new Recipe.CommonInfo(false);
+    private static final CraftingRecipe.CraftingBookInfo BOOK = new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, "");
+
+    private static ItemStackTemplate template(ItemStack stack) {
+        return ItemStackTemplate.fromNonEmptyStack(stack);
+    }
+
+    private static ResourceKey<Recipe<?>> id(String path) {
+        return ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "jei/" + path));
     }
 }
