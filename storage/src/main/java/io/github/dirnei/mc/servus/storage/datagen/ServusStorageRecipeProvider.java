@@ -237,10 +237,10 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .save(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.HANDLING_UPGRADE.get())
-                .pattern("IRI")
+                .pattern("CRC")
                 .pattern("RPR")
-                .pattern("IRI")
-                .define('I', Items.IRON_INGOT)
+                .pattern("CRC")
+                .define('C', Items.COPPER_INGOT)
                 .define('R', Items.REDSTONE)
                 .define('P', Items.PISTON)
                 .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE_MK1.get()))
