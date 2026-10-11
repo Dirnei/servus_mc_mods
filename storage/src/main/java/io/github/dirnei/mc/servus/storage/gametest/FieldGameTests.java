@@ -32,6 +32,10 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.ItemStack;
@@ -438,5 +442,39 @@ public final class FieldGameTests {
         menu.clicked(0, 0, ClickType.PICKUP, player);
         helper.assertTrue(head.crop().isEmpty(), "an empty hand clears the crop");
         helper.succeed();
+    }
+
+    // Open plots
+
+    /** Dirt under an empty plot is to till, farmland to plant; hoeing and planting by hand move the plots along. */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void openPlotsCounted(GameTestHelper helper) {
+        BlockPos dirtPlot = new BlockPos(4, 1, RAIL_Z + 2);
+        BlockPos farmPlot = new BlockPos(5, 1, RAIL_Z - 2);
+        helper.setBlock(dirtPlot.below(), Blocks.DIRT.defaultBlockState());
+        helper.setBlock(farmPlot.below(), Blocks.FARMLAND.defaultBlockState());
+        FieldHeadBlockEntity head = field(helper, 3, 5);
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(head.tillableCount() == 1 && head.plantableCount() == 1,
+                    "one plot to till and one to plant, got " + head.tillableCount() + " and " + head.plantableCount());
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            ItemStack hoe = new ItemStack(Items.IRON_HOE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, hoe);
+            BlockPos dirt = helper.absolutePos(dirtPlot.below());
+            hoe.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, hoe,
+                    new BlockHitResult(Vec3.atCenterOf(dirt).add(0, 0.5, 0), Direction.UP, dirt, false)));
+            helper.assertBlockPresent(Blocks.FARMLAND, dirtPlot.below());
+            ItemStack seeds = new ItemStack(Items.WHEAT_SEEDS);
+            player.setItemInHand(InteractionHand.MAIN_HAND, seeds);
+            BlockPos farmland = helper.absolutePos(farmPlot.below());
+            seeds.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, seeds,
+                    new BlockHitResult(Vec3.atCenterOf(farmland).add(0, 0.5, 0), Direction.UP, farmland, false)));
+            helper.runAfterDelay(2, () -> {
+                helper.assertTrue(head.tillableCount() == 0 && head.plantableCount() == 1,
+                        "the hoed plot is to plant now, got " + head.tillableCount() + " to till and " + head.plantableCount() + " to plant");
+                helper.assertTrue(head.plantedCount() == 1, "the seeded plot counts as planted, got " + head.plantedCount());
+                helper.succeed();
+            });
+        });
     }
 }

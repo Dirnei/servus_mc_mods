@@ -11,7 +11,7 @@
 
 ## 3. Open plots in the head
 
-- [ ] 3.1 `FieldHeadBlockEntity` classifies plots into `PlotState` with `plotState`, `tillableCount`, `plantableCount`; `FieldEvents` queues the plot above for break, place and hoe events; the field command prints the open counts (design D2). GameTest `openPlotsCounted` in `FieldGameTests` (dirt and farmland counted, hoeing moves a plot from till to plant). Verify: `gradlew build` and `gradlew :storage:runGameTestServer`.
+- [x] 3.1 `FieldHeadBlockEntity` classifies plots into `PlotState` with `plotState`, `tillableCount`, `plantableCount`; `FieldEvents` queues the plot above for break, place and hoe events; the field command prints the open counts (design D2). GameTest `openPlotsCounted` in `FieldGameTests` (dirt and farmland counted, hoeing moves a plot from till to plant). Verify: `gradlew build` and `gradlew :storage:runGameTestServer`.
 
 ## 4. Field jobs and runs
 

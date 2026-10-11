@@ -101,7 +101,8 @@ public final class ServusStorageCommands {
                 : head.crop().isEmpty() ? "no crop" : "crop " + head.crop().getHoverName().getString();
         List<String> lines = List.of(
                 "Field Head " + pos.toShortString() + ": " + head.status().name().toLowerCase(java.util.Locale.ROOT),
-                "Rails " + head.rails().size() + ", plots " + head.plots().size() + ", planted " + head.plantedCount() + ", ripe " + head.ripeCount(),
+                "Rails " + head.rails().size() + ", plots " + head.plots().size() + ", planted " + head.plantedCount() + ", ripe " + head.ripeCount()
+                        + ", to till " + head.tillableCount() + ", to plant " + head.plantableCount(),
                 "Water " + head.water() + " / " + head.capacity() + " mB, " + (head.hydrated() ? "hydrated" : "dry"),
                 mode + ", harvest " + (head.harvestDue() ? "due" : "not due"));
         for (String line : lines) {

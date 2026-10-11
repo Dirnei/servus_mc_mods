@@ -44,6 +44,7 @@ public final class FieldEvents {
     public static void onBreak(BlockEvent.BreakEvent event) {
         if (!event.isCanceled()) {
             queue(event.getLevel(), event.getPos());
+            queue(event.getLevel(), event.getPos().above());
         }
     }
 
@@ -51,6 +52,15 @@ public final class FieldEvents {
     public static void onPlace(BlockEvent.EntityPlaceEvent event) {
         if (!event.isCanceled()) {
             queue(event.getLevel(), event.getPos());
+            queue(event.getLevel(), event.getPos().above());
+        }
+    }
+
+    /** A hoe or another tool changed the ground under a plot. */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onToolModification(BlockEvent.BlockToolModificationEvent event) {
+        if (!event.isCanceled() && !event.isSimulated()) {
+            queue(event.getLevel(), event.getPos().above());
         }
     }
 

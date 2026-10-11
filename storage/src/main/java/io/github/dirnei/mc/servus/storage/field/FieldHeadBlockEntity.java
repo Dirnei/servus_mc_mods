@@ -345,11 +345,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
 
-    /** Records what a plot holds now. */
+    /** Records what a plot holds now, the block on it being that state. */
     void update(BlockPos plot, BlockState state) {
-        boolean planted = state.getBlock() instanceof CropBlock;
-        boolean ripe = planted && ((CropBlock) state.getBlock()).isMaxAge(state);
-        ripeness.update(plot.immutable(), planted, ripe);
+        ripeness.update(plot.immutable(), HarvesterWork.classify(level, plot, state));
     }
 
     /** Whether the head serves a field whose plots hold that position. */
@@ -444,6 +442,26 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
 
     public int ripeCount() {
         return ripeness.ripe();
+    }
+
+    /** What the head last saw on the plot; blocked for positions it does not track. */
+    public PlotState plotState(BlockPos plot) {
+        return ripeness.state(plot);
+    }
+
+    /** Empty plots on dirt or grass. */
+    public int tillableCount() {
+        return ripeness.tillable();
+    }
+
+    /** Empty plots on farmland. */
+    public int plantableCount() {
+        return ripeness.plantable();
+    }
+
+    /** Whether a crop is set and harvest only is off, so the field gets tilled and planted. */
+    public boolean plantMode() {
+        return !harvestOnly && !crop.getStackInSlot(0).isEmpty();
     }
 
     public boolean hydrated() {
