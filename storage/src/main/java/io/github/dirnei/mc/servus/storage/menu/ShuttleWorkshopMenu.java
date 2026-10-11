@@ -23,6 +23,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -54,6 +55,8 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
     public static final int BUTTON_REMOVE_HANDLING = 1;
     public static final int BUTTON_REMOVE_TOOL = 2;
     public static final int BUTTON_BUILD_NOW = 3;
+    public static final int BUTTON_BUILD_BY_HAND = 4;
+    public static final int BUTTON_CANCEL = 5;
 
     /** The tier stats as the server knows them, for the client's labels. */
     public static final StreamCodec<RegistryFriendlyByteBuf, ShuttleTiers> TIERS_CODEC = StreamCodec.of(
@@ -65,6 +68,10 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
     private final ItemStackHandler supplies;
     private final ShuttleTiers tiers;
     private final Player player;
+    /** Whether a build by hand runs; read from the workshop on the server, synced to the client. */
+    private final DataSlot building;
+    /** The step of the build by hand. */
+    private final DataSlot step;
 
     /** Server side: the workshop's own handlers. */
     public ShuttleWorkshopMenu(int containerId, Inventory playerInventory, ShuttleWorkshopBlockEntity workshop, ShuttleTiers tiers) {
@@ -81,10 +88,17 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
         this.supplies = supplies;
         this.tiers = tiers;
         this.player = playerInventory.player;
+        this.building = workshop == null ? DataSlot.standalone() : new WorkshopSlot(() -> workshop.handBuild() ? 1 : 0);
+        this.step = workshop == null ? DataSlot.standalone() : new WorkshopSlot(workshop::buildStep);
         addSlot(new SlotItemHandler(shuttle, 0, SHUTTLE_X, SHUTTLE_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return ShuttleItem.isShuttle(stack);
+                return !building() && ShuttleItem.isShuttle(stack);
+            }
+
+            @Override
+            public boolean mayPickup(Player player) {
+                return !building() && super.mayPickup(player);
             }
 
             @Override
@@ -97,7 +111,12 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
             addSlot(new SlotItemHandler(supplies, i, SUPPLY_X + i * 18, SUPPLY_Y) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
-                    return !ShuttleItem.isShuttle(stack);
+                    return !building() && !ShuttleItem.isShuttle(stack);
+                }
+
+                @Override
+                public boolean mayPickup(Player player) {
+                    return !building() && super.mayPickup(player);
                 }
             });
         }
@@ -108,6 +127,28 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
         }
         for (int column = 0; column < 9; column++) {
             addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
+        }
+        addDataSlot(building);
+        addDataSlot(step);
+    }
+
+    /** A data slot that reads its value from the workshop on the server. */
+    private static final class WorkshopSlot extends DataSlot {
+
+        private final java.util.function.IntSupplier source;
+
+        WorkshopSlot(java.util.function.IntSupplier source) {
+            this.source = source;
+        }
+
+        @Override
+        public int get() {
+            return source.getAsInt();
+        }
+
+        @Override
+        public void set(int value) {
+            // The server reads the workshop; nothing to store.
         }
     }
 
@@ -193,6 +234,43 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
         return held.isEmpty() ? List.of() : tiers.nextBuild(ShuttleItem.tier(held));
     }
 
+    /** Whether a build by hand runs. */
+    public boolean building() {
+        return building.get() != 0;
+    }
+
+    /** The step the build by hand is on; the step count once it waits for its name. */
+    public int buildStep() {
+        return step.get();
+    }
+
+    /** The steps of a build by hand into the next tier, from the tier stats of the opening. */
+    public List<BuildStep> steps() {
+        ItemStack held = shuttle();
+        return held.isEmpty() ? List.of() : tiers.nextSteps(ShuttleItem.tier(held));
+    }
+
+    /** The workshop's position, for the seeds of the boards. */
+    public BlockPos pos() {
+        return access.evaluate((level, pos) -> pos, BlockPos.ZERO);
+    }
+
+    /** Server side: the client finished that step. */
+    public void reportStep(int reported) {
+        if (workshop != null) {
+            workshop.reportStep(reported);
+            broadcastChanges();
+        }
+    }
+
+    /** Server side: finish the build by hand with that name. */
+    public void engrave(String name) {
+        if (workshop != null) {
+            workshop.engrave(name);
+            broadcastChanges();
+        }
+    }
+
     /** Whether Build now would work, as far as this side can tell. */
     public boolean canBuild() {
         ItemStack held = shuttle();
@@ -217,6 +295,9 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
      * @return how many were installed
      */
     public int install(ItemStack stack) {
+        if (building()) {
+            return 0;
+        }
         ItemStack held = shuttle();
         int room = ShuttleUpgrades.room(held, stack, tiers);
         int count = Math.min(room, stack.getCount());
@@ -247,7 +328,7 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
     /** Takes one count of the kind, or the tool, out of the shuttle and gives it to the player. */
     private boolean remove(Optional<Kind> kind) {
         ItemStack held = shuttle();
-        if (held.isEmpty()) {
+        if (held.isEmpty() || building()) {
             return false;
         }
         ShuttleModules modules = ShuttleModules.of(held);
@@ -278,6 +359,8 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
             case BUTTON_REMOVE_HANDLING -> remove(Optional.of(Kind.HANDLING));
             case BUTTON_REMOVE_TOOL -> remove(Optional.empty());
             case BUTTON_BUILD_NOW -> workshop != null && workshop.buildNow();
+            case BUTTON_BUILD_BY_HAND -> workshop != null && workshop.startHandBuild();
+            case BUTTON_CANCEL -> workshop != null && workshop.cancelHandBuild();
             default -> false;
         };
     }
@@ -289,7 +372,7 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
      */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        if (index < 0 || index >= slots.size() || index == INSTALL_SLOT) {
+        if (index < 0 || index >= slots.size() || index == INSTALL_SLOT || building() && index < INVENTORY_START) {
             return ItemStack.EMPTY;
         }
         Slot slot = slots.get(index);
@@ -335,7 +418,7 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return ShuttleUpgrades.room(shuttle(), stack, tiers) > 0;
+            return !building() && ShuttleUpgrades.room(shuttle(), stack, tiers) > 0;
         }
 
         @Override

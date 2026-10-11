@@ -18,6 +18,9 @@ import io.github.dirnei.mc.servus.storage.zone.SetLabelTagsPayload;
 import io.github.dirnei.mc.servus.storage.client.ClientStationState;
 import io.github.dirnei.mc.servus.storage.station.StationStatePayload;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
+import io.github.dirnei.mc.servus.storage.shuttle.module.EngraveShuttlePayload;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleBuildStepPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -73,6 +76,20 @@ public final class ServusStoragePayloads {
         registrar.playToClient(io.github.dirnei.mc.servus.storage.packing.PackingStatusPayload.TYPE,
                 io.github.dirnei.mc.servus.storage.packing.PackingStatusPayload.STREAM_CODEC,
                 (payload, context) -> io.github.dirnei.mc.servus.storage.client.ClientPackingStatus.update(payload));
+        registrar.playToServer(ShuttleBuildStepPayload.TYPE, ShuttleBuildStepPayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof ShuttleWorkshopMenu menu) {
+                        menu.reportStep(payload.step());
+                    }
+                });
+        registrar.playToServer(EngraveShuttlePayload.TYPE, EngraveShuttlePayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof ShuttleWorkshopMenu menu) {
+                        menu.engrave(payload.name());
+                    }
+                });
         registrar.playToServer(KeepSlotPayload.TYPE, KeepSlotPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player

@@ -3,6 +3,9 @@ package io.github.dirnei.mc.servus.storage.shuttle.module;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.shuttle.module.build.BuildStep;
+import io.github.dirnei.mc.servus.storage.shuttle.module.build.HandBuild;
+import io.github.dirnei.mc.servus.storage.shuttle.module.build.NamePlate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +26,9 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * The workshop keeps one shuttle, the supplies for its next tier and the
- * state of a build. Installing upgrades edits the shuttle in place; a tier
- * build uses the supplies and swaps the shuttle for the next tier's item.
+ * state of a build by hand. Installing upgrades edits the shuttle in place;
+ * a tier build uses the supplies and swaps the shuttle for the next tier's
+ * item. While a build by hand runs, the shuttle and the supplies are locked.
  */
 public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvider {
 
@@ -39,25 +43,40 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return ShuttleItem.isShuttle(stack);
+            return !handBuild && ShuttleItem.isShuttle(stack);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return handBuild ? ItemStack.EMPTY : super.extractItem(slot, amount, simulate);
         }
 
         @Override
         protected void onContentsChanged(int slot) {
-            // A new shuttle starts its build from the beginning.
-            buildStep = 0;
             setChanged();
         }
     };
 
     private final ItemStackHandler supplies = new ItemStackHandler(SUPPLY_SLOTS) {
         @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return !handBuild;
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return handBuild ? ItemStack.EMPTY : super.extractItem(slot, amount, simulate);
+        }
+
+        @Override
         protected void onContentsChanged(int slot) {
             setChanged();
         }
     };
 
-    /** How far a build by hand has come; always 0 until builds by hand exist. */
+    /** Whether a build by hand runs. */
+    private boolean handBuild;
+    /** The step a build by hand is on; equal to the step count once it waits for its name. */
     private int buildStep;
 
     public ShuttleWorkshopBlockEntity(BlockPos pos, BlockState state) {
@@ -72,8 +91,78 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
         return supplies;
     }
 
+    /** The step a build by hand is on, kept within the steps of the sheet as the datapack has it now. */
     public int buildStep() {
-        return buildStep;
+        return HandBuild.clamp(buildStep, steps().size());
+    }
+
+    /** Whether a build by hand runs. */
+    public boolean handBuild() {
+        return handBuild;
+    }
+
+    /** The steps of a build by hand into the next tier, empty without a shuttle or at the top. */
+    public List<BuildStep> steps() {
+        ItemStack held = shuttle.getStackInSlot(0);
+        return held.isEmpty() ? List.of() : StorageStatsManager.INSTANCE.shuttleTiers().nextSteps(ShuttleItem.tier(held));
+    }
+
+    /** Whether every step of the running build by hand is done and it waits for its name. */
+    public boolean handDone() {
+        return handBuild && HandBuild.done(buildStep(), steps().size());
+    }
+
+    /** Starts a build by hand when Build now would work; locks the shuttle and the supplies. */
+    public boolean startHandBuild() {
+        if (handBuild || !canBuild()) {
+            return false;
+        }
+        handBuild = true;
+        buildStep = 0;
+        setChanged();
+        return true;
+    }
+
+    /** The client finished a step; only the current step counts. */
+    public boolean reportStep(int step) {
+        if (!handBuild) {
+            return false;
+        }
+        int before = buildStep();
+        buildStep = HandBuild.next(before, step, steps().size());
+        setChanged();
+        return buildStep != before;
+    }
+
+    /** Ends a build by hand; nothing is used and the slots are free again. */
+    public boolean cancelHandBuild() {
+        if (!handBuild) {
+            return false;
+        }
+        handBuild = false;
+        buildStep = 0;
+        setChanged();
+        return true;
+    }
+
+    /**
+     * Finishes a build by hand whose steps are all done: the tier build of
+     * Build now, then the name plate. An empty name keeps the old plate.
+     */
+    public boolean engrave(String name) {
+        if (!handDone()) {
+            return false;
+        }
+        handBuild = false;
+        buildStep = 0;
+        setChanged();
+        if (!buildNow()) {
+            return false;
+        }
+        ItemStack built = shuttle.getStackInSlot(0).copy();
+        ShuttleItem.engrave(built, NamePlate.clean(name));
+        shuttle.setStackInSlot(0, built);
+        return true;
     }
 
     /** The supplies in the workshop counted by item id. */
@@ -113,7 +202,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
      * @return false when the build is not ready
      */
     public boolean buildNow() {
-        if (!canBuild()) {
+        if (handBuild || !canBuild()) {
             return false;
         }
         for (Map.Entry<String, Integer> need : ShuttleBuild.needs(sheet()).entrySet()) {
@@ -161,6 +250,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
         super.saveAdditional(tag, registries);
         tag.put("Shuttle", shuttle.serializeNBT(registries));
         tag.put("Supplies", supplies.serializeNBT(registries));
+        tag.putBoolean("HandBuild", handBuild);
         tag.putInt("BuildStep", buildStep);
     }
 
@@ -173,6 +263,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
         if (tag.contains("Supplies")) {
             supplies.deserializeNBT(registries, tag.getCompound("Supplies"));
         }
-        buildStep = tag.getInt("BuildStep");
+        handBuild = tag.getBoolean("HandBuild");
+        buildStep = Math.max(0, tag.getInt("BuildStep"));
     }
 }
