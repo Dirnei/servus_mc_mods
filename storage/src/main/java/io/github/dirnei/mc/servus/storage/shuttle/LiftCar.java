@@ -28,6 +28,8 @@ public final class LiftCar {
     private boolean moving;
     /** Blocks the car moved last tick; it starts from standing and brakes for its target. */
     private double velocity;
+    /** Speed upgrades of the shaft, set by the fleet when they change. */
+    private int upgrades;
 
     /** A new car stands at the lowest floor. */
     public LiftCar(int bottomY, int topY) {
@@ -175,6 +177,14 @@ public final class LiftCar {
         y = next;
         velocity = y == target ? 0 : step;
         moving = true;
+    }
+
+    public int upgrades() {
+        return upgrades;
+    }
+
+    public void setUpgrades(int upgrades) {
+        this.upgrades = Math.max(0, upgrades);
     }
 
     /** Blocks the car moved last tick, 0 while it stands. */

@@ -12,7 +12,7 @@
 
 ## 3. Faster cars
 
-- [ ] 3.1 `LiftCar.upgrades`, `ShuttleFleet.refreshShafts` reads the count from the bottom block entity, per car speed and accel in `tick` and `sendLift`, `WarehouseNetwork` handles `LiftUpgradesChanged` (design D5). Verify: `gradlew build`.
+- [x] 3.1 `LiftCar.upgrades`, `ShuttleFleet.refreshShafts` reads the count from the bottom block entity, per car speed and accel in `tick` and `sendLift`, `WarehouseNetwork` handles `LiftUpgradesChanged` (design D5). Verify: `gradlew build`.
 
 ## 4. GameTests
 

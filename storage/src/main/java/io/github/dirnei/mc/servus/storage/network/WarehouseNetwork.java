@@ -1107,6 +1107,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (stations.contains(intake.pos())) {
                 pendingStations.add(intake.pos());
             }
+        } else if (event instanceof WarehouseEvent.LiftUpgradesChanged lift) {
+            // The car reads its shaft's upgrades when the shafts are refreshed next tick.
+            if (elevators.contains(Conversions.toNodePos(lift.pos()))) {
+                shaftsDirty = true;
+            }
         } else if (event instanceof WarehouseEvent.ZoneChanged zoned) {
             if (loaded(zoned.pos()) instanceof StorageNodeBlockEntity node && node.holdsStock()) {
                 rememberZone(zoned.pos(), node);

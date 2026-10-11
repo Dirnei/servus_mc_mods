@@ -412,12 +412,10 @@ public final class ShuttleFleet {
     public void tick() {
         // Shuttles already out keep moving even when no garage has a home; only new jobs need one.
         assignJobs();
-        double liftSpeed = host.liftSpeed();
-        double liftAccel = StorageStatsManager.INSTANCE.liftAccel();
         boolean moving = false;
         for (Map.Entry<BlockPos, LiftCar> entry : lifts.entrySet()) {
             LiftCar car = entry.getValue();
-            car.tick(liftSpeed, liftAccel);
+            car.tick(liftSpeed(car), liftAccel(car));
             if (car.moving() != movingLifts.contains(entry.getKey())) {
                 if (car.moving()) {
                     movingLifts.add(entry.getKey());
@@ -1486,8 +1484,25 @@ public final class ShuttleFleet {
         movingLifts.retainAll(lifts.keySet());
         for (Map.Entry<BlockPos, LiftCar> entry : lifts.entrySet()) {
             parkOnBlock(entry.getKey(), entry.getValue());
+            entry.getValue().setUpgrades(upgradesAt(entry.getKey()));
         }
         syncPending = true;
+    }
+
+    /** The Speed upgrades kept in the shaft's lowest segment; an unloaded one counts none until it loads. */
+    private int upgradesAt(BlockPos bottom) {
+        if (!host.level().isLoaded(bottom)) {
+            return 0;
+        }
+        return host.level().getBlockEntity(bottom) instanceof ElevatorBlockEntity segment ? segment.upgradeCount() : 0;
+    }
+
+    private double liftSpeed(LiftCar car) {
+        return LiftUpgrades.speed(host.liftSpeed(), StorageStatsManager.INSTANCE.liftSpeedPerUpgrade(), car.upgrades());
+    }
+
+    private double liftAccel(LiftCar car) {
+        return LiftUpgrades.accel(StorageStatsManager.INSTANCE.liftAccel(), StorageStatsManager.INSTANCE.liftAccelPerUpgrade(), car.upgrades());
     }
 
     /** The car of the shaft at that bottom, or null. For tests and the network. */
@@ -1728,7 +1743,7 @@ public final class ShuttleFleet {
     private void sendLift(BlockPos bottom, LiftCar car) {
         Integer target = car.target();
         ShuttleView.Drive drive = car.moving()
-                ? new ShuttleView.Drive((float) car.velocity(), (float) host.liftSpeed(), (float) StorageStatsManager.INSTANCE.liftAccel())
+                ? new ShuttleView.Drive((float) car.velocity(), (float) liftSpeed(car), (float) liftAccel(car))
                 : ShuttleView.Drive.STILL;
         PacketDistributor.sendToPlayersTrackingChunk(host.level(), new ChunkPos(bottom), new LiftSyncPayload(bottom, car.topY(),
                 (float) car.y(), target == null ? (int) Math.round(car.y()) : target, drive, car.carrying()));
