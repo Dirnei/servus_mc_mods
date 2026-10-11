@@ -249,7 +249,11 @@ One change per item, in this order. Decided on 2026-10-11 that M10 may start bef
 - Later: `m10-lumber` with a Lumber module for tree fields.
 
 ### M11: Wireless and scale
-- Wireless Packing Station (replaces the Warehouse Relay idea)
+Decided on 2026-10-11: every Warehouse Controller is a **site** (an outpost or the base). Sites trade over wireless only at first; no shuttles travel between sites yet. One change per item, in this order:
+1. `m11-controller-site`: the controller gets a name and its first GUI. It keeps the number of chunks its network spans, counted from member join and leave events (never by scanning), and shows them as a small chunk map. When the span is larger than its Chunk Loader Upgrades cover, the controller shows an error state in the GUI and on the block.
+2. `m11-chunk-loader-upgrade`: a Chunk Loader Upgrade in the controller lets a sleeping site wake. A wake loads the whole site (every chunk with a member) for as long as a transfer needs it, plus a short grace time, then releases it. Capacity per upgrade from JSON (example 9 chunks). Hard limit: a site over its capacity never wakes. A wake counts against the team's chunk loader cap and respects FTB Chunks. Without the upgrade a sleeping site only shows its last known stock.
+3. `m11-wireless-packing-station`: the first link between sites. Sites of one team see each other by name; a request at one site can be served from another, instantly, for FE per item and distance. Sleeping sites show their last known stock greyed out and wake when they have the upgrade.
+- Later: SEND and KEEP rules between sites in the controller GUI (the local min/max stock rules join the same list), an In transit view, then explore shuttle portals between sites, overland cargo carts and a separate Servus: Transit mod for passenger travel.
 - Wireless Terminal with range tiers
 - Outbound dock: teleport delivery and courier drone
 
