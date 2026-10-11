@@ -44,6 +44,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final double DEFAULT_FIELD_HARVEST_SHARE = 0.5;
     public static final int DEFAULT_FIELD_WORK_TICKS = 10;
     public static final int DEFAULT_FIELD_CHECK_INTERVAL = 40;
+    public static final int DEFAULT_FIELD_RADIUS = 2;
+    public static final int DEFAULT_FIELD_MAX_RADIUS = 4;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
@@ -86,6 +88,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile double fieldHarvestShare = DEFAULT_FIELD_HARVEST_SHARE;
     private volatile int fieldWorkTicks = DEFAULT_FIELD_WORK_TICKS;
     private volatile int fieldCheckInterval = DEFAULT_FIELD_CHECK_INTERVAL;
+    private volatile int fieldRadius = DEFAULT_FIELD_RADIUS;
+    private volatile int fieldMaxRadius = DEFAULT_FIELD_MAX_RADIUS;
 
     private StorageStatsManager() {
         super(GSON, DIRECTORY);
@@ -120,6 +124,8 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         fieldHarvestShare = Math.min(1.0, doubleField(files.get(FIELD), "harvest_share", DEFAULT_FIELD_HARVEST_SHARE));
         fieldWorkTicks = intField(files.get(FIELD), "work_ticks", DEFAULT_FIELD_WORK_TICKS);
         fieldCheckInterval = intField(files.get(FIELD), "field_check_interval", DEFAULT_FIELD_CHECK_INTERVAL);
+        fieldRadius = intField(files.get(FIELD), "radius", DEFAULT_FIELD_RADIUS);
+        fieldMaxRadius = intField(files.get(FIELD), "max_radius", DEFAULT_FIELD_MAX_RADIUS);
         shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
@@ -281,6 +287,16 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     /** For tests: sets the field check interval as if a datapack had been loaded. */
     public void setFieldCheckInterval(int ticks) {
         fieldCheckInterval = ticks;
+    }
+
+    /** Blocks a field reaches to each side of its rails with no Range Upgrade. */
+    public int fieldRadius() {
+        return fieldRadius;
+    }
+
+    /** The largest field radius Range Upgrades reach. */
+    public int fieldMaxRadius() {
+        return fieldMaxRadius;
     }
 
     /** Shuttle speed, stop times and tiers from {@code shuttle.json}. */

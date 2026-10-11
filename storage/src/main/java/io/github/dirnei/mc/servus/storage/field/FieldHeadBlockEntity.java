@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,6 +68,24 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         public int getSlotLimit(int slot) {
             return 1;
+        }
+    };
+    /** Range Upgrades: each widens the field by one block, up to {@code max_radius}. */
+    private final ItemStackHandler rangeUpgrades = new ItemStackHandler(1) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            setChanged();
+            requestRefresh();
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return stack.is(ServusStorageItems.RANGE_UPGRADE.get());
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return Math.max(1, FieldRadius.maxUpgrades(StorageStatsManager.INSTANCE.fieldRadius(), StorageStatsManager.INSTANCE.fieldMaxRadius()));
         }
     };
     private boolean harvestOnly;
@@ -480,9 +499,22 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         return status;
     }
 
-    /** How far the field reaches to each side of its rails. */
+    /** How far the field reaches to each side of its rails: {@code radius} plus one per Range Upgrade. */
     public int radius() {
-        return 4;
+        return FieldRadius.of(StorageStatsManager.INSTANCE.fieldRadius(), StorageStatsManager.INSTANCE.fieldMaxRadius(),
+                rangeUpgrades.getStackInSlot(0).getCount());
+    }
+
+    /** The one slot handler of the Range Upgrades. */
+    public ItemStackHandler rangeUpgrades() {
+        return rangeUpgrades;
+    }
+
+    /** Takes the Range Upgrades out, for dropping when the head breaks. */
+    public ItemStack takeRangeUpgrades() {
+        ItemStack held = rangeUpgrades.getStackInSlot(0).copy();
+        rangeUpgrades.setStackInSlot(0, ItemStack.EMPTY);
+        return held;
     }
 
     /** The farm rails of the field; for a head that sees another head, the field it would serve. */
@@ -601,6 +633,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         tag.put("Water", tank.writeToNBT(registries, new CompoundTag()));
         tag.put("Crop", crop.serializeNBT(registries));
         tag.putBoolean("HarvestOnly", harvestOnly);
+        tag.put("RangeUpgrades", rangeUpgrades.serializeNBT(registries));
         if (harvestPercent > 0) {
             tag.putInt("HarvestPercent", harvestPercent);
         }
@@ -614,6 +647,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
             crop.deserializeNBT(registries, tag.getCompound("Crop"));
         }
         harvestOnly = tag.getBoolean("HarvestOnly");
+        if (tag.contains("RangeUpgrades", CompoundTag.TAG_COMPOUND)) {
+            rangeUpgrades.deserializeNBT(registries, tag.getCompound("RangeUpgrades"));
+        }
         harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(tag.getInt("HarvestPercent")) : 0;
     }
 

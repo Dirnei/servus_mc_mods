@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.storage.field;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -58,6 +59,7 @@ public class FieldHeadBlock extends BaseEntityBlock {
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide() && level.getBlockEntity(pos) instanceof FieldHeadBlockEntity head) {
             FieldHeads.headRemoved(level, head);
+            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), head.takeRangeUpgrades());
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }

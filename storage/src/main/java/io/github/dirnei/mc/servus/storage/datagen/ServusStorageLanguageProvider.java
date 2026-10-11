@@ -107,6 +107,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageItems.SHUTTLE_MK2.get(), "Shuttle Mk2");
         add(ServusStorageItems.SHUTTLE_MK3.get(), "Shuttle Mk3");
         add(ServusStorageItems.HANDLING_UPGRADE.get(), "Handling Upgrade");
+        add(ServusStorageItems.RANGE_UPGRADE.get(), "Range Upgrade");
         add(ServusStorageItems.HARVESTER.get(), "Harvester");
         add(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), "Shuttle Workshop");
         add(ServusStorageBlocks.FARM_RAIL.get(), "Farm Rail");

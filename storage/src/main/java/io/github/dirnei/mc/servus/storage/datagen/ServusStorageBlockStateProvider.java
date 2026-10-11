@@ -55,6 +55,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         cpu(ServusStorageBlocks.CRAFTING_CPU.get(), "crafting_cpu");
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
         itemModels().basicItem(ServusStorageItems.HANDLING_UPGRADE.get());
+        itemModels().basicItem(ServusStorageItems.RANGE_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.HARVESTER.get());
         ModelFile workshop = models().cubeBottomTop("shuttle_workshop", modLoc("block/shuttle_workshop_side"),
                 modLoc("block/shuttle_workshop_bottom"), modLoc("block/shuttle_workshop_top"));

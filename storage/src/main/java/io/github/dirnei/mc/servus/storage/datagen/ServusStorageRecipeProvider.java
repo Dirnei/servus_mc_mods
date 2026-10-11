@@ -246,6 +246,17 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE_MK1.get()))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.RANGE_UPGRADE.get())
+                .pattern("ISI")
+                .pattern("WCW")
+                .pattern("ISI")
+                .define('I', Items.IRON_INGOT)
+                .define('S', Items.WHEAT_SEEDS)
+                .define('W', Items.BONE_MEAL)
+                .define('C', Items.COMPOSTER)
+                .unlockedBy("has_field_head", has(ServusStorageItems.FIELD_HEAD.get()))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.HARVESTER.get())
                 .pattern("ISI")
                 .pattern("IHI")

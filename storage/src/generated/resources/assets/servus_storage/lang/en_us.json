@@ -260,6 +260,7 @@
   "gui.servus_storage.zone_label.title": "Zone Label",
   "item.servus_storage.handling_upgrade": "Handling Upgrade",
   "item.servus_storage.harvester": "Harvester",
+  "item.servus_storage.range_upgrade": "Range Upgrade",
   "item.servus_storage.shuttle": "Shuttle Mk1",
   "item.servus_storage.shuttle.named": "%s (%s)",
   "item.servus_storage.shuttle_mk2": "Shuttle Mk2",
