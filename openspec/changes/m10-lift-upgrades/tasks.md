@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 Pure `LiftUpgrades` in `storage/.../shuttle/` (`speed`, `accel`, `bottom`, `heirOnRemove`, design D4, D5). JUnit `LiftUpgradesTest`: speed and accel per count, bottom of a column, heir is the segment above or none. Verify: `gradlew :storage:test`.
+- [x] 1.1 Pure `LiftUpgrades` in `storage/.../shuttle/` (`speed`, `accel`, `bottom`, `heirOnRemove`, design D4, D5). JUnit `LiftUpgradesTest`: speed and accel per count, bottom of a column, heir is the segment above or none. Verify: `gradlew :storage:test`.
 
 ## 2. Slots, GUI and moves
 
