@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Rail track look
-A rail SHALL look like a wide gauge track: two raised rail heads, each 2 pixels wide, at 2..4 and 12..14 pixels across the travel direction and one pixel above the sleepers, and four separate sleepers per block, each 2 pixels long along the travel direction with gaps between them and 14 pixels wide, so they stick out past the heads. The Warehouse Rail's heads SHALL be light steel. The whole rail SHALL stay at most 2 pixels high.
+A rail SHALL look like a wide gauge track: two raised rail heads, each 2 pixels wide, at 3..5 and 11..13 pixels across the travel direction and one pixel above the sleepers, and four separate sleepers per block, each 2 pixels long along the travel direction with gaps between them and 14 pixels wide, so they stick out past the heads. The Warehouse Rail's heads SHALL be light steel. The whole rail SHALL stay at most 2 pixels high.
 
 #### Scenario: Straight run from above
 - **WHEN** a player looks down on three rails in a line

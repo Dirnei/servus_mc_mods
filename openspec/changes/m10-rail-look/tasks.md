@@ -21,7 +21,11 @@
 - [x] 5.1 GameTests `storage/.../gametest/RailLookGameTests.java`: woodSurvivesPlaceAndBreak, dismantleKeepsWood, railRecipeRecordsWood, farmRailRecipeTakesCopper, runKeepsWood (sneak placement); keep rail, elevator, shuttle, field and harvester GameTests green; `gradlew :storage:runGameTestServer`
 - [x] 5.2 Docs `docs/src/content/docs/mods/storage.md` rail entries and `PLAN.md` M10 list the change; `gradlew build`
 
-## 6. Verification
+## 6. Play check fixes
 
-- [x] 6.1 Full `gradlew build`, unit tests and storage GameTests green
-- [ ] 6.2 Play check by the user in game: straight, end, curve, crossing and dock pieces of both rails in several woods, the item look, the elevator deck, car and ground floor rail, shuttles with their wheels on the heads on rails and on the lift car
+- [x] 6.1 `rail/RailLook.java`: heads at 3..5 and 11..13 so they clear the lift car posts; `RailLookTest` (straightGaugeAndSleepers, curveMeetsEdgesAtGauge, crossHeadsDoNotOverlap) on the new gauge; design, spec delta and `PLAN.md`; `gradlew :storage:test`, `gradlew :storage:runData`
+
+## 7. Verification
+
+- [x] 7.1 Full `gradlew build`, unit tests and storage GameTests green
+- [ ] 7.2 Play check by the user in game: straight, end, curve, crossing and dock pieces of both rails in several woods, the item look, the elevator deck, car and ground floor rail, shuttles with their wheels on the heads on rails and on the lift car

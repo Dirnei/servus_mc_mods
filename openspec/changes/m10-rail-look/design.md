@@ -5,7 +5,7 @@ Both rails share `storage/datagen/RailModels`: a 6 by 6 centre plate 1 pixel hig
 ## Goals / Non-Goals
 
 **Goals:**
-- Wide gauge track (heads 2..4 and 12..14, y 1..2; four sleepers 1..15 wide, 2 long, y 0..1) for every piece, both rails, the elevator rail and the item.
+- Wide gauge track (heads 3..5 and 11..13, y 1..2; four sleepers 1..15 wide, 2 long, y 0..1) for every piece, both rails, the elevator rail and the item.
 - Sleepers in the recipe's wood, kept through place, drop and dismantle.
 - Shuttles on the heads.
 - Pure geometry with JUnit tests, one source for datagen and the elevator renderer.
@@ -22,10 +22,10 @@ Both rails share `storage/datagen/RailModels`: a 6 by 6 centre plate 1 pixel hig
 - `Piece` per rail mask, from the sides that carry rail: `SINGLE` (no side: a centre piece z 4..12 with two sleepers), `END` (one side: heads from that edge to z 12, three sleepers), `STRAIGHT` (two opposite sides), `CURVE` (two sides on a corner), `CROSS` (three or four sides). `RailLook.of(north, east, south, west)` returns the piece and its clockwise rotation (0, 90, 180, 270 like a blockstate y rotation). Straight, curve and cross take shape and rotation from `RailCenter`, so the elevator and the outside rail keep agreeing; `END` turns its arm to the connected side (north 0, east 90, south 180, west 270).
 - `Box(part, x0, y0, z0, x1, y1, z1)` with `Part` `SLEEPER`, `HEAD` or `DOCK`, and `rotated(rotation)`, which maps (x, z) to (16 - z, x) per quarter turn.
 - `boxes(piece)` unrotated (straight along north to south, curve joining north and east, end arm towards north). Heads of straight pieces are one box per head; the cross splits the east west heads at the north south heads so no two head boxes overlap (no coplanar tops).
-- The curve is rasterised per pixel around the north east corner (16, 0): a pixel whose centre lies at distance 2..4 or 12..14 from the corner is a head pixel (exactly the straight gauge where the arc meets the north and east edges), a pixel at distance 1..15 whose arc position `t = angle / 90 * 16` has `t mod 4` in 1..3 is a sleeper pixel (radial sleepers spaced like the straight ones). Runs of pixels in one row merge into one box. The pixel sets are symmetric about the diagonal through the corner.
+- The curve is rasterised per pixel around the north east corner (16, 0): a pixel whose centre lies at distance 3..5 or 11..13 from the corner is a head pixel (exactly the straight gauge where the arc meets the north and east edges), a pixel at distance 1..15 whose arc position `t = angle / 90 * 16` has `t mod 4` in 1..3 is a sleeper pixel (radial sleepers spaced like the straight ones). Runs of pixels in one row merge into one box. The pixel sets are symmetric about the diagonal through the corner.
 - `dock()`: the buffer beam x 1..15, z 0..1, y 0..3 (`DOCK`). `dockInline()`: heads z 1..4 and one sleeper z 1..3, drawn when the rail runs straight into the dock, so the heads reach the beam.
 
-JUnit `RailLookTest`: piece choice for all 16 masks, rotation round trip, straight gauge and sleeper spacing, curve heads at the north edge (x 2, 3, 12, 13) and the east edge (z 2, 3, 12, 13), curve symmetry, all boxes inside the block and at most 2 high (3 for the dock beam), no overlapping head boxes in the cross.
+JUnit `RailLookTest`: piece choice for all 16 masks, rotation round trip, straight gauge and sleeper spacing, curve heads at the north edge (x 3, 4, 11, 12) and the east edge (z 3, 4, 11, 12), curve symmetry, all boxes inside the block and at most 2 high (3 for the dock beam), no overlapping head boxes in the cross.
 
 ### Datagen: one model per piece, docks apart
 `RailModels.rail(provider, block, name)` writes `<name>_single`, `_end`, `_straight`, `_curve`, `_cross`, `_dock` and `_dock_inline` from `RailLook` boxes. Each box is one element; sleepers use `#wood` (= `Wood.BOARD`, `servus_foundation:block/wood_board`), heads `#head` (`block/rail_head` or `block/farm_rail_head`), dock beams `#dock` (the existing stripe textures). Faces at y 0 get `cullface: down`. UVs stay the element defaults, so a rotated model turns its grain with it.
@@ -58,6 +58,9 @@ Textures are 16 by 16 PNGs from a Python PIL generator in the job tmp dir.
 
 ### Elevator rail
 `ElevatorRenderer` replaces its rectangles with `RailLook` boxes: `RailLook.of` for the floor's sides, boxes rotated into the world frame, then clipped to the deck, car and stub areas as before. The top face keeps the turned UV mapping so pieces cut at the deck edge line up. Heads use `servus_storage:block/rail_head`, sleepers `minecraft:block/oak_planks`. Sleepers are clipped to the shaft area between the posts, so no sleeper tip stays behind when a flap folds. Rail boxes stand on the deck plate (y 0..2), as outside.
+
+### Heads one pixel inward (play check)
+The first play check showed heads at 2..4 and 12..14 running into the lift car: the car's post sleeves reach to 3 and from 13, so the heads cut into them. The heads move to 3..5 and 11..13 on every piece through `RailLook.HEADS`; the curve band follows (distance 3..5 and 11..13 from the corner, so the arc meets the edges at pixels 3, 4, 11 and 12), the cross splits at the new heads, and datagen and `ElevatorRenderer` pick it up without own numbers. Sleepers stay 1..15, and the elevator still clips them to the shaft area 2..14.
 
 ### Shuttles on the heads
 `ShuttleGarageRenderer.FLOOR` becomes `2 / 16`. The car's height comes from the lift and the car rail stands on the car the same way, so riding shuttles are lifted too. No other renderer places shuttles or cargo on rails.

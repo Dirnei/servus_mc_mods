@@ -52,7 +52,7 @@ class RailLookTest {
     void straightGaugeAndSleepers() {
         List<Box> boxes = RailLook.boxes(Piece.STRAIGHT);
         List<Box> heads = of(boxes, Part.HEAD);
-        assertEquals(List.of(new Box(Part.HEAD, 2, 1, 0, 4, 2, 16), new Box(Part.HEAD, 12, 1, 0, 14, 2, 16)), heads);
+        assertEquals(List.of(new Box(Part.HEAD, 3, 1, 0, 5, 2, 16), new Box(Part.HEAD, 11, 1, 0, 13, 2, 16)), heads);
         List<Box> sleepers = of(boxes, Part.SLEEPER);
         assertEquals(4, sleepers.size());
         for (int i = 0; i < 4; i++) {
@@ -74,8 +74,8 @@ class RailLookTest {
                 east.add(i);
             }
         }
-        assertEquals(List.of(2, 3, 12, 13), north);
-        assertEquals(List.of(2, 3, 12, 13), east);
+        assertEquals(List.of(3, 4, 11, 12), north);
+        assertEquals(List.of(3, 4, 11, 12), east);
         // Nothing reaches the south and west edges.
         for (int i = 0; i < 16; i++) {
             assertFalse(RailLook.curveHead(i, 15) || RailLook.curveSleeper(i, 15), "south edge " + i);
@@ -112,9 +112,9 @@ class RailLookTest {
             }
         }
         // Both directions reach every edge.
-        assertTrue(heads.stream().anyMatch(box -> box.x0() == 0 && box.z0() == 2));
-        assertTrue(heads.stream().anyMatch(box -> box.x1() == 16 && box.z0() == 12));
-        assertTrue(heads.stream().anyMatch(box -> box.z0() == 0 && box.x0() == 2));
+        assertTrue(heads.stream().anyMatch(box -> box.x0() == 0 && box.z0() == 3));
+        assertTrue(heads.stream().anyMatch(box -> box.x1() == 16 && box.z0() == 11));
+        assertTrue(heads.stream().anyMatch(box -> box.z0() == 0 && box.x0() == 3));
     }
 
     @Test

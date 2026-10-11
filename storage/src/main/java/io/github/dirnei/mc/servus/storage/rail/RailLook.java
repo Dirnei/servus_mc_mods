@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * The track look of a rail in pixels, 16 to a block: two raised heads at
- * 2..4 and 12..14 across the travel direction (y 1..2) on four sleepers per
+ * 3..5 and 11..13 across the travel direction (y 1..2) on four sleepers per
  * block, each 2 long and 14 wide (y 0..1). Shared by the block models and the
  * elevator renderer. Unrotated pieces run north to south; the curve joins
  * north and east; the end and the dock face north. Rotation is clockwise seen
@@ -14,7 +14,7 @@ import java.util.List;
 public final class RailLook {
 
     /** Across the travel direction: the two heads and the sleeper width. */
-    public static final int[][] HEADS = {{2, 4}, {12, 14}};
+    public static final int[][] HEADS = {{3, 5}, {11, 13}};
     public static final int SLEEPER_FROM = 1;
     public static final int SLEEPER_TO = 15;
     /** Along the travel direction: where each of the four sleepers starts; each is 2 long. */

@@ -4,7 +4,7 @@ The Warehouse Rail and the Farm Rail are a 6 pixel strip in the middle of the bl
 
 ## What Changes
 
-- New rail geometry for both rails: two raised rail heads, 2 pixels wide, at 2..4 and 12..14 across the travel direction and 1 pixel above the sleepers; four separate sleepers per block, each 2 pixels long with gaps between them, 14 pixels wide (1..15) so they stick out past the heads.
+- New rail geometry for both rails: two raised rail heads, 2 pixels wide, at 3..5 and 11..13 across the travel direction and 1 pixel above the sleepers; four separate sleepers per block, each 2 pixels long with gaps between them, 14 pixels wide (1..15) so they stick out past the heads.
 - Every piece follows the gauge: straight, end of a run, a stepped arc for the curve with radial sleepers, a `#` crossing on a sleeper plate, and dock pieces (buffer beam in the dock stripes, widened to the new gauge).
 - Rails become wood blocks like the stations and the Field Head: the sleepers show the wood of the planks in the recipe, the item carries the wood and shows it, a placed rail keeps it and its drop carries it again. Rails of different wood do not stack (accepted).
 - Warehouse Rail heads are light steel; Farm Rail heads are fresh copper with a light touch of verdigris. Each rail type uses one rail head texture, so a later change (`m10-rail-corrosion`) can swap it per block like the wood.
