@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
+import java.util.OptionalInt;
+import java.util.List;
 import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
 import io.github.dirnei.mc.servus.storage.shuttle.LiftUpgrades;
 import net.minecraft.world.InteractionHand;
@@ -111,6 +113,46 @@ public class ElevatorBlock extends ConnectableBlock {
             dropResources(state, level, pos, level.getBlockEntity(pos));
             level.removeBlock(pos, false);
         }
+    }
+
+    /**
+     * A new segment joins the shaft above it: that shaft's lowest segment was
+     * the one above, so its upgrades move down to the lowest segment of the
+     * joined shaft; what finds no free slot drops.
+     */
+    @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        if (level.isClientSide() || oldState.is(this)) {
+            return;
+        }
+        BlockPos above = pos.above();
+        if (!(level.getBlockEntity(above) instanceof ElevatorBlockEntity upper) || upper.upgradeCount() == 0) {
+            return;
+        }
+        int bottomY = LiftUpgrades.bottom(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
+        // The new segment's block entity is not made yet; asking the level for it makes it now.
+        if (level.getBlockEntity(pos.atY(bottomY)) instanceof ElevatorBlockEntity bottom) {
+            bottom.upgrades().insertAll(upper.upgrades().takeAll()).forEach(stack -> Block.popResource(level, pos, stack));
+        }
+    }
+
+    /**
+     * A removed lowest segment hands its upgrades to the segment above, which
+     * is the new lowest; with none left above they drop.
+     */
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!level.isClientSide() && !state.is(newState.getBlock())
+                && level.getBlockEntity(pos) instanceof ElevatorBlockEntity removed && removed.upgradeCount() > 0) {
+            List<ItemStack> items = removed.upgrades().takeAll();
+            OptionalInt heir = LiftUpgrades.heirOnRemove(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
+            if (heir.isPresent() && level.getBlockEntity(pos.atY(heir.getAsInt())) instanceof ElevatorBlockEntity next) {
+                items = next.upgrades().insertAll(items);
+            }
+            items.forEach(stack -> Block.popResource(level, pos, stack));
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
