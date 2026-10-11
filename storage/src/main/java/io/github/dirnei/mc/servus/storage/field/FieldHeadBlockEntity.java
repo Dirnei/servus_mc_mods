@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
+import io.github.dirnei.mc.servus.storage.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -848,6 +849,54 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     public boolean fertilizeDue(long now, long stock) {
         return status == FieldStatus.SERVING && fertilizing()
                 && FertilizePlan.due(fertilizeTargetCount(), stock, reserve(), now, lastFertilizeCall, StorageStatsManager.INSTANCE.fertilizeInterval());
+    }
+
+    /**
+     * What the fertilizing of the field is doing, or the first thing that
+     * keeps a Spreader away. Server side; null when the head serves no field.
+     */
+    public FertilizeStatus fertilizeStatus() {
+        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+            return null;
+        }
+        if (!fertilizing()) {
+            return FertilizeStatus.OFF;
+        }
+        Optional<WarehouseNetwork> network = network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE);
+        boolean spreader = network.map(warehouse -> warehouse.hasFieldShuttles(JobNeeds.SPREADER)).orElse(false);
+        boolean reachable = network.map(warehouse -> warehouse.fieldReachable(worldPosition, JobNeeds.SPREADER)).orElse(false);
+        boolean working = network.map(warehouse -> warehouse.hasFertilizeJob(worldPosition)).orElse(false);
+        long stock = network.map(warehouse -> warehouse.available(ItemKey.of(fertilizer()))).orElse(0L);
+        return FertilizeStatus.of(true, network.isPresent(), spreader, reachable, working, stock, reserve());
+    }
+
+    /**
+     * The warehouse stock of every fertilizer item with a non zero count,
+     * keyed by item id; empty while the head serves no field on a warehouse
+     * with its one controller. Server side.
+     */
+    public Optional<Map<ResourceLocation, Long>> fertilizerStock() {
+        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+            return Optional.empty();
+        }
+        return network().filter(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).map(warehouse -> {
+            Map<ResourceLocation, Long> counts = new HashMap<>();
+            BuiltInRegistries.ITEM.getTagOrEmpty(FERTILIZER).forEach(holder -> {
+                long count = warehouse.stockCount(ItemKey.of(new ItemStack(holder.value())));
+                if (count > 0) {
+                    counts.put(BuiltInRegistries.ITEM.getKey(holder.value()), count);
+                }
+            });
+            return counts;
+        });
+    }
+
+    /** The name plate of the Spreader dosing this field right now, or empty. Server side. */
+    public Optional<String> spreaderName() {
+        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+            return Optional.empty();
+        }
+        return network().flatMap(warehouse -> warehouse.spreadWorker(worldPosition)).flatMap(ShuttleItem::plate);
     }
 
     /** The warehouse queued a fertilize run for this field at that game time. */

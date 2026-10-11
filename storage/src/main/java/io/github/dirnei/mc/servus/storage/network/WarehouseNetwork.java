@@ -19,7 +19,9 @@ import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob;
+import io.github.dirnei.mc.servus.storage.shuttle.FertilizeJob;
 import io.github.dirnei.mc.servus.storage.shuttle.FieldJob;
+import io.github.dirnei.mc.servus.storage.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.storage.field.FieldDue;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldHeads;
@@ -1341,20 +1343,54 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      * Polls the few loaded heads; touches no blocks.
      */
     private void tickFields() {
-        if (status() != Status.ONLINE || !fleet.hasFieldShuttles()) {
+        if (status() != Status.ONLINE) {
+            return;
+        }
+        boolean harvesters = fleet.hasFieldShuttles(JobNeeds.HARVESTER);
+        boolean spreaders = fleet.hasFieldShuttles(JobNeeds.SPREADER);
+        if (!harvesters && !spreaders) {
             return;
         }
         for (FieldHeadBlockEntity head : FieldHeads.heads(level)) {
             if (head.status() != FieldStatus.SERVING || head.rails().isEmpty()
-                    || !members().contains(Conversions.toNodePos(head.rails().iterator().next()))
-                    || fleet.hasFieldJob(head.getBlockPos()) || !fleet.fieldReachable(head.getBlockPos())) {
+                    || !members().contains(Conversions.toNodePos(head.rails().iterator().next()))) {
                 continue;
             }
-            boolean seeds = head.plantMode() && available(ItemKey.of(head.crop())) > 0;
-            if (FieldDue.due(head.harvestDue(), head.plantMode(), head.hydrated(), head.tillableCount(), head.plantableCount(), seeds)) {
-                fleet.requestField(new FieldJob(head.getBlockPos()));
+            BlockPos pos = head.getBlockPos();
+            if (harvesters && !fleet.hasFieldJob(pos) && fleet.fieldReachable(pos, JobNeeds.HARVESTER)) {
+                boolean seeds = head.plantMode() && available(ItemKey.of(head.crop())) > 0;
+                if (FieldDue.due(head.harvestDue(), head.plantMode(), head.hydrated(), head.tillableCount(), head.plantableCount(), seeds)) {
+                    fleet.requestField(new FieldJob(pos));
+                }
+            }
+            if (spreaders && head.fertilizing() && !fleet.hasFertilizeJob(pos) && fleet.fieldReachable(pos, JobNeeds.SPREADER)) {
+                long now = level.getGameTime();
+                if (head.fertilizeDue(now, available(ItemKey.of(head.fertilizer())))) {
+                    fleet.requestFertilize(new FertilizeJob(pos));
+                    head.fertilizeCalled(now);
+                }
             }
         }
+    }
+
+    /** Whether some garage of this warehouse holds a shuttle for field jobs with these needs. */
+    public boolean hasFieldShuttles(JobNeeds needs) {
+        return fleet.hasFieldShuttles(needs);
+    }
+
+    /** Whether a shuttle with these needs can drive to that head's field, without a lift when it is too wide for one. */
+    public boolean fieldReachable(BlockPos head, JobNeeds needs) {
+        return fleet.fieldReachable(head, needs);
+    }
+
+    /** Whether a fertilize run for that head is queued or under way. */
+    public boolean hasFertilizeJob(BlockPos head) {
+        return fleet.hasFertilizeJob(head);
+    }
+
+    /** The item of the Spreader dosing that head's field right now, or empty. */
+    public Optional<ItemStack> spreadWorker(BlockPos head) {
+        return fleet.spreadWorker(head);
     }
 
     /** Whether some garage of this warehouse holds a shuttle with a Harvester. */

@@ -112,6 +112,10 @@ public final class ServusStorageCommands {
                 "Water " + head.water() + " / " + head.capacity() + " mB, " + (head.hydrated() ? "hydrated" : "dry"),
                 mode + ", harvest " + (head.harvestDue() ? "due" : "not due"),
                 "Work: " + (head.work() == null ? "none" : head.work().name().toLowerCase(java.util.Locale.ROOT)),
+                "Fertilize: " + head.fertilizeMode().name().toLowerCase(java.util.Locale.ROOT)
+                        + (head.fertilizer().isEmpty() ? ", no fertilizer" : " with " + head.fertilizer().getHoverName().getString())
+                        + ", " + head.fertilizeTargetCount() + " plots need a dose, keep " + head.reserve() + ", status "
+                        + (head.fertilizeStatus() == null ? "none" : head.fertilizeStatus().name().toLowerCase(java.util.Locale.ROOT)),
                 "Corrosion: " + (head.corrosion() == FieldCorrosion.LOOSE ? "none" : FieldCorrosion.name(head.corrosion())
                         + ", " + head.agedWater() + " / " + StorageStatsManager.INSTANCE.fieldCorrosionWater() + " mB to the next step, "
                         + head.antiCorrosion().getStackInSlot(0).getCount() + " anti-corrosion"));

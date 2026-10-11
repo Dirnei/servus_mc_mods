@@ -11,12 +11,12 @@
 
 ## 3. Head
 
-- [x] 3.1 `storage/.../field/FieldHeadBlockEntity.java`: fertilizer, mode, threshold, reserve, `unfed` set from `update`, `fertilizeTargets`, `dosed`, `fertilizeDue`, `fertilizeCalled`, `fertilizeStatus`, `fertilizerStock`, `spreaderName`, saving and update tag; `FERTILIZER` tag key. Run `gradlew build`.
+- [x] 3.1 `storage/.../field/FieldHeadBlockEntity.java`: fertilizer, mode, threshold, reserve, `unfed` set from `update`, `fertilizeTargets`, `dosed`, `fertilizeDue`, `fertilizeCalled`, saving and update tag; `FERTILIZER` tag key. Run `gradlew build`.
 
 ## 4. Fleet and warehouse
 
 - [x] 4.1 `storage/.../shuttle/FieldRun.java` (shared base), `HarvestRun.java` (extends it), `SpreadRun.java`, `FertilizeJob.java`, `ShuttleJob.java` (permits), `ShuttleFleet.java` (needs per kind, fertilize runs with fetch, dosing, shared put-away, recall and loss). Run `gradlew build`.
-- [ ] 4.2 `storage/.../network/WarehouseNetwork.java`: `tickFields` checks harvest and fertilize separately, `requestFertilize`, fleet queries per kind; `storage/.../command/ServusStorageCommands.java` prints the fertilize line. Run `gradlew build`.
+- [x] 4.2 `storage/.../network/WarehouseNetwork.java`: `tickFields` checks harvest and fertilize separately, `requestFertilize`, fleet queries per kind; `FieldHeadBlockEntity` `fertilizeStatus`, `fertilizerStock`, `spreaderName` (they need these queries); `storage/.../command/ServusStorageCommands.java` prints the fertilize line. Run `gradlew build`.
 
 ## 5. GUI
 
