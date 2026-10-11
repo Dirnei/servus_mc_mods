@@ -5,7 +5,7 @@
 ## 2. Block, wood and state
 
 - [x] 2.1 `FieldHeadBlock`: `FACING` and `RIPE` properties, placement facing the player, rotate and mirror; `ServusStorageItems.FIELD_HEAD` becomes a `WoodBlockItem`; `ServusStorage` registers the head with `Wood.register`; `gradlew build`
-- [ ] 2.2 `FieldHeadBlockEntity`: `WoodHolder` with `WoodSlot` forwarding (save, load, update tag, components, model data), update packet, `WaterLevel`, `Crop` and `HarvestOnly` in the update tag, `lookDirty` flag applied on the server tick, water level sync only on level change; `gradlew build`
+- [x] 2.2 `FieldHeadBlockEntity`: `WoodHolder` with `WoodSlot` forwarding (save, load, update tag, components, model data), update packet, `WaterLevel`, `Crop` and `HarvestOnly` in the update tag, `lookDirty` flag applied on the server tick, water level sync only on level change; `gradlew build`
 
 ## 3. Textures and datagen
 

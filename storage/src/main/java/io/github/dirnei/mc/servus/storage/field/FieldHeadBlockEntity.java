@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.storage.field;
 
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
@@ -20,6 +23,10 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.FluidTags;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
@@ -32,10 +39,12 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.common.FarmlandWaterManager;
 import net.neoforged.neoforge.common.ticket.AABBTicket;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -49,13 +58,18 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * water lasts, and knows which plots hold a ripe crop. The field, plots,
  * ripeness and tickets are rebuilt after a load or a change, never scanned
  * per tick; events from {@link FieldEvents} keep the ripeness current.
+ * The block shows the wood of its recipe, the ripe share bar ({@link FieldHeadBlock#RIPE}),
+ * the water level in steps and the crop; see {@link FieldHeadLook}.
  */
-public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
+public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, WoodHolder {
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     private final FluidTank tank = new FluidTank(StorageStatsManager.INSTANCE.fieldCapacity(), stack -> stack.is(FluidTags.WATER)) {
         @Override
         protected void onContentsChanged() {
             setChanged();
+            syncWaterLevel();
         }
     };
     private final IFluidHandler fillOnly = new FillOnly();
@@ -63,6 +77,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+            lookDirty = true;
+            syncClients();
         }
 
         @Override
@@ -110,6 +126,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
     private final Set<BlockPos> rechecks = new HashSet<>();
     private final List<AABBTicket> tickets = new ArrayList<>();
     private boolean refreshPending = true;
+    /** The ripe bar may have changed; the next server tick sets {@link FieldHeadBlock#RIPE}. */
+    private boolean lookDirty = true;
+    /** The water level last sent to clients, -1 before the first. */
+    private int sentWaterLevel = -1;
+    /** Client side: the water level from the last update. */
+    private int clientWaterLevel;
     private boolean hydrated;
     private int countdown;
 
@@ -159,10 +181,15 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
             if (tank.getFluidAmount() > capacity) {
                 tank.setFluid(tank.getFluid().copyWithAmount(capacity));
             }
+            syncWaterLevel();
         }
         if (refreshPending) {
             refreshPending = false;
             refreshField();
+        }
+        if (lookDirty) {
+            lookDirty = false;
+            applyRipeStep();
         }
         if (status != FieldStatus.SERVING) {
             return;
@@ -300,6 +327,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         rechecks.clear();
         dropTickets();
         hydrated = false;
+        lookDirty = true;
     }
 
     // Water and hydration
@@ -389,6 +417,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         for (BlockPos plot : plots) {
             ripeness.update(plot, ground.get(plot));
         }
+        lookDirty = true;
     }
 
     /** Reads the plot on the next tick, after the block has changed. */
@@ -413,6 +442,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
             refreshReach();
         } else if (plots.contains(key)) {
             ripeness.update(key, now);
+            lookDirty = true;
         }
     }
 
@@ -481,6 +511,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
     /** Moves the harvest threshold by whole steps of {@link FieldThreshold#STEP} percent. */
     public void stepHarvestPercent(int steps) {
         harvestPercent = FieldThreshold.step(harvestPercent(), steps);
+        lookDirty = true;
         setChanged();
     }
 
@@ -490,7 +521,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         if (on) {
             crop.setStackInSlot(0, ItemStack.EMPTY);
         }
+        lookDirty = true;
         setChanged();
+        syncClients();
     }
 
     // Read side for the GUI, the command and m10-harvester
@@ -614,6 +647,46 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         return fillOnly;
     }
 
+    // Look
+
+    /** Sets the ripe bar step on the block when it changed. Server side, from the tick. */
+    private void applyRipeStep() {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        int step = status == FieldStatus.SERVING
+                ? FieldHeadLook.ripeStep(plantedCount(), ripeCount(), harvestPercent(), harvestDue())
+                : FieldHeadLook.EMPTY;
+        BlockState state = getBlockState();
+        if (state.hasProperty(FieldHeadBlock.RIPE) && state.getValue(FieldHeadBlock.RIPE) != step) {
+            level.setBlock(worldPosition, state.setValue(FieldHeadBlock.RIPE, step), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /** The water level of the windows: synced steps on the client, the tank on the server. */
+    public int waterLevel() {
+        if (level != null && level.isClientSide()) {
+            return clientWaterLevel;
+        }
+        return FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity());
+    }
+
+    /** Sends the block to watching clients when the water level step changed. */
+    private void syncWaterLevel() {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        if (FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity()) != sentWaterLevel) {
+            syncClients();
+        }
+    }
+
+    private void syncClients() {
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
     // Menu
 
     @Override
@@ -631,6 +704,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        woodSlot.save(tag);
         tag.put("Water", tank.writeToNBT(registries, new CompoundTag()));
         tag.put("Crop", crop.serializeNBT(registries));
         tag.putBoolean("HarvestOnly", harvestOnly);
@@ -643,6 +717,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        woodSlot.load(tag);
         tank.readFromNBT(registries, tag.getCompound("Water"));
         if (tag.contains("Crop", CompoundTag.TAG_COMPOUND)) {
             crop.deserializeNBT(registries, tag.getCompound("Crop"));
@@ -652,6 +727,57 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
             rangeUpgrades.deserializeNBT(registries, tag.getCompound("RangeUpgrades"));
         }
         harvestPercent = tag.contains("HarvestPercent") ? FieldThreshold.clamp(tag.getInt("HarvestPercent")) : 0;
+        if (tag.contains("WaterLevel")) {
+            clientWaterLevel = tag.getByte("WaterLevel");
+        }
+    }
+
+    // Wood and client sync: the wood, the crop, the mode and the water level in steps
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
+        tag.put("Crop", crop.serializeNBT(registries));
+        tag.putBoolean("HarvestOnly", harvestOnly);
+        int water = FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity());
+        tag.putByte("WaterLevel", (byte) water);
+        sentWaterLevel = water;
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        WoodSlot.removeFromTag(tag);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 
     /** Fills the tank with water; never drains. */
