@@ -56,6 +56,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         itemModels().basicItem(ServusStorageItems.HANDLING_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.RANGE_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.HARVESTER.get());
+        itemModels().basicItem(ServusStorageItems.SPREADER.get());
         ModelFile workshop = models().cubeBottomTop("shuttle_workshop", modLoc("block/shuttle_workshop_side"),
                 modLoc("block/shuttle_workshop_bottom"), modLoc("block/shuttle_workshop_top"));
         simpleBlock(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), workshop);

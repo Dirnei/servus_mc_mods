@@ -109,6 +109,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageItems.HANDLING_UPGRADE.get(), "Handling Upgrade");
         add(ServusStorageItems.RANGE_UPGRADE.get(), "Range Upgrade");
         add(ServusStorageItems.HARVESTER.get(), "Harvester");
+        add(ServusStorageItems.SPREADER.get(), "Spreader");
         add(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), "Shuttle Workshop");
         add(ServusStorageBlocks.FARM_RAIL.get(), "Farm Rail");
         add(ServusStorageBlocks.FIELD_HEAD.get(), "Field Head");
@@ -138,6 +139,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("message.servus_storage.farm_rail.axe_worn", "The field has %s rails: the axe needs %s durability");
         add("message.servus_storage.farm_rail.too_large", "This field is too large to scrape");
         add("tag.item.servus_storage.anti_corrosion", "Anti-corrosion");
+        add("tag.item.servus_storage.fertilizer", "Fertilizer");
         add("gui.servus_storage.field_head.dry", "Dry: needs water");
         add("gui.servus_storage.field_head.work.not_linked", "Rails not linked to a warehouse");
         add("gui.servus_storage.field_head.work.no_controller", "Warehouse has no controller");
@@ -186,6 +188,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("tooltip.servus_storage.shuttle.handling", "Handling upgrades: %s");
         add("tooltip.servus_storage.module.tool", "Tool module for a shuttle");
         add("tooltip.servus_storage.module.harvester", "Harvests, tills and plants fields; field work only");
+        add("tooltip.servus_storage.module.spreader", "Spreads fertilizer on growing crops; field work only");
         add(ServusStorageItems.ZONE_LABEL.get(), "Zone Label");
         add("gui.servus_storage.production.pattern_recipe", "%s %s from %s");
         add("message.servus_storage.pattern_storage.count", "%s of %s patterns");

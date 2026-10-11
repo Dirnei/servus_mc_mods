@@ -74,6 +74,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
 
     /** Items that hold a field's copper stage for one aging step. */
     public static final TagKey<Item> ANTI_CORROSION = ItemTags.create(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "anti_corrosion"));
+    /** Items a Spreader doses fields with, each one bone meal application. */
+    public static final TagKey<Item> FERTILIZER = ItemTags.create(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "fertilizer"));
 
     private final WoodSlot woodSlot = new WoodSlot(this);
 

@@ -34,6 +34,7 @@ final class ShuttleModels {
         drives(provider);
         handling(provider);
         harvester(provider);
+        spreader(provider);
         provider.itemModels().withExistingParent("shuttle", part(provider, "body_mk1"));
         provider.itemModels().withExistingParent("shuttle_mk2", part(provider, "body_mk2"));
         provider.itemModels().withExistingParent("shuttle_mk3", part(provider, "body_mk3"));
@@ -146,6 +147,25 @@ final class ShuttleModels {
         box(model, -2, 3, 15.5F, 18, 4, 16.5F, reel);
         // The cutter bar along the ground.
         box(model, -2, 0.5F, 15, 18, 1.5F, 18, "minecraft:block/iron_bars");
+    }
+
+    /** A hopper box on two arms at the front, a funnel under it and a spreader bar across the front, wider than the body. */
+    private static void spreader(BlockStateProvider provider) {
+        String hopper = "minecraft:block/hopper_outside";
+        String bone = "minecraft:block/bone_block_side";
+        BlockModelBuilder model = model(provider, "tool_spreader", hopper);
+        box(model, 2, 3, 13, 3, 6, 15, IRON);
+        box(model, 13, 3, 13, 14, 6, 15, IRON);
+        // The hopper box with its rim.
+        box(model, 3, 6, 14, 13, 11, 19, hopper);
+        box(model, 2.5F, 11, 13.5F, 13.5F, 12, 19.5F, IRON);
+        // The funnel down to the spinner.
+        box(model, 5, 3, 15, 11, 6, 18, hopper);
+        box(model, 7, 1.5F, 16, 9, 3, 17, IRON);
+        // The spreader bar across the front.
+        box(model, -2, 0.5F, 15.5F, 18, 1.5F, 17.5F, bone);
+        box(model, -2, 1.5F, 16, -1, 3, 17, IRON);
+        box(model, 17, 1.5F, 16, 18, 3, 17, IRON);
     }
 
     private static ResourceLocation part(BlockStateProvider provider, String name) {

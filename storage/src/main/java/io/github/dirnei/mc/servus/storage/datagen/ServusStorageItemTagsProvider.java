@@ -10,7 +10,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-/** Item tags: the anti-corrosion items a Field Head takes (honeycomb). */
+/** Item tags: the anti-corrosion items a Field Head takes (honeycomb) and the fertilizers a Spreader doses with (bone meal). */
 final class ServusStorageItemTagsProvider extends ItemTagsProvider {
 
     ServusStorageItemTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
@@ -21,5 +21,6 @@ final class ServusStorageItemTagsProvider extends ItemTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider provider) {
         tag(FieldHeadBlockEntity.ANTI_CORROSION).add(Items.HONEYCOMB);
+        tag(FieldHeadBlockEntity.FERTILIZER).add(Items.BONE_MEAL);
     }
 }
