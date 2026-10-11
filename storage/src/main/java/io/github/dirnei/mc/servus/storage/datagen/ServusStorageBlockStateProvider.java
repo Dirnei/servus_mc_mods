@@ -54,18 +54,13 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         craftingStation(ServusStorageBlocks.CRAFTING_STATION.get(), "crafting_station");
         cpu(ServusStorageBlocks.CRAFTING_CPU.get(), "crafting_cpu");
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
-        itemModels().basicItem(ServusStorageItems.SHUTTLE_MK2.get());
-        itemModels().basicItem(ServusStorageItems.SHUTTLE_MK3.get());
         itemModels().basicItem(ServusStorageItems.HANDLING_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.HARVESTER.get());
         ModelFile workshop = models().cubeBottomTop("shuttle_workshop", modLoc("block/shuttle_workshop_side"),
                 modLoc("block/shuttle_workshop_bottom"), modLoc("block/shuttle_workshop_top"));
         simpleBlock(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), workshop);
         simpleBlockItem(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), workshop);
-        itemModels().getBuilder("shuttle").parent(new ModelFile.UncheckedModelFile("block/block"))
-                .texture("particle", modLoc("item/shuttle")).texture("skin", modLoc("item/shuttle"))
-                .element().from(2, 0, 2).to(14, 3, 14)
-                .allFaces((direction, face) -> face.texture("#skin")).end();
+        ShuttleModels.shuttle(this);
     }
 
     /**

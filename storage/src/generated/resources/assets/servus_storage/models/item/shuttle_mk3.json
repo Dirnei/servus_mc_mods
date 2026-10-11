@@ -1,6 +1,3 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "servus_storage:item/shuttle_mk3"
-  }
+  "parent": "servus_storage:shuttle/body_mk3"
 }

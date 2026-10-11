@@ -1,0 +1,417 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        },
+        "north": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        }
+      },
+      "from": [
+        1,
+        0,
+        3
+      ],
+      "to": [
+        2,
+        3,
+        6
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        },
+        "north": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        }
+      },
+      "from": [
+        14,
+        0,
+        3
+      ],
+      "to": [
+        15,
+        3,
+        6
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        },
+        "north": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        }
+      },
+      "from": [
+        1,
+        0,
+        6.5
+      ],
+      "to": [
+        2,
+        3,
+        9.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        },
+        "north": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        }
+      },
+      "from": [
+        14,
+        0,
+        6.5
+      ],
+      "to": [
+        15,
+        3,
+        9.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        },
+        "north": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        }
+      },
+      "from": [
+        1,
+        0,
+        10
+      ],
+      "to": [
+        2,
+        3,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        },
+        "north": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#coal_block",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ]
+        }
+      },
+      "from": [
+        14,
+        0,
+        10
+      ],
+      "to": [
+        15,
+        3,
+        13
+      ]
+    }
+  ],
+  "textures": {
+    "coal_block": "minecraft:block/coal_block",
+    "particle": "minecraft:block/coal_block"
+  }
+}

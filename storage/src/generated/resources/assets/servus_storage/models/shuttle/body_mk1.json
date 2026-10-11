@@ -1,0 +1,350 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "east": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "north": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            12.0
+          ]
+        },
+        "west": {
+          "texture": "#smooth_stone",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            2.0
+          ]
+        }
+      },
+      "from": [
+        2,
+        2,
+        2
+      ],
+      "to": [
+        14,
+        4,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            5.0
+          ]
+        },
+        "north": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            5.0
+          ]
+        },
+        "up": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            5.0
+          ]
+        }
+      },
+      "from": [
+        2,
+        4,
+        2
+      ],
+      "to": [
+        14,
+        9,
+        3
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            5.0
+          ]
+        },
+        "north": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            5.0
+          ]
+        },
+        "up": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            12.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            5.0
+          ]
+        }
+      },
+      "from": [
+        2,
+        4,
+        13
+      ],
+      "to": [
+        14,
+        9,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            10.0
+          ]
+        },
+        "east": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            10.0,
+            5.0
+          ]
+        },
+        "north": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            5.0
+          ]
+        },
+        "up": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            10.0
+          ]
+        },
+        "west": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            10.0,
+            5.0
+          ]
+        }
+      },
+      "from": [
+        2,
+        4,
+        3
+      ],
+      "to": [
+        3,
+        9,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            10.0
+          ]
+        },
+        "east": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            10.0,
+            5.0
+          ]
+        },
+        "north": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            5.0
+          ]
+        },
+        "up": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            10.0
+          ]
+        },
+        "west": {
+          "texture": "#oak_planks",
+          "uv": [
+            0.0,
+            0.0,
+            10.0,
+            5.0
+          ]
+        }
+      },
+      "from": [
+        13,
+        4,
+        3
+      ],
+      "to": [
+        14,
+        9,
+        13
+      ]
+    }
+  ],
+  "textures": {
+    "oak_planks": "minecraft:block/oak_planks",
+    "particle": "minecraft:block/oak_planks",
+    "smooth_stone": "minecraft:block/smooth_stone"
+  }
+}

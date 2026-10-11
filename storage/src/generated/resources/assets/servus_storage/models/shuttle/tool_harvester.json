@@ -1,0 +1,419 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        },
+        "north": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        }
+      },
+      "from": [
+        2,
+        3,
+        13
+      ],
+      "to": [
+        3,
+        6,
+        17
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            4.0
+          ]
+        },
+        "east": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        },
+        "north": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            3.0
+          ]
+        },
+        "up": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            4.0
+          ]
+        },
+        "west": {
+          "texture": "#iron_block",
+          "uv": [
+            0.0,
+            0.0,
+            4.0,
+            3.0
+          ]
+        }
+      },
+      "from": [
+        13,
+        3,
+        13
+      ],
+      "to": [
+        14,
+        6,
+        17
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "east": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            2.0
+          ]
+        },
+        "north": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "south": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "up": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            2.0
+          ]
+        },
+        "west": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            2.0
+          ]
+        }
+      },
+      "from": [
+        -2,
+        4,
+        15
+      ],
+      "to": [
+        18,
+        6,
+        17
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "north": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      "from": [
+        -2,
+        6,
+        15.5
+      ],
+      "to": [
+        18,
+        7,
+        16.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "north": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "west": {
+          "texture": "#hay_block_side",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      "from": [
+        -2,
+        3,
+        15.5
+      ],
+      "to": [
+        18,
+        4,
+        16.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron_bars",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            3.0
+          ]
+        },
+        "east": {
+          "texture": "#iron_bars",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "north": {
+          "texture": "#iron_bars",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "south": {
+          "texture": "#iron_bars",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            1.0
+          ]
+        },
+        "up": {
+          "texture": "#iron_bars",
+          "uv": [
+            0.0,
+            0.0,
+            16.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "#iron_bars",
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        }
+      },
+      "from": [
+        -2,
+        0.5,
+        15
+      ],
+      "to": [
+        18,
+        1.5,
+        18
+      ]
+    }
+  ],
+  "textures": {
+    "hay_block_side": "minecraft:block/hay_block_side",
+    "iron_bars": "minecraft:block/iron_bars",
+    "iron_block": "minecraft:block/iron_block",
+    "particle": "minecraft:block/hay_block_side"
+  }
+}

@@ -6,7 +6,7 @@
 
 ## 2. Part models
 
-- [ ] 2.1 Add datagen helper `storage/.../datagen/ShuttleModels.java` with the body, drive, handling and tool part models under `models/shuttle/` (vanilla placeholder textures) and make the `shuttle`, `shuttle_mk2` and `shuttle_mk3` item models children of their body; call it from `ServusStorageBlockStateProvider` in place of the old shuttle item models; delete `textures/item/shuttle*.png`. Verify: `gradlew :storage:runData` writes the models, `gradlew build` green.
+- [x] 2.1 Add datagen helper `storage/.../datagen/ShuttleModels.java` with the body, drive, handling and tool part models under `models/shuttle/` (vanilla placeholder textures) and make the `shuttle`, `shuttle_mk2` and `shuttle_mk3` item models children of their body; call it from `ServusStorageBlockStateProvider` in place of the old shuttle item models; delete `textures/item/shuttle*.png`. Verify: `gradlew :storage:runData` writes the models, `gradlew build` green.
 
 ## 3. Composed rendering
 
