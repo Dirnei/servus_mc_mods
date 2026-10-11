@@ -1334,6 +1334,16 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
+    /** Whether some garage of this warehouse holds a shuttle with a Harvester. */
+    public boolean hasFieldShuttles() {
+        return fleet.hasFieldShuttles();
+    }
+
+    /** Whether a field run for that head is queued or under way. */
+    public boolean hasFieldJob(BlockPos head) {
+        return fleet.hasFieldJob(head);
+    }
+
     /** Inserts into exactly that source; returns what did not fit. */
     @Override
     public ItemStack insertAt(BlockPos pos, ItemStack stack) {

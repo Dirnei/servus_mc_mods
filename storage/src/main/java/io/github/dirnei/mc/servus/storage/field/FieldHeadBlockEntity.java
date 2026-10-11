@@ -1,6 +1,9 @@
 package io.github.dirnei.mc.servus.storage.field;
 
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,6 +11,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -472,6 +476,25 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
     public boolean harvestDue() {
         return status == FieldStatus.SERVING && (harvestOnly || !crop.getStackInSlot(0).isEmpty())
                 && ripeness.due(StorageStatsManager.INSTANCE.fieldHarvestShare());
+    }
+
+    /**
+     * What the field is doing, or the first thing that keeps a harvester away,
+     * read from the warehouse its rails belong to. Server side; null when the
+     * head serves no field.
+     */
+    public FieldWork work() {
+        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+            return null;
+        }
+        Optional<WarehouseNetwork> network = level.getBlockEntity(rails.iterator().next()) instanceof StorageNodeBlockEntity node
+                ? node.network() : Optional.empty();
+        boolean online = network.map(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).orElse(false);
+        boolean harvester = network.map(WarehouseNetwork::hasFieldShuttles).orElse(false);
+        boolean working = network.map(warehouse -> warehouse.hasFieldJob(worldPosition)).orElse(false);
+        boolean seeds = plantMode() && network.map(warehouse -> warehouse.available(ItemKey.of(crop())) > 0).orElse(false);
+        return FieldWork.of(network.isPresent(), online, harvestOnly || plantMode(), harvester, working, harvestDue(),
+                plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds);
     }
 
     public int water() {

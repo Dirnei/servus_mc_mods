@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
+import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.menu.FieldHeadMenu;
 import java.util.Locale;
 import net.minecraft.client.gui.GuiGraphics;
@@ -95,16 +96,15 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.crops", menu.planted(), menu.ripe()), 8, y + 10, COLOUR_TEXT, false);
         graphics.drawString(font, Component.translatable(menu.hydrated() ? "gui.servus_storage.field_head.hydrated" : "gui.servus_storage.field_head.dry"),
                 8, y + 20, menu.hydrated() ? COLOUR_TEXT : COLOUR_WARN, false);
-        Component last;
-        int colour = COLOUR_TEXT;
-        if (!menu.harvestOnly() && menu.crop().isEmpty()) {
-            last = Component.translatable("gui.servus_storage.field_head.no_crop");
-        } else if (menu.harvestDue()) {
-            last = Component.translatable("gui.servus_storage.field_head.due");
-            colour = COLOUR_DUE;
-        } else {
-            last = Component.translatable("gui.servus_storage.field_head.growing");
+        FieldWork work = menu.work();
+        if (work != null) {
+            int colour = switch (work) {
+                case WORKING, HARVEST_DUE, READY -> COLOUR_DUE;
+                case GROWING, WAITING_RIPE -> COLOUR_TEXT;
+                default -> COLOUR_WARN;
+            };
+            graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.work." + work.name().toLowerCase(Locale.ROOT)),
+                    8, y + 30, colour, false);
         }
-        graphics.drawString(font, last, 8, y + 30, colour, false);
     }
 }

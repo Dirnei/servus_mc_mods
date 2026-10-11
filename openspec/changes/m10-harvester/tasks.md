@@ -26,6 +26,10 @@
 
 - [x] 6.1 `PLAN.md` M10 item 3 notes what was built; `docs/src/content/docs/mods/storage.md` gets the Harvester. Verify: `openspec validate m10-harvester`.
 
+## 6b. Play check follow-ups
+
+- [x] 6b.1 The Field Head shows why a field is idle: pure `FieldWork` reason (`storage/.../field/FieldWork.java`, `FieldWorkTest`), `FieldHeadBlockEntity.work()` from the rails' warehouse, synced by `FieldHeadMenu`, a status line in `FieldHeadScreen`, a Work line in `/servus_warehouse field`. Verify: `gradlew build test`.
+
 ## 7. Integration
 
 - [x] 7.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch happens in the user's play check (7.2).

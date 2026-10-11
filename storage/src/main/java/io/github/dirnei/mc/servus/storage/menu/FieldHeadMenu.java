@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.storage.menu;
 
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
+import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import net.minecraft.core.BlockPos;
@@ -45,6 +46,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     private final DataSlot ripe = DataSlot.standalone();
     private final DataSlot status = DataSlot.standalone();
     private final DataSlot flags = DataSlot.standalone();
+    /** The head's work reason plus one; zero while it serves no field. */
+    private final DataSlot work = DataSlot.standalone();
 
     public FieldHeadMenu(int containerId, Inventory playerInventory, FieldHeadBlockEntity head) {
         super(ServusStorageMenus.FIELD_HEAD.get(), containerId);
@@ -60,7 +63,7 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         for (int column = 0; column < COLUMNS; column++) {
             addSlot(new Slot(playerInventory, column, 8 + column * 18, HOTBAR_Y));
         }
-        for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags}) {
+        for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags, work}) {
             addDataSlot(slot);
         }
         update();
@@ -88,6 +91,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         planted.set(clamp(head.plantedCount()));
         ripe.set(clamp(head.ripeCount()));
         status.set(head.status().ordinal());
+        FieldWork reason = head.work();
+        work.set(reason == null ? 0 : reason.ordinal() + 1);
         flags.set((head.hydrated() ? FLAG_HYDRATED : 0) | (head.harvestOnly() ? FLAG_HARVEST_ONLY : 0) | (head.harvestDue() ? FLAG_DUE : 0));
     }
 
@@ -136,6 +141,11 @@ public class FieldHeadMenu extends AbstractContainerMenu {
 
     public FieldStatus status() {
         return FieldStatus.byId(status.get());
+    }
+
+    /** What the field is doing or waits for; null while the head serves no field. */
+    public FieldWork work() {
+        return work.get() == 0 ? null : FieldWork.byId(work.get() - 1);
     }
 
     public boolean hydrated() {

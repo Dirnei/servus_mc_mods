@@ -104,7 +104,8 @@ public final class ServusStorageCommands {
                 "Rails " + head.rails().size() + ", plots " + head.plots().size() + ", planted " + head.plantedCount() + ", ripe " + head.ripeCount()
                         + ", to till " + head.tillableCount() + ", to plant " + head.plantableCount(),
                 "Water " + head.water() + " / " + head.capacity() + " mB, " + (head.hydrated() ? "hydrated" : "dry"),
-                mode + ", harvest " + (head.harvestDue() ? "due" : "not due"));
+                mode + ", harvest " + (head.harvestDue() ? "due" : "not due"),
+                "Work: " + (head.work() == null ? "none" : head.work().name().toLowerCase(java.util.Locale.ROOT)));
         for (String line : lines) {
             source.sendSuccess(() -> Component.literal(line), false);
         }
