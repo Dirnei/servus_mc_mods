@@ -26,5 +26,5 @@
 
 ## 6. Integration
 
-- [ ] 6.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch with all three mods happens in the user's play check (6.2).
+- [x] 6.1 Full gradle build and tests green: `gradlew build`, `gradlew test`, `gradlew :storage:runGameTestServer`. The game launch with all three mods happens in the user's play check (6.2).
 - [ ] 6.2 Play check in game by the user from main: craft a Mk1 shuttle and a Handling Upgrade, install Speed and Handling in the workshop up to the max, swap the Harvester in and out, build a Mk2 with Build now, watch shuttles stop at racks and stations, compare a fast and a slow shuttle. Verify: the user confirms in game.
