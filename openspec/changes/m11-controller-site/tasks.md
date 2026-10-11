@@ -21,7 +21,7 @@
 
 ## 5. GameTests
 
-- [ ] 5.1 `storage/.../gametest/ControllerSiteGameTests.java`: `spanFollowsRailIntoNextChunk` (crate over a chunk border by rail: 2 chunks; rail broken: 1), `foreignChestCountsItsChunk` (chest across the border touching a crate: 2; chest broken: 1), `overCapacityLampAndBackWithUpgrade` (one upgrade, chunks per upgrade set low through the test setter: red lamp, second upgrade: green), `upgradeSlotsTakeOnlyChunkLoaderUpgrades`, `nameSavedAndCarriedByCarrot` (name and rules survive a carrot dismantle and placement, upgrades drop, span restarts at the new chunk), `menuRenamesAndCleans`. Run `gradlew :storage:runGameTestServer`; all existing storage GameTests stay green.
+- [x] 5.1 `storage/.../gametest/ControllerSiteGameTests.java`: `spanFollowsRailIntoNextChunk` (crate over a chunk border by rail: 2 chunks; rail broken: 1), `foreignChestCountsItsChunk` (chest across the border touching a crate: 2; chest broken: 1), `overCapacityLampAndBackWithUpgrade` (one upgrade, chunks per upgrade set low through the test setter: red lamp, second upgrade: green), `upgradeSlotsTakeOnlyChunkLoaderUpgrades`, `nameSavedAndCarriedByCarrot` (name and rules survive a carrot dismantle and placement, upgrades drop, span restarts at the new chunk), `menuRenamesAndCleans`. Run `gradlew :storage:runGameTestServer`; all existing storage GameTests stay green.
 
 ## 6. Docs and plan
 
