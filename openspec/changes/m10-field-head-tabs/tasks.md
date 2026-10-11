@@ -15,7 +15,7 @@
 
 ## 4. Docs and plan
 
-- [ ] 4.1 `docs/src/content/docs/mods/storage.md` (Field Head GUI) and `PLAN.md` M10 list (`m10-field-head-tabs`). Run `openspec validate m10-field-head-tabs`.
+- [x] 4.1 `docs/src/content/docs/mods/storage.md` (Field Head GUI) and `PLAN.md` M10 list (`m10-field-head-tabs`). Run `openspec validate m10-field-head-tabs`.
 
 ## 5. Verification
 
