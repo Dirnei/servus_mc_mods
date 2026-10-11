@@ -21,15 +21,15 @@ A tab SHALL carry a red marker while its page holds a problem, so it is seen fro
 - **WHEN** a player opens a Field Head
 - **THEN** the Field tab is selected and shows the crop picker, while the Range Upgrade and anti-corrosion slots are hidden
 
-#### Scenario: Pick wheat without seeds
+#### Scenario: Set wheat
 - **WHEN** a player with no wheat seeds in the inventory chooses Wheat Seeds in the crop picker
 - **THEN** the field's crop is wheat and harvest only is off
 
-#### Scenario: Pick harvest only
+#### Scenario: Harvest only clears the crop
 - **WHEN** wheat is set and the player chooses "None, harvest only"
 - **THEN** the field has no crop and is in harvest only mode
 
-#### Scenario: Refuse a non crop
+#### Scenario: Refuse a non seed
 - **WHEN** a client sends the id of cobblestone as the chosen crop
 - **THEN** the crop and the mode do not change
 
