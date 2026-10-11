@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "servus_storage:block/field_head_bottom",
+    "side": "servus_storage:block/field_head_side",
+    "top": "servus_storage:block/field_head_top"
+  }
+}

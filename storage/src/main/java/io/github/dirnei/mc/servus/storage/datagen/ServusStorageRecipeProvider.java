@@ -216,6 +216,26 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE.get()))
                 .save(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.FARM_RAIL.get(), 8)
+                .pattern("RRR")
+                .pattern("RCR")
+                .pattern("RRR")
+                .define('R', ServusStorageItems.RAIL.get())
+                .define('C', Items.COMPOSTER)
+                .unlockedBy("has_rail", has(ServusStorageItems.RAIL.get()))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ServusStorageItems.FIELD_HEAD.get())
+                .pattern("IBI")
+                .pattern("ICI")
+                .pattern("IRI")
+                .define('I', Items.IRON_INGOT)
+                .define('B', Items.BUCKET)
+                .define('C', Items.COMPOSTER)
+                .define('R', ServusStorageItems.FARM_RAIL.get())
+                .unlockedBy("has_farm_rail", has(ServusStorageItems.FARM_RAIL.get()))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusStorageItems.CARGO_HOLD.get())
                 .pattern("I I")
                 .pattern("ICI")

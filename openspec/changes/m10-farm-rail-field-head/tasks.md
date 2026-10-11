@@ -17,7 +17,7 @@
 
 ## 4. Data
 
-- [ ] 4.1 Datagen: Farm Rail multipart and item model through `RailModels`, Field Head blockstate and models, loot for both, pickaxe tag, recipes, lang (blocks, GUI lines, statuses, button) in `storage/.../datagen/`; placeholder textures `farm_rail.png`, `farm_rail_curve.png`, `farm_rail_cross.png`, `farm_rail_dock.png`, `field_head_top.png`, `field_head_side.png`, `field_head_bottom.png` via the png helper. Verify: `gradlew runData`, then `gradlew build`.
+- [x] 4.1 Datagen: Farm Rail multipart and item model through `RailModels`, Field Head blockstate and models, loot for both, pickaxe tag, recipes, lang (blocks, GUI lines, statuses, button) in `storage/.../datagen/`; placeholder textures `farm_rail.png`, `farm_rail_curve.png`, `farm_rail_cross.png`, `farm_rail_dock.png`, `field_head_top.png`, `field_head_side.png`, `field_head_bottom.png` via the png helper. Verify: `gradlew runData`, then `gradlew build`.
 
 ## 5. GameTests
 

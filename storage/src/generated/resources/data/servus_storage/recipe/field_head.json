@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:bucket"
+    },
+    "C": {
+      "item": "minecraft:composter"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "servus_storage:farm_rail"
+    }
+  },
+  "pattern": [
+    "IBI",
+    "ICI",
+    "IRI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "servus_storage:field_head"
+  }
+}

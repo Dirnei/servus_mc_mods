@@ -40,6 +40,11 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         woodOriented(ServusStorageBlocks.PRODUCTION_TERMINAL.get(), "production_terminal");
         patternStorage(ServusStorageBlocks.PATTERN_STORAGE.get(), "pattern_storage");
         RailModels.rail(this, ServusStorageBlocks.RAIL.get(), "rail");
+        RailModels.rail(this, ServusStorageBlocks.FARM_RAIL.get(), "farm_rail");
+        ModelFile fieldHead = models().cubeBottomTop("field_head", modLoc("block/field_head_side"),
+                modLoc("block/field_head_bottom"), modLoc("block/field_head_top"));
+        simpleBlock(ServusStorageBlocks.FIELD_HEAD.get(), fieldHead);
+        simpleBlockItem(ServusStorageBlocks.FIELD_HEAD.get(), fieldHead);
         ElevatorModels.elevator(this, ServusStorageBlocks.ELEVATOR.get(), "elevator");
         HeavyRackModels.rack(this, ServusStorageBlocks.HEAVY_RACK.get(), "heavy_rack");
         station(ServusStorageBlocks.INBOUND_STATION.get(), "inbound_station");

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "servus_storage:block/field_head"
+    }
+  }
+}

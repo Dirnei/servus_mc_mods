@@ -16,7 +16,7 @@ final class ServusStorageBlockLoot extends BlockLootSubProvider {
 
     private static final List<Block> SELF_DROPPING = List.of(ServusStorageBlocks.CRATE.get(), ServusStorageBlocks.DOUBLE_CRATE.get(),
             ServusStorageBlocks.QUAD_CRATE.get(), ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.ELEVATOR.get(),
-            ServusStorageBlocks.SHUTTLE_WORKSHOP.get());
+            ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), ServusStorageBlocks.FARM_RAIL.get(), ServusStorageBlocks.FIELD_HEAD.get());
 
     /** Blocks that keep the wood of their recipe. */
     private static final List<Block> WOODEN = List.of(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(),

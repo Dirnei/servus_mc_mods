@@ -10,6 +10,8 @@
     "servus_storage:outbound_station",
     "servus_storage:crafting_cpu",
     "servus_storage:production_terminal",
-    "servus_storage:pattern_storage"
+    "servus_storage:pattern_storage",
+    "servus_storage:farm_rail",
+    "servus_storage:field_head"
   ]
 }

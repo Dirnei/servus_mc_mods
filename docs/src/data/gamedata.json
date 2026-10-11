@@ -337,6 +337,12 @@
       "inputs": [],
       "outputs": []
     },
+    "servus_foundation:hollow_facade": {
+      "type": "servus_foundation:hollow_facade",
+      "special": true,
+      "inputs": [],
+      "outputs": []
+    },
     "servus_foundation:item_pipe": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["III", "GCG", "III"],
@@ -679,6 +685,21 @@
         {"item": "servus_manufacturing:sulfur_hood", "count": 1}
       ]
     },
+    "servus_storage:cargo_hold": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["I I", "ICI", "III"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "I": {"item": "minecraft:iron_ingot"}
+      },
+      "inputs": [
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 7}
+      ],
+      "outputs": [
+        {"item": "servus_storage:cargo_hold", "count": 1}
+      ]
+    },
     "servus_storage:crafting_cpu": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["IRI", "RCR", "PPP"],
@@ -755,6 +776,40 @@
       ],
       "outputs": [
         {"item": "servus_storage:elevator", "count": 4}
+      ]
+    },
+    "servus_storage:farm_rail": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["RRR", "RCR", "RRR"],
+      "key": {
+        "C": {"item": "minecraft:composter"},
+        "R": {"item": "servus_storage:rail"}
+      },
+      "inputs": [
+        {"item": "minecraft:composter", "count": 1},
+        {"item": "servus_storage:rail", "count": 8}
+      ],
+      "outputs": [
+        {"item": "servus_storage:farm_rail", "count": 8}
+      ]
+    },
+    "servus_storage:field_head": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["IBI", "ICI", "IRI"],
+      "key": {
+        "B": {"item": "minecraft:bucket"},
+        "C": {"item": "minecraft:composter"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "R": {"item": "servus_storage:farm_rail"}
+      },
+      "inputs": [
+        {"item": "minecraft:bucket", "count": 1},
+        {"item": "minecraft:composter", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 6},
+        {"item": "servus_storage:farm_rail", "count": 1}
+      ],
+      "outputs": [
+        {"item": "servus_storage:field_head", "count": 1}
       ]
     },
     "servus_storage:heavy_rack": {
@@ -934,6 +989,23 @@
         {"item": "servus_storage:shuttle_garage", "count": 1}
       ]
     },
+    "servus_storage:shuttle_workshop": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": ["III", "PCP", "PPP"],
+      "key": {
+        "C": {"item": "minecraft:crafting_table"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 5},
+        {"item": "minecraft:crafting_table", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 3}
+      ],
+      "outputs": [
+        {"item": "servus_storage:shuttle_workshop", "count": 1}
+      ]
+    },
     "servus_storage:storage_terminal": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["GGG", "ICI", "PPP"],
@@ -1028,6 +1100,9 @@
     },
     "minecraft:comparator": {
       "name": "Redstone Comparator"
+    },
+    "minecraft:composter": {
+      "name": "Composter"
     },
     "minecraft:copper_ingot": {
       "name": "Copper Ingot"
@@ -1173,6 +1248,9 @@
     "servus_manufacturing:sulfur_hood": {
       "name": "Sulfur Hood"
     },
+    "servus_storage:cargo_hold": {
+      "name": "Cargo Hold"
+    },
     "servus_storage:crafting_cpu": {
       "name": "Crafting CPU"
     },
@@ -1187,6 +1265,12 @@
     },
     "servus_storage:elevator": {
       "name": "Rail Elevator"
+    },
+    "servus_storage:farm_rail": {
+      "name": "Farm Rail"
+    },
+    "servus_storage:field_head": {
+      "name": "Field Head"
     },
     "servus_storage:heavy_rack": {
       "name": "Heavy Duty Rack"
@@ -1217,6 +1301,9 @@
     },
     "servus_storage:shuttle_garage": {
       "name": "Shuttle Garage"
+    },
+    "servus_storage:shuttle_workshop": {
+      "name": "Shuttle Workshop"
     },
     "servus_storage:storage_terminal": {
       "name": "Storage Terminal"

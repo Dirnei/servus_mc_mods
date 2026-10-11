@@ -26,7 +26,8 @@ final class ServusStorageBlockTagsProvider extends BlockTagsProvider {
                 .add(ServusStorageBlocks.ELEVATOR.get()).add(ServusStorageBlocks.HEAVY_RACK.get())
                 .add(ServusStorageBlocks.INBOUND_STATION.get()).add(ServusStorageBlocks.PACKING_STATION.get()).add(ServusStorageBlocks.SHUTTLE_GARAGE.get())
                 .add(ServusStorageBlocks.OUTBOUND_STATION.get()).add(ServusStorageBlocks.CRAFTING_CPU.get())
-                .add(ServusStorageBlocks.PRODUCTION_TERMINAL.get()).add(ServusStorageBlocks.PATTERN_STORAGE.get());
+                .add(ServusStorageBlocks.PRODUCTION_TERMINAL.get()).add(ServusStorageBlocks.PATTERN_STORAGE.get())
+                .add(ServusStorageBlocks.FARM_RAIL.get()).add(ServusStorageBlocks.FIELD_HEAD.get());
         tag(BlockTags.CLIMBABLE).add(ServusStorageBlocks.ELEVATOR.get());
     }
 }

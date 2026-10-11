@@ -1,0 +1,676 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center"
+      },
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center"
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center",
+        "y": 90
+      },
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center_curve"
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center"
+      },
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center"
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center_curve",
+        "y": 90
+      },
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center_cross"
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "OR": [
+              {
+                "west": "false"
+              },
+              {
+                "dock_west": "true"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center",
+        "y": 90
+      },
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center_curve",
+        "y": 270
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center",
+        "y": 90
+      },
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center_cross"
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "OR": [
+              {
+                "south": "false"
+              },
+              {
+                "dock_south": "true"
+              }
+            ]
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center_curve",
+        "y": 180
+      },
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center_cross"
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "OR": [
+              {
+                "east": "false"
+              },
+              {
+                "dock_east": "true"
+              }
+            ]
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center_cross"
+      },
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "north": "false"
+              },
+              {
+                "dock_north": "true"
+              }
+            ]
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_center_cross"
+      },
+      "when": {
+        "AND": [
+          {
+            "dock_north": "false",
+            "north": "true"
+          },
+          {
+            "dock_east": "false",
+            "east": "true"
+          },
+          {
+            "dock_south": "false",
+            "south": "true"
+          },
+          {
+            "dock_west": "false",
+            "west": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_arm"
+      },
+      "when": {
+        "dock_north": "false",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_arm",
+        "y": 90
+      },
+      "when": {
+        "dock_east": "false",
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_arm",
+        "y": 180
+      },
+      "when": {
+        "dock_south": "false",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_arm",
+        "y": 270
+      },
+      "when": {
+        "dock_west": "false",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_dock"
+      },
+      "when": {
+        "dock_north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_dock",
+        "y": 90
+      },
+      "when": {
+        "dock_east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_dock",
+        "y": 180
+      },
+      "when": {
+        "dock_south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_storage:block/farm_rail_dock",
+        "y": 270
+      },
+      "when": {
+        "dock_west": "true"
+      }
+    }
+  ]
+}
