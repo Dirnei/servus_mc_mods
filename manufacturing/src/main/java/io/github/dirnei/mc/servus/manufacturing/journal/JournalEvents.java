@@ -4,7 +4,7 @@ import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
@@ -16,8 +16,8 @@ public final class JournalEvents {
     }
 
     @SubscribeEvent
-    public static void onAddReloadListeners(AddReloadListenerEvent event) {
-        event.addListener(JournalChapters.INSTANCE);
+    public static void onAddReloadListeners(AddServerReloadListenersEvent event) {
+        event.addListener(JournalChapters.LISTENER_ID, JournalChapters.INSTANCE);
     }
 
     @SubscribeEvent

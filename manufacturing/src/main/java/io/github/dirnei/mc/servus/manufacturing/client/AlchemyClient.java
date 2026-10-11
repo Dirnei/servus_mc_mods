@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.manufacturing.client;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -16,8 +16,8 @@ import net.neoforged.neoforge.client.model.DynamicFluidContainerModel;
 @EventBusSubscriber(modid = ServusManufacturingIds.MOD_ID, value = Dist.CLIENT)
 public final class AlchemyClient {
 
-    private static final ResourceLocation STILL = ResourceLocation.withDefaultNamespace("block/water_still");
-    private static final ResourceLocation FLOWING = ResourceLocation.withDefaultNamespace("block/water_flow");
+    private static final Identifier STILL = Identifier.withDefaultNamespace("block/water_still");
+    private static final Identifier FLOWING = Identifier.withDefaultNamespace("block/water_flow");
 
     private AlchemyClient() {
     }
@@ -27,12 +27,12 @@ public final class AlchemyClient {
         for (Principle principle : Principle.values()) {
             event.registerFluidType(new IClientFluidTypeExtensions() {
                 @Override
-                public ResourceLocation getStillTexture() {
+                public Identifier getStillTexture() {
                     return STILL;
                 }
 
                 @Override
-                public ResourceLocation getFlowingTexture() {
+                public Identifier getFlowingTexture() {
                     return FLOWING;
                 }
 

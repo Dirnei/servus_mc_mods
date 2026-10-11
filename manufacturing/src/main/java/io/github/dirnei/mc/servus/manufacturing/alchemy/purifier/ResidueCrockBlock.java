@@ -27,6 +27,6 @@ public class ResidueCrockBlock extends PurifierSideBlock {
                 player.drop(taken, false);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

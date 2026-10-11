@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,15 +23,15 @@ public final class Journal {
     /** Criterion of every chapter advancement. */
     public static final String CRITERION = "done";
     /** The root of the journal's advancement tab, given to everyone so the tab shows. */
-    public static final ResourceLocation ROOT = ResourceLocation.fromNamespaceAndPath("servus_manufacturing", "journal/root");
+    public static final Identifier ROOT = Identifier.fromNamespaceAndPath("servus_manufacturing", "journal/root");
 
     private Journal() {
     }
 
     /** The advancement a finished chapter grants: {@code <namespace>:journal/<chapter>}. */
-    public static ResourceLocation advancementId(String chapter) {
-        ResourceLocation id = ResourceLocation.parse(chapter);
-        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "journal/" + id.getPath());
+    public static Identifier advancementId(String chapter) {
+        Identifier id = Identifier.parse(chapter);
+        return Identifier.fromNamespaceAndPath(id.getNamespace(), "journal/" + id.getPath());
     }
 
     /** An item event, such as {@code calcine} or {@code coagulate}. Filters are an item id or {@code #tag}. */
@@ -43,7 +43,7 @@ public final class Journal {
                 return true;
             }
             if (filter.startsWith("#")) {
-                ResourceLocation tag = ResourceLocation.tryParse(filter.substring(1));
+                Identifier tag = Identifier.tryParse(filter.substring(1));
                 return tag != null && stack.is(TagKey.create(Registries.ITEM, tag));
             }
             return filter.equals(id);
@@ -62,7 +62,7 @@ public final class Journal {
                 return filter.substring(5).equals(tierName);
             }
             if (filter.startsWith("#")) {
-                ResourceLocation tag = ResourceLocation.tryParse(filter.substring(1));
+                Identifier tag = Identifier.tryParse(filter.substring(1));
                 return tag != null && result.is(TagKey.create(Registries.ITEM, tag));
             }
             return filter.equals(id);

@@ -1,10 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -49,13 +50,13 @@ public class AthanorCrownBlock extends Block {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         BlockState below = level.getBlockState(pos.below());
         if (below.getBlock() instanceof AthanorBlock) {
             return below.useItemOn(stack, level, player, hand, hitResult.withPosition(pos.below()));
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
@@ -87,8 +88,9 @@ public class AthanorCrownBlock extends Block {
 
     /** Without a formed Athanor below it has no reason to stay. */
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         BlockState below = level.getBlockState(pos.below());
         if (!level.isClientSide() && !(below.getBlock() instanceof AthanorBlock && below.getValue(AthanorBlock.FORMED))) {
             level.removeBlock(pos, false);

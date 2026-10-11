@@ -1,5 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import net.minecraft.world.level.block.Block;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import net.minecraft.world.level.block.state.BlockState;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
@@ -7,7 +13,6 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import net.minecraft.core.registries.BuiltInRegistries;
 import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
-import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinerBlockEntity;
@@ -23,40 +28,27 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEnti
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalBookItem;
 import io.github.dirnei.mc.servus.manufacturing.journal.JournalLedger;
-import io.github.dirnei.mc.servus.foundation.team.Teams;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationComponents;
-import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
-import io.github.dirnei.mc.servus.foundation.side.FluidSides;
-import io.github.dirnei.mc.servus.foundation.side.SideLayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.material.Fluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -64,13 +56,9 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidActionResult;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /** The principles as fluids. */
-@GameTestHolder(ServusManufacturingIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class AlchemyGameTests {
 
     static final String EMPTY = "empty_12x6x12";
@@ -79,13 +67,13 @@ public final class AlchemyGameTests {
     }
 
     /** A Fluid Tank stores Mercury, and an empty bucket takes it out as a Mercury bucket. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void bucketFillsFromATankOfMercury(GameTestHelper helper) {
         BlockPos pos = new BlockPos(3, 1, 3);
         helper.setBlock(pos, ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
-        IFluidHandler tank = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), Direction.UP);
+        FluidView tank = FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), Direction.UP));
         helper.assertTrue(tank != null, "the tank should expose a fluid handler");
-        int filled = tank.fill(new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), 1000), IFluidHandler.FluidAction.EXECUTE);
+        int filled = tank.fill(new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), 1000), false);
         helper.assertTrue(filled == 1000, "the tank should take 1000 mB of Mercury, took " + filled);
         FluidActionResult result = FluidUtil.tryFillContainer(new ItemStack(Items.BUCKET), tank, 1000, null, true);
         helper.assertTrue(result.isSuccess() && result.getResult().is(PrincipleFluids.entry(Principle.MERCURY).bucket().get()),
@@ -104,7 +92,7 @@ public final class AlchemyGameTests {
     }
 
     /** One cobblestone becomes 100 mB Salt and 10 mB Mercury in the Calciner's tanks. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void calcinerBurnsCobblestoneIntoPrinciples(GameTestHelper helper) {
         CalcinerBlockEntity calciner = calciner(helper);
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
@@ -122,7 +110,7 @@ public final class AlchemyGameTests {
     }
 
     /** With no room for the Salt the Calciner waits and lights no fuel. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void calcinerWaitsWhenATankIsFull(GameTestHelper helper) {
         CalcinerBlockEntity calciner = calciner(helper);
         calciner.tanks().insert(new Principles(3950, 0, 0));
@@ -137,7 +125,7 @@ public final class AlchemyGameTests {
     }
 
     /** Without fuel the Calciner does nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 120)
+    @ServusGameTest(timeoutTicks = 120)
     public static void calcinerNeedsFuel(GameTestHelper helper) {
         CalcinerBlockEntity calciner = calciner(helper);
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, ItemStack.EMPTY);
@@ -149,16 +137,16 @@ public final class AlchemyGameTests {
     }
 
     /** The Coagulator offers no energy storage: it needs no power. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void coagulatorNeedsNoPower(GameTestHelper helper) {
         coagulator(helper, "salt_crystal");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, helper.absolutePos(MACHINE), Direction.EAST) == null,
+        helper.assertTrue(EnergyView.of(helper.getLevel().getCapability(Capabilities.Energy.BLOCK, helper.absolutePos(MACHINE), Direction.EAST)) == null,
                 "no energy storage");
         helper.succeed();
     }
 
-    static ResourceLocation coagulation(String name) {
-        return ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + name);
+    static Identifier coagulation(String name) {
+        return Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + name);
     }
 
     /** A formed Coagulator build around {@link #MACHINE}, with {@code recipe} selected when not null. */
@@ -171,15 +159,15 @@ public final class AlchemyGameTests {
     }
 
     /** The Salt Vat above the Coagulator. */
-    static IFluidHandler coagulatorFluid(GameTestHelper helper) {
+    static FluidView coagulatorFluid(GameTestHelper helper) {
         return CoagulatorGameTests.vatHandler(helper, MACHINE, 1);
     }
 
     /** Salt piped into the Salt Vat of a Coagulator making Salt Crystals becomes a Salt Crystal. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void coagulatorMakesSaltCrystalFromPipedSalt(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = coagulator(helper, "salt_crystal");
-        int filled = coagulatorFluid(helper).fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 250), IFluidHandler.FluidAction.EXECUTE);
+        int filled = coagulatorFluid(helper).fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 250), false);
         helper.assertTrue(filled == 250, "the Salt tank should take 250 mB, took " + filled);
         helper.succeedWhen(() -> {
             helper.assertTrue(coagulator.inventory().getStackInSlot(CoagulatorBlockEntity.SLOT_OUTPUT).is(ServusManufacturingItems.SALT_CRYSTAL.get()),
@@ -189,21 +177,21 @@ public final class AlchemyGameTests {
     }
 
     /** Only its principle goes into a Vat. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void coagulatorRefusesForeignFluid(GameTestHelper helper) {
         coagulator(helper, "salt_crystal");
-        IFluidHandler handler = coagulatorFluid(helper);
-        helper.assertTrue(handler.fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE) == 0, "water is refused");
-        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.SULFUR), 100), IFluidHandler.FluidAction.EXECUTE) == 0,
+        FluidView handler = coagulatorFluid(helper);
+        helper.assertTrue(handler.fill(new FluidStack(Fluids.WATER, 1000), false) == 0, "water is refused");
+        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.SULFUR), 100), false) == 0,
                 "the Salt Vat refuses Sulfur");
-        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 100), IFluidHandler.FluidAction.EXECUTE) == 100,
+        helper.assertTrue(handler.fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 100), false) == 100,
                 "the Salt Vat takes Salt");
-        helper.assertTrue(handler.drain(100, IFluidHandler.FluidAction.EXECUTE).isEmpty(), "the Coagulator gives nothing back");
+        helper.assertTrue(handler.drain(100, false).isEmpty(), "the Coagulator gives nothing back");
         helper.succeed();
     }
 
     /** Without enough Mercury the Coagulator waits. */
-    @GameTest(template = EMPTY, timeoutTicks = 120)
+    @ServusGameTest(timeoutTicks = 120)
     public static void coagulatorWaitsForMissingPrinciple(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = coagulator(helper, "quicksilver");
         coagulator.tanks().insert(new Principles(0, 0, 20));
@@ -215,7 +203,7 @@ public final class AlchemyGameTests {
     }
 
     /** The selected recipe is saved with the block entity and reported as the only production recipe. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void coagulatorKeepsAndReportsItsSelection(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = coagulator(helper, "gunpowder");
         ProductionProvider production = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(MACHINE), Direction.UP);
@@ -225,13 +213,13 @@ public final class AlchemyGameTests {
         helper.setBlock(MACHINE, Blocks.AIR.defaultBlockState());
         CoagulatorBlockEntity fresh = coagulator(helper, null);
         helper.assertTrue(fresh.selected().isEmpty(), "a new Coagulator has nothing selected");
-        fresh.loadWithComponents(saved, helper.getLevel().registryAccess());
+        fresh.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), saved));
         helper.assertTrue(fresh.selected().filter(id -> id.equals(coagulation("gunpowder"))).isPresent(), "the selection should be loaded");
         helper.succeed();
     }
 
     /** A Calciner's work counts for its team's journal: the item and every principle it made. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void calcinerReportsToItsTeamJournal(GameTestHelper helper) {
         CalcinerBlockEntity calciner = calciner(helper);
         UUID team = UUID.randomUUID();
@@ -247,13 +235,13 @@ public final class AlchemyGameTests {
     static final String VILLACH = "servus_manufacturing:villach";
 
     /** Finishing Villach through team events opens chapter locked recipes; its advancement exists for the book. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void finishingVillachAwardsItsAdvancement(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         CoagulatorBlockEntity coagulator = coagulator(helper, null);
         coagulator.setTeam(team);
         CoagulationRecipe locked = new CoagulationRecipe(new Principles(10, 0, 0), Optional.empty(), new ItemStack(Items.FLINT),
-                40, Optional.of(ResourceLocation.parse(VILLACH)));
+                40, Optional.of(Identifier.parse(VILLACH)));
         helper.assertTrue(!coagulator.unlocked(locked), "a recipe of an unfinished chapter is locked");
         ServerLevel level = helper.getLevel();
         Journal.recordItem(level, team, "calcine", new ItemStack(Items.COBBLESTONE), 100);
@@ -270,10 +258,10 @@ public final class AlchemyGameTests {
     }
 
     /** The journal recipe makes Manufacturing's own journal item, which opens Paracelsus' Journal. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void journalRecipeMakesTheJournal(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        ItemStack result = level.getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal"))
+        ItemStack result = level.recipeAccess().byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal")))
                 .map(holder -> holder.value().getResultItem(level.registryAccess()))
                 .orElse(ItemStack.EMPTY);
         helper.assertTrue(!result.isEmpty(), "the journal recipe should exist");
@@ -321,8 +309,8 @@ public final class AlchemyGameTests {
         return MACHINE.offset(tank.dx(), 0, tank.dz());
     }
 
-    static IFluidHandler athanorTankHandler(GameTestHelper helper, AthanorLayout.TankSide side) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(athanorTank(side)), Direction.UP);
+    static FluidView athanorTankHandler(GameTestHelper helper, AthanorLayout.TankSide side) {
+        return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(athanorTank(side)), Direction.UP));
     }
 
     /** Pipes the principles into the tanks: Salt left, Sulfur behind, Mercury right. Call once the tanks had two ticks to join. */
@@ -332,14 +320,14 @@ public final class AlchemyGameTests {
             int amount = principles.get(principle);
             if (amount > 0) {
                 int filled = athanorTankHandler(helper, sides[principle.ordinal()])
-                        .fill(new FluidStack(PrincipleFluids.fluid(principle), amount), IFluidHandler.FluidAction.EXECUTE);
+                        .fill(new FluidStack(PrincipleFluids.fluid(principle), amount), false);
                 helper.assertTrue(filled == amount, "the tank should take " + amount + " mB " + principle + ", took " + filled);
             }
         }
     }
 
     /** Without its hearth the Journal forms nothing; on a complete one it does, and a missing corner brick unforms it at the next check. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorFormsOnItsHearth(GameTestHelper helper) {
         unformedAthanor(helper);
         helper.setBlock(MACHINE.offset(1, -1, 1), Blocks.STONE);
@@ -349,7 +337,7 @@ public final class AlchemyGameTests {
         helper.setBlock(MACHINE.offset(1, -1, 1), Blocks.BRICKS);
         CalcinerGameTests.use(helper, player, MACHINE);
         helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
-        AthanorBlockEntity athanor = helper.getBlockEntity(MACHINE);
+        AthanorBlockEntity athanor = helper.getBlockEntity(MACHINE, AthanorBlockEntity.class);
         helper.assertTrue(athanor.owner().filter(player.getUUID()::equals).isPresent(), "the forming player owns the Athanor");
         helper.setBlock(MACHINE.offset(-1, -1, -1), Blocks.AIR);
         athanor.checkTier();
@@ -358,12 +346,12 @@ public final class AlchemyGameTests {
     }
 
     /** The journal's Athanor schematics accept the hearth and the Albedo ring, anchored on the hearth centre. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorSchematicsMatchTheBuilds(GameTestHelper helper) {
         com.klikli_dev.modonomicon.api.multiblock.Multiblock nigredo = com.klikli_dev.modonomicon.api.ModonomiconAPI.get()
-                .getMultiblock(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_nigredo"));
+                .getMultiblock(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_nigredo"));
         com.klikli_dev.modonomicon.api.multiblock.Multiblock albedo = com.klikli_dev.modonomicon.api.ModonomiconAPI.get()
-                .getMultiblock(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_albedo"));
+                .getMultiblock(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_albedo"));
         helper.assertTrue(nigredo != null && albedo != null, "both Athanor schematics should be loaded");
         unformedAthanor(helper);
         BlockPos anchor = helper.absolutePos(MACHINE.below());
@@ -375,7 +363,7 @@ public final class AlchemyGameTests {
     }
 
     /** Breaking the brick right under a formed Athanor unforms it at once. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorUnformsWithoutTheBrickBelow(GameTestHelper helper) {
         athanor(helper);
         helper.getLevel().destroyBlock(helper.absolutePos(MACHINE.below()), true);
@@ -384,7 +372,7 @@ public final class AlchemyGameTests {
     }
 
     /** An Athanor nobody formed crafts nothing. */
-    @GameTest(template = EMPTY, timeoutTicks = 140)
+    @ServusGameTest(timeoutTicks = 140)
     public static void unformedAthanorCraftsNothing(GameTestHelper helper) {
         AthanorBlockEntity athanor = unformedAthanor(helper);
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GUNPOWDER));
@@ -407,12 +395,12 @@ public final class AlchemyGameTests {
     }
 
     /** A Salt Crystal and Salt grow into a Salt Crystal Block on the Athanor; no crafting table recipe makes or splits one. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void athanorGrowsASaltCrystalBlock(GameTestHelper helper) {
-        helper.assertTrue(helper.getLevel().getRecipeManager()
-                .byKey(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "salt_crystal_block")).isEmpty(), "no crafting table block");
-        helper.assertTrue(helper.getLevel().getRecipeManager()
-                .byKey(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "salt_crystal_from_block")).isEmpty(), "no split");
+        helper.assertTrue(helper.getLevel().recipeAccess()
+                .byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "salt_crystal_block"))).isEmpty(), "no crafting table block");
+        helper.assertTrue(helper.getLevel().recipeAccess()
+                .byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "salt_crystal_from_block"))).isEmpty(), "no split");
         AthanorBlockEntity athanor = athanor(helper);
         helper.runAfterDelay(2, () -> {
             pour(helper, new Principles(1000, 0, 0));
@@ -426,7 +414,7 @@ public final class AlchemyGameTests {
     }
 
     /** Gunpowder and Sulfur become Blaze Powder on a bare Athanor. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void athanorMakesBlazePowderAtNigredo(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
         helper.runAfterDelay(2, () -> {
@@ -440,7 +428,7 @@ public final class AlchemyGameTests {
     }
 
     /** The Salt Crystal ring makes the Athanor Albedo and allows the Albedo craft; a gap brings it back to Nigredo. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void athanorTierFollowsTheRing(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GLASS_BOTTLE));
@@ -462,7 +450,7 @@ public final class AlchemyGameTests {
     }
 
     /** A Sulfur bucket emptied into a tank of the build is there for the Athanor. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorTakesABucket(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
         helper.runAfterDelay(2, () -> {
@@ -470,14 +458,14 @@ public final class AlchemyGameTests {
                     athanorTankHandler(helper, AthanorLayout.TankSide.LEFT), 1000, null, true);
             helper.assertTrue(result.isSuccess() && result.getResult().is(Items.BUCKET), "the bucket should be emptied");
             helper.assertTrue(athanor.principles().get(Principle.SULFUR) == 1000, "the Athanor should see 1000 mB Sulfur");
-            helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(MACHINE), Direction.NORTH) == null,
+            helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(MACHINE), Direction.NORTH)) == null,
                     "the Athanor itself takes no fluid");
             helper.succeed();
         });
     }
 
     /** No GUI: an item is laid on by hand, an empty hand takes the result, sneaking takes the item back. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorByHand(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
         Player player = CalcinerGameTests.player(helper, new ItemStack(Items.GLASS_BOTTLE, 3));
@@ -495,12 +483,12 @@ public final class AlchemyGameTests {
     }
 
     /** Any tank may hold any principle: Sulfur in the tank behind burns the same and leaves that tank lower. */
-    @GameTest(template = EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void athanorBurnsFromAnyTank(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
         helper.runAfterDelay(2, () -> {
             athanorTankHandler(helper, AthanorLayout.TankSide.RIGHT)
-                    .fill(new FluidStack(PrincipleFluids.fluid(Principle.SULFUR), 300), IFluidHandler.FluidAction.EXECUTE);
+                    .fill(new FluidStack(PrincipleFluids.fluid(Principle.SULFUR), 300), false);
             athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(Items.GUNPOWDER));
             helper.succeedWhen(() -> {
                 helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).is(Items.BLAZE_POWDER), "Blaze Powder should be made");
@@ -511,7 +499,7 @@ public final class AlchemyGameTests {
     }
 
     /** Without its left tank the Journal forms nothing; a formed Athanor that loses a tank unforms at the next check. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorNeedsItsTanks(GameTestHelper helper) {
         unformedAthanor(helper);
         helper.setBlock(athanorTank(AthanorLayout.TankSide.LEFT), Blocks.AIR);
@@ -522,14 +510,14 @@ public final class AlchemyGameTests {
         CalcinerGameTests.use(helper, player, MACHINE);
         helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, true);
         helper.setBlock(athanorTank(AthanorLayout.TankSide.BACK), Blocks.AIR);
-        AthanorBlockEntity athanor = helper.getBlockEntity(MACHINE);
+        AthanorBlockEntity athanor = helper.getBlockEntity(MACHINE, AthanorBlockEntity.class);
         athanor.checkTier();
         helper.assertBlockProperty(MACHINE, AthanorBlock.FORMED, false);
         helper.succeed();
     }
 
     /** Forming turns the six ducts into the Athanor's pipes; breaking one unforms it at once and gives the others their straight look back. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorFormsItsDucts(GameTestHelper helper) {
         athanor(helper);
         for (AthanorLayout.Duct duct : AthanorLayout.ducts(Facing.NORTH)) {
@@ -545,7 +533,7 @@ public final class AlchemyGameTests {
     }
 
     /** Without the duct over the tank behind it the Journal forms nothing; a tank stacked there takes the duct's place. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorNeedsItsDucts(GameTestHelper helper) {
         unformedAthanor(helper);
         helper.setBlock(athanorDuct(AthanorLayout.TankSide.BACK, true), Blocks.AIR);
@@ -559,7 +547,7 @@ public final class AlchemyGameTests {
     }
 
     /** A formed Athanor stands as its tower, up to its plate; a duct's pipe is low enough to jump onto. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorCanBeStoodOn(GameTestHelper helper) {
         athanor(helper);
         double top = helper.getBlockState(MACHINE).getCollisionShape(helper.getLevel(), helper.absolutePos(MACHINE)).max(net.minecraft.core.Direction.Axis.Y);
@@ -571,7 +559,7 @@ public final class AlchemyGameTests {
     }
 
     /** A formed Athanor gets its crown above; using the crown lays the item on the Athanor; unforming takes the crown away. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorCrownTakesTheLook(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
         helper.assertBlockPresent(ServusManufacturingBlocks.ATHANOR_CROWN.get(), MACHINE.above());
@@ -586,7 +574,7 @@ public final class AlchemyGameTests {
     }
 
     /** Breaking the crown breaks the Athanor below. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void breakingTheCrownBreaksTheAthanor(GameTestHelper helper) {
         athanor(helper);
         Player player = CalcinerGameTests.player(helper, ItemStack.EMPTY);
@@ -598,7 +586,7 @@ public final class AlchemyGameTests {
     }
 
     /** A craft on an Albedo Athanor counts for Schwaz once the team finished Villach. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void albedoCraftCountsForSchwaz(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         ServerLevel level = helper.getLevel();
@@ -621,7 +609,7 @@ public final class AlchemyGameTests {
     }
 
     /** Drinking the Elixir of Sight gives Elemental Sight and leaves a glass bottle. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void elixirGivesElementalSight(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack left = ElementalSight.ELIXIR.get().finishUsingItem(new ItemStack(ElementalSight.ELIXIR.get()), helper.getLevel(), player);
@@ -632,7 +620,7 @@ public final class AlchemyGameTests {
     }
 
     /** The elixir is an Albedo craft: nothing at Nigredo, the elixir once the ring stands. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 400)
     public static void elixirNeedsAnAlbedoAthanor(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
         athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, new ItemStack(ServusManufacturingItems.QUICKSILVER.get()));
@@ -647,7 +635,7 @@ public final class AlchemyGameTests {
     }
 
     /** Production lists only the crafts the tier allows. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void athanorProductionFollowsTheTier(GameTestHelper helper) {
         athanor(helper);
         ProductionProvider production = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(MACHINE), Direction.UP);
@@ -659,7 +647,7 @@ public final class AlchemyGameTests {
     }
 
     /** A Salt bucket used on the Salt Vat pours into the Salt tank and leaves an empty bucket. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void coagulatorTakesAPrincipleBucket(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = coagulator(helper, null);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -676,16 +664,16 @@ public final class AlchemyGameTests {
     }
 
     /** The loaded journal has the Workshop category and an entry per machine and topic. */
-    @GameTest(template = EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void journalHasTheWorkshop(GameTestHelper helper) {
         com.klikli_dev.modonomicon.book.Book book = com.klikli_dev.modonomicon.data.BookDataManager.get().getBook(JournalBookItem.BOOK);
         helper.assertTrue(book != null, "the journal book should be loaded");
-        helper.assertTrue(book.getCategory(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "workshop")) != null,
+        helper.assertTrue(book.getCategory(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "workshop")) != null,
                 "the Workshop category should exist");
         for (String entry : java.util.List.of("principles", "calciner", "purifier", "coagulator", "athanor", "pipes", "salt_crystal_block",
                 "elixir_of_sight", "gnome_hollow")) {
             // The server keeps only categories until the book is built for clients, so look at the loaded data files.
-            ResourceLocation file = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID,
+            Identifier file = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID,
                     "modonomicon/books/journal/entries/workshop/" + entry + ".json");
             helper.assertTrue(helper.getLevel().getServer().getResourceManager().getResource(file).isPresent(),
                     "the Workshop should have the entry " + entry);

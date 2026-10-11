@@ -5,15 +5,10 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import java.util.Optional;
-import net.minecraft.world.item.ItemStack;
-import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -37,7 +32,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
         crafting(output);
         calcination(output);
         for (AlchemyRecipeTable.Purify row : AlchemyRecipeTable.purification()) {
-            output.accept(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purification/" + row.name()),
+            output.accept(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purification/" + row.name()),
                     new PurificationRecipe(new SizedIngredient(row.input(), row.count()), row.water(), row.salt(), row.residue(), row.time()), null);
         }
         coagulation(output);
@@ -47,7 +42,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     /** Crafts on the Athanor, from the shared table the journal lists. */
     private void athanor(RecipeOutput output) {
         for (AlchemyRecipeTable.AthanorCraft craft : AlchemyRecipeTable.athanor()) {
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/" + craft.name());
+            Identifier id = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor/" + craft.name());
             output.accept(id, new AthanorRecipe(new SizedIngredient(craft.input(), 1), craft.principles(), craft.tier(),
                     craft.result(), craft.time()), null);
         }
@@ -56,7 +51,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     /** What the Coagulator makes from the principles, from the shared table the journal lists. */
     private void coagulation(RecipeOutput output) {
         for (AlchemyRecipeTable.Coagulate row : AlchemyRecipeTable.coagulation()) {
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + row.name());
+            Identifier id = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation/" + row.name());
             output.accept(id, new CoagulationRecipe(row.input(), Optional.empty(), row.result(),
                     CoagulationRecipe.DEFAULT_TIME, Optional.empty()), null);
         }
@@ -65,7 +60,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
     /** What the Calciner burns common matter into, from the shared table the journal lists. */
     private void calcination(RecipeOutput output) {
         for (AlchemyRecipeTable.Calcine row : AlchemyRecipeTable.calcination()) {
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calcination/" + row.name());
+            Identifier id = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calcination/" + row.name());
             output.accept(id, new CalcinationRecipe(new SizedIngredient(row.input(), 1), row.output(),
                     CalcinationRecipe.DEFAULT_TIME), null);
         }
@@ -179,7 +174,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .requires(Items.BOOK)
                 .requires(ItemTags.COALS)
                 .unlockedBy("has_book", has(Items.BOOK))
-                .save(output, ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal"));
+                .save(output, Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal"));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusManufacturingItems.COAGULATOR.get())
                 .pattern("IGI")

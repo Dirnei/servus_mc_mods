@@ -19,9 +19,8 @@ import com.klikli_dev.modonomicon.api.ModonomiconAPI;
 import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -32,14 +31,10 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The Coagulator as a build: forming, unforming, the Vats and the casting table's items. */
-@GameTestHolder(ServusManufacturingIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class CoagulatorGameTests {
 
     static final BlockPos COAGULATOR = new BlockPos(5, 1, 5);
@@ -73,8 +68,8 @@ public final class CoagulatorGameTests {
         return CoagulatorStructure.pos(controller, CoagulatorLayout.vat(piece), Facing.NORTH);
     }
 
-    static IFluidHandler vatHandler(GameTestHelper helper, BlockPos controller, int piece) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(vat(controller, piece)), Direction.UP);
+    static FluidView vatHandler(GameTestHelper helper, BlockPos controller, int piece) {
+        return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(vat(controller, piece)), Direction.UP));
     }
 
     static boolean isFormed(GameTestHelper helper, BlockPos controller) {
@@ -129,12 +124,12 @@ public final class CoagulatorGameTests {
         CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
         Principle[] order = {Principle.SULFUR, Principle.SALT, Principle.MERCURY};
         for (int piece = 0; piece < 3; piece++) {
-            IFluidHandler handler = vatHandler(helper, COAGULATOR, piece);
+            FluidView handler = vatHandler(helper, COAGULATOR, piece);
             for (Principle principle : Principle.values()) {
-                int filled = handler.fill(new FluidStack(PrincipleFluids.fluid(principle), 100), IFluidHandler.FluidAction.EXECUTE);
+                int filled = handler.fill(new FluidStack(PrincipleFluids.fluid(principle), 100), false);
                 helper.assertTrue(filled == (principle == order[piece] ? 100 : 0), "Vat " + piece + " and " + principle + " took " + filled);
             }
-            helper.assertTrue(handler.drain(100, IFluidHandler.FluidAction.EXECUTE).isEmpty(), "a Vat gives nothing");
+            helper.assertTrue(handler.drain(100, false).isEmpty(), "a Vat gives nothing");
         }
         helper.assertTrue(coagulator.tanks().contents().equals(new Principles(100, 100, 100)), "each tank holds 100 mB");
         helper.succeed();
@@ -157,14 +152,14 @@ public final class CoagulatorGameTests {
     public static void itemsAtTheCastingTable(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
         coagulator.select(AlchemyGameTests.coagulation("salt_crystal"));
-        IItemHandler port = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(COAGULATOR), Direction.NORTH);
+        ItemView port = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(COAGULATOR), Direction.NORTH));
         helper.assertTrue(port != null && port.getSlots() == 2, "the Coagulator has its item port");
         helper.assertTrue(port.insertItem(1, new ItemStack(Items.STONE), false).getCount() == 1, "nothing goes into the output");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(vat(COAGULATOR, 1)), Direction.NORTH) == null,
+        helper.assertTrue(ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(vat(COAGULATOR, 1)), Direction.NORTH)) == null,
                 "a Vat takes no items");
         helper.setBlock(COAGULATOR.below(), Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.DOWN));
-        HopperBlockEntity hopper = helper.getBlockEntity(COAGULATOR.below());
-        vatHandler(helper, COAGULATOR, 1).fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 250), IFluidHandler.FluidAction.EXECUTE);
+        HopperBlockEntity hopper = helper.getBlockEntity(COAGULATOR.below(), HopperBlockEntity.class);
+        vatHandler(helper, COAGULATOR, 1).fill(new FluidStack(PrincipleFluids.fluid(Principle.SALT), 250), false);
         helper.succeedWhen(() -> helper.assertTrue(hopper.countItem(ServusManufacturingItems.SALT_CRYSTAL.get()) == 1,
                 "the hopper should take the Salt Crystal"));
     }
@@ -173,7 +168,7 @@ public final class CoagulatorGameTests {
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 120)
     public static void unformedCoagulatorDoesNothing(GameTestHelper helper) {
         build(helper, COAGULATOR, Direction.NORTH);
-        CoagulatorBlockEntity coagulator = helper.getBlockEntity(COAGULATOR);
+        CoagulatorBlockEntity coagulator = helper.getBlockEntity(COAGULATOR, CoagulatorBlockEntity.class);
         coagulator.select(AlchemyGameTests.coagulation("salt_crystal"));
         coagulator.tanks().insert(new Principles(250, 0, 0));
         helper.assertTrue(vatHandler(helper, COAGULATOR, 1) == null, "an unformed Vat offers nothing");
@@ -186,7 +181,7 @@ public final class CoagulatorGameTests {
     /** The journal's schematic accepts the build that forming accepts. */
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
     public static void coagulatorSchematicMatchesTheBuild(GameTestHelper helper) {
-        Multiblock schematic = ModonomiconAPI.get().getMultiblock(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulator"));
+        Multiblock schematic = ModonomiconAPI.get().getMultiblock(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulator"));
         helper.assertTrue(schematic != null, "the Coagulator schematic should be loaded");
         build(helper, COAGULATOR, Direction.NORTH);
         helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(COAGULATOR)) != null, "the schematic accepts the build");

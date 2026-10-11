@@ -8,7 +8,7 @@ import io.github.dirnei.mc.servus.manufacturing.journal.JournalLedger.TeamJourna
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 /** {@code /servus_manufacturing journal}: the team's open and finished chapters with task progress. */
@@ -31,7 +31,7 @@ public final class JournalCommand {
                             continue;
                         }
                         shown++;
-                        ResourceLocation id = ResourceLocation.parse(chapter.id());
+                        Identifier id = Identifier.parse(chapter.id());
                         Component name = Component.translatable("journal." + id.getNamespace() + "." + id.getPath());
                         Component state = Component.translatable("commands.servus_manufacturing.journal." + (finished ? "finished" : "open"));
                         source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.chapter", name, state), false);

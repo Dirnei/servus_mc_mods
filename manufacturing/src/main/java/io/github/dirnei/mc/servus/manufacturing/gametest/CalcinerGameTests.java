@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
+import net.minecraft.world.InteractionResult;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -17,12 +19,10 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItem
 import com.klikli_dev.modonomicon.api.ModonomiconAPI;
 import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -39,17 +39,13 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** The Calciner as a structure: building, forming with the Journal, breaking and working it by hand. */
-@GameTestHolder(ServusManufacturingIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class CalcinerGameTests {
 
     /** A Calciner whose Ash Pan stands on the floor of the empty template. */
@@ -90,8 +86,8 @@ public final class CalcinerGameTests {
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute), Direction.NORTH, absolute, false);
         // As the game does: the held item first, even an empty hand, then the block's own use if it passes.
         ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
-        ItemInteractionResult result = state.useItemOn(held, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
-        if (result == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION) {
+        InteractionResult result = state.useItemOn(held, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        if (result == InteractionResult.TRY_WITH_EMPTY_HAND) {
             state.useWithoutItem(helper.getLevel(), player, hit);
         }
     }
@@ -257,13 +253,13 @@ public final class CalcinerGameTests {
         build(helper, CALCINER, Direction.NORTH);
         Player player = player(helper, new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get()));
         use(helper, player, CALCINER);
-        CalcinerBlockEntity calciner = helper.getBlockEntity(CALCINER);
+        CalcinerBlockEntity calciner = helper.getBlockEntity(CALCINER, CalcinerBlockEntity.class);
         helper.assertTrue(calciner.owner().filter(player.getUUID()::equals).isPresent(), "the forming player owns the Calciner");
         helper.succeed();
     }
 
-    static IFluidHandler tankAt(GameTestHelper helper, BlockPos pos) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), Direction.UP);
+    static FluidView tankAt(GameTestHelper helper, BlockPos pos) {
+        return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), Direction.UP));
     }
 
     /** A hopper feeds the mouth of a formed Calciner, which burns the cobblestone into its tanks. */
@@ -273,7 +269,7 @@ public final class CalcinerGameTests {
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 2));
         BlockPos hopper = CALCINER.north();
         helper.setBlock(hopper, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.SOUTH));
-        HopperBlockEntity hopperEntity = helper.getBlockEntity(hopper);
+        HopperBlockEntity hopperEntity = helper.getBlockEntity(hopper, HopperBlockEntity.class);
         hopperEntity.setItem(0, new ItemStack(Items.COBBLESTONE, 2));
         helper.succeedWhen(() -> helper.assertTrue(calciner.tanks().amount(Principle.SALT) >= 200,
                 "two cobblestone should give 200 Salt, got " + calciner.tanks().amount(Principle.SALT)));
@@ -283,7 +279,7 @@ public final class CalcinerGameTests {
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 120)
     public static void unformedCalcinerDoesNothing(GameTestHelper helper) {
         build(helper, CALCINER, Direction.NORTH);
-        CalcinerBlockEntity calciner = helper.getBlockEntity(CALCINER);
+        CalcinerBlockEntity calciner = helper.getBlockEntity(CALCINER, CalcinerBlockEntity.class);
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 2));
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE));
         helper.runAfterDelay(100, () -> {
@@ -300,18 +296,18 @@ public final class CalcinerGameTests {
         BlockPos sulfurTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(12), Facing.NORTH);
         BlockPos mercuryTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(15), Facing.NORTH);
         calciner.tanks().insert(new Principles(500, 400, 300));
-        IFluidHandler receiver = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
-                helper.absolutePos(cellPos(CALCINER, Role.RECEIVER, Direction.NORTH)), Direction.NORTH);
+        FluidView receiver = FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK,
+                helper.absolutePos(cellPos(CALCINER, Role.RECEIVER, Direction.NORTH)), Direction.NORTH));
         helper.assertTrue(receiver != null && receiver.getTanks() == 1
                 && receiver.getFluidInTank(0).getFluid().isSame(PrincipleFluids.fluid(Principle.MERCURY)), "the Receiver offers Mercury only");
-        helper.assertTrue(receiver.fill(new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), 100), IFluidHandler.FluidAction.EXECUTE) == 0,
+        helper.assertTrue(receiver.fill(new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), 100), false) == 0,
                 "a port never takes fluid");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(CALCINER), Direction.NORTH) == null,
+        helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(CALCINER), Direction.NORTH)) == null,
                 "the mouth has no fluid port");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
-                helper.absolutePos(cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH)), Direction.NORTH) == null, "the Ash Pan has no fluid port");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
-                helper.absolutePos(cellPos(CALCINER, Role.HOOD, Direction.NORTH)), Direction.UP) == null, "the Hood has no fluid port");
+        helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK,
+                helper.absolutePos(cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH)), Direction.NORTH)) == null, "the Ash Pan has no fluid port");
+        helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK,
+                helper.absolutePos(cellPos(CALCINER, Role.HOOD, Direction.NORTH)), Direction.UP)) == null, "the Hood has no fluid port");
         helper.succeedWhen(() -> {
             FluidStack sulfur = tankAt(helper, sulfurTank).getFluidInTank(0);
             FluidStack mercury = tankAt(helper, mercuryTank).getFluidInTank(0);
@@ -343,23 +339,23 @@ public final class CalcinerGameTests {
         for (Cell cell : CalcinerLayout.cells()) {
             BlockPos pos = helper.absolutePos(CalcinerStructure.pos(CALCINER, cell, Facing.NORTH));
             for (Direction side : Direction.values()) {
-                helper.assertTrue(helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, pos, side) == null, "no energy at " + cell.role());
+                helper.assertTrue(EnergyView.of(helper.getLevel().getCapability(Capabilities.Energy.BLOCK, pos, side)) == null, "no energy at " + cell.role());
             }
         }
         BlockPos firebox = helper.absolutePos(cellPos(CALCINER, Role.FIREBOX, Direction.NORTH));
-        IItemHandler fuel = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, firebox, Direction.SOUTH);
+        ItemView fuel = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, firebox, Direction.SOUTH));
         helper.assertTrue(fuel != null && fuel.insertItem(0, new ItemStack(Items.COAL, 3), false).isEmpty(), "the Firebox takes coal");
         helper.assertTrue(fuel.insertItem(0, new ItemStack(Items.COBBLESTONE), false).getCount() == 1, "the Firebox refuses matter");
         helper.assertTrue(fuel.extractItem(0, 1, false).isEmpty(), "the Firebox gives nothing back");
         helper.assertTrue(calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL).getCount() == 3, "the coal lands in the fuel slot");
         UpkeepHolder upkeep = helper.getLevel().getCapability(ServusFoundationCapabilities.UPKEEP, firebox, null);
         helper.assertTrue(upkeep != null && upkeep.upkeepItem().is(Items.COAL) && upkeep.upkeepCount() == 3, "the Firebox reports coal as upkeep");
-        IItemHandler mouth = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(CALCINER), Direction.NORTH);
+        ItemView mouth = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(CALCINER), Direction.NORTH));
         helper.assertTrue(mouth != null, "the mouth takes items");
         helper.assertTrue(mouth.insertItem(0, new ItemStack(Items.DIAMOND), false).getCount() == 1, "a diamond is refused");
         helper.assertTrue(mouth.insertItem(0, new ItemStack(Items.OAK_LOG), false).isEmpty(), "a log is taken");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK,
-                helper.absolutePos(cellPos(CALCINER, Role.ALEMBIC, Direction.NORTH)), Direction.NORTH) == null, "the Alembic takes no items");
+        helper.assertTrue(ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK,
+                helper.absolutePos(cellPos(CALCINER, Role.ALEMBIC, Direction.NORTH)), Direction.NORTH)) == null, "the Alembic takes no items");
         helper.succeed();
     }
 
@@ -367,10 +363,10 @@ public final class CalcinerGameTests {
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
     public static void unformedHasNoPorts(GameTestHelper helper) {
         build(helper, CALCINER, Direction.NORTH);
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(CALCINER), Direction.NORTH) == null,
+        helper.assertTrue(ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(CALCINER), Direction.NORTH)) == null,
                 "no item port while unformed");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
-                helper.absolutePos(cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH)), Direction.NORTH) == null, "no fluid port while unformed");
+        helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK,
+                helper.absolutePos(cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH)), Direction.NORTH)) == null, "no fluid port while unformed");
         helper.succeed();
     }
 
@@ -378,7 +374,7 @@ public final class CalcinerGameTests {
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
     public static void schematicMatchesTheBuild(GameTestHelper helper) {
         Multiblock schematic = ModonomiconAPI.get().getMultiblock(
-                ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner"));
+                Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner"));
         helper.assertTrue(schematic != null, "the Calciner schematic should be loaded on the server");
         build(helper, CALCINER, Direction.NORTH);
         helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(CALCINER.below(2))) != null,
@@ -425,7 +421,7 @@ public final class CalcinerGameTests {
         calciner.tanks().insert(new Principles(350, 0, 0));
         BlockPos hopper = cellPos(CALCINER, Role.ASH_PAN, Direction.NORTH).below();
         helper.setBlock(hopper, Blocks.HOPPER.defaultBlockState());
-        HopperBlockEntity hopperEntity = helper.getBlockEntity(hopper);
+        HopperBlockEntity hopperEntity = helper.getBlockEntity(hopper, HopperBlockEntity.class);
         helper.succeedWhen(() -> {
             helper.assertTrue(hopperEntity.countItem(ServusManufacturingItems.ASH.get()) == 3, "the hopper should hold 3 Ash, holds "
                     + hopperEntity.countItem(ServusManufacturingItems.ASH.get()));

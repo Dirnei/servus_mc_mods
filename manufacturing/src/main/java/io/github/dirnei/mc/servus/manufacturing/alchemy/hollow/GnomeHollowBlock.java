@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.hollow;
 
+import net.minecraft.world.InteractionResult;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
@@ -10,7 +11,6 @@ import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -43,7 +43,7 @@ public class GnomeHollowBlock extends MachineBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem || !(level.getBlockEntity(pos) instanceof GnomeHollowBlockEntity hollow)) {
             return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
@@ -52,7 +52,7 @@ public class GnomeHollowBlock extends MachineBlock {
             if (!level.isClientSide()) {
                 FluidUtil.interactWithFluidHandler(player, hand, hollow.tanks());
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         if (stack.is(ServusManufacturingItems.SALT_CRYSTAL.get())) {
             if (!level.isClientSide()) {
@@ -60,11 +60,11 @@ public class GnomeHollowBlock extends MachineBlock {
                 if (binding == GnomeHollowBlockEntity.Binding.BOUND && !player.getAbilities().instabuild) {
                     stack.shrink(1);
                 }
-                player.displayClientMessage(Component.translatable(
-                        "message.servus_manufacturing.gnome_hollow." + binding.name().toLowerCase(Locale.ROOT)), true);
+                player.sendOverlayMessage(Component.translatable(
+                        "message.servus_manufacturing.gnome_hollow." + binding.name().toLowerCase(Locale.ROOT)));
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 }

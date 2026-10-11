@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.sight;
 
+import net.minecraft.world.InteractionResult;
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -57,7 +57,7 @@ public class ElixirOfSightItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         return ItemUtils.startUsingInstantly(level, player, hand);
     }
 }

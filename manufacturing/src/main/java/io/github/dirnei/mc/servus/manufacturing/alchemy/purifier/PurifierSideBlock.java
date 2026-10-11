@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -8,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
 
 /**
@@ -18,7 +20,7 @@ import net.minecraft.world.level.material.PushReaction;
 public abstract class PurifierSideBlock extends Block {
 
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     protected PurifierSideBlock(Properties properties) {
         super(properties);
@@ -36,8 +38,9 @@ public abstract class PurifierSideBlock extends Block {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         PurifierStructure.neighbourChanged(level, state, pos);
     }
 

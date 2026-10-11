@@ -6,7 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidActionResult;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /**
  * Buckets and other fluid containers on the alchemy machines: a click on a principle gauge
@@ -37,7 +37,7 @@ public final class PrincipleBuckets {
         if (carried.isEmpty()) {
             return false;
         }
-        IFluidHandler tank = tanks.view(principle);
+        FluidView tank = tanks.view(principle);
         ItemStack one = carried.copyWithCount(1);
         FluidActionResult result = FluidUtil.tryFillContainer(one, tank, Integer.MAX_VALUE, player, true);
         if (!result.isSuccess()) {

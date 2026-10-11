@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
@@ -17,10 +18,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 
 /**
@@ -48,7 +49,7 @@ public final class CalcinerPorts {
     }
 
     /** Matter at the Calciner block, fuel at the Firebox; nothing elsewhere or while unformed. */
-    public static IItemHandler items(Level level, BlockPos pos, BlockState state) {
+    public static ItemView items(Level level, BlockPos pos, BlockState state) {
         CalcinerBlockEntity calciner = calciner(level, pos, state);
         if (calciner == null) {
             return null;
@@ -75,7 +76,7 @@ public final class CalcinerPorts {
     }
 
     /** The drain only tank of the port's principle on the Ash Pan, the Receiver or the lowest Copper Duct of a formed Calciner. */
-    public static IFluidHandler fluid(Level level, BlockPos pos, BlockState state) {
+    public static FluidView fluid(Level level, BlockPos pos, BlockState state) {
         Cell cell;
         if (state.getBlock() instanceof CalcinerPartBlock part) {
             cell = CalcinerLayout.part(part.role());
@@ -100,7 +101,7 @@ public final class CalcinerPorts {
             if (principle == null) {
                 continue;
             }
-            FluidTank tank = tanks.tank(principle);
+            FluidSlot tank = tanks.tank(principle);
             if (tank.isEmpty()) {
                 continue;
             }
@@ -110,13 +111,13 @@ public final class CalcinerPorts {
                 if (CalcinerStructure.controllerOf(level.getBlockState(target), target).filter(controller::equals).isPresent()) {
                     continue;
                 }
-                IFluidHandler neighbour = level.getCapability(Capabilities.FluidHandler.BLOCK, target, side.getOpposite());
+                FluidView neighbour = FluidView.of(level.getCapability(Capabilities.Fluid.BLOCK, target, side.getOpposite()));
                 if (neighbour == null) {
                     continue;
                 }
-                int filled = neighbour.fill(tank.getFluid().copy(), IFluidHandler.FluidAction.EXECUTE);
+                int filled = neighbour.fill(tank.getFluid().copy(), false);
                 if (filled > 0) {
-                    tank.drain(filled, IFluidHandler.FluidAction.EXECUTE);
+                    tank.drain(filled, false);
                 }
                 if (tank.isEmpty()) {
                     break;
@@ -126,7 +127,7 @@ public final class CalcinerPorts {
     }
 
     /** The Ash Pan: the Calciner's Salt as whole Ash, at most a stack at a time, taken out only. */
-    public static final class AshPort implements IItemHandler {
+    public static final class AshPort extends LegacyItemHandler {
 
         private final CalcinerBlockEntity calciner;
 
@@ -168,13 +169,13 @@ public final class CalcinerPorts {
     }
 
     /** One slot of a machine inventory that only takes what {@code accepts} allows and never gives out. */
-    public static final class InsertOnly implements IItemHandler {
+    public static final class InsertOnly extends LegacyItemHandler {
 
-        private final ItemStackHandler inventory;
+        private final ItemSlots inventory;
         private final int slot;
         private final Predicate<ItemStack> accepts;
 
-        public InsertOnly(ItemStackHandler inventory, int slot, Predicate<ItemStack> accepts) {
+        public InsertOnly(ItemSlots inventory, int slot, Predicate<ItemStack> accepts) {
             this.inventory = inventory;
             this.slot = slot;
             this.accepts = accepts;

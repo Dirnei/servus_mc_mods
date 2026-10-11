@@ -5,7 +5,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -19,29 +19,29 @@ public final class ServusManufacturingRecipes {
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
             DeferredRegister.create(Registries.RECIPE_SERIALIZER, ServusManufacturingIds.MOD_ID);
 
-    public static final ResourceLocation CALCINATION_ID =
-            ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calcination");
+    public static final Identifier CALCINATION_ID =
+            Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calcination");
     public static final DeferredHolder<RecipeType<?>, RecipeType<CalcinationRecipe>> CALCINATION =
             RECIPE_TYPES.register("calcination", () -> RecipeType.simple(CALCINATION_ID));
     public static final DeferredHolder<RecipeSerializer<?>, CalcinationRecipe.Serializer> CALCINATION_SERIALIZER =
             RECIPE_SERIALIZERS.register("calcination", CalcinationRecipe.Serializer::new);
 
-    public static final ResourceLocation COAGULATION_ID =
-            ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation");
+    public static final Identifier COAGULATION_ID =
+            Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation");
     public static final DeferredHolder<RecipeType<?>, RecipeType<CoagulationRecipe>> COAGULATION =
             RECIPE_TYPES.register("coagulation", () -> RecipeType.simple(COAGULATION_ID));
     public static final DeferredHolder<RecipeSerializer<?>, CoagulationRecipe.Serializer> COAGULATION_SERIALIZER =
             RECIPE_SERIALIZERS.register("coagulation", CoagulationRecipe.Serializer::new);
 
-    public static final ResourceLocation ATHANOR_ID =
-            ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor");
+    public static final Identifier ATHANOR_ID =
+            Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor");
     public static final DeferredHolder<RecipeType<?>, RecipeType<AthanorRecipe>> ATHANOR =
             RECIPE_TYPES.register("athanor", () -> RecipeType.simple(ATHANOR_ID));
     public static final DeferredHolder<RecipeSerializer<?>, AthanorRecipe.Serializer> ATHANOR_SERIALIZER =
             RECIPE_SERIALIZERS.register("athanor", AthanorRecipe.Serializer::new);
 
-    public static final ResourceLocation PURIFICATION_ID =
-            ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purification");
+    public static final Identifier PURIFICATION_ID =
+            Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purification");
     public static final DeferredHolder<RecipeType<?>, RecipeType<PurificationRecipe>> PURIFICATION =
             RECIPE_TYPES.register("purification", () -> RecipeType.simple(PURIFICATION_ID));
     public static final DeferredHolder<RecipeSerializer<?>, PurificationRecipe.Serializer> PURIFICATION_SERIALIZER =

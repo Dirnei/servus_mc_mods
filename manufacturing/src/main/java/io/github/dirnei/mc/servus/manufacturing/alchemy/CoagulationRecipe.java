@@ -10,7 +10,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -30,7 +30,7 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
  * @param chapter    the journal chapter a team must have finished to select this recipe, if any
  */
 public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingredient, ItemStack result, int time,
-                                Optional<ResourceLocation> chapter)
+                                Optional<Identifier> chapter)
         implements Recipe<SingleRecipeInput> {
 
     public static final int DEFAULT_TIME = 40;
@@ -40,7 +40,7 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
             SizedIngredient.FLAT_CODEC.optionalFieldOf("ingredient").forGetter(CoagulationRecipe::ingredient),
             ItemStack.CODEC.fieldOf("result").forGetter(CoagulationRecipe::result),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(CoagulationRecipe::time),
-            ResourceLocation.CODEC.optionalFieldOf("chapter").forGetter(CoagulationRecipe::chapter)
+            Identifier.CODEC.optionalFieldOf("chapter").forGetter(CoagulationRecipe::chapter)
     ).apply(instance, CoagulationRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, CoagulationRecipe> STREAM_CODEC = StreamCodec.composite(
@@ -48,7 +48,7 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
             ByteBufCodecs.optional(SizedIngredient.STREAM_CODEC), CoagulationRecipe::ingredient,
             ItemStack.STREAM_CODEC, CoagulationRecipe::result,
             ByteBufCodecs.VAR_INT, CoagulationRecipe::time,
-            ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), CoagulationRecipe::chapter,
+            ByteBufCodecs.optional(Identifier.STREAM_CODEC), CoagulationRecipe::chapter,
             CoagulationRecipe::new);
 
     /** Whether the item slot satisfies this recipe: empty for a recipe without item, else enough of the item. */

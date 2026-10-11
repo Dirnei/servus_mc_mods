@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import net.minecraft.world.level.block.Block;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;

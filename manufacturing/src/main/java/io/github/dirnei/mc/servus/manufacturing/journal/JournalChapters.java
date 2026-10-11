@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.journal;
 
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.util.ExtraCodecs;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -13,13 +15,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 /** Loads the journal chapters from {@code data/<namespace>/servus_manufacturing/journal/<chapter>.json}. */
-public final class JournalChapters extends SimpleJsonResourceReloadListener {
+public final class JournalChapters extends SimpleJsonResourceReloadListener<JsonElement> {
+
+    /** Key of this listener in the reload event. */
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_manufacturing", "journal_chapters");
 
     public static final String DIRECTORY = "servus_manufacturing/journal";
 
@@ -31,10 +36,10 @@ public final class JournalChapters extends SimpleJsonResourceReloadListener {
     ).apply(instance, TaskDef::new));
 
     /** The chapter as written in JSON; the id comes from the file name. */
-    private record ChapterJson(Optional<ResourceLocation> parent, int order, List<TaskDef> tasks) {
+    private record ChapterJson(Optional<Identifier> parent, int order, List<TaskDef> tasks) {
 
         static final Codec<ChapterJson> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ResourceLocation.CODEC.optionalFieldOf("parent").forGetter(ChapterJson::parent),
+                Identifier.CODEC.optionalFieldOf("parent").forGetter(ChapterJson::parent),
                 Codec.INT.optionalFieldOf("order", 0).forGetter(ChapterJson::order),
                 TASK_CODEC.listOf().optionalFieldOf("tasks", List.of()).forGetter(ChapterJson::tasks)
         ).apply(instance, ChapterJson::new));
@@ -47,15 +52,15 @@ public final class JournalChapters extends SimpleJsonResourceReloadListener {
     private volatile List<ChapterDef> chapters = List.of();
 
     private JournalChapters() {
-        super(GSON, DIRECTORY);
+        super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
         List<ChapterDef> loaded = files.entrySet().stream()
                 .flatMap(entry -> ChapterJson.CODEC.parse(JsonOps.INSTANCE, entry.getValue())
                         .resultOrPartial(error -> ServusManufacturing.LOGGER.error("Invalid journal chapter {}: {}", entry.getKey(), error))
-                        .map(json -> new ChapterDef(entry.getKey().toString(), json.parent().map(ResourceLocation::toString),
+                        .map(json -> new ChapterDef(entry.getKey().toString(), json.parent().map(Identifier::toString),
                                 json.order(), json.tasks()))
                         .stream())
                 .sorted(Comparator.comparingInt(ChapterDef::order).thenComparing(ChapterDef::id))

@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.BurnerMachineBlockEntity;
@@ -19,10 +22,10 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -40,7 +43,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_FUEL = 1;
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
     private static final int PUSH_INTERVAL = 10;
     /** Salt per Ash when no purification recipe takes Ash. */
@@ -48,11 +51,11 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), true, this::setChanged);
     private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
-    private final IItemHandler inputPort = new CalcinerPorts.InsertOnly(inventory, SLOT_INPUT, this::calcinable);
-    private final IItemHandler ashPort = new CalcinerPorts.AshPort(this);
+    private final ItemView inputPort = new CalcinerPorts.InsertOnly(inventory, SLOT_INPUT, this::calcinable);
+    private final ItemView ashPort = new CalcinerPorts.AshPort(this);
     private int saltPerAsh = FALLBACK_SALT_PER_ASH;
     private RecipeManager saltPerAshFrom;
-    private final IItemHandler fuelPort = new CalcinerPorts.InsertOnly(inventory, SLOT_FUEL, stack -> stack.getBurnTime(null) > 0);
+    private final ItemView fuelPort = new CalcinerPorts.InsertOnly(inventory, SLOT_FUEL, stack -> stack.getBurnTime(null) > 0);
     private int pushCooldown;
     /** The lit state last given to the Firebox and the Hood. */
     private boolean partsLit;
@@ -78,12 +81,12 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     }
 
     /** The mouth: takes calcinable matter, gives nothing back. */
-    public IItemHandler inputPort() {
+    public ItemView inputPort() {
         return inputPort;
     }
 
     /** The Firebox: takes furnace fuel, gives nothing back. */
-    public IItemHandler fuelPort() {
+    public ItemView fuelPort() {
         return fuelPort;
     }
 
@@ -117,12 +120,12 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         if (level == null || stack.isEmpty()) {
             return Optional.empty();
         }
-        return level.getRecipeManager().getRecipeFor(ServusManufacturingRecipes.CALCINATION.get(), new SingleRecipeInput(stack), level)
+        return level.recipeAccess().getRecipeFor(ServusManufacturingRecipes.CALCINATION.get(), new SingleRecipeInput(stack), level)
                 .map(RecipeHolder::value);
     }
 
     @Override
-    protected ResourceLocation machineId() {
+    protected Identifier machineId() {
         return ID;
     }
 
@@ -156,7 +159,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         if (level == null || stack.isEmpty()) {
             return false;
         }
-        return level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.CALCINATION.get()).stream()
+        return level.recipeAccess().getAllRecipesFor(ServusManufacturingRecipes.CALCINATION.get()).stream()
                 .anyMatch(holder -> holder.value().accepts(stack));
     }
 
@@ -171,7 +174,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     }
 
     /** The Ash Pan: gives the Salt as whole Ash, takes nothing. */
-    public IItemHandler ashPort() {
+    public ItemView ashPort() {
         return ashPort;
     }
 
@@ -180,7 +183,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         if (level == null) {
             return FALLBACK_SALT_PER_ASH;
         }
-        RecipeManager recipes = level.getRecipeManager();
+        RecipeManager recipes = level.recipeAccess();
         if (recipes != saltPerAshFrom) {
             ItemStack ash = new ItemStack(ServusManufacturingItems.ASH.get());
             saltPerAsh = recipes.getAllRecipesFor(ServusManufacturingRecipes.PURIFICATION.get()).stream()
@@ -204,7 +207,7 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
         int per = saltPerAsh();
         int salt = AshCount.saltFor(count, tanks.amount(Principle.SALT), per);
         if (!simulate && salt > 0) {
-            tanks.tank(Principle.SALT).drain(salt, net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+            tanks.tank(Principle.SALT).drain(salt, false);
         }
         return salt / Math.max(1, per);
     }
@@ -291,25 +294,30 @@ public class CalcinerBlockEntity extends BurnerMachineBlockEntity implements Own
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        tag.put("Principles", tanks.save(registries));
+        tag.put("Principles", ValueIo.saveStack(registries, tanks));
         tag.put("ShownInput", inventory.getStackInSlot(SLOT_INPUT).copyWithCount(1).saveOptional(registries));
         return tag;
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Principles", tanks.save(registries));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        tag.put("Principles", ValueIo.saveStack(registries, tanks));
         ownership.save(tag);
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        tanks.load(tag.getCompound("Principles"));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        tanks.load(tag.getCompoundOrEmpty("Principles"));
         ownership.load(tag);
         if (tag.contains("ShownInput")) {
-            shownInput = ItemStack.parseOptional(registries, tag.getCompound("ShownInput"));
+            shownInput = ValueIo.parseStack(registries, tag.getCompoundOrEmpty("ShownInput"));
         }
     }
 

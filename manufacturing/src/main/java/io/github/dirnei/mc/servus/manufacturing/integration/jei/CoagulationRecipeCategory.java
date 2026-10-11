@@ -14,7 +14,7 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
@@ -80,10 +80,10 @@ public final class CoagulationRecipeCategory implements IRecipeCategory<RecipeHo
     }
 
     @Override
-    public void draw(RecipeHolder<CoagulationRecipe> holder, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics,
+    public void draw(RecipeHolder<CoagulationRecipe> holder, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics,
                      double mouseX, double mouseY) {
         arrow.draw(guiGraphics, 80, 5);
         Component time = Component.literal(String.format("%.1f s", holder.value().time() / 20.0));
-        guiGraphics.drawString(Minecraft.getInstance().font, time, 80, 25, 0x808080, false);
+        guiGraphics.text(Minecraft.getInstance().font, time, 80, 25, 0xFF808080, false);
     }
 }

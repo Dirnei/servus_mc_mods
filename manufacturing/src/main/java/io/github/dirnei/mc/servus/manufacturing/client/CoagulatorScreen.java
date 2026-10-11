@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
 import io.github.dirnei.mc.servus.foundation.client.RecipePickerPopup;
 import io.github.dirnei.mc.servus.foundation.machine.menu.MachineMenu;
@@ -11,7 +13,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleMenu;
 import java.util.ArrayList;
 import net.minecraft.ChatFormatting;
 import java.util.List;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -40,7 +42,7 @@ public class CoagulatorScreen extends MachineScreen {
 
     private List<RecipeHolder<CoagulationRecipe>> recipes() {
         return minecraft == null || minecraft.level == null ? List.of()
-                : CoagulatorBlockEntity.sortedRecipes(minecraft.level.getRecipeManager());
+                : CoagulatorBlockEntity.sortedRecipes(minecraft.level.recipeAccess());
     }
 
     private int selected() {
@@ -60,7 +62,8 @@ public class CoagulatorScreen extends MachineScreen {
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.renderBg(guiGraphics, partialTick, mouseX, mouseY);
         gauges.render(guiGraphics);
         List<RecipeHolder<CoagulationRecipe>> recipes = recipes();
@@ -74,43 +77,43 @@ public class CoagulatorScreen extends MachineScreen {
         int textX = bx + 4;
         if (index >= 0 && index < recipes.size()) {
             ItemStack result = recipes.get(index).value().result();
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(bx + 2, by + 1.5F, 0);
-            guiGraphics.pose().scale(0.75F, 0.75F, 1);
-            guiGraphics.renderItem(result, 0, 0);
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().pushMatrix();
+            guiGraphics.pose().translate(bx + 2, by + 1.5F);
+            guiGraphics.pose().scale(0.75F, 0.75F);
+            guiGraphics.item(result, 0, 0);
+            guiGraphics.pose().popMatrix();
             label = result.getHoverName();
             textX = bx + 17;
         } else {
             label = Component.translatable("gui.servus_manufacturing.coagulator.select");
         }
         String text = font.plainSubstrByWidth(label.getString(), bx + BUTTON_W - 10 - textX);
-        guiGraphics.drawString(font, text, textX, by + 4, 0xFF202020, false);
-        guiGraphics.drawString(font, "v", bx + BUTTON_W - 9, by + 4, 0xFF202020, false);
+        guiGraphics.text(font, text, textX, by + 4, 0xFF202020, false);
+        guiGraphics.text(font, "v", bx + BUTTON_W - 9, by + 4, 0xFF202020, false);
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         // While the popup is open nothing below it reacts to the mouse.
-        super.render(guiGraphics, popupOpen ? -1 : mouseX, popupOpen ? -1 : mouseY, partialTick);
+        super.extractRenderState(guiGraphics, popupOpen ? -1 : mouseX, popupOpen ? -1 : mouseY, partialTick);
         List<RecipeHolder<CoagulationRecipe>> recipes = recipes();
         if (!popupOpen) {
             gauges.renderTooltip(guiGraphics, font, mouseX, mouseY);
             int index = selected();
             if (buttonHovered(mouseX, mouseY) && index >= 0 && index < recipes.size()) {
-                guiGraphics.renderComponentTooltip(font, tooltip(recipes.get(index).value()), mouseX, mouseY);
+                guiGraphics.setComponentTooltipForNextFrame(font, tooltip(recipes.get(index).value()), mouseX, mouseY);
             }
             return;
         }
         List<ItemStack> results = recipes.stream().map(holder -> holder.value().result()).toList();
-        popup.render(guiGraphics, font, leftPos, topPos, imageWidth, imageHeight,
+        popup.extractRenderState(guiGraphics, font, leftPos, topPos, imageWidth, imageHeight,
                 Component.translatable("gui.servus_manufacturing.coagulator.pick"), results, selected(), mouseX, mouseY);
         int index = popup.indexAt(mouseX, mouseY, results.size());
         if (index >= 0) {
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(0, 0, 400);
-            guiGraphics.renderComponentTooltip(font, tooltip(recipes.get(index).value()), mouseX, mouseY);
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().pushMatrix();
+            guiGraphics.pose().translate(0, 0);
+            guiGraphics.setComponentTooltipForNextFrame(font, tooltip(recipes.get(index).value()), mouseX, mouseY);
+            guiGraphics.pose().popMatrix();
         }
     }
 
@@ -135,7 +138,10 @@ public class CoagulatorScreen extends MachineScreen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (popupOpen) {
             int count = recipes().size();
             int index = popup.indexAt(mouseX, mouseY, count);
@@ -155,25 +161,31 @@ public class CoagulatorScreen extends MachineScreen {
             popupOpen = true;
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (popupOpen) {
             popup.drag(mouseY, recipes().size());
             return true;
         }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (popupOpen) {
             popup.release();
             return true;
         }
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
@@ -186,13 +198,16 @@ public class CoagulatorScreen extends MachineScreen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
         if (popupOpen) {
             if (keyCode == KEY_ESCAPE) {
                 popupOpen = false;
             }
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 }

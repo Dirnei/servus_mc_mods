@@ -20,7 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /**
  * Forms and unforms the Coagulator structure following {@link CoagulatorLayout}. The Stone Bricks
@@ -107,7 +107,7 @@ public final class CoagulatorStructure {
         if (level.getBlockEntity(controller) instanceof CoagulatorBlockEntity coagulator) {
             coagulator.setOwner(player.getUUID());
         }
-        player.displayClientMessage(Component.translatable("message.servus_manufacturing.coagulator.formed"), true);
+        player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.coagulator.formed"));
         return true;
     }
 
@@ -206,7 +206,7 @@ public final class CoagulatorStructure {
     }
 
     /** The fill only tank view of a formed Vat: its principle into the Coagulator. */
-    public static IFluidHandler vatHandler(Level level, BlockPos pos, BlockState state) {
+    public static FluidView vatHandler(Level level, BlockPos pos, BlockState state) {
         if (!(state.getBlock() instanceof VatBlock) || !state.getValue(VatBlock.FORMED)) {
             return null;
         }

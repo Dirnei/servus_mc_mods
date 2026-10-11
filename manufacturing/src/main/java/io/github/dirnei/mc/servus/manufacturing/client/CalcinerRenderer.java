@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -19,9 +20,8 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import com.mojang.math.Axis;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -36,11 +36,11 @@ import net.neoforged.neoforge.fluids.FluidStack;
 public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlockEntity> {
 
     /** A box in a cell's model space (sixteenths, front facing north) and the height its fill rises by. */
-    private record Fill(Role role, Principle principle, float x0, float y0, float z0, float x1, float rise, float z1, ResourceLocation sprite) {
+    private record Fill(Role role, Principle principle, float x0, float y0, float z0, float x1, float rise, float z1, Identifier sprite) {
     }
 
     /** The Salt lies in the Ash Pan as ash: light grey powder, tiled like a block. */
-    private static final ResourceLocation ASH = ResourceLocation.withDefaultNamespace("block/light_gray_concrete_powder");
+    private static final Identifier ASH = Identifier.withDefaultNamespace("block/light_gray_concrete_powder");
 
     private static final Fill[] FILLS = {
             new Fill(Role.ASH_PAN, Principle.SALT, 4, 3, 0.5F, 12, 4, 3, ASH),
@@ -67,11 +67,11 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
             float share = Math.min(1.0F, amount / (float) capacity);
             FluidStack fluid = new FluidStack(PrincipleFluids.fluid(fill.principle()), amount);
             IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
-            ResourceLocation still = fill.sprite() != null ? fill.sprite() : extensions.getStillTexture(fluid);
+            Identifier still = fill.sprite() != null ? fill.sprite() : extensions.getStillTexture(fluid);
             if (still == null) {
                 continue;
             }
-            TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(still);
+            TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(still);
             int color = fill.sprite() != null ? 0xFFFFFFFF : extensions.getTintColor(fluid);
             Offset offset = CalcinerLayout.worldOffset(CalcinerLayout.part(fill.role()), CalcinerStructure.facing(facing));
             float[] box = rotate(fill.x0() / 16, fill.z0() / 16, fill.x1() / 16, fill.z1() / 16, facing);

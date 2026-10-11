@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.hollow;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
@@ -24,7 +27,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -32,7 +35,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /**
  * A Gnome Hollow: seeded with a sample of ore, ripened with principles, and once a gnome is bound
@@ -46,7 +49,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
     public static final int DATA_STEPS = DATA_RIPENESS + 1;
     public static final int DATA_BOUND = DATA_RIPENESS + 2;
     public static final int DATA_COUNT = DATA_RIPENESS + 3;
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "gnome_hollow");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "gnome_hollow");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     /** What a binding attempt did. */
@@ -57,7 +60,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
     private final State growth = new State();
     private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
-    private ResourceLocation vein;
+    private Identifier vein;
     // Client copies from the update tag, for drawing.
     private ItemStack shownYield = ItemStack.EMPTY;
     private int shownSteps;
@@ -74,7 +77,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         return growth;
     }
 
-    public Optional<ResourceLocation> vein() {
+    public Optional<Identifier> vein() {
         return Optional.ofNullable(vein);
     }
 
@@ -83,7 +86,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
     }
 
     /** Neighbours fill the tanks on every non disabled side; nothing comes out. */
-    public IFluidHandler fluidHandler(Direction side) {
+    public FluidView fluidHandler(Direction side) {
         return side == null || sideMode(side).allowsInsert() ? tanks : null;
     }
 
@@ -120,7 +123,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         return Journal.isFinished(server.getServer(), team(), def.chapter().get().toString());
     }
 
-    private Optional<Map.Entry<ResourceLocation, VeinDef>> veinFor(ItemStack stack) {
+    private Optional<Map.Entry<Identifier, VeinDef>> veinFor(ItemStack stack) {
         return VeinData.INSTANCE.forSample(stack).filter(entry -> mayGrow(entry.getValue()));
     }
 
@@ -202,7 +205,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
     // Machine contract
 
     @Override
-    protected ResourceLocation machineId() {
+    protected Identifier machineId() {
         return ID;
     }
 
@@ -267,7 +270,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
             }
 
             @Override
-            public Optional<ResourceLocation> active() {
+            public Optional<Identifier> active() {
                 return recipes().isEmpty() ? Optional.empty() : Optional.of(vein);
             }
         };
@@ -312,32 +315,37 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
     // Persistence and sync
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Principles", tanks.save(registries));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        tag.put("Principles", ValueIo.saveStack(registries, tanks));
         if (vein != null) {
-            tag.putString("Vein", vein.toString());
+            output.putString("Vein", vein.toString());
         }
-        tag.putInt("Ripeness", growth.ripeness);
-        tag.putBoolean("Bound", growth.bound);
-        tag.putInt("StepTimer", growth.stepTimer);
-        tag.putInt("YieldTimer", growth.yieldTimer);
+        output.putInt("Ripeness", growth.ripeness);
+        output.putBoolean("Bound", growth.bound);
+        output.putInt("StepTimer", growth.stepTimer);
+        output.putInt("YieldTimer", growth.yieldTimer);
         ownership.save(tag);
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        tanks.load(tag.getCompound("Principles"));
-        vein = tag.contains("Vein") ? ResourceLocation.tryParse(tag.getString("Vein")) : null;
-        growth.ripeness = tag.getInt("Ripeness");
-        growth.bound = tag.getBoolean("Bound");
-        growth.stepTimer = tag.getInt("StepTimer");
-        growth.yieldTimer = tag.getInt("YieldTimer");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        HolderLookup.Provider registries = input.lookup();
+        tanks.load(tag.getCompoundOrEmpty("Principles"));
+        vein = tag.contains("Vein") ? Identifier.tryParse(input.getStringOr("Vein", "")) : null;
+        growth.ripeness = input.getIntOr("Ripeness", 0);
+        growth.bound = input.getBooleanOr("Bound", false);
+        growth.stepTimer = input.getIntOr("StepTimer", 0);
+        growth.yieldTimer = input.getIntOr("YieldTimer", 0);
         ownership.load(tag);
         if (tag.contains("ShownYield")) {
-            shownYield = ItemStack.parseOptional(registries, tag.getCompound("ShownYield"));
-            shownSteps = tag.getInt("ShownSteps");
+            shownYield = ValueIo.parseStack(registries, tag.getCompoundOrEmpty("ShownYield"));
+            shownSteps = input.getIntOr("ShownSteps", 0);
         }
     }
 

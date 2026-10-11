@@ -5,16 +5,15 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.loaders.DynamicFluidContainerModelBuilder;
 import net.minecraft.data.PackOutput;
-import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
 
 final class ServusManufacturingItemModelProvider extends ItemModelProvider {
 
-    ServusManufacturingItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
-        super(output, ServusManufacturingIds.MOD_ID, existingFileHelper);
+    ServusManufacturingItemModelProvider(PackOutput output) {
+        super(output, ServusManufacturingIds.MOD_ID);
     }
 
     @Override

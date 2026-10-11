@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
@@ -11,7 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
 /**
@@ -20,7 +22,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
  */
 public class CalcinerShellBlock extends Block implements Wrenchable {
 
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     /** The brick cell of {@link CalcinerLayout}, 1 to 6. */
     public static final IntegerProperty CELL = IntegerProperty.create("cell", 1, 6);
 
@@ -36,8 +38,9 @@ public class CalcinerShellBlock extends Block implements Wrenchable {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         CalcinerStructure.neighbourChanged(level, state, pos);
     }
 

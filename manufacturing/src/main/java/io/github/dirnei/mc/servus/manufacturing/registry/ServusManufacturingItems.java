@@ -36,7 +36,7 @@ public final class ServusManufacturingItems {
     public static final DeferredItem<Item> QUICKSILVER = ITEMS.registerSimpleItem("quicksilver");
 
     public static final DeferredItem<ParacelsusJournalItem> PARACELSUS_JOURNAL = ITEMS.registerItem("paracelsus_journal",
-            ParacelsusJournalItem::new, new Item.Properties().stacksTo(1));
+            ParacelsusJournalItem::new, () -> new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
     public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(PARACELSUS_JOURNAL, CALCINER, FIREBOX, ASH_PAN,

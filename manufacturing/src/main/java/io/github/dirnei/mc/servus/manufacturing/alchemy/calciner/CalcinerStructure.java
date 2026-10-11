@@ -139,7 +139,7 @@ public final class CalcinerStructure {
         if (level.getBlockEntity(controller) instanceof CalcinerBlockEntity calciner) {
             calciner.setOwner(player.getUUID());
         }
-        player.displayClientMessage(Component.translatable("message.servus_manufacturing.calciner.formed"), true);
+        player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.calciner.formed"));
         return true;
     }
 

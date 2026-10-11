@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
@@ -8,7 +10,6 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBloc
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -25,7 +26,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.fluids.FluidUtil;
 
 /**
  * The Athanor: items are laid on it, an empty hand takes the result, sneaking with an empty hand takes the item
@@ -69,8 +69,9 @@ public class AthanorBlock extends MachineBlock {
 
     /** The brick right under a formed Athanor is gone: unform at once; the other hearth bricks wait for the slow check. */
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         if (!level.isClientSide() && state.getValue(FORMED) && fromPos.equals(pos.below())
                 && level.getBlockEntity(pos) instanceof AthanorBlockEntity athanor) {
             athanor.checkHearth();
@@ -105,7 +106,7 @@ public class AthanorBlock extends MachineBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ConfigurationCarrotItem || !(level.getBlockEntity(pos) instanceof AthanorBlockEntity athanor)) {
             return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
@@ -114,7 +115,7 @@ public class AthanorBlock extends MachineBlock {
             if (!level.isClientSide()) {
                 athanor.tryForm(player);
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         if (!level.isClientSide()) {
             athanor.checkTier();
@@ -123,9 +124,9 @@ public class AthanorBlock extends MachineBlock {
             if (!level.isClientSide()) {
                 athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, stack.split(stack.getCount()));
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     /** An empty hand takes the result; sneaking takes the item back. Never opens a menu. */
@@ -140,6 +141,6 @@ public class AthanorBlock extends MachineBlock {
                 player.getInventory().placeItemBackInInventory(taken);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

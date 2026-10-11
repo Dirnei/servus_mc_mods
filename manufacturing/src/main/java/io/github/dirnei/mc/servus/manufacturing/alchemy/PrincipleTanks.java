@@ -1,21 +1,22 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 
 /**
  * One tank per principle, each holding only its own fluid. In give mode the handler only drains
  * (the Calciner); in accept mode it only fills (the Coagulator). The machine itself moves fluid
  * through {@link #insert} and {@link #take}, whatever the mode.
  */
-public final class PrincipleTanks implements IFluidHandler {
+public final class PrincipleTanks extends LegacyFluidHandler {
 
-    private final FluidTank[] tanks = new FluidTank[Principle.values().length];
-    private final IFluidHandler[] views = new IFluidHandler[Principle.values().length];
+    private final FluidSlot[] tanks = new FluidSlot[Principle.values().length];
+    private final FluidView[] views = new FluidView[Principle.values().length];
     private final boolean gives;
     private final Runnable changed;
 
@@ -23,7 +24,7 @@ public final class PrincipleTanks implements IFluidHandler {
         this.gives = gives;
         this.changed = changed;
         for (Principle principle : Principle.values()) {
-            tanks[principle.ordinal()] = new FluidTank(capacity, stack -> stack.getFluid().isSame(PrincipleFluids.fluid(principle))) {
+            tanks[principle.ordinal()] = new FluidSlot(capacity, stack -> stack.getFluid().isSame(PrincipleFluids.fluid(principle))) {
                 @Override
                 protected void onContentsChanged() {
                     changed.run();
@@ -34,7 +35,7 @@ public final class PrincipleTanks implements IFluidHandler {
     }
 
     /** A handler of one principle's tank only, in the same direction as the whole: what a side set to that tank exposes. */
-    public IFluidHandler view(Principle principle) {
+    public FluidView view(Principle principle) {
         return views[principle.ordinal()];
     }
 
@@ -50,7 +51,7 @@ public final class PrincipleTanks implements IFluidHandler {
     }
 
     public void setCapacity(int capacity) {
-        for (FluidTank tank : tanks) {
+        for (FluidSlot tank : tanks) {
             tank.setCapacity(capacity);
         }
     }
@@ -73,7 +74,7 @@ public final class PrincipleTanks implements IFluidHandler {
         for (Principle principle : Principle.values()) {
             int amount = amounts.get(principle);
             if (amount > 0) {
-                tanks[principle.ordinal()].fill(new FluidStack(PrincipleFluids.fluid(principle), amount), FluidAction.EXECUTE);
+                tanks[principle.ordinal()].fill(new FluidStack(PrincipleFluids.fluid(principle), amount), false);
             }
         }
     }
@@ -83,13 +84,13 @@ public final class PrincipleTanks implements IFluidHandler {
         for (Principle principle : Principle.values()) {
             int amount = amounts.get(principle);
             if (amount > 0) {
-                tanks[principle.ordinal()].drain(amount, FluidAction.EXECUTE);
+                tanks[principle.ordinal()].drain(amount, false);
             }
         }
     }
 
     /** The tank of one principle, for pushing it out. */
-    public FluidTank tank(Principle principle) {
+    public FluidSlot tank(Principle principle) {
         return tanks[principle.ordinal()];
     }
 
@@ -114,38 +115,38 @@ public final class PrincipleTanks implements IFluidHandler {
     }
 
     @Override
-    public int fill(FluidStack resource, FluidAction action) {
+    public int fill(FluidStack resource, boolean simulate) {
         if (gives || resource.isEmpty()) {
             return 0;
         }
         Principle principle = PrincipleFluids.principleOf(resource.getFluid());
-        return principle == null ? 0 : tanks[principle.ordinal()].fill(resource, action);
+        return principle == null ? 0 : tanks[principle.ordinal()].fill(resource, simulate);
     }
 
     @Override
-    public FluidStack drain(FluidStack resource, FluidAction action) {
+    public FluidStack drain(FluidStack resource, boolean simulate) {
         if (!gives || resource.isEmpty()) {
             return FluidStack.EMPTY;
         }
         Principle principle = PrincipleFluids.principleOf(resource.getFluid());
-        return principle == null ? FluidStack.EMPTY : tanks[principle.ordinal()].drain(resource, action);
+        return principle == null ? FluidStack.EMPTY : tanks[principle.ordinal()].drain(resource, simulate);
     }
 
     /** Drains from the first tank that holds anything. */
     @Override
-    public FluidStack drain(int maxDrain, FluidAction action) {
+    public FluidStack drain(int maxDrain, boolean simulate) {
         if (!gives) {
             return FluidStack.EMPTY;
         }
-        for (FluidTank tank : tanks) {
+        for (FluidSlot tank : tanks) {
             if (!tank.isEmpty()) {
-                return tank.drain(maxDrain, action);
+                return tank.drain(maxDrain, simulate);
             }
         }
         return FluidStack.EMPTY;
     }
 
-    private final class View implements IFluidHandler {
+    private final class View extends LegacyFluidHandler {
 
         private final Principle principle;
 
@@ -153,7 +154,7 @@ public final class PrincipleTanks implements IFluidHandler {
             this.principle = principle;
         }
 
-        private FluidTank tank() {
+        private FluidSlot tank() {
             return tanks[principle.ordinal()];
         }
 
@@ -178,18 +179,18 @@ public final class PrincipleTanks implements IFluidHandler {
         }
 
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            return gives || resource.isEmpty() ? 0 : tank().fill(resource, action);
+        public int fill(FluidStack resource, boolean simulate) {
+            return gives || resource.isEmpty() ? 0 : tank().fill(resource, simulate);
         }
 
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            return !gives || resource.isEmpty() ? FluidStack.EMPTY : tank().drain(resource, action);
+        public FluidStack drain(FluidStack resource, boolean simulate) {
+            return !gives || resource.isEmpty() ? FluidStack.EMPTY : tank().drain(resource, simulate);
         }
 
         @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            return gives ? tank().drain(maxDrain, action) : FluidStack.EMPTY;
+        public FluidStack drain(int maxDrain, boolean simulate) {
+            return gives ? tank().drain(maxDrain, simulate) : FluidStack.EMPTY;
         }
     }
 
@@ -203,7 +204,7 @@ public final class PrincipleTanks implements IFluidHandler {
 
     public void load(CompoundTag tag) {
         for (Principle principle : Principle.values()) {
-            int amount = tag.getInt(principle.id());
+            int amount = tag.getIntOr(principle.id(), 0);
             Fluid fluid = PrincipleFluids.fluid(principle);
             tanks[principle.ordinal()].setFluid(amount > 0 ? new FluidStack(fluid, amount) : FluidStack.EMPTY);
         }

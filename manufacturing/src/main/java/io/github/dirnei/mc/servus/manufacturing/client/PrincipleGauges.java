@@ -5,7 +5,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleMenu;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /** Three slim gauges for Salt, Sulfur and Mercury on the left of an alchemy machine's GUI. */
@@ -67,13 +67,13 @@ final class PrincipleGauges {
         return amount <= 0 ? FluidStack.EMPTY : new FluidStack(PrincipleFluids.fluid(principle), amount);
     }
 
-    void render(GuiGraphics graphics) {
+    void render(GuiGraphicsExtractor graphics) {
         for (Principle principle : Principle.values()) {
             gauges[principle.ordinal()].render(graphics, stack(principle), menu.principleCapacity());
         }
     }
 
-    void renderTooltip(GuiGraphics graphics, Font font, int mouseX, int mouseY) {
+    void renderTooltip(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
         for (Principle principle : Principle.values()) {
             gauges[principle.ordinal()].renderTooltip(graphics, font, stack(principle), menu.principleCapacity(), mouseX, mouseY);
         }

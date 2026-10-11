@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import net.minecraft.world.item.crafting.Recipe;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
@@ -7,23 +12,21 @@ import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import net.minecraft.server.level.ServerLevel;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
-import io.github.dirnei.mc.servus.foundation.side.SideTank;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -31,7 +34,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 /**
  * Makes its selected recipe's result from piped principles and an optional item. It needs no power:
@@ -44,14 +46,14 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     /** Container data: index of the selected recipe in {@link #sortedRecipes} plus one, 0 for none. */
     public static final int DATA_SELECTED = AlchemyMachines.DATA_COUNT;
     public static final int DATA_COUNT = DATA_SELECTED + 1;
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulator");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulator");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final PrincipleTanks tanks = new PrincipleTanks(DEFAULTS.fluidCapacity(), false, this::setChanged);
     private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
-    private ResourceLocation selected;
+    private Identifier selected;
 
-    private final IItemHandler itemPort = new ItemPort();
+    private final ItemView itemPort = new ItemPort();
     /** The fill of each principle in sixteenths, -1 for empty, as last sent to the clients that draw the Vats. */
     private final int[] drawnFill = {-1, -1, -1};
     private int syncCooldown;
@@ -96,12 +98,12 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
         return tanks;
     }
 
-    public Optional<ResourceLocation> selected() {
+    public Optional<Identifier> selected() {
         return Optional.ofNullable(selected);
     }
 
     /** Selects a recipe by id, or none with {@code null}. Progress starts over. */
-    public void select(ResourceLocation recipe) {
+    public void select(Identifier recipe) {
         if (recipe == null ? selected != null : !recipe.equals(selected)) {
             selected = recipe;
             progress = 0;
@@ -124,7 +126,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     }
 
     /** The casting table: takes the ingredient into slot 0, gives the products from slot 1. */
-    public IItemHandler itemPort() {
+    public ItemView itemPort() {
         return itemPort;
     }
 
@@ -145,7 +147,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     }
 
     /** Slot 0 takes what the selected recipe needs and gives nothing; slot 1 gives the products and takes nothing. */
-    private final class ItemPort implements IItemHandler {
+    private final class ItemPort extends LegacyItemHandler {
 
         @Override
         public int getSlots() {
@@ -183,7 +185,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
         if (level == null || selected == null) {
             return Optional.empty();
         }
-        return level.getRecipeManager().byKey(selected)
+        return level.recipeAccess().byKey(selected)
                 .filter(holder -> holder.value() instanceof CoagulationRecipe)
                 .map(holder -> (RecipeHolder<CoagulationRecipe>) holder);
     }
@@ -193,7 +195,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     }
 
     @Override
-    protected ResourceLocation machineId() {
+    protected Identifier machineId() {
         return ID;
     }
 
@@ -276,7 +278,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
             if (level == null || selected == null) {
                 return 0;
             }
-            List<RecipeHolder<CoagulationRecipe>> recipes = sortedRecipes(level.getRecipeManager());
+            List<RecipeHolder<CoagulationRecipe>> recipes = sortedRecipes(level.recipeAccess());
             for (int i = 0; i < recipes.size(); i++) {
                 if (recipes.get(i).id().equals(selected)) {
                     return i + 1;
@@ -309,7 +311,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
             }
 
             @Override
-            public Optional<ResourceLocation> active() {
+            public Optional<Identifier> active() {
                 return selectedHolder().map(RecipeHolder::id);
             }
         };
@@ -319,25 +321,29 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        tag.put("Principles", tanks.save(registries));
+        tag.put("Principles", ValueIo.saveStack(registries, tanks));
         return tag;
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Principles", tanks.save(registries));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        CompoundTag tag = new CompoundTag();
+        HolderLookup.Provider registries = ValueIo.registries(this);
+        tag.put("Principles", ValueIo.saveStack(registries, tanks));
         if (selected != null) {
-            tag.putString("Recipe", selected.toString());
+            output.putString("Recipe", selected.toString());
         }
         ownership.save(tag);
+        output.store(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        tanks.load(tag.getCompound("Principles"));
-        selected = tag.contains("Recipe") ? ResourceLocation.tryParse(tag.getString("Recipe")) : null;
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        CompoundTag tag = ValueIo.whole(input);
+        tanks.load(tag.getCompoundOrEmpty("Principles"));
+        selected = tag.contains("Recipe") ? Identifier.tryParse(input.getStringOr("Recipe", "")) : null;
         ownership.load(tag);
     }
 

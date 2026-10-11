@@ -16,10 +16,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -95,16 +95,16 @@ public final class IconExporter {
         int written = 0;
         try {
             for (String id : ids) {
-                ResourceLocation location = ResourceLocation.parse(id);
-                Item item = BuiltInRegistries.ITEM.get(location);
+                Identifier location = Identifier.parse(id);
+                Item item = BuiltInRegistries.ITEM.getValue(location);
                 if (item == Items.AIR) {
                     ServusManufacturing.LOGGER.warn("Icon export: unknown item {}", id);
                     continue;
                 }
                 target.clear(Minecraft.ON_OSX);
                 target.bindWrite(true);
-                GuiGraphics graphics = new GuiGraphics(minecraft, minecraft.renderBuffers().bufferSource());
-                graphics.renderItem(new ItemStack(item), 0, 0);
+                GuiGraphicsExtractor graphics = new GuiGraphicsExtractor(minecraft, minecraft.renderBuffers().bufferSource());
+                graphics.item(new ItemStack(item), 0, 0);
                 graphics.flush();
 
                 Path file = output.resolve(location.getNamespace()).resolve(location.getPath() + ".png");

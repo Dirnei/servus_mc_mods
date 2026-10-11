@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.util.ExtraCodecs;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -13,13 +15,16 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers.Tie
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 /** Loads the Athanor tiers from {@code data/<namespace>/servus_manufacturing/athanor_tier/<name>.json}. */
-public final class AthanorTierData extends SimpleJsonResourceReloadListener {
+public final class AthanorTierData extends SimpleJsonResourceReloadListener<JsonElement> {
+
+    /** Key of this listener in the reload event. */
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_manufacturing", "athanor_tier_data");
 
     public static final String DIRECTORY = "servus_manufacturing/athanor_tier";
 
@@ -63,11 +68,11 @@ public final class AthanorTierData extends SimpleJsonResourceReloadListener {
     private volatile List<TierDef> tiers = List.of();
 
     private AthanorTierData() {
-        super(GSON, DIRECTORY);
+        super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
         List<TierDef> loaded = files.entrySet().stream()
                 .flatMap(entry -> TierJson.CODEC.parse(JsonOps.INSTANCE, entry.getValue())
                         .resultOrPartial(error -> ServusManufacturing.LOGGER.error("Invalid Athanor tier {}: {}", entry.getKey(), error))

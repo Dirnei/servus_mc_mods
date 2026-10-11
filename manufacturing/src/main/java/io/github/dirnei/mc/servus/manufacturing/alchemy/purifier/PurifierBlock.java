@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.manufacturing.journal.ParacelsusJournalItem;
 import net.minecraft.core.Direction;
@@ -7,12 +9,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -34,7 +35,7 @@ public class PurifierBlock extends BaseEntityBlock {
 
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
     /** The way the formed build's front faces. */
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public PurifierBlock(Properties properties) {
         super(properties);
@@ -47,8 +48,9 @@ public class PurifierBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         PurifierStructure.neighbourChanged(level, state, pos);
     }
 
@@ -75,33 +77,33 @@ public class PurifierBlock extends BaseEntityBlock {
 
     /** Buckets fill water in or take Salt out; purifiable items go into the vat. */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!(level.getBlockEntity(pos) instanceof PurifierBlockEntity purifier)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (stack.getItem() instanceof ParacelsusJournalItem) {
             if (!level.isClientSide()) {
                 PurifierStructure.tryForm(level, pos, player);
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         if (!state.getValue(FORMED)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (stack.getCapability(Capabilities.FluidHandler.ITEM) != null) {
             if (!level.isClientSide()) {
                 FluidUtil.interactWithFluidHandler(player, hand, purifier.fluidPort());
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         if (purifier.purifiable(stack)) {
             if (!level.isClientSide()) {
                 player.setItemInHand(hand, purifier.insert(stack));
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     /** Sneaking with an empty hand takes the Ash back; the residue is taken at the Residue Crock. */
@@ -116,7 +118,7 @@ public class PurifierBlock extends BaseEntityBlock {
                 player.drop(taken, false);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override

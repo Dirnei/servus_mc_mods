@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import io.github.dirnei.mc.servus.foundation.client.SideMarkerRenderer;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlockEntities;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingMenus;

@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.GnomeHollowBlockEntity;
@@ -17,7 +17,6 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItem
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -27,12 +26,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /** The Gnome Hollow: seeding, ripening, binding, working. */
-@GameTestHolder(ServusManufacturingIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class HollowGameTests {
 
     private static final String EMPTY = AlchemyGameTests.EMPTY;
@@ -44,7 +39,7 @@ public final class HollowGameTests {
 
     static GnomeHollowBlockEntity hollow(GameTestHelper helper, UUID team) {
         helper.setBlock(MACHINE, ServusManufacturingBlocks.GNOME_HOLLOW.get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
-        GnomeHollowBlockEntity hollow = helper.getBlockEntity(MACHINE);
+        GnomeHollowBlockEntity hollow = helper.getBlockEntity(MACHINE, GnomeHollowBlockEntity.class);
         hollow.setTeam(team);
         return hollow;
     }
@@ -73,7 +68,7 @@ public final class HollowGameTests {
     }
 
     /** Raw iron seeds an iron vein only once the team finished Villach; the sample is used up. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void seedingNeedsVillach(GameTestHelper helper) {
         UUID team = UUID.randomUUID();
         GnomeHollowBlockEntity hollow = hollow(helper, team);
@@ -91,7 +86,7 @@ public final class HollowGameTests {
     }
 
     /** One ripening step takes its principles and waits for more. */
-    @GameTest(template = EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void ripeningTakesPrinciples(GameTestHelper helper) {
         GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
         holder[0] = ironHollow(helper, false, () -> holder[0].tanks().insert(new Principles(150, 0, 30)));
@@ -105,7 +100,7 @@ public final class HollowGameTests {
     }
 
     /** Only a player with Elemental Sight can bind a gnome, and only to a ripe vein. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void bindingNeedsElementalSight(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
@@ -124,11 +119,11 @@ public final class HollowGameTests {
     }
 
     /** A bound gnome digs raw iron at the vein's rate and the Hollow pushes it into a chest. */
-    @GameTest(template = EMPTY, timeoutTicks = 600)
+    @ServusGameTest(timeoutTicks = 600)
     public static void boundHollowYieldsIntoAChest(GameTestHelper helper) {
         BlockPos chestPos = MACHINE.east();
         helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
         holder[0] = ironHollow(helper, true, () -> {
             holder[0].growth().bound = true;
@@ -138,7 +133,7 @@ public final class HollowGameTests {
     }
 
     /** Binding a gnome counts for Schwaz. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void bindingCountsForSchwaz(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.addEffect(new MobEffectInstance(ElementalSight.EFFECT, 200));
@@ -152,7 +147,7 @@ public final class HollowGameTests {
     }
 
     /** A working Hollow is a producer of its yield with no inputs. */
-    @GameTest(template = EMPTY, timeoutTicks = 40)
+    @ServusGameTest(timeoutTicks = 40)
     public static void workingHollowIsAProducer(GameTestHelper helper) {
         GnomeHollowBlockEntity[] holder = new GnomeHollowBlockEntity[1];
         holder[0] = ironHollow(helper, true, () -> {

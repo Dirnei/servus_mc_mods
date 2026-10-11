@@ -14,7 +14,7 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
@@ -80,7 +80,7 @@ public final class AthanorRecipeCategory implements IRecipeCategory<RecipeHolder
     }
 
     @Override
-    public void draw(RecipeHolder<AthanorRecipe> holder, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics,
+    public void draw(RecipeHolder<AthanorRecipe> holder, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics,
                      double mouseX, double mouseY) {
         arrow.draw(guiGraphics, 90, 5);
         AthanorRecipe recipe = holder.value();
@@ -88,7 +88,7 @@ public final class AthanorRecipeCategory implements IRecipeCategory<RecipeHolder
         int tier = Math.max(0, Math.min(STAGES.length - 1, recipe.tier()));
         Component stage = Component.translatable("gui.servus_manufacturing.jei.athanor.tier",
                 Component.translatable("gui.servus_manufacturing.athanor.stage." + STAGES[tier]));
-        guiGraphics.drawString(Minecraft.getInstance().font, time, 90, 25, 0x808080, false);
-        guiGraphics.drawString(Minecraft.getInstance().font, stage, 1, 35, 0x808080, false);
+        guiGraphics.text(Minecraft.getInstance().font, time, 90, 25, 0xFF808080, false);
+        guiGraphics.text(Minecraft.getInstance().font, stage, 1, 35, 0xFF808080, false);
     }
 }

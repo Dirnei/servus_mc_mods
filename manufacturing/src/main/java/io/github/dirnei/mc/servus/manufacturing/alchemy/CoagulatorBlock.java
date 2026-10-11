@@ -1,8 +1,9 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -46,15 +47,15 @@ public class CoagulatorBlock extends MachineBlock {
 
     /** The Journal forms the build; anything else passes to an empty hand's click. */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.getItem() instanceof ParacelsusJournalItem) {
             if (!level.isClientSide()) {
                 CoagulatorStructure.tryForm(level, pos, player);
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     /** An empty hand opens the recipe GUI of a formed Coagulator. */
@@ -73,8 +74,9 @@ public class CoagulatorBlock extends MachineBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         CoagulatorStructure.neighbourChanged(level, state, pos);
     }
 

@@ -8,18 +8,17 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlock;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 
 final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
 
-    ServusManufacturingBlockStateProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
-        super(output, ServusManufacturingIds.MOD_ID, existingFileHelper);
+    ServusManufacturingBlockStateProvider(PackOutput output) {
+        super(output, ServusManufacturingIds.MOD_ID);
     }
 
     @Override
@@ -44,8 +43,8 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
      * and copper sockets for the pipes the renderer draws to the tanks. Both turned by facing.
      */
     private void athanor() {
-        ResourceLocation side = mcLoc("block/stone_bricks");
-        ResourceLocation top = mcLoc("block/chiseled_stone_bricks");
+        Identifier side = mcLoc("block/stone_bricks");
+        Identifier top = mcLoc("block/chiseled_stone_bricks");
         ModelFile[][] models = new ModelFile[4][2];
         ModelFile[][] formed = new ModelFile[4][2];
         for (int tier = 0; tier < 4; tier++) {
@@ -68,7 +67,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     }
 
     /** The tower, front to the north; the player's right is west. The door shows the arch of the front texture. */
-    private ModelFile athanorTower(String name, ResourceLocation front) {
+    private ModelFile athanorTower(String name, Identifier front) {
         BlockModelBuilder model = models().withExistingParent(name, mcLoc("block/block"))
                 .texture("stone", mcLoc("block/stone_bricks"))
                 .texture("iron", mcLoc("block/iron_block")).texture("copper", mcLoc("block/cut_copper"))
@@ -104,7 +103,7 @@ final class ServusManufacturingBlockStateProvider extends BlockStateProvider {
     }
 
     /** Orientable machine with a lit and an unlit front, rotated by facing. */
-    private void machine(Block block, String name, ResourceLocation side, ResourceLocation top) {
+    private void machine(Block block, String name, Identifier side, Identifier top) {
         ModelFile unlit = models().orientable(name, side, modLoc("block/" + name + "_front"), top);
         ModelFile lit = models().orientable(name + "_lit", side, modLoc("block/" + name + "_front_lit"), top);
         getVariantBuilder(block).forAllStates(state -> {

@@ -15,7 +15,7 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
@@ -23,7 +23,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 @JeiPlugin
 public final class ServusManufacturingJeiPlugin implements IModPlugin {
 
-    private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "jei");
+    private static final Identifier UID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "jei");
 
     public static final RecipeType<RecipeHolder<CalcinationRecipe>> CALCINATION =
             RecipeType.createRecipeHolderType(ServusManufacturingRecipes.CALCINATION_ID);
@@ -35,7 +35,7 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
             RecipeType.createRecipeHolderType(ServusManufacturingRecipes.ATHANOR_ID);
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return UID;
     }
 
@@ -54,10 +54,10 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
         if (minecraft.level == null) {
             return;
         }
-        registration.addRecipes(CALCINATION, minecraft.level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.CALCINATION.get()));
-        registration.addRecipes(PURIFICATION, minecraft.level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.PURIFICATION.get()));
-        registration.addRecipes(COAGULATION, CoagulatorBlockEntity.sortedRecipes(minecraft.level.getRecipeManager()));
-        registration.addRecipes(ATHANOR, minecraft.level.getRecipeManager().getAllRecipesFor(ServusManufacturingRecipes.ATHANOR.get()));
+        registration.addRecipes(CALCINATION, minecraft.level.recipeAccess().getAllRecipesFor(ServusManufacturingRecipes.CALCINATION.get()));
+        registration.addRecipes(PURIFICATION, minecraft.level.recipeAccess().getAllRecipesFor(ServusManufacturingRecipes.PURIFICATION.get()));
+        registration.addRecipes(COAGULATION, CoagulatorBlockEntity.sortedRecipes(minecraft.level.recipeAccess()));
+        registration.addRecipes(ATHANOR, minecraft.level.recipeAccess().getAllRecipesFor(ServusManufacturingRecipes.ATHANOR.get()));
     }
 
     @Override

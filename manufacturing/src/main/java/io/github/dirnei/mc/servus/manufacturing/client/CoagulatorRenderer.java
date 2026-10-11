@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
@@ -16,8 +17,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -52,11 +52,11 @@ public final class CoagulatorRenderer implements BlockEntityRenderer<CoagulatorB
             }
             FluidStack fluid = new FluidStack(PrincipleFluids.fluid(principle), amount);
             IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
-            ResourceLocation still = extensions.getStillTexture(fluid);
+            Identifier still = extensions.getStillTexture(fluid);
             if (still == null) {
                 continue;
             }
-            TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(still);
+            TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(still);
             float top = FLOOR + (RIM - FLOOR) * Math.min(1.0F, amount / (float) capacity);
             Offset offset = CoagulatorLayout.worldOffset(vat, facing);
             poseStack.pushPose();

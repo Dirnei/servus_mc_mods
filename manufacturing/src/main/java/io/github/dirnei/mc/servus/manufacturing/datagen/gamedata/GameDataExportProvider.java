@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.VanillaPackResources;
 import net.minecraft.server.packs.repository.ServerPacksSource;
@@ -134,7 +134,7 @@ public final class GameDataExportProvider implements DataProvider {
     private static List<Machine> machines(List<Path> resourceRoots) throws IOException {
         List<Machine> machines = new ArrayList<>();
         for (MachineDefaults.MachineInfo info : MachineDefaults.all().values()) {
-            ResourceLocation id = ResourceLocation.parse(info.id());
+            Identifier id = Identifier.parse(info.id());
             MachineStats stats = info.stats();
             for (Path root : resourceRoots) {
                 Path file = root.resolve("data").resolve(id.getNamespace()).resolve("machine").resolve(id.getPath() + ".json");
@@ -305,13 +305,13 @@ public final class GameDataExportProvider implements DataProvider {
             if (id == null) {
                 continue;
             }
-            ResourceLocation location = ResourceLocation.parse(id);
+            Identifier location = Identifier.parse(id);
             String name;
             if (location.getNamespace().startsWith("servus_")) {
                 String suffix = location.getNamespace() + "." + location.getPath().replace('/', '.');
                 name = lang.getOrDefault("item." + suffix, lang.get("block." + suffix));
             } else {
-                Item item = BuiltInRegistries.ITEM.get(location);
+                Item item = BuiltInRegistries.ITEM.getValue(location);
                 name = lang.get(item.getDescriptionId());
             }
             names.put(id, name != null ? name : titleCase(location.getPath()));

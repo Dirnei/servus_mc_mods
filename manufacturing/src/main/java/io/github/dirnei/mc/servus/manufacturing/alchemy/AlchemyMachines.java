@@ -8,8 +8,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 
 /** What the Calciner and Coagulator share: synced data slots of their tanks and the push into neighbours. */
 public final class AlchemyMachines {
@@ -37,7 +37,7 @@ public final class AlchemyMachines {
      * What a machine's tanks offer on a world face by its Fluids layer: every tank on All sides,
      * one tank on a side set to it, nothing on Off sides. A null face (no side) sees every tank.
      */
-    public static IFluidHandler sideHandler(MachineBlockEntity machine, PrincipleTanks tanks, Direction face) {
+    public static FluidView sideHandler(MachineBlockEntity machine, PrincipleTanks tanks, Direction face) {
         FluidSides sides = machine.fluidSides();
         if (face == null || sides == null) {
             return tanks;
@@ -56,19 +56,19 @@ public final class AlchemyMachines {
             if (sideHandler(machine, tanks, direction) == null) {
                 continue;
             }
-            IFluidHandler neighbour = level.getCapability(Capabilities.FluidHandler.BLOCK, pos.relative(direction), direction.getOpposite());
+            FluidView neighbour = FluidView.of(level.getCapability(Capabilities.Fluid.BLOCK, pos.relative(direction), direction.getOpposite()));
             if (neighbour == null || neighbour == tanks) {
                 continue;
             }
             for (Principle principle : Principle.values()) {
-                FluidTank tank = tanks.tank(principle);
+                FluidSlot tank = tanks.tank(principle);
                 if (tank.isEmpty() || !machine.fluidSideExposes(direction, principle.ordinal())) {
                     continue;
                 }
                 FluidStack offer = tank.getFluid().copy();
-                int filled = neighbour.fill(offer, IFluidHandler.FluidAction.EXECUTE);
+                int filled = neighbour.fill(offer, false);
                 if (filled > 0) {
-                    tank.drain(filled, IFluidHandler.FluidAction.EXECUTE);
+                    tank.drain(filled, false);
                 }
             }
         }

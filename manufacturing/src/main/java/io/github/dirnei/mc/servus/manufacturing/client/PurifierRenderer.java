@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout;
@@ -11,11 +12,10 @@ import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 
 /** Draws the Purifier: the Ash still to wash on the Vat's floor with the water over it, the Salt in the Catch Basin and the Caput Mortuum in the Residue Crock. */
 public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlockEntity> {
@@ -34,13 +34,13 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
     private static final float CROCK_FLOOR = 2 / 16F;
     private static final float CROCK_TOP = 9.5F / 16F;
     /** The Caput Mortuum is a dark violet brown powder. */
-    private static final ResourceLocation RESIDUE = ResourceLocation.withDefaultNamespace("block/brown_concrete_powder");
+    private static final Identifier RESIDUE = Identifier.withDefaultNamespace("block/brown_concrete_powder");
 
     public PurifierRenderer(BlockEntityRendererProvider.Context context) {
     }
 
     /** The Ash waiting in the vat lies on its floor as grey powder. */
-    private static final ResourceLocation ASH = ResourceLocation.withDefaultNamespace("block/light_gray_concrete_powder");
+    private static final Identifier ASH = Identifier.withDefaultNamespace("block/light_gray_concrete_powder");
     /** The ash layer grows from one sixteenth to this height with a full stack. */
     private static final float ASH_MAX = 3 / 16F;
 
@@ -55,7 +55,7 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
         float floor = FLOOR;
         int items = purifier.shownItems();
         if (items > 0) {
-            TextureAtlasSprite ash = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(ASH);
+            TextureAtlasSprite ash = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(ASH);
             float height = 1 / 16F + (ASH_MAX - 1 / 16F) * Math.min(1.0F, items / 64F);
             CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentCullBlockSheet()), poseStack.last(),
                     INSIDE_MIN, FLOOR, INSIDE_MIN, INSIDE_MAX, FLOOR + height, INSIDE_MAX, ash, 0xFFFFFFFF, packedLight);
@@ -75,7 +75,7 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
         int residue = purifier.shownResidue();
         if (residue > 0) {
             BlockPos crock = PurifierStructure.partPos(purifier.getLevel(), vat, PurifierLayout.Role.CROCK).subtract(vat);
-            TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(RESIDUE);
+            TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RESIDUE);
             float top = CROCK_FLOOR + 1 / 16F + (CROCK_TOP - CROCK_FLOOR - 1 / 16F) * Math.min(1.0F, residue / 64F);
             poseStack.pushPose();
             poseStack.translate(crock.getX(), crock.getY(), crock.getZ());
@@ -86,18 +86,18 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
     }
 
     /** One liquid as high as its tank is full, between {@code bottom} and {@code rim}, never thinner than half a pixel above {@code floor}. */
-    private static void drawLiquid(FluidTank tank, float floor, float bottom, float rim, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private static void drawLiquid(FluidSlot tank, float floor, float bottom, float rim, PoseStack poseStack, MultiBufferSource buffers, int light) {
         FluidStack fluid = tank.getFluid();
         if (fluid.isEmpty()) {
             return;
         }
         float share = Math.min(1.0F, fluid.getAmount() / (float) Math.max(1, tank.getCapacity()));
         IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
-        ResourceLocation still = extensions.getStillTexture(fluid);
+        Identifier still = extensions.getStillTexture(fluid);
         if (still == null) {
             return;
         }
-        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(still);
+        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(still);
         float top = Math.max(floor + 0.5F / 16F, bottom + (rim - bottom) * share);
         CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentCullBlockSheet()), poseStack.last(),
                 INSIDE_MIN, floor, INSIDE_MIN, INSIDE_MAX, top, INSIDE_MAX, sprite, extensions.getTintColor(fluid), light);

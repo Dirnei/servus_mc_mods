@@ -16,9 +16,8 @@ import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItem
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -28,14 +27,10 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The Purifier build: Ash and water leached in the Vat into liquid Salt in the Catch Basin, Caput Mortuum in the Residue Crock. */
-@GameTestHolder(ServusManufacturingIds.MOD_ID)
-@PrefixGameTestTemplate(false)
 public final class PurifierGameTests {
 
     /** The Leaching Vat; the log stands below it. */
@@ -68,16 +63,16 @@ public final class PurifierGameTests {
         return helper.getBlockEntity(PURIFIER);
     }
 
-    static IFluidHandler vatFluids(GameTestHelper helper) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(PURIFIER), Direction.UP);
+    static FluidView vatFluids(GameTestHelper helper) {
+        return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(PURIFIER), Direction.UP));
     }
 
-    static IFluidHandler basinFluids(GameTestHelper helper) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(BASIN), Direction.NORTH);
+    static FluidView basinFluids(GameTestHelper helper) {
+        return FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(BASIN), Direction.NORTH));
     }
 
-    static IItemHandler crockItems(GameTestHelper helper) {
-        return helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(CROCK), Direction.DOWN);
+    static ItemView crockItems(GameTestHelper helper) {
+        return ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(CROCK), Direction.DOWN));
     }
 
     static FluidStack water(int amount) {
@@ -92,11 +87,11 @@ public final class PurifierGameTests {
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 500)
     public static void purifierLeachesAsh(GameTestHelper helper) {
         PurifierBlockEntity purifier = purifier(helper);
-        IItemHandler items = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(PURIFIER), Direction.UP);
+        ItemView items = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(PURIFIER), Direction.UP));
         helper.assertTrue(items.getSlots() == 1, "the Vat shows one slot");
         helper.assertTrue(items.insertItem(0, new ItemStack(ServusManufacturingItems.ASH.get(), 8), false).isEmpty(), "the Vat takes Ash");
         helper.assertTrue(items.insertItem(0, new ItemStack(Items.DIRT), false).getCount() == 1, "the Vat refuses dirt");
-        helper.assertTrue(vatFluids(helper).fill(water(1000), IFluidHandler.FluidAction.EXECUTE) == 1000, "the Vat takes water");
+        helper.assertTrue(vatFluids(helper).fill(water(1000), false) == 1000, "the Vat takes water");
         helper.succeedWhen(() -> {
             helper.assertTrue(purifier.salt().getFluidAmount() == 800, "800 mB Salt, got " + purifier.salt().getFluidAmount());
             helper.assertTrue(purifier.water().getFluidAmount() == 200, "200 mB water left, got " + purifier.water().getFluidAmount());
@@ -122,16 +117,16 @@ public final class PurifierGameTests {
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
     public static void vatTakesWaterBasinGivesSalt(GameTestHelper helper) {
         PurifierBlockEntity purifier = purifier(helper);
-        IFluidHandler vat = vatFluids(helper);
-        IFluidHandler basin = basinFluids(helper);
-        helper.assertTrue(vat.fill(salt(100), IFluidHandler.FluidAction.EXECUTE) == 0, "the Vat refuses Salt");
-        helper.assertTrue(vat.fill(water(500), IFluidHandler.FluidAction.EXECUTE) == 500, "the Vat takes water");
-        helper.assertTrue(vat.drain(100, IFluidHandler.FluidAction.EXECUTE).isEmpty(), "the Vat gives nothing");
-        helper.assertTrue(basin.fill(water(100), IFluidHandler.FluidAction.EXECUTE) == 0, "the Basin takes nothing");
+        FluidView vat = vatFluids(helper);
+        FluidView basin = basinFluids(helper);
+        helper.assertTrue(vat.fill(salt(100), false) == 0, "the Vat refuses Salt");
+        helper.assertTrue(vat.fill(water(500), false) == 500, "the Vat takes water");
+        helper.assertTrue(vat.drain(100, false).isEmpty(), "the Vat gives nothing");
+        helper.assertTrue(basin.fill(water(100), false) == 0, "the Basin takes nothing");
         helper.assertTrue(crockItems(helper).insertItem(0, new ItemStack(ServusManufacturingItems.ASH.get()), false).getCount() == 1,
                 "the Crock takes nothing");
-        purifier.salt().fill(salt(250), IFluidHandler.FluidAction.EXECUTE);
-        FluidStack drained = basin.drain(1000, IFluidHandler.FluidAction.EXECUTE);
+        purifier.salt().fill(salt(250), false);
+        FluidStack drained = basin.drain(1000, false);
         helper.assertTrue(drained.getFluid().isSame(PrincipleFluids.fluid(Principle.SALT)) && drained.getAmount() == 250, "the Salt comes out, got " + drained);
         helper.succeed();
     }
@@ -142,8 +137,8 @@ public final class PurifierGameTests {
         PurifierBlockEntity purifier = purifier(helper);
         BlockPos tank = BASIN.north();
         helper.setBlock(tank, ServusLogisticsBlocks.FLUID_TANK.get().defaultBlockState());
-        purifier.salt().fill(salt(300), IFluidHandler.FluidAction.EXECUTE);
-        helper.succeedWhen(() -> helper.assertTrue(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(tank), Direction.UP)
+        purifier.salt().fill(salt(300), false);
+        helper.succeedWhen(() -> helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(tank), Direction.UP))
                 .getFluidInTank(0).getAmount() == 300, "the tank should hold 300 mB Salt"));
     }
 
@@ -154,7 +149,7 @@ public final class PurifierGameTests {
         purifier.inventory().setStackInSlot(PurifierBlockEntity.SLOT_RESIDUE, new ItemStack(ServusManufacturingItems.CAPUT_MORTUUM.get(), 2));
         BlockPos hopper = CROCK.below();
         helper.setBlock(hopper, Blocks.HOPPER.defaultBlockState());
-        HopperBlockEntity hopperEntity = helper.getBlockEntity(hopper);
+        HopperBlockEntity hopperEntity = helper.getBlockEntity(hopper, HopperBlockEntity.class);
         helper.succeedWhen(() -> helper.assertTrue(hopperEntity.countItem(ServusManufacturingItems.CAPUT_MORTUUM.get()) == 2,
                 "the hopper should hold two Caput Mortuum, holds " + hopperEntity.countItem(ServusManufacturingItems.CAPUT_MORTUUM.get())));
     }
@@ -167,7 +162,7 @@ public final class PurifierGameTests {
         CalcinerGameTests.use(helper, player, PURIFIER);
         helper.assertTrue(purifier.water().getFluidAmount() == 1000, "the water bucket pours in, got " + purifier.water().getFluidAmount());
         helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.BUCKET), "the player holds an empty bucket");
-        purifier.salt().fill(salt(1000), IFluidHandler.FluidAction.EXECUTE);
+        purifier.salt().fill(salt(1000), false);
         CalcinerGameTests.use(helper, player, BASIN);
         helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(PrincipleFluids.entry(Principle.SALT).bucket().get()),
                 "the bucket fills with Salt at the Basin, holds " + player.getItemInHand(InteractionHand.MAIN_HAND));
@@ -213,10 +208,10 @@ public final class PurifierGameTests {
         helper.assertBlockProperty(PURIFIER, PurifierBlock.FORMED, true);
         helper.assertBlockProperty(BASIN, PurifierSideBlock.FORMED, true);
         helper.assertBlockProperty(CROCK, PurifierSideBlock.FORMED, true);
-        PurifierBlockEntity purifier = helper.getBlockEntity(PURIFIER);
-        purifier.salt().fill(salt(100), IFluidHandler.FluidAction.EXECUTE);
-        IFluidHandler basin = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(CROCK), Direction.NORTH);
-        helper.assertTrue(basin != null && basin.drain(100, IFluidHandler.FluidAction.SIMULATE).getAmount() == 100,
+        PurifierBlockEntity purifier = helper.getBlockEntity(PURIFIER, PurifierBlockEntity.class);
+        purifier.salt().fill(salt(100), false);
+        FluidView basin = FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(CROCK), Direction.NORTH));
+        helper.assertTrue(basin != null && basin.drain(100, true).getAmount() == 100,
                 "the mirrored Basin, west of the log, gives the Salt");
         helper.succeed();
     }
@@ -247,7 +242,7 @@ public final class PurifierGameTests {
         UUID team = UUID.randomUUID();
         purifier.setTeam(team);
         purifier.insert(new ItemStack(ServusManufacturingItems.ASH.get(), 4));
-        purifier.water().fill(water(400), IFluidHandler.FluidAction.EXECUTE);
+        purifier.water().fill(water(400), false);
         helper.succeedWhen(() -> {
             JournalLedger.TeamJournal journal = Journal.journalOf(helper.getLevel().getServer(), team);
             helper.assertTrue(journal.count(AlchemyGameTests.VILLACH, "purify") >= 1, "the purification should count");
@@ -257,7 +252,7 @@ public final class PurifierGameTests {
     /** The journal's schematic accepts the build, anchored on the log. */
     @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
     public static void purifierSchematicMatchesTheBuild(GameTestHelper helper) {
-        Multiblock schematic = ModonomiconAPI.get().getMultiblock(ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purifier"));
+        Multiblock schematic = ModonomiconAPI.get().getMultiblock(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purifier"));
         helper.assertTrue(schematic != null, "the Purifier schematic should be loaded");
         build(helper, PURIFIER, false);
         helper.assertTrue(schematic.validate(helper.getLevel(), helper.absolutePos(PURIFIER.below())) != null, "the schematic accepts the build");

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen.book;
 
+import net.minecraft.world.level.block.Block;
 import com.klikli_dev.modonomicon.api.datagen.CategoryProvider;
 import com.klikli_dev.modonomicon.api.datagen.ModonomiconProviderBase;
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel;

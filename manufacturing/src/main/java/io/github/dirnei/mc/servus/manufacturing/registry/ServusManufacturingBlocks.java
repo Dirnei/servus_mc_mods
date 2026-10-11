@@ -30,7 +30,7 @@ public final class ServusManufacturingBlocks {
 
 
     public static final DeferredBlock<CalcinerBlock> CALCINER =
-            BLOCKS.registerBlock("calciner", CalcinerBlock::new, MachineContent.machine());
+            BLOCKS.registerBlock("calciner", CalcinerBlock::new, () -> MachineContent.machine());
 
     public static final DeferredBlock<CalcinerPartBlock> FIREBOX = calcinerPart("calciner_firebox", Role.FIREBOX,
             bricks().lightLevel(state -> state.getValue(CalcinerPartBlock.LIT) ? 13 : 0));
@@ -39,46 +39,46 @@ public final class ServusManufacturingBlocks {
     public static final DeferredBlock<CalcinerPartBlock> RECEIVER = calcinerPart("receiver", Role.RECEIVER,
             BlockBehaviour.Properties.of().mapColor(MapColor.NONE).strength(1.0F).sound(SoundType.GLASS).noOcclusion());
     public static final DeferredBlock<CalcinerPartBlock> SULFUR_HOOD = calcinerPart("sulfur_hood", Role.HOOD, copper());
-    public static final DeferredBlock<CopperDuctBlock> COPPER_DUCT = BLOCKS.registerBlock("copper_duct", CopperDuctBlock::new, copper());
+    public static final DeferredBlock<CopperDuctBlock> COPPER_DUCT = BLOCKS.registerBlock("copper_duct", CopperDuctBlock::new, () -> copper());
 
     /** A brick of a formed Calciner; mined like Bricks and dropping them. */
     public static final DeferredBlock<CalcinerShellBlock> CALCINER_SHELL = BLOCKS.registerBlock("calciner_shell",
-            CalcinerShellBlock::new, bricks());
+            CalcinerShellBlock::new, () -> bricks());
 
     /** The Purifier, a wooden vat that leaches Ash into liquid Salt. */
     public static final DeferredBlock<PurifierBlock> PURIFIER = BLOCKS.registerBlock("purifier", PurifierBlock::new,
-            BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion());
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion());
 
     /** The Catch Basin below one plank of the Purifier, where the Salt gathers. */
     public static final DeferredBlock<CatchBasinBlock> CATCH_BASIN = BLOCKS.registerBlock("catch_basin", CatchBasinBlock::new,
-            BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion());
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).noOcclusion());
 
     /** The Residue Crock below the other plank of the Purifier, where the Caput Mortuum falls. */
     public static final DeferredBlock<ResidueCrockBlock> RESIDUE_CROCK = BLOCKS.registerBlock("residue_crock", ResidueCrockBlock::new,
-            BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_ORANGE).strength(1.25F, 4.2F).sound(SoundType.STONE).noOcclusion());
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_ORANGE).strength(1.25F, 4.2F).sound(SoundType.STONE).noOcclusion());
 
     /** A Principle Vat of the Coagulator build. */
-    public static final DeferredBlock<VatBlock> VAT = BLOCKS.registerBlock("principle_vat", VatBlock::new, copper());
+    public static final DeferredBlock<VatBlock> VAT = BLOCKS.registerBlock("principle_vat", VatBlock::new, () -> copper());
 
     public static final DeferredBlock<CoagulatorBlock> COAGULATOR =
-            BLOCKS.registerBlock("coagulator", CoagulatorBlock::new, MachineContent.machine());
+            BLOCKS.registerBlock("coagulator", CoagulatorBlock::new, () -> MachineContent.machine());
 
     public static final DeferredBlock<Block> SALT_CRYSTAL_BLOCK = BLOCKS.registerSimpleBlock("salt_crystal_block",
             BlockBehaviour.Properties.of().mapColor(MapColor.QUARTZ).strength(0.8F).requiresCorrectToolForDrops().sound(SoundType.CALCITE));
 
     public static final DeferredBlock<AthanorBlock> ATHANOR = BLOCKS.registerBlock("athanor", AthanorBlock::new,
-            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F, 6.0F).requiresCorrectToolForDrops()
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F, 6.0F).requiresCorrectToolForDrops()
                     .sound(SoundType.STONE).noOcclusion().lightLevel(state -> state.getValue(MachineBlock.LIT) ? 13 : 0));
     /** The invisible space above a formed Athanor; no item, no drop. */
     public static final DeferredBlock<AthanorCrownBlock> ATHANOR_CROWN = BLOCKS.registerBlock("athanor_crown", AthanorCrownBlock::new,
-            BlockBehaviour.Properties.of().mapColor(MapColor.NONE).strength(2.0F, 6.0F).sound(SoundType.STONE).noOcclusion().noLootTable()
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.NONE).strength(2.0F, 6.0F).sound(SoundType.STONE).noOcclusion().noLootTable()
                     .pushReaction(PushReaction.BLOCK));
 
     public static final DeferredBlock<GnomeHollowBlock> GNOME_HOLLOW = BLOCKS.registerBlock("gnome_hollow", GnomeHollowBlock::new,
-            BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(1.5F, 6.0F).requiresCorrectToolForDrops().sound(SoundType.STONE));
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(1.5F, 6.0F).requiresCorrectToolForDrops().sound(SoundType.STONE));
 
     private static DeferredBlock<CalcinerPartBlock> calcinerPart(String name, Role role, BlockBehaviour.Properties properties) {
-        return BLOCKS.registerBlock(name, props -> new CalcinerPartBlock(role, props), properties);
+        return BLOCKS.registerBlock(name, props -> new CalcinerPartBlock(role, props), () -> properties);
     }
 
     /** Properties of vanilla Bricks. */

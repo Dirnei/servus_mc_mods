@@ -13,10 +13,10 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierSideBlo
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 
 /**
  * Models of the Calciner, built from boxes with vanilla textures. Every block has an unformed

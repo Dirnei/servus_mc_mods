@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.hollow;
 
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.util.ExtraCodecs;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -16,7 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.tags.TagKey;
@@ -25,7 +27,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 /** Loads the veins a Gnome Hollow can grow from {@code data/<namespace>/servus_manufacturing/vein/<name>.json}. */
-public final class VeinData extends SimpleJsonResourceReloadListener {
+public final class VeinData extends SimpleJsonResourceReloadListener<JsonElement> {
+
+    /** Key of this listener in the reload event. */
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_manufacturing", "vein_data");
 
     public static final String DIRECTORY = "servus_manufacturing/vein";
 
@@ -36,7 +41,7 @@ public final class VeinData extends SimpleJsonResourceReloadListener {
      * @param yield   what a bound gnome digs
      * @param chapter the journal chapter a team must have finished to seed it, if any
      */
-    public record VeinDef(List<TagKey<Item>> samples, ItemStack yield, Optional<ResourceLocation> chapter, Vein growth) {
+    public record VeinDef(List<TagKey<Item>> samples, ItemStack yield, Optional<Identifier> chapter, Vein growth) {
 
         public boolean matches(ItemStack stack) {
             return samples.stream().anyMatch(stack::is);
@@ -46,7 +51,7 @@ public final class VeinData extends SimpleJsonResourceReloadListener {
     private static final Codec<VeinDef> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             TagKey.codec(Registries.ITEM).listOf().fieldOf("samples").forGetter(VeinDef::samples),
             ItemStack.SINGLE_ITEM_CODEC.fieldOf("yield").forGetter(VeinDef::yield),
-            ResourceLocation.CODEC.optionalFieldOf("chapter").forGetter(VeinDef::chapter),
+            Identifier.CODEC.optionalFieldOf("chapter").forGetter(VeinDef::chapter),
             Codec.intRange(1, Integer.MAX_VALUE).fieldOf("steps").forGetter(def -> def.growth().steps()),
             Codec.intRange(1, Integer.MAX_VALUE).fieldOf("step_ticks").forGetter(def -> def.growth().stepTicks()),
             PrincipleCodecs.CODEC.optionalFieldOf("step_cost", Principles.NONE).forGetter(def -> def.growth().stepCost()),
@@ -58,15 +63,15 @@ public final class VeinData extends SimpleJsonResourceReloadListener {
 
     public static final VeinData INSTANCE = new VeinData();
 
-    private volatile Map<ResourceLocation, VeinDef> veins = Map.of();
+    private volatile Map<Identifier, VeinDef> veins = Map.of();
 
     private VeinData() {
-        super(GSON, DIRECTORY);
+        super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
-        Map<ResourceLocation, VeinDef> loaded = new LinkedHashMap<>();
+    protected void apply(Map<Identifier, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
+        Map<Identifier, VeinDef> loaded = new LinkedHashMap<>();
         new TreeMap<>(files).forEach((id, json) -> CODEC.parse(JsonOps.INSTANCE, json)
                 .resultOrPartial(error -> ServusManufacturing.LOGGER.error("Invalid vein {}: {}", id, error))
                 .ifPresent(def -> loaded.put(id, def)));
@@ -74,19 +79,19 @@ public final class VeinData extends SimpleJsonResourceReloadListener {
         ServusManufacturing.LOGGER.info("Loaded {} veins", loaded.size());
     }
 
-    public Optional<VeinDef> get(ResourceLocation id) {
+    public Optional<VeinDef> get(Identifier id) {
         return Optional.ofNullable(veins.get(id));
     }
 
     /** The vein a sample seeds: the first by id whose sample tags hold the item. */
-    public Optional<Map.Entry<ResourceLocation, VeinDef>> forSample(ItemStack stack) {
+    public Optional<Map.Entry<Identifier, VeinDef>> forSample(ItemStack stack) {
         if (stack.isEmpty()) {
             return Optional.empty();
         }
         return new TreeMap<>(veins).entrySet().stream().filter(entry -> entry.getValue().matches(stack)).findFirst();
     }
 
-    public Map<ResourceLocation, VeinDef> veins() {
+    public Map<Identifier, VeinDef> veins() {
         return veins;
     }
 }

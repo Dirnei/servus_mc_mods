@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import net.minecraft.world.level.block.Block;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;

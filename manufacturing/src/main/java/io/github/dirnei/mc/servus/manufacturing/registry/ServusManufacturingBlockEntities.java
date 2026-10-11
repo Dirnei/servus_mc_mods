@@ -18,29 +18,19 @@ public final class ServusManufacturingBlockEntities {
 
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CalcinerBlockEntity>> CALCINER =
-            BLOCK_ENTITIES.register("calciner", () -> BlockEntityType.Builder
-                    .of(CalcinerBlockEntity::new, ServusManufacturingBlocks.CALCINER.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("calciner", () -> new BlockEntityType<>(CalcinerBlockEntity::new, ServusManufacturingBlocks.CALCINER.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoagulatorBlockEntity>> COAGULATOR =
-            BLOCK_ENTITIES.register("coagulator", () -> BlockEntityType.Builder
-                    .of(CoagulatorBlockEntity::new, ServusManufacturingBlocks.COAGULATOR.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("coagulator", () -> new BlockEntityType<>(CoagulatorBlockEntity::new, ServusManufacturingBlocks.COAGULATOR.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AthanorBlockEntity>> ATHANOR =
-            BLOCK_ENTITIES.register("athanor", () -> BlockEntityType.Builder
-                    .of(AthanorBlockEntity::new, ServusManufacturingBlocks.ATHANOR.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("athanor", () -> new BlockEntityType<>(AthanorBlockEntity::new, ServusManufacturingBlocks.ATHANOR.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GnomeHollowBlockEntity>> GNOME_HOLLOW =
-            BLOCK_ENTITIES.register("gnome_hollow", () -> BlockEntityType.Builder
-                    .of(GnomeHollowBlockEntity::new, ServusManufacturingBlocks.GNOME_HOLLOW.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("gnome_hollow", () -> new BlockEntityType<>(GnomeHollowBlockEntity::new, ServusManufacturingBlocks.GNOME_HOLLOW.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PurifierBlockEntity>> PURIFIER =
-            BLOCK_ENTITIES.register("purifier", () -> BlockEntityType.Builder
-                    .of(PurifierBlockEntity::new, ServusManufacturingBlocks.PURIFIER.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("purifier", () -> new BlockEntityType<>(PurifierBlockEntity::new, ServusManufacturingBlocks.PURIFIER.get()));
 
     private ServusManufacturingBlockEntities() {
     }

@@ -18,8 +18,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
  * Forms and unforms the Purifier following {@link PurifierLayout}: the Leaching Vat on a log, the
@@ -78,7 +78,7 @@ public final class PurifierStructure {
                 if (level.getBlockEntity(vat) instanceof PurifierBlockEntity purifier) {
                     purifier.setOwner(player.getUUID());
                 }
-                player.displayClientMessage(Component.translatable("message.servus_manufacturing.purifier.formed"), true);
+                player.sendOverlayMessage(Component.translatable("message.servus_manufacturing.purifier.formed"));
                 return true;
             }
             long matches = PurifierLayout.cells().stream().filter(cell -> matches(level.getBlockState(pos(vat, cell, facing)), cell, false)).count();
@@ -193,12 +193,12 @@ public final class PurifierStructure {
     }
 
     /** The Salt drain only view of a formed Basin. */
-    public static IFluidHandler basinHandler(Level level, BlockPos pos, BlockState state) {
+    public static FluidView basinHandler(Level level, BlockPos pos, BlockState state) {
         return formedVat(level, pos, state, CatchBasinBlock.class).map(PurifierBlockEntity::saltPort).orElse(null);
     }
 
     /** The residue extract only view of a formed Crock. */
-    public static IItemHandler crockHandler(Level level, BlockPos pos, BlockState state) {
+    public static ItemView crockHandler(Level level, BlockPos pos, BlockState state) {
         return formedVat(level, pos, state, ResidueCrockBlock.class).map(PurifierBlockEntity::residuePort).orElse(null);
     }
 }

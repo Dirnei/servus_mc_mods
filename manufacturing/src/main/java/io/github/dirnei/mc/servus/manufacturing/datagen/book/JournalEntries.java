@@ -6,7 +6,7 @@ import com.klikli_dev.modonomicon.api.datagen.EntryProvider;
 import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookCraftingRecipePageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookMultiblockPageModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookSpotlightPageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
 import com.mojang.datafixers.util.Pair;
@@ -77,7 +77,7 @@ final class JournalEntries {
         }
 
         /** A multiblock schematic the reader can turn and project into the world with Visualize. */
-        void multiblock(String page, ResourceLocation multiblock, String title, String body) {
+        void multiblock(String page, Identifier multiblock, String title, String body) {
             page(page, () -> BookMultiblockPageModel.create()
                     .withMultiblockId(multiblock)
                     .withMultiblockName(context().pageTitle())

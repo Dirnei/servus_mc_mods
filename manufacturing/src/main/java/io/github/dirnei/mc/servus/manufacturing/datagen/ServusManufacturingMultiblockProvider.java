@@ -8,7 +8,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator.CoagulatorStr
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTierData;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
@@ -27,11 +27,11 @@ import net.minecraft.world.level.block.Blocks;
 public final class ServusManufacturingMultiblockProvider extends MultiblockProvider {
 
     /** The id of the Calciner schematic, used by the journal's multiblock page. */
-    public static final ResourceLocation CALCINER = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
+    public static final Identifier CALCINER = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
     /** The id of the Purifier schematic. */
-    public static final ResourceLocation PURIFIER = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purifier");
+    public static final Identifier PURIFIER = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purifier");
     /** The id of the Coagulator schematic. */
-    public static final ResourceLocation COAGULATOR = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulator");
+    public static final Identifier COAGULATOR = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulator");
 
     /** The Calciner in the schematic; {@code 0}, the anchor, is the Ash Pan on the ground. */
     private static final char CALCINER_SYMBOL = 'C';
@@ -95,8 +95,8 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
     }
 
     /** The id of the schematic of the Athanor at {@code stage}, such as {@code nigredo} or {@code albedo}. */
-    public static ResourceLocation athanor(String stage) {
-        return ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_" + stage);
+    public static Identifier athanor(String stage) {
+        return Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor_" + stage);
     }
 
     private void athanor(String stage, List<AthanorTiers.BlockAt> extra) {
@@ -105,7 +105,7 @@ public final class ServusManufacturingMultiblockProvider extends MultiblockProvi
         for (List<String> layer : schematic.layers()) {
             builder.layer(layer.toArray(String[]::new));
         }
-        schematic.mapping().forEach((symbol, id) -> builder.block(symbol, () -> BuiltInRegistries.BLOCK.get(ResourceLocation.parse(id))));
+        schematic.mapping().forEach((symbol, id) -> builder.block(symbol, () -> BuiltInRegistries.BLOCK.getValue(Identifier.parse(id))));
         add(athanor(stage), builder.build(false, 1));
     }
 }

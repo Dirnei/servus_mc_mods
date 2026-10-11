@@ -9,10 +9,10 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.advancements.critereon.ImpossibleTrigger;
+import net.minecraft.advancements.criterion.ImpossibleTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.data.AdvancementProvider;
@@ -38,7 +38,7 @@ final class JournalAdvancements implements AdvancementProvider.AdvancementGenera
                 .display(Items.WRITABLE_BOOK,
                         Component.translatable("advancement.servus_manufacturing.journal.root"),
                         Component.translatable("advancement.servus_manufacturing.journal.root.description"),
-                        ResourceLocation.withDefaultNamespace("textures/gui/advancements/backgrounds/stone.png"),
+                        Identifier.withDefaultNamespace("textures/gui/advancements/backgrounds/stone.png"),
                         AdvancementType.TASK, false, false, false)
                 .addCriterion(Journal.CRITERION, CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
                 .save(saver, ServusManufacturingIds.MOD_ID + ":journal/root");

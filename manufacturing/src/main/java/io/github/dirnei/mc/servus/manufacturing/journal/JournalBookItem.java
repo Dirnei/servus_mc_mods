@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.manufacturing.journal;
 
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class JournalBookItem {
 
-    public static final ResourceLocation BOOK = ResourceLocation.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal");
+    public static final Identifier BOOK = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal");
     private static final String GIVEN = "servus_manufacturing.journal_given";
 
     private JournalBookItem() {

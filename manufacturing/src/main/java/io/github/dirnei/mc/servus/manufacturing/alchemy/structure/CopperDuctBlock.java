@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.structure;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
@@ -17,7 +19,7 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -33,7 +35,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class CopperDuctBlock extends Block implements Wrenchable {
 
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty FORMED = CalcinerPartBlock.FORMED;
     /** The Athanor's duct right beside it. */
     public static final int ATHANOR_NEAR = 3;
@@ -96,8 +98,9 @@ public class CopperDuctBlock extends Block implements Wrenchable {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation,
+                                   boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         if (!athanorPiece(state)) {
             CalcinerStructure.neighbourChanged(level, state, pos);
         }
