@@ -14,7 +14,7 @@
 
 ## 4. Renderer
 
-- [ ] 4.1 `storage/.../client/FieldHeadRenderer.java`: water quads per side up to the synced level with the water still texture and biome tint, crop item on the top plate; register in `ServusStorageClient`; `gradlew build`
+- [x] 4.1 `storage/.../client/FieldHeadRenderer.java`: water quads per side up to the synced level with the water still texture and biome tint, crop item on the top plate; register in `ServusStorageClient`; `gradlew build`
 
 ## 5. Tests and docs
 
