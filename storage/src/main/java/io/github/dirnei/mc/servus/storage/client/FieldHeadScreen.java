@@ -1,6 +1,7 @@
 package io.github.dirnei.mc.servus.storage.client;
 
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
+import io.github.dirnei.mc.servus.storage.field.ChooseFieldCropPayload;
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
@@ -10,6 +11,10 @@ import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import io.github.dirnei.mc.servus.storage.picker.PickerList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -19,10 +24,11 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The Field Head GUI in three tabs on the left edge, drawn like the Utility
- * Duct tabs: Field (crop, harvest only, ripe share, threshold, work status),
+ * Duct tabs: Field (crop picker, ripe share, threshold, work status),
  * Water (water bar, anti-corrosion slot, corrosion stage) and Upgrades (Range
  * Upgrade slot, radius, field size). The player inventory is always below. A
  * tab whose page holds a problem gets a red marker.
@@ -67,18 +73,42 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int SIZE_Y = 44;
 
     private Button down;
+    private final ItemPicker picker;
+    /** The stock map last handed to the picker, to hand it over only when the menu got a new one. */
+    private Map<ResourceLocation, Long> pickerStock;
     private Button up;
 
     public FieldHeadScreen(FieldHeadMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
         this.imageHeight = 178;
+        this.picker = new ItemPicker(Component.translatable("gui.servus_storage.field_head.crop_picker"), this::choose);
+        picker.setEntries(CropPickerEntries.build());
+        picker.setZeroHint(Component.translatable("gui.servus_storage.field_head.crop_no_stock"));
+    }
+
+    /** Sends the picked crop, or harvest only for the none entry, to the server. */
+    private void choose(ItemPicker.Entry entry) {
+        Optional<ResourceLocation> crop = entry.isNone() ? Optional.empty() : Optional.ofNullable(ResourceLocation.tryParse(entry.id()));
+        PacketDistributor.sendToServer(new ChooseFieldCropPayload(crop));
+    }
+
+    /** Hands the head's crop and the menu's stock to the picker. */
+    private void syncPicker() {
+        ItemStack crop = menu.crop();
+        picker.setSelected(menu.harvestOnly() || crop.isEmpty() ? PickerList.NONE_ID : BuiltInRegistries.ITEM.getKey(crop.getItem()).toString());
+        if (menu.stock() != pickerStock) {
+            pickerStock = menu.stock();
+            picker.setStock(CropPickerEntries.keyed(pickerStock));
+        }
     }
 
     @Override
     protected void init() {
         super.init();
         this.inventoryLabelY = FieldHeadMenu.INVENTORY_Y - 11;
+        picker.setButton(leftPos + FieldHeadMenu.PICKER_X, topPos + FieldHeadMenu.PICKER_Y, FieldHeadMenu.PICKER_WIDTH);
+        picker.setArea(leftPos, topPos, imageWidth, imageHeight);
         down = addRenderableWidget(Button.builder(Component.literal("-"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_DOWN))
                 .bounds(leftPos + 136, topPos + THRESHOLD_Y - 2, 14, 11).build());
         up = addRenderableWidget(Button.builder(Component.literal("+"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_UP))
@@ -192,7 +222,18 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         boolean serving = serving();
         down.visible = page == Page.FIELD && serving;
         up.visible = page == Page.FIELD && serving;
+        syncPicker();
+        if (picker.isOpen()) {
+            // While the picker is open nothing below it reacts to the mouse.
+            super.render(graphics, -1, -1, partialTick);
+            picker.renderPopup(graphics, font, mouseX, mouseY, partialTick);
+            picker.renderTooltip(graphics, font, mouseX, mouseY);
+            return;
+        }
         super.render(graphics, mouseX, mouseY, partialTick);
+        if (page == Page.FIELD && picker.renderTooltip(graphics, font, mouseX, mouseY)) {
+            return;
+        }
         Page hovered = tabAt(mouseX, mouseY);
         if (hovered != null) {
             List<Component> lines = new ArrayList<>();
@@ -240,6 +281,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         switch (menu.page()) {
             case FIELD -> {
+                picker.renderButton(graphics, font, mouseX, mouseY);
                 if (serving()) {
                     int ripeLeft = leftPos + RIPE_X;
                     int ripeTop = topPos + RIPE_Y;
@@ -344,11 +386,42 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (picker.isOpen()) {
+            return picker.mouseClicked(mouseX, mouseY, button);
+        }
         Page tab = tabAt(mouseX, mouseY);
         if (tab != null) {
             menu.setPage(tab);
             return true;
         }
+        if (menu.page() == Page.FIELD && picker.mouseClicked(mouseX, mouseY, button)) {
+            return true;
+        }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        return picker.mouseDragged(mouseX, mouseY) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        return picker.mouseReleased() || super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return picker.mouseScrolled(scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        return picker.keyPressed(keyCode, scanCode, modifiers) || super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean charTyped(char codePoint, int modifiers) {
+        return picker.charTyped(codePoint, modifiers) || super.charTyped(codePoint, modifiers);
     }
 }
