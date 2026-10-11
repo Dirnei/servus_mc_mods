@@ -140,6 +140,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
      */
     private void fieldHead(Block block, String name) {
         ModelFile[] models = new ModelFile[FieldHeadLook.READY + 1];
+        ModelFile[] corroded = new ModelFile[FieldHeadLook.READY + 1];
         for (int step = 0; step <= FieldHeadLook.READY; step++) {
             ResourceLocation side = modLoc("block/" + name + "_side");
             Map<Direction, ResourceLocation> faces = new EnumMap<>(Direction.class);
@@ -150,9 +151,12 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
             faces.put(Direction.UP, modLoc("block/" + name + "_top"));
             faces.put(Direction.DOWN, modLoc("block/" + name + "_bottom"));
             models[step] = LayeredModels.cube(this, name + "_" + step, faces);
+            // A corroded field: the crop plate gets a rust rim.
+            faces.put(Direction.UP, modLoc("block/" + name + "_top_corroded"));
+            corroded[step] = LayeredModels.cube(this, name + "_" + step + "_corroded", faces);
         }
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(models[state.getValue(FieldHeadBlock.RIPE)])
+                .modelFile((state.getValue(FieldHeadBlock.CORRODED) ? corroded : models)[state.getValue(FieldHeadBlock.RIPE)])
                 .rotationY(((int) state.getValue(FieldHeadBlock.FACING).toYRot() + 180) % 360)
                 .build());
         simpleBlockItem(block, models[0]);

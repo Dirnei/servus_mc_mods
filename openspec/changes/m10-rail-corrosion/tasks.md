@@ -17,7 +17,7 @@
 
 - [x] 4.1 `menu/FieldHeadMenu.java` (anti-corrosion slot, stage and progress data, shift click) and `client/FieldHeadScreen.java` (taller panel, corrosion row); `gradlew build`
 - [x] 4.2 `command/ServusStorageCommands.java` (stage in `field <pos>`, `field <pos> age <mB>`); `gradlew build`
-- [ ] 4.3 Datagen: new `datagen/ServusStorageItemTagsProvider.java` (`servus_storage:anti_corrosion` with honeycomb), `ServusStorageBlockStateProvider` (corroded top models), language; `gradlew :storage:runData`, `gradlew build`
+- [x] 4.3 Datagen: new `datagen/ServusStorageItemTagsProvider.java` (`servus_storage:anti_corrosion` with honeycomb), `ServusStorageBlockStateProvider` (corroded top models), language; `gradlew :storage:runData`, `gradlew build`
 
 ## 5. Tests and docs
 

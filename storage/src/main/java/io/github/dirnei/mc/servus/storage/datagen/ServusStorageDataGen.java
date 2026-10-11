@@ -30,7 +30,10 @@ public final class ServusStorageDataGen {
         generator.addProvider(event.includeClient(), new ServusStorageLanguageProvider(output));
         generator.addProvider(event.includeClient(), new ServusStorageBlockStateProvider(output, existingFileHelper));
 
-        generator.addProvider(event.includeServer(), new ServusStorageBlockTagsProvider(output, lookup, existingFileHelper));
+        ServusStorageBlockTagsProvider blockTags = generator.addProvider(event.includeServer(),
+                new ServusStorageBlockTagsProvider(output, lookup, existingFileHelper));
+        generator.addProvider(event.includeServer(),
+                new ServusStorageItemTagsProvider(output, lookup, blockTags.contentsGetter(), existingFileHelper));
         generator.addProvider(event.includeServer(), new ServusStorageRecipeProvider(output, lookup));
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(ServusStorageBlockLoot::new, LootContextParamSets.BLOCK)),

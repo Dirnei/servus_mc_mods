@@ -121,6 +121,17 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.ripe_tooltip", "%s of %s planted ripe (%s%%), harvest at %s%%");
         add("gui.servus_storage.field_head.harvest_at", "Harvest at %s%%");
         add("gui.servus_storage.field_head.hydrated", "Hydrated");
+        add("gui.servus_storage.field_head.anti_corrosion_slot", "Honeycomb here holds the copper stage, one per aging step");
+        add("gui.servus_storage.field_head.corrosion", "%s, next stage %s%%");
+        add("gui.servus_storage.field_head.corroded", "Rails corroded, no watering");
+        add("gui.servus_storage.field_head.stage.copper", "Copper");
+        add("gui.servus_storage.field_head.stage.exposed", "Exposed");
+        add("gui.servus_storage.field_head.stage.weathered", "Weathered");
+        add("gui.servus_storage.field_head.stage.oxidized", "Oxidized");
+        add("gui.servus_storage.field_head.stage.corroded", "Corroded");
+        add("message.servus_storage.farm_rail.axe_worn", "The field has %s rails: the axe needs %s durability");
+        add("message.servus_storage.farm_rail.too_large", "This field is too large to scrape");
+        add("tag.item.servus_storage.anti_corrosion", "Anti-corrosion");
         add("gui.servus_storage.field_head.dry", "Dry: needs water");
         add("gui.servus_storage.field_head.work.not_linked", "Rails not linked to a warehouse");
         add("gui.servus_storage.field_head.work.no_controller", "Warehouse has no controller");
