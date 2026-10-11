@@ -1,7 +1,9 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module;
 
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageComponents;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -41,6 +43,26 @@ public class ShuttleItem extends Item {
             case 3 -> ServusStorageItems.SHUTTLE_MK3.get();
             default -> null;
         };
+    }
+
+    /** The name plate engraved on the shuttle, or empty. */
+    public static Optional<String> plate(ItemStack stack) {
+        String name = stack.get(ServusStorageComponents.SHUTTLE_NAME.get());
+        return name == null || name.isEmpty() ? Optional.empty() : Optional.of(name);
+    }
+
+    /** Engraves a plate on the shuttle; an empty name keeps the old one. */
+    public static void engrave(ItemStack stack, String name) {
+        if (!name.isEmpty()) {
+            stack.set(ServusStorageComponents.SHUTTLE_NAME.get(), name);
+        }
+    }
+
+    /** A shuttle with a plate is named after it, as "Berta (Shuttle Mk2)"; an anvil name still wins in the hover name. */
+    @Override
+    public Component getName(ItemStack stack) {
+        Component base = super.getName(stack);
+        return plate(stack).<Component>map(name -> Component.translatable("item.servus_storage.shuttle.named", name, base)).orElse(base);
     }
 
     @Override

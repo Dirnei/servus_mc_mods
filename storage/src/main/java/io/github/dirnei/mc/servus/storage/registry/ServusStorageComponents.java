@@ -4,7 +4,9 @@ import io.github.dirnei.mc.servus.storage.pattern.StoredPatterns;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModules;
 import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -38,6 +40,12 @@ public final class ServusStorageComponents {
             COMPONENTS.registerComponentType("shuttle_modules", builder -> builder
                     .persistent(ShuttleModules.CODEC)
                     .networkSynchronized(ShuttleModules.STREAM_CODEC));
+
+    /** The name plate a build by hand engraved on a shuttle; only tier builds write it. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> SHUTTLE_NAME =
+            COMPONENTS.registerComponentType("shuttle_name", builder -> builder
+                    .persistent(Codec.STRING)
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8));
 
     private ServusStorageComponents() {
     }

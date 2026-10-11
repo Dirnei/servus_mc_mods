@@ -6,7 +6,7 @@
 
 ## 2. Data and component
 
-- [ ] 2.1 `ShuttleStatsReader` reads `steps` per tier (defaults, clamps, unknown kind dropped), `shuttle.json` lists the shipped steps for Mk2 and Mk3, `TIERS_CODEC` carries the steps (design D1). `SHUTTLE_NAME` component in `ServusStorageComponents`, `ShuttleItem.getName` with the plate (design D6). Verify: `gradlew build`.
+- [x] 2.1 `ShuttleStatsReader` reads `steps` per tier (defaults, clamps, unknown kind dropped), `shuttle.json` lists the shipped steps for Mk2 and Mk3, `TIERS_CODEC` carries the steps (design D1). `SHUTTLE_NAME` component in `ServusStorageComponents`, `ShuttleItem.getName` with the plate (design D6). Verify: `gradlew build`.
 
 ## 3. Workshop server side
 

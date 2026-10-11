@@ -125,6 +125,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.work.no_crop", "Set a crop or harvest only");
         add("gui.servus_storage.field_head.work.no_harvester", "No Harvester shuttle in a garage");
         add("gui.servus_storage.field_head.work.working", "Harvester at work");
+        add("gui.servus_storage.field_head.work.working_named", "%s is working the field");
         add("gui.servus_storage.field_head.work.harvest_due", "Harvest due, harvester coming");
         add("gui.servus_storage.field_head.work.waiting_ripe", "Waiting for ripe crops");
         add("gui.servus_storage.field_head.work.dry", "Dry: no planting without water");
@@ -147,6 +148,17 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.workshop.next", "Mk%s needs");
         add("gui.servus_storage.workshop.top_tier", "Top tier");
         add("gui.servus_storage.workshop.build_now", "Build now");
+        add("gui.servus_storage.workshop.by_hand", "Build by hand");
+        add("gui.servus_storage.workshop.cancel", "Cancel");
+        add("gui.servus_storage.workshop.step", "Step %s of %s");
+        add("gui.servus_storage.workshop.step.bolts", "Tighten the glowing bolt");
+        add("gui.servus_storage.workshop.step.wires", "Wire each contact to its colour");
+        add("gui.servus_storage.workshop.step.weld", "Weld along the seam");
+        add("gui.servus_storage.workshop.name", "Name plate");
+        add("gui.servus_storage.workshop.name_hint", "Name it, or leave it empty");
+        add("gui.servus_storage.workshop.engrave", "Engrave");
+        add("gui.servus_storage.workshop.plate", "Plate: %s");
+        add("item.servus_storage.shuttle.named", "%s (%s)");
         add("tooltip.servus_storage.shuttle.plain", "No upgrades");
         add("tooltip.servus_storage.shuttle.tool", "Tool: %s");
         add("tooltip.servus_storage.shuttle.speed", "Speed upgrades: %s");

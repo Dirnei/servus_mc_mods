@@ -9,6 +9,8 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers.Kind;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleUpgrades;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleWorkshopBlockEntity;
+import io.github.dirnei.mc.servus.storage.shuttle.module.build.BuildStep;
+import io.github.dirnei.mc.servus.storage.shuttle.module.build.StepKind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -139,6 +141,11 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
                 ByteBufCodecs.STRING_UTF8.encode(buf, supply.id());
                 buf.writeVarInt(supply.count());
             }
+            buf.writeVarInt(tier.steps().size());
+            for (BuildStep step : tier.steps()) {
+                buf.writeVarInt(step.kind().ordinal());
+                buf.writeVarInt(step.count());
+            }
         }
     }
 
@@ -159,7 +166,14 @@ public class ShuttleWorkshopMenu extends AbstractContainerMenu {
             for (int j = 0; j < supplies; j++) {
                 build.add(new ShuttleTiers.Supply(ByteBufCodecs.STRING_UTF8.decode(buf), buf.readVarInt()));
             }
-            list.add(new ShuttleTiers.Tier(stacks, maxSpeed, maxHandling, build));
+            int stepCount = buf.readVarInt();
+            List<BuildStep> steps = new ArrayList<>();
+            for (int j = 0; j < stepCount; j++) {
+                StepKind[] kinds = StepKind.values();
+                int kind = buf.readVarInt();
+                steps.add(new BuildStep(kinds[Math.max(0, Math.min(kinds.length - 1, kind))], buf.readVarInt()));
+            }
+            list.add(new ShuttleTiers.Tier(stacks, maxSpeed, maxHandling, build, steps));
         }
         return new ShuttleTiers(base, step, stop, stack, factor, list);
     }

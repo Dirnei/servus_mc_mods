@@ -5,6 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.storage.ServusStorage;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleTiers;
+import io.github.dirnei.mc.servus.storage.shuttle.module.build.BuildStep;
+import io.github.dirnei.mc.servus.storage.shuttle.module.build.StepKind;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +40,8 @@ final class ShuttleStatsReader {
                         integer(tier, "stacks", base.stacks()),
                         integer(tier, "max_speed", base.maxSpeed()),
                         integer(tier, "max_handling", base.maxHandling()),
-                        tier.has("build") ? supplies(tier.getAsJsonArray("build")) : (i == 0 ? List.of() : base.build())));
+                        tier.has("build") ? supplies(tier.getAsJsonArray("build")) : (i == 0 ? List.of() : base.build()),
+                        tier.has("steps") && tier.get("steps").isJsonArray() ? steps(tier.getAsJsonArray("steps")) : base.steps()));
             }
             return new ShuttleTiers(
                     number(speed, "base", fallback.baseSpeed()),
@@ -60,6 +63,22 @@ final class ShuttleStatsReader {
             supplies.add(new ShuttleTiers.Supply(supply.get("item").getAsString(), integer(supply, "count", 1)));
         }
         return supplies;
+    }
+
+    /** The steps of a build by hand; an unknown kind drops its step, counts clamp to the kind's range. */
+    static List<BuildStep> steps(JsonArray array) {
+        List<BuildStep> steps = new ArrayList<>();
+        for (JsonElement entry : array) {
+            if (!entry.isJsonObject()) {
+                continue;
+            }
+            JsonObject step = entry.getAsJsonObject();
+            String kind = step.has("kind") ? step.get("kind").getAsString() : "";
+            StepKind.byId(kind).ifPresentOrElse(
+                    found -> steps.add(new BuildStep(found, integer(step, "count", 1))),
+                    () -> ServusStorage.LOGGER.warn("Shuttle stats: unknown build step kind '{}'", kind));
+        }
+        return steps;
     }
 
     private static JsonObject object(JsonObject json, String field) {
