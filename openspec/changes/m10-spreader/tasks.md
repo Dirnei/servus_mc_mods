@@ -11,7 +11,7 @@
 
 ## 3. Head
 
-- [ ] 3.1 `storage/.../field/FieldHeadBlockEntity.java`: fertilizer, mode, threshold, reserve, `unfed` set from `update`, `fertilizeTargets`, `dosed`, `fertilizeDue`, `fertilizeCalled`, `fertilizeStatus`, `fertilizerStock`, `spreaderName`, saving and update tag; `FERTILIZER` tag key. Run `gradlew build`.
+- [x] 3.1 `storage/.../field/FieldHeadBlockEntity.java`: fertilizer, mode, threshold, reserve, `unfed` set from `update`, `fertilizeTargets`, `dosed`, `fertilizeDue`, `fertilizeCalled`, `fertilizeStatus`, `fertilizerStock`, `spreaderName`, saving and update tag; `FERTILIZER` tag key. Run `gradlew build`.
 
 ## 4. Fleet and warehouse
 

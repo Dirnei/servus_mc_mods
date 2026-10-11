@@ -143,6 +143,17 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     private boolean harvestOnly;
     /** The ripe percent that calls a harvest; 0 follows {@code harvest_share} from {@code field.json}. */
     private int harvestPercent;
+    /** The item a Spreader doses this field with, an item of {@link #FERTILIZER}; null for none. */
+    private Item fertilizer;
+    private FertilizeMode fertilizeMode = FertilizeMode.OFF;
+    /** The ripe percent below which Until ripe share doses; 0 follows {@code fertilize_share}. */
+    private int fertilizePercent;
+    /** The Keep in stock reserve; -1 follows {@code fertilizer_reserve}. */
+    private int reserve = -1;
+    /** Plots planted since their last dose, learned from events; saved. */
+    private final Set<BlockPos> unfed = new HashSet<>();
+    /** Game time of the last call for a Spreader, -1 for none. */
+    private long lastFertilizeCall = -1;
 
     // Rebuilt after a load or change, never saved.
     private FieldStatus status = FieldStatus.NO_FIELD;
@@ -597,6 +608,14 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         BlockPos key = plot.immutable();
         PlotState now = HarvesterWork.classify(level, key, state);
         PlotState before = ground.put(key, now);
+        // A crop that appears where none grew (a ripe one harvested and replanted counts too) is newly planted.
+        if (now == PlotState.GROWING) {
+            if (before != null && before != PlotState.GROWING && unfed.add(key)) {
+                setChanged();
+            }
+        } else if (unfed.remove(key)) {
+            setChanged();
+        }
         if ((before == null || before == PlotState.BLOCKED) != (now == PlotState.BLOCKED)) {
             refreshReach();
         } else if (plots.contains(key)) {
@@ -722,6 +741,118 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         lookDirty = true;
         setChanged();
         syncClients();
+    }
+
+    // Fertilizing
+
+    /** Whether the item may be a field's fertilizer. */
+    public static boolean isFertilizer(ItemStack stack) {
+        return !stack.isEmpty() && stack.is(FERTILIZER);
+    }
+
+    /** The fertilizer of the field, empty when none is chosen. */
+    public ItemStack fertilizer() {
+        return fertilizer == null ? ItemStack.EMPTY : new ItemStack(fertilizer);
+    }
+
+    /** Chooses the fertilizer (empty for none); items outside the tag are ignored. */
+    public void setFertilizer(ItemStack stack) {
+        if (stack.isEmpty()) {
+            fertilizer = null;
+        } else if (isFertilizer(stack)) {
+            fertilizer = stack.getItem();
+        } else {
+            return;
+        }
+        setChanged();
+        syncClients();
+    }
+
+    public FertilizeMode fertilizeMode() {
+        return fertilizeMode;
+    }
+
+    public void setFertilizeMode(FertilizeMode mode) {
+        fertilizeMode = mode;
+        setChanged();
+    }
+
+    /** Whether a fertilizer is chosen and the mode is not off. */
+    public boolean fertilizing() {
+        return fertilizer != null && fertilizeMode != FertilizeMode.OFF;
+    }
+
+    /** The ripe percent below which Until ripe share doses. */
+    public int fertilizePercent() {
+        return fertilizePercent > 0 ? fertilizePercent : FieldThreshold.fromShare(StorageStatsManager.INSTANCE.fertilizeShare());
+    }
+
+    /** Moves the fertilize threshold by whole steps of {@link FieldThreshold#STEP} percent. */
+    public void stepFertilizePercent(int steps) {
+        fertilizePercent = FieldThreshold.step(fertilizePercent(), steps);
+        setChanged();
+    }
+
+    /** The fertilizer items this field keeps in stock: a Spreader never takes them. */
+    public int reserve() {
+        return reserve >= 0 ? reserve : FertilizePlan.clampReserve(StorageStatsManager.INSTANCE.fertilizerReserve());
+    }
+
+    /** Moves the reserve, kept between 0 and {@link FertilizePlan#MAX_RESERVE}. */
+    public void stepReserve(int delta) {
+        reserve = FertilizePlan.stepReserve(reserve(), delta);
+        setChanged();
+    }
+
+    /** Planted plots that are not ripe and were planted since their last dose. */
+    private Set<BlockPos> unfedGrowing() {
+        Set<BlockPos> growing = ripeness.growing();
+        growing.retainAll(unfed);
+        return growing;
+    }
+
+    /** The plots that need a dose now by the mode; empty while fertilizing is off or the head serves no field. */
+    public Set<BlockPos> fertilizeTargets() {
+        if (status != FieldStatus.SERVING || !fertilizing()) {
+            return Set.of();
+        }
+        return switch (fertilizeMode) {
+            case OFF -> Set.of();
+            case AFTER_PLANTING -> unfedGrowing();
+            case UNTIL_RIPE -> FertilizePlan.belowShare(ripeCount(), plantedCount(), fertilizePercent()) ? ripeness.growing() : Set.of();
+        };
+    }
+
+    /** How many plots need a dose now. */
+    public int fertilizeTargetCount() {
+        if (status != FieldStatus.SERVING || !fertilizing()) {
+            return 0;
+        }
+        return FertilizePlan.targets(fertilizeMode, unfedGrowing().size(), ripeness.growing().size(), ripeCount(), plantedCount(), fertilizePercent());
+    }
+
+    /** A Spreader gave the plot its round of doses: it is no longer newly planted. */
+    public void dosed(BlockPos plot) {
+        if (unfed.remove(plot)) {
+            setChanged();
+        }
+    }
+
+    /** Plots planted since their last dose, for tests and the command. */
+    public int unfedCount() {
+        return unfed.size();
+    }
+
+    /** Whether the field calls a Spreader now, the warehouse holding that much of the fertilizer. */
+    public boolean fertilizeDue(long now, long stock) {
+        return status == FieldStatus.SERVING && fertilizing()
+                && FertilizePlan.due(fertilizeTargetCount(), stock, reserve(), now, lastFertilizeCall, StorageStatsManager.INSTANCE.fertilizeInterval());
+    }
+
+    /** The warehouse queued a fertilize run for this field at that game time. */
+    public void fertilizeCalled(long now) {
+        lastFertilizeCall = now;
+        setChanged();
     }
 
     // Read side for the GUI, the command and m10-harvester
@@ -918,6 +1049,28 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             tag.putInt("Corrosion", stage);
         }
         tag.putLong("CorrosionWater", agedWater);
+        if (fertilizer != null) {
+            tag.putString("Fertilizer", BuiltInRegistries.ITEM.getKey(fertilizer).toString());
+        }
+        tag.putInt("FertilizeMode", fertilizeMode.ordinal());
+        if (fertilizePercent > 0) {
+            tag.putInt("FertilizePercent", fertilizePercent);
+        }
+        if (reserve >= 0) {
+            tag.putInt("Reserve", reserve);
+        }
+        tag.putLongArray("Unfed", unfed.stream().mapToLong(BlockPos::asLong).toArray());
+        tag.putLong("FertilizeCalled", lastFertilizeCall);
+    }
+
+    /** The fertilizer saved in the tag, null for none or an item no longer in the fertilizer tag. */
+    private static Item readFertilizer(CompoundTag tag) {
+        if (!tag.contains("Fertilizer")) {
+            return null;
+        }
+        ResourceLocation id = ResourceLocation.tryParse(tag.getString("Fertilizer"));
+        Optional<Item> item = id == null ? Optional.empty() : BuiltInRegistries.ITEM.getOptional(id);
+        return item.filter(found -> isFertilizer(new ItemStack(found))).orElse(null);
     }
 
     @Override
@@ -939,6 +1092,15 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         stageKnown = tag.contains("Corrosion");
         stage = stageKnown ? FieldCorrosion.clamp(tag.getInt("Corrosion")) : FieldCorrosion.COPPER;
         agedWater = Math.max(0, tag.getLong("CorrosionWater"));
+        fertilizer = readFertilizer(tag);
+        fertilizeMode = FertilizeMode.byId(tag.getInt("FertilizeMode"));
+        fertilizePercent = tag.contains("FertilizePercent") ? FieldThreshold.clamp(tag.getInt("FertilizePercent")) : 0;
+        reserve = tag.contains("Reserve") ? FertilizePlan.clampReserve(tag.getInt("Reserve")) : -1;
+        unfed.clear();
+        for (long packed : tag.getLongArray("Unfed")) {
+            unfed.add(BlockPos.of(packed));
+        }
+        lastFertilizeCall = tag.contains("FertilizeCalled") ? tag.getLong("FertilizeCalled") : -1;
         if (tag.contains("WaterLevel")) {
             clientWaterLevel = tag.getByte("WaterLevel");
         }
@@ -957,6 +1119,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         woodSlot.save(tag);
         tag.put("Crop", crop.serializeNBT(registries));
         tag.putBoolean("HarvestOnly", harvestOnly);
+        if (fertilizer != null) {
+            tag.putString("Fertilizer", BuiltInRegistries.ITEM.getKey(fertilizer).toString());
+        }
         tag.putByte("WaterLevel", (byte) FieldHeadLook.waterLevel(tank.getFluidAmount(), tank.getCapacity()));
         return tag;
     }
