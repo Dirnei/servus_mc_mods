@@ -13,7 +13,7 @@
 
 ## 3. Harvesters and lifts
 
-- [ ] 3.1 `ShuttleFleet.ways(shuttle)` used by every per shuttle way; `storable(shuttle, from)` for harvest put-away with `Host.putAwayTarget` applying its predicate to every target; `fieldReachable(head)`; `WarehouseNetwork.tickFields` skips unreachable fields and `FieldHeadBlockEntity.work()` passes the flag; `NO_WAY` lang; Harvester tooltip line about lifts (design D4, D5, D6). Verify: `gradlew runData`, `gradlew build`.
+- [x] 3.1 `ShuttleFleet.ways(shuttle)` used by every per shuttle way; `storable(shuttle, from)` for harvest put-away with `Host.putAwayTarget` applying its predicate to every target; `fieldReachable(head)`; `WarehouseNetwork.tickFields` skips unreachable fields and `FieldHeadBlockEntity.work()` passes the flag; `NO_WAY` lang; Harvester tooltip line about lifts (design D4, D5, D6). Verify: `gradlew runData`, `gradlew build`.
 - [ ] 3.2 GameTests: `harvesterCrossesShaft` (garage and field on one floor with a shaft between, the field gets worked and no car is called), `harvesterRefusesLift` (field one floor up, the head says `NO_WAY` and the harvester stays home), `harvestSkipsStorageUpstairs` (zoned crate upstairs, unzoned crate on the floor gets the wheat), `plainShuttleStillRides` covered by the existing lift GameTests staying green. Verify: `gradlew :storage:runGameTestServer` green.
 
 ## 4. Docs and plan

@@ -26,5 +26,8 @@ public class ShuttleModuleItem extends Item {
         super.appendHoverText(stack, context, tooltip, flag);
         tooltip.add(Component.translatable("tooltip.servus_storage.module.tool").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.servus_storage.module." + spec.id()).withStyle(ChatFormatting.GRAY));
+        if (spec.wide()) {
+            tooltip.add(Component.translatable("tooltip.servus_storage.module.wide").withStyle(ChatFormatting.GOLD));
+        }
     }
 }

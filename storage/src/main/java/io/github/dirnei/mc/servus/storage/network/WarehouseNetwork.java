@@ -1300,9 +1300,16 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     @Override
-    public Optional<BlockPos> putAwayTarget(ItemStack stack, Predicate<BlockPos> rackAllowed) {
+    public Optional<BlockPos> putAwayTarget(ItemStack stack, Predicate<BlockPos> allowed) {
         ItemKey key = ItemKey.of(stack);
-        return chooseTarget(tiers(key), key, stack, rackAllowed);
+        for (List<BlockPos> tier : targetTiers(key, tiers(key))) {
+            for (BlockPos pos : tier) {
+                if (allowed.test(pos) && hasRoom(pos, stack)) {
+                    return Optional.of(pos);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     // Fields
@@ -1319,7 +1326,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         for (FieldHeadBlockEntity head : FieldHeads.heads(level)) {
             if (head.status() != FieldStatus.SERVING || head.rails().isEmpty()
                     || !members().contains(Conversions.toNodePos(head.rails().iterator().next()))
-                    || fleet.hasFieldJob(head.getBlockPos())) {
+                    || fleet.hasFieldJob(head.getBlockPos()) || !fleet.fieldReachable(head.getBlockPos())) {
                 continue;
             }
             boolean seeds = head.plantMode() && available(ItemKey.of(head.crop())) > 0;
@@ -1332,6 +1339,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Whether some garage of this warehouse holds a shuttle with a Harvester. */
     public boolean hasFieldShuttles() {
         return fleet.hasFieldShuttles();
+    }
+
+    /** Whether a Harvester shuttle can drive to that head's field, without a lift when it is too wide for one. */
+    public boolean fieldReachable(BlockPos head) {
+        return fleet.fieldReachable(head);
     }
 
     /** Whether a field run for that head is queued or under way. */

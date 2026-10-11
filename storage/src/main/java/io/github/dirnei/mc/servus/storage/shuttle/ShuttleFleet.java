@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.field.FieldCargo;
@@ -103,8 +104,8 @@ public final class ShuttleFleet {
         /** The shaft the node is a segment of, or null when it is not an elevator segment. */
         Shaft shaftOf(NodePos node);
 
-        /** The block the put-away routing picks for the stack, racks only where allowed; empty when nothing has room. */
-        Optional<BlockPos> putAwayTarget(ItemStack stack, Predicate<BlockPos> rackAllowed);
+        /** The block the put-away routing picks for the stack among those allowed; empty when nothing allowed has room. */
+        Optional<BlockPos> putAwayTarget(ItemStack stack, Predicate<BlockPos> allowed);
 
         /** How many of the key the warehouse holds. */
         long available(ItemKey key);
@@ -525,7 +526,7 @@ public final class ShuttleFleet {
             List<NodePos> bestPath = null;
             if (!goals.isEmpty()) {
                 for (Shuttle shuttle : free) {
-                    List<NodePos> path = RailPaths.find(shuttle.motion.currentNode(), goals::contains, host::travelNeighbours);
+                    List<NodePos> path = RailPaths.find(shuttle.motion.currentNode(), goals::contains, ways(shuttle));
                     if (!path.isEmpty() && (bestPath == null || path.size() < bestPath.size())) {
                         best = shuttle;
                         bestPath = path;
@@ -777,7 +778,7 @@ public final class ShuttleFleet {
         if (goals.isEmpty()) {
             return false;
         }
-        List<NodePos> path = RailPaths.find(shuttle.motion.end(), goals::contains, host::travelNeighbours);
+        List<NodePos> path = RailPaths.find(shuttle.motion.end(), goals::contains, ways(shuttle));
         if (path.isEmpty()) {
             return false;
         }
@@ -789,7 +790,7 @@ public final class ShuttleFleet {
     private void goHome(Shuttle shuttle) {
         shuttle.leg = Leg.HOME;
         NodePos home = shuttle.garage.home;
-        List<NodePos> homePath = home == null ? List.of() : RailPaths.find(shuttle.motion.end(), home::equals, host::travelNeighbours);
+        List<NodePos> homePath = home == null ? List.of() : RailPaths.find(shuttle.motion.end(), home::equals, ways(shuttle));
         shuttle.motion = homePath.isEmpty() ? shuttle.motion.reverse() : new ShuttleMotion(homePath);
     }
 
@@ -851,6 +852,30 @@ public final class ShuttleFleet {
     /** Whether some garage with a rail has a shuttle with a Harvester. */
     public boolean hasFieldShuttles() {
         return anyFits(JobNeeds.HARVESTER);
+    }
+
+    /**
+     * Whether some Harvester shuttle in a garage with a rail can drive from
+     * its garage to a rail of that head's field, without a lift when it is too
+     * wide for one.
+     */
+    public boolean fieldReachable(BlockPos head) {
+        Set<NodePos> rails = fieldRails(head);
+        if (rails.isEmpty()) {
+            return false;
+        }
+        for (Garage garage : garages.values()) {
+            if (garage.home == null) {
+                continue;
+            }
+            for (Shuttle shuttle : garage.shuttles) {
+                if (JobNeeds.HARVESTER.fits(shuttle.profile)
+                        && !RailPaths.find(garage.home, rails::contains, ways(shuttle)).isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** Whether a field run for that head is queued or under way. */
@@ -1029,14 +1054,14 @@ public final class ShuttleFleet {
             // On the field: the nearest rail with work along the field's own rails.
             stop = FieldRoute.next(from, node -> fieldNeighbours(head, node), hasWork);
         } else {
-            List<NodePos> path = RailPaths.find(from, hasWork, host::travelNeighbours);
+            List<NodePos> path = RailPaths.find(from, hasWork, ways(shuttle));
             stop = path.isEmpty() ? Optional.empty() : Optional.of(path.get(path.size() - 1));
         }
         if (stop.isEmpty()) {
             return false;
         }
         NodePos goal = stop.get();
-        List<NodePos> path = RailPaths.find(from, goal::equals, host::travelNeighbours);
+        List<NodePos> path = RailPaths.find(from, goal::equals, ways(shuttle));
         if (path.isEmpty()) {
             return false;
         }
@@ -1073,7 +1098,7 @@ public final class ShuttleFleet {
             }
             case TO_STORE -> {
                 if (run.storeTarget != null) {
-                    insertAll(run, run.storeTarget, reachableFrom(at(shuttle)));
+                    insertAll(run, run.storeTarget, storable(shuttle, at(shuttle)));
                     run.storeTarget = null;
                 }
                 continueStore(shuttle);
@@ -1268,14 +1293,14 @@ public final class ShuttleFleet {
         run.fetchTried = true;
         for (BlockPos source : host.sourcesHolding(crop)) {
             Set<NodePos> dock = host.dockRails(Conversions.toNodePos(source));
-            List<NodePos> path = dock.isEmpty() ? List.of() : RailPaths.find(at(shuttle), dock::contains, host::travelNeighbours);
+            List<NodePos> path = dock.isEmpty() ? List.of() : RailPaths.find(at(shuttle), dock::contains, ways(shuttle));
             if (!path.isEmpty()) {
                 run.seedSource = source;
                 shuttle.leg = Leg.TO_SEEDS;
                 shuttle.motion = new ShuttleMotion(path);
                 return;
             }
-            if (!host.isRack(source)) {
+            if (!host.isRack(source) && (dock.isEmpty() || !shuttle.profile.liftless())) {
                 loadSeeds(run, source);
                 if (run.seedAmount <= 0) {
                     break;
@@ -1307,7 +1332,7 @@ public final class ShuttleFleet {
         HarvestRun run = shuttle.run;
         run.store.removeIf(ItemStack::isEmpty);
         NodePos from = at(shuttle);
-        Predicate<BlockPos> reachable = reachableFrom(from);
+        Predicate<BlockPos> reachable = storable(shuttle, from);
         int guard = run.store.size() * 2 + 4;
         while (!run.store.isEmpty() && guard-- > 0) {
             BlockPos target = null;
@@ -1324,7 +1349,7 @@ public final class ShuttleFleet {
                 return;
             }
             Set<NodePos> dock = host.dockRails(Conversions.toNodePos(target));
-            List<NodePos> path = dock.isEmpty() ? List.of() : RailPaths.find(from, dock::contains, host::travelNeighbours);
+            List<NodePos> path = dock.isEmpty() ? List.of() : RailPaths.find(from, dock::contains, ways(shuttle));
             if (!path.isEmpty()) {
                 run.storeTarget = target;
                 shuttle.leg = Leg.TO_STORE;
@@ -1355,13 +1380,37 @@ public final class ShuttleFleet {
         run.store.removeIf(ItemStack::isEmpty);
     }
 
-    /** Racks a shuttle standing there can drive to; only those may take a put-away. */
-    private Predicate<BlockPos> reachableFrom(NodePos from) {
-        return rack -> !RailPaths.find(from, host.dockRails(Conversions.toNodePos(rack))::contains, host::travelNeighbours).isEmpty();
+    /**
+     * The steps the shuttle may take from a node: every travel neighbour, or
+     * for a shuttle too wide for lifts those that do not go up or down a shaft.
+     */
+    private Function<NodePos, Set<NodePos>> ways(Shuttle shuttle) {
+        if (shuttle.profile.liftless()) {
+            return node -> LiftlessSteps.filter(node, host.travelNeighbours(node));
+        }
+        return host::travelNeighbours;
+    }
+
+    /**
+     * Storage the shuttle standing there may put away into: a block it can
+     * drive to, or one no rail reaches, which takes its part at once. Racks
+     * need a way; a shuttle too wide for lifts skips what it reaches only by lift.
+     */
+    private Predicate<BlockPos> storable(Shuttle shuttle, NodePos from) {
+        return target -> {
+            Set<NodePos> dock = host.dockRails(Conversions.toNodePos(target));
+            if (dock.isEmpty()) {
+                return !host.isRack(target);
+            }
+            if (!RailPaths.find(from, dock::contains, ways(shuttle)).isEmpty()) {
+                return true;
+            }
+            return !host.isRack(target) && !shuttle.profile.liftless();
+        };
     }
 
     private boolean anyStorable(Shuttle shuttle) {
-        Predicate<BlockPos> reachable = reachableFrom(at(shuttle));
+        Predicate<BlockPos> reachable = storable(shuttle, at(shuttle));
         for (ItemStack stack : shuttle.run.store) {
             Optional<BlockPos> target = host.putAwayTarget(stack, reachable);
             if (target.isPresent()) {
@@ -1379,7 +1428,7 @@ public final class ShuttleFleet {
         if (shuttle.leg == Leg.WAIT_STORE && shuttle.motion.arrived()) {
             return;
         }
-        List<NodePos> path = home == null ? List.of() : RailPaths.find(at(shuttle), home::equals, host::travelNeighbours);
+        List<NodePos> path = home == null ? List.of() : RailPaths.find(at(shuttle), home::equals, ways(shuttle));
         if (path.isEmpty()) {
             lose(shuttle);
             return;
@@ -1450,7 +1499,7 @@ public final class ShuttleFleet {
                 NodePos home = garage.home;
                 NodePos at = shuttle.motion == null ? null : shuttle.motion.currentNode();
                 List<NodePos> path = home == null || at == null || !host.isTravelNode(at) ? List.of()
-                        : RailPaths.find(at, home::equals, host::travelNeighbours);
+                        : RailPaths.find(at, home::equals, ways(shuttle));
                 if (path.isEmpty()) {
                     park(shuttle);
                 } else {

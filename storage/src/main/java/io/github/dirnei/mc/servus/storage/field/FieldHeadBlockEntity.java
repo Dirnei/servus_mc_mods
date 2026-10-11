@@ -581,9 +581,10 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         Optional<WarehouseNetwork> network = network();
         boolean online = network.map(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).orElse(false);
         boolean harvester = network.map(WarehouseNetwork::hasFieldShuttles).orElse(false);
+        boolean reachable = network.map(warehouse -> warehouse.fieldReachable(worldPosition)).orElse(false);
         boolean working = network.map(warehouse -> warehouse.hasFieldJob(worldPosition)).orElse(false);
         boolean seeds = plantMode() && network.map(warehouse -> warehouse.available(ItemKey.of(crop())) > 0).orElse(false);
-        return FieldWork.of(network.isPresent(), online, harvestOnly || plantMode(), harvester, true, working, harvestDue(),
+        return FieldWork.of(network.isPresent(), online, harvestOnly || plantMode(), harvester, reachable, working, harvestDue(),
                 plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds);
     }
 

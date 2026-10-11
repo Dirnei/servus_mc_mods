@@ -126,6 +126,8 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.field_head.work.no_controller", "Warehouse has no controller");
         add("gui.servus_storage.field_head.work.no_crop", "Set a crop or harvest only");
         add("gui.servus_storage.field_head.work.no_harvester", "No Harvester shuttle in a garage");
+        add("gui.servus_storage.field_head.work.no_way", "No harvester gets here without a lift");
+        add("tooltip.servus_storage.module.wide", "Too wide for lifts: stays on its floor");
         add("gui.servus_storage.field_head.work.working", "Harvester at work");
         add("gui.servus_storage.field_head.work.working_named", "%s is working the field");
         add("gui.servus_storage.field_head.work.harvest_due", "Harvest due, harvester coming");
