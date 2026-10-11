@@ -639,6 +639,22 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return sum;
     }
 
+    /**
+     * How many of an item the sources hold, the numbers {@link #available} adds
+     * up, without asking the fleet whether each source can be reached. Cheap
+     * enough for a GUI that refreshes its counts every second.
+     */
+    public long stockCount(ItemKey key) {
+        long sum = 0;
+        for (BlockPos pos : index.sourcesHolding(key)) {
+            Integer count = index.snapshot(pos).get(key);
+            if (count != null && count > 0 && sources.containsKey(pos)) {
+                sum += count;
+            }
+        }
+        return sum;
+    }
+
     /** The Packing Stations of this warehouse. */
     public List<BlockPos> packingStations() {
         List<BlockPos> points = new ArrayList<>();

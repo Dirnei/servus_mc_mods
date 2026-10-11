@@ -136,6 +136,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     private boolean stageKnown;
     /** Hydration water counted toward the next aging step. */
     private long agedWater;
+    /** Crop items from the registry, filled on first use; registries are frozen by then. */
+    private static volatile List<Item> cropItems;
     private boolean harvestOnly;
     /** The ripe percent that calls a harvest; 0 follows {@code harvest_share} from {@code field.json}. */
     private int harvestPercent;
@@ -651,7 +653,45 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             crop.setStackInSlot(0, stack.copyWithCount(1));
             harvestOnly = false;
         }
+        lookDirty = true;
         setChanged();
+        syncClients();
+    }
+
+    /** Every item that plants an age crop, from the item registry, so mods' crops count too. */
+    public static List<Item> cropItems() {
+        List<Item> items = cropItems;
+        if (items == null) {
+            List<Item> found = new ArrayList<>();
+            for (Item item : BuiltInRegistries.ITEM) {
+                if (item instanceof BlockItem block && block.getBlock() instanceof CropBlock) {
+                    found.add(item);
+                }
+            }
+            items = List.copyOf(found);
+            cropItems = items;
+        }
+        return items;
+    }
+
+    /**
+     * The warehouse stock of every crop item with a non zero count, keyed by
+     * item id; empty while the head serves no field on a warehouse. Server side.
+     */
+    public Optional<Map<ResourceLocation, Long>> cropStock() {
+        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+            return Optional.empty();
+        }
+        return network().map(warehouse -> {
+            Map<ResourceLocation, Long> counts = new HashMap<>();
+            for (Item item : cropItems()) {
+                long count = warehouse.stockCount(ItemKey.of(new ItemStack(item)));
+                if (count > 0) {
+                    counts.put(BuiltInRegistries.ITEM.getKey(item), count);
+                }
+            }
+            return counts;
+        });
     }
 
     public boolean harvestOnly() {
