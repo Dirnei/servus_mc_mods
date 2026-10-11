@@ -11,6 +11,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -22,7 +28,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * The lowest segment also keeps the shaft's Speed upgrades; every segment has
  * the slots, but the others stay empty.
  */
-public class ElevatorBlockEntity extends StorageNodeBlockEntity {
+public class ElevatorBlockEntity extends StorageNodeBlockEntity implements MenuProvider {
 
     private static final String LIFT_Y = "LiftY";
     private static final String UPGRADES = "Upgrades";
@@ -64,6 +70,16 @@ public class ElevatorBlockEntity extends StorageNodeBlockEntity {
         if (level != null && !level.isClientSide()) {
             network().ifPresent(network -> network.post(new WarehouseEvent.LiftUpgradesChanged(worldPosition)));
         }
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable(getBlockState().getBlock().getDescriptionId());
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new ElevatorMenu(containerId, playerInventory, this);
     }
 
     /** Where the shaft's car is parked, or NaN when unknown. */

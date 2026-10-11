@@ -1,5 +1,13 @@
 package io.github.dirnei.mc.servus.storage.rail;
 
+import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
+import io.github.dirnei.mc.servus.storage.shuttle.LiftUpgrades;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import net.minecraft.core.BlockPos;
@@ -46,6 +54,25 @@ public class ElevatorBlock extends ConnectableBlock {
             return neighborState.getBlock() instanceof ElevatorBlock;
         }
         return neighborState.getBlock() instanceof RailBlock;
+    }
+
+    /** An item in hand keeps its own use: an elevator builds the shaft up, the carrot dismantles. */
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                              Player player, InteractionHand hand, BlockHitResult hitResult) {
+        return stack.isEmpty() ? ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION : ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    /** An empty hand opens the shaft's upgrades, which the lowest segment keeps. */
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!level.isClientSide()) {
+            int bottomY = LiftUpgrades.bottom(pos.getY(), y -> level.getBlockState(pos.atY(y)).getBlock() instanceof ElevatorBlock);
+            if (level.getBlockEntity(pos.atY(bottomY)) instanceof ElevatorBlockEntity bottom) {
+                player.openMenu(bottom, buf -> ElevatorMenu.writeOpening(buf, bottom));
+            }
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     /** The whole block is the outline, so a segment is easy to target, like scaffolding. */

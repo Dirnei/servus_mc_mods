@@ -9,6 +9,7 @@ import io.github.dirnei.mc.servus.storage.menu.OutboundStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.storage.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
+import io.github.dirnei.mc.servus.storage.menu.ElevatorMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -34,6 +35,9 @@ public final class ServusStorageMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<io.github.dirnei.mc.servus.storage.menu.PackingStationMenu>> PACKING_STATION =
             MENUS.register("packing_station", () -> IMenuTypeExtension.create(io.github.dirnei.mc.servus.storage.menu.PackingStationMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<ElevatorMenu>> ELEVATOR =
+            MENUS.register("elevator", () -> IMenuTypeExtension.create(ElevatorMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<ZoneLabelMenu>> ZONE_LABEL =
             MENUS.register("zone_label", () -> IMenuTypeExtension.create(ZoneLabelMenu::fromNetwork));

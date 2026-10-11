@@ -25,6 +25,8 @@
   "gui.servus_storage.crafting_station.left": "%s left",
   "gui.servus_storage.crafting_station.no_match": "No matching recipe",
   "gui.servus_storage.crafting_station.save": "Save",
+  "gui.servus_storage.elevator.upgrades": "Speed Upgrades",
+  "gui.servus_storage.elevator.upgrades.tooltip": "Each Speed Upgrade makes the lift car of this shaft faster and quicker off the mark. The lowest segment keeps them.",
   "gui.servus_storage.field_head.dry": "Dry: needs water",
   "gui.servus_storage.field_head.harvest_at": "Harvest at %s%%",
   "gui.servus_storage.field_head.harvest_only_off": "Harvest only: off",

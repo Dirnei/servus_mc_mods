@@ -7,7 +7,7 @@
 ## 2. Slots, GUI and moves
 
 - [x] 2.1 `warehouse.json` and `StorageStatsManager`: `lift_upgrade_slots`, `lift_speed_per_upgrade`, `lift_accel_per_upgrade` (design D6). `LiftUpgradeSlots` (Speed Upgrade only) in `ElevatorBlockEntity`, saved, change callback posting the new `WarehouseEvent.LiftUpgradesChanged` (design D1). Verify: `gradlew build`.
-- [ ] 2.2 `ElevatorMenu`, registration in `ServusStorageMenus`, `ElevatorScreen` in `storage/.../client/` registered in `ServusStorageClient`, `ElevatorBlock.useItemOn` and `useWithoutItem` opening the bottom's menu, lang through datagen (design D2, D3). Verify: `gradlew runData`, `gradlew build`.
+- [x] 2.2 `ElevatorMenu`, registration in `ServusStorageMenus`, `ElevatorScreen` in `storage/.../client/` registered in `ServusStorageClient`, `ElevatorBlock.useItemOn` and `useWithoutItem` opening the bottom's menu, lang through datagen (design D2, D3). Verify: `gradlew runData`, `gradlew build`.
 - [ ] 2.3 `ElevatorBlock.onPlace` and `onRemove` move the upgrades to the new lowest segment or drop them (design D4). Verify: `gradlew build`.
 
 ## 3. Faster cars

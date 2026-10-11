@@ -1,0 +1,113 @@
+package io.github.dirnei.mc.servus.storage.menu;
+
+import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
+import io.github.dirnei.mc.servus.storage.rail.ElevatorBlockEntity;
+import io.github.dirnei.mc.servus.storage.rail.LiftUpgradeSlots;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+
+/**
+ * The Speed upgrades of an elevator shaft, opened from any of its segments but
+ * always on the lowest one, where they are kept; then the player inventory.
+ */
+public class ElevatorMenu extends AbstractContainerMenu {
+
+    public static final int UPGRADES_Y = 30;
+    public static final int INVENTORY_Y = 74;
+    public static final int IMAGE_HEIGHT = INVENTORY_Y + 3 * 18 + 4 + 18 + 6;
+    private static final int WIDTH = 176;
+
+    private final ContainerLevelAccess access;
+    private final int upgradeSlots;
+
+    /** Server side: the lowest segment's own slots. */
+    public ElevatorMenu(int containerId, Inventory playerInventory, ElevatorBlockEntity bottom) {
+        this(containerId, playerInventory, ContainerLevelAccess.create(bottom.getLevel(), bottom.getBlockPos()), bottom.upgrades());
+    }
+
+    private ElevatorMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, IItemHandler upgrades) {
+        super(ServusStorageMenus.ELEVATOR.get(), containerId);
+        this.access = access;
+        this.upgradeSlots = upgrades.getSlots();
+        for (int slot = 0; slot < upgradeSlots; slot++) {
+            addSlot(new SlotItemHandler(upgrades, slot, upgradeX(slot), UPGRADES_Y));
+        }
+        for (int row = 0; row < 3; row++) {
+            for (int column = 0; column < 9; column++) {
+                addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, INVENTORY_Y + row * 18));
+            }
+        }
+        for (int column = 0; column < 9; column++) {
+            addSlot(new Slot(playerInventory, column, 8 + column * 18, hotbarY()));
+        }
+    }
+
+    /** Client side: the server writes the lowest segment's position and the slot count. */
+    public static ElevatorMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+        BlockPos bottom = buf.readBlockPos();
+        int slots = buf.readVarInt();
+        return new ElevatorMenu(containerId, playerInventory, ContainerLevelAccess.create(playerInventory.player.level(), bottom),
+                new LiftUpgradeSlots(slots, null));
+    }
+
+    /** What the server writes for {@link #fromNetwork}. */
+    public static void writeOpening(RegistryFriendlyByteBuf buf, ElevatorBlockEntity bottom) {
+        buf.writeBlockPos(bottom.getBlockPos());
+        buf.writeVarInt(bottom.upgrades().getSlots());
+    }
+
+    public int upgradeSlots() {
+        return upgradeSlots;
+    }
+
+    /** The upgrade row is centred. */
+    public int upgradeX(int slot) {
+        return (WIDTH - upgradeSlots * 18) / 2 + 1 + slot * 18;
+    }
+
+    public int hotbarY() {
+        return INVENTORY_Y + 3 * 18 + 4;
+    }
+
+    /** Shift click moves Speed upgrades between the upgrade row and the player inventory. */
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        if (index < 0 || index >= slots.size()) {
+            return ItemStack.EMPTY;
+        }
+        Slot slot = slots.get(index);
+        if (!slot.hasItem()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack stack = slot.getItem();
+        ItemStack copy = stack.copy();
+        if (index < upgradeSlots) {
+            if (!moveItemStackTo(stack, upgradeSlots, slots.size(), true)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (!stack.is(ServusFoundationItems.SPEED_UPGRADE.get()) || !moveItemStackTo(stack, 0, upgradeSlots, false)) {
+            return ItemStack.EMPTY;
+        }
+        if (stack.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+        return copy;
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return stillValid(access, player, ServusStorageBlocks.ELEVATOR.get());
+    }
+}

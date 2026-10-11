@@ -286,6 +286,9 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.production.packing.to_storage", "to storage %s of %s/s");
         add("gui.servus_storage.production.packing.to_storage_busy", "to storage %s of %s/s (busy)");
         add("gui.servus_storage.packing_station.upgrades", "Upgrades");
+        add("gui.servus_storage.elevator.upgrades", "Speed Upgrades");
+        add("gui.servus_storage.elevator.upgrades.tooltip",
+                "Each Speed Upgrade makes the lift car of this shaft faster and quicker off the mark. The lowest segment keeps them.");
         add("gui.servus_storage.packing_station.upgrades.tooltip",
                 "Speed Upgrades multiply how many items per second the station converts in each direction");
         add("gui.servus_storage.packing_station.rate", "%s/s");
