@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
+import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
@@ -463,6 +464,127 @@ public final class HarvesterGameTests {
                 network(helper).recallGarage(helper.absolutePos(GARAGE));
                 helper.assertTrue(out(helper) == 0, "the harvester should be in its garage at once");
                 helper.assertTrue(!noItemsLying(helper), "its cargo should drop at the garage");
+                helper.succeed();
+            });
+        });
+    }
+
+    // Lifts: a shaft at x 4, z 3 from y 1 to 3. Ground rails x 1 to 3 with the controller north of x 1,
+    // the garage north of x 3 and a crate south of x 2; the field lies east of the shaft.
+
+    private static final BlockPos SHAFT_BOTTOM = new BlockPos(4, 1, 3);
+    private static final BlockPos SHAFT_CONTROLLER = new BlockPos(1, 1, 2);
+    private static final BlockPos SHAFT_GARAGE = new BlockPos(3, 1, 2);
+    private static final BlockPos SHAFT_CRATE = new BlockPos(2, 1, 4);
+
+    /** The ground floor with a Harvester in the garage, a crate and the shaft; the field is built by the test. */
+    private static void shaftBase(GameTestHelper helper) {
+        StorageStatsManager.INSTANCE.setFieldWorkTicks(2);
+        StorageStatsManager.INSTANCE.setFieldCheckInterval(5);
+        for (int x = 0; x <= 10; x++) {
+            for (int z = 0; z <= 6; z++) {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE.defaultBlockState());
+            }
+        }
+        for (int x = 1; x <= 3; x++) {
+            helper.setBlock(new BlockPos(x, 1, 3), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        }
+        for (int y = 1; y <= 3; y++) {
+            helper.setBlock(new BlockPos(4, y, 3), ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
+        }
+        helper.setBlock(SHAFT_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(SHAFT_CRATE, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.SOUTH));
+        helper.setBlock(SHAFT_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        ShuttleGarageBlockEntity garage = helper.getBlockEntity(SHAFT_GARAGE);
+        garage.shuttles().setStackInSlot(0, harvester());
+    }
+
+    /** A rail east of the shaft at that height, farm rails x 6 to 8 and the head at x 9, ripe wheat south of x 7. */
+    private static FieldHeadBlockEntity shaftField(GameTestHelper helper, int y, BlockPos[] wheat) {
+        helper.setBlock(new BlockPos(5, y - 1, 3), Blocks.STONE.defaultBlockState());
+        helper.setBlock(new BlockPos(5, y, 3), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        for (int x = 6; x <= 8; x++) {
+            rail(helper, new BlockPos(x, y, 3), ServusStorageBlocks.FARM_RAIL.get());
+        }
+        helper.setBlock(new BlockPos(9, y - 1, 3), Blocks.STONE.defaultBlockState());
+        helper.setBlock(new BlockPos(9, y, 3), ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
+        wheat[0] = new BlockPos(7, y, 4);
+        crop(helper, wheat[0], Blocks.WHEAT, 7);
+        return helper.getBlockEntity(new BlockPos(9, y, 3));
+    }
+
+    private static WarehouseNetwork shaftNetwork(GameTestHelper helper) {
+        return ((WarehouseControllerBlockEntity) helper.getBlockEntity(SHAFT_CONTROLLER)).network().orElseThrow();
+    }
+
+    /** Garage and field share the ground floor with the shaft between them: the harvester drives through, the car never moves. */
+    @GameTest(template = EMPTY, timeoutTicks = 600)
+    public static void harvesterCrossesShaft(GameTestHelper helper) {
+        shaftBase(helper);
+        BlockPos[] wheat = new BlockPos[1];
+        FieldHeadBlockEntity head = shaftField(helper, 1, wheat);
+        BlockPos bottom = helper.absolutePos(SHAFT_BOTTOM);
+        boolean[] carMoved = {false};
+        helper.onEachTick(() -> {
+            if (helper.getBlockEntity(SHAFT_CONTROLLER) instanceof WarehouseControllerBlockEntity controller) {
+                controller.network().map(network -> network.lift(bottom)).ifPresent(car -> carMoved[0] |= car.moving());
+            }
+        });
+        helper.runAfterDelay(2, () -> {
+            head.setHarvestOnly(true);
+            CrateBlockEntity crate = helper.getBlockEntity(SHAFT_CRATE);
+            TerminalWiring.when(helper, () -> helper.getBlockState(wheat[0]).isAir() && held(crate, Items.WHEAT) == 1
+                    && shaftNetwork(helper).garageOut(helper.absolutePos(SHAFT_GARAGE)) == 0, 550,
+                    () -> "the wheat should be harvested into the crate, crate holds " + held(crate, Items.WHEAT), () -> {
+                helper.assertTrue(!carMoved[0], "the harvester crossed without calling the car");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** The field lies one floor up and the shaft is the only way: the head says so and the harvester stays home. */
+    @GameTest(template = EMPTY, timeoutTicks = 300)
+    public static void harvesterRefusesLift(GameTestHelper helper) {
+        shaftBase(helper);
+        BlockPos[] wheat = new BlockPos[1];
+        FieldHeadBlockEntity head = shaftField(helper, 3, wheat);
+        int[] wentOut = {0};
+        helper.onEachTick(() -> {
+            if (helper.getBlockEntity(SHAFT_CONTROLLER) instanceof WarehouseControllerBlockEntity controller) {
+                controller.network().ifPresent(network -> wentOut[0] = Math.max(wentOut[0], network.garageOut(helper.absolutePos(SHAFT_GARAGE))));
+            }
+        });
+        helper.runAfterDelay(2, () -> {
+            head.setHarvestOnly(true);
+            helper.runAfterDelay(150, () -> {
+                helper.assertTrue(head.work() == FieldWork.NO_WAY, "the head says no harvester gets there without a lift, got " + head.work());
+                helper.assertTrue(wentOut[0] == 0, "the harvester never left its garage");
+                helper.assertTrue(ripe(helper, wheat[0]), "the wheat stays ripe on the field");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** The crate zoned for wheat stands upstairs behind the lift: the harvester skips it and fills the crate on its floor. */
+    @GameTest(template = EMPTY, timeoutTicks = 600)
+    public static void harvestSkipsStorageUpstairs(GameTestHelper helper) {
+        shaftBase(helper);
+        helper.setBlock(new BlockPos(3, 3, 3), ServusStorageBlocks.RAIL.get().defaultBlockState());
+        BlockPos upstairs = new BlockPos(3, 3, 4);
+        helper.setBlock(upstairs, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.SOUTH));
+        CrateBlockEntity zoned = helper.getBlockEntity(upstairs);
+        zoned.setZone(new ZoneDefinition("Grain", new ZoneFilter(List.of(new ItemStack(Items.WHEAT)), List.of())));
+        BlockPos[] wheat = new BlockPos[1];
+        FieldHeadBlockEntity head = shaftField(helper, 1, wheat);
+        helper.runAfterDelay(2, () -> {
+            head.setHarvestOnly(true);
+            CrateBlockEntity crate = helper.getBlockEntity(SHAFT_CRATE);
+            TerminalWiring.when(helper, () -> helper.getBlockState(wheat[0]).isAir()
+                    && shaftNetwork(helper).garageOut(helper.absolutePos(SHAFT_GARAGE)) == 0, 550,
+                    () -> "the wheat should be harvested", () -> {
+                helper.assertTrue(held(crate, Items.WHEAT) == 1, "the wheat went into the crate on the harvester's floor, it holds " + held(crate, Items.WHEAT));
+                helper.assertTrue(held(zoned, Items.WHEAT) == 0, "the zoned crate upstairs got nothing");
                 helper.succeed();
             });
         });
