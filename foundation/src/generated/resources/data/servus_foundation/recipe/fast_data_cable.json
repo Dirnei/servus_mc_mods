@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "D": {
-      "item": "servus_foundation:duplex_data_cable"
-    },
-    "G": {
-      "item": "minecraft:gold_ingot"
-    },
-    "Q": {
-      "item": "minecraft:quartz"
-    }
+    "D": "servus_foundation:duplex_data_cable",
+    "G": "minecraft:gold_ingot",
+    "Q": "minecraft:quartz"
   },
   "pattern": [
     " G ",

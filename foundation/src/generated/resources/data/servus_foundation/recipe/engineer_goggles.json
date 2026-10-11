@@ -2,22 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "G": {
-      "item": "minecraft:glass"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "L": {
-      "item": "minecraft:leather"
-    }
+    "G": "minecraft:glass",
+    "I": "minecraft:iron_ingot",
+    "L": "minecraft:leather"
   },
   "pattern": [
     "LIL",
     "G G"
   ],
   "result": {
-    "count": 1,
     "id": "servus_foundation:engineer_goggles"
   }
 }

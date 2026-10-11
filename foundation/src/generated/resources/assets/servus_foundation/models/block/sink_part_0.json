@@ -83,10 +83,22 @@
     {
       "faces": {
         "north": {
-          "texture": "#grate"
+          "texture": "#grate",
+          "uv": [
+            3,
+            0,
+            16,
+            13
+          ]
         },
         "south": {
-          "texture": "#grate"
+          "texture": "#grate",
+          "uv": [
+            0,
+            0,
+            13,
+            13
+          ]
         }
       },
       "from": [
@@ -101,7 +113,6 @@
       ]
     }
   ],
-  "render_type": "minecraft:cutout",
   "textures": {
     "bricks": "minecraft:block/bricks",
     "grate": "servus_foundation:block/sink_front_0",

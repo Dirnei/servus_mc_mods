@@ -2,21 +2,11 @@
   "type": "servus_foundation:wood_shaped",
   "category": "redstone",
   "key": {
-    "C": {
-      "item": "minecraft:copper_ingot"
-    },
-    "D": {
-      "item": "servus_foundation:data_cable"
-    },
-    "H": {
-      "item": "minecraft:hopper"
-    },
-    "P": {
-      "tag": "minecraft:planks"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "C": "minecraft:copper_ingot",
+    "D": "servus_foundation:data_cable",
+    "H": "minecraft:hopper",
+    "P": "#minecraft:planks",
+    "R": "minecraft:redstone"
   },
   "pattern": [
     "CHC",
@@ -24,7 +14,6 @@
     "PPP"
   ],
   "result": {
-    "count": 1,
     "id": "servus_foundation:machine_adapter"
   }
 }

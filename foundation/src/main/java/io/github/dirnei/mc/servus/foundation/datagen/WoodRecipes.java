@@ -9,7 +9,11 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import org.jspecify.annotations.Nullable;
 
@@ -40,9 +44,11 @@ public final class WoodRecipes {
         };
     }
 
-    /** The same recipe as a wood recipe: both codecs have the same fields. */
+    /** The same recipe as a wood recipe, built from the shaped recipe's public data. */
     private static WoodRecipe toWood(ShapedRecipe recipe, RegistryOps<com.google.gson.JsonElement> ops) {
-        com.google.gson.JsonElement json = ShapedRecipe.MAP_CODEC.codec().encodeStart(ops, recipe).getOrThrow();
-        return WoodRecipe.MAP_CODEC.codec().parse(ops, json).getOrThrow();
+        ShapedCraftingRecipeDisplay display = (ShapedCraftingRecipeDisplay) recipe.display().getFirst();
+        ItemStackTemplate result = ((SlotDisplay.ItemStackSlotDisplay) display.result()).stack();
+        return new WoodRecipe(new Recipe.CommonInfo(recipe.showNotification()),
+                new CraftingRecipe.CraftingBookInfo(recipe.category(), recipe.group()), recipe.pattern, result);
     }
 }

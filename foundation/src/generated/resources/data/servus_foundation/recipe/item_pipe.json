@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "C": {
-      "item": "minecraft:chest"
-    },
-    "G": {
-      "item": "minecraft:glass"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    }
+    "C": "minecraft:chest",
+    "G": "minecraft:glass",
+    "I": "minecraft:iron_ingot"
   },
   "pattern": [
     "III",

@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "servus_foundation:wood",
+    "model": "servus_foundation:item/machine_adapter"
+  }
+}

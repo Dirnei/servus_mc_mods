@@ -76,12 +76,8 @@ public abstract class BlockStateProvider implements DataProvider {
     }
 
     public void simpleBlock(Block block, ModelFile model) {
-        VariantBlockStateBuilder builder = getVariantBuilder(block);
-        if (block.getStateDefinition().getProperties().isEmpty()) {
-            builder.single(new ConfiguredModel(model));
-        } else {
-            builder.forAllStates(state -> new ConfiguredModel[] {new ConfiguredModel(model)});
-        }
+        // One "" variant covers every state, as the old builder wrote it.
+        getVariantBuilder(block).single(new ConfiguredModel(model));
     }
 
     /** The item model of the block's item, {@code item/<block>}, with {@code model} as parent. */

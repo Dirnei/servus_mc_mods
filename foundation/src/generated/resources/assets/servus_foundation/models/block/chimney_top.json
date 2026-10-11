@@ -5,19 +5,49 @@
       "faces": {
         "down": {
           "cullface": "down",
-          "texture": "#bricks"
+          "texture": "#bricks",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#bricks",
+          "uv": [
+            3,
+            3,
+            13,
+            16
+          ]
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#bricks",
+          "uv": [
+            3,
+            3,
+            13,
+            16
+          ]
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#bricks",
+          "uv": [
+            3,
+            3,
+            13,
+            16
+          ]
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#bricks",
+          "uv": [
+            3,
+            3,
+            13,
+            16
+          ]
         }
       },
       "from": [
@@ -34,29 +64,59 @@
     {
       "faces": {
         "down": {
-          "texture": "#bricks"
+          "texture": "#bricks",
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
         },
         "east": {
-          "texture": "#bricks"
+          "texture": "#bricks",
+          "uv": [
+            2,
+            0,
+            14,
+            3
+          ]
         },
         "north": {
-          "texture": "#bricks"
+          "texture": "#bricks",
+          "uv": [
+            2,
+            0,
+            14,
+            3
+          ]
         },
         "south": {
-          "texture": "#bricks"
+          "texture": "#bricks",
+          "uv": [
+            2,
+            0,
+            14,
+            3
+          ]
         },
         "up": {
           "cullface": "up",
           "texture": "#top",
           "uv": [
-            0.0,
-            0.0,
-            16.0,
-            16.0
+            0,
+            0,
+            16,
+            16
           ]
         },
         "west": {
-          "texture": "#bricks"
+          "texture": "#bricks",
+          "uv": [
+            2,
+            0,
+            14,
+            3
+          ]
         }
       },
       "from": [

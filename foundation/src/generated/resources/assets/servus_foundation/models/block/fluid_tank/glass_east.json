@@ -20,7 +20,6 @@
       ]
     }
   ],
-  "render_type": "minecraft:cutout",
   "textures": {
     "floor": "minecraft:block/copper_block",
     "frame": "minecraft:block/copper_block",

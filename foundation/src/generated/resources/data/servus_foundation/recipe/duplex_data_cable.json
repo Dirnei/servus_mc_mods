@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "D": {
-      "item": "servus_foundation:data_cable"
-    },
-    "Q": {
-      "item": "minecraft:quartz"
-    }
+    "D": "servus_foundation:data_cable",
+    "Q": "minecraft:quartz"
   },
   "pattern": [
     "DQD"

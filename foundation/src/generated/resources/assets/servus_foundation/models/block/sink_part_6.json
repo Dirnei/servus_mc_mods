@@ -28,7 +28,6 @@
       ]
     }
   ],
-  "render_type": "minecraft:cutout",
   "textures": {
     "bricks": "minecraft:block/bricks",
     "particle": "minecraft:block/bricks"

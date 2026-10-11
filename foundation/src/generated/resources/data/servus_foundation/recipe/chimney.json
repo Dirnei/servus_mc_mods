@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "minecraft:brick"
-    }
+    "B": "minecraft:brick"
   },
   "pattern": [
     "B B",

@@ -135,10 +135,15 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
 
     private static JsonArray vec(float x, float y, float z) {
         JsonArray array = new JsonArray();
-        array.add(x);
-        array.add(y);
-        array.add(z);
+        array.add(num(x));
+        array.add(num(y));
+        array.add(num(z));
         return array;
+    }
+
+    /** Whole numbers as ints, so the JSON reads like hand written models. */
+    static Number num(float value) {
+        return value == (int) value ? (Number) (int) value : (Number) value;
     }
 
     /** One cuboid of the model. */
@@ -273,7 +278,7 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
                 if (uvs != null) {
                     JsonArray array = new JsonArray();
                     for (float uv : uvs) {
-                        array.add(uv);
+                        array.add(num(uv));
                     }
                     json.add("uv", array);
                 }
@@ -327,7 +332,7 @@ public abstract class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile 
                 JsonObject json = new JsonObject();
                 json.add("origin", vec(origin[0], origin[1], origin[2]));
                 json.addProperty("axis", axis.getSerializedName());
-                json.addProperty("angle", angle);
+                json.addProperty("angle", num(angle));
                 if (rescale) {
                     json.addProperty("rescale", true);
                 }

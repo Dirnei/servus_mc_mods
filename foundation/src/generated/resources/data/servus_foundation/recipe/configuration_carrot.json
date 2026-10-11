@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "C": {
-      "item": "minecraft:carrot"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "C": "minecraft:carrot",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone"
   },
   "pattern": [
     "R",
@@ -18,7 +12,6 @@
     "C"
   ],
   "result": {
-    "count": 1,
     "id": "servus_foundation:configuration_carrot"
   }
 }
