@@ -2,7 +2,7 @@
 
 ## 1. Pure field logic
 
-- [ ] 1.1 `FieldPos`, `FieldGraph`, `FieldStrip`, `FieldRipeness` and `FieldWater` in `storage/src/main/java/.../storage/field/` (design D2), no Minecraft imports. JUnit in `storage/src/test/java/.../storage/field/`: `FieldGraphTest`, `FieldStripTest`, `FieldRipenessTest`, `FieldWaterTest`. Verify: `gradlew test`.
+- [x] 1.1 `FieldPos`, `FieldGraph`, `FieldStrip`, `FieldRipeness` and `FieldWater` in `storage/src/main/java/.../storage/field/` (design D2), no Minecraft imports. JUnit in `storage/src/test/java/.../storage/field/`: `FieldGraphTest`, `FieldStripTest`, `FieldRipenessTest`, `FieldWaterTest`. Verify: `gradlew test`.
 
 ## 2. Farm Rail
 
