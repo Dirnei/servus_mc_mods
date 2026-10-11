@@ -55,4 +55,28 @@ class FieldRipenessTest {
         assertEquals(0, field.share());
         assertFalse(field.due(0));
     }
+
+    @Test
+    void openPlots() {
+        FieldRipeness<String> field = new FieldRipeness<>();
+        field.update("a", PlotState.TILLABLE);
+        field.update("b", PlotState.PLANTABLE);
+        field.update("c", PlotState.RIPE);
+        assertEquals(1, field.tillable());
+        assertEquals(1, field.plantable());
+        assertEquals(1, field.planted());
+        assertEquals(PlotState.TILLABLE, field.state("a"));
+        field.update("a", PlotState.PLANTABLE);
+        assertEquals(0, field.tillable());
+        assertEquals(2, field.plantable());
+        field.update("b", PlotState.GROWING);
+        assertEquals(1, field.plantable());
+        assertEquals(2, field.planted());
+        field.update("c", PlotState.BLOCKED);
+        assertEquals(PlotState.BLOCKED, field.state("c"));
+        assertEquals(1, field.planted());
+        assertEquals(PlotState.BLOCKED, field.state("unknown"));
+        field.clear();
+        assertEquals(0, field.plantable());
+    }
 }

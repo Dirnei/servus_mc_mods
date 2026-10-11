@@ -1,32 +1,61 @@
 package io.github.dirnei.mc.servus.storage.field;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-/** Which plots of a field hold a crop and which of those are ripe. Pure, no Minecraft imports. */
+/**
+ * Which plots of a field hold a crop, which of those are ripe, and which are
+ * open for field work: to till or to plant. Pure, no Minecraft imports.
+ */
 public final class FieldRipeness<T> {
 
     private final Set<T> planted = new HashSet<>();
     private final Set<T> ripe = new HashSet<>();
+    private final Set<T> tillable = new HashSet<>();
+    private final Set<T> plantable = new HashSet<>();
+    private final Map<T, PlotState> states = new HashMap<>();
 
     /** Records what a plot holds now; a ripe plot is always planted. */
     public void update(T plot, boolean isPlanted, boolean isRipe) {
-        if (isPlanted || isRipe) {
-            planted.add(plot);
+        update(plot, PlotState.of(isPlanted, isRipe));
+    }
+
+    /** Records the state of a plot now. */
+    public void update(T plot, PlotState state) {
+        boolean isPlanted = state == PlotState.GROWING || state == PlotState.RIPE;
+        set(planted, plot, isPlanted);
+        set(ripe, plot, state == PlotState.RIPE);
+        set(tillable, plot, state == PlotState.TILLABLE);
+        set(plantable, plot, state == PlotState.PLANTABLE);
+        if (state == PlotState.BLOCKED) {
+            states.remove(plot);
         } else {
-            planted.remove(plot);
+            states.put(plot, state);
         }
-        if (isRipe) {
-            ripe.add(plot);
+    }
+
+    private static <T> void set(Set<T> set, T plot, boolean member) {
+        if (member) {
+            set.add(plot);
         } else {
-            ripe.remove(plot);
+            set.remove(plot);
         }
     }
 
     public void clear() {
         planted.clear();
         ripe.clear();
+        tillable.clear();
+        plantable.clear();
+        states.clear();
+    }
+
+    /** The recorded state of a plot; blocked when nothing was recorded. */
+    public PlotState state(T plot) {
+        return states.getOrDefault(plot, PlotState.BLOCKED);
     }
 
     public int planted() {
@@ -43,6 +72,16 @@ public final class FieldRipeness<T> {
 
     public Set<T> ripePlots() {
         return Collections.unmodifiableSet(ripe);
+    }
+
+    /** Empty plots on dirt or grass. */
+    public int tillable() {
+        return tillable.size();
+    }
+
+    /** Empty plots on farmland. */
+    public int plantable() {
+        return plantable.size();
     }
 
     /** Ripe plots divided by planted plots, 0 when nothing is planted. */

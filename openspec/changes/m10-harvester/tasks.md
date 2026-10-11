@@ -2,7 +2,7 @@
 
 ## 1. Pure field run logic
 
-- [ ] 1.1 `PlotState`, open plots in `FieldRipeness`, `PlotReach`, `FieldRoute`, `PlotWork`, `FieldCargo`, `SeedPlan`, `HarvestStep` and `FieldDue` in `storage/src/main/java/.../storage/field/` (design D2, D3, D4, D5, D6, D7), no Minecraft imports. JUnit in `storage/src/test/java/.../storage/field/`: `PlotReachTest`, `FieldRouteTest`, `PlotWorkTest`, `FieldCargoTest`, `SeedPlanTest`, `HarvestStepTest`, `FieldDueTest`, open plot cases in `FieldRipenessTest`. Verify: `gradlew test`.
+- [x] 1.1 `PlotState`, open plots in `FieldRipeness`, `PlotReach`, `FieldRoute`, `PlotWork`, `FieldCargo`, `SeedPlan`, `HarvestStep` and `FieldDue` in `storage/src/main/java/.../storage/field/` (design D2, D3, D4, D5, D6, D7), no Minecraft imports. JUnit in `storage/src/test/java/.../storage/field/`: `PlotReachTest`, `FieldRouteTest`, `PlotWorkTest`, `FieldCargoTest`, `SeedPlanTest`, `HarvestStepTest`, `FieldDueTest`, open plot cases in `FieldRipenessTest`. Verify: `gradlew test`.
 
 ## 2. Harvester module and data
 
