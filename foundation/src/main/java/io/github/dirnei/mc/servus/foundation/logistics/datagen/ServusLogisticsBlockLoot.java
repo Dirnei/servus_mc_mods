@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.datagen;
 
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsComponents;
 import java.util.List;
@@ -33,7 +34,7 @@ public final class ServusLogisticsBlockLoot extends BlockLootSubProvider {
         add(tank, LootTable.lootTable().withPool(applyExplosionCondition(tank, LootPool.lootPool()
                 .setRolls(ConstantValue.exactly(1.0F))
                 .add(LootItem.lootTableItem(tank)
-                        .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                        .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                                 .include(ServusLogisticsComponents.FLUID.get())
                                 .include(ServusLogisticsComponents.TANK_FLOOR.get()))))));
     }

@@ -5,9 +5,9 @@ import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctShapes;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import java.util.List;
 import net.minecraft.core.Direction;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 
 /**
  * Writes the duct part models: a centre cube per line set and, per direction,

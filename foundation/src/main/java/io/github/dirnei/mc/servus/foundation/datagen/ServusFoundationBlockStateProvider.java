@@ -1,12 +1,11 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import net.minecraft.data.PackOutput;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.core.Direction;
@@ -14,8 +13,8 @@ import net.minecraft.resources.Identifier;
 
 final class ServusFoundationBlockStateProvider extends BlockStateProvider {
 
-    ServusFoundationBlockStateProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
-        super(output, ServusFoundationIds.MOD_ID, existingFileHelper);
+    ServusFoundationBlockStateProvider(PackOutput output) {
+        super(output, ServusFoundationIds.MOD_ID);
     }
 
     @Override

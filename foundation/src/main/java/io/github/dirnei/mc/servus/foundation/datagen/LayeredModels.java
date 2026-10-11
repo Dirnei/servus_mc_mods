@@ -5,10 +5,9 @@ import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.client.model.generators.ModelProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 
 /**
  * Datagen helper for wood blocks: a full cube of board panels ({@link Wood#BOARD},
@@ -37,7 +36,6 @@ public final class LayeredModels {
     /** One overlay texture per face. */
     public static ModelFile cube(BlockStateProvider provider, String name, Map<Direction, Identifier> faces) {
         // The board texture lives in Foundation; other mods' data runs only know their own resources.
-        provider.models().existingFileHelper.trackGenerated(Wood.BOARD, ModelProvider.TEXTURE);
         BlockModelBuilder builder = provider.models().getBuilder(name)
                 .parent(new ModelFile.UncheckedModelFile("minecraft:block/block"))
                 .renderType("minecraft:cutout")

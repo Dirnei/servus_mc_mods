@@ -6,16 +6,13 @@ import io.github.dirnei.mc.servus.foundation.upgrade.Upgrades;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.ItemTagsProvider;
-import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ItemTagsProvider;
 
 /** Item tags: the upgrades other mods can join. */
 final class ServusFoundationItemTagsProvider extends ItemTagsProvider {
 
-    ServusFoundationItemTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
-                                     CompletableFuture<TagLookup<Block>> blockTags, ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, blockTags, ServusFoundationIds.MOD_ID, existingFileHelper);
+    ServusFoundationItemTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+        super(output, lookupProvider, ServusFoundationIds.MOD_ID);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import net.minecraft.world.item.Item;
+import net.minecraft.core.HolderGetter;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
@@ -17,11 +19,11 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 /** Datagen of the machines Foundation owns: models, loot, tags, lang and recipes. */
@@ -79,8 +81,8 @@ final class MachineDataParts {
         provider.add("message.servus_foundation.sink.side_face", "Click a side of the cube: that side becomes the front");
     }
 
-    static void recipes(RecipeOutput output, Function<ItemLike, Criterion<InventoryChangeTrigger.TriggerInstance>> has) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MachineContent.COAL_GENERATOR_ITEM.get())
+    static void recipes(RecipeOutput output, HolderGetter<Item> items, Function<ItemLike, Criterion<InventoryChangeTrigger.TriggerInstance>> has) {
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.COAL_GENERATOR_ITEM.get())
                 .pattern("ICI")
                 .pattern("CFC")
                 .pattern("ICI")
@@ -90,7 +92,7 @@ final class MachineDataParts {
                 .unlockedBy("has_copper_ingot", has.apply(Items.COPPER_INGOT))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MachineContent.BURNER_PUMP_ITEM.get())
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.BURNER_PUMP_ITEM.get())
                 .pattern("IBI")
                 .pattern("IFI")
                 .pattern("CCC")
@@ -102,7 +104,7 @@ final class MachineDataParts {
                 .save(output);
 
         // No research and no assembler in Foundation: the Electric Pump is crafted from a Burner Pump by hand.
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MachineContent.ELECTRIC_PUMP_ITEM.get())
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.ELECTRIC_PUMP_ITEM.get())
                 .pattern("CRC")
                 .pattern("IPI")
                 .pattern("CRC")
@@ -114,7 +116,7 @@ final class MachineDataParts {
                 .save(output);
 
         // No assembler in Foundation: the Chunk Loader is crafted by hand.
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MachineContent.CHUNK_LOADER_ITEM.get())
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.CHUNK_LOADER_ITEM.get())
                 .pattern("ICI")
                 .pattern("RER")
                 .pattern("ICI")
@@ -126,7 +128,7 @@ final class MachineDataParts {
                 .save(output);
 
         // Eight Sink blocks build one 2x2x2 Sink.
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MachineContent.SINK_ITEM.get(), 8)
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.SINK_ITEM.get(), 8)
                 .pattern("BBB")
                 .pattern("BRB")
                 .pattern("BBB")
@@ -135,7 +137,7 @@ final class MachineDataParts {
                 .unlockedBy("has_bricks", has.apply(Items.BRICKS))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, MachineContent.CHIMNEY_ITEM.get(), 2)
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, MachineContent.CHIMNEY_ITEM.get(), 2)
                 .pattern("B B")
                 .pattern("B B")
                 .pattern("B B")

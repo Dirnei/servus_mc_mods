@@ -8,11 +8,11 @@ import java.util.EnumSet;
 import java.util.Set;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
-import net.neoforged.neoforge.client.model.generators.ModelBuilder;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ConfiguredModel;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 
 /** Models of the Sink, its Chimney and the fan its block entity renderer draws. */
 final class SinkModels {

@@ -4,13 +4,12 @@ import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.datagen.LogisticsDataParts;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import net.minecraft.data.PackOutput;
-import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
 
 final class ServusFoundationItemModelProvider extends ItemModelProvider {
 
-    ServusFoundationItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
-        super(output, ServusFoundationIds.MOD_ID, existingFileHelper);
+    ServusFoundationItemModelProvider(PackOutput output) {
+        super(output, ServusFoundationIds.MOD_ID);
     }
 
     @Override

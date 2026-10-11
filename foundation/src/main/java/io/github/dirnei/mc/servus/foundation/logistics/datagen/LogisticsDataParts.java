@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.datagen;
 
+import net.minecraft.world.item.Item;
+import net.minecraft.core.HolderGetter;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.HollowFacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankRecipe;
@@ -16,9 +18,9 @@ import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 /**
@@ -56,8 +58,8 @@ public final class LogisticsDataParts {
         return List.of(ServusLogisticsBlocks.UTILITY_DUCT.get(), ServusLogisticsBlocks.FLUID_TANK.get());
     }
 
-    public static void recipes(RecipeOutput output, Function<ItemLike, Criterion<InventoryChangeTrigger.TriggerInstance>> has) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.ITEM_PIPE.get(), 8)
+    public static void recipes(RecipeOutput output, HolderGetter<Item> items, Function<ItemLike, Criterion<InventoryChangeTrigger.TriggerInstance>> has) {
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, ServusLogisticsItems.ITEM_PIPE.get(), 8)
                 .pattern("III")
                 .pattern("GCG")
                 .pattern("III")
@@ -67,7 +69,7 @@ public final class LogisticsDataParts {
                 .unlockedBy("has_iron", has.apply(Items.IRON_INGOT))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.POWER_CABLE.get(), 8)
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, ServusLogisticsItems.POWER_CABLE.get(), 8)
                 .pattern("CCC")
                 .pattern("RGR")
                 .pattern("CCC")
@@ -78,7 +80,7 @@ public final class LogisticsDataParts {
                 .save(output);
 
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.FLUID_PIPE.get(), 8)
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, ServusLogisticsItems.FLUID_PIPE.get(), 8)
                 .pattern("III")
                 .pattern("GBG")
                 .pattern("III")
@@ -88,21 +90,21 @@ public final class LogisticsDataParts {
                 .unlockedBy("has_bucket", has.apply(Items.BUCKET))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.DATA_CABLE.get(), 4)
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, ServusLogisticsItems.DATA_CABLE.get(), 4)
                 .pattern("CRC")
                 .define('C', Items.COPPER_INGOT)
                 .define('R', Items.REDSTONE)
                 .unlockedBy("has_copper", has.apply(Items.COPPER_INGOT))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.DUPLEX_DATA_CABLE.get(), 2)
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, ServusLogisticsItems.DUPLEX_DATA_CABLE.get(), 2)
                 .pattern("DQD")
                 .define('D', ServusLogisticsItems.DATA_CABLE.get())
                 .define('Q', Items.QUARTZ)
                 .unlockedBy("has_data_cable", has.apply(ServusLogisticsItems.DATA_CABLE.get()))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ServusLogisticsItems.FAST_DATA_CABLE.get(), 2)
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, ServusLogisticsItems.FAST_DATA_CABLE.get(), 2)
                 .pattern(" G ")
                 .pattern("DQD")
                 .pattern(" G ")
@@ -112,9 +114,9 @@ public final class LogisticsDataParts {
                 .unlockedBy("has_duplex_data_cable", has.apply(ServusLogisticsItems.DUPLEX_DATA_CABLE.get()))
                 .save(output);
 
-        SpecialRecipeBuilder.special(FacadeRecipe::new).save(output, "servus_foundation:facade");
-        SpecialRecipeBuilder.special(HollowFacadeRecipe::new).save(output, "servus_foundation:hollow_facade");
-        SpecialRecipeBuilder.special(FluidTankRecipe::new).save(output, "servus_foundation:fluid_tank");
+        SpecialRecipeBuilder.special(() -> FacadeRecipe.INSTANCE).save(output, "servus_foundation:facade");
+        SpecialRecipeBuilder.special(() -> HollowFacadeRecipe.INSTANCE).save(output, "servus_foundation:hollow_facade");
+        SpecialRecipeBuilder.special(() -> FluidTankRecipe.INSTANCE).save(output, "servus_foundation:fluid_tank");
     }
 
     public static void language(LanguageProvider provider) {

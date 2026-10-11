@@ -10,32 +10,30 @@ import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-@EventBusSubscriber(modid = ServusFoundationIds.MOD_ID)
+/** One client data run generates assets and data together, as NeoForge recommends since 21.4. */
+@EventBusSubscriber(modid = ServusFoundationIds.MOD_ID, value = Dist.CLIENT)
 public final class ServusFoundationDataGen {
 
     private ServusFoundationDataGen() {
     }
 
     @SubscribeEvent
-    public static void gather(GatherDataEvent event) {
+    public static void gather(GatherDataEvent.Client event) {
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
-        generator.addProvider(event.includeClient(), new ServusFoundationLanguageProvider(output));
-        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         CompletableFuture<HolderLookup.Provider> lookup = event.getLookupProvider();
-        generator.addProvider(event.includeClient(), new ServusFoundationBlockStateProvider(output, existingFileHelper));
-        generator.addProvider(event.includeClient(), new ServusFoundationItemModelProvider(output, existingFileHelper));
-        ServusFoundationBlockTagsProvider blockTags = generator.addProvider(event.includeServer(),
-                new ServusFoundationBlockTagsProvider(output, lookup, existingFileHelper));
-        generator.addProvider(event.includeServer(), new ServusFoundationItemTagsProvider(output, lookup,
-                blockTags.contentsGetter(), existingFileHelper));
-        generator.addProvider(event.includeServer(), new ServusFoundationRecipeProvider(output, lookup));
-        generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
+        event.addProvider(new ServusFoundationLanguageProvider(output));
+        event.addProvider(new ServusFoundationBlockStateProvider(output));
+        event.addProvider(new ServusFoundationItemModelProvider(output));
+        event.addProvider(new ServusFoundationBlockTagsProvider(output, lookup));
+        event.addProvider(new ServusFoundationItemTagsProvider(output, lookup));
+        event.addProvider(new ServusFoundationRecipeProvider.Runner(output, lookup));
+        event.addProvider(new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(ServusLogisticsBlockLoot::new, LootContextParamSets.BLOCK),
                         new LootTableProvider.SubProviderEntry(AdapterBlockLoot::new, LootContextParamSets.BLOCK),
                         new LootTableProvider.SubProviderEntry(MachineBlockLoot::new, LootContextParamSets.BLOCK)),

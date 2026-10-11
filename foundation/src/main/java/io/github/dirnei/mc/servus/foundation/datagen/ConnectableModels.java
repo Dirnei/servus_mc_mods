@@ -3,9 +3,9 @@ package io.github.dirnei.mc.servus.foundation.datagen;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockModelBuilder;
+import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
+import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBuilder;
 
 /** Datagen helper for {@link ConnectableBlock}: a centre cube plus one arm per connected side. */
 public final class ConnectableModels {

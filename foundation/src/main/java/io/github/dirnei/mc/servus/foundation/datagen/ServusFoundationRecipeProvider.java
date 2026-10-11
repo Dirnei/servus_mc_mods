@@ -16,13 +16,31 @@ import net.minecraft.world.item.Items;
 
 final class ServusFoundationRecipeProvider extends RecipeProvider {
 
-    ServusFoundationRecipeProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-        super(output, registries);
+    private ServusFoundationRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
+        super(registries, output);
+    }
+
+    /** The data provider: builds the recipes once the registries are known. */
+    static final class Runner extends RecipeProvider.Runner {
+
+        Runner(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+            super(output, registries);
+        }
+
+        @Override
+        protected RecipeProvider createRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
+            return new ServusFoundationRecipeProvider(registries, output);
+        }
+
+        @Override
+        public String getName() {
+            return "Servus Foundation recipes";
+        }
     }
 
     @Override
-    protected void buildRecipes(RecipeOutput output) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusFoundationItems.CONFIGURATION_CARROT.get())
+    protected void buildRecipes() {
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusFoundationItems.CONFIGURATION_CARROT.get())
                 .pattern("R")
                 .pattern("I")
                 .pattern("C")
@@ -32,7 +50,7 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_carrot", has(Items.CARROT))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ServusFoundationItems.SPEED_UPGRADE.get())
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.MISC, ServusFoundationItems.SPEED_UPGRADE.get())
                 .pattern("RGR")
                 .pattern("GCG")
                 .pattern("RGR")
@@ -42,7 +60,7 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_gold", has(Items.GOLD_INGOT))
                 .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ServusFoundationItems.GOGGLES.get())
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.TOOLS, ServusFoundationItems.GOGGLES.get())
                 .pattern("LIL")
                 .pattern("G G")
                 .define('L', Items.LEATHER)
@@ -51,10 +69,10 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_glass", has(Items.GLASS))
                 .save(output);
 
-        LogisticsDataParts.recipes(output, RecipeProvider::has);
-        MachineDataParts.recipes(output, RecipeProvider::has);
+        LogisticsDataParts.recipes(output, items, this::has);
+        MachineDataParts.recipes(output, items, this::has);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, AdapterContent.ITEM.get())
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.REDSTONE, AdapterContent.ITEM.get())
                 .pattern("CHC")
                 .pattern("RDR")
                 .pattern("PPP")
@@ -64,6 +82,6 @@ final class ServusFoundationRecipeProvider extends RecipeProvider {
                 .define('D', ServusLogisticsItems.DATA_CABLE.get())
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_data_cable", has(ServusLogisticsItems.DATA_CABLE.get()))
-                .save(WoodRecipes.output(output));
+                .save(WoodRecipes.output(output, registries));
     }
 }

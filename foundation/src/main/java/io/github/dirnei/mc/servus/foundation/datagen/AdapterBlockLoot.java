@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import java.util.List;
 import java.util.Set;
@@ -20,7 +21,7 @@ final class AdapterBlockLoot extends BlockLootSubProvider {
     @Override
     protected void generate() {
         add(AdapterContent.BLOCK.get(), createSingleItemTable(AdapterContent.BLOCK.get())
-                .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                         .include(WoodContent.WOOD.get())));
     }
 
