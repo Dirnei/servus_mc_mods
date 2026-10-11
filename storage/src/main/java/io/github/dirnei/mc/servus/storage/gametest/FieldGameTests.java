@@ -481,6 +481,41 @@ public final class FieldGameTests {
         helper.succeed();
     }
 
+    /**
+     * Each head slot sits on its tab, and shift click routes honeycomb and a
+     * Range Upgrade into their slots and back whatever tab is shown.
+     */
+    @GameTest(template = EMPTY, timeoutTicks = 100)
+    public static void menuTabsRouteShiftClick(GameTestHelper helper) {
+        FieldHeadBlockEntity head = field(helper, 3, 5);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        FieldHeadMenu menu = new FieldHeadMenu(1, player.getInventory(), head);
+        helper.assertTrue(menu.page() == FieldHeadMenu.Page.FIELD, "the GUI opens on the Field tab");
+        helper.assertTrue(FieldHeadMenu.pageOf(FieldHeadMenu.CROP_SLOT) == FieldHeadMenu.Page.FIELD
+                && FieldHeadMenu.pageOf(FieldHeadMenu.ANTI_CORROSION_SLOT) == FieldHeadMenu.Page.WATER
+                && FieldHeadMenu.pageOf(FieldHeadMenu.RANGE_SLOT) == FieldHeadMenu.Page.UPGRADES
+                && FieldHeadMenu.pageOf(FieldHeadMenu.INVENTORY_START) == null, "each head slot belongs to its tab");
+        helper.assertTrue(menu.slots.get(FieldHeadMenu.RANGE_SLOT).isActive()
+                && menu.slots.get(FieldHeadMenu.ANTI_CORROSION_SLOT).isActive(), "head slots stay active on the server");
+        player.getInventory().setItem(9, new ItemStack(Items.HONEYCOMB, 3));
+        player.getInventory().setItem(10, new ItemStack(ServusStorageItems.RANGE_UPGRADE.get()));
+        menu.quickMoveStack(player, FieldHeadMenu.INVENTORY_START);
+        menu.quickMoveStack(player, FieldHeadMenu.INVENTORY_START + 1);
+        helper.assertTrue(head.antiCorrosion().getStackInSlot(0).is(Items.HONEYCOMB)
+                && head.antiCorrosion().getStackInSlot(0).getCount() == 3, "honeycomb goes into the anti-corrosion slot from the Field tab");
+        helper.assertTrue(head.rangeUpgrades().getStackInSlot(0).is(ServusStorageItems.RANGE_UPGRADE.get()),
+                "the Range Upgrade goes into its slot from the Field tab");
+        helper.assertTrue(player.getInventory().getItem(9).isEmpty() && player.getInventory().getItem(10).isEmpty(), "both left the inventory");
+        menu.setPage(FieldHeadMenu.Page.UPGRADES);
+        menu.quickMoveStack(player, FieldHeadMenu.RANGE_SLOT);
+        menu.quickMoveStack(player, FieldHeadMenu.ANTI_CORROSION_SLOT);
+        helper.assertTrue(head.rangeUpgrades().getStackInSlot(0).isEmpty() && head.antiCorrosion().getStackInSlot(0).isEmpty(),
+                "shift click from the slots empties them");
+        helper.assertTrue(player.getInventory().countItem(Items.HONEYCOMB) == 3
+                && player.getInventory().countItem(ServusStorageItems.RANGE_UPGRADE.get()) == 1, "both are back in the inventory");
+        helper.succeed();
+    }
+
     // Open plots
 
     /** Dirt under an empty plot is to till, farmland to plant; hoeing and planting by hand move the plots along. */

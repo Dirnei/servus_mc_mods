@@ -11,7 +11,7 @@
 
 ## 3. Tests
 
-- [ ] 3.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/gametest/FieldGameTests.java`: GameTest `menuTabsRouteShiftClick` (page of each head slot, honeycomb and a Range Upgrade shift clicked from the inventory land in their slots with the Field page set, and shift click from the slots moves them back). Run `gradlew :storage:runGameTestServer`.
+- [x] 3.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/gametest/FieldGameTests.java`: GameTest `menuTabsRouteShiftClick` (page of each head slot, honeycomb and a Range Upgrade shift clicked from the inventory land in their slots with the Field page set, and shift click from the slots moves them back). Run `gradlew :storage:runGameTestServer`.
 
 ## 4. Docs and plan
 
