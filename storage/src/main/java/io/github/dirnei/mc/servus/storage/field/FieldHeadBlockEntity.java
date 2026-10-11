@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -540,14 +541,26 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider {
         if (status != FieldStatus.SERVING || rails.isEmpty()) {
             return null;
         }
-        Optional<WarehouseNetwork> network = level.getBlockEntity(rails.iterator().next()) instanceof StorageNodeBlockEntity node
-                ? node.network() : Optional.empty();
+        Optional<WarehouseNetwork> network = network();
         boolean online = network.map(warehouse -> warehouse.status() == WarehouseNetwork.Status.ONLINE).orElse(false);
         boolean harvester = network.map(WarehouseNetwork::hasFieldShuttles).orElse(false);
         boolean working = network.map(warehouse -> warehouse.hasFieldJob(worldPosition)).orElse(false);
         boolean seeds = plantMode() && network.map(warehouse -> warehouse.available(ItemKey.of(crop())) > 0).orElse(false);
         return FieldWork.of(network.isPresent(), online, harvestOnly || plantMode(), harvester, working, harvestDue(),
                 plantMode(), hydrated, tillableCount(), plantableCount(), plantedCount(), seeds);
+    }
+
+    /** The warehouse the field's rails belong to; call only while the head serves a field. */
+    private Optional<WarehouseNetwork> network() {
+        return level.getBlockEntity(rails.iterator().next()) instanceof StorageNodeBlockEntity node ? node.network() : Optional.empty();
+    }
+
+    /** The name plate of the shuttle working this field right now, or empty. Server side. */
+    public Optional<String> workerName() {
+        if (status != FieldStatus.SERVING || rails.isEmpty()) {
+            return Optional.empty();
+        }
+        return network().flatMap(warehouse -> warehouse.fieldWorker(worldPosition)).flatMap(ShuttleItem::plate);
     }
 
     public int water() {

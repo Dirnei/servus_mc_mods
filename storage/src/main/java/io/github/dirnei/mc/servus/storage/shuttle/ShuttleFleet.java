@@ -870,6 +870,18 @@ public final class ShuttleFleet {
         return false;
     }
 
+    /** The item of the shuttle whose run serves that head, or empty when none is out for it. */
+    public Optional<ItemStack> fieldWorker(BlockPos head) {
+        for (Garage garage : garages.values()) {
+            for (Shuttle shuttle : garage.shuttles) {
+                if (shuttle.run != null && shuttle.run.head.equals(head)) {
+                    return Optional.of(shuttle.item);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
     /** The head of a run while it still serves its field, else null. */
     private FieldHeadBlockEntity servingHead(BlockPos pos) {
         ServerLevel level = host.level();

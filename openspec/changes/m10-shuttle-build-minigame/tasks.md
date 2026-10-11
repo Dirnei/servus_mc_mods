@@ -20,7 +20,7 @@
 
 ## 5. Field Head
 
-- [ ] 5.1 `ShuttleFleet.fieldWorker`, `WarehouseNetwork.fieldWorker`, `FieldHeadBlockEntity.workerName`, `FieldWorkerPayload` sent by `FieldHeadMenu` on change and registered in `ServusStoragePayloads`, `ClientFieldWorker`, the named working line in `FieldHeadScreen` with its lang (design D8). Verify: `gradlew build` and `gradlew :storage:runGameTestServer` green.
+- [x] 5.1 `ShuttleFleet.fieldWorker`, `WarehouseNetwork.fieldWorker`, `FieldHeadBlockEntity.workerName`, `FieldWorkerPayload` sent by `FieldHeadMenu` on change and registered in `ServusStoragePayloads`, `ClientFieldWorker`, the named working line in `FieldHeadScreen` with its lang (design D8). Verify: `gradlew build` and `gradlew :storage:runGameTestServer` green.
 
 ## 6. Docs and plan
 

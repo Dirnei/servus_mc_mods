@@ -147,8 +147,11 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
                 case GROWING, WAITING_RIPE -> COLOUR_TEXT;
                 default -> COLOUR_WARN;
             };
-            graphics.drawString(font, Component.translatable("gui.servus_storage.field_head.work." + work.name().toLowerCase(Locale.ROOT)),
-                    8, y + 34, colour, false);
+            String worker = ClientFieldWorker.name();
+            Component line = work == FieldWork.WORKING && !worker.isEmpty()
+                    ? Component.translatable("gui.servus_storage.field_head.work.working_named", worker)
+                    : Component.translatable("gui.servus_storage.field_head.work." + work.name().toLowerCase(Locale.ROOT));
+            graphics.drawString(font, line, 8, y + 34, colour, false);
         }
     }
 }

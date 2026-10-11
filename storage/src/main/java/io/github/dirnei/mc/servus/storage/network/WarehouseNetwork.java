@@ -1339,6 +1339,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return fleet.hasFieldJob(head);
     }
 
+    /** The item of the shuttle working that head's field right now, or empty. */
+    public Optional<ItemStack> fieldWorker(BlockPos head) {
+        return fleet.fieldWorker(head);
+    }
+
     /** Inserts into exactly that source; returns what did not fit. */
     @Override
     public ItemStack insertAt(BlockPos pos, ItemStack stack) {

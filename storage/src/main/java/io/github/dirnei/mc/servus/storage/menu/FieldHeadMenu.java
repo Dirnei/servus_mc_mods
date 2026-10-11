@@ -3,10 +3,12 @@ package io.github.dirnei.mc.servus.storage.menu;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
+import io.github.dirnei.mc.servus.storage.field.FieldWorkerPayload;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -15,6 +17,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The Field Head GUI: one ghost slot for the crop, a harvest only toggle, the
@@ -51,6 +54,8 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     /** The head's work reason plus one; zero while it serves no field. */
     private final DataSlot work = DataSlot.standalone();
     private final DataSlot threshold = DataSlot.standalone();
+    /** The worker name last sent to the player; null before the first send. */
+    private String sentWorker;
 
     public FieldHeadMenu(int containerId, Inventory playerInventory, FieldHeadBlockEntity head) {
         super(ServusStorageMenus.FIELD_HEAD.get(), containerId);
@@ -113,6 +118,13 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     public void broadcastChanges() {
         update();
         super.broadcastChanges();
+        if (player instanceof ServerPlayer server) {
+            String worker = head.workerName().orElse("");
+            if (!worker.equals(sentWorker)) {
+                sentWorker = worker;
+                PacketDistributor.sendToPlayer(server, new FieldWorkerPayload(worker));
+            }
+        }
     }
 
     public FieldHeadBlockEntity head() {
