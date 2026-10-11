@@ -1,53 +1,63 @@
 package io.github.dirnei.mc.servus.storage.menu;
 
 import io.github.dirnei.mc.servus.storage.field.FieldCorrosion;
+import io.github.dirnei.mc.servus.storage.field.FieldCropStockPayload;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.field.FieldWorkerPayload;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
+import io.github.dirnei.mc.servus.storage.picker.PickerStock;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The Field Head GUI in three tabs: Field (ghost slot for the crop, harvest
- * only toggle), Water (anti-corrosion slot) and Upgrades (Range Upgrade slot);
- * the field's numbers as container data, the player inventory always below.
- * The tab is client view state; head slots off the shown tab are inactive.
+ * The Field Head GUI in three tabs: Field (crop picker), Water (anti-corrosion
+ * slot) and Upgrades (Range Upgrade slot); the field's numbers as container
+ * data, the warehouse stock of the crop items as a payload, the player
+ * inventory always below. The tab is client view state; head slots off the
+ * shown tab are inactive. The crop is chosen by id through
+ * {@link #choose(Player, Optional)}, no item needed.
  */
 public class FieldHeadMenu extends AbstractContainerMenu {
 
-    public static final int CROP_X = 8;
-    public static final int CROP_Y = 18;
+    public static final int PICKER_X = 8;
+    public static final int PICKER_Y = 17;
+    public static final int PICKER_WIDTH = 160;
     public static final int RANGE_X = 8;
     public static final int RANGE_Y = 18;
-    public static final int CROP_SLOT = 0;
-    public static final int RANGE_SLOT = 1;
-    public static final int ANTI_CORROSION_SLOT = 2;
+    public static final int RANGE_SLOT = 0;
+    public static final int ANTI_CORROSION_SLOT = 1;
     public static final int ANTI_CORROSION_X = 8;
     public static final int ANTI_CORROSION_Y = 58;
     public static final int INVENTORY_Y = 96;
     public static final int HOTBAR_Y = 154;
-    public static final int INVENTORY_START = 3;
-    public static final int BUTTON_HARVEST_ONLY = 0;
+    public static final int INVENTORY_START = 2;
     public static final int BUTTON_THRESHOLD_DOWN = 1;
     public static final int BUTTON_THRESHOLD_UP = 2;
     private static final int COLUMNS = 9;
     private static final int FLAG_HYDRATED = 1;
     private static final int FLAG_HARVEST_ONLY = 2;
     private static final int FLAG_DUE = 4;
+    /** Ticks between two looks at the warehouse stock of the crop items. */
+    private static final int STOCK_INTERVAL = 20;
 
     private final FieldHeadBlockEntity head;
     private final ContainerLevelAccess access;
@@ -71,6 +81,12 @@ public class FieldHeadMenu extends AbstractContainerMenu {
     private final DataSlot corrosionProgress = DataSlot.standalone();
     /** The worker name last sent to the player; null before the first send. */
     private String sentWorker;
+    /** Ticks until the next stock look; zero sends on the first broadcast. */
+    private int stockTimer;
+    /** Signature of the stock last sent; null before the first send. */
+    private Long sentStock;
+    /** Client side: the stock counts by item id as last received, null while there is no warehouse or before the first. */
+    private Map<ResourceLocation, Long> stock;
     /** The tab the screen shows; client side view state, the server never learns it. */
     private Page page = Page.FIELD;
 
@@ -86,12 +102,6 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         this.head = head;
         this.player = playerInventory.player;
         this.access = ContainerLevelAccess.create(head.getLevel(), head.getBlockPos());
-        addSlot(new GhostSlot(head::cropHandler, 0, CROP_X, CROP_Y) {
-            @Override
-            public boolean isActive() {
-                return shows(CROP_SLOT);
-            }
-        });
         addSlot(new SlotItemHandler(head.rangeUpgrades(), 0, RANGE_X, RANGE_Y) {
             @Override
             public boolean isActive() {
@@ -168,13 +178,73 @@ public class FieldHeadMenu extends AbstractContainerMenu {
                 sentWorker = worker;
                 PacketDistributor.sendToPlayer(server, new FieldWorkerPayload(worker));
             }
+            if (--stockTimer <= 0) {
+                stockTimer = STOCK_INTERVAL;
+                FieldCropStockPayload payload = stockPayload();
+                long signature = PickerStock.signature(payload.networked(), stringKeys(payload.counts()));
+                if (sentStock == null || sentStock != signature) {
+                    sentStock = signature;
+                    PacketDistributor.sendToPlayer(server, payload);
+                }
+            }
         }
+    }
+
+    /** The warehouse stock of the crop items as it travels to the client. Server side. */
+    public FieldCropStockPayload stockPayload() {
+        Optional<Map<ResourceLocation, Long>> counts = head.cropStock();
+        return new FieldCropStockPayload(containerId, counts.isPresent(), counts.orElse(Map.of()));
+    }
+
+    private static Map<String, Long> stringKeys(Map<ResourceLocation, Long> counts) {
+        Map<String, Long> keyed = new HashMap<>();
+        counts.forEach((id, count) -> keyed.put(id.toString(), count));
+        return keyed;
+    }
+
+    /** Client side: keeps the stock the server sent for this menu. */
+    public void acceptStock(FieldCropStockPayload payload) {
+        if (payload.containerId() == containerId) {
+            stock = payload.networked() ? Map.copyOf(payload.counts()) : null;
+        }
+    }
+
+    /** Client side: the warehouse stock by item id, missing ids hold none; null while there are no counts to show. */
+    public Map<ResourceLocation, Long> stock() {
+        return stock;
+    }
+
+    /**
+     * Sets the crop the player chose in the picker: an item id that plants an
+     * age crop, or empty for harvest only. Acts only while the player's open
+     * menu is a Field Head menu they can still use; anything else is refused.
+     * Returns whether the choice was taken. Server side.
+     */
+    public static boolean choose(Player player, Optional<ResourceLocation> crop) {
+        if (!(player.containerMenu instanceof FieldHeadMenu menu) || !menu.stillValid(player)) {
+            return false;
+        }
+        if (crop.isEmpty()) {
+            menu.head.setHarvestOnly(true);
+            menu.update();
+            return true;
+        }
+        Optional<Item> item = BuiltInRegistries.ITEM.getOptional(crop.get());
+        if (item.isEmpty()) {
+            return false;
+        }
+        ItemStack stack = new ItemStack(item.get());
+        if (!FieldHeadBlockEntity.isCropItem(stack)) {
+            return false;
+        }
+        menu.head.setCrop(stack);
+        menu.update();
+        return true;
     }
 
     /** The page a head slot belongs to, null for the player inventory. */
     public static Page pageOf(int slot) {
         return switch (slot) {
-            case CROP_SLOT -> Page.FIELD;
             case RANGE_SLOT -> Page.UPGRADES;
             case ANTI_CORROSION_SLOT -> Page.WATER;
             default -> null;
@@ -264,54 +334,31 @@ public class FieldHeadMenu extends AbstractContainerMenu {
         return (flags.get() & FLAG_DUE) != 0;
     }
 
-    /** The crop as the ghost slot shows it. */
+    /** The crop of the field as the head last synced it; empty for none. */
     public ItemStack crop() {
-        return slots.get(0).getItem();
+        return head.crop();
     }
 
-    /** The toggle turns harvest only on or off, the arrows move the harvest threshold. */
+    /** The arrows move the harvest threshold. */
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (id != BUTTON_HARVEST_ONLY && id != BUTTON_THRESHOLD_DOWN && id != BUTTON_THRESHOLD_UP) {
+        if (id != BUTTON_THRESHOLD_DOWN && id != BUTTON_THRESHOLD_UP) {
             return false;
         }
         if (!player.level().isClientSide()) {
-            switch (id) {
-                case BUTTON_HARVEST_ONLY -> head.setHarvestOnly(!head.harvestOnly());
-                case BUTTON_THRESHOLD_DOWN -> head.stepHarvestPercent(-1);
-                default -> head.stepHarvestPercent(1);
-            }
+            head.stepHarvestPercent(id == BUTTON_THRESHOLD_DOWN ? -1 : 1);
             update();
         }
         return true;
     }
 
-    /** The crop slot takes a copy of a seed on the cursor, an empty cursor clears it, other items are refused. */
-    @Override
-    public void clicked(int slotId, int button, ClickType clickType, Player player) {
-        if (slotId == 0) {
-            if (!player.level().isClientSide()) {
-                setCrop(getCarried());
-            }
-            return;
-        }
-        super.clicked(slotId, button, clickType, player);
-    }
-
-    private void setCrop(ItemStack stack) {
-        if (stack.isEmpty() || FieldHeadBlockEntity.isCropItem(stack)) {
-            head.setCrop(stack);
-            update();
-        }
-    }
-
     /**
-     * Shift clicking a Range Upgrade moves it into the upgrade slot and back,
-     * shift clicking a seed in the inventory makes it the crop.
+     * Shift clicking a Range Upgrade or an anti-corrosion item moves it into
+     * its slot and back; other items stay where they are.
      */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        if (index < RANGE_SLOT || index >= slots.size()) {
+        if (index < 0 || index >= slots.size()) {
             return ItemStack.EMPTY;
         }
         Slot slot = slots.get(index);
@@ -337,9 +384,6 @@ public class FieldHeadMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
         } else {
-            if (FieldHeadBlockEntity.isCropItem(stack) && !player.level().isClientSide()) {
-                setCrop(stack);
-            }
             return ItemStack.EMPTY;
         }
         if (stack.isEmpty()) {

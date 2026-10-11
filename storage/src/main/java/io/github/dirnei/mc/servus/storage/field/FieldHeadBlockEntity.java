@@ -640,7 +640,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return crop.getStackInSlot(0).copy();
     }
 
-    /** The one slot handler behind the GUI's ghost slot. */
+    /** The one slot handler that stores the crop item. */
     public ItemStackHandler cropHandler() {
         return crop;
     }

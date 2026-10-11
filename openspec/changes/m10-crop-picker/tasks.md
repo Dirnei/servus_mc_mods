@@ -7,7 +7,7 @@
 ## 2. Server side
 
 - [x] 2.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/network/WarehouseNetwork.java`: `stockCount(ItemKey)`. `storage/src/main/java/io/github/dirnei/mc/servus/storage/field/FieldHeadBlockEntity.java`: `cropItems()`, `cropStock()`, `setCrop` syncs the mode and the look. Run `gradlew build`.
-- [ ] 2.2 `storage/src/main/java/io/github/dirnei/mc/servus/storage/field/ChooseFieldCropPayload.java`, `FieldCropStockPayload.java`, registration in `storage/src/main/java/io/github/dirnei/mc/servus/storage/terminal/ServusStoragePayloads.java`, `storage/src/main/java/io/github/dirnei/mc/servus/storage/menu/FieldHeadMenu.java` (no crop slot, no harvest only button, `choose`, stock sync, client stock state). Grep that every payload type is registered. Run `gradlew build`.
+- [x] 2.2 `storage/src/main/java/io/github/dirnei/mc/servus/storage/field/ChooseFieldCropPayload.java`, `FieldCropStockPayload.java`, registration in `storage/src/main/java/io/github/dirnei/mc/servus/storage/terminal/ServusStoragePayloads.java`, `storage/src/main/java/io/github/dirnei/mc/servus/storage/menu/FieldHeadMenu.java` (no crop slot, no harvest only button, `choose`, stock sync, client stock state). Grep that every payload type is registered. Run `gradlew build`.
 
 ## 3. Client
 

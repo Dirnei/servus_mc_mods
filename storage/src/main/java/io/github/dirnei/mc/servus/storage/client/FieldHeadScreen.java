@@ -66,7 +66,6 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     private static final int RADIUS_TEXT_X = 30;
     private static final int SIZE_Y = 44;
 
-    private Button toggle;
     private Button down;
     private Button up;
 
@@ -80,8 +79,6 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     protected void init() {
         super.init();
         this.inventoryLabelY = FieldHeadMenu.INVENTORY_Y - 11;
-        toggle = addRenderableWidget(Button.builder(Component.empty(), button -> press(FieldHeadMenu.BUTTON_HARVEST_ONLY))
-                .bounds(leftPos + 30, topPos + FieldHeadMenu.CROP_Y + 1, 92, 14).build());
         down = addRenderableWidget(Button.builder(Component.literal("-"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_DOWN))
                 .bounds(leftPos + 136, topPos + THRESHOLD_Y - 2, 14, 11).build());
         up = addRenderableWidget(Button.builder(Component.literal("+"), button -> press(FieldHeadMenu.BUTTON_THRESHOLD_UP))
@@ -193,9 +190,6 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         Page page = menu.page();
         boolean serving = serving();
-        toggle.setMessage(Component.translatable(menu.harvestOnly()
-                ? "gui.servus_storage.field_head.harvest_only_on" : "gui.servus_storage.field_head.harvest_only_off"));
-        toggle.visible = page == Page.FIELD;
         down.visible = page == Page.FIELD && serving;
         up.visible = page == Page.FIELD && serving;
         super.render(graphics, mouseX, mouseY, partialTick);
@@ -246,7 +240,6 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         switch (menu.page()) {
             case FIELD -> {
-                sunken(graphics, leftPos + FieldHeadMenu.CROP_X - 1, topPos + FieldHeadMenu.CROP_Y - 1, 18, 18);
                 if (serving()) {
                     int ripeLeft = leftPos + RIPE_X;
                     int ripeTop = topPos + RIPE_Y;

@@ -27,6 +27,9 @@ import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.Optional;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -457,27 +460,43 @@ public final class FieldGameTests {
         });
     }
 
-    /** The GUI's crop slot takes a seed without using it, refuses cobblestone, and harvest only clears it. */
+    /** A mock player standing at the head with its menu open, as the picker's payload finds it. */
+    private static FieldHeadMenu openMenu(GameTestHelper helper, Player player, FieldHeadBlockEntity head) {
+        player.moveTo(Vec3.atBottomCenterOf(helper.absolutePos(HEAD).east()));
+        FieldHeadMenu menu = new FieldHeadMenu(1, player.getInventory(), head);
+        player.containerMenu = menu;
+        return menu;
+    }
+
+    private static Optional<ResourceLocation> id(Item item) {
+        return Optional.of(BuiltInRegistries.ITEM.getKey(item));
+    }
+
+    /**
+     * The crop picker sets a crop by item id without the item in the inventory
+     * and turns harvest only off, its none entry sets harvest only, and ids of
+     * items that plant no crop or of no item at all are refused.
+     */
     @GameTest(template = EMPTY, timeoutTicks = 100)
-    public static void menuSetsCropAndHarvestOnly(GameTestHelper helper) {
+    public static void menuChoosesCropById(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper, 3, 5);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        FieldHeadMenu menu = new FieldHeadMenu(1, player.getInventory(), head);
-        menu.setCarried(new ItemStack(Items.WHEAT_SEEDS, 5));
-        menu.clicked(0, 0, ClickType.PICKUP, player);
-        helper.assertTrue(head.crop().is(Items.WHEAT_SEEDS), "wheat seeds should be the crop");
-        helper.assertTrue(menu.getCarried().getCount() == 5, "the player keeps the seeds");
-        menu.setCarried(new ItemStack(Items.COBBLESTONE));
-        menu.clicked(0, 0, ClickType.PICKUP, player);
-        helper.assertTrue(head.crop().is(Items.WHEAT_SEEDS), "cobblestone must not become the crop");
-        menu.clickMenuButton(player, FieldHeadMenu.BUTTON_HARVEST_ONLY);
-        helper.assertTrue(head.harvestOnly() && head.crop().isEmpty(), "harvest only should clear the crop");
-        menu.setCarried(new ItemStack(Items.CARROT));
-        menu.clicked(0, 0, ClickType.PICKUP, player);
-        helper.assertTrue(head.crop().is(Items.CARROT) && !head.harvestOnly(), "setting a crop turns harvest only off");
-        menu.setCarried(ItemStack.EMPTY);
-        menu.clicked(0, 0, ClickType.PICKUP, player);
-        helper.assertTrue(head.crop().isEmpty(), "an empty hand clears the crop");
+        openMenu(helper, player, head);
+        helper.assertTrue(player.getInventory().countItem(Items.WHEAT_SEEDS) == 0, "the player holds no seeds");
+        head.setHarvestOnly(true);
+        helper.assertTrue(FieldHeadMenu.choose(player, id(Items.WHEAT_SEEDS)), "wheat seeds should be taken");
+        helper.assertTrue(head.crop().is(Items.WHEAT_SEEDS) && !head.harvestOnly(), "wheat is the crop and harvest only is off");
+        helper.assertTrue(!FieldHeadMenu.choose(player, id(Items.COBBLESTONE)), "cobblestone should be refused");
+        helper.assertTrue(!FieldHeadMenu.choose(player, Optional.of(ResourceLocation.fromNamespaceAndPath("servus_storage", "no_such_item"))),
+                "an unknown id should be refused");
+        helper.assertTrue(head.crop().is(Items.WHEAT_SEEDS) && !head.harvestOnly(), "refused ids change nothing");
+        helper.assertTrue(FieldHeadMenu.choose(player, Optional.empty()), "the none entry should be taken");
+        helper.assertTrue(head.harvestOnly() && head.crop().isEmpty(), "harvest only clears the crop");
+        helper.assertTrue(FieldHeadMenu.choose(player, id(Items.CARROT)), "a carrot plants a crop");
+        helper.assertTrue(head.crop().is(Items.CARROT) && !head.harvestOnly(), "carrots turn harvest only off");
+        player.containerMenu = player.inventoryMenu;
+        helper.assertTrue(!FieldHeadMenu.choose(player, id(Items.WHEAT_SEEDS)) && head.crop().is(Items.CARROT),
+                "without the head's menu open nothing changes");
         helper.succeed();
     }
 
@@ -491,8 +510,7 @@ public final class FieldGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         FieldHeadMenu menu = new FieldHeadMenu(1, player.getInventory(), head);
         helper.assertTrue(menu.page() == FieldHeadMenu.Page.FIELD, "the GUI opens on the Field tab");
-        helper.assertTrue(FieldHeadMenu.pageOf(FieldHeadMenu.CROP_SLOT) == FieldHeadMenu.Page.FIELD
-                && FieldHeadMenu.pageOf(FieldHeadMenu.ANTI_CORROSION_SLOT) == FieldHeadMenu.Page.WATER
+        helper.assertTrue(FieldHeadMenu.pageOf(FieldHeadMenu.ANTI_CORROSION_SLOT) == FieldHeadMenu.Page.WATER
                 && FieldHeadMenu.pageOf(FieldHeadMenu.RANGE_SLOT) == FieldHeadMenu.Page.UPGRADES
                 && FieldHeadMenu.pageOf(FieldHeadMenu.INVENTORY_START) == null, "each head slot belongs to its tab");
         helper.assertTrue(menu.slots.get(FieldHeadMenu.RANGE_SLOT).isActive()
