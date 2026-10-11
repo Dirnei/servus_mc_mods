@@ -6,7 +6,16 @@ import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.StockRules;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
+import io.github.dirnei.mc.servus.storage.site.SiteCapacity;
+import io.github.dirnei.mc.servus.storage.site.SiteChunks;
+import io.github.dirnei.mc.servus.storage.site.SiteName;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import net.minecraft.core.BlockPos;
@@ -35,9 +44,116 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private int legacyShuttles;
     private final StockRules rules = new StockRules();
 
+    // The site: its name, its team, the chunks it spans and the upgrades that let it wake.
+    private String siteName = "";
+    private UUID team;
+    private final Set<Long> span = new LinkedHashSet<>();
+    private final ChunkLoaderUpgradeSlots upgrades =
+            new ChunkLoaderUpgradeSlots(StorageStatsManager.INSTANCE.chunkLoaderUpgradeSlots(), this::upgradesChanged);
+
     public WarehouseControllerBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(), pos, state);
         rules.onChanged(this::setChanged);
+        span.add(homeChunk());
+    }
+
+    // Site
+
+    /** The name the player gave the site, empty when unnamed. */
+    public String siteName() {
+        return siteName;
+    }
+
+    /** The name to show: the player's name or "Warehouse at x, z". */
+    public String displayName() {
+        return SiteName.display(siteName, worldPosition.getX(), worldPosition.getZ());
+    }
+
+    /** Sets the name after cleaning it; returns the kept name. */
+    public String setSiteName(String typed) {
+        String cleaned = SiteName.clean(typed);
+        if (!cleaned.equals(siteName)) {
+            siteName = cleaned;
+            setChanged();
+        }
+        return siteName;
+    }
+
+    /** The team of the player who placed the controller, empty when placed by no player. */
+    public Optional<UUID> team() {
+        return Optional.ofNullable(team);
+    }
+
+    public void setTeam(UUID team) {
+        this.team = team;
+        setChanged();
+    }
+
+    /** The key of the chunk the controller stands in. */
+    public long homeChunk() {
+        return SiteChunks.ofBlock(worldPosition.getX(), worldPosition.getZ());
+    }
+
+    /** The chunks the site spans, kept by the network from its events. */
+    public Set<Long> span() {
+        return Collections.unmodifiableSet(span);
+    }
+
+    /** Takes a new span from the network. */
+    public void setSpan(Set<Long> chunks) {
+        if (span.equals(chunks)) {
+            return;
+        }
+        span.clear();
+        span.addAll(chunks);
+        span.add(homeChunk());
+        setChanged();
+        refreshSiteLamp();
+    }
+
+    /** A placed controller starts with its own chunk; a span carried in an item would point at the old place. */
+    public void resetSpan() {
+        span.clear();
+        span.add(homeChunk());
+        setChanged();
+        refreshSiteLamp();
+    }
+
+    public ChunkLoaderUpgradeSlots upgrades() {
+        return upgrades;
+    }
+
+    /** Chunks the upgrades cover. */
+    public int capacity() {
+        return SiteCapacity.capacity(upgrades.count(), StorageStatsManager.INSTANCE.chunksPerUpgrade());
+    }
+
+    /** Whether the site's upgrades cover its span. */
+    public SiteCapacity.State siteState() {
+        return SiteCapacity.state(span.size(), upgrades.count(), StorageStatsManager.INSTANCE.chunksPerUpgrade());
+    }
+
+    private void upgradesChanged() {
+        setChanged();
+        refreshSiteLamp();
+    }
+
+    /** What the activity lamp shows: red over capacity, green otherwise. */
+    protected StorageNodeBlocks.Activity lampActivity() {
+        return siteState() == SiteCapacity.State.OVER ? StorageNodeBlocks.Activity.BLOCKED : StorageNodeBlocks.Activity.IDLE;
+    }
+
+    /** Writes the activity lamp into the block state when it changed. */
+    public void refreshSiteLamp() {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        BlockState state = getBlockState();
+        StorageNodeBlocks.Activity activity = lampActivity();
+        if (state.hasProperty(StorageNodeBlocks.ACTIVITY) && state.getValue(StorageNodeBlocks.ACTIVITY) != activity
+                && level.getBlockState(worldPosition).getBlock() == state.getBlock()) {
+            level.setBlock(worldPosition, state.setValue(StorageNodeBlocks.ACTIVITY, activity), Block.UPDATE_CLIENTS);
+        }
     }
 
     /** The stock rules of this warehouse. */
@@ -48,6 +164,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     @Override
     public void onLoad() {
         super.onLoad();
+        refreshSiteLamp();
         if (legacyShuttles > 0 && level instanceof ServerLevel) {
             Block.popResource(level, worldPosition, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get(), legacyShuttles));
             legacyShuttles = 0;
@@ -87,6 +204,12 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         super.saveAdditional(tag, registries);
         woodSlot.save(tag);
         tag.put("StockRules", rules.save(registries));
+        tag.putString("SiteName", siteName);
+        if (team != null) {
+            tag.putUUID("Team", team);
+        }
+        tag.putLongArray("Span", span.stream().mapToLong(Long::longValue).toArray());
+        tag.put("ChunkLoaderUpgrades", upgrades.serializeNBT(registries));
     }
 
     @Override
@@ -96,6 +219,20 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         legacyShuttles = tag.getInt("Shuttles");
         if (tag.contains("StockRules")) {
             rules.load(tag.getCompound("StockRules"), registries);
+        }
+        siteName = SiteName.clean(tag.getString("SiteName"));
+        team = tag.hasUUID("Team") ? tag.getUUID("Team") : null;
+        span.clear();
+        for (long key : tag.getLongArray("Span")) {
+            span.add(key);
+        }
+        span.add(homeChunk());
+        if (tag.contains("ChunkLoaderUpgrades", CompoundTag.TAG_COMPOUND)) {
+            ChunkLoaderUpgradeSlots saved = new ChunkLoaderUpgradeSlots(0, null);
+            saved.deserializeNBT(registries, tag.getCompound("ChunkLoaderUpgrades"));
+            for (int slot = 0; slot < upgrades.getSlots(); slot++) {
+                upgrades.setStackInSlot(slot, slot < saved.getSlots() ? saved.getStackInSlot(slot) : ItemStack.EMPTY);
+            }
         }
     }
 

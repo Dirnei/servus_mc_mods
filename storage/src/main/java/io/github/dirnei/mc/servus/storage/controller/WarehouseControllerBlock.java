@@ -11,7 +11,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import io.github.dirnei.mc.servus.foundation.team.Teams;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -82,6 +85,27 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
+    /** The placer's team owns the site; a span carried in the item would point at the old place. */
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
+            controller.resetSpan();
+            if (placer instanceof ServerPlayer player) {
+                controller.setTeam(Teams.teamOf(player));
+            }
+        }
+    }
+
+    /** Chunk Loader Upgrades drop when the controller goes. */
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
+            controller.upgrades().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
@@ -98,6 +122,8 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
             if (dismantle) {
                 ItemStack drop = new ItemStack(this);
                 if (level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
+                    // Upgrades drop on their own; the item carries the name and the rules.
+                    controller.upgrades().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
                     controller.saveToItem(drop, level.registryAccess());
                 }
                 Block.popResource(level, pos, drop);
