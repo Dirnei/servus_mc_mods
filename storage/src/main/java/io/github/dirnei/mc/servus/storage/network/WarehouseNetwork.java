@@ -19,6 +19,11 @@ import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob;
+import io.github.dirnei.mc.servus.storage.shuttle.FieldJob;
+import io.github.dirnei.mc.servus.storage.field.FieldDue;
+import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
+import io.github.dirnei.mc.servus.storage.field.FieldHeads;
+import io.github.dirnei.mc.servus.storage.field.FieldStatus;
 import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
 import io.github.dirnei.mc.servus.storage.shuttle.Shafts;
 import io.github.dirnei.mc.servus.storage.shuttle.Shafts.Shaft;
@@ -145,6 +150,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private final Map<ItemKey, String> ruleStates = new HashMap<>();
     private int ruleTimer;
     private int outboundTimer;
+    private int fieldTimer;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
 
     public WarehouseNetwork(int id, NetworkSet<StorageNodeBlockEntity, WarehouseEvent, ?> owner) {
@@ -629,6 +635,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /** How many of an item the sources hold right now. */
+    @Override
     public long available(ItemKey key) {
         long sum = 0;
         for (RequestPlan.Stock<BlockPos> stock : stockOf(key)) {
@@ -1141,6 +1148,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 ruleTimer = 0;
                 tickStockRules();
             }
+            if (++fieldTimer >= StorageStatsManager.INSTANCE.fieldCheckInterval()) {
+                fieldTimer = 0;
+                tickFields();
+            }
         }
         if (level == null || sources.isEmpty()) {
             return;
@@ -1291,6 +1302,36 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         }
         return false;
+    }
+
+    @Override
+    public Optional<BlockPos> putAwayTarget(ItemStack stack, Predicate<BlockPos> rackAllowed) {
+        ItemKey key = ItemKey.of(stack);
+        return chooseTarget(tiers(key), key, stack, rackAllowed);
+    }
+
+    // Fields
+
+    /**
+     * Looks at the Field Heads of the fields on this warehouse's rails and
+     * queues a field run for each that has work, when a harvester can take it.
+     * Polls the few loaded heads; touches no blocks.
+     */
+    private void tickFields() {
+        if (status() != Status.ONLINE || !fleet.hasFieldShuttles()) {
+            return;
+        }
+        for (FieldHeadBlockEntity head : FieldHeads.heads(level)) {
+            if (head.status() != FieldStatus.SERVING || head.rails().isEmpty()
+                    || !members().contains(Conversions.toNodePos(head.rails().iterator().next()))
+                    || fleet.hasFieldJob(head.getBlockPos())) {
+                continue;
+            }
+            boolean seeds = head.plantMode() && available(ItemKey.of(head.crop())) > 0;
+            if (FieldDue.due(head.harvestDue(), head.plantMode(), head.hydrated(), head.tillableCount(), head.plantableCount(), seeds)) {
+                fleet.requestField(new FieldJob(head.getBlockPos()));
+            }
+        }
     }
 
     /** Inserts into exactly that source; returns what did not fit. */

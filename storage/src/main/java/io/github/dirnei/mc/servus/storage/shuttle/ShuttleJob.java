@@ -2,8 +2,8 @@ package io.github.dirnei.mc.servus.storage.shuttle;
 
 import io.github.dirnei.mc.servus.storage.shuttle.module.JobNeeds;
 
-/** Something a shuttle does: fetch a pull or carry a put-away. Both share one queue. */
-public sealed interface ShuttleJob permits PickJob, PutAwayJob {
+/** Something a shuttle does: fetch a pull, carry a put-away or work a field. All share one queue. */
+public sealed interface ShuttleJob permits PickJob, PutAwayJob, FieldJob {
 
     /** The modules a shuttle needs for this job; warehouse jobs need none and refuse field only shuttles. */
     default JobNeeds needs() {

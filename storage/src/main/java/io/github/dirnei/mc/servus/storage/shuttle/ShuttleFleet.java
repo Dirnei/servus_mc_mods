@@ -19,6 +19,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.field.FieldCargo;
+import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
+import io.github.dirnei.mc.servus.storage.field.FieldRoute;
+import io.github.dirnei.mc.servus.storage.field.FieldStatus;
+import io.github.dirnei.mc.servus.storage.field.HarvestStep;
+import io.github.dirnei.mc.servus.storage.field.HarvesterWork;
+import io.github.dirnei.mc.servus.storage.field.PlotState;
+import io.github.dirnei.mc.servus.storage.field.PlotWork;
+import io.github.dirnei.mc.servus.storage.field.SeedPlan;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -91,10 +102,20 @@ public final class ShuttleFleet {
 
         /** The shaft the node is a segment of, or null when it is not an elevator segment. */
         Shaft shaftOf(NodePos node);
+
+        /** The block the put-away routing picks for the stack, racks only where allowed; empty when nothing has room. */
+        Optional<BlockPos> putAwayTarget(ItemStack stack, Predicate<BlockPos> rackAllowed);
+
+        /** How many of the key the warehouse holds. */
+        long available(ItemKey key);
     }
 
-    /** Where a shuttle is heading. */
-    private enum Leg { TO_SOURCE, TO_TARGET, TO_STATION, TO_TERMINAL, WAITING_ROOM, HOME }
+    /**
+     * Where a shuttle is heading. Field runs drive TO_FIELD, work a rail while
+     * WORKING, fetch seeds TO_SEEDS, put the harvest away TO_STORE and wait at
+     * home in WAIT_STORE while nothing has room for it.
+     */
+    private enum Leg { TO_SOURCE, TO_TARGET, TO_STATION, TO_TERMINAL, WAITING_ROOM, HOME, TO_FIELD, WORKING, TO_SEEDS, TO_STORE, WAIT_STORE }
 
     private static final int SYNC_INTERVAL = 5;
     /** Garage slots the out mask can tell apart; container data travels as a short. */
@@ -314,8 +335,11 @@ public final class ShuttleFleet {
     }
 
     private Set<NodePos> firstGoals(ShuttleJob job) {
-        return job instanceof PickJob pick ? host.dockRails(Conversions.toNodePos(pick.source()))
-                : host.dockRails(Conversions.toNodePos(((PutAwayJob) job).station()));
+        return switch (job) {
+            case PickJob pick -> host.dockRails(Conversions.toNodePos(pick.source()));
+            case PutAwayJob putAway -> host.dockRails(Conversions.toNodePos(putAway.station()));
+            case FieldJob field -> fieldRails(field.head());
+        };
     }
 
     /** Queued picks of a request. */
@@ -470,8 +494,11 @@ public final class ShuttleFleet {
                 if (anyFits(job.needs())) {
                     waiting.add(job.needs());
                 } else {
+                    // Field work needs a shuttle: a field job nobody fits is dropped, the field asks again later.
                     taken.add(job);
-                    instant.add(job);
+                    if (!(job instanceof FieldJob)) {
+                        instant.add(job);
+                    }
                 }
                 continue;
             }
@@ -489,10 +516,17 @@ public final class ShuttleFleet {
             }
             taken.add(job);
             if (best == null) {
-                instant.add(job);
+                if (!(job instanceof FieldJob)) {
+                    instant.add(job);
+                }
                 continue;
             }
             best.loads.add(new Load(job));
+            if (job instanceof FieldJob field) {
+                startRun(best, field);
+                syncPending = true;
+                continue;
+            }
             List<ShuttleJob> rest = new ArrayList<>();
             for (int later = index + 1; later < queue.size(); later++) {
                 if (!taken.contains(queue.get(later))) {
@@ -594,6 +628,10 @@ public final class ShuttleFleet {
             arrivePick(shuttle, pick);
         } else if (shuttle.lead() instanceof PutAwayJob putAway) {
             arrivePutAway(shuttle, putAway);
+        } else if (shuttle.lead() instanceof FieldJob) {
+            // Called every tick while the harvester stands still; only changes need a sync.
+            arriveField(shuttle);
+            return;
         }
         syncPending = true;
     }
@@ -710,6 +748,12 @@ public final class ShuttleFleet {
 
     private void park(Shuttle shuttle) {
         releaseLift(shuttle);
+        if (shuttle.run != null) {
+            for (ItemStack stack : shuttle.run.everything()) {
+                Block.popResource(host.level(), shuttle.garage.pos, stack);
+            }
+            shuttle.run = null;
+        }
         shuttle.loads.clear();
         shuttle.leg = Leg.HOME;
         shuttle.motion = shuttle.garage.home == null ? null : ShuttleMotion.parked(shuttle.garage.home);
@@ -721,6 +765,15 @@ public final class ShuttleFleet {
      * as missing.
      */
     private void dropCargo(Shuttle shuttle) {
+        if (shuttle.run != null) {
+            // A field run is not queued again; the warehouse sends a new one when the field still has work.
+            for (ItemStack stack : shuttle.run.everything()) {
+                Block.popResource(host.level(), shuttle.garage.pos, stack);
+            }
+            shuttle.run = null;
+            shuttle.loads.clear();
+            return;
+        }
         List<ShuttleJob> requeue = new ArrayList<>();
         for (Load load : shuttle.loads) {
             if (!load.cargo.isEmpty()) {
@@ -738,6 +791,516 @@ public final class ShuttleFleet {
             jobs.addFirst(requeue.get(i));
         }
         shuttle.loads.clear();
+    }
+
+    // Field runs
+
+    /** Queues a field run for the field of that head. */
+    public void requestField(FieldJob job) {
+        jobs.add(job);
+        syncPending = true;
+    }
+
+    /** Whether some garage with a rail has a shuttle with a Harvester. */
+    public boolean hasFieldShuttles() {
+        return anyFits(JobNeeds.HARVESTER);
+    }
+
+    /** Whether a field run for that head is queued or under way. */
+    public boolean hasFieldJob(BlockPos head) {
+        for (ShuttleJob job : jobs) {
+            if (job instanceof FieldJob field && field.head().equals(head)) {
+                return true;
+            }
+        }
+        for (Garage garage : garages.values()) {
+            for (Shuttle shuttle : garage.shuttles) {
+                if (shuttle.run != null && shuttle.run.head.equals(head)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** The head of a run while it still serves its field, else null. */
+    private FieldHeadBlockEntity servingHead(BlockPos pos) {
+        ServerLevel level = host.level();
+        if (level == null || !level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof FieldHeadBlockEntity head)) {
+            return null;
+        }
+        return head.status() == FieldStatus.SERVING ? head : null;
+    }
+
+    /** The farm rails of the head's field that shuttles of this warehouse drive on. */
+    private Set<NodePos> fieldRails(BlockPos headPos) {
+        FieldHeadBlockEntity head = servingHead(headPos);
+        Set<NodePos> rails = new HashSet<>();
+        if (head != null) {
+            for (BlockPos rail : head.rails()) {
+                NodePos node = Conversions.toNodePos(rail);
+                if (host.isTravelNode(node)) {
+                    rails.add(node);
+                }
+            }
+        }
+        return rails;
+    }
+
+    private static ItemKey cropKey(FieldHeadBlockEntity head) {
+        return head.plantMode() ? ItemKey.of(head.crop()) : null;
+    }
+
+    /** Whether the field gets tilled and planted now: a crop is set, harvest only is off and it has water. */
+    private static boolean plants(FieldHeadBlockEntity head) {
+        return head.plantMode() && head.hydrated();
+    }
+
+    private void startRun(Shuttle shuttle, FieldJob job) {
+        int slots = Math.max(shuttle.profile.stacks(), StorageStatsManager.INSTANCE.harvesterStacks());
+        shuttle.run = new HarvestRun(job.head(), slots);
+        turn(shuttle);
+    }
+
+    /** Whether some plot worked from the rail needs something the harvester can do now. */
+    private boolean railHasWork(HarvestRun run, FieldHeadBlockEntity head, BlockPos rail, boolean plants, boolean haveSeed) {
+        List<BlockPos> plots = run.reach(head.rails(), head.plots()).get(rail);
+        if (plots == null) {
+            return false;
+        }
+        for (BlockPos plot : plots) {
+            if (PlotWork.plan(head.plotState(plot), plants, haveSeed).any()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether any rail of the field this warehouse drives on has work. */
+    private boolean workLeft(HarvestRun run, FieldHeadBlockEntity head) {
+        if (run.idle) {
+            return false;
+        }
+        boolean plants = plants(head);
+        ItemKey crop = cropKey(head);
+        boolean haveSeed = crop != null && run.cargo.count(crop) > 0;
+        for (BlockPos rail : head.rails()) {
+            if (host.isTravelNode(Conversions.toNodePos(rail)) && railHasWork(run, head, rail, plants, haveSeed)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The node the shuttle stands on or last passed. */
+    private static NodePos at(Shuttle shuttle) {
+        return shuttle.motion.currentNode();
+    }
+
+    /**
+     * Decides what a harvester does next, at the start of a run and after
+     * each work segment, put-away and seed fetch: fetch seeds, work, put the
+     * harvest away or go home.
+     */
+    private void turn(Shuttle shuttle) {
+        HarvestRun run = shuttle.run;
+        syncPending = true;
+        if (!host.isTravelNode(at(shuttle))) {
+            lose(shuttle);
+            return;
+        }
+        FieldHeadBlockEntity head = servingHead(run.head);
+        boolean workLeft = head != null && workLeft(run, head);
+        int wanted = 0;
+        boolean room = false;
+        ItemKey crop = head == null ? null : cropKey(head);
+        if (crop != null && plants(head) && !run.fetchTried && !run.idle) {
+            int max = crop.stack(1).getMaxStackSize();
+            int cargoRoom = run.cargo.room(crop, max);
+            wanted = SeedPlan.toFetch(head.ripeCount(), head.plantableCount() + head.tillableCount(), run.cargo.count(crop),
+                    host.available(crop), Integer.MAX_VALUE, max);
+            room = cargoRoom > 0;
+            run.seedAmount = Math.min(wanted, cargoRoom);
+            if (!room && run.cargo.count(crop) == run.cargo.entries().stream().mapToInt(FieldCargo.Entry::count).sum()) {
+                // Full of seeds already: putting away would only keep them again.
+                wanted = 0;
+            }
+        }
+        HarvestStep step = HarvestStep.next(head != null, run.cargoFull, wanted, room, workLeft, !run.cargo.isEmpty());
+        switch (step) {
+            case FETCH_SEEDS -> fetchSeeds(shuttle, crop);
+            case WORK -> {
+                run.worked = false;
+                run.fetchTried = false;
+                run.visited.clear();
+                if (!goToWork(shuttle, head)) {
+                    run.idle = true;
+                    turn(shuttle);
+                }
+            }
+            case PUT_AWAY -> {
+                boolean keep = crop != null && (workLeft || wanted > 0);
+                for (FieldCargo.Entry<ItemKey> entry : run.cargo.unload(keep ? crop : null, keep ? crop.stack(1).getMaxStackSize() : 0)) {
+                    run.store.add(entry.key().stack(entry.count()));
+                }
+                run.cargoFull = false;
+                continueStore(shuttle);
+            }
+            case HOME -> {
+                shuttle.loads.clear();
+                shuttle.run = null;
+                goHome(shuttle);
+            }
+        }
+    }
+
+    /** Drives to the nearest rail with work; false when none can be reached. */
+    private boolean goToWork(Shuttle shuttle, FieldHeadBlockEntity head) {
+        HarvestRun run = shuttle.run;
+        boolean plants = plants(head);
+        ItemKey crop = cropKey(head);
+        boolean haveSeed = crop != null && run.cargo.count(crop) > 0;
+        Predicate<NodePos> hasWork = node -> head.rails().contains(Conversions.toBlockPos(node))
+                && !run.visited.contains(Conversions.toBlockPos(node)) && railHasWork(run, head, Conversions.toBlockPos(node), plants, haveSeed);
+        NodePos from = at(shuttle);
+        Optional<NodePos> stop;
+        if (head.rails().contains(Conversions.toBlockPos(from))) {
+            // On the field: the nearest rail with work along the field's own rails.
+            stop = FieldRoute.next(from, node -> fieldNeighbours(head, node), hasWork);
+        } else {
+            List<NodePos> path = RailPaths.find(from, hasWork, host::travelNeighbours);
+            stop = path.isEmpty() ? Optional.empty() : Optional.of(path.get(path.size() - 1));
+        }
+        if (stop.isEmpty()) {
+            return false;
+        }
+        NodePos goal = stop.get();
+        List<NodePos> path = RailPaths.find(from, goal::equals, host::travelNeighbours);
+        if (path.isEmpty()) {
+            return false;
+        }
+        shuttle.leg = Leg.TO_FIELD;
+        shuttle.motion = new ShuttleMotion(path);
+        return true;
+    }
+
+    private List<NodePos> fieldNeighbours(FieldHeadBlockEntity head, NodePos node) {
+        List<NodePos> list = new ArrayList<>(4);
+        for (NodePos neighbour : host.travelNeighbours(node)) {
+            if (head.rails().contains(Conversions.toBlockPos(neighbour))) {
+                list.add(neighbour);
+            }
+        }
+        return list;
+    }
+
+    private void arriveField(Shuttle shuttle) {
+        HarvestRun run = shuttle.run;
+        if (run == null) {
+            park(shuttle);
+            syncPending = true;
+            return;
+        }
+        switch (shuttle.leg) {
+            case TO_FIELD -> beginStop(shuttle);
+            case WORKING -> work(shuttle);
+            case TO_SEEDS -> {
+                if (run.seedSource != null) {
+                    loadSeeds(run, run.seedSource);
+                }
+                turn(shuttle);
+            }
+            case TO_STORE -> {
+                if (run.storeTarget != null) {
+                    insertAll(run, run.storeTarget, reachableFrom(at(shuttle)));
+                    run.storeTarget = null;
+                }
+                continueStore(shuttle);
+            }
+            case WAIT_STORE -> {
+                if (--run.waitTimer <= 0) {
+                    run.waitTimer = HarvestRun.STORE_RETRY_TICKS;
+                    if (anyStorable(shuttle)) {
+                        continueStore(shuttle);
+                    }
+                }
+            }
+            default -> turn(shuttle);
+        }
+    }
+
+    /** At a rail with work: queue the plots worked from it. */
+    private void beginStop(Shuttle shuttle) {
+        HarvestRun run = shuttle.run;
+        FieldHeadBlockEntity head = servingHead(run.head);
+        if (head == null) {
+            turn(shuttle);
+            return;
+        }
+        BlockPos rail = Conversions.toBlockPos(at(shuttle));
+        run.queue.clear();
+        run.queue.addAll(run.reach(head.rails(), head.plots()).getOrDefault(rail, List.of()));
+        run.stopPlants = plants(head);
+        run.countdown = StorageStatsManager.INSTANCE.fieldWorkTicks();
+        shuttle.leg = Leg.WORKING;
+        syncPending = true;
+    }
+
+    /** One tick at a rail: wait out the work time, then work the next plot that needs something. */
+    private void work(Shuttle shuttle) {
+        HarvestRun run = shuttle.run;
+        if (!host.isTravelNode(at(shuttle))) {
+            lose(shuttle);
+            return;
+        }
+        FieldHeadBlockEntity head = servingHead(run.head);
+        if (head == null) {
+            run.queue.clear();
+            turn(shuttle);
+            return;
+        }
+        if (--run.countdown > 0) {
+            return;
+        }
+        BlockPos plot = nextPlot(run, head);
+        if (plot != null) {
+            run.queue.poll();
+            if (!workPlot(run, head, plot)) {
+                run.cargoFull = true;
+                run.queue.clear();
+                turn(shuttle);
+                return;
+            }
+            run.worked = true;
+            head.recheck(plot);
+            run.countdown = StorageStatsManager.INSTANCE.fieldWorkTicks();
+            syncPending = true;
+            if (nextPlot(run, head) != null) {
+                return;
+            }
+        }
+        // This rail is done: on to the next rail with work, or the segment ends.
+        run.visited.add(Conversions.toBlockPos(at(shuttle)));
+        if (!goToWork(shuttle, head)) {
+            if (!run.worked) {
+                run.idle = true;
+            }
+            turn(shuttle);
+        }
+    }
+
+    /** Drops leading plots with nothing to do and returns the first one with work, or null. */
+    private BlockPos nextPlot(HarvestRun run, FieldHeadBlockEntity head) {
+        ServerLevel level = host.level();
+        ItemKey crop = cropKey(head);
+        boolean haveSeed = crop != null && run.cargo.count(crop) > 0;
+        while (!run.queue.isEmpty()) {
+            BlockPos plot = run.queue.peek();
+            if (level.isLoaded(plot)) {
+                PlotState state = HarvesterWork.classify(level, plot);
+                if (PlotWork.plan(state, run.stopPlants, haveSeed).any()) {
+                    return plot;
+                }
+                if (head.plotState(plot) != state) {
+                    // The head missed a change here; let it look again so the route stops coming back.
+                    head.recheck(plot);
+                }
+            }
+            run.queue.poll();
+        }
+        return null;
+    }
+
+    /** Harvests, tills and plants one plot; false when its harvest does not fit and the cargo is not empty. */
+    private boolean workPlot(HarvestRun run, FieldHeadBlockEntity head, BlockPos plot) {
+        ServerLevel level = host.level();
+        boolean plants = run.stopPlants;
+        ItemKey crop = plants ? cropKey(head) : null;
+        PlotState state = HarvesterWork.classify(level, plot);
+        PlotWork.Action action = PlotWork.plan(state, plants, crop != null && run.cargo.count(crop) > 0);
+        boolean seedInHand = false;
+        if (action.harvest()) {
+            List<FieldCargo.Entry<ItemKey>> drops = new ArrayList<>();
+            for (ItemStack drop : HarvesterWork.rollDrops(level, plot)) {
+                if (!drop.isEmpty()) {
+                    drops.add(new FieldCargo.Entry<>(ItemKey.of(drop), drop.getCount(), drop.getMaxStackSize()));
+                }
+            }
+            if (crop != null) {
+                seedInHand = takeOne(drops, crop);
+            }
+            if (!run.cargo.fits(drops) && !run.cargo.isEmpty()) {
+                return false;
+            }
+            HarvesterWork.breakCrop(level, plot);
+            for (FieldCargo.Entry<ItemKey> left : run.cargo.add(drops)) {
+                Block.popResource(level, plot, left.key().stack(left.count()));
+            }
+        }
+        if (action.till()) {
+            HarvesterWork.till(level, plot);
+        }
+        if (crop != null && (action.plant() || seedInHand)) {
+            if (seedInHand) {
+                if (!HarvesterWork.plant(level, plot, crop.stack(1))) {
+                    for (FieldCargo.Entry<ItemKey> left : run.cargo.add(List.of(new FieldCargo.Entry<>(crop, 1, crop.stack(1).getMaxStackSize())))) {
+                        Block.popResource(level, plot, left.key().stack(left.count()));
+                    }
+                }
+            } else if (run.cargo.count(crop) > 0 && HarvesterWork.plant(level, plot, crop.stack(1))) {
+                run.cargo.take(crop, 1);
+            }
+        }
+        return true;
+    }
+
+    /** Takes one of the key out of the drops; false when they hold none. */
+    private static boolean takeOne(List<FieldCargo.Entry<ItemKey>> drops, ItemKey key) {
+        for (int i = 0; i < drops.size(); i++) {
+            FieldCargo.Entry<ItemKey> entry = drops.get(i);
+            if (entry.key().equals(key)) {
+                if (entry.count() > 1) {
+                    drops.set(i, new FieldCargo.Entry<>(key, entry.count() - 1, entry.max()));
+                } else {
+                    drops.remove(i);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Drives to a source of the crop item; a source no rail reaches gives its seeds at once. */
+    private void fetchSeeds(Shuttle shuttle, ItemKey crop) {
+        HarvestRun run = shuttle.run;
+        run.fetchTried = true;
+        for (BlockPos source : host.sourcesHolding(crop)) {
+            Set<NodePos> dock = host.dockRails(Conversions.toNodePos(source));
+            List<NodePos> path = dock.isEmpty() ? List.of() : RailPaths.find(at(shuttle), dock::contains, host::travelNeighbours);
+            if (!path.isEmpty()) {
+                run.seedSource = source;
+                shuttle.leg = Leg.TO_SEEDS;
+                shuttle.motion = new ShuttleMotion(path);
+                return;
+            }
+            if (!host.isRack(source)) {
+                loadSeeds(run, source);
+                if (run.seedAmount <= 0) {
+                    break;
+                }
+            }
+        }
+        run.seedSource = null;
+        turn(shuttle);
+    }
+
+    private void loadSeeds(HarvestRun run, BlockPos source) {
+        FieldHeadBlockEntity head = servingHead(run.head);
+        ItemKey crop = head == null ? null : cropKey(head);
+        if (crop == null || run.seedAmount <= 0) {
+            return;
+        }
+        ItemStack taken = host.extractFrom(source, crop, run.seedAmount);
+        run.seedAmount -= taken.getCount();
+        if (!taken.isEmpty()) {
+            for (FieldCargo.Entry<ItemKey> left : run.cargo.add(List.of(new FieldCargo.Entry<>(crop, taken.getCount(), taken.getMaxStackSize())))) {
+                // Room was checked; should anything be left, it goes back where it came from.
+                host.insertAt(source, left.key().stack(left.count()));
+            }
+        }
+    }
+
+    /** Puts the stacks on their way into storage one target after another, then decides again. */
+    private void continueStore(Shuttle shuttle) {
+        HarvestRun run = shuttle.run;
+        run.store.removeIf(ItemStack::isEmpty);
+        NodePos from = at(shuttle);
+        Predicate<BlockPos> reachable = reachableFrom(from);
+        int guard = run.store.size() * 2 + 4;
+        while (!run.store.isEmpty() && guard-- > 0) {
+            BlockPos target = null;
+            int index = 0;
+            for (; index < run.store.size(); index++) {
+                Optional<BlockPos> found = host.putAwayTarget(run.store.get(index), reachable);
+                if (found.isPresent()) {
+                    target = found.get();
+                    break;
+                }
+            }
+            if (target == null) {
+                waitStore(shuttle);
+                return;
+            }
+            Set<NodePos> dock = host.dockRails(Conversions.toNodePos(target));
+            List<NodePos> path = dock.isEmpty() ? List.of() : RailPaths.find(from, dock::contains, host::travelNeighbours);
+            if (!path.isEmpty()) {
+                run.storeTarget = target;
+                shuttle.leg = Leg.TO_STORE;
+                shuttle.motion = new ShuttleMotion(path);
+                syncPending = true;
+                return;
+            }
+            // No rail reaches the target: it takes its part at once, like put-aways without a shuttle.
+            ItemStack stack = run.store.get(index);
+            run.store.set(index, host.insertAt(target, stack));
+            run.store.removeIf(ItemStack::isEmpty);
+        }
+        if (!run.store.isEmpty()) {
+            waitStore(shuttle);
+            return;
+        }
+        turn(shuttle);
+    }
+
+    /** Inserts every stack on its way into storage whose put-away routing picks this target, so zones keep applying. */
+    private void insertAll(HarvestRun run, BlockPos target, Predicate<BlockPos> reachable) {
+        for (int i = 0; i < run.store.size(); i++) {
+            ItemStack stack = run.store.get(i);
+            if (host.putAwayTarget(stack, reachable).filter(target::equals).isPresent()) {
+                run.store.set(i, host.insertAt(target, stack));
+            }
+        }
+        run.store.removeIf(ItemStack::isEmpty);
+    }
+
+    /** Racks a shuttle standing there can drive to; only those may take a put-away. */
+    private Predicate<BlockPos> reachableFrom(NodePos from) {
+        return rack -> !RailPaths.find(from, host.dockRails(Conversions.toNodePos(rack))::contains, host::travelNeighbours).isEmpty();
+    }
+
+    private boolean anyStorable(Shuttle shuttle) {
+        Predicate<BlockPos> reachable = reachableFrom(at(shuttle));
+        for (ItemStack stack : shuttle.run.store) {
+            Optional<BlockPos> target = host.putAwayTarget(stack, reachable);
+            if (target.isPresent()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Nothing has room for the cargo: drive home with it and try again now and then. */
+    private void waitStore(Shuttle shuttle) {
+        HarvestRun run = shuttle.run;
+        run.waitTimer = HarvestRun.STORE_RETRY_TICKS;
+        NodePos home = shuttle.garage.home;
+        if (shuttle.leg == Leg.WAIT_STORE && shuttle.motion.arrived()) {
+            return;
+        }
+        List<NodePos> path = home == null ? List.of() : RailPaths.find(at(shuttle), home::equals, host::travelNeighbours);
+        if (path.isEmpty()) {
+            lose(shuttle);
+            return;
+        }
+        shuttle.leg = Leg.WAIT_STORE;
+        shuttle.motion = new ShuttleMotion(path);
+        syncPending = true;
+    }
+
+    /** The harvester lost its way: it is back in its garage and its cargo drops there. */
+    private void lose(Shuttle shuttle) {
+        park(shuttle);
+        syncPending = true;
     }
 
     // Lifts
@@ -1130,6 +1693,8 @@ public final class ShuttleFleet {
         ShuttleProfile profile;
         ShuttleMotion motion;
         final List<Load> loads = new ArrayList<>();
+        /** The field run of a harvester out on a field job, else null. */
+        HarvestRun run;
         Leg leg = Leg.HOME;
         final int id = nextShuttleId++;
         /** Bottom of the shaft whose car the shuttle calls, rides or crosses; null when none. */
@@ -1163,6 +1728,9 @@ public final class ShuttleFleet {
 
         /** The cargo drawn on the cart: the first load that holds something. */
         ItemStack shownCargo() {
+            if (run != null) {
+                return run.shown();
+            }
             for (Load load : loads) {
                 if (!load.cargo.isEmpty()) {
                     return load.cargo.copy();

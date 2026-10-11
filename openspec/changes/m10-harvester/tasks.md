@@ -15,8 +15,8 @@
 
 ## 4. Field jobs and runs
 
-- [ ] 4.1 `FieldJob` in `storage/.../shuttle/`, `ShuttleJob` permits it; `Host.putAwayTarget` and `Host.available` in `ShuttleFleet` and `WarehouseNetwork`; `WarehouseNetwork.tickFields` with `FieldDue`; `ShuttleFleet.requestField`, `hasFieldJob`, `hasFieldShuttles`; field jobs in `assignJobs` are dropped instead of served instantly (design D3, D8). Verify: `gradlew build`.
-- [ ] 4.2 `HarvesterWork` in `storage/.../field/` (classify, harvest with drops, till, plant) and the field run in `ShuttleFleet` (`HarvestRun`, legs `TO_FIELD`, `WORKING`, `TO_SEEDS`, `TO_STORE`, `WAIT_STORE`, lost handling, `dropCargo`, `shownCargo`) (design D5, D6, D7, D8). Verify: `gradlew build` and the existing shuttle and field GameTests green.
+- [x] 4.1 `FieldJob` in `storage/.../shuttle/`, `ShuttleJob` permits it; `Host.putAwayTarget` and `Host.available` in `ShuttleFleet` and `WarehouseNetwork`; `WarehouseNetwork.tickFields` with `FieldDue`; `ShuttleFleet.requestField`, `hasFieldJob`, `hasFieldShuttles`; field jobs in `assignJobs` are dropped instead of served instantly (design D3, D8). Verify: `gradlew build`.
+- [x] 4.2 `HarvesterWork` in `storage/.../field/` (classify, harvest with drops, till, plant) and the field run in `ShuttleFleet` (`HarvestRun`, legs `TO_FIELD`, `WORKING`, `TO_SEEDS`, `TO_STORE`, `WAIT_STORE`, lost handling, `dropCargo`, `shownCargo`) (design D5, D6, D7, D8). Verify: `gradlew build` and the existing shuttle and field GameTests green.
 
 ## 5. GameTests
 
