@@ -779,18 +779,20 @@
       ]
     },
     "servus_storage:field_head": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["IBI", "ICI", "IRI"],
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["IBI", "PCP", "PRP"],
       "key": {
         "B": {"item": "minecraft:bucket"},
         "C": {"item": "minecraft:composter"},
         "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"},
         "R": {"item": "servus_storage:farm_rail"}
       },
       "inputs": [
+        {"tag": "minecraft:planks", "count": 4},
         {"item": "minecraft:bucket", "count": 1},
         {"item": "minecraft:composter", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 6},
+        {"item": "minecraft:iron_ingot", "count": 2},
         {"item": "servus_storage:farm_rail", "count": 1}
       ],
       "outputs": [
@@ -799,14 +801,14 @@
     },
     "servus_storage:handling_upgrade": {
       "type": "minecraft:crafting_shaped",
-      "pattern": ["IRI", "RPR", "IRI"],
+      "pattern": ["CRC", "RPR", "CRC"],
       "key": {
-        "I": {"item": "minecraft:iron_ingot"},
+        "C": {"item": "minecraft:copper_ingot"},
         "P": {"item": "minecraft:piston"},
         "R": {"item": "minecraft:redstone"}
       },
       "inputs": [
-        {"item": "minecraft:iron_ingot", "count": 4},
+        {"item": "minecraft:copper_ingot", "count": 4},
         {"item": "minecraft:piston", "count": 1},
         {"item": "minecraft:redstone", "count": 4}
       ],
