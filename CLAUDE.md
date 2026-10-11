@@ -1,9 +1,9 @@
 # CLAUDE.md
 
-Project: Servus mod family for Minecraft 1.21.1 on NeoForge. The vision, architecture and milestones are in `PLAN.md`. Read it before starting work.
+Project: Servus mod family for Minecraft 26.1.2 on NeoForge (target pack ATM11). The vision, architecture and milestones are in `PLAN.md`. Read it before starting work.
 
 ## Stack
-- Java 21, NeoForge 21.1.x, ModDevGradle, Parchment mappings
+- Java 25, Minecraft 26.1.2, NeoForge 26.1.2.x, ModDevGradle, Mojang's official names (26.1 is unobfuscated, no Parchment)
 - Multi project Gradle repo: `foundation`, `manufacturing`, `storage`
 - Mod IDs: `servus_foundation`, `servus_manufacturing`, `servus_storage`
 
@@ -15,7 +15,7 @@ Project: Servus mod family for Minecraft 1.21.1 on NeoForge. The vision, archite
 - Balance numbers, recipes, techs and deposits live in datapack JSON, not in code.
 - Pure logic (graphs, planning, ratios) has no Minecraft imports and is covered by JUnit tests.
 - Use datagen for blockstates, models, loot tables, recipes, tags and lang.
-- Expose standard capabilities (`IItemHandler`, `IEnergyStorage`) so other mods integrate.
+- Expose the standard NeoForge transfer capabilities (`Capabilities.Item`, `Capabilities.Fluid`, `Capabilities.Energy`) so other mods integrate.
 
 ## Spec-driven workflow with OpenSpec
 
@@ -42,7 +42,7 @@ Scoping changes:
 
 Writing artifacts:
 - Specs describe observable behavior: what a block, network or API does, in requirement and scenario form. Numbers that belong in datapack JSON are examples in specs, not requirements.
-- Design records the decisions that `PLAN.md` leaves open for that change and the NeoForge APIs used. Verify a NeoForge 1.21.1 API in the docs or source before writing it into a design.
+- Design records the decisions that `PLAN.md` leaves open for that change and the NeoForge APIs used. Verify a NeoForge 26.1 API in the docs or source before writing it into a design.
 - Tasks are small and verifiable. Each task names the files it touches and ends with a build or test step. Pure logic tasks list the JUnit tests to add.
 
 Useful commands:

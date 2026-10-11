@@ -5,11 +5,14 @@ pluginManagement {
 }
 
 plugins {
+    // Provisions the Java 25 toolchain into the Gradle cache when no local JDK 25 exists.
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
 rootProject.name = 'servus_mc_mods'
 
 include 'foundation'
-include 'manufacturing'
-include 'storage'
+// Port to Minecraft 26.1.2 (change m0-port-minecraft-26-1-2): Manufacturing and Storage
+// stay out of the build until their port sections in tasks.md are done.
+// include 'manufacturing'
+// include 'storage'

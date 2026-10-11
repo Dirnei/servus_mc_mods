@@ -1,6 +1,6 @@
 # Servus Mod Family: Project Plan
 
-A family of NeoForge mods for Minecraft 1.21.1, built to fit packs like ATM10 but fully standalone.
+A family of NeoForge mods for Minecraft 26.1.2, built to fit packs like ATM11 but fully standalone. (Built on 1.21.1 up to M11; ported in m0-port-minecraft-26-1-2.)
 
 | Mod | Mod ID | Purpose |
 |---|---|---|
@@ -14,11 +14,11 @@ Manufacturing and Storage depend only on Servus: Foundation and never on each ot
 
 ## 1. Tech stack
 
-- Minecraft 1.21.1, NeoForge 21.1.x (latest stable), Java 21
+- Minecraft 26.1.2, NeoForge 26.1.2.x (latest stable), Java 25 (the target pack is ATM11)
 - Build: Gradle with ModDevGradle, one multi project repo
-- Mappings: Parchment for readable parameter names
+- Mappings: none needed; 26.1 ships unobfuscated with Mojang's own names and parameter names
 - Data generation for blockstates, models, loot tables, recipes, tags, lang
-- Energy: NeoForge `IEnergyStorage` (FE). Items: `IItemHandler`. Fluids: `IFluidHandler`, in mB
+- NeoForge transfer API: energy `EnergyHandler` (FE), items `ResourceHandler<ItemResource>`, fluids `ResourceHandler<FluidResource>` in mB, all transactional
 - Optional integrations (soft dependencies only): JEI and/or EMI, FTB Teams, FTB Chunks
 - No Akka or Pekko. We use the actor pattern without the library (see section 3)
 
@@ -66,7 +66,7 @@ Decided:
 - **Stages of the Great Work** replace the pack tiers: Nigredo (black), Albedo (white), Citrinitas (yellow), Rubedo (red).
 - **The Athanor** is the heart of the lab, like the Blood Altar of Blood Magic. Important crafts happen on it (the Elixir of Sight, vein seeds, stage items): the item lies on top and the Athanor draws principles over time from the three Fluid Tanks of its build while its flame burns; any tank holds any principle, fed by bucket or by Fluid Pipe. Its tier is the structure built around it, one ring or part per stage (example: Salt Crystal blocks for Albedo, Sulfur pillars for Citrinitas, Mercury basins and the Stone for Rubedo), and its flame takes the stage's colour. The tier of the structure is the stage gate: there is no separate stage item and no stored stage progress.
 - **The journal is the tech tree.** A Modonomicon book, Paracelsus' journal, with one chapter per part of his life (Villach, Schwaz, the wandering years, Basel, Salzburg). A chapter lists tasks of two kinds only: do something N times, or make something for the first time. When all tasks of a chapter are done, the chapter text appears and its recipes unlock. No Research Lab and no packs: Paracelsus held experience over books. Chapter progress is per team (FTB Teams if present, otherwise per player); the team, sync and recipe unlock code of the M2 research is reused.
-- **Modonomicon** is a hard dependency of Manufacturing. Its NeoForge 1.21.1 Maven artifact is verified before the journal design is written.
+- **Modonomicon** is a hard dependency of Manufacturing. Its NeoForge Maven artifact for the target Minecraft version is verified before the journal design is written.
 - **FE** stays the energy standard. The Coal Generator moves to Foundation, so every Servus mod has an FE source. Nigredo itself runs on fire and time: the Calciner burns furnace fuel and the Coagulator needs no power (decided in the play check); FE versions arrive later as upgrades, together with the Salamanders.
 - Machines have **fixed speeds and clean ratios** so players can plan builds. Alchemy machines expose the production capability and join the data cable, so the Crafting CPU orders "64 iron ingots" without caring that it is alchemy.
 - Principle ratios, recipes, vein seeds, ripening, journal tasks and Athanor structures are **datapack driven** so modpack authors can retune them.
@@ -187,7 +187,7 @@ The bridge lives in Servus: Foundation as a small API (see section 3).
 5. **Data driven content.** Recipes, principle ratios, vein seeds, journal tasks, Athanor structures and balance numbers come from datapack JSON with codecs.
 6. **Capabilities as the integration surface.** Machines and storage expose standard capabilities, so any mod's pipes and cables work.
 7. **Pure logic separated from Minecraft.** Graph algorithms, BOM planning, ratio math, order scheduling live in plain Java classes with no Minecraft types, unit tested with JUnit.
-8. **Persistence:** network and journal progress in `SavedData`, block state in block entities using 1.21 data components and codecs.
+8. **Persistence:** network and journal progress in `SavedData`, block state in block entities using data components and codecs.
 
 ### Servus: Foundation API
 
@@ -278,5 +278,5 @@ Decided on 2026-10-11: every Warehouse Controller is a **site** (an outpost or t
 - Propose a short plan before larger changes and wait for confirmation.
 - Prefer small commits with clear messages.
 - Pure logic gets JUnit tests. Block behavior gets GameTests where practical.
-- When unsure about a NeoForge 1.21.1 API, check the official NeoForge docs or existing source instead of guessing.
+- When unsure about a NeoForge 26.1 API, check the official NeoForge docs or existing source instead of guessing.
 - Keep balance numbers in data files, not in code.

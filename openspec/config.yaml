@@ -2,7 +2,7 @@ schema: spec-driven
 
 # Project context shown to the AI when creating artifacts.
 context: |
-  Servus mod family for Minecraft 1.21.1 on NeoForge 21.1.x, Java 21, ModDevGradle, Parchment mappings.
+  Servus mod family for Minecraft 26.1.2 on NeoForge 26.1.2.x, Java 25, ModDevGradle, Mojang's official names.
   Multi project Gradle repo: foundation (servus_foundation), manufacturing (servus_manufacturing),
   storage (servus_storage).
   Roadmap, architecture principles and milestones live in PLAN.md at the repo root. Read it first.
@@ -17,8 +17,8 @@ context: |
   - Balance numbers, recipes, techs and deposits live in datapack JSON, not in code.
   - Pure logic (graphs, planning, ratios) has no Minecraft imports and is covered by JUnit tests.
   - Use datagen for blockstates, models, loot tables, recipes, tags and lang.
-  - Expose standard capabilities (IItemHandler, IEnergyStorage) so other mods integrate.
-  - Verify NeoForge 1.21.1 APIs in the docs or source instead of guessing.
+  - Expose the NeoForge transfer capabilities (item, fluid, energy) so other mods integrate.
+  - Verify NeoForge 26.1 APIs in the docs or source instead of guessing.
   - No em dashes anywhere.
 
   Conventions:
