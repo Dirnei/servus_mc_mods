@@ -16,7 +16,7 @@
 
 ## 4. Fleet with identity and modules
 
-- [ ] 4.1 `ShuttleJob.needs()` and `sameWay`, `ShuttleFleet` with per slot shuttles and profiles, `adoptGarage(pos, profiles, active)`, `outSlots`, matching in `assignJobs`, `hasShuttles` and `canReach` for warehouse capable shuttles (design D4, D5); `ShuttleGarageBlockEntity.profiles()` and `addShuttle(ItemStack)`; `WarehouseNetwork` passes profiles. Verify: `gradlew build` and the existing shuttle GameTests green with `gradlew :storage:runGameTestServer`.
+- [x] 4.1 `ShuttleJob.needs()` and `sameWay`, `ShuttleFleet` with per slot shuttles and profiles, `adoptGarage(pos, profiles, active)`, `outSlots`, matching in `assignJobs`, `hasShuttles` and `canReach` for warehouse capable shuttles (design D4, D5); `ShuttleGarageBlockEntity.profiles()` and `addShuttle(ItemStack)`; `WarehouseNetwork` passes profiles. Verify: `gradlew build` and the existing shuttle GameTests green with `gradlew :storage:runGameTestServer`.
 - [ ] 4.2 Several loads per shuttle with batching at assignment and at the source (design D6) in `ShuttleFleet`. GameTests in `ShuttleModuleGameTests`: `cargoHoldPicksTwoStacks` (100 cobblestone from a rack in one trip, nothing left queued while the shuttle is out, all 100 delivered), `plainShuttleTakesOneJob` (the 36 job stays queued), `cargoHoldPutAwayLoadsAll` (three stacks leave the station at once). Verify: `gradlew :storage:runGameTestServer` green.
 - [ ] 4.3 `ShuttleGarageMenu` locks by the out mask, `ShuttleGarageScreen` unchanged in look (design D4). GameTest `garageLocksSlotOfShuttleOut`. Verify: `gradlew :storage:runGameTestServer` green.
 

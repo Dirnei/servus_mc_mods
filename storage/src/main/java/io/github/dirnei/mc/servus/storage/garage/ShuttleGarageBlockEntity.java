@@ -8,6 +8,10 @@ import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleModules;
+import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleProfile;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -34,7 +38,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 /**
  * Keeps shuttles as items, one per slot, and sends them out through its
  * back onto the rail. The live shuttles are data on the network's fleet;
- * this only holds the items and tells the network how many there are.
+ * this only holds the items and tells the network what each slot's shuttle can do.
  */
 public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements WoodHolder, MenuProvider {
 
@@ -119,15 +123,36 @@ public class ShuttleGarageBlockEntity extends StorageNodeBlockEntity implements 
         return network().map(network -> network.garageOut(worldPosition)).orElse(0);
     }
 
-    /** Puts a shuttle into the first free slot. @return false when full */
+    /** Puts a plain shuttle into the first free slot. @return false when full */
     public boolean addShuttle() {
+        return addShuttle(new ItemStack(ServusStorageItems.SHUTTLE.get()));
+    }
+
+    /** Puts one shuttle like the given one, modules and all, into the first free slot. @return false when full */
+    public boolean addShuttle(ItemStack shuttle) {
         for (int i = 0; i < shuttles.getSlots(); i++) {
             if (shuttles.getStackInSlot(i).isEmpty()) {
-                shuttles.setStackInSlot(i, new ItemStack(ServusStorageItems.SHUTTLE.get()));
+                shuttles.setStackInSlot(i, shuttle.copyWithCount(1));
                 return true;
             }
         }
         return false;
+    }
+
+    /** What each slot's shuttle can do, null for an empty slot; the fleet keeps one shuttle per entry. */
+    public List<ShuttleProfile> profiles() {
+        List<ShuttleProfile> profiles = new ArrayList<>();
+        int cargoHoldStacks = StorageStatsManager.INSTANCE.cargoHoldStacks();
+        for (int i = 0; i < shuttles.getSlots(); i++) {
+            ItemStack stack = shuttles.getStackInSlot(i);
+            profiles.add(stack.isEmpty() ? null : ShuttleModules.profile(stack, cargoHoldStacks));
+        }
+        return profiles;
+    }
+
+    /** Slots whose shuttle is out on a job, one bit per slot. */
+    public int outSlots() {
+        return network().map(network -> network.garageOutSlots(worldPosition)).orElse(0);
     }
 
     /** Takes the last shuttle item out. @return false when empty */

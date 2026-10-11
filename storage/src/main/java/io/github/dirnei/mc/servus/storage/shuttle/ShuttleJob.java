@@ -1,5 +1,23 @@
 package io.github.dirnei.mc.servus.storage.shuttle;
 
+import io.github.dirnei.mc.servus.storage.shuttle.module.JobNeeds;
+
 /** Something a shuttle does: fetch a pull or carry a put-away. Both share one queue. */
 public sealed interface ShuttleJob permits PickJob, PutAwayJob {
+
+    /** The modules a shuttle needs for this job; warehouse jobs need none and refuse field only shuttles. */
+    default JobNeeds needs() {
+        return JobNeeds.WAREHOUSE;
+    }
+
+    /** Whether the other job takes the same way, so a shuttle with room can carry both on one trip. */
+    default boolean sameWay(ShuttleJob other) {
+        if (this instanceof PickJob pick && other instanceof PickJob that) {
+            return pick.source().equals(that.source()) && pick.terminal().equals(that.terminal());
+        }
+        if (this instanceof PutAwayJob putAway && other instanceof PutAwayJob that) {
+            return putAway.station().equals(that.station()) && putAway.target().equals(that.target());
+        }
+        return false;
+    }
 }

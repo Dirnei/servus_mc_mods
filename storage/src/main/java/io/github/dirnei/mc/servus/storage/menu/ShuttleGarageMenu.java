@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageMenus;
+import io.github.dirnei.mc.servus.storage.shuttle.ShuttleFleet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -16,8 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
 /**
- * One slot per shuttle place above the player inventory. Slots whose shuttle
- * is out on a job cannot be emptied until it is back.
+ * One slot per shuttle place above the player inventory. The slot of a
+ * shuttle that is out on a job cannot be emptied until it is back.
  */
 public class ShuttleGarageMenu extends AbstractContainerMenu {
 
@@ -33,6 +34,7 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
     private final int inventoryStart;
     private final DataSlot out = DataSlot.standalone();
     private final DataSlot active = DataSlot.standalone();
+    private final DataSlot outSlots = DataSlot.standalone();
     public static final int BUTTON_RECALL = 1;
     public static final int BUTTON_TOGGLE = 2;
 
@@ -62,6 +64,7 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
         }
         addDataSlot(out);
         addDataSlot(active);
+        addDataSlot(outSlots);
     }
 
     public static ShuttleGarageMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -112,29 +115,22 @@ public class ShuttleGarageMenu extends AbstractContainerMenu {
                 garage.setActive(!garage.isActive());
             }
             out.set(garage.outCount());
+            outSlots.set(garage.outSlots());
             active.set(garage.isActive() ? 1 : 0);
         }
         return true;
     }
 
-    /** The first {@code out} filled slots stand for the shuttles that are away. */
+    /** Whether the slot's shuttle is away, as last synced. */
     public boolean locked(int slot) {
-        if (garage.shuttles().getStackInSlot(slot).isEmpty()) {
-            return false;
-        }
-        int filledBefore = 0;
-        for (int i = 0; i < slot; i++) {
-            if (!garage.shuttles().getStackInSlot(i).isEmpty()) {
-                filledBefore++;
-            }
-        }
-        return filledBefore < out.get();
+        return !garage.shuttles().getStackInSlot(slot).isEmpty() && slot < ShuttleFleet.MASK_SLOTS && (outSlots.get() & (1 << slot)) != 0;
     }
 
     @Override
     public void broadcastChanges() {
         if (!player.level().isClientSide()) {
             out.set(garage.outCount());
+            outSlots.set(garage.outSlots());
             active.set(garage.isActive() ? 1 : 0);
         }
         super.broadcastChanges();

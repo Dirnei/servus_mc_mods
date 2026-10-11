@@ -174,7 +174,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         } else if (node instanceof ShuttleGarageBlockEntity garage) {
             dropSource(blockPos);
             garages.add(blockPos);
-            fleet.adoptGarage(blockPos, garage.shuttleCount(), garage.isActive());
+            fleet.adoptGarage(blockPos, garage.profiles(), garage.isActive());
         } else {
             dropSource(blockPos);
             connectors.add(blockPos);
@@ -252,9 +252,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         fleet.absorb(that.fleet);
     }
 
-    /** A garage's shuttle count or pause state changed. */
+    /** A garage's shuttles or pause state changed. */
     public void garageChanged(ShuttleGarageBlockEntity garage) {
-        fleet.adoptGarage(garage.getBlockPos(), garage.shuttleCount(), garage.isActive());
+        fleet.adoptGarage(garage.getBlockPos(), garage.profiles(), garage.isActive());
     }
 
     /** Brings every shuttle of the garage inside; cargo drops at the garage and unloaded jobs are queued again. */
@@ -265,6 +265,21 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Shuttles of one garage that are out on a job. */
     public int garageOut(BlockPos pos) {
         return fleet.outOf(pos);
+    }
+
+    /** Slots of one garage whose shuttle is out, one bit per slot. */
+    public int garageOutSlots(BlockPos pos) {
+        return fleet.outSlots(pos);
+    }
+
+    /** Jobs waiting for a shuttle. */
+    public int queuedJobs() {
+        return fleet.queued();
+    }
+
+    /** Jobs shuttles carry right now, every load of a Cargo Hold counted. */
+    public int ridingJobs() {
+        return fleet.riding();
     }
 
     /** One garage's line for its right click. */
