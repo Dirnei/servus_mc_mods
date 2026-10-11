@@ -38,6 +38,11 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     public static final int DEFAULT_PATTERNS_PER_BLOCK = 9;
     public static final double DEFAULT_PACKING_ITEMS_PER_SECOND = 8.0;
     public static final int DEFAULT_PACKING_UPGRADE_SLOTS = 2;
+    public static final int DEFAULT_FIELD_CAPACITY = 8000;
+    public static final int DEFAULT_FIELD_WATER_PER_RAIL = 1;
+    public static final int DEFAULT_FIELD_WATER_INTERVAL = 100;
+    public static final int DEFAULT_FIELD_MAX_RAILS = 128;
+    public static final double DEFAULT_FIELD_HARVEST_SHARE = 0.5;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ResourceLocation CRATE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
@@ -47,6 +52,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private static final ResourceLocation CPU = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "cpu");
     private static final ResourceLocation PACKING_STATION = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "packing_station");
     private static final ResourceLocation PATTERN_STORAGE = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
+    private static final ResourceLocation FIELD = ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field");
 
     public static final StorageStatsManager INSTANCE = new StorageStatsManager();
 
@@ -72,6 +78,11 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
     private volatile int patternsPerBlock = DEFAULT_PATTERNS_PER_BLOCK;
     private volatile double packingItemsPerSecond = DEFAULT_PACKING_ITEMS_PER_SECOND;
     private volatile int packingUpgradeSlots = DEFAULT_PACKING_UPGRADE_SLOTS;
+    private volatile int fieldCapacity = DEFAULT_FIELD_CAPACITY;
+    private volatile int fieldWaterPerRail = DEFAULT_FIELD_WATER_PER_RAIL;
+    private volatile int fieldWaterInterval = DEFAULT_FIELD_WATER_INTERVAL;
+    private volatile int fieldMaxRails = DEFAULT_FIELD_MAX_RAILS;
+    private volatile double fieldHarvestShare = DEFAULT_FIELD_HARVEST_SHARE;
 
     private StorageStatsManager() {
         super(GSON, DIRECTORY);
@@ -101,6 +112,11 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
         patternsPerBlock = intField(files.get(PATTERN_STORAGE), "patterns_per_block", DEFAULT_PATTERNS_PER_BLOCK);
         packingItemsPerSecond = doubleField(files.get(PACKING_STATION), "items_per_second", DEFAULT_PACKING_ITEMS_PER_SECOND);
         packingUpgradeSlots = intField(files.get(PACKING_STATION), "upgrade_slots", DEFAULT_PACKING_UPGRADE_SLOTS);
+        fieldCapacity = intField(files.get(FIELD), "capacity", DEFAULT_FIELD_CAPACITY);
+        fieldWaterPerRail = intField(files.get(FIELD), "water_per_rail", DEFAULT_FIELD_WATER_PER_RAIL);
+        fieldWaterInterval = intField(files.get(FIELD), "water_interval", DEFAULT_FIELD_WATER_INTERVAL);
+        fieldMaxRails = intField(files.get(FIELD), "max_rails", DEFAULT_FIELD_MAX_RAILS);
+        fieldHarvestShare = Math.min(1.0, doubleField(files.get(FIELD), "harvest_share", DEFAULT_FIELD_HARVEST_SHARE));
         ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
     }
 
@@ -217,5 +233,35 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener 
 
     public int putAwayPerTick() {
         return putAwayPerTick;
+    }
+
+    /** mB of water a Field Head buffers. */
+    public int fieldCapacity() {
+        return fieldCapacity;
+    }
+
+    /** mB of water a field uses per farm rail every {@link #fieldWaterInterval()} ticks. */
+    public int fieldWaterPerRail() {
+        return fieldWaterPerRail;
+    }
+
+    /** Ticks between two water uses of a hydrated field. */
+    public int fieldWaterInterval() {
+        return fieldWaterInterval;
+    }
+
+    /** The most farm rails one field may have. */
+    public int fieldMaxRails() {
+        return fieldMaxRails;
+    }
+
+    /** Ripe share of the planted plots at which a field signals harvest due. */
+    public double fieldHarvestShare() {
+        return fieldHarvestShare;
+    }
+
+    /** For tests: sets the water interval as if a datapack had been loaded. */
+    public void setFieldWaterInterval(int ticks) {
+        fieldWaterInterval = ticks;
     }
 }

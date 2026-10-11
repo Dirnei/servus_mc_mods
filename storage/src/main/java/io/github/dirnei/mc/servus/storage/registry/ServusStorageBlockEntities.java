@@ -83,7 +83,7 @@ public final class ServusStorageBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RailBlockEntity>> RAIL =
             BLOCK_ENTITIES.register("rail", () -> BlockEntityType.Builder
-                    .of(RailBlockEntity::new, ServusStorageBlocks.RAIL.get())
+                    .of(RailBlockEntity::new, ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.FARM_RAIL.get())
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElevatorBlockEntity>> ELEVATOR =

@@ -1,0 +1,7 @@
+{
+  "capacity": 8000,
+  "water_per_rail": 1,
+  "water_interval": 100,
+  "max_rails": 128,
+  "harvest_share": 0.5
+}

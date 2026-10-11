@@ -6,7 +6,7 @@
 
 ## 2. Farm Rail
 
-- [ ] 2.1 `FarmRailBlock` in `storage/.../field/`, registered in `ServusStorageBlocks` and `ServusStorageItems` (assisted item, creative tab), added to the `RAIL` block entity type in `ServusStorageBlockEntities` (design D1). `field.json` and the field getters in `StorageStatsManager` (design D7). Verify: `gradlew build`.
+- [x] 2.1 `FarmRailBlock` in `storage/.../field/`, registered in `ServusStorageBlocks` and `ServusStorageItems` (assisted item, creative tab), added to the `RAIL` block entity type in `ServusStorageBlockEntities` (design D1). `field.json` and the field getters in `StorageStatsManager` (design D7). Verify: `gradlew build`.
 
 ## 3. Field Head
 
