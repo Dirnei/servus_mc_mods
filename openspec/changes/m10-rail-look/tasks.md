@@ -18,7 +18,7 @@
 
 ## 5. Tests and docs
 
-- [ ] 5.1 GameTests `storage/.../gametest/RailLookGameTests.java`: woodSurvivesPlaceAndBreak, dismantleKeepsWood, railRecipeRecordsWood, farmRailRecipeTakesCopper, runKeepsWood (sneak placement); keep rail, elevator, shuttle, field and harvester GameTests green; `gradlew :storage:runGameTestServer`
+- [x] 5.1 GameTests `storage/.../gametest/RailLookGameTests.java`: woodSurvivesPlaceAndBreak, dismantleKeepsWood, railRecipeRecordsWood, farmRailRecipeTakesCopper, runKeepsWood (sneak placement); keep rail, elevator, shuttle, field and harvester GameTests green; `gradlew :storage:runGameTestServer`
 - [ ] 5.2 Docs `docs/src/content/docs/mods/storage.md` rail entries and `PLAN.md` M10 list the change; `gradlew build`
 
 ## 6. Verification
