@@ -3,6 +3,8 @@
 build/
 **/build/
 !gradle/wrapper/gradle-wrapper.jar
+# Java packages named build are sources, not Gradle output
+!**/src/**/build/
 
 # ModDevGradle and NeoForge runs
 runs/
