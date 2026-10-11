@@ -20,7 +20,7 @@
 
 ## 5. GameTests
 
-- [ ] 5.1 `HarvesterGameTests` in the storage gametest package: `harvesterHarvestsIntoStorage` (ripe wheat into a crate, replanted from the harvest), `harvesterTillsInsideStripOnly`, `harvestOnlyDoesNotPlant`, `plainShuttleTakesNoFieldJob`, `harvesterTakesNoWarehouseJob`, `seedsFromStorage`, `fullCargoComesBack`, `headBrokenMidRun`, `warehouseFullWaits`, `workshopFitsHarvester`. Verify: `gradlew :storage:runGameTestServer` green.
+- [x] 5.1 `HarvesterGameTests` in the storage gametest package: `harvesterHarvestsIntoStorage` (ripe wheat into a crate, replanted from the harvest), `harvesterTillsInsideStripOnly`, `harvestOnlyDoesNotPlant`, `plainShuttleTakesNoFieldJob`, `harvesterTakesNoWarehouseJob`, `seedsFromStorage`, `fullCargoComesBack`, `headBrokenMidRun`, `warehouseFullWaits`, `workshopFitsHarvester`. Verify: `gradlew :storage:runGameTestServer` green.
 
 ## 6. Plan and docs
 
