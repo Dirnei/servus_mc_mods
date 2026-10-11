@@ -7,7 +7,7 @@
 ## 2. Screen and lang
 
 - [x] 2.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/client/FieldHeadScreen.java`: tabs in the duct look with icons and tooltips, red markers, Field, Water and Upgrades pages per design.md, 176 by 178 panel in one blit. Run `gradlew build`.
-- [ ] 2.2 `storage/src/main/java/io/github/dirnei/mc/servus/storage/datagen/ServusStorageLanguageProvider.java`: tab names, `radius`, `size` without the radius. Run `gradlew :storage:runData`, then `gradlew build`.
+- [x] 2.2 `storage/src/main/java/io/github/dirnei/mc/servus/storage/datagen/ServusStorageLanguageProvider.java`: tab names, `radius`, `size` without the radius. Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 3. Tests
 
