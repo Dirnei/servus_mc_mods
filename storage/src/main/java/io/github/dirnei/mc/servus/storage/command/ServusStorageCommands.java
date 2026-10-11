@@ -14,6 +14,7 @@ import java.util.Optional;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -77,11 +78,49 @@ public final class ServusStorageCommands {
                                         .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
                                                 .then(Commands.argument("count", IntegerArgumentType.integer(1, 4096))
                                                         .executes(ServusStorageCommands::ship))))))
+                .then(Commands.literal("field")
+                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                .executes(ServusStorageCommands::field)
+                                .then(Commands.literal("recheck")
+                                        .executes(ServusStorageCommands::fieldRecheck))))
                 .then(Commands.literal("take")
                         .then(Commands.argument("pos", BlockPosArgument.blockPos())
                                 .then(Commands.argument("item", ItemArgument.item(event.getBuildContext()))
                                         .then(Commands.argument("count", IntegerArgumentType.integer(1, 64))
                                                 .executes(ServusStorageCommands::take))))));
+    }
+
+    private static int field(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        if (!(source.getLevel().getBlockEntity(pos) instanceof FieldHeadBlockEntity head)) {
+            source.sendFailure(Component.literal("No Field Head at " + pos.toShortString()));
+            return 0;
+        }
+        String mode = head.harvestOnly() ? "harvest only"
+                : head.crop().isEmpty() ? "no crop" : "crop " + head.crop().getHoverName().getString();
+        List<String> lines = List.of(
+                "Field Head " + pos.toShortString() + ": " + head.status().name().toLowerCase(java.util.Locale.ROOT),
+                "Rails " + head.rails().size() + ", plots " + head.plots().size() + ", planted " + head.plantedCount() + ", ripe " + head.ripeCount(),
+                "Water " + head.water() + " / " + head.capacity() + " mB, " + (head.hydrated() ? "hydrated" : "dry"),
+                mode + ", harvest " + (head.harvestDue() ? "due" : "not due"));
+        for (String line : lines) {
+            source.sendSuccess(() -> Component.literal(line), false);
+        }
+        return head.rails().size();
+    }
+
+    private static int fieldRecheck(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
+        CommandSourceStack source = context.getSource();
+        if (!(source.getLevel().getBlockEntity(pos) instanceof FieldHeadBlockEntity head)) {
+            source.sendFailure(Component.literal("No Field Head at " + pos.toShortString()));
+            return 0;
+        }
+        head.recheckAll();
+        source.sendSuccess(() -> Component.literal("Rechecked " + head.plots().size() + " plots: planted "
+                + head.plantedCount() + ", ripe " + head.ripeCount()), false);
+        return head.ripeCount();
     }
 
     private static int take(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
