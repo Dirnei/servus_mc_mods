@@ -63,7 +63,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     private final WoodSlot woodSlot = new WoodSlot(this);
 
     /** How a request is doing, as the GUI shows it. */
-    public enum RequestState { PICKING, SENDING, WAITING_ROOM, PRODUCING, MISSING }
+    public enum RequestState { PICKING, SENDING, WAITING_ROOM, PRODUCING, MISSING, WAKING }
 
     /** A shipment a Packing Station runs for a request, by its ledger id, and how many items were asked of it. */
     public record Tracked(BlockPos packingStation, long shipmentId, int asked) {
@@ -80,6 +80,10 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         public final List<Tracked> shipments = new ArrayList<>();
         /** Master of the Crafting CPU holding this request's work order, null without one. */
         public BlockPos orderCpu;
+        /** The key of the other site a transfer comes from, null for a request of this site. */
+        public String remote;
+        /** Whether the other site was asked once; a transfer ends with its shipments after that. */
+        public boolean shipped;
 
         Request(int id, ItemKey key, int requested) {
             this.id = id;
@@ -177,7 +181,11 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     }
 
     public void removeRequest(int id) {
-        if (requests.removeIf(request -> request.id == id)) {
+        Request request = request(id);
+        if (request != null && request.remote != null) {
+            RemoteTransfers.release(worldPosition, id);
+        }
+        if (requests.removeIf(entry -> entry.id == id)) {
             setChanged();
         }
     }
@@ -197,7 +205,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     /** Whether an open request still waits for this item. */
     public boolean waitsFor(ItemKey key) {
         for (Request request : requests) {
-            if (request.key.equals(key) && request.delivered < request.requested) {
+            if (request.remote == null && request.key.equals(key) && request.delivered < request.requested) {
                 return true;
             }
         }
@@ -210,7 +218,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             if (count <= 0) {
                 return;
             }
-            if (request.key.equals(key) && request.delivered < request.requested) {
+            if (request.remote == null && request.key.equals(key) && request.delivered < request.requested) {
                 int share = Math.min(count, request.requested - request.delivered);
                 request.delivered += share;
                 count -= share;
@@ -401,6 +409,10 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             if (request.orderCpu != null) {
                 entry.put("OrderCpu", NbtUtils.writeBlockPos(request.orderCpu));
             }
+            if (request.remote != null) {
+                entry.putString("Remote", request.remote);
+                entry.putBoolean("Shipped", request.shipped);
+            }
             ListTag shipments = new ListTag();
             for (Tracked tracked : request.shipments) {
                 CompoundTag shipment = new CompoundTag();
@@ -445,6 +457,8 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             request.delivered = entry.getInt("Delivered");
             request.missing = entry.getInt("Missing");
             request.orderCpu = NbtUtils.readBlockPos(entry, "OrderCpu").orElse(null);
+            request.remote = entry.contains("Remote") ? entry.getString("Remote") : null;
+            request.shipped = entry.getBoolean("Shipped");
             for (Tag rawShipment : entry.getList("Shipments", Tag.TAG_COMPOUND)) {
                 CompoundTag shipment = (CompoundTag) rawShipment;
                 NbtUtils.readBlockPos(shipment, "PackingStation").ifPresent(point -> request.shipments.add(
@@ -562,6 +576,12 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     @Override
     public void setRemoved() {
         carrier.leave();
+        // Sites held awake for this terminal's transfers may sleep; a loaded terminal takes the holds again.
+        for (Request request : requests) {
+            if (request.remote != null) {
+                RemoteTransfers.release(worldPosition, request.id);
+            }
+        }
         super.setRemoved();
     }
 

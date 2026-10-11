@@ -15,7 +15,7 @@
 
 ## 4. Terminal and controller
 
-- [ ] 4.1 `storage/.../terminal/RemoteTransfers.java`, `StorageTerminalBlockEntity.java` (remote field saved, credit and wait skip remote, hold release on removal), `TerminalRequests.java` (remote booking, retry, cancel, rows, `WAKING`), `SiteRow.java`, `SelectSitePayload.java`, `StockSyncPayload.java`, `StorageTerminalMenu.java` (view, remote stock, remote request), `ServusStoragePayloads.java`; grep that every payload type is registered. Run `gradlew build`.
+- [x] 4.1 `storage/.../terminal/RemoteTransfers.java`, `StorageTerminalBlockEntity.java` (remote field saved, credit and wait skip remote, hold release on removal), `TerminalRequests.java` (remote booking, retry, cancel, rows, `WAKING`), `SiteRow.java`, `SelectSitePayload.java`, `StockSyncPayload.java`, `StorageTerminalMenu.java` (view, remote stock, remote request), `ServusStoragePayloads.java`; grep that every payload type is registered. Run `gradlew build`.
 - [ ] 4.2 `StorageTerminalScreen.java` (title selector, greyed entries, view line), `ClientStock.java`, `SiteStatusPayload.java` and `WarehouseControllerMenu.java` (site rows), `WarehouseControllerScreen.java` (site panel), lang keys. Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 5. GameTests

@@ -145,11 +145,16 @@ public final class TerminalRequests {
                 if (transfer == null || transfer.ended()) {
                     int delivered = transfer == null ? 0 : transfer.delivered();
                     request.missing += Math.max(0, tracked.asked() - delivered);
+                    if (request.remote != null) {
+                        // A transfer's items arrive in this site's storage, not in the output slots.
+                        request.delivered += delivered;
+                    }
                     it.remove();
                     terminal.setChanged();
                 }
             }
-            if (request.delivered >= request.requested && request.shipments.isEmpty()) {
+            if (request.delivered >= request.requested && request.shipments.isEmpty()
+                    || request.remote != null && request.shipped && request.shipments.isEmpty()) {
                 done.add(request.id);
             }
         }
@@ -189,6 +194,13 @@ public final class TerminalRequests {
     private static void retry(ServerLevel level, StorageTerminalBlockEntity terminal) {
         List<WarehouseNetwork> warehouses = null;
         for (Request request : terminal.requests()) {
+            if (request.remote != null) {
+                // A transfer waits for its site to come online, then is shipped once.
+                if (!request.shipped) {
+                    RemoteTransfers.ship(level, terminal, request);
+                }
+                continue;
+            }
             if (request.missing <= 0 || !request.shipments.isEmpty() || producing(level, request)) {
                 continue;
             }
@@ -211,9 +223,12 @@ public final class TerminalRequests {
         for (WarehouseNetwork warehouse : TerminalWarehouses.reachable(level, terminal.getBlockPos())) {
             warehouse.dropQueuedFor(requestId);
         }
+        if (request.remote != null) {
+            RemoteTransfers.dropQueued(level, request);
+        }
         CpuOrders.cancelForRequest(level, terminal.getBlockPos(), requestId);
         for (Tracked tracked : request.shipments) {
-            if (level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point) {
+            if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point) {
                 point.cancel(tracked.shipmentId());
             }
         }
@@ -223,16 +238,38 @@ public final class TerminalRequests {
     /** The open requests as the GUI lists them. */
     public static List<RequestRow> rows(ServerLevel level, StorageTerminalBlockEntity terminal, List<WarehouseNetwork> warehouses) {
         List<RequestRow> rows = new ArrayList<>();
+        ProductionLedger ledger = ProductionLedger.get(level);
         for (Request request : terminal.requests()) {
-            rows.add(new RequestRow(request.id, request.key.stack(1), request.requested, request.delivered, request.missing,
-                    state(level, terminal, request, warehouses).name()));
+            int delivered = request.delivered;
+            if (request.remote != null) {
+                // Items of a running transfer that already arrived at this site.
+                for (Tracked tracked : request.shipments) {
+                    ProductionLedger.Transfer transfer = ledger.transfer(tracked.shipmentId());
+                    delivered += transfer == null ? 0 : transfer.delivered();
+                }
+            }
+            rows.add(new RequestRow(request.id, request.key.stack(1), request.requested, Math.min(request.requested, delivered),
+                    request.missing, state(level, terminal, request, warehouses).name()));
         }
         return rows;
     }
 
     static RequestState state(ServerLevel level, StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
+        if (request.remote != null) {
+            if (!request.shipped) {
+                return RequestState.WAKING;
+            }
+            for (Tracked tracked : request.shipments) {
+                if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
+                        && point.isSending(tracked.shipmentId())) {
+                    return RequestState.SENDING;
+                }
+            }
+            return request.shipments.isEmpty() ? RequestState.MISSING : RequestState.PICKING;
+        }
         for (Tracked tracked : request.shipments) {
-            if (level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point && point.isSending(tracked.shipmentId())) {
+            if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
+                    && point.isSending(tracked.shipmentId())) {
                 // Packets that find no room wait at the terminal.
                 boolean fits = ItemHandlerHelper.insertItemStacked(terminal.output(), request.key.stack(1), true).isEmpty();
                 return fits ? RequestState.SENDING : RequestState.WAITING_ROOM;

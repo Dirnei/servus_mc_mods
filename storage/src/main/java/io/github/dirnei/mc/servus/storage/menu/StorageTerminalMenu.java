@@ -65,6 +65,8 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     private final CraftingContainer craftSlots = new TransientCraftingContainer(this, 3, 3);
     private final ResultContainer resultSlots = new ResultContainer();
     private String message = "";
+    /** The key of the other site the grid shows, empty for this site. */
+    private String view = "";
     private int syncTimer;
     private long lastSignature = Long.MIN_VALUE;
     private long firstSyncTick = -1;
@@ -255,9 +257,9 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         }
     }
 
-    /** Alt click on a stock entry: up to one stack from instant stock onto the empty cursor. */
+    /** Alt click on a stock entry: up to one stack from instant stock onto the empty cursor. Not for another site. */
     public void pullToCursor(ItemKey key) {
-        if (!getCarried().isEmpty()) {
+        if (!getCarried().isEmpty() || !view.isEmpty()) {
             return;
         }
         setCarried(takeInstant(key, key.stack(1).getMaxStackSize()));
@@ -368,10 +370,34 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     // Operations (server side)
 
-    /** Requests this many of the key; deliveries land in the output slots. */
+    /**
+     * Requests this many of the key; deliveries land in the output slots. While
+     * another site is shown it is a transfer from that site into this site's storage.
+     */
     public void request(ItemKey key, int amount) {
-        message = terminal.getLevel() instanceof ServerLevel server
-                ? TerminalRequests.request(server, terminal, key, Math.max(1, amount)) : "offline";
+        if (!(terminal.getLevel() instanceof ServerLevel server)) {
+            message = "offline";
+        } else if (!view.isEmpty()) {
+            message = io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.request(server, terminal, view, key, Math.max(1, amount));
+        } else {
+            message = TerminalRequests.request(server, terminal, key, Math.max(1, amount));
+        }
+        forceSync();
+    }
+
+    /** The key of the site the grid shows, empty for this site. */
+    public String view() {
+        return view;
+    }
+
+    /** Shows another site of the team, or this site with an empty key; an unknown key shows this site. */
+    public void selectSite(String site) {
+        String asked = site == null ? "" : site;
+        boolean known = asked.isEmpty() || terminal.getLevel() instanceof ServerLevel server
+                && io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.sites(server, terminal.getBlockPos()).stream()
+                .anyMatch(row -> row.key().equals(asked));
+        view = known ? asked : "";
+        message = "";
         forceSync();
     }
 
@@ -567,10 +593,23 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         List<WarehouseNetwork> warehouses = TerminalWarehouses.reachable(server, terminal.getBlockPos());
         List<RequestRow> requests = TerminalRequests.rows(server, terminal, warehouses);
         if (warehouses.isEmpty()) {
+            view = "";
             return new StockSyncPayload(terminal.getBlockPos(), false, "no_warehouse", List.of(), requests, shown, List.of(), List.of());
         }
+        List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites =
+                io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.sites(server, terminal.getBlockPos());
+        if (!view.isEmpty()) {
+            var site = io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(server).site(view);
+            if (site.isPresent() && sites.stream().anyMatch(row -> row.key().equals(view))) {
+                int state = io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.state(server, site.get()).ordinal();
+                return new StockSyncPayload(terminal.getBlockPos(), true, "",
+                        entries(io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.stock(server, site.get())), requests, shown,
+                        List.of(), List.of(), sites, view, state);
+            }
+            view = "";
+        }
         return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(TerminalWarehouses.stock(warehouses)), requests, shown,
-                warehouses.get(0).ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES));
+                warehouses.get(0).ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES), sites, "", -1);
     }
 
     private static List<StockEntry> entries(List<Map.Entry<ItemKey, Long>> stock) {
@@ -586,6 +625,9 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     private static long signature(StockSyncPayload payload) {
         long hash = payload.online() ? 1 : 0;
+        hash = hash * 31 + payload.view().hashCode();
+        hash = hash * 31 + payload.viewState();
+        hash = hash * 31 + payload.sites().hashCode();
         hash = hash * 31 + payload.reason().hashCode();
         hash = hash * 31 + payload.message().hashCode();
         for (StockEntry entry : payload.entries()) {

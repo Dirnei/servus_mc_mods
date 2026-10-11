@@ -22,9 +22,24 @@ import net.minecraft.resources.ResourceLocation;
  * @param message  refusal key of the last request, empty when it went through
  * @param rules    the warehouse's stock rules with their state
  * @param craftables one of every item a producer of the line can make
+ * @param sites    the other sites of the team the terminal can look at
+ * @param view     the key of the site shown, empty for this site
+ * @param viewState the {@code RemoteSite.State} ordinal of the site shown, -1 for this site
  */
 public record StockSyncPayload(BlockPos terminal, boolean online, String reason, List<StockEntry> entries, List<RequestRow> requests,
-                               String message, List<RuleRow> rules, List<ItemStack> craftables) implements CustomPacketPayload {
+                               String message, List<RuleRow> rules, List<ItemStack> craftables, List<SiteRow> sites, String view,
+                               int viewState) implements CustomPacketPayload {
+
+    /** The content of this site only. */
+    public StockSyncPayload(BlockPos terminal, boolean online, String reason, List<StockEntry> entries, List<RequestRow> requests,
+                            String message, List<RuleRow> rules, List<ItemStack> craftables) {
+        this(terminal, online, reason, entries, requests, message, rules, craftables, List.of(), "", -1);
+    }
+
+    /** Whether the grid shows another site. */
+    public boolean remote() {
+        return !view.isEmpty();
+    }
 
     public static final Type<StockSyncPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "stock_sync"));
@@ -33,8 +48,9 @@ public record StockSyncPayload(BlockPos terminal, boolean online, String reason,
     private static final StreamCodec<RegistryFriendlyByteBuf, List<RequestRow>> REQUESTS = RequestRow.STREAM_CODEC.apply(ByteBufCodecs.list());
     private static final StreamCodec<RegistryFriendlyByteBuf, List<RuleRow>> RULES = RuleRow.STREAM_CODEC.apply(ByteBufCodecs.list());
     private static final StreamCodec<RegistryFriendlyByteBuf, List<ItemStack>> STACKS = ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list());
+    private static final StreamCodec<io.netty.buffer.ByteBuf, List<SiteRow>> SITES = SiteRow.STREAM_CODEC.apply(ByteBufCodecs.list());
 
-    /** Eight fields, more than {@code StreamCodec.composite} takes. */
+    /** Eleven fields, more than {@code StreamCodec.composite} takes. */
     public static final StreamCodec<RegistryFriendlyByteBuf, StockSyncPayload> STREAM_CODEC = StreamCodec.of(
             (buf, payload) -> {
                 BlockPos.STREAM_CODEC.encode(buf, payload.terminal());
@@ -45,9 +61,13 @@ public record StockSyncPayload(BlockPos terminal, boolean online, String reason,
                 ByteBufCodecs.STRING_UTF8.encode(buf, payload.message());
                 RULES.encode(buf, payload.rules());
                 STACKS.encode(buf, payload.craftables());
+                SITES.encode(buf, payload.sites());
+                ByteBufCodecs.STRING_UTF8.encode(buf, payload.view());
+                ByteBufCodecs.VAR_INT.encode(buf, payload.viewState());
             },
             buf -> new StockSyncPayload(BlockPos.STREAM_CODEC.decode(buf), ByteBufCodecs.BOOL.decode(buf), ByteBufCodecs.STRING_UTF8.decode(buf), ENTRIES.decode(buf),
-                    REQUESTS.decode(buf), ByteBufCodecs.STRING_UTF8.decode(buf), RULES.decode(buf), STACKS.decode(buf)));
+                    REQUESTS.decode(buf), ByteBufCodecs.STRING_UTF8.decode(buf), RULES.decode(buf), STACKS.decode(buf), SITES.decode(buf),
+                    ByteBufCodecs.STRING_UTF8.decode(buf), ByteBufCodecs.VAR_INT.decode(buf)));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

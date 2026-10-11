@@ -176,6 +176,13 @@ public final class ServusStoragePayloads {
                         menu.setRule(ItemKey.of(payload.item()), payload.min(), payload.max());
                     }
                 });
+        registrar.playToServer(SelectSitePayload.TYPE, SelectSitePayload.STREAM_CODEC,
+                (payload, context) -> {
+                    if (context.player() instanceof ServerPlayer player
+                            && player.containerMenu instanceof StorageTerminalMenu menu) {
+                        menu.selectSite(payload.site());
+                    }
+                });
         registrar.playToServer(CancelRequestPayload.TYPE, CancelRequestPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player
