@@ -17,7 +17,7 @@
 ## 4. GUI
 
 - [x] 4.1 `storage/.../controller/SiteStatusPayload.java`, `RenameSitePayload.java`, `storage/.../menu/WarehouseControllerMenu.java`, `storage/.../registry/ServusStorageMenus.java`, `storage/.../terminal/ServusStoragePayloads.java`; grep that every payload type is registered. Run `gradlew build`.
-- [ ] 4.2 `storage/.../client/WarehouseControllerScreen.java` (name field, status lines, summary tooltip, chunk map, upgrade row), `ClientSiteStatus.java`, `ServusStorageClient.java` (screen registration), lang keys. Run `gradlew :storage:runData`, then `gradlew build`.
+- [x] 4.2 `storage/.../client/WarehouseControllerScreen.java` (name field, status lines, summary tooltip, chunk map, upgrade row), `ClientSiteStatus.java`, `ServusStorageClient.java` (screen registration), lang keys. Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 5. GameTests
 

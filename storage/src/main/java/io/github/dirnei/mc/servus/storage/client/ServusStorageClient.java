@@ -37,6 +37,7 @@ public final class ServusStorageClient {
         event.register(ServusStorageMenus.FIELD_HEAD.get(), FieldHeadScreen::new);
         event.register(ServusStorageMenus.PACKING_STATION.get(), PackingStationScreen::new);
         event.register(ServusStorageMenus.ELEVATOR.get(), ElevatorScreen::new);
+        event.register(ServusStorageMenus.WAREHOUSE_CONTROLLER.get(), WarehouseControllerScreen::new);
         event.register(ServusStorageMenus.OUTBOUND_STATION.get(), OutboundStationScreen::new);
         event.register(ServusStorageMenus.CRAFTING_STATION.get(), CraftingStationScreen::new);
         event.register(ServusStorageMenus.PRODUCTION_TERMINAL.get(), ProductionTerminalScreen::new);
