@@ -2,7 +2,7 @@
 
 ## 1. Look steps
 
-- [ ] 1.1 Add pure `ShuttleLook` (`speedStep`, `handlingStep`, `openHold`, `Key.of`) in `storage/src/main/java/.../storage/shuttle/module/` and JUnit `ShuttleLookTest` in `storage/src/test/java/.../storage/shuttle/module/` (step boundaries for Speed 0, 1, 2, 3, 5, 6, 8 and Handling 0, 1, 3, 4, 8, negative counts, open hold per tier, key equality). Verify: `gradlew :storage:test` green.
+- [x] 1.1 Add pure `ShuttleLook` (`speedStep`, `handlingStep`, `openHold`, `Key.of`) in `storage/src/main/java/.../storage/shuttle/module/` and JUnit `ShuttleLookTest` in `storage/src/test/java/.../storage/shuttle/module/` (step boundaries for Speed 0, 1, 2, 3, 5, 6, 8 and Handling 0, 1, 3, 4, 8, negative counts, open hold per tier, key equality). Verify: `gradlew :storage:test` green.
 
 ## 2. Part models
 
