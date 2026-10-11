@@ -1,6 +1,7 @@
 {
   "sources_per_tick": 4,
   "lift_speed": 0.1,
+  "lift_handover_ticks": 10,
   "inbound_buffer_slots": 9,
   "put_away_per_tick": 1,
   "garage_capacity": 4,

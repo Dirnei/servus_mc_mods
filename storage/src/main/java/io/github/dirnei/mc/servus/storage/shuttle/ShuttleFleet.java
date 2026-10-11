@@ -452,6 +452,14 @@ public final class ShuttleFleet {
                     }
                     continue;
                 }
+                if (shuttle.handover > 0) {
+                    // Handing over to the lift car or back: stand still for a moment.
+                    moving = true;
+                    if (--shuttle.handover == 0) {
+                        shuttle.handedOver = true;
+                    }
+                    continue;
+                }
                 if (shuttle.riding) {
                     moving = true;
                     if (!rideOver(shuttle)) {
@@ -1522,6 +1530,8 @@ public final class ShuttleFleet {
         shuttle.crossing = false;
         shuttle.inside = false;
         shuttle.riding = false;
+        shuttle.handover = 0;
+        shuttle.handedOver = false;
     }
 
     private LiftCar carFor(Shaft shaft) {
@@ -1615,6 +1625,9 @@ public final class ShuttleFleet {
                 }
                 bindLift(shuttle, shaft, false);
                 shuttle.inside = true;
+                if (handover(shuttle)) {
+                    return false;
+                }
                 shuttle.rideEnd = ShaftSteps.rideEnd(path, segment);
                 car.send(shuttle.id, path.get(shuttle.rideEnd).y());
                 shuttle.riding = true;
@@ -1625,6 +1638,24 @@ public final class ShuttleFleet {
                 return true;
             }
         }
+    }
+
+    /**
+     * Whether the shuttle still has to pause before the car takes it or
+     * after it set it down; starts the pause the first time it is asked.
+     */
+    private boolean handover(Shuttle shuttle) {
+        if (shuttle.handedOver) {
+            shuttle.handedOver = false;
+            return false;
+        }
+        int ticks = StorageStatsManager.INSTANCE.liftHandoverTicks();
+        if (ticks <= 0) {
+            return false;
+        }
+        shuttle.handover = ticks;
+        syncPending = true;
+        return true;
     }
 
     private void bindLift(Shuttle shuttle, Shaft shaft, boolean crossing) {
@@ -1644,7 +1675,7 @@ public final class ShuttleFleet {
             return true;
         }
         int floor = shuttle.motion.path().get(shuttle.rideEnd).y();
-        if (!car.arrivedFor(shuttle.id, floor)) {
+        if (!car.arrivedFor(shuttle.id, floor) || handover(shuttle)) {
             return false;
         }
         shuttle.motion.skipTo(shuttle.rideEnd);
@@ -1695,7 +1726,7 @@ public final class ShuttleFleet {
             for (NodePos node : motion.path()) {
                 path.add(Conversions.toBlockPos(node));
             }
-            float shown = shuttle.riding || motion.held() || shuttle.stop > 0 ? 0 : (float) shuttle.profile.speed();
+            float shown = shuttle.riding || motion.held() || shuttle.stop > 0 || shuttle.handover > 0 ? 0 : (float) shuttle.profile.speed();
             Optional<BlockPos> lift = shuttle.riding && shuttle.lift != null ? Optional.of(shuttle.lift) : Optional.empty();
             list.add(new ShuttleView(path, motion.segment(), (float) motion.progress(), shown, shuttle.shownCargo(), lift, shuttle.item.copy()));
         }
@@ -1852,6 +1883,10 @@ public final class ShuttleFleet {
         /** Whether the car carries the shuttle right now, towards path node rideEnd. */
         boolean riding;
         int rideEnd;
+        /** Ticks left of the pause at a lift handover. */
+        int handover;
+        /** Whether that pause is over, so the waiting step may go on. */
+        boolean handedOver;
 
         Shuttle(Garage garage, int slot, ShuttleProfile profile) {
             this.garage = garage;

@@ -2246,7 +2246,8 @@ public final class ServusStorageGameTests {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
             menu.request(ItemKey.of(new ItemStack(Items.BREAD)), 10);
             menu.request(ItemKey.of(new ItemStack(Items.APPLE)), 10);
-            helper.runAfterDelay(65, () -> {
+            // Two lift handover pauses come before the top rack's load.
+            helper.runAfterDelay(85, () -> {
                 helper.assertTrue(top.isEmpty(), "the first caller rode up first and loaded the top rack");
                 helper.assertTrue(!middle.isEmpty(), "the second caller is still waiting for the car, although its floor is nearer");
                 helper.runAfterDelay(300, () -> {

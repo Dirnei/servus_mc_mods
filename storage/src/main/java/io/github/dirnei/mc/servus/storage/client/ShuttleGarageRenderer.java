@@ -29,8 +29,8 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
     private static final float CARGO_SCALE = 0.35F;
     /** Height of the cargo's centre above the shuttle's bottom: standing on the crate floor. */
     private static final double CARGO_Y = 4.0 / 16.0 + 0.5 * CARGO_SCALE;
-    /** The rail is one pixel tall; the wheels stand on it. */
-    private static final double RAIL_TOP = 1.0 / 16.0;
+    /** The rail is a thin strip in the middle; the wheels straddle it and stand on the floor. */
+    private static final double FLOOR = 0.0;
     /** The shuttle is drawn a little below block scale. */
     private static final float SHUTTLE_SCALE = 0.8F;
     private static final double PARK_SPACING = 0.25 * SHUTTLE_SCALE;
@@ -85,8 +85,8 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
             int light = LevelRenderer.getLightColor(garage.getLevel(), railPos.above());
 
             poseStack.pushPose();
-            // The model's bottom stands on the rail top; NONE draws it around its centre.
-            poseStack.translate(pos[0] - origin.getX() + 0.5 + offset, pos[1] - origin.getY() + RAIL_TOP,
+            // The model's bottom stands on the floor; NONE draws it around its centre.
+            poseStack.translate(pos[0] - origin.getX() + 0.5 + offset, pos[1] - origin.getY() + FLOOR,
                     pos[2] - origin.getZ() + 0.5);
             poseStack.mulPose(Axis.YP.rotationDegrees((float) yaw));
             poseStack.scale(SHUTTLE_SCALE, SHUTTLE_SCALE, SHUTTLE_SCALE);
@@ -112,6 +112,14 @@ public class ShuttleGarageRenderer implements BlockEntityRenderer<ShuttleGarageB
         while (segment < path.size() - 1 && progress >= 1.0) {
             progress -= 1.0;
             segment++;
+        }
+        // Only the lift car moves a shuttle up or down: never guess past the start of a vertical step.
+        for (int i = view.segment(); i < Math.min(segment + 1, path.size() - 1); i++) {
+            if (!horizontal(path, i) && (i > view.segment() || view.progress() == 0)) {
+                segment = i;
+                progress = 0;
+                break;
+            }
         }
         if (segment >= path.size() - 1) {
             BlockPos end = path.get(path.size() - 1);

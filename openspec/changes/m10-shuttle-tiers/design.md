@@ -87,3 +87,6 @@ None of section 5 is settled here. This change settles the tier numbers (example
 ## Migration Plan
 
 Unreleased: none. Dev worlds keep Mk1 shuttles (same id); Cargo Hold items disappear and shuttles that had one lose it.
+
+### Play check fixes
+- Fast shuttles jumped at the lift: the client extrapolated them up the shaft between syncs and the next sync pulled them down onto the car. `ShuttleGarageRenderer.positionAfter` now stops at the start of a vertical step, and `ShuttleFleet` pauses `lift_handover_ticks` (`warehouse.json`, 10) after boarding and after the car arrives (`Shuttle.handover`, `handedOver`; the RIDE gate and `rideOver` ask `handover(shuttle)`). The storage GameTest `shuttlesQueueForCar` checks its first state 20 ticks later because of the two pauses.

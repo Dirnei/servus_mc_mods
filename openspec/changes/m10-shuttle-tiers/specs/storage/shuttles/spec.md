@@ -75,3 +75,10 @@ A shuttle that takes a job SHALL also take further queued jobs that share its wa
 #### Scenario: Different ways
 - **WHEN** two picks wait, one from rack A and one from rack B, and the only shuttle is a Mk2
 - **THEN** the shuttle takes the pick from rack A first and the one from rack B on its next trip
+
+### Requirement: Shuttles pause at a lift handover
+A shuttle that rides a lift car SHALL drive into the car, stand still for a short handover time, and only then be carried; when the car reaches its floor, the shuttle SHALL stand still for the same time before it drives off. The time SHALL come from the warehouse stats file (example `lift_handover_ticks` 10). A shuttle SHALL never be drawn moving up or down a shaft by itself: between syncs a client SHALL not move it past the start of a vertical step, so only the car moves it vertically.
+
+#### Scenario: Ride with pauses
+- **WHEN** a shuttle with full Speed rides the car from the ground floor to the second floor
+- **THEN** it drives into the car, stands still, rides up with the car, stands still at the second floor and then drives off, and it is never drawn above the car
