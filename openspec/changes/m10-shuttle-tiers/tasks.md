@@ -22,7 +22,7 @@
 ## 5. Data, docs and plan
 
 - [x] 5.1 Datagen in `storage/.../datagen/`: item models for Mk2, Mk3 and the Handling Upgrade, lang (items, tooltips, GUI strings), the Handling Upgrade recipe, Cargo Hold entries removed, creative tab order; placeholder textures `item/shuttle_mk2.png`, `item/shuttle_mk3.png`, `item/handling_upgrade.png` with the png helper, `item/cargo_hold.png` removed (design D10). Verify: `gradlew runData`, then `gradlew build`.
-- [ ] 5.2 `docs/src/content/docs/mods/storage.md`: shuttle tiers, upgrades, stops and the workshop instead of the Cargo Hold. `PLAN.md` M10 item 1 marked built with what was decided. Verify: `openspec validate m10-shuttle-tiers`.
+- [x] 5.2 `docs/src/content/docs/mods/storage.md`: shuttle tiers, upgrades, stops and the workshop instead of the Cargo Hold. `PLAN.md` M10 item 1 marked built with what was decided. Verify: `openspec validate m10-shuttle-tiers`.
 
 ## 6. Integration
 
