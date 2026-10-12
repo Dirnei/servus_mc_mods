@@ -10,7 +10,6 @@ import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
 import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
@@ -379,54 +378,22 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return null;
     }
 
-    /** The target lists in order: exact matches, tag matches, then general storage. */
+    /** The target lists in order: exact matches, tag matches, then general storage; holders first within each. */
     private List<List<BlockPos>> targetTiers(ItemKey key, PutAwayPlan.Tiers<BlockPos> tiers) {
-        List<List<BlockPos>> result = new ArrayList<>(3);
-        result.add(order(tiers.exact(), key));
-        result.add(order(tiers.byTag(), key));
         Set<BlockPos> general = new LinkedHashSet<>();
         for (Source source : sources.values()) {
             ZoneDefinition zone = zoneOf.get(source.pos());
-            if (zone == null || zone.filter().isEmpty()) {
+            if ((zone == null || zone.filter().isEmpty()) && (source.node() || !index.isEmptySource(source.pos()))) {
                 general.add(source.pos());
             }
         }
-        result.add(order(general, key));
-        return result;
-    }
-
-    /** Orders candidates: holding the key, empty crates, other storage nodes, foreign inventories in use. */
-    private List<BlockPos> order(Set<BlockPos> candidates, ItemKey key) {
-        List<BlockPos> holding = new ArrayList<>();
+        List<BlockPos> holders = new ArrayList<>();
         for (BlockPos pos : index.sourcesHolding(key)) {
-            if (candidates.contains(pos) && sources.containsKey(pos)) {
-                holding.add(pos);
+            if (sources.containsKey(pos)) {
+                holders.add(pos);
             }
         }
-        Set<BlockPos> holders = new HashSet<>(holding);
-        List<BlockPos> emptyCrates = new ArrayList<>();
-        List<BlockPos> otherNodes = new ArrayList<>();
-        List<BlockPos> foreignInUse = new ArrayList<>();
-        for (BlockPos pos : candidates) {
-            Source source = sources.get(pos);
-            if (source == null || holders.contains(pos)) {
-                continue;
-            }
-            if (source.node()) {
-                if (loaded(pos) instanceof CrateBlockEntity crate && crate.isEmpty()) {
-                    emptyCrates.add(pos);
-                } else {
-                    otherNodes.add(pos);
-                }
-            } else if (!index.isEmptySource(pos)) {
-                foreignInUse.add(pos);
-            }
-        }
-        List<BlockPos> result = new ArrayList<>(holding);
-        result.addAll(emptyCrates);
-        result.addAll(otherNodes);
-        result.addAll(foreignInUse);
-        return result;
+        return PutAwayPlan.targets(tiers, general, holders);
     }
 
     /** Stock blocks per zone key, sorted by key. */

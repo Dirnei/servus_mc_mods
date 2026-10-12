@@ -1,15 +1,22 @@
 package io.github.dirnei.mc.servus.storage.zone;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Decides which zoned blocks take an item: those listing the exact item
  * first, then those matching by tag. Everything else is general storage,
- * which the caller tries last. Pure, no Minecraft imports.
+ * which the caller tries last. Within a tier the racks already holding the
+ * item come first, then the other racks. Pure, no Minecraft imports.
  */
 public final class PutAwayPlan {
 
@@ -79,5 +86,47 @@ public final class PutAwayPlan {
             }
         }
         return new Tiers<>(Collections.unmodifiableSet(exact), Collections.unmodifiableSet(byTag));
+    }
+
+    /**
+     * The target lists in order: exact matches, tag matches, then general
+     * storage; each list holds the blocks already holding the item first (in
+     * the order of {@code holders}), then the others in their own order.
+     *
+     * @param tiers   the zoned blocks that took the item
+     * @param general the blocks without a filter
+     * @param holders blocks holding the item, in index order
+     */
+    public static <S> List<List<S>> targets(Tiers<S> tiers, Collection<S> general, List<S> holders) {
+        return List.of(order(tiers.exact(), holders), order(tiers.byTag(), holders), order(general, holders));
+    }
+
+    /** Candidates holding the item first, in the holders' order, then the rest in candidate order. */
+    public static <S> List<S> order(Collection<S> candidates, List<S> holders) {
+        List<S> result = new ArrayList<>();
+        Set<S> holding = new HashSet<>();
+        for (S holder : holders) {
+            if (candidates.contains(holder) && holding.add(holder)) {
+                result.add(holder);
+            }
+        }
+        for (S candidate : candidates) {
+            if (!holding.contains(candidate)) {
+                result.add(candidate);
+            }
+        }
+        return result;
+    }
+
+    /** The first block in tier order that {@code fits}, or empty when none does. */
+    public static <S> Optional<S> first(List<List<S>> targets, Predicate<S> fits) {
+        for (List<S> tier : targets) {
+            for (S candidate : tier) {
+                if (fits.test(candidate)) {
+                    return Optional.of(candidate);
+                }
+            }
+        }
+        return Optional.empty();
     }
 }

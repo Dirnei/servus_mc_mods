@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.storage.zone.PutAwayPlan.Tiers;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
@@ -79,5 +80,45 @@ class PutAwayPlanTest {
         assertEquals(Match.EXACT, both.match("raw_iron", TAGS.apply("raw_iron")));
         assertEquals(Match.TAG, both.match("raw_copper", TAGS.apply("raw_copper")));
         assertEquals(Match.NONE, both.match("bread", TAGS.apply("bread")));
+    }
+
+    private static List<List<String>> targets(Map<String, Filter<String>> filtered, List<String> general, List<String> holders, String item) {
+        return PutAwayPlan.targets(PutAwayPlan.tiers(item, filtered, TAGS), general, holders);
+    }
+
+    @Test
+    void exactItemBeatsTag() {
+        Map<String, Filter<String>> filtered = new LinkedHashMap<>();
+        filtered.put("ores", tags("c:ores"));
+        filtered.put("iron", items("raw_iron"));
+        assertEquals(Optional.of("iron"), PutAwayPlan.first(targets(filtered, List.of(), List.of(), "raw_iron"), rack -> true));
+    }
+
+    @Test
+    void tagBeatsGeneral() {
+        Map<String, Filter<String>> filtered = new LinkedHashMap<>();
+        filtered.put("ores", tags("c:ores"));
+        assertEquals(Optional.of("ores"), PutAwayPlan.first(targets(filtered, List.of("general"), List.of(), "raw_copper"), rack -> true));
+    }
+
+    @Test
+    void holdersComeFirstWithinATier() {
+        List<List<String>> targets = targets(Map.of(), List.of("a", "b", "c"), List.of("c", "elsewhere"), "bread");
+        assertEquals(List.of("c", "a", "b"), targets.get(2));
+        assertEquals(Optional.of("c"), PutAwayPlan.first(targets, rack -> true));
+    }
+
+    @Test
+    void aFullTierFallsThrough() {
+        Map<String, Filter<String>> filtered = new LinkedHashMap<>();
+        filtered.put("iron", items("raw_iron"));
+        List<List<String>> targets = targets(filtered, List.of("general"), List.of(), "raw_iron");
+        assertEquals(Optional.of("general"), PutAwayPlan.first(targets, rack -> !rack.equals("iron")));
+    }
+
+    @Test
+    void nothingFitsReturnsNone() {
+        List<List<String>> targets = targets(Map.of(), List.of("a", "b"), List.of(), "bread");
+        assertTrue(PutAwayPlan.first(targets, rack -> false).isEmpty());
     }
 }
