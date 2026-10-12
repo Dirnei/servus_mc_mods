@@ -17,7 +17,7 @@ The **Upgrades** tab SHALL have the Range Upgrade slot of the field radius and S
 
 Shift clicking an anti-corrosion item or a Range Upgrade in the player inventory SHALL move it into its slot whatever tab is open, and shift clicking it in its slot SHALL move it back to the inventory.
 
-A tab SHALL carry a red marker while its page holds a problem, so it is seen from every tab: the Field tab while the head serves no field or the work status is a warning, the Water tab while the served field is dry or corroded, the Fertilizer tab while fertilizing is on and the status says there is no Spreader, no Spreader that reaches the field, no fertilizer in stock or the stock is at or below the reserve.
+A tab SHALL carry a red marker while its page holds a problem, so it is seen from every tab: the Field tab while the head serves no field or the work status is a warning, the Water tab while the served field is dry or corroded, the Fertilizer tab while fertilizing is on and the status says there is no Spreader or no Spreader that reaches the field. No fertilizer in stock, or stock at or below the reserve, is not a problem: the status line says so without a red marker.
 
 #### Scenario: Opens on the Field tab
 - **WHEN** a player opens a Field Head
@@ -63,9 +63,9 @@ A tab SHALL carry a red marker while its page holds a problem, so it is seen fro
 - **WHEN** a client sends the id of cobblestone as the chosen fertilizer
 - **THEN** the head's fertilizer does not change
 
-#### Scenario: Below reserve marked
+#### Scenario: Below reserve not marked
 - **WHEN** fertilizing after planting is on with bone meal, the reserve is 64 and the warehouse holds 64 bone meal
-- **THEN** the Fertilizer tab shows a red marker and its status says the stock is at or below the reserve
+- **THEN** the Fertilizer tab shows no red marker and its status says the stock is at or below the reserve
 
 #### Scenario: Radius shown
 - **WHEN** a player opens the Upgrades tab of a head holding one Range Upgrade with `radius` 2

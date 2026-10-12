@@ -29,9 +29,12 @@ public enum FertilizeStatus {
         return id >= 0 && id < VALUES.length ? VALUES[id] : OFF;
     }
 
-    /** Whether the Fertilizer tab marks this status as a problem. */
+    /**
+     * Whether the Fertilizer tab marks this status as a problem. An empty stock or one at the reserve is not
+     * a problem: the head simply waits until there is fertilizer to spare.
+     */
     public boolean problem() {
-        return this == NO_SPREADER || this == NO_WAY || this == NO_STOCK || this == BELOW_RESERVE;
+        return this == NO_SPREADER || this == NO_WAY;
     }
 
     /**

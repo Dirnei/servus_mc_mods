@@ -25,8 +25,8 @@ class FertilizeStatusTest {
     void problems() {
         assertTrue(FertilizeStatus.NO_SPREADER.problem());
         assertTrue(FertilizeStatus.NO_WAY.problem());
-        assertTrue(FertilizeStatus.NO_STOCK.problem());
-        assertTrue(FertilizeStatus.BELOW_RESERVE.problem());
+        assertFalse(FertilizeStatus.NO_STOCK.problem());
+        assertFalse(FertilizeStatus.BELOW_RESERVE.problem());
         assertFalse(FertilizeStatus.OFF.problem());
         assertFalse(FertilizeStatus.WORKING.problem());
         assertFalse(FertilizeStatus.WAITING.problem());

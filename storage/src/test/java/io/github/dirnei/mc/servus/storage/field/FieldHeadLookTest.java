@@ -53,7 +53,8 @@ class FieldHeadLookTest {
         assertTrue(FieldHeadLook.problem(true, FieldWork.NO_WAY, false, true, FertilizeStatus.OFF), "unreachable");
         assertTrue(FieldHeadLook.problem(true, FieldWork.GROWING, false, false, FertilizeStatus.OFF), "dry field");
         assertTrue(FieldHeadLook.problem(true, FieldWork.GROWING, true, true, FertilizeStatus.OFF), "corroded rails");
-        assertTrue(FieldHeadLook.problem(true, FieldWork.GROWING, false, true, FertilizeStatus.NO_STOCK), "no fertilizer");
+        assertTrue(FieldHeadLook.problem(true, FieldWork.GROWING, false, true, FertilizeStatus.NO_SPREADER), "no spreader");
+        assertFalse(FieldHeadLook.problem(true, FieldWork.GROWING, false, true, FertilizeStatus.NO_STOCK), "no fertilizer is no problem");
     }
 
     @Test
