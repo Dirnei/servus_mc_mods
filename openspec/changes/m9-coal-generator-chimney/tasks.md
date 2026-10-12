@@ -22,7 +22,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 5. Docs and plan
 
-- [ ] 5.1 `PLAN.md` section 2.1 (the Coal Generator is a dark steel generator two blocks tall with a chimney) and the machines list in `docs/src/content/docs/mods/foundation.md`; regenerate `docs/src/data/gamedata.json` with `gradlew :manufacturing:runData`. Run `cd docs && npm test`.
+- [x] 5.1 `PLAN.md` section 2.1 (the Coal Generator is a dark steel generator two blocks tall with a chimney) and the machines list in `docs/src/content/docs/mods/foundation.md`; regenerate `docs/src/data/gamedata.json` with `gradlew :manufacturing:runData`. Run `cd docs && npm test`.
 
 ## 6. Verification
 
