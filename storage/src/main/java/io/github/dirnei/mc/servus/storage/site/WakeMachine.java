@@ -82,6 +82,17 @@ public final class WakeMachine {
         }
     }
 
+    /**
+     * Ends an awake site's wake at once for that reason, as when a tick of
+     * it cannot be paid; a site that is not awake is left as it is.
+     */
+    public Action stop(WakeAllowance.Reason why) {
+        if (!awake()) {
+            return Action.NONE;
+        }
+        return sleep(why);
+    }
+
     private Action sleep(WakeAllowance.Reason why) {
         graceLeft = 0;
         reason = why;

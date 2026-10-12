@@ -38,6 +38,8 @@ public final class SiteRecord {
     boolean powered;
     /** Whether the site has a Packing Station on its rails. */
     boolean packing;
+    /** FE the site's controller held when its chunk last unloaded or at the last snapshot while online. */
+    int energy;
     long lastSeen;
 
     public SiteRecord(ResourceKey<Level> dimension, BlockPos pos) {
@@ -114,6 +116,11 @@ public final class SiteRecord {
         return upgrade && powered;
     }
 
+    /** FE the controller held when last seen; a sleeping controller neither gains nor spends any. */
+    public int energy() {
+        return energy;
+    }
+
     /** Game time of the last stock report. */
     public long lastSeen() {
         return lastSeen;
@@ -141,6 +148,7 @@ public final class SiteRecord {
         tag.putBoolean("Wireless", upgrade);
         tag.putBoolean("Powered", powered);
         tag.putBoolean("Packing", packing);
+        tag.putInt("Energy", energy);
         return tag;
     }
 
@@ -160,6 +168,7 @@ public final class SiteRecord {
         record.upgrade = tag.getBooleanOr("Wireless", false);
         record.powered = tag.getBooleanOr("Powered", false);
         record.packing = tag.getBooleanOr("Packing", false);
+        record.energy = Math.max(0, tag.getIntOr("Energy", 0));
         ListTag items = tag.getListOrEmpty("Stock");
         for (int i = 0; i < items.size(); i++) {
             CompoundTag entry = items.getCompoundOrEmpty(i);

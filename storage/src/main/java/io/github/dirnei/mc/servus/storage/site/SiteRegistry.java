@@ -112,6 +112,28 @@ public final class SiteRegistry extends SavedData {
         }
     }
 
+    /** Keeps the FE the controller holds now, for the wake of the sleeping site; written only when it changed. */
+    public void updateEnergy(WarehouseControllerBlockEntity controller) {
+        SiteRecord record = update(controller);
+        int energy = controller.energyStored();
+        if (record.energy != energy) {
+            record.energy = energy;
+            setDirty();
+        }
+    }
+
+    /**
+     * As {@link #remember(ResourceKey, BlockPos, String, UUID, Set, int, Map, boolean, boolean, boolean)},
+     * with the FE its controller held when it went to sleep.
+     */
+    public SiteRecord remember(ResourceKey<Level> dimension, BlockPos pos, String name, UUID team, Set<Long> span, int upgrades,
+                               Map<ItemKey, Long> stock, boolean upgrade, boolean powered, boolean packing, int energy) {
+        SiteRecord record = remember(dimension, pos, name, team, span, upgrades, stock, upgrade, powered, packing);
+        record.energy = Math.max(0, energy);
+        setDirty();
+        return record;
+    }
+
     /**
      * Writes a record without a controller, for GameTests and tools: a site
      * as it is remembered while it sleeps.

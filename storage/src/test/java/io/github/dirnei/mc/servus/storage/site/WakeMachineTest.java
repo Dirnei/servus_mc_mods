@@ -103,4 +103,24 @@ class WakeMachineTest {
         assertEquals(Action.NONE, machine.tick(true, false, Reason.TEAM_LIMIT, 10));
         assertEquals(State.AWAKE, machine.state());
     }
+
+    @Test
+    void stopReleasesAnAwakeSiteAndWaits() {
+        WakeMachine machine = new WakeMachine();
+        machine.tick(true, false, OK, 10);
+        assertEquals(Action.RELEASE, machine.stop(Reason.NO_POWER));
+        assertEquals(State.WAITING, machine.state());
+        assertEquals(Reason.NO_POWER, machine.reason());
+        // Still wanted but without the FE to start: it keeps waiting.
+        assertEquals(Action.NONE, machine.tick(true, false, Reason.NO_POWER, 10));
+        assertEquals(State.WAITING, machine.state());
+        assertEquals(Action.LOAD, machine.tick(true, false, OK, 10));
+    }
+
+    @Test
+    void stopLeavesASleepingSite() {
+        WakeMachine machine = new WakeMachine();
+        assertEquals(Action.NONE, machine.stop(Reason.NO_POWER));
+        assertEquals(State.ASLEEP, machine.state());
+    }
 }

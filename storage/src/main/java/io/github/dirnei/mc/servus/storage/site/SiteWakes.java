@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderData;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.storage.power.WakeCost;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -41,6 +42,8 @@ public final class SiteWakes {
         final Set<Long> forced = new HashSet<>();
         boolean requested;
         UUID registered;
+        /** Game time of the last tick this wake was paid for; a wake pays once per tick. */
+        long paidAt = Long.MIN_VALUE;
 
         Wake(ResourceKey<Level> dimension, BlockPos pos) {
             this.dimension = dimension;
@@ -191,6 +194,9 @@ public final class SiteWakes {
         } else if (action == WakeMachine.Action.RELEASE) {
             unload(level, wake);
         }
+        if (wake.machine.awake() && !pay(level, wake, site)) {
+            unload(level, wake);
+        }
         if (wake.machine.awake()) {
             follow(level, wake, site.span());
         }
@@ -208,8 +214,39 @@ public final class SiteWakes {
         UUID team = site.team().orElse(null);
         boolean registered = team != null && data.isRegistered(team, level, wake.pos);
         int active = team == null ? 0 : data.countFor(team);
+        // A loaded controller tells its FE; a sleeping one is known by its record.
+        long stored = controller(level, wake.pos).map(controller -> (long) controller.energyStored()).orElse((long) site.energy());
+        long toStart = WakeCost.toStart(site.span().size(), StorageStatsManager.INSTANCE.wakeFePerChunkPerTick());
         return WakeAllowance.check(team != null, ftbBlocks(), site.capacityState(), registered, active,
-                ServusFoundationConfig.maxChunkLoadersPerTeam());
+                ServusFoundationConfig.maxChunkLoadersPerTeam(), stored, toStart);
+    }
+
+    /**
+     * Pays one tick of an awake wake from the woken site's controller: FE per
+     * chunk of the site. A tick is paid once, however often the wake is looked
+     * at; while the controller is not loaded yet nothing is paid. A refused
+     * tick ends the wake with the reason no power.
+     *
+     * @return false when the wake had to end
+     */
+    private static boolean pay(ServerLevel level, Wake wake, SiteRecord site) {
+        long now = level.getGameTime();
+        if (wake.paidAt == now) {
+            return true;
+        }
+        wake.paidAt = now;
+        long cost = WakeCost.perTick(site.span().size(), StorageStatsManager.INSTANCE.wakeFePerChunkPerTick());
+        Optional<WarehouseControllerBlockEntity> controller = controller(level, wake.pos);
+        if (cost <= 0 || controller.isEmpty() || controller.get().drawEnergy(cost)) {
+            return true;
+        }
+        wake.machine.stop(WakeAllowance.Reason.NO_POWER);
+        return false;
+    }
+
+    private static Optional<WarehouseControllerBlockEntity> controller(ServerLevel level, BlockPos pos) {
+        return level.isLoaded(pos) && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller
+                ? Optional.of(controller) : Optional.empty();
     }
 
     /** Whether the woken site's own work still runs; a controller that is not loaded yet has none. */

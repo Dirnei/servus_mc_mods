@@ -551,7 +551,7 @@ public final class ControllerWirelessGameTests {
         // A recorded site whose controller is not there: it sleeps, and its one chunk is the test area's.
         BlockPos camp = helper.absolutePos(new BlockPos(10, 1, 10));
         SiteRegistry.of(level).remember(level.dimension(), camp, "Quiet Camp", sites.team(), Set.of(SiteChunks.ofBlock(camp.getX(), camp.getZ())),
-                1, Map.of(ItemKey.of(new ItemStack(Items.COAL)), 12L), true, true, true);
+                1, Map.of(ItemKey.of(new ItemStack(Items.COAL)), 12L), true, true, true, 100000);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         String key = SiteRecord.key(level.dimension(), camp);
         TerminalWiring.when(helper, () -> row(helper, key).isPresent(), 60, () -> "the camp is listed", () -> {

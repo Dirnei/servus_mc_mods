@@ -1070,6 +1070,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (level != null && controllers == 1 && ++snapshotTimer >= StorageStatsManager.INSTANCE.siteSnapshotInterval()) {
             snapshotTimer = 0;
             snapshotStock();
+            controller().ifPresent(controller -> io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).updateEnergy(controller));
         }
         if (level != null) {
             if (shaftsDirty) {

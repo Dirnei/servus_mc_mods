@@ -120,6 +120,10 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     @Override
     public void onChunkUnloaded() {
         unloading = true;
+        // The record keeps the FE for the wake: a sleeping controller neither gains nor spends any.
+        if (level instanceof ServerLevel server) {
+            io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(server).updateEnergy(this);
+        }
         super.onChunkUnloaded();
     }
 
