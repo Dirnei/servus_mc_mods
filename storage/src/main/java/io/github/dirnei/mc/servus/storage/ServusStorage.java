@@ -47,6 +47,7 @@ public final class ServusStorage {
                 io.github.dirnei.mc.servus.storage.gametest.BlockStyleGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.ChainHandoffGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.ControllerSiteGameTests.class,
+                io.github.dirnei.mc.servus.storage.gametest.ControllerWirelessGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.CraftingCpuGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.CraftingGridGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.DataBandwidthGameTests.class,
