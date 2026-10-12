@@ -416,7 +416,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
             return toMove;
         }
         long heldFor = waiting ? step.heldFor(server.getGameTime()) : 0;
-        Handoff.Split split = Handoff.split(toMove, facts, heldFor, StorageStatsManager.INSTANCE.handoffWaitTicks());
+        Handoff.Split split = Handoff.split(toMove, facts, 0, 0, heldFor, StorageStatsManager.INSTANCE.handoffWaitTicks());
         if (split.hold() == 0) {
             step.clearHold();
         }
