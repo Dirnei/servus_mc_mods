@@ -867,6 +867,24 @@ public final class ServusStorageGameTests {
         helper.succeed();
     }
 
+    /** A named label zones nothing on the controller; on a rack it zones the rack. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void zoneLabelOnlyOnRacks(GameTestHelper helper) {
+        BlockPos controllerPos = new BlockPos(5, 1, 9);
+        helper.setBlock(controllerPos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(ZL_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack ores = label("Ores", new ZoneFilter(List.of(), List.of("c:ores")));
+        useLabel(helper, player, ores, controllerPos);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(controllerPos, WarehouseControllerBlockEntity.class);
+        helper.assertTrue(controller.zone().isEmpty() && controller.zoneFilter().isEmpty(), "the controller takes no zone, got '" + controller.zone() + "'");
+        useLabel(helper, player, ores, ZL_RACK);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(ZL_RACK, HeavyRackBlockEntity.class);
+        helper.assertTrue(rack.zone().equals("Ores") && rack.zoneFilter().tags().equals(List.of("c:ores")), "the rack takes the zone, got '" + rack.zone() + "'");
+        helper.succeed();
+    }
+
     /** The label menu names the label, parses tags and takes ghost items; the result stamps. */
     @ServusGameTest(timeoutTicks = 100)
     public static void zoneLabelMenuEditsDefinition(GameTestHelper helper) {
