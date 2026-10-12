@@ -21,7 +21,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 4. GameTests
 
-- [ ] 4.1 `machine/pump/PumpGameTests.java`: `electricPlacesTwoHalves`, `electricNoRoomAbove`, `electricBreakTopDropsOne`, `electricCreativeDropsNothing`, `electricCarrotDismantles`, `electricPistonMovesNothing`, `electricTopOpensGui` (menu type from the upper half via `useWithoutItem`), `electricTopHasNoCapabilities` (fluid and energy lookups on every face of the upper half are null), `electricPowerOnlyLowerSides` (energy capability on back and sides of the lower half, not front, bottom or top), `electricWaterOnlyLowerSides`, `electricPlacesOnWaterSurface` (via `PumpItem`); update tests that relied on the one block electric pump (outlet on top, every face but front and bottom). Run the Foundation GameTests.
+- [x] 4.1 `machine/pump/PumpGameTests.java`: `electricPlacesTwoHalves`, `electricNoRoomAbove`, `electricBreakTopDropsOne`, `electricCreativeDropsNothing`, `electricCarrotDismantles`, `electricPistonMovesNothing`, `electricTopOpensGui` (menu type from the upper half via `useWithoutItem`), `electricTopHasNoCapabilities` (fluid and energy lookups on every face of the upper half are null), `electricPowerOnlyLowerSides` (energy capability on back and sides of the lower half, not front, bottom or top), `electricWaterOnlyLowerSides`, `electricPlacesOnWaterSurface` (via `PumpItem`); update tests that relied on the one block electric pump (outlet on top, every face but front and bottom). Run the Foundation GameTests.
 
 ## 5. Docs and plan
 
