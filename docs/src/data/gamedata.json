@@ -742,31 +742,6 @@
         {"item": "servus_storage:crafting_station", "count": 1}
       ]
     },
-    "servus_storage:crate": {
-      "type": "minecraft:crafting_shaped",
-      "pattern": ["PPP", "PCP", "PPP"],
-      "key": {
-        "C": {"item": "minecraft:chest"},
-        "P": {"tag": "minecraft:planks"}
-      },
-      "inputs": [
-        {"tag": "minecraft:planks", "count": 8},
-        {"item": "minecraft:chest", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_storage:crate", "count": 1}
-      ]
-    },
-    "servus_storage:double_crate": {
-      "type": "minecraft:crafting_shapeless",
-      "inputs": [
-        {"item": "minecraft:stick", "count": 1},
-        {"item": "servus_storage:crate", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_storage:double_crate", "count": 1}
-      ]
-    },
     "servus_storage:elevator": {
       "type": "minecraft:crafting_shaped",
       "pattern": ["III", "IRI", "III"],
@@ -970,16 +945,6 @@
       ],
       "outputs": [
         {"item": "servus_storage:production_terminal", "count": 1}
-      ]
-    },
-    "servus_storage:quad_crate": {
-      "type": "minecraft:crafting_shapeless",
-      "inputs": [
-        {"item": "minecraft:stick", "count": 2},
-        {"item": "servus_storage:crate", "count": 1}
-      ],
-      "outputs": [
-        {"item": "servus_storage:quad_crate", "count": 1}
       ]
     },
     "servus_storage:rail": {
@@ -1274,9 +1239,6 @@
     "minecraft:shears": {
       "name": "Shears"
     },
-    "minecraft:stick": {
-      "name": "Stick"
-    },
     "minecraft:wheat_seeds": {
       "name": "Wheat Seeds"
     },
@@ -1385,12 +1347,6 @@
     "servus_storage:crafting_station": {
       "name": "Crafting Station"
     },
-    "servus_storage:crate": {
-      "name": "Crate"
-    },
-    "servus_storage:double_crate": {
-      "name": "Double Crate"
-    },
     "servus_storage:elevator": {
       "name": "Rail Elevator"
     },
@@ -1423,9 +1379,6 @@
     },
     "servus_storage:production_terminal": {
       "name": "Production Terminal"
-    },
-    "servus_storage:quad_crate": {
-      "name": "Quad Crate"
     },
     "servus_storage:rail": {
       "name": "Warehouse Rail"

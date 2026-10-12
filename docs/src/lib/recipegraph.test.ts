@@ -75,7 +75,7 @@ describe('recipe graph', () => {
 		]) {
 			expect(nodes).toContain(node);
 		}
-		expect(nodes).not.toContain(recipeNode('servus_storage:crate'));
+		expect(nodes).not.toContain(recipeNode('servus_storage:heavy_rack'));
 		expect(edges).toContain(edgeId({ from: itemNode('minecraft:stick'), to: recipeNode('servus_storage:rail') }));
 	});
 
