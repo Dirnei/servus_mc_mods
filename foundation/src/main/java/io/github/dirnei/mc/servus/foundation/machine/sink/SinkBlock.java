@@ -1,7 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine.sink;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.access.ItemAccess;
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.LevelReader;
 import com.mojang.serialization.MapCodec;
@@ -240,7 +239,7 @@ public class SinkBlock extends BaseEntityBlock implements Wrenchable {
             return InteractionResult.PASS;
         }
         SinkBlockEntity sink = controller(level, pos, state);
-        if (sink != null && ItemAccess.forStack(stack).getCapability(Capabilities.Fluid.ITEM) != null
+        if (sink != null && Transfer.isFluidContainer(stack)
                 && FluidUtil.interactWithFluidHandler(player, hand, pos, sink.manualFluidHandler(), null)) {
             return InteractionResult.SUCCESS;
         }

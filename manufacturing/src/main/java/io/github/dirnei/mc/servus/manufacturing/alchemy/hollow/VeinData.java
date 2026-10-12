@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.hollow;
 
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.util.ExtraCodecs;
 import com.google.gson.Gson;
@@ -38,10 +39,15 @@ public final class VeinData extends SimpleJsonResourceReloadListener<JsonElement
      * A vein as data.
      *
      * @param samples the item tags whose items seed this vein
-     * @param yield   what a bound gnome digs
+     * @param yieldTemplate what a bound gnome digs
      * @param chapter the journal chapter a team must have finished to seed it, if any
      */
-    public record VeinDef(List<TagKey<Item>> samples, ItemStack yield, Optional<Identifier> chapter, Vein growth) {
+    public record VeinDef(List<TagKey<Item>> samples, ItemStackTemplate yieldTemplate, Optional<Identifier> chapter, Vein growth) {
+
+        /** A new stack of what a bound gnome digs; stacks need bound item components, so the data holds a template. */
+        public ItemStack yield() {
+            return yieldTemplate.create();
+        }
 
         public boolean matches(ItemStack stack) {
             return samples.stream().anyMatch(stack::is);
@@ -50,7 +56,7 @@ public final class VeinData extends SimpleJsonResourceReloadListener<JsonElement
 
     private static final Codec<VeinDef> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             TagKey.codec(Registries.ITEM).listOf().fieldOf("samples").forGetter(VeinDef::samples),
-            ItemStack.CODEC.fieldOf("yield").forGetter(VeinDef::yield),
+            ItemStackTemplate.CODEC.fieldOf("yield").forGetter(VeinDef::yieldTemplate),
             Identifier.CODEC.optionalFieldOf("chapter").forGetter(VeinDef::chapter),
             Codec.intRange(1, Integer.MAX_VALUE).fieldOf("steps").forGetter(def -> def.growth().steps()),
             Codec.intRange(1, Integer.MAX_VALUE).fieldOf("step_ticks").forGetter(def -> def.growth().stepTicks()),

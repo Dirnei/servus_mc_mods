@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.transfer.access.ItemAccess;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
@@ -19,7 +19,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -72,7 +71,7 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
             }
         }
         if (CalcinerPorts.principle(CalcinerLayout.part(role)) != null && state.getValue(FORMED)
-                && ItemAccess.forStack(stack).getCapability(Capabilities.Fluid.ITEM) != null) {
+                && Transfer.isFluidContainer(stack)) {
             // Empty containers fill with the port's principle; filled ones do nothing here.
             LegacyFluidHandler port = CalcinerPorts.fluid(level, pos, state);
             if (port != null && !level.isClientSide()) {

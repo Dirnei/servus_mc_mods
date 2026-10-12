@@ -217,4 +217,10 @@ public final class Transfer {
         return moved ? slot.getStackInSlot(0).copy() : ItemStack.EMPTY;
     }
 
+
+    /** Whether a stack holds or takes fluid (a bucket, a tank item); false for an empty hand. */
+    public static boolean isFluidContainer(ItemStack stack) {
+        return !stack.isEmpty() && ItemAccess.forStack(stack).getCapability(Capabilities.Fluid.ITEM) != null;
+    }
+
 }
