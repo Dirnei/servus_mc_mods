@@ -11,7 +11,6 @@ import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
@@ -149,11 +148,8 @@ public final class ChainHandoffGameTests {
         patterns.set(0, new EncodedPattern(Identifier.withDefaultNamespace("stone_bricks"),
                 List.of(stone, stone, ItemStack.EMPTY, stone, stone), new ItemStack(Items.STONE_BRICKS, 4)));
         BlockPos cpuPos = new BlockPos(6, 1, 1);
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            CpuShape.Vec offset = CpuShape.offset(part);
-            helper.setBlock(cpuPos.offset(offset.x(), offset.y(), offset.z()), ServusStorageBlocks.CRAFTING_CPU.get().defaultBlockState());
-        }
-        helper.assertTrue(io.github.dirnei.mc.servus.storage.cpu.CpuBlock.tryForm(helper.getLevel(), helper.absolutePos(cpuPos)).formed(), "the cube should form");
+        CpuBuild.cube(helper, cpuPos);
+        helper.assertTrue(CpuBuild.form(helper, cpuPos).formed(), "the box should form");
         int[] seen = watch(helper, controller, STONE);
         TerminalWiring.when(helper, () -> DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(line))
                 .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 2

@@ -9,7 +9,6 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
@@ -71,11 +70,8 @@ public final class AdapterOrderGameTests {
         for (BlockPos pos : List.of(new BlockPos(3, 2, 3), LINE, new BlockPos(5, 2, 3))) {
             TerminalWiring.dataDuct(helper, pos);
         }
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            CpuShape.Vec offset = CpuShape.offset(part);
-            helper.setBlock(CPU.offset(offset.x(), offset.y(), offset.z()), ServusStorageBlocks.CRAFTING_CPU.get().defaultBlockState());
-        }
-        helper.assertTrue(io.github.dirnei.mc.servus.storage.cpu.CpuBlock.tryForm(helper.getLevel(), helper.absolutePos(CPU)).formed(), "the cube should form");
+        CpuBuild.cube(helper, CPU);
+        helper.assertTrue(CpuBuild.form(helper, CPU).formed(), "the box should form");
     }
 
     private static boolean ready(GameTestHelper helper) {

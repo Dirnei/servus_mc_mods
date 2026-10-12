@@ -305,7 +305,7 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
     }
 
     /** What the carrot click says: formed with the box's size, or why not. */
-    static Component message(CpuBox.Result result) {
+    public static Component message(CpuBox.Result result) {
         if (result.formed()) {
             CpuShape.Vec size = result.box().size();
             return Component.translatable("message.servus_storage.cpu.formed", size.x(), size.y(), size.z(),

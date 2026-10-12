@@ -8,7 +8,6 @@ import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
@@ -62,11 +61,8 @@ public final class StationHandsGameTests {
         helper.setBlock(PATTERNS, ServusStorageBlocks.PATTERN_STORAGE.get().defaultBlockState().setValue(PatternStorageBlock.FACING, Direction.NORTH));
         PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(0, StationJobs.sticks());
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            CpuShape.Vec offset = CpuShape.offset(part);
-            helper.setBlock(CPU.offset(offset.x(), offset.y(), offset.z()), ServusStorageBlocks.CRAFTING_CPU.get().defaultBlockState());
-        }
-        helper.assertTrue(io.github.dirnei.mc.servus.storage.cpu.CpuBlock.tryForm(helper.getLevel(), helper.absolutePos(CPU)).formed(), "the cube should form");
+        CpuBuild.cube(helper, CPU);
+        helper.assertTrue(CpuBuild.form(helper, CPU).formed(), "the box should form");
         return rack;
     }
 

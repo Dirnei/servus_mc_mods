@@ -18,6 +18,7 @@ import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
+import io.github.dirnei.mc.servus.storage.cpu.CpuBox;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
@@ -81,26 +82,17 @@ public final class CraftingCpuGameTests {
 
     // Setup
 
-    private static void cube(GameTestHelper helper, BlockPos origin, int skip) {
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            if (part == skip) {
-                continue;
-            }
-            CpuShape.Vec offset = CpuShape.offset(part);
-            helper.setBlock(origin.offset(offset.x(), offset.y(), offset.z()), ServusStorageBlocks.CRAFTING_CPU.get().defaultBlockState());
-        }
-    }
-
     private static boolean form(GameTestHelper helper, BlockPos at) {
-        return io.github.dirnei.mc.servus.storage.cpu.CpuBlock.tryForm(helper.getLevel(), helper.absolutePos(at)).formed();
+        return CpuBuild.form(helper, at).formed();
     }
 
     static CpuBlockEntity cpu(GameTestHelper helper, BlockPos origin) {
-        CpuBlockEntity cpu = CpuBlock.master(helper.getLevel(), helper.absolutePos(origin));
-        if (cpu == null) {
-            throw new AssertionError("no formed CPU at " + origin);
-        }
-        return cpu;
+        return CpuBuild.cpu(helper, origin);
+    }
+
+    /** The message key the carrot would show for a result. */
+    private static String messageKey(CpuBox.Result result) {
+        return CpuBlock.message(result).getContents() instanceof TranslatableContents contents ? contents.getKey() : "";
     }
 
     /** A plain station and a Pattern Storage with the sticks pattern on the line. */
@@ -130,8 +122,7 @@ public final class CraftingCpuGameTests {
             TerminalWiring.dataDuct(helper, pos);
         }
         if (withCpu) {
-            cube(helper, CPU_A, -1);
-            helper.assertTrue(form(helper, CPU_A), "the cube should form");
+            CpuBuild.formCube(helper, CPU_A);
         }
     }
 
@@ -169,7 +160,7 @@ public final class CraftingCpuGameTests {
     /** 27 blocks form a cube with the master at the lowest corner; breaking one unforms the rest. */
     @ServusGameTest(timeoutTicks = 40)
     public static void cpuFormsAndUnforms(GameTestHelper helper) {
-        cube(helper, CPU_A, -1);
+        CpuBuild.cube(helper, CPU_A);
         helper.assertTrue(form(helper, CPU_A.offset(1, 1, 1)), "clicking the middle block should form the cube");
         for (int part = 0; part < CpuShape.PARTS; part++) {
             CpuShape.Vec offset = CpuShape.offset(part);
@@ -186,8 +177,10 @@ public final class CraftingCpuGameTests {
     /** A cube with one block missing does not form. */
     @ServusGameTest(timeoutTicks = 40)
     public static void cpuIncompleteCubeDoesNotForm(GameTestHelper helper) {
-        cube(helper, CPU_A, 13);
-        helper.assertTrue(!form(helper, CPU_A), "26 blocks do not form");
+        CpuBuild.cube(helper, CPU_A);
+        helper.setBlock(CPU_A.offset(1, 1, 0), Blocks.AIR.defaultBlockState());
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A);
+        helper.assertTrue(!result.formed() && result.reason() == CpuBox.Reason.GAP, "26 blocks do not form: " + result);
         helper.assertTrue(!helper.getBlockState(CPU_A).getValue(CpuBlock.FORMED), "the corner stays unformed");
         helper.succeed();
     }
@@ -201,6 +194,144 @@ public final class CraftingCpuGameTests {
                     helper.assertTrue(CpuOrders.cpus(helper.getLevel(), line(helper)).get(0) == cpu(helper, CPU_A), "the CPU found is the cube's master");
                     helper.succeed();
                 });
+    }
+
+    // Boxes
+
+    /** Eight CPU blocks form the smallest CPU from any block and get eight slots. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuSmallestBoxForms(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 8);
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A.offset(1, 1, 0));
+        helper.assertTrue(result.formed(), "a 2x2x2 box forms: " + result);
+        helper.assertTrue(messageKey(result).equals("message.servus_storage.cpu.formed"), "the carrot says formed");
+        for (int y = 0; y < 2; y++) {
+            for (int z = 0; z < 2; z++) {
+                for (int x = 0; x < 2; x++) {
+                    helper.assertTrue(helper.getBlockState(CPU_A.offset(x, y, z)).getValue(CpuBlock.FORMED), "every block is formed");
+                    helper.assertTrue(cpu(helper, CPU_A.offset(x, y, z)).getBlockPos().equals(helper.absolutePos(CPU_A)),
+                            "every block finds the master at the lowest corner");
+                }
+            }
+        }
+        helper.assertTrue(helper.getBlockState(CPU_A).getValue(CpuBlock.PART) == 0, "the corner is part 0");
+        helper.succeed();
+    }
+
+    /** A 3x2x2 box of 4 CPU blocks and 8 Buffer blocks forms from a Buffer block: 4 slots, 8 stacks. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuBoxWithBuffersForms(GameTestHelper helper) {
+        java.util.Set<BlockPos> cpus = java.util.Set.of(new BlockPos(0, 0, 0), new BlockPos(2, 1, 1), new BlockPos(1, 0, 1), new BlockPos(2, 0, 0));
+        CpuBuild.box(helper, CPU_A, 3, 2, 2, offset -> !cpus.contains(offset));
+        helper.assertTrue(helper.getBlockState(CPU_A.offset(1, 1, 0)).is(ServusStorageBlocks.CPU_BUFFER.get()), "the clicked block is a Buffer block");
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A.offset(1, 1, 0));
+        helper.assertTrue(result.formed(), "the box forms: " + result);
+        CpuBlockEntity cpu = cpu(helper, CPU_A);
+        helper.assertTrue(cpu.slots() == 4 && cpu.room() == 8 && cpu.cpuBlocks() == 4 && cpu.bufferBlocks() == 8,
+                "4 slots and 8 stacks, got " + cpu.slots() + " and " + cpu.room());
+        helper.assertTrue(helper.getBlockState(CPU_A.offset(1, 1, 0)).is(ServusStorageBlocks.CPU_BUFFER.get()), "Buffer blocks stay Buffer blocks");
+        helper.succeed();
+    }
+
+    /** A 3x3x3 box without its middle block says where the gap is. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuGapSaysWhere(GameTestHelper helper) {
+        CpuBuild.cube(helper, CPU_A);
+        helper.setBlock(CPU_A.offset(1, 1, 1), Blocks.AIR.defaultBlockState());
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A);
+        BlockPos middle = helper.absolutePos(CPU_A.offset(1, 1, 1));
+        helper.assertTrue(!result.formed() && result.reason() == CpuBox.Reason.GAP
+                && result.gap().equals(new CpuShape.Vec(middle.getX(), middle.getY(), middle.getZ())), "a gap at the middle: " + result);
+        helper.assertTrue(messageKey(result).equals("message.servus_storage.cpu.gap"), "the carrot names the gap");
+        helper.assertTrue(!helper.getBlockState(CPU_A).getValue(CpuBlock.FORMED), "nothing forms");
+        helper.succeed();
+    }
+
+    /** An L shape is not a box. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuLShapeIsNoBox(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 3, 2, 2, 12);
+        helper.setBlock(CPU_A.offset(2, 1, 0), Blocks.AIR.defaultBlockState());
+        helper.setBlock(CPU_A.offset(2, 1, 1), Blocks.AIR.defaultBlockState());
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A);
+        helper.assertTrue(result.reason() == CpuBox.Reason.NOT_A_BOX, "not a box: " + result);
+        helper.assertTrue(messageKey(result).equals("message.servus_storage.cpu.not_a_box"), "the carrot says not a box");
+        helper.succeed();
+    }
+
+    /** A flat 2x2x1 layer is too small. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuFlatIsTooSmall(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 1, 2, 4);
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A);
+        helper.assertTrue(result.reason() == CpuBox.Reason.TOO_SMALL, "too small: " + result);
+        helper.assertTrue(messageKey(result).equals("message.servus_storage.cpu.too_small"), "the carrot says too small");
+        helper.assertTrue(!helper.getBlockState(CPU_A).getValue(CpuBlock.FORMED), "nothing forms");
+        helper.succeed();
+    }
+
+    /** A box of Buffer blocks only needs a CPU block. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuBufferOnlyRefused(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 0);
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A);
+        helper.assertTrue(result.reason() == CpuBox.Reason.NO_CPU_BLOCK, "no CPU block: " + result);
+        helper.assertTrue(messageKey(result).equals("message.servus_storage.cpu.no_cpu_block"), "the carrot says no CPU block");
+        helper.succeed();
+    }
+
+    /** A new box built against a formed CPU forms on its own; both keep their own slots. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuBoxBesideFormedFormsAlone(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 8);
+        CpuBlockEntity first = CpuBuild.formed(helper, CPU_A);
+        BlockPos second = CPU_A.offset(2, 0, 0);
+        CpuBuild.box(helper, second, 2, 2, 2, 8);
+        CpuBlockEntity other = CpuBuild.formed(helper, second);
+        helper.assertTrue(first != other && first.slots() == 8 && other.slots() == 8, "two CPUs with 8 slots each");
+        helper.assertTrue(cpu(helper, CPU_A.offset(1, 1, 1)) == first && cpu(helper, second.offset(1, 1, 1)) == other,
+                "each block keeps its own CPU");
+        helper.setBlock(second.offset(1, 1, 1), Blocks.AIR.defaultBlockState());
+        helper.assertTrue(helper.getBlockState(CPU_A.offset(1, 0, 0)).getValue(CpuBlock.FORMED), "breaking the second leaves the first formed");
+        helper.assertTrue(!helper.getBlockState(second).getValue(CpuBlock.FORMED), "the second unforms");
+        helper.succeed();
+    }
+
+    /** Two unformed 2x2x2 boxes that touch along a face form one 4x2x2 CPU. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuTwoUnformedBoxesFormOne(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 8);
+        CpuBuild.box(helper, CPU_A.offset(2, 0, 0), 2, 2, 2, 8);
+        CpuBox.Result result = CpuBuild.form(helper, CPU_A.offset(3, 1, 1));
+        helper.assertTrue(result.formed() && result.box().size().equals(new CpuShape.Vec(4, 2, 2)), "one 4x2x2 box: " + result);
+        CpuBlockEntity cpu = cpu(helper, CPU_A.offset(3, 1, 1));
+        helper.assertTrue(cpu.getBlockPos().equals(helper.absolutePos(CPU_A)) && cpu.slots() == 16, "one CPU with 16 slots, got " + cpu.slots());
+        helper.succeed();
+    }
+
+    /** A CPU whose only block on the duct is a Buffer block joins the line and takes orders. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void cpuBufferBlockJoinsTheLine(GameTestHelper helper) {
+        setup(helper, false);
+        // The duct at (5,2,2) touches only the box's block at (6,2,2), offset (0,1,1).
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, offset -> offset.equals(new BlockPos(0, 1, 1)) || offset.getY() == 1);
+        helper.assertTrue(helper.getBlockState(new BlockPos(6, 2, 2)).is(ServusStorageBlocks.CPU_BUFFER.get()), "a Buffer block faces the duct");
+        CpuBuild.formed(helper, CPU_A);
+        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40,
+                () -> "the CPU should be on the line", () -> {
+                    CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
+                    helper.assertTrue(placed.made() && placed.cpu().equals(helper.absolutePos(CPU_A)), "the CPU takes the order: " + placed.refusal());
+                    helper.succeed();
+                });
+    }
+
+    /** Slots come from CPU blocks: 8 CPU blocks give 8 slots and no buffer. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void cpuSlotsFromCpuBlocks(GameTestHelper helper) {
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 8);
+        CpuBlockEntity cpu = CpuBuild.formed(helper, CPU_A);
+        helper.assertTrue(cpu.slots() == 8 && cpu.room() == 0, "8 slots and no buffer, got " + cpu.slots() + " and " + cpu.room());
+        helper.succeed();
     }
 
     // Orders
@@ -306,10 +437,11 @@ public final class CraftingCpuGameTests {
     /** One CPU with two slots: the third order waits, and the summary says so. */
     @ServusGameTest(timeoutTicks = 100)
     public static void cpuSlotsQueueThirdOrder(GameTestHelper helper) {
-        setup(helper, true);
+        setup(helper, false);
+        CpuBuild.formSlotted(helper, CPU_A);
         helper.runAfterDelay(10, () -> {
             CpuBlockEntity cpu = cpu(helper, CPU_A);
-            helper.assertTrue(cpu.slots() == 2, "two slots from cpu.json, got " + cpu.slots());
+            helper.assertTrue(cpu.slots() == 2, "two slots from two CPU blocks, got " + cpu.slots());
             for (int i = 0; i < 3; i++) {
                 CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
                 helper.assertTrue(placed.made() && placed.cpu().equals(cpu.getBlockPos()), "order " + i + " should land on the CPU: " + placed.refusal());
@@ -321,8 +453,8 @@ public final class CraftingCpuGameTests {
                     "the third waits for the CPU: " + orders.get(2).state());
             Component summary = cpu.summary();
             helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
-                            && java.util.Arrays.equals(contents.getArgs(), new Object[] {2, 2, 1}),
-                    "summary should say 2 of 2 in use and 1 waiting, got " + summary.getString());
+                            && java.util.Arrays.equals(contents.getArgs(), new Object[] {2, 2, 1, 0, 6}),
+                    "summary should say 2 of 2 in use, 1 waiting and 0 of 6 buffer stacks, got " + summary.getString());
             helper.succeed();
         });
     }
@@ -330,9 +462,9 @@ public final class CraftingCpuGameTests {
     /** Two CPUs with two slots each share four orders without a wait. */
     @ServusGameTest(timeoutTicks = 100)
     public static void twoCpusShareOrders(GameTestHelper helper) {
-        setup(helper, true);
-        cube(helper, CPU_B, -1);
-        helper.assertTrue(form(helper, CPU_B), "the second cube should form");
+        setup(helper, false);
+        CpuBuild.formSlotted(helper, CPU_A);
+        CpuBuild.formSlotted(helper, CPU_B);
         TerminalWiring.dataDuct(helper, new BlockPos(5, 2, 3));
         TerminalWiring.dataDuct(helper, new BlockPos(5, 2, 4));
         TerminalWiring.dataDuct(helper, new BlockPos(5, 2, 5));
@@ -496,22 +628,33 @@ public final class CraftingCpuGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
         InteractionResult withCarrot = helper.getBlockState(at).useItemOn(carrot, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
         helper.assertTrue(withCarrot == InteractionResult.PASS, "the carrot should keep its own use, got " + withCarrot);
+        ItemStack buffer = new ItemStack(ServusStorageBlocks.CPU_BUFFER.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, buffer);
+        InteractionResult withBuffer = helper.getBlockState(at).useItemOn(buffer, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        helper.assertTrue(withBuffer == InteractionResult.PASS, "a Buffer block should place against a CPU block, got " + withBuffer);
         helper.succeed();
     }
 
-    /** Every block of a formed cube knows its part; breaking one returns the rest to the casing. */
+    /** Every block of a formed 3x2x2 box knows its place class; breaking one returns the rest to the casing. */
     @ServusGameTest(timeoutTicks = 40)
     public static void cpuPartsFollowForming(GameTestHelper helper) {
-        cube(helper, CPU_A, -1);
-        helper.assertTrue(form(helper, CPU_A), "the cube should form");
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            CpuShape.Vec offset = CpuShape.offset(part);
-            BlockState state = helper.getBlockState(CPU_A.offset(offset.x(), offset.y(), offset.z()));
-            helper.assertTrue(state.getValue(CpuBlock.FORMED) && state.getValue(CpuBlock.PART) == part,
-                    "part " + part + " should know its place, got " + state);
+        CpuBuild.box(helper, CPU_A, 3, 2, 2, 12);
+        helper.assertTrue(form(helper, CPU_A), "the box should form");
+        CpuShape.Vec size = new CpuShape.Vec(3, 2, 2);
+        for (int y = 0; y < 2; y++) {
+            for (int z = 0; z < 2; z++) {
+                for (int x = 0; x < 3; x++) {
+                    int part = CpuBox.part(new CpuShape.Vec(x, y, z), size);
+                    BlockState state = helper.getBlockState(CPU_A.offset(x, y, z));
+                    helper.assertTrue(state.getValue(CpuBlock.FORMED) && state.getValue(CpuBlock.PART) == part,
+                            "block " + x + "," + y + "," + z + " should be place " + part + ", got " + state);
+                }
+            }
         }
+        helper.assertTrue(helper.getBlockState(CPU_A.offset(1, 1, 1)).getValue(CpuBlock.PART) == CpuShape.part(1, 2, 2),
+                "the middle of the top back edge is middle on x only");
         helper.setBlock(CPU_A.offset(1, 1, 1), Blocks.AIR.defaultBlockState());
-        BlockState corner = helper.getBlockState(CPU_A.offset(2, 2, 2));
+        BlockState corner = helper.getBlockState(CPU_A.offset(2, 1, 1));
         helper.assertTrue(!corner.getValue(CpuBlock.FORMED) && corner.getValue(CpuBlock.PART) == 0 && !corner.getValue(CpuBlock.ACTIVE),
                 "an unformed block shows the casing, got " + corner);
         helper.succeed();

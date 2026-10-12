@@ -7,7 +7,6 @@ import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
@@ -85,11 +84,8 @@ public final class TerminalSpeedGameTests {
         }
         helper.setBlock(PRODUCTION, ServusStorageBlocks.PRODUCTION_TERMINAL.get().defaultBlockState()
                 .setValue(ProductionTerminalBlock.FACING, Direction.NORTH));
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            CpuShape.Vec offset = CpuShape.offset(part);
-            helper.setBlock(CPU.offset(offset.x(), offset.y(), offset.z()), ServusStorageBlocks.CRAFTING_CPU.get().defaultBlockState());
-        }
-        helper.assertTrue(io.github.dirnei.mc.servus.storage.cpu.CpuBlock.tryForm(helper.getLevel(), helper.absolutePos(CPU)).formed(), "the cube should form");
+        CpuBuild.cube(helper, CPU);
+        helper.assertTrue(CpuBuild.form(helper, CPU).formed(), "the box should form");
     }
 
     private static boolean ready(GameTestHelper helper) {
