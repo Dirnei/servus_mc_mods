@@ -33,7 +33,7 @@ final class MachineDataParts {
     }
 
     static void blockStates(BlockStateProvider provider) {
-        machine(provider, MachineContent.COAL_GENERATOR.get(), "coal_generator");
+        CoalGeneratorModels.coalGenerator(provider);
         machine(provider, MachineContent.CHUNK_LOADER.get(), "chunk_loader");
         BurnerPumpModels.burnerPump(provider);
         ElectricPumpModels.electricPump(provider);

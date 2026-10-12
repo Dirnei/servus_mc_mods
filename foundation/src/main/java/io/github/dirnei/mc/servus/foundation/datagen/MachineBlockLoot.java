@@ -1,6 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.datagen;
 
-import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpBlock;
+import io.github.dirnei.mc.servus.foundation.machine.TwoHalves;
 import java.util.Set;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
@@ -18,9 +18,9 @@ final class MachineBlockLoot extends BlockLootSubProvider {
     @Override
     protected void generate() {
         for (Block block : MachineDataParts.selfDropping()) {
-            if (block instanceof BeamPumpBlock) {
+            if (block.defaultBlockState().hasProperty(TwoHalves.HALF)) {
                 // Two blocks tall: only the lower half drops the item, like a door.
-                add(block, createSinglePropConditionTable(block, BeamPumpBlock.HALF, DoubleBlockHalf.LOWER));
+                add(block, createSinglePropConditionTable(block, TwoHalves.HALF, DoubleBlockHalf.LOWER));
             } else {
                 dropSelf(block);
             }

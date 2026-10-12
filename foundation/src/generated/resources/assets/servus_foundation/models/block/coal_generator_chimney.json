@@ -1,0 +1,148 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#stack",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#stack",
+          "uv": [
+            5,
+            2,
+            11,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#stack",
+          "uv": [
+            5,
+            2,
+            11,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#stack",
+          "uv": [
+            5,
+            2,
+            11,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#stack",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#stack",
+          "uv": [
+            5,
+            2,
+            11,
+            16
+          ]
+        }
+      },
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        14,
+        11
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#stack",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        },
+        "east": {
+          "texture": "#stack",
+          "uv": [
+            4,
+            0,
+            12,
+            2
+          ]
+        },
+        "north": {
+          "texture": "#stack",
+          "uv": [
+            4,
+            0,
+            12,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#stack",
+          "uv": [
+            4,
+            0,
+            12,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        },
+        "west": {
+          "texture": "#stack",
+          "uv": [
+            4,
+            0,
+            12,
+            2
+          ]
+        }
+      },
+      "from": [
+        4,
+        14,
+        4
+      ],
+      "to": [
+        12,
+        16,
+        12
+      ]
+    }
+  ],
+  "textures": {
+    "front": "servus_foundation:block/coal_generator_front",
+    "particle": "servus_foundation:block/coal_generator_side",
+    "side": "servus_foundation:block/coal_generator_side",
+    "stack": "servus_foundation:block/coal_generator_stack",
+    "top": "servus_foundation:block/coal_generator_top"
+  }
+}
