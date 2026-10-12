@@ -13,7 +13,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 3. Look
 
-- [ ] 3.1 Texture script `C:\Users\Dirnei\AppData\Local\Temp\servus-helpers\jobs\coal-generator\gen_coal_generator.py` (not in the repo) drawing `textures/block/coal_generator_front.png`, `coal_generator_front_lit.png`, `coal_generator_side.png`, `coal_generator_top.png`, `coal_generator_stack.png` from the G2 sketch (`C:\Users\Dirnei\AppData\Local\Temp\claude\C--games-minecraft-servus-mc-mods\e63664e3-2e9f-4956-97ee-f355bc14ab46\scratchpad\genloader.py`, functions `g2_*`); check 16x16 RGBA. Run `gradlew build`.
+- [x] 3.1 Texture script `C:\Users\Dirnei\AppData\Local\Temp\servus-helpers\jobs\coal-generator\gen_coal_generator.py` (not in the repo) drawing `textures/block/coal_generator_front.png`, `coal_generator_front_lit.png`, `coal_generator_side.png`, `coal_generator_top.png`, `coal_generator_stack.png` from the G2 sketch (`C:\Users\Dirnei\AppData\Local\Temp\claude\C--games-minecraft-servus-mc-mods\e63664e3-2e9f-4956-97ee-f355bc14ab46\scratchpad\genloader.py`, functions `g2_*`); check 16x16 RGBA. Run `gradlew build`.
 - [ ] 3.2 `datagen/MachineDataParts.java`: lower half orientable models with the new textures, chimney element model, blockstates by `HALF`, `FACING`, `LIT`, item model with both halves, loot from the lower half only (design.md D4). Run `gradlew :foundation:runData` and `gradlew build`.
 
 ## 4. GameTests
