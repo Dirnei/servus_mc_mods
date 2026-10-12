@@ -28,7 +28,7 @@
 
 ## 6. Docs and plan
 
-- [ ] 6.1 `docs/src/content/docs/mods/storage.md` (controller as antenna, Wireless Upgrade, controller FE, Packing Stations for wireless, no Wireless Packing Station) and `PLAN.md` (section 2.3 item 6 and the topology bullet, M11 item 3 note). Run `gradlew :manufacturing:runData` for the docs gamedata, the docs tests, and `openspec validate m11-controller-wireless`.
+- [x] 6.1 `docs/src/content/docs/mods/storage.md` (controller as antenna, Wireless Upgrade, controller FE, Packing Stations for wireless, no Wireless Packing Station) and `PLAN.md` (section 2.3 item 6 and the topology bullet, M11 item 3 note). Run `gradlew :manufacturing:runData` for the docs gamedata, the docs tests, and `openspec validate m11-controller-wireless`.
 
 ## 7. Verification
 

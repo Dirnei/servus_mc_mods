@@ -1108,25 +1108,23 @@
         {"item": "servus_storage:warehouse_controller", "count": 1}
       ]
     },
-    "servus_storage:wireless_packing_station": {
-      "type": "servus_foundation:wood_shaped",
-      "pattern": [" E ", "IXI", "PRP"],
+    "servus_storage:wireless_upgrade": {
+      "type": "minecraft:crafting_shaped",
+      "pattern": [" C ", "IEI", "RIR"],
       "key": {
+        "C": {"item": "minecraft:copper_ingot"},
         "E": {"item": "minecraft:ender_eye"},
         "I": {"item": "minecraft:iron_ingot"},
-        "P": {"tag": "minecraft:planks"},
-        "R": {"item": "minecraft:redstone"},
-        "X": {"item": "servus_storage:packing_station"}
+        "R": {"item": "minecraft:redstone"}
       },
       "inputs": [
-        {"tag": "minecraft:planks", "count": 2},
+        {"item": "minecraft:copper_ingot", "count": 1},
         {"item": "minecraft:ender_eye", "count": 1},
-        {"item": "minecraft:iron_ingot", "count": 2},
-        {"item": "minecraft:redstone", "count": 1},
-        {"item": "servus_storage:packing_station", "count": 1}
+        {"item": "minecraft:iron_ingot", "count": 3},
+        {"item": "minecraft:redstone", "count": 2}
       ],
       "outputs": [
-        {"item": "servus_storage:wireless_packing_station", "count": 1}
+        {"item": "servus_storage:wireless_upgrade", "count": 1}
       ]
     },
     "servus_storage:zone_label": {
@@ -1426,8 +1424,8 @@
     "servus_storage:warehouse_controller": {
       "name": "Warehouse Controller"
     },
-    "servus_storage:wireless_packing_station": {
-      "name": "Wireless Packing Station"
+    "servus_storage:wireless_upgrade": {
+      "name": "Wireless Upgrade"
     },
     "servus_storage:zone_label": {
       "name": "Zone Label"
