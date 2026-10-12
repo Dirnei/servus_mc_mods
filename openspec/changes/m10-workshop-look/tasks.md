@@ -15,7 +15,7 @@ Paths are relative to `storage/src/main/java/io/github/dirnei/mc/servus/storage/
 
 ## 3. Look
 
-- [ ] 3.1 Texture script in `C:\Users\Dirnei\AppData\Local\Temp\servus-helpers\jobs\workshop-look\gen_workshop.py` (not in the repo) drawing `textures/block/shuttle_workshop_side.png`, `shuttle_workshop_top.png` and `shuttle_workshop_bottom.png` as overlays with transparent board panels (design.md D2: tools on the sides, bench plate with shuttle outline and vise on top, plain frame bottom, no teal, no lamp). Check the PNGs are 16x16 RGBA. Run `gradlew build`.
+- [x] 3.1 Texture script in `C:\Users\Dirnei\AppData\Local\Temp\servus-helpers\jobs\workshop-look\gen_workshop.py` (not in the repo) drawing `textures/block/shuttle_workshop_side.png`, `shuttle_workshop_top.png` and `shuttle_workshop_bottom.png` as overlays with transparent board panels (design.md D2: tools on the sides, bench plate with shuttle outline and vise on top, plain frame bottom, no teal, no lamp). Check the PNGs are 16x16 RGBA. Run `gradlew build`.
 - [ ] 3.2 `datagen/ServusStorageBlockStateProvider.java`: replace the `cubeBottomTop` workshop model with `LayeredModels.cube` (four sides, top, bottom) and keep `simpleBlock` and `simpleBlockItem` (design.md D1). Run `gradlew :storage:runData` and `gradlew build`.
 
 ## 4. Docs and plan

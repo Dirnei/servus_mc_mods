@@ -66,3 +66,8 @@ PLAN.md open decisions settled: none.
 - [Item dupes] A dismantle that copied the contents into the item but still dropped them. → Clear both handlers before `removeBlock`; the GameTest counts dropped item entities.
 - [Big item NBT] A workshop item carries a shuttle with its components. → Seven stacks at most, like a small shulker box.
 - [Pixel art by script] Script drawn textures can look flat. → Clean up after the in game check; the play check task covers it.
+
+## Decisions made during apply
+
+- D2: the wrench hangs straight down instead of diagonally. A diagonal wrench in the 12 by 12 board panel next to the screwdriver did not read at 16x16 in the preview; hanging straight, its open jaw at the top sits on a dark peg and its ring end at the bottom shows the board through it. Both tools get a one pixel shadow in the frame's darkest colour on their right side, so they stand off the boards. The pegs are frame coloured (`#3e3d41`) instead of the rivet colour.
+- D2: the vise sits at the lower right corner of the bench plate, its screw nub reaching over the frame edge, and the shuttle outline (a body with four wheels) sits in the upper left part. Centred one above the other, the outline and the vise read as a face.
