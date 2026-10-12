@@ -47,8 +47,27 @@ A Wireless Packing Station SHALL convert at `items_per_second` (example 8, `wire
 - **WHEN** 64 items are sent between two stations without upgrades and with enough FE and room
 - **THEN** about 8 items arrive each second
 
+### Requirement: Only a powered station is on the wireless line
+A Wireless Packing Station SHALL count as on the wireless line only while it is powered: its FE buffer holds at least the cost of one item at the smallest cost, `fe_per_item` rounded up and at least 1 FE (example 4). An unpowered station SHALL be offline: its online lamp SHALL stay dark while its warehouse is online, its status line SHALL say it has no power and how much FE it needs, it SHALL neither send nor receive, and it SHALL NOT count as its site's Wireless Packing Station for other sites. A site whose stations of a team are all unpowered SHALL be shown to that team like a site without a station, and requests to it or from it SHALL be refused with the reason that the Wireless Packing Station of that site, or of this site, has no power. A transfer already running whose sending or receiving station loses power SHALL stop, stay listed as waiting for power, and go on once the station has FE again; it can be cancelled meanwhile. The powered state SHALL be reacted to when the FE stored changes, never by scanning.
+
+#### Scenario: Unpowered outpost
+- **WHEN** the outpost's only Wireless Packing Station has no FE and the player requests iron from the outpost at the base terminal
+- **THEN** the request is refused with "The Wireless Packing Station of that site has no power", the outpost's station lamp is dark and its status says no power
+
+#### Scenario: Unpowered base
+- **WHEN** the base's only Wireless Packing Station has no FE and the player requests iron from the outpost
+- **THEN** the request is refused with "The Wireless Packing Station of this site has no power"
+
+#### Scenario: Power brings the site back
+- **WHEN** FE arrives at the outpost's unpowered station
+- **THEN** its lamp lights, the base sees the outpost on the wireless line again and a request from it is made and arrives
+
+#### Scenario: Power lost during a transfer
+- **WHEN** the base station's FE is taken away while iron is being sent to it
+- **THEN** no more iron moves, the transfer shows waiting for power, and once FE arrives again the rest of the iron arrives and the transfer ends
+
 ### Requirement: Wireless Packing Station GUI
-Right clicking the station SHALL open the Packing Station GUI (both buffers read-only, Speed Upgrade slots, rate) with a status line naming the transfer it sends (item and receiving site), or why it waits (no rail, offline, needs power with the FE stored, waiting for a shuttle, To storage full), and the FE stored while idle.
+Right clicking the station SHALL open the Packing Station GUI (both buffers read-only, Speed Upgrade slots, rate) with a status line naming the transfer it sends (item and receiving site), or why it waits (no rail, offline, no power with the FE it needs, the receiver needs power, waiting for a shuttle, To storage full), and the FE stored while idle.
 
 #### Scenario: Status while sending
 - **WHEN** the outpost's station sends iron to the base
