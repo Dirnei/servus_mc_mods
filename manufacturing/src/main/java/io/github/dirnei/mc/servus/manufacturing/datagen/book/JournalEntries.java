@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen.book;
 
+import com.klikli_dev.modonomicon.client.gui.book.theme.GuiSprite;
 import com.klikli_dev.modonomicon.api.datagen.CategoryProviderBase;
 import com.klikli_dev.modonomicon.api.datagen.EntryBackground;
 import com.klikli_dev.modonomicon.api.datagen.EntryProvider;
@@ -9,7 +10,6 @@ import com.klikli_dev.modonomicon.api.datagen.book.page.BookMultiblockPageModel;
 import net.minecraft.resources.Identifier;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookSpotlightPageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
-import com.mojang.datafixers.util.Pair;
 import java.util.List;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.world.item.Items;
@@ -112,7 +112,7 @@ final class JournalEntries {
         abstract ItemLike icon();
 
         @Override
-        protected Pair<Integer, Integer> entryBackground() {
+        protected GuiSprite entryBackground() {
             return EntryBackground.DEFAULT;
         }
 

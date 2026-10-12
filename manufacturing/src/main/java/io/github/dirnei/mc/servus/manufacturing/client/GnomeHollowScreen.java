@@ -29,7 +29,6 @@ public class GnomeHollowScreen extends MachineScreen {
     @Override
     public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(guiGraphics, mouseX, mouseY, partialTick);
-        super.renderBg(guiGraphics, partialTick, mouseX, mouseY);
         gauges.render(guiGraphics);
     }
 

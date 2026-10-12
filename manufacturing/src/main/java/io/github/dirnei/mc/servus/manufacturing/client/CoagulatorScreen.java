@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.foundation.client.MachineScreen;
@@ -42,7 +43,7 @@ public class CoagulatorScreen extends MachineScreen {
 
     private List<RecipeHolder<CoagulationRecipe>> recipes() {
         return minecraft == null || minecraft.level == null ? List.of()
-                : CoagulatorBlockEntity.sortedRecipes(minecraft.level.recipeAccess());
+                : CoagulatorBlockEntity.sortedRecipes(minecraft.level);
     }
 
     private int selected() {
@@ -64,7 +65,6 @@ public class CoagulatorScreen extends MachineScreen {
     @Override
     public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(guiGraphics, mouseX, mouseY, partialTick);
-        super.renderBg(guiGraphics, partialTick, mouseX, mouseY);
         gauges.render(guiGraphics);
         List<RecipeHolder<CoagulationRecipe>> recipes = recipes();
         int index = selected();
@@ -106,7 +106,7 @@ public class CoagulatorScreen extends MachineScreen {
             return;
         }
         List<ItemStack> results = recipes.stream().map(holder -> holder.value().result()).toList();
-        popup.extractRenderState(guiGraphics, font, leftPos, topPos, imageWidth, imageHeight,
+        popup.render(guiGraphics, font, leftPos, topPos, imageWidth, imageHeight,
                 Component.translatable("gui.servus_manufacturing.coagulator.pick"), results, selected(), mouseX, mouseY);
         int index = popup.indexAt(mouseX, mouseY, results.size());
         if (index >= 0) {
@@ -128,8 +128,9 @@ public class CoagulatorScreen extends MachineScreen {
             }
         }
         recipe.ingredient().ifPresent(sized -> {
-            if (sized.ingredient().getItems().length > 0) {
-                lines.add(Component.literal(sized.count() + " x ").append(sized.ingredient().getItems()[0].getHoverName()));
+            ItemStack first = ServusRecipes.firstItem(sized.ingredient());
+            if (!first.isEmpty()) {
+                lines.add(Component.literal(sized.count() + " x ").append(first.getHoverName()));
             }
         });
         recipe.chapter().ifPresent(chapter -> lines.add(Component.translatable("gui.servus_manufacturing.coagulator.chapter",

@@ -8,7 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent;
 
 /**
  * What only Elemental Sight shows. Renderers draw after translucent blocks, and only while the local player
@@ -21,7 +21,7 @@ public final class RevealRenderers {
     @FunctionalInterface
     public interface RevealRenderer {
 
-        void render(RenderLevelStageEvent event);
+        void render(SubmitCustomGeometryEvent event);
     }
 
     private static final List<RevealRenderer> RENDERERS = new CopyOnWriteArrayList<>();
@@ -34,8 +34,8 @@ public final class RevealRenderers {
     }
 
     @SubscribeEvent
-    public static void onRenderLevelStage(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS || RENDERERS.isEmpty()) {
+    public static void onSubmitCustomGeometry(SubmitCustomGeometryEvent event) {
+        if (RENDERERS.isEmpty()) {
             return;
         }
         if (!ElementalSight.active(Minecraft.getInstance().player)) {

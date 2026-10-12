@@ -1,6 +1,10 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
+import net.minecraft.data.AtlasIds;
+import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
+import io.github.dirnei.mc.servus.foundation.client.SubmitBuffers;
+import io.github.dirnei.mc.servus.foundation.client.BufferedBlockEntityRenderer;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Offset;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -12,9 +16,7 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.calciner.CalcinerStructure;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -25,7 +27,6 @@ import com.mojang.math.Axis;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
@@ -33,7 +34,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * flask, each by how full its buffer is. The Sulfur and Mercury tanks show their own level. The rest of the
  * structure is chunk baked from block models.
  */
-public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlockEntity> {
+public final class CalcinerRenderer extends BufferedBlockEntityRenderer<CalcinerBlockEntity> {
 
     /** A box in a cell's model space (sixteenths, front facing north) and the height its fill rises by. */
     private record Fill(Role role, Principle principle, float x0, float y0, float z0, float x1, float rise, float z1, Identifier sprite) {
@@ -51,14 +52,15 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
     }
 
     @Override
-    public void render(CalcinerBlockEntity calciner, float partialTick, PoseStack poseStack, MultiBufferSource buffers,
-                       int packedLight, int packedOverlay) {
+    protected void render(CalcinerBlockEntity calciner, float partialTick, PoseStack poseStack, SubmitBuffers buffers,
+                          int packedLight) {
+        int packedOverlay = OverlayTexture.NO_OVERLAY;
         if (!calciner.formed()) {
             return;
         }
         Direction facing = calciner.getBlockState().getValue(MachineBlock.FACING);
         int capacity = Math.max(1, calciner.tanks().capacity());
-        VertexConsumer consumer = buffers.getBuffer(Sheets.translucentCullBlockSheet());
+        VertexConsumer consumer = buffers.getBuffer(Sheets.translucentBlockSheet());
         for (Fill fill : FILLS) {
             int amount = calciner.tanks().amount(fill.principle());
             if (amount <= 0) {
@@ -66,13 +68,10 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
             }
             float share = Math.min(1.0F, amount / (float) capacity);
             FluidStack fluid = new FluidStack(PrincipleFluids.fluid(fill.principle()), amount);
-            IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
-            Identifier still = fill.sprite() != null ? fill.sprite() : extensions.getStillTexture(fluid);
-            if (still == null) {
-                continue;
-            }
-            TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(still);
-            int color = fill.sprite() != null ? 0xFFFFFFFF : extensions.getTintColor(fluid);
+            TextureAtlasSprite sprite = fill.sprite() != null
+                    ? Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(fill.sprite())
+                    : FluidSprites.still(fluid);
+            int color = fill.sprite() != null ? 0xFFFFFFFF : FluidSprites.tint(fluid);
             Offset offset = CalcinerLayout.worldOffset(CalcinerLayout.part(fill.role()), CalcinerStructure.facing(facing));
             float[] box = rotate(fill.x0() / 16, fill.z0() / 16, fill.x1() / 16, fill.z1() / 16, facing);
             float y0 = fill.y0() / 16;
@@ -86,7 +85,7 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
     }
 
     /** The matter being calcined, standing in the crucible of the mouth. */
-    private static void renderInput(CalcinerBlockEntity calciner, Direction facing, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private static void renderInput(CalcinerBlockEntity calciner, Direction facing, PoseStack poseStack, SubmitBuffers buffers, int light) {
         ItemStack input = calciner.shownInput();
         if (input.isEmpty()) {
             return;
@@ -96,8 +95,7 @@ public final class CalcinerRenderer implements BlockEntityRenderer<CalcinerBlock
         poseStack.translate(spot[0], 10 / 16F, spot[1]);
         poseStack.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
         poseStack.scale(0.4F, 0.4F, 0.4F);
-        Minecraft.getInstance().getItemRenderer().renderStatic(input, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
-                poseStack, buffers, calciner.getLevel(), (int) calciner.getBlockPos().asLong());
+        RenderSubmit.item(poseStack, buffers.collector(), input, ItemDisplayContext.FIXED, calciner.getLevel(), (int) calciner.getBlockPos().asLong(), light);
         poseStack.popPose();
     }
 

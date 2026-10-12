@@ -75,6 +75,12 @@ public abstract class BlockStateProvider implements DataProvider {
         }
     }
 
+    /** A cube_all model named after the block with its block texture. */
+    public ModelFile cubeAll(Block block) {
+        Identifier id = BuiltInRegistries.BLOCK.getKey(block);
+        return models().cubeAll(id.getPath(), id.withPrefix("block/"));
+    }
+
     public void simpleBlock(Block block, ModelFile model) {
         // One "" variant covers every state, as the old builder wrote it.
         getVariantBuilder(block).single(new ConfiguredModel(model));

@@ -85,8 +85,8 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
             CompoundTag tag = new CompoundTag();
             tag.putString("Tier", athanor.tierName());
             tag.putBoolean("Formed", athanor.formed());
-            tag.put("Input", athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).saveOptional(accessor.getLevel().registryAccess()));
-            tag.put("Output", athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).saveOptional(accessor.getLevel().registryAccess()));
+            tag.put("Input", ValueIo.saveStack(accessor.getLevel().registryAccess(), athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT)));
+            tag.put("Output", ValueIo.saveStack(accessor.getLevel().registryAccess(), athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT)));
             tag.putInt("Progress", athanor.progressPercent());
             Principles held = athanor.principles();
             for (Principle principle : Principle.values()) {
@@ -176,8 +176,8 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
                 return;
             }
             CompoundTag tag = new CompoundTag();
-            tag.put("Input", calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT).saveOptional(accessor.getLevel().registryAccess()));
-            tag.put("Fuel", calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL).saveOptional(accessor.getLevel().registryAccess()));
+            tag.put("Input", ValueIo.saveStack(accessor.getLevel().registryAccess(), calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_INPUT)));
+            tag.put("Fuel", ValueIo.saveStack(accessor.getLevel().registryAccess(), calciner.inventory().getStackInSlot(CalcinerBlockEntity.SLOT_FUEL)));
             tag.putInt("Progress", calciner.progressPercent());
             tag.putInt("Capacity", calciner.tanks().capacity());
             for (Principle principle : Principle.values()) {

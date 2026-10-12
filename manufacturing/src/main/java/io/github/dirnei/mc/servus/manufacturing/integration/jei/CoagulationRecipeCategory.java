@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.manufacturing.integration.jei;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import java.util.Arrays;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableAnimated;
@@ -73,7 +73,7 @@ public final class CoagulationRecipeCategory implements IRecipeCategory<RecipeHo
         int itemX = x;
         recipe.ingredient().ifPresent(sized -> builder.addInputSlot(itemX, 5)
                 .setStandardSlotBackground()
-                .addItemStacks(Arrays.asList(sized.getItems())));
+                .addItemStacks(ServusRecipes.items(sized)));
         builder.addOutputSlot(110, 5)
                 .setStandardSlotBackground()
                 .addItemStack(recipe.result());

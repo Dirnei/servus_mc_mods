@@ -3,7 +3,6 @@ package io.github.dirnei.mc.servus.manufacturing.datagen.book;
 import com.klikli_dev.modonomicon.api.datagen.SingleBookSubProvider;
 import com.klikli_dev.modonomicon.api.datagen.book.BookModel;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
-import java.util.function.BiConsumer;
 import net.minecraft.resources.Identifier;
 
 /** Paracelsus' Journal: the Modonomicon book that is Manufacturing's tech tree. */
@@ -11,8 +10,8 @@ public final class JournalBook extends SingleBookSubProvider {
 
     public static final String ID = "journal";
 
-    public JournalBook(BiConsumer<String, String> lang) {
-        super(ID, ServusManufacturingIds.MOD_ID, lang);
+    public JournalBook() {
+        super(ID, ServusManufacturingIds.MOD_ID);
     }
 
     @Override
@@ -31,10 +30,10 @@ public final class JournalBook extends SingleBookSubProvider {
         // The journal is Manufacturing's own item, so it reads as a Servus item, not a Modonomicon one.
         return book.withGenerateBookItem(false)
                 .withCustomBookItem(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "paracelsus_journal"))
-                .withBookTextOffsetX(7)
-                .withBookTextOffsetY(4)
-                .withBookTextOffsetWidth(-14)
-                .withBookTextOffsetHeight(-8)
+                .withTheme(theme -> theme.withLayout(layout -> layout.withBookTextOffsetX(7)
+                        .withBookTextOffsetY(4)
+                        .withBookTextOffsetWidth(-14)
+                        .withBookTextOffsetHeight(-8)))
                 .withModel(Identifier.fromNamespaceAndPath("modonomicon", "modonomicon_red"))
                 .withCreativeTab(Identifier.fromNamespaceAndPath("servus_foundation", "servus"));
     }

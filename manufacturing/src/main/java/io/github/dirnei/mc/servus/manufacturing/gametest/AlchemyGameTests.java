@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.TagValueInput;
@@ -54,7 +55,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /** The principles as fluids. */
@@ -74,9 +74,9 @@ public final class AlchemyGameTests {
         helper.assertTrue(tank != null, "the tank should expose a fluid handler");
         int filled = tank.fill(new FluidStack(PrincipleFluids.fluid(Principle.MERCURY), 1000), false);
         helper.assertTrue(filled == 1000, "the tank should take 1000 mB of Mercury, took " + filled);
-        FluidActionResult result = FluidUtil.tryFillContainer(new ItemStack(Items.BUCKET), tank, 1000, null, true);
-        helper.assertTrue(result.isSuccess() && result.getResult().is(PrincipleFluids.entry(Principle.MERCURY).bucket().get()),
-                "the bucket should become a Mercury bucket, got " + result.getResult());
+        ItemStack result = Transfer.fillContainer(new ItemStack(Items.BUCKET), tank.handler());
+        helper.assertTrue(result.is(PrincipleFluids.entry(Principle.MERCURY).bucket().get()),
+                "the bucket should become a Mercury bucket, got " + result);
         helper.assertTrue(tank.getFluidInTank(0).isEmpty(), "the tank should be empty");
         helper.succeed();
     }
@@ -260,8 +260,8 @@ public final class AlchemyGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void journalRecipeMakesTheJournal(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        ItemStack result = level.recipeAccess().byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal")))
-                .map(holder -> holder.value().getResultItem(level.registryAccess()))
+        ItemStack result = ServusRecipes.byId(level, Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal"))
+                .map(holder -> ServusRecipes.displayResult(level, holder.value()))
                 .orElse(ItemStack.EMPTY);
         helper.assertTrue(!result.isEmpty(), "the journal recipe should exist");
         helper.assertTrue(ItemStack.isSameItemSameComponents(result, JournalBookItem.create()), "the result should be the journal, got " + result);
@@ -292,7 +292,7 @@ public final class AlchemyGameTests {
         for (AthanorLayout.Duct duct : AthanorLayout.ducts(Facing.NORTH)) {
             helper.setBlock(athanorDuct(duct.side(), duct.overTank()), ServusManufacturingBlocks.COPPER_DUCT.get().defaultBlockState());
         }
-        return helper.getBlockEntity(MACHINE);
+        return helper.getBlockEntity(MACHINE, AthanorBlockEntity.class);
     }
 
     /** Where the Athanor's duct toward the tank on {@code side} stands in the test: beside the Athanor or over the tank. */
@@ -453,9 +453,9 @@ public final class AlchemyGameTests {
     public static void athanorTakesABucket(GameTestHelper helper) {
         AthanorBlockEntity athanor = athanor(helper);
         helper.runAfterDelay(2, () -> {
-            FluidActionResult result = FluidUtil.tryEmptyContainer(new ItemStack(PrincipleFluids.entry(Principle.SULFUR).bucket().get()),
-                    athanorTankHandler(helper, AthanorLayout.TankSide.LEFT), 1000, null, true);
-            helper.assertTrue(result.isSuccess() && result.getResult().is(Items.BUCKET), "the bucket should be emptied");
+            ItemStack result = Transfer.emptyContainer(new ItemStack(PrincipleFluids.entry(Principle.SULFUR).bucket().get()),
+                    athanorTankHandler(helper, AthanorLayout.TankSide.LEFT).handler());
+            helper.assertTrue(result.is(Items.BUCKET), "the bucket should be emptied");
             helper.assertTrue(athanor.principles().get(Principle.SULFUR) == 1000, "the Athanor should see 1000 mB Sulfur");
             helper.assertTrue(FluidView.of(helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(MACHINE), Direction.NORTH)) == null,
                     "the Athanor itself takes no fluid");

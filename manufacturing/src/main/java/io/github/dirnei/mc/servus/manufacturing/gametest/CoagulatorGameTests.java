@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
@@ -61,7 +62,7 @@ public final class CoagulatorGameTests {
         build(helper, controller, Direction.NORTH);
         CalcinerGameTests.use(helper, CalcinerGameTests.player(helper, new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get())), controller);
         helper.assertBlockProperty(controller, CoagulatorBlock.FORMED, true);
-        return helper.getBlockEntity(controller);
+        return helper.getBlockEntity(controller, CoagulatorBlockEntity.class);
     }
 
     static BlockPos vat(BlockPos controller, int piece) {
@@ -77,7 +78,7 @@ public final class CoagulatorGameTests {
     }
 
     /** The Journal forms the build in every facing. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void coagulatorFormsInEveryFacing(GameTestHelper helper) {
         BlockPos[] at = {new BlockPos(2, 1, 2), new BlockPos(2, 1, 8), new BlockPos(7, 1, 3), new BlockPos(9, 1, 8)};
         Direction[] facings = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
@@ -95,7 +96,7 @@ public final class CoagulatorGameTests {
     }
 
     /** Without the Mercury Vat nothing forms, and the check names it. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void coagulatorWithoutAVatDoesNotForm(GameTestHelper helper) {
         build(helper, COAGULATOR, Direction.NORTH);
         helper.setBlock(vat(COAGULATOR, 2), Blocks.AIR);
@@ -107,7 +108,7 @@ public final class CoagulatorGameTests {
     }
 
     /** Breaking a Stone Bricks block unforms the build and stops the work. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void breakingAStoneUnformsTheCoagulator(GameTestHelper helper) {
         formed(helper, COAGULATOR);
         helper.getLevel().destroyBlock(helper.absolutePos(COAGULATOR.east()), true);
@@ -119,7 +120,7 @@ public final class CoagulatorGameTests {
     }
 
     /** Each Vat takes only its own principle and gives nothing back. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void eachVatTakesItsPrinciple(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
         Principle[] order = {Principle.SULFUR, Principle.SALT, Principle.MERCURY};
@@ -136,7 +137,7 @@ public final class CoagulatorGameTests {
     }
 
     /** A bucket of another principle does nothing at a Vat. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void wrongBucketDoesNothing(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
         Player player = CalcinerGameTests.player(helper, new ItemStack(PrincipleFluids.entry(Principle.MERCURY).bucket().get()));
@@ -148,7 +149,7 @@ public final class CoagulatorGameTests {
     }
 
     /** The casting table takes the ingredient and a hopper under it takes the product. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 200)
     public static void itemsAtTheCastingTable(GameTestHelper helper) {
         CoagulatorBlockEntity coagulator = formed(helper, COAGULATOR);
         coagulator.select(AlchemyGameTests.coagulation("salt_crystal"));
@@ -165,7 +166,7 @@ public final class CoagulatorGameTests {
     }
 
     /** An unformed Coagulator with Salt and a recipe makes nothing and offers no port. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 120)
+    @ServusGameTest(timeoutTicks = 120)
     public static void unformedCoagulatorDoesNothing(GameTestHelper helper) {
         build(helper, COAGULATOR, Direction.NORTH);
         CoagulatorBlockEntity coagulator = helper.getBlockEntity(COAGULATOR, CoagulatorBlockEntity.class);
@@ -179,7 +180,7 @@ public final class CoagulatorGameTests {
     }
 
     /** The journal's schematic accepts the build that forming accepts. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void coagulatorSchematicMatchesTheBuild(GameTestHelper helper) {
         Multiblock schematic = ModonomiconAPI.get().getMultiblock(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulator"));
         helper.assertTrue(schematic != null, "the Coagulator schematic should be loaded");

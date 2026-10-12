@@ -1,5 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.item.Item;
+import net.minecraft.tags.TagKey;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.world.level.block.Block;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
@@ -20,7 +26,28 @@ import net.neoforged.neoforge.common.Tags;
 public final class AlchemyRecipeTable {
 
     /** One calcination: what goes in, and the principles it gives. */
-    public record Calcine(String name, String label, Ingredient input, Principles output) {
+    /** A recipe input as datagen knows it: one item or an item tag, made into an ingredient with the registries of the run. */
+    public record Input(@Nullable Item item, @Nullable TagKey<Item> tag) {
+
+        public static Input of(ItemLike item) {
+            return new Input(item.asItem(), null);
+        }
+
+        public static Input of(TagKey<Item> tag) {
+            return new Input(null, tag);
+        }
+
+        public Ingredient ingredient(HolderGetter<Item> items) {
+            return tag != null ? Ingredient.of(items.getOrThrow(tag)) : Ingredient.of(item);
+        }
+
+        /** The item or {@code #tag} id, for the book's tables. */
+        public String id() {
+            return tag != null ? "#" + tag.location() : BuiltInRegistries.ITEM.getKey(item).toString();
+        }
+    }
+
+    public record Calcine(String name, String label, Input input, Principles output) {
     }
 
     /** One coagulation: the principles it takes and what it makes. */
@@ -28,12 +55,12 @@ public final class AlchemyRecipeTable {
     }
 
     /** One Athanor craft: the item laid on it, the principles it burns, the stage it needs and the result. */
-    public record AthanorCraft(String name, String inputLabel, String resultLabel, Ingredient input, Principles principles,
+    public record AthanorCraft(String name, String inputLabel, String resultLabel, Input input, Principles principles,
                                int tier, ItemStack result, int time) {
     }
 
     /** One purification: an item leached with water into Salt. */
-    public record Purify(String name, String label, Ingredient input, int count, int water, int salt, ItemStack residue, int time) {
+    public record Purify(String name, String label, Input input, int count, int water, int salt, ItemStack residue, int time) {
     }
 
     private AlchemyRecipeTable() {
@@ -41,26 +68,26 @@ public final class AlchemyRecipeTable {
 
     public static List<Calcine> calcination() {
         return List.of(
-                new Calcine("cobblestone", "Cobblestone", Ingredient.of(Tags.Items.COBBLESTONES), new Principles(100, 0, 10)),
-                new Calcine("stone", "Stone", Ingredient.of(Tags.Items.STONES), new Principles(100, 0, 10)),
-                new Calcine("dirt", "Dirt", Ingredient.of(ItemTags.DIRT), new Principles(50, 20, 20)),
-                new Calcine("sand", "Sand", Ingredient.of(Tags.Items.SANDS), new Principles(80, 0, 10)),
-                new Calcine("gravel", "Gravel", Ingredient.of(Tags.Items.GRAVELS), new Principles(80, 0, 10)),
-                new Calcine("logs", "Logs", Ingredient.of(ItemTags.LOGS), new Principles(20, 100, 10)),
-                new Calcine("planks", "Planks", Ingredient.of(ItemTags.PLANKS), new Principles(5, 25, 0)),
-                new Calcine("leaves", "Leaves", Ingredient.of(ItemTags.LEAVES), new Principles(0, 40, 20)),
-                new Calcine("saplings", "Saplings", Ingredient.of(ItemTags.SAPLINGS), new Principles(0, 40, 20)),
-                new Calcine("crops", "Crops", Ingredient.of(Tags.Items.CROPS), new Principles(10, 30, 30)),
-                new Calcine("seeds", "Seeds", Ingredient.of(Tags.Items.SEEDS), new Principles(10, 30, 30)),
-                new Calcine("coal", "Coal", Ingredient.of(ItemTags.COALS), new Principles(0, 200, 0)),
-                new Calcine("raw_materials", "Raw ore", Ingredient.of(Tags.Items.RAW_MATERIALS), new Principles(150, 0, 50)),
-                new Calcine("redstone", "Redstone", Ingredient.of(Tags.Items.DUSTS_REDSTONE), new Principles(0, 0, 100)),
-                new Calcine("bones", "Bones", Ingredient.of(Tags.Items.BONES), new Principles(100, 0, 0)));
+                new Calcine("cobblestone", "Cobblestone", Input.of(Tags.Items.COBBLESTONES), new Principles(100, 0, 10)),
+                new Calcine("stone", "Stone", Input.of(Tags.Items.STONES), new Principles(100, 0, 10)),
+                new Calcine("dirt", "Dirt", Input.of(ItemTags.DIRT), new Principles(50, 20, 20)),
+                new Calcine("sand", "Sand", Input.of(Tags.Items.SANDS), new Principles(80, 0, 10)),
+                new Calcine("gravel", "Gravel", Input.of(Tags.Items.GRAVELS), new Principles(80, 0, 10)),
+                new Calcine("logs", "Logs", Input.of(ItemTags.LOGS), new Principles(20, 100, 10)),
+                new Calcine("planks", "Planks", Input.of(ItemTags.PLANKS), new Principles(5, 25, 0)),
+                new Calcine("leaves", "Leaves", Input.of(ItemTags.LEAVES), new Principles(0, 40, 20)),
+                new Calcine("saplings", "Saplings", Input.of(ItemTags.SAPLINGS), new Principles(0, 40, 20)),
+                new Calcine("crops", "Crops", Input.of(Tags.Items.CROPS), new Principles(10, 30, 30)),
+                new Calcine("seeds", "Seeds", Input.of(Tags.Items.SEEDS), new Principles(10, 30, 30)),
+                new Calcine("coal", "Coal", Input.of(ItemTags.COALS), new Principles(0, 200, 0)),
+                new Calcine("raw_materials", "Raw ore", Input.of(Tags.Items.RAW_MATERIALS), new Principles(150, 0, 50)),
+                new Calcine("redstone", "Redstone", Input.of(Tags.Items.DUSTS_REDSTONE), new Principles(0, 0, 100)),
+                new Calcine("bones", "Bones", Input.of(Tags.Items.BONES), new Principles(100, 0, 0)));
     }
 
     /** What the Purifier leaches into Salt: the Ash of the Calciner. */
     public static List<Purify> purification() {
-        return List.of(new Purify("ash", "Ash", Ingredient.of(ServusManufacturingItems.ASH.get()), 4, 400, 400,
+        return List.of(new Purify("ash", "Ash", Input.of(ServusManufacturingItems.ASH.get()), 4, 400, 400,
                 new ItemStack(ServusManufacturingItems.CAPUT_MORTUUM.get()), 160));
     }
 
@@ -82,15 +109,15 @@ public final class AlchemyRecipeTable {
     /** Crafts on the Athanor. */
     public static List<AthanorCraft> athanor() {
         return List.of(
-                new AthanorCraft("salt_crystal_block", "Salt Crystal", "Salt Crystal Block", Ingredient.of(ServusManufacturingItems.SALT_CRYSTAL.get()),
+                new AthanorCraft("salt_crystal_block", "Salt Crystal", "Salt Crystal Block", Input.of(ServusManufacturingItems.SALT_CRYSTAL.get()),
                         new Principles(1000, 0, 0), 0, new ItemStack(ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get()), AthanorRecipe.DEFAULT_TIME),
-                new AthanorCraft("blaze_powder", "Gunpowder", "Blaze Powder", Ingredient.of(Items.GUNPOWDER),
+                new AthanorCraft("blaze_powder", "Gunpowder", "Blaze Powder", Input.of(Items.GUNPOWDER),
                         new Principles(0, 200, 0), 0, new ItemStack(Items.BLAZE_POWDER), AthanorRecipe.DEFAULT_TIME),
-                new AthanorCraft("experience_bottle", "Glass Bottle", "Bottle o' Enchanting", Ingredient.of(Items.GLASS_BOTTLE),
+                new AthanorCraft("experience_bottle", "Glass Bottle", "Bottle o' Enchanting", Input.of(Items.GLASS_BOTTLE),
                         new Principles(50, 0, 100), 1, new ItemStack(Items.EXPERIENCE_BOTTLE), AthanorRecipe.DEFAULT_TIME),
-                new AthanorCraft("elixir_of_sight", "Quicksilver", "Elixir of Sight", Ingredient.of(ServusManufacturingItems.QUICKSILVER.get()),
+                new AthanorCraft("elixir_of_sight", "Quicksilver", "Elixir of Sight", Input.of(ServusManufacturingItems.QUICKSILVER.get()),
                         new Principles(100, 100, 250), 1, new ItemStack(ElementalSight.ELIXIR.get()), 200),
-                new AthanorCraft("gnome_hollow", "Cracked Stone Bricks", "Gnome Hollow", Ingredient.of(Items.CRACKED_STONE_BRICKS),
+                new AthanorCraft("gnome_hollow", "Cracked Stone Bricks", "Gnome Hollow", Input.of(Items.CRACKED_STONE_BRICKS),
                         new Principles(500, 0, 250), 1, new ItemStack(ServusManufacturingItems.GNOME_HOLLOW.get()), 200));
     }
 

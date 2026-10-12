@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.manufacturing.integration.jei;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorRecipe;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import java.util.Arrays;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableAnimated;
@@ -63,7 +63,7 @@ public final class AthanorRecipeCategory implements IRecipeCategory<RecipeHolder
         AthanorRecipe recipe = holder.value();
         builder.addInputSlot(1, 5)
                 .setStandardSlotBackground()
-                .addItemStacks(Arrays.asList(recipe.input().getItems()));
+                .addItemStacks(ServusRecipes.items(recipe.input()));
         int x = 21;
         for (Principle principle : Principle.values()) {
             int amount = recipe.principles().get(principle);

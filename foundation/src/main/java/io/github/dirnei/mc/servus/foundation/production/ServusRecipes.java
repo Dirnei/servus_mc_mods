@@ -24,6 +24,7 @@ import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 
@@ -133,4 +134,10 @@ public final class ServusRecipes {
     public static List<ItemStack> items(Ingredient ingredient) {
         return ingredient.items().map(ItemStack::new).toList();
     }
+
+    /** Every item a sized ingredient accepts, each with the ingredient's count. */
+    public static List<ItemStack> items(SizedIngredient ingredient) {
+        return ingredient.ingredient().items().map(item -> new ItemStack(item, ingredient.count())).toList();
+    }
+
 }

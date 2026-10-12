@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import net.minecraft.data.advancements.AdvancementSubProvider;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
@@ -15,14 +16,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.common.data.AdvancementProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /**
  * The journal's advancements: a root and one per shipped chapter, each with an impossible criterion that only
  * the journal awards when the team finishes the chapter. Modonomicon unlocks entries on these.
  */
-final class JournalAdvancements implements AdvancementProvider.AdvancementGenerator {
+final class JournalAdvancements implements AdvancementSubProvider {
 
     /** A shipped chapter: path, icon. In order; each chapter's parent advancement is the one before it. */
     record Chapter(String path, ItemLike icon) {
@@ -33,7 +32,7 @@ final class JournalAdvancements implements AdvancementProvider.AdvancementGenera
             new Chapter("schwaz", Items.IRON_PICKAXE));
 
     @Override
-    public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> saver, ExistingFileHelper existingFileHelper) {
+    public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> saver) {
         AdvancementHolder parent = Advancement.Builder.advancement()
                 .display(Items.WRITABLE_BOOK,
                         Component.translatable("advancement.servus_manufacturing.journal.root"),

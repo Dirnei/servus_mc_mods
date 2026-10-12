@@ -7,12 +7,12 @@ import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
-import net.neoforged.neoforge.client.model.DynamicFluidContainerModel;
+import net.minecraft.client.renderer.block.FluidModel;
+import net.minecraft.client.resources.model.sprite.Material;
+import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
+import net.neoforged.neoforge.client.fluid.FluidTintSource;
 
-/** Client looks of the principles: tinted water textures and tinted buckets. */
+/** Client looks of the principles: tinted water textures. The buckets use NeoForge's fluid container item model (see the item model datagen). */
 @EventBusSubscriber(modid = ServusManufacturingIds.MOD_ID, value = Dist.CLIENT)
 public final class AlchemyClient {
 
@@ -22,32 +22,15 @@ public final class AlchemyClient {
     private AlchemyClient() {
     }
 
+    /** Every principle flows like water, tinted in its colour. */
     @SubscribeEvent
-    public static void onRegisterClientExtensions(RegisterClientExtensionsEvent event) {
+    public static void onRegisterFluidModels(RegisterFluidModelsEvent event) {
         for (Principle principle : Principle.values()) {
-            event.registerFluidType(new IClientFluidTypeExtensions() {
-                @Override
-                public Identifier getStillTexture() {
-                    return STILL;
-                }
-
-                @Override
-                public Identifier getFlowingTexture() {
-                    return FLOWING;
-                }
-
-                @Override
-                public int getTintColor() {
-                    return principle.color();
-                }
-            }, PrincipleFluids.entry(principle).type().get());
-        }
-    }
-
-    @SubscribeEvent
-    public static void onRegisterItemColors(RegisterColorHandlersEvent.Item event) {
-        for (Principle principle : Principle.values()) {
-            event.register(new DynamicFluidContainerModel.Colors(), PrincipleFluids.entry(principle).bucket().get());
+            PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);
+            int colour = principle.color();
+            FluidTintSource tint = state -> colour;
+            event.register(new FluidModel.Unbaked(new Material(STILL), new Material(FLOWING), null, tint),
+                    entry.source(), entry.flowing());
         }
     }
 }

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import net.minecraft.world.InteractionResult;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
@@ -97,7 +98,7 @@ public final class CalcinerGameTests {
         build(helper, controller, facing);
         use(helper, player(helper, new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get())), controller);
         helper.assertBlockProperty(controller, CalcinerBlock.FORMED, true);
-        return helper.getBlockEntity(controller);
+        return helper.getBlockEntity(controller, CalcinerBlockEntity.class);
     }
 
     static void assertFormed(GameTestHelper helper, BlockPos controller, Direction facing, boolean formed) {
@@ -127,7 +128,7 @@ public final class CalcinerGameTests {
     }
 
     /** The Journal forms the structure in each of the four facings, whatever way the Calciner was placed. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void calcinerFormsInEveryFacing(GameTestHelper helper) {
         BlockPos north = new BlockPos(2, 3, 2);
         BlockPos south = new BlockPos(2, 3, 8);
@@ -145,7 +146,7 @@ public final class CalcinerGameTests {
     }
 
     /** Without the Receiver nothing forms. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void calcinerWithoutReceiverDoesNotForm(GameTestHelper helper) {
         build(helper, CALCINER, Direction.NORTH);
         helper.setBlock(cellPos(CALCINER, Role.RECEIVER, Direction.NORTH), Blocks.AIR);
@@ -157,7 +158,7 @@ public final class CalcinerGameTests {
     }
 
     /** The Journal on any other part forms nothing. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void journalOnTheFireboxFormsNothing(GameTestHelper helper) {
         build(helper, CALCINER, Direction.NORTH);
         use(helper, player(helper, new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get())),
@@ -167,7 +168,7 @@ public final class CalcinerGameTests {
     }
 
     /** The carrot neither turns nor unforms any block of a formed Calciner. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void carrotChangesNothing(GameTestHelper helper) {
         formed(helper, CALCINER, Direction.NORTH);
         Player player = player(helper, new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get()));
@@ -189,7 +190,7 @@ public final class CalcinerGameTests {
     }
 
     /** Breaking a brick drops Bricks and turns the rest back into Bricks and unformed parts. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void breakingABrickUnforms(GameTestHelper helper) {
         formed(helper, CALCINER, Direction.NORTH);
         BlockPos brick = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(3), Facing.NORTH);
@@ -215,7 +216,7 @@ public final class CalcinerGameTests {
     }
 
     /** Breaking the Calciner drops it with its matter and fuel and unforms the rest. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void breakingTheCalcinerDropsItsItems(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_INPUT, new ItemStack(Items.COBBLESTONE, 3));
@@ -230,7 +231,7 @@ public final class CalcinerGameTests {
     }
 
     /** Matter goes in at the mouth and fuel at the Firebox by hand; sneaking with an empty hand takes the matter back. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void handFeedsAFormedCalciner(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         Player player = player(helper, new ItemStack(Items.COBBLESTONE, 16));
@@ -248,7 +249,7 @@ public final class CalcinerGameTests {
     }
 
     /** The player who forms the Calciner becomes its owner. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void formingPlayerOwnsTheCalciner(GameTestHelper helper) {
         build(helper, CALCINER, Direction.NORTH);
         Player player = player(helper, new ItemStack(ServusManufacturingItems.PARACELSUS_JOURNAL.get()));
@@ -263,7 +264,7 @@ public final class CalcinerGameTests {
     }
 
     /** A hopper feeds the mouth of a formed Calciner, which burns the cobblestone into its tanks. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void hopperFeedsAFormedCalciner(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         calciner.inventory().setStackInSlot(CalcinerBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 2));
@@ -276,7 +277,7 @@ public final class CalcinerGameTests {
     }
 
     /** An unformed Calciner holding matter and fuel makes nothing. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 120)
+    @ServusGameTest(timeoutTicks = 120)
     public static void unformedCalcinerDoesNothing(GameTestHelper helper) {
         build(helper, CALCINER, Direction.NORTH);
         CalcinerBlockEntity calciner = helper.getBlockEntity(CALCINER, CalcinerBlockEntity.class);
@@ -290,7 +291,7 @@ public final class CalcinerGameTests {
     }
 
     /** Each port gives only its own principle: Sulfur and Mercury into their tanks, the Salt stays as Ash. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void eachPortGivesItsPrinciple(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         BlockPos sulfurTank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(12), Facing.NORTH);
@@ -320,7 +321,7 @@ public final class CalcinerGameTests {
     }
 
     /** An empty bucket on the Receiver fills with Mercury. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void bucketFillsAtTheReceiver(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         calciner.tanks().insert(new Principles(0, 0, 1200));
@@ -333,7 +334,7 @@ public final class CalcinerGameTests {
     }
 
     /** No block of the Calciner offers energy; the Firebox reports the fuel as upkeep and takes coal, the mouth takes only matter. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void fireboxTakesFuelAndUpkeep(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         for (Cell cell : CalcinerLayout.cells()) {
@@ -360,7 +361,7 @@ public final class CalcinerGameTests {
     }
 
     /** An unformed structure offers no ports. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void unformedHasNoPorts(GameTestHelper helper) {
         build(helper, CALCINER, Direction.NORTH);
         helper.assertTrue(ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(CALCINER), Direction.NORTH)) == null,
@@ -371,7 +372,7 @@ public final class CalcinerGameTests {
     }
 
     /** The journal's schematic, anchored on the Ash Pan, accepts the structure that forming accepts. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void schematicMatchesTheBuild(GameTestHelper helper) {
         Multiblock schematic = ModonomiconAPI.get().getMultiblock(
                 Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner"));
@@ -391,7 +392,7 @@ public final class CalcinerGameTests {
     }
 
     /** A block under the Alembic's spout keeps the Calciner from forming, and placed later it unforms it. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void blockUnderTheSpoutUnforms(GameTestHelper helper) {
         build(helper, CALCINER, Direction.NORTH);
         helper.setBlock(spout(CALCINER), Blocks.STONE);
@@ -405,7 +406,7 @@ public final class CalcinerGameTests {
     }
 
     /** Breaking a Fluid Tank of a column unforms the Calciner; the other tanks stay. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void breakingATankUnforms(GameTestHelper helper) {
         formed(helper, CALCINER, Direction.NORTH);
         BlockPos tank = CalcinerStructure.pos(CALCINER, CalcinerLayout.cell(16), Facing.NORTH);
@@ -415,7 +416,7 @@ public final class CalcinerGameTests {
     }
 
     /** A hopper under the Ash Pan takes the Salt as whole Ash; the remainder stays. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void hopperTakesAshFromTheAshPan(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         calciner.tanks().insert(new Principles(350, 0, 0));
@@ -430,7 +431,7 @@ public final class CalcinerGameTests {
     }
 
     /** An empty hand takes all Ash out of the Ash Pan; a bucket takes nothing there. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void handTakesAshFromTheAshPan(GameTestHelper helper) {
         CalcinerBlockEntity calciner = formed(helper, CALCINER, Direction.NORTH);
         calciner.tanks().insert(new Principles(500, 0, 0));

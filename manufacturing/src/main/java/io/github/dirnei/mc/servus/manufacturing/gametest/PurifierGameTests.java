@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import com.klikli_dev.modonomicon.api.ModonomiconAPI;
 import com.klikli_dev.modonomicon.api.multiblock.Multiblock;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
@@ -60,7 +61,7 @@ public final class PurifierGameTests {
         helper.assertBlockProperty(PURIFIER, PurifierBlock.FORMED, true);
         helper.assertBlockProperty(BASIN, PurifierSideBlock.FORMED, true);
         helper.assertBlockProperty(CROCK, PurifierSideBlock.FORMED, true);
-        return helper.getBlockEntity(PURIFIER);
+        return helper.getBlockEntity(PURIFIER, PurifierBlockEntity.class);
     }
 
     static FluidView vatFluids(GameTestHelper helper) {
@@ -84,7 +85,7 @@ public final class PurifierGameTests {
     }
 
     /** Eight Ash and 1,000 mB water become 800 mB Salt and two Caput Mortuum and leave 200 mB water. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 500)
+    @ServusGameTest(timeoutTicks = 500)
     public static void purifierLeachesAsh(GameTestHelper helper) {
         PurifierBlockEntity purifier = purifier(helper);
         ItemView items = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(PURIFIER), Direction.UP));
@@ -102,7 +103,7 @@ public final class PurifierGameTests {
     }
 
     /** Without water the Ash stays. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void purifierNeedsWater(GameTestHelper helper) {
         PurifierBlockEntity purifier = purifier(helper);
         purifier.insert(new ItemStack(ServusManufacturingItems.ASH.get(), 4));
@@ -114,7 +115,7 @@ public final class PurifierGameTests {
     }
 
     /** The Vat takes only water, the Basin gives only Salt, the Crock takes nothing. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void vatTakesWaterBasinGivesSalt(GameTestHelper helper) {
         PurifierBlockEntity purifier = purifier(helper);
         FluidView vat = vatFluids(helper);
@@ -132,7 +133,7 @@ public final class PurifierGameTests {
     }
 
     /** A tank beside the Basin receives the Salt. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 60)
+    @ServusGameTest(timeoutTicks = 60)
     public static void basinPushesSaltIntoATank(GameTestHelper helper) {
         PurifierBlockEntity purifier = purifier(helper);
         BlockPos tank = BASIN.north();
@@ -143,7 +144,7 @@ public final class PurifierGameTests {
     }
 
     /** A hopper under the Crock collects the Caput Mortuum. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 100)
     public static void hopperTakesResidueFromTheCrock(GameTestHelper helper) {
         PurifierBlockEntity purifier = purifier(helper);
         purifier.inventory().setStackInSlot(PurifierBlockEntity.SLOT_RESIDUE, new ItemStack(ServusManufacturingItems.CAPUT_MORTUUM.get(), 2));
@@ -155,7 +156,7 @@ public final class PurifierGameTests {
     }
 
     /** A water bucket fills the Vat, an empty bucket takes Salt at the Basin, an empty hand takes the residue at the Crock. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void purifierByHand(GameTestHelper helper) {
         PurifierBlockEntity purifier = purifier(helper);
         Player player = CalcinerGameTests.player(helper, new ItemStack(Items.WATER_BUCKET));
@@ -176,7 +177,7 @@ public final class PurifierGameTests {
     }
 
     /** Without its Crock nothing forms; breaking the log of a formed Purifier unforms it. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void purifierFormsAndUnforms(GameTestHelper helper) {
         build(helper, PURIFIER, false);
         helper.setBlock(CROCK, Blocks.STONE);
@@ -191,7 +192,7 @@ public final class PurifierGameTests {
     }
 
     /** Breaking the Crock unforms the Vat and the Basin. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void breakingTheCrockUnforms(GameTestHelper helper) {
         purifier(helper);
         helper.getLevel().destroyBlock(helper.absolutePos(CROCK), true);
@@ -201,7 +202,7 @@ public final class PurifierGameTests {
     }
 
     /** The Basin and the Crock may swap sides; the Basin still gives the Salt. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void mirroredPurifierForms(GameTestHelper helper) {
         build(helper, PURIFIER, true);
         form(helper);
@@ -217,7 +218,7 @@ public final class PurifierGameTests {
     }
 
     /** Forming turns the Vat to the build's front and the Basin and the Crock to the log; unforming shows the plain blocks again. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void formedStatesFollowTheBuild(GameTestHelper helper) {
         purifier(helper);
         helper.assertBlockProperty(PURIFIER, PurifierBlock.FACING, Direction.NORTH);
@@ -236,7 +237,7 @@ public final class PurifierGameTests {
     }
 
     /** A finished purification counts for the Villach task of the owner's team. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 300)
     public static void purifierReportsToTheJournal(GameTestHelper helper) {
         PurifierBlockEntity purifier = purifier(helper);
         UUID team = UUID.randomUUID();
@@ -250,7 +251,7 @@ public final class PurifierGameTests {
     }
 
     /** The journal's schematic accepts the build, anchored on the log. */
-    @GameTest(template = AlchemyGameTests.EMPTY, timeoutTicks = 20)
+    @ServusGameTest(timeoutTicks = 20)
     public static void purifierSchematicMatchesTheBuild(GameTestHelper helper) {
         Multiblock schematic = ModonomiconAPI.get().getMultiblock(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purifier"));
         helper.assertTrue(schematic != null, "the Purifier schematic should be loaded");

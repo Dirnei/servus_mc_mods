@@ -1,12 +1,12 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import com.google.gson.JsonObject;
+
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
-import io.github.dirnei.mc.servus.foundation.datagen.model.loaders.DynamicFluidContainerModelBuilder;
 import net.minecraft.data.PackOutput;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
 
@@ -25,14 +25,19 @@ final class ServusManufacturingItemModelProvider extends ItemModelProvider {
         basicItem(ServusManufacturingItems.QUICKSILVER.get());
         basicItem(ElementalSight.ELIXIR.get());
         basicItem(ServusManufacturingItems.PARACELSUS_JOURNAL.get());
-        // Buckets draw their principle with NeoForge's fluid container model, tinted like the fluid.
+        // Buckets draw their principle with NeoForge's fluid container item model, tinted like the fluid.
         for (Principle principle : Principle.values()) {
             PrincipleFluids.Entry entry = PrincipleFluids.entry(principle);
-            getBuilder(entry.bucket().getId().getPath())
-                    .parent(new ModelFile.UncheckedModelFile("neoforge:item/bucket"))
-                    .customLoader(DynamicFluidContainerModelBuilder::begin)
-                    .fluid(entry.source().get())
-                    .end();
+            JsonObject textures = new JsonObject();
+            textures.addProperty("particle", "minecraft:item/bucket");
+            textures.addProperty("base", "minecraft:item/bucket");
+            textures.addProperty("fluid", "neoforge:item/mask/bucket_fluid");
+            textures.addProperty("cover", "neoforge:item/mask/bucket_fluid_cover");
+            JsonObject model = new JsonObject();
+            model.addProperty("type", "neoforge:fluid_container");
+            model.add("textures", textures);
+            model.addProperty("fluid", entry.source().getId().toString());
+            itemModelDefinition(entry.bucket().getId(), model);
         }
     }
 }

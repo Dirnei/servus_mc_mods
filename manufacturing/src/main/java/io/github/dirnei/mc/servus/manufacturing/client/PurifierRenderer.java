@@ -1,24 +1,25 @@
 package io.github.dirnei.mc.servus.manufacturing.client;
 
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import io.github.dirnei.mc.servus.foundation.client.FluidSprites;
+import net.minecraft.data.AtlasIds;
+import io.github.dirnei.mc.servus.foundation.client.SubmitBuffers;
+import io.github.dirnei.mc.servus.foundation.client.BufferedBlockEntityRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierStructure;
 import net.minecraft.core.BlockPos;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 
 /** Draws the Purifier: the Ash still to wash on the Vat's floor with the water over it, the Salt in the Catch Basin and the Caput Mortuum in the Residue Crock. */
-public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlockEntity> {
+public final class PurifierRenderer extends BufferedBlockEntityRenderer<PurifierBlockEntity> {
 
     /** The inside of the vat in sixteenths: above the floor, inside the walls, below the rim. */
     private static final float INSIDE_MIN = 3 / 16F;
@@ -50,14 +51,15 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
     }
 
     @Override
-    public void render(PurifierBlockEntity purifier, float partialTick, PoseStack poseStack, MultiBufferSource buffers,
-                       int packedLight, int packedOverlay) {
+    protected void render(PurifierBlockEntity purifier, float partialTick, PoseStack poseStack, SubmitBuffers buffers,
+                          int packedLight) {
+        int packedOverlay = OverlayTexture.NO_OVERLAY;
         float floor = FLOOR;
         int items = purifier.shownItems();
         if (items > 0) {
-            TextureAtlasSprite ash = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(ASH);
+            TextureAtlasSprite ash = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(ASH);
             float height = 1 / 16F + (ASH_MAX - 1 / 16F) * Math.min(1.0F, items / 64F);
-            CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentCullBlockSheet()), poseStack.last(),
+            CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentBlockSheet()), poseStack.last(),
                     INSIDE_MIN, FLOOR, INSIDE_MIN, INSIDE_MAX, FLOOR + height, INSIDE_MAX, ash, 0xFFFFFFFF, packedLight);
             floor = FLOOR + height;
         }
@@ -75,31 +77,26 @@ public final class PurifierRenderer implements BlockEntityRenderer<PurifierBlock
         int residue = purifier.shownResidue();
         if (residue > 0) {
             BlockPos crock = PurifierStructure.partPos(purifier.getLevel(), vat, PurifierLayout.Role.CROCK).subtract(vat);
-            TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RESIDUE);
+            TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(RESIDUE);
             float top = CROCK_FLOOR + 1 / 16F + (CROCK_TOP - CROCK_FLOOR - 1 / 16F) * Math.min(1.0F, residue / 64F);
             poseStack.pushPose();
             poseStack.translate(crock.getX(), crock.getY(), crock.getZ());
-            CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentCullBlockSheet()), poseStack.last(),
+            CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentBlockSheet()), poseStack.last(),
                     CROCK_MIN, CROCK_FLOOR, CROCK_MIN, CROCK_MAX, top, CROCK_MAX, sprite, 0xFFFFFFFF, packedLight);
             poseStack.popPose();
         }
     }
 
     /** One liquid as high as its tank is full, between {@code bottom} and {@code rim}, never thinner than half a pixel above {@code floor}. */
-    private static void drawLiquid(FluidSlot tank, float floor, float bottom, float rim, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private static void drawLiquid(FluidSlot tank, float floor, float bottom, float rim, PoseStack poseStack, SubmitBuffers buffers, int light) {
         FluidStack fluid = tank.getFluid();
         if (fluid.isEmpty()) {
             return;
         }
         float share = Math.min(1.0F, fluid.getAmount() / (float) Math.max(1, tank.getCapacity()));
-        IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
-        Identifier still = extensions.getStillTexture(fluid);
-        if (still == null) {
-            return;
-        }
-        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(still);
+        TextureAtlasSprite sprite = FluidSprites.still(fluid);
         float top = Math.max(floor + 0.5F / 16F, bottom + (rim - bottom) * share);
-        CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentCullBlockSheet()), poseStack.last(),
-                INSIDE_MIN, floor, INSIDE_MIN, INSIDE_MAX, top, INSIDE_MAX, sprite, extensions.getTintColor(fluid), light);
+        CalcinerRenderer.drawBox(buffers.getBuffer(Sheets.translucentBlockSheet()), poseStack.last(),
+                INSIDE_MIN, floor, INSIDE_MIN, INSIDE_MAX, top, INSIDE_MAX, sprite, FluidSprites.tint(fluid), light);
     }
 }

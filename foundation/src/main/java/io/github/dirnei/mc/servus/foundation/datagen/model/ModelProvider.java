@@ -88,6 +88,13 @@ public class ModelProvider<T extends ModelBuilder<T>> {
 
     private final Map<Identifier, String> itemTypes = new HashMap<>();
 
+    private final Map<Identifier, JsonObject> rawItemModels = new LinkedHashMap<>();
+
+    /** Writes an item's definition with this item model object as is (for loader models without a model file). */
+    public void itemModelDefinition(Identifier itemId, JsonObject model) {
+        rawItemModels.put(itemId, model);
+    }
+
     /** Names a custom item model type for an item's definition, instead of {@code minecraft:model}. */
     public void itemModelType(Identifier itemId, String type) {
         itemTypes.put(itemId, type);
@@ -113,6 +120,11 @@ public class ModelProvider<T extends ModelBuilder<T>> {
                     futures.add(DataProvider.saveStable(cache, definition, items.json(itemId)));
                 }
             }
+        });
+        rawItemModels.forEach((itemId, model) -> {
+            JsonObject root = new JsonObject();
+            root.add("model", model);
+            futures.add(DataProvider.saveStable(cache, root, items.json(itemId)));
         });
         return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
     }

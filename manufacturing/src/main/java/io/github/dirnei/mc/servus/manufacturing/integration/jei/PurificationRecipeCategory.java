@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.manufacturing.integration.jei;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
 import net.minecraft.world.level.material.Fluids;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
-import java.util.Arrays;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableAnimated;
@@ -63,7 +63,7 @@ public final class PurificationRecipeCategory implements IRecipeCategory<RecipeH
         PurificationRecipe recipe = holder.value();
         builder.addInputSlot(1, 5)
                 .setStandardSlotBackground()
-                .addItemStacks(Arrays.asList(recipe.input().getItems()));
+                .addItemStacks(ServusRecipes.items(recipe.input()));
         builder.addInputSlot(21, 5)
                 .setStandardSlotBackground()
                 .addFluidStack(Fluids.WATER, recipe.water());

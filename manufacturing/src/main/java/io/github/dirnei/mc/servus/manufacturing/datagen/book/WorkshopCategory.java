@@ -5,7 +5,6 @@ import com.klikli_dev.modonomicon.api.datagen.CategoryProvider;
 import com.klikli_dev.modonomicon.api.datagen.ModonomiconProviderBase;
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel;
 import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
-import com.klikli_dev.modonomicon.api.datagen.book.condition.BookAdvancementConditionModel;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principle;
@@ -14,7 +13,6 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleText;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.datagen.AlchemyRecipeTable;
 import io.github.dirnei.mc.servus.manufacturing.datagen.ServusManufacturingMultiblockProvider;
-import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import net.minecraft.world.item.Items;
 
@@ -55,9 +53,8 @@ final class WorkshopCategory extends CategoryProvider {
     }
 
     /** Albedo entries stay locked until the Villach chapter is finished, like the Schwaz chapter. */
-    private static BookEntryModel albedo(BookEntryModel entry) {
-        return entry.withCondition(BookAdvancementConditionModel.create()
-                .withAdvancementId(Journal.advancementId(ServusManufacturingIds.MOD_ID + ":villach")));
+    private BookEntryModel albedo(BookEntryModel entry) {
+        return entry.withCondition(condition().researchNodeUnlocked(JournalResearch.VILLACH));
     }
 
     private WorkshopEntry principles() {

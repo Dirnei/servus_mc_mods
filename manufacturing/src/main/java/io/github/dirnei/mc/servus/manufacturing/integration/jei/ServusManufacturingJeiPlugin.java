@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.integration.jei;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CalcinationRecipe;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurificationRecipe;
@@ -54,10 +55,10 @@ public final class ServusManufacturingJeiPlugin implements IModPlugin {
         if (minecraft.level == null) {
             return;
         }
-        registration.addRecipes(CALCINATION, minecraft.level.recipeAccess().getAllRecipesFor(ServusManufacturingRecipes.CALCINATION.get()));
-        registration.addRecipes(PURIFICATION, minecraft.level.recipeAccess().getAllRecipesFor(ServusManufacturingRecipes.PURIFICATION.get()));
-        registration.addRecipes(COAGULATION, CoagulatorBlockEntity.sortedRecipes(minecraft.level.recipeAccess()));
-        registration.addRecipes(ATHANOR, minecraft.level.recipeAccess().getAllRecipesFor(ServusManufacturingRecipes.ATHANOR.get()));
+        registration.addRecipes(CALCINATION, ServusRecipes.all(minecraft.level, ServusManufacturingRecipes.CALCINATION.get()));
+        registration.addRecipes(PURIFICATION, ServusRecipes.all(minecraft.level, ServusManufacturingRecipes.PURIFICATION.get()));
+        registration.addRecipes(COAGULATION, CoagulatorBlockEntity.sortedRecipes(minecraft.level));
+        registration.addRecipes(ATHANOR, ServusRecipes.all(minecraft.level, ServusManufacturingRecipes.ATHANOR.get()));
     }
 
     @Override

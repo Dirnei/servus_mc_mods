@@ -5,15 +5,15 @@ import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.hollow.HollowTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import io.github.dirnei.mc.servus.foundation.client.RenderSubmit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent;
 
 /**
  * Draws what Elemental Sight shows of a Gnome Hollow: ore buds of the vein's yield on its faces, more and larger
@@ -32,23 +32,21 @@ public final class HollowRevealRenderer implements RevealRenderers.RevealRendere
     private static final ItemStack GNOME_CAP = new ItemStack(Items.RED_MUSHROOM);
 
     @Override
-    public void render(RenderLevelStageEvent event) {
+    public void render(SubmitCustomGeometryEvent event) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
         }
-        Vec3 camera = event.getCamera().getPosition();
+        Vec3 camera = event.getLevelRenderState().cameraRenderState.pos;
         PoseStack poseStack = event.getPoseStack();
-        MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
-        float time = (minecraft.level.getGameTime() % 400 + event.getPartialTick().getGameTimeDeltaPartialTick(false)) / 400F;
-        boolean any = false;
+        SubmitNodeCollector collector = event.getSubmitNodeCollector();
+        float time = (minecraft.level.getGameTime() % 400 + minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false)) / 400F;
         for (GnomeHollowBlockEntity hollow : HollowTracker.hollows()) {
             ItemStack yield = hollow.shownYield();
             BlockPos pos = hollow.getBlockPos();
             if (hollow.isRemoved() || yield.isEmpty() || pos.getCenter().distanceToSqr(camera) > RANGE_SQ) {
                 continue;
             }
-            any = true;
             poseStack.pushPose();
             poseStack.translate(pos.getX() - camera.x, pos.getY() - camera.y, pos.getZ() - camera.z);
             float ripeness = hollow.shownRipeness();
@@ -60,8 +58,7 @@ public final class HollowRevealRenderer implements RevealRenderers.RevealRendere
                 poseStack.translate(bud[0], bud[1], bud[2]);
                 poseStack.mulPose(Axis.YP.rotationDegrees(i * 45F + time * 360F));
                 poseStack.scale(scale, scale, scale);
-                minecraft.getItemRenderer().renderStatic(yield, ItemDisplayContext.FIXED, LightTexture.FULL_BRIGHT,
-                        OverlayTexture.NO_OVERLAY, poseStack, buffers, minecraft.level, i);
+                RenderSubmit.item(poseStack, collector, yield, ItemDisplayContext.FIXED, minecraft.level, i, LightCoordsUtil.FULL_BRIGHT);
                 poseStack.popPose();
             }
             if (hollow.shownBound()) {
@@ -70,14 +67,10 @@ public final class HollowRevealRenderer implements RevealRenderers.RevealRendere
                 poseStack.translate(0.5F, 1.2F + bob, 0.5F);
                 poseStack.mulPose(Axis.YP.rotationDegrees(time * 720F));
                 poseStack.scale(0.6F, 0.6F, 0.6F);
-                minecraft.getItemRenderer().renderStatic(GNOME_CAP, ItemDisplayContext.FIXED, LightTexture.FULL_BRIGHT,
-                        OverlayTexture.NO_OVERLAY, poseStack, buffers, minecraft.level, 99);
+                RenderSubmit.item(poseStack, collector, GNOME_CAP, ItemDisplayContext.FIXED, minecraft.level, 99, LightCoordsUtil.FULL_BRIGHT);
                 poseStack.popPose();
             }
             poseStack.popPose();
-        }
-        if (any) {
-            buffers.endBatch();
         }
     }
 }

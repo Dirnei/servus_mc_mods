@@ -2,7 +2,9 @@ package io.github.dirnei.mc.servus.foundation.transfer;
 
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
@@ -187,4 +189,32 @@ public final class Transfer {
             return extracted;
         }
     }
+
+    /**
+     * Fills a fluid container (a bucket) from a handler, what
+     * {@code FluidUtil.tryFillContainer} did: the filled container, or empty
+     * when nothing moved.
+     */
+    public static ItemStack fillContainer(ItemStack container, ResourceHandler<FluidResource> source) {
+        return moveWithContainer(container, source, true);
+    }
+
+    /** Empties a fluid container into a handler: the emptied container, or empty when nothing moved. */
+    public static ItemStack emptyContainer(ItemStack container, ResourceHandler<FluidResource> destination) {
+        return moveWithContainer(container, destination, false);
+    }
+
+    private static ItemStack moveWithContainer(ItemStack container, ResourceHandler<FluidResource> handler, boolean fill) {
+        ItemSlots slot = new ItemSlots(1);
+        slot.setStackInSlot(0, container.copyWithCount(1));
+        ResourceHandler<FluidResource> item = ItemAccess.forHandlerIndex(slot, 0).getCapability(Capabilities.Fluid.ITEM);
+        if (item == null) {
+            return ItemStack.EMPTY;
+        }
+        boolean moved = fill
+                ? ResourceHandlerUtil.moveFirst(handler, item, resource -> true, Integer.MAX_VALUE, current()) != null
+                : ResourceHandlerUtil.moveFirst(item, handler, resource -> true, Integer.MAX_VALUE, current()) != null;
+        return moved ? slot.getStackInSlot(0).copy() : ItemStack.EMPTY;
+    }
+
 }

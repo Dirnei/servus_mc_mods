@@ -2,11 +2,6 @@ package io.github.dirnei.mc.servus.manufacturing.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mojang.blaze3d.pipeline.TextureTarget;
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.VertexSorting;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturing;
 import java.io.IOException;
 import java.io.Reader;
@@ -16,18 +11,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.TitleScreen;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import org.joml.Matrix4f;
-import org.joml.Matrix4fStack;
 
 /**
  * Dev only: renders every item of the game data export as an inventory icon PNG for the documentation site, then
@@ -76,54 +62,14 @@ public final class IconExporter {
         }
     }
 
+    /**
+     * Not ported to Minecraft 26.1 yet: the 1.21.1 exporter drew into an off screen
+     * GL target with the removed RenderSystem matrix and texture calls. The GUI now
+     * renders through GpuDevice command encoders; until the exporter is rewritten
+     * against them it writes nothing (see the port change's tasks).
+     */
     private static int export(List<String> ids, Path output) throws IOException {
-        Minecraft minecraft = Minecraft.getInstance();
-        TextureTarget target = new TextureTarget(SIZE, SIZE, true, Minecraft.ON_OSX);
-        target.setClearColor(0, 0, 0, 0);
-
-        // The GUI projection of GameRenderer, scaled so one 16 unit item fills the target.
-        Matrix4f projection = new Matrix4f(RenderSystem.getProjectionMatrix());
-        VertexSorting sorting = RenderSystem.getVertexSorting();
-        RenderSystem.setProjectionMatrix(new Matrix4f().setOrtho(0, 16, 16, 0, 1000, ClientHooks.getGuiFarPlane()),
-                VertexSorting.ORTHOGRAPHIC_Z);
-        Matrix4fStack modelView = RenderSystem.getModelViewStack();
-        modelView.pushMatrix();
-        modelView.translation(0, 0, 10000F - ClientHooks.getGuiFarPlane());
-        RenderSystem.applyModelViewMatrix();
-        Lighting.setupFor3DItems();
-
-        int written = 0;
-        try {
-            for (String id : ids) {
-                Identifier location = Identifier.parse(id);
-                Item item = BuiltInRegistries.ITEM.getValue(location);
-                if (item == Items.AIR) {
-                    ServusManufacturing.LOGGER.warn("Icon export: unknown item {}", id);
-                    continue;
-                }
-                target.clear(Minecraft.ON_OSX);
-                target.bindWrite(true);
-                GuiGraphicsExtractor graphics = new GuiGraphicsExtractor(minecraft, minecraft.renderBuffers().bufferSource());
-                graphics.item(new ItemStack(item), 0, 0);
-                graphics.flush();
-
-                Path file = output.resolve(location.getNamespace()).resolve(location.getPath() + ".png");
-                Files.createDirectories(file.getParent());
-                try (NativeImage image = new NativeImage(SIZE, SIZE, false)) {
-                    RenderSystem.bindTexture(target.getColorTextureId());
-                    image.downloadTexture(0, false);
-                    image.flipY();
-                    image.writeToFile(file);
-                }
-                written++;
-            }
-        } finally {
-            modelView.popMatrix();
-            RenderSystem.applyModelViewMatrix();
-            RenderSystem.setProjectionMatrix(projection, sorting);
-            target.destroyBuffers();
-            minecraft.getMainRenderTarget().bindWrite(true);
-        }
-        return written;
+        ServusManufacturing.LOGGER.warn("Icon export is not ported to Minecraft 26.1 yet; {} icons skipped", ids.size());
+        return 0;
     }
 }

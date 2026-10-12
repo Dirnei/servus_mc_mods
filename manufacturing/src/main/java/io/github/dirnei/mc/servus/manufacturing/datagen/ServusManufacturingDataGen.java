@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import io.github.dirnei.mc.servus.manufacturing.datagen.book.JournalResearch;
+import com.klikli_dev.modonomicon.api.datagen.research.ResearchCache;
+import com.klikli_dev.modonomicon.api.datagen.NeoResearchProvider;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.datagen.gamedata.GameDataExportProvider;
 import java.util.List;
@@ -15,8 +18,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import com.klikli_dev.modonomicon.api.datagen.LanguageProviderCache;
 import com.klikli_dev.modonomicon.api.datagen.NeoBookProvider;
 import io.github.dirnei.mc.servus.manufacturing.datagen.book.JournalBook;
-import net.neoforged.neoforge.common.data.AdvancementProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.minecraft.data.advancements.AdvancementProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 @EventBusSubscriber(modid = ServusManufacturingIds.MOD_ID)
@@ -26,28 +28,28 @@ public final class ServusManufacturingDataGen {
     }
 
     @SubscribeEvent
-    public static void gather(GatherDataEvent event) {
+    public static void gather(GatherDataEvent.Client event) {
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
-        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         CompletableFuture<HolderLookup.Provider> lookup = event.getLookupProvider();
 
-        // The book provider fills the language cache, so it runs before the language provider writes it.
+        // The book and research providers fill the language cache, so they run before the language provider writes it.
         LanguageProviderCache bookLang = new LanguageProviderCache("en_us");
-        generator.addProvider(event.includeServer(), NeoBookProvider.of(event, lookup, new JournalBook(bookLang)));
-        generator.addProvider(event.includeClient(), new ServusManufacturingLanguageProvider(output, bookLang));
-        generator.addProvider(event.includeClient(), new ServusManufacturingBlockStateProvider(output, existingFileHelper));
-        generator.addProvider(event.includeClient(), new ServusManufacturingItemModelProvider(output, existingFileHelper));
+        ResearchCache research = new ResearchCache();
+        event.addProvider(NeoBookProvider.of(event, bookLang, research, new JournalBook()));
+        event.addProvider(NeoResearchProvider.of(event, bookLang, research, new JournalResearch()));
+        event.addProvider(new ServusManufacturingLanguageProvider(output, bookLang));
+        event.addProvider(new ServusManufacturingBlockStateProvider(output));
+        event.addProvider(new ServusManufacturingItemModelProvider(output));
 
-        generator.addProvider(event.includeServer(), new ServusManufacturingBlockTagsProvider(output, lookup, existingFileHelper));
-        generator.addProvider(event.includeServer(), new ServusManufacturingRecipeProvider(output, lookup));
-        generator.addProvider(event.includeServer(), new ServusManufacturingMultiblockProvider(output));
-        generator.addProvider(event.includeServer(), new AdvancementProvider(output, lookup, existingFileHelper,
-                List.of(new JournalAdvancements())));
-        generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
+        event.addProvider(new ServusManufacturingBlockTagsProvider(output, lookup));
+        event.addProvider(new ServusManufacturingRecipeProvider.Runner(output, lookup));
+        event.addProvider(new ServusManufacturingMultiblockProvider(output));
+        event.addProvider(new AdvancementProvider(output, lookup, List.of(new JournalAdvancements())));
+        event.addProvider(new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(ServusManufacturingBlockLoot::new, LootContextParamSets.BLOCK)),
                 lookup));
         // Last: reads the recipes and lang file written above.
-        generator.addProvider(event.includeServer(), new GameDataExportProvider());
+        event.addProvider(new GameDataExportProvider());
     }
 }
