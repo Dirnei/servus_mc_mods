@@ -4,8 +4,8 @@ Archive this change after `m11-wireless-packing-station` (archived) and before `
 
 ## 1. Packet inlet in Foundation
 
-- [ ] 1.1 Foundation `production/ServusFoundationCapabilities.java`: add `PACKET_INLET` as `BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "packet_inlet"), ResourceHandler.asClass())` with Javadoc (design.md D1). Run `gradlew :foundation:build`.
-- [ ] 1.2 Foundation `data/packet/PacketInlets.java` (new, public: packet inlet on the face, else `Capabilities.Item.BLOCK`, as `ItemView`) and `data/packet/PacketIo.java` (`accepts`, `insert`, `acceptable`, `settle` use it before `STOCK_SINK`; `available`, `extract` ask `STOCK_PROVIDER`, then it) (design.md D2). Run `gradlew :foundation:build` and `gradlew :foundation:runGameTestServer`; all Foundation GameTests stay green.
+- [x] 1.1 Foundation `production/ServusFoundationCapabilities.java`: add `PACKET_INLET` as `BlockCapability.createSided(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "packet_inlet"), ResourceHandler.asClass())` with Javadoc (design.md D1). Run `gradlew :foundation:build`.
+- [x] 1.2 Foundation `data/packet/PacketInlets.java` (new, public: packet inlet on the face, else `Capabilities.Item.BLOCK`, as `ItemView`) and `data/packet/PacketIo.java` (`accepts`, `insert`, `acceptable`, `settle` use it before `STOCK_SINK`; `available`, `extract` ask `STOCK_PROVIDER`, then it) (design.md D2). Run `gradlew :foundation:build` and `gradlew :foundation:runGameTestServer`; all Foundation GameTests stay green.
 - [ ] 1.3 Storage `cpu/CpuBlockEntity.java`: `extractable` uses `PacketInlets.handler` instead of `Capabilities.Item.BLOCK`. Run `gradlew build` and the Storage GameTests (nothing registers an inlet yet, so behaviour is unchanged).
 
 ## 2. Pure logic

@@ -11,7 +11,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** Moving items into and out of data members, and placing items that have nowhere to go. Server thread only. */
@@ -30,7 +29,7 @@ final class PacketIo {
     /** Whether the target can take items at all on that face. */
     static boolean accepts(ServerLevel level, BlockPos target, Direction face) {
         return level.isLoaded(target)
-                && (level.getCapability(Capabilities.Item.BLOCK, target, face) != null
+                && (PacketInlets.handler(level, target, face) != null
                 || level.getCapability(ServusFoundationCapabilities.STOCK_SINK, target, face) != null);
     }
 
@@ -39,7 +38,7 @@ final class PacketIo {
         if (stack.isEmpty() || !level.isLoaded(target)) {
             return stack;
         }
-        ItemView handler = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, target, face));
+        ItemView handler = PacketInlets.handler(level, target, face);
         if (handler != null) {
             return handler.insertItemStacked(stack.copy(), false);
         }
@@ -57,7 +56,7 @@ final class PacketIo {
         if (stack.isEmpty() || !level.isLoaded(target)) {
             return 0;
         }
-        ItemView handler = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, target, face));
+        ItemView handler = PacketInlets.handler(level, target, face);
         if (handler != null) {
             return stack.getCount() - handler.insertItemStacked(stack.copy(), true).getCount();
         }
@@ -79,7 +78,7 @@ final class PacketIo {
         if (provider != null) {
             return (int) Math.min(max, Math.max(0, provider.count(like)));
         }
-        ItemView handler = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, source, face));
+        ItemView handler = PacketInlets.handler(level, source, face);
         return handler == null ? 0 : count(handler, like, max);
     }
 
@@ -122,7 +121,7 @@ final class PacketIo {
         if (provider != null) {
             return provider.extract(like, max);
         }
-        ItemView handler = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, source, face));
+        ItemView handler = PacketInlets.handler(level, source, face);
         return handler == null ? ItemStack.EMPTY : take(handler, like, max);
     }
 
