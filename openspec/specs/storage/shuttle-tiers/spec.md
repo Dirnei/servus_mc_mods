@@ -33,7 +33,7 @@ A shuttle SHALL travel at the base speed plus a step per Speed count, from `shut
 
 #### Scenario: Faster with upgrades
 - **WHEN** one shuttle has no Speed upgrade and another has two, with the example numbers
-- **THEN** the first drives 0.15 blocks per tick and the second 0.23, and the second reaches a crate twelve rails away in about 52 ticks instead of 80
+- **THEN** the first drives 0.15 blocks per tick and the second 0.23, and the second reaches a rack twelve rails away in about 52 ticks instead of 80
 
 ### Requirement: Stops take time
 A shuttle SHALL stand still at each stop where it loads or unloads: at the source of a pick, at the Packing Station or terminal rail where it delivers, at the station of a put-away and at its target. A stop SHALL take a stop time plus a time per stack moved there, from `shuttle.json` (examples 10 ticks and 4 ticks per stack). Each Handling count SHALL shorten that time by a factor (example 0.8 per count), and a stop SHALL take at least one tick. Driving home and returning a load to its station SHALL take no stop time.

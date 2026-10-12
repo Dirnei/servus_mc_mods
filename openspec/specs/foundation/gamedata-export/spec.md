@@ -102,7 +102,7 @@ A dev client run with all Servus mods SHALL render every item listed in `gamedat
 
 #### Scenario: Block items and composed models
 - **WHEN** `gradlew iconExport` finishes
-- **THEN** `docs/src/icons/servus_storage/crate.png` shows the crate block in the inventory's three quarter view and `docs/src/icons/servus_storage/shuttle.png` shows the composed shuttle model, each 64x64 with transparent corners and visible pixels
+- **THEN** `docs/src/icons/servus_storage/heavy_rack.png` shows the Heavy Duty Rack block in the inventory's three quarter view and `docs/src/icons/servus_storage/shuttle.png` shows the composed shuttle model, each 64x64 with transparent corners and visible pixels
 
 #### Scenario: Normal client
 - **WHEN** the client is started with the normal run config

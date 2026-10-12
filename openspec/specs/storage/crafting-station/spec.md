@@ -7,10 +7,10 @@ The Crafting Station is Storage's own producer: a powerless block that crafts th
 ## Requirements
 
 ### Requirement: Crafting
-The station SHALL have nine input slots and four output slots. While it has a job with crafts left, it SHALL craft the job's pattern whenever the pattern's items are all present in the inputs and the result and remainders fit the outputs, each craft taking `work_ticks` (example 40) and counting one craft off the job. Finished items and remainders SHALL go to the outputs. Without a job it SHALL craft nothing. No power is needed.
+The station SHALL have nine input slots and four output slots. While it has a job with crafts left, it SHALL craft the job's pattern whenever the pattern's items are all present in the inputs and the result and remainders fit the outputs, each craft taking `work_ticks` (example 40) of work and counting one craft off the job. Finished items and remainders SHALL go to the outputs. Without a job it SHALL craft nothing. Its work SHALL be paid with FE from its warehouse's controller per working tick.
 
 #### Scenario: Sticks from planks
-- **WHEN** the station has a sticks job for 2 crafts and four planks are in the inputs
+- **WHEN** the station has a sticks job for 2 crafts, four planks are in the inputs and its warehouse has FE
 - **THEN** after the work time four sticks are in the outputs and two planks remain, and after the work time again eight sticks and the job has no crafts left
 
 #### Scenario: Outputs full
@@ -20,37 +20,6 @@ The station SHALL have nine input slots and four output slots. While it has a jo
 #### Scenario: No job
 - **WHEN** the station has no job and planks lie in its inputs
 - **THEN** nothing is crafted
-
-### Requirement: Machine like sides
-The station SHALL have a Lib side configuration like a machine: Auto, Input, Output, Both, Pull, Push and Off, all sides Auto by default except the front, which is fixed to Off, shown in the Lib side panel and cycled by the carrot. Through sides that allow insertion the inputs accept only items the current job's pattern uses, and nothing while the station has no job with crafts left; through sides that allow extraction the outputs can be taken. While the station has no job, items in the outputs SHALL be pushed into adjacent inventories through Auto and Push sides, checking regularly; while it holds a job it SHALL NOT push, because the CPU collects the job's outputs. Items the job uses SHALL be pulled from neighbours through Pull sides.
-
-#### Scenario: Packets feed the job
-- **WHEN** the station has a sticks job and packets of planks arrive over a data duct on an Auto side
-- **THEN** the planks go into the inputs
-
-#### Scenario: No job refuses
-- **WHEN** the station has no job and a hopper above offers planks
-- **THEN** the planks stay in the hopper
-
-#### Scenario: Unused item refused
-- **WHEN** the station has a sticks job and a hopper offers cobblestone
-- **THEN** the cobblestone is refused
-
-#### Scenario: Side off
-- **WHEN** the top side is Off, the station has a sticks job and a hopper above offers planks
-- **THEN** the planks stay in the hopper
-
-#### Scenario: Dock feeds and collects
-- **WHEN** the station has a sticks job, an Outbound Station faces it with planks in its buffer and an Inbound Station touches it, and the job ends after its crafts
-- **THEN** the planks move into the station, the sticks stay in its outputs while the job is held, and they end up in the Inbound Station's buffer once the job ends
-
-#### Scenario: Job outputs stay for the CPU
-- **WHEN** the station holds a sticks job, has crafted sticks and a Packing Station touches it on an Auto side
-- **THEN** the sticks stay in the outputs until the CPU collects them as packets, and the order finishes
-
-#### Scenario: Front closed
-- **WHEN** the station has a sticks job and an Outbound Station pushes planks against the station's front
-- **THEN** the planks stay in the outbound buffer
 
 ### Requirement: Station reports its production
 The station SHALL expose the Lib production capability with no fixed recipes, and the recipe of its job as active while the job has crafts left.
@@ -136,3 +105,53 @@ A Crafting Station whose output slots still hold items SHALL NOT be idle for job
 #### Scenario: Own outputs still collected
 - **WHEN** a station finishes the crafts of its job and its outputs wait for the CPU
 - **THEN** the CPU collects them as before and the station is idle once they are gone
+
+### Requirement: Station sides pull and push
+The station SHALL register no item capability, so hoppers, item pipes and machines can neither insert into nor extract from it and pipes show no item arm toward it. Packets SHALL feed its inputs and collect its outputs through its packet inlet, which takes only items the current job's pattern uses and nothing while the station has no job with crafts left. Every side but the front SHALL be Pull, Push or Off, all Push by default; the front is fixed to Off, shown in the Lib side panel and cycled by the carrot. While the station has no job, items in the outputs SHALL be pushed into adjacent inventories through Push sides, checking regularly; while it holds a job it SHALL NOT push, because the CPU collects the job's outputs. Items the job uses SHALL be pulled from neighbours through Pull sides.
+
+#### Scenario: Packets feed the job
+- **WHEN** the station has a sticks job and packets of planks arrive over a data duct
+- **THEN** the planks go into the inputs
+
+#### Scenario: No job refuses packets
+- **WHEN** the station has no job and packets of planks are sent to it
+- **THEN** the planks stay at their source
+
+#### Scenario: Unused item refused
+- **WHEN** the station has a sticks job and packets of cobblestone are sent to it
+- **THEN** the cobblestone stays at its source
+
+#### Scenario: Hopper above the station
+- **WHEN** the station has a sticks job and a hopper above it offers planks
+- **THEN** the planks stay in the hopper
+
+#### Scenario: Chest feeds and takes leftovers
+- **WHEN** the station has a sticks job, its top side is Pull with a chest of planks above it, its back is Push against an empty chest, and the order is cancelled after the first craft
+- **THEN** the planks move into the station, the sticks stay in its outputs while the job is held, and they end up in the back chest once the job ends
+
+#### Scenario: Job outputs stay for the CPU
+- **WHEN** the station holds a sticks job and has crafted sticks
+- **THEN** the sticks stay in the outputs until the CPU collects them as packets, and the order finishes
+
+#### Scenario: Item pipe beside the station
+- **WHEN** a duct with the Item Pipe and the data line is placed beside the station
+- **THEN** the duct shows a data arm but no item arm toward the station
+
+#### Scenario: Front closed
+- **WHEN** the player uses the carrot on the front
+- **THEN** the front stays Off
+
+### Requirement: Station pays FE while it works
+For every tick a Crafting Station works on a craft of its job it SHALL pay `crafting_station_fe_per_tick` (example 5, `storage/power.json`) from the controller of the first warehouse its data line reaches, the one with the lowest controller position. A station that is idle, waits for inputs or waits for room in its outputs SHALL pay nothing. A tick that cannot be paid SHALL not advance the craft: the station pauses with its progress kept, says so in its GUI and on its front, and goes on once the tick is paid. A station whose line reaches no online warehouse SHALL not craft.
+
+#### Scenario: One craft
+- **WHEN** a station crafts sticks with a work time of 40 ticks and 5 FE per tick
+- **THEN** the controller pays 200 FE for the craft
+
+#### Scenario: Power lost mid craft
+- **WHEN** the controller's buffer empties 30 ticks into a craft of 40
+- **THEN** the craft stops at 30 of 40, the station's GUI says it waits for power, and after FE arrives the craft finishes after 10 more ticks
+
+#### Scenario: Waiting for inputs is free
+- **WHEN** a station holds a job but its inputs have not arrived
+- **THEN** the controller pays nothing for it

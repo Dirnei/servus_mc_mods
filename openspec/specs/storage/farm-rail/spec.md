@@ -10,8 +10,8 @@ The Farm Rail is the rail shuttles drive along to tend crops. A connected run of
 The Farm Rail SHALL be a craftable variant of the Warehouse Rail that looks different from it. Every requirement of the Warehouse Rail SHALL apply to it: it stands, hangs and bridges gaps, auto connects to rails of both kinds, elevator segments, storage blocks, stations and garages, links into the warehouse network and holds nothing. Shuttles SHALL drive over farm rails like over any rail. The Farm Rail SHALL NOT be waterloggable. Sneak placement SHALL extend a run of rails like the Warehouse Rail does.
 
 #### Scenario: Joins the warehouse
-- **WHEN** a controller touches a farm rail, three farm rails run on from it and a crate stands beside the last one
-- **THEN** the crate is in the controller's warehouse
+- **WHEN** a controller touches a farm rail, three farm rails run on from it and a rack faces the last one
+- **THEN** the rack is in the controller's warehouse
 
 #### Scenario: Mixed run
 - **WHEN** a Warehouse Rail and a Farm Rail are placed side by side

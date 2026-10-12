@@ -26,33 +26,33 @@ A shuttle SHALL be a Shuttle Mk1, Mk2 or Mk3 item; Mk1 is craftable. Shuttles SH
 - **THEN** the warehouse has two shuttles, one that carries two stacks and one that carries eight
 
 ### Requirement: Shuttles move on the rail graph
-Each shuttle SHALL park on the home rail of its garage, the rail touching that garage. It SHALL travel only along rails and elevator segments at its own speed, the base speed plus its Speed upgrades (in `shuttle.json`, example 0.15 blocks per tick without upgrades). It SHALL change level only by riding a shaft's lift car. Stock in crates and foreign inventories that no shuttle can reach SHALL be served instantly. Stock in Heavy Duty Racks SHALL be served only by shuttles.
+Each shuttle SHALL park on the home rail of its garage, the rail touching that garage. It SHALL travel only along rails and elevator segments at its own speed, the base speed plus its Speed upgrades (in `shuttle.json`, example 0.15 blocks per tick without upgrades). It SHALL change level only by riding a shaft's lift car. All stock of a warehouse sits in Heavy Duty Racks and SHALL be served only by shuttles; a warehouse without a shuttle that reaches its racks serves nothing.
 
 #### Scenario: Round trip
-- **WHEN** a shuttle without Speed upgrades is sent to a crate six rails away at 0.15 blocks per tick
-- **THEN** it reaches the rail beside the crate after about 40 ticks, stands there for its stop, and is back at its garage about 40 ticks after leaving the crate
+- **WHEN** a shuttle without Speed upgrades is sent to a rack six rails away at 0.15 blocks per tick
+- **THEN** it reaches the rail in front of the rack after about 40 ticks, stands there for its stop, and is back at its garage about 40 ticks after leaving the rack
 
 #### Scenario: No home rail
 - **WHEN** a garage holds shuttles but no rail touches it
 - **THEN** its shuttles stay parked inside, serve nothing, and the summary says they are parked without a rail
 
 #### Scenario: No garage
-- **WHEN** a warehouse has crates on a rail and no garage
-- **THEN** requests for the crates' items are served instantly
+- **WHEN** a warehouse has racks on a rail and no garage
+- **THEN** the racks still join the warehouse and the terminal lists their contents, but nothing is picked or put away
 
 #### Scenario: Rack without a shuttle
 - **WHEN** a warehouse has a rack on a rail and no garage
-- **THEN** a request for an item that only sits in the rack is refused with the reason that it needs a shuttle
+- **THEN** a request for an item in the rack is refused with the reason that it needs a shuttle
 
 ### Requirement: Pick jobs
-A request at the storage terminal, or a shipment to a data member, SHALL be split into pick jobs of up to one stack each, one per source block and stack. A job SHALL ride a shuttle when the source touches a rail or segment some garage's home rail reaches and the warehouse has a shuttle; a job for a crate or foreign inventory no shuttle can reach SHALL be served instantly; a job for a rack SHALL only ever ride a shuttle. Among the free shuttles whose modules fit the job, the one with the shortest way SHALL take it, drive to the source rail, take the stack, drive to the rail of the Packing Station that ships the request and deliver. Pick jobs and put-away jobs SHALL share one queue and SHALL be taken in the order they were made.
+A request at the storage terminal, or a shipment to a data member, SHALL be split into pick jobs of up to one stack each, one per rack and stack. A job SHALL ride a shuttle when the rack's front rail is reached by some garage's home rail and the warehouse has a shuttle that fits the job; otherwise that part SHALL be refused with the reason or left missing. Among the free shuttles whose modules fit the job, the one with the shortest way SHALL take it, drive to the rack's rail, take the stack, drive to the rail of the Packing Station that ships the request and deliver. Pick jobs and put-away jobs SHALL share one queue and SHALL be taken in the order they were made.
 
 #### Scenario: Pick by shuttle
-- **WHEN** a player requests a stack of cobblestone and the only crate holding it stands beside a rail five blocks from a garage
+- **WHEN** a player requests a stack of cobblestone and the only rack holding it faces a rail five blocks from a garage
 - **THEN** nothing arrives at once, a shuttle drives there and to the Packing Station, and the cobblestone travels on as packets into the terminal's output slots
 
 #### Scenario: Request larger than a stack
-- **WHEN** a player requests 100 cobblestone held in one crate
+- **WHEN** a player requests 100 cobblestone held in one rack
 - **THEN** two pick jobs are made, of 64 and 36
 
 #### Scenario: Queued jobs
@@ -60,7 +60,7 @@ A request at the storage terminal, or a shipment to a data member, SHALL be spli
 - **THEN** the shuttle serves them one after another in the order they were made
 
 #### Scenario: Stock gone
-- **WHEN** the crate is emptied by hand before the shuttle arrives
+- **WHEN** the rack is emptied by hand before the shuttle arrives
 - **THEN** the shuttle returns with nothing and the request shows what is missing
 
 #### Scenario: Mixed queue
@@ -68,7 +68,7 @@ A request at the storage terminal, or a shipment to a data member, SHALL be spli
 - **THEN** the shuttle does the put-away first and the pick after it
 
 ### Requirement: Delivery
-A shuttle SHALL deliver its cargo into the delivery buffer of the block the job names: the outgoing buffer of a Packing Station for a request or shipment, the buffer of an Outbound Station for a feed. It drives to the rail touching that block. When the buffer has no room the shuttle SHALL wait beside it with its cargo until there is room. When the block is gone the cargo SHALL drop where it was. A destination touching no rail SHALL NOT take shuttle deliveries, and requests for it SHALL be served instantly or refused.
+A shuttle SHALL deliver its cargo into the delivery buffer of the block the job names: the outgoing buffer of a Packing Station for a request or shipment, the buffer of an Outbound Station for a feed. It drives to the rail touching that block. When the buffer has no room the shuttle SHALL wait beside it with its cargo until there is room. When the block is gone the cargo SHALL drop where it was. A destination touching no rail SHALL NOT take shuttle deliveries, and requests for it SHALL be refused.
 
 #### Scenario: Player left
 - **WHEN** the requesting player logs out before the shuttle arrives
@@ -83,7 +83,7 @@ A shuttle SHALL deliver its cargo into the delivery buffer of the block the job 
 - **THEN** no item is lost: the packets settle as the data line rules say
 
 #### Scenario: Terminal off the rails
-- **WHEN** the only Packing Station on the terminal's data line touches no rail and the player requests an item that only sits in a rack
+- **WHEN** the only Packing Station on the terminal's data line touches no rail and the player requests an item that sits in a rack
 - **THEN** the request is refused with the reason that there is no rail
 
 #### Scenario: Feed to a dock
@@ -106,7 +106,7 @@ Every player who can see a garage SHALL see its shuttles that are out on a job o
 - **THEN** no shuttle is drawn on its rail and the garage's right click says three shuttles, none out
 
 #### Scenario: Watching a put-away
-- **WHEN** a Mk1 shuttle carries cobblestone from the station to a crate
+- **WHEN** a Mk1 shuttle carries cobblestone from the station to a rack
 - **THEN** the shuttle shows cobblestone on that leg and nothing on the way home
 
 ### Requirement: Shuttles ride the lift car between floors
@@ -151,11 +151,11 @@ When a segment of a shaft is removed, every shuttle riding that shaft's car or w
 - **THEN** the pick job goes back to the front of the queue and nothing drops
 
 ### Requirement: Jobs go to shuttles whose modules fit
-Every job SHALL name the modules a shuttle needs for it and whether it is field work. Warehouse picks and put-aways SHALL need no module and SHALL NOT be field work. A free shuttle SHALL take a job only when it has every module the job needs and, for a job that is not field work, is not field only. A warehouse job that no shuttle of the warehouse fits SHALL be served as if the warehouse had no shuttle; a field job that no shuttle fits, or that no free fitting shuttle can drive to, SHALL be dropped, because field work needs a shuttle. A job that only busy shuttles fit SHALL wait in the queue while later jobs that free shuttles fit go ahead.
+Every job SHALL name the modules a shuttle needs for it and whether it is field work. Warehouse picks and put-aways SHALL need no module and SHALL NOT be field work. A free shuttle SHALL take a job only when it has every module the job needs and, for a job that is not field work, is not field only. A warehouse job that no shuttle of the warehouse fits SHALL be refused, or wait at its station, with the reason that it needs a shuttle; a field job that no shuttle fits, or that no free fitting shuttle can drive to, SHALL be dropped, because field work needs a shuttle. A job that only busy shuttles fit SHALL wait in the queue while later jobs that free shuttles fit go ahead.
 
 #### Scenario: Only field only shuttles
-- **WHEN** every shuttle of a warehouse is field only and a player requests cobblestone from a crate beside a rail
-- **THEN** the cobblestone is served instantly as without shuttles
+- **WHEN** every shuttle of a warehouse is field only and a player requests cobblestone from a rack on the rails
+- **THEN** the request is refused with the reason that it needs a shuttle
 
 #### Scenario: Shuttles of different tiers share the queue
 - **WHEN** a warehouse has a Mk1 shuttle and a Mk2 shuttle and two picks from different racks are made
@@ -208,3 +208,25 @@ The lift car SHALL start each trip from standing, speed up by the lift accelerat
 #### Scenario: Car trip
 - **WHEN** the car carries a shuttle two floors up
 - **THEN** it starts slowly, reaches its full speed, and slows down before it stops on the second floor
+
+### Requirement: Shuttles pay FE per block
+A shuttle SHALL pay `shuttle_fe_per_block` (example 20, `storage/power.json`) from its warehouse's controller for every block of rail or farm rail it starts to drive, whatever its job: picks, put-aways, deliveries, field runs and the way home. A ride on the lift car SHALL cost the same per block of height, paid in full when the car takes the shuttle. Standing, loading, unloading, field work at a plot and waiting SHALL cost nothing.
+
+#### Scenario: Six rails out and back
+- **WHEN** a shuttle drives to a rack six rails away and back with 20 FE per block
+- **THEN** the controller pays 240 FE for the trip
+
+#### Scenario: Lift ride
+- **WHEN** a shuttle rides the lift car up 4 floors of one block each
+- **THEN** the controller pays 80 FE when the car takes it
+
+### Requirement: Shuttles stop without power
+A shuttle that cannot pay for its next block SHALL stop at the start of that block, keep its cargo and its jobs, and drive on once the block is paid; a shuttle beside a shaft that cannot pay its ride SHALL wait there. A ride already paid SHALL finish. While the controller is in the no power state, no shuttle SHALL leave its garage for a new job; field runs SHALL not start either. Shuttles stopped for power SHALL be drawn standing on the rail.
+
+#### Scenario: Power lost mid trip
+- **WHEN** a shuttle carrying iron is three blocks from a Packing Station and the controller's buffer empties
+- **THEN** the shuttle stops at the next block with the iron, and after FE arrives it drives on and unloads the iron
+
+#### Scenario: No new jobs
+- **WHEN** a request needs a rack and the controller is in the no power state
+- **THEN** no shuttle leaves its garage and the job waits until the state ends

@@ -18,8 +18,8 @@ The Harvester SHALL be a craftable tool module. It SHALL go into a shuttle throu
 - **THEN** no shuttle drives onto the field and the crops stay on the field
 
 #### Scenario: Harvesters stay out of the warehouse
-- **WHEN** a warehouse has only a Harvester shuttle and a player requests cobblestone from a crate beside a rail
-- **THEN** the cobblestone is served instantly as without shuttles and the harvester stays in its garage
+- **WHEN** a warehouse has only a Harvester shuttle and a player requests cobblestone from a rack on the rails
+- **THEN** the request is refused because it needs a shuttle and the harvester stays in its garage
 
 #### Scenario: Tooltip warns about lifts
 - **WHEN** a player hovers over a Harvester item
@@ -63,8 +63,8 @@ For each plot the harvester works it SHALL:
 In harvest only mode the harvester SHALL only harvest. Crops that are not ripe and plots with other blocks SHALL be left alone. From each rail the harvester SHALL work the plots of the field nearest to that rail, no farther out than the field radius.
 
 #### Scenario: Harvest into storage
-- **WHEN** a field with wheat set has ripe wheat and the warehouse has a crate with room
-- **THEN** the harvester breaks the ripe wheat, the wheat ends up in the crate and the plots are planted with new wheat
+- **WHEN** a field with wheat set has ripe wheat and the warehouse has a rack with room on the harvester's floor
+- **THEN** the harvester breaks the ripe wheat, the wheat ends up in the rack and the plots are planted with new wheat
 
 #### Scenario: Till inside the strip only
 - **WHEN** a field with wheat set and radius 2 has dirt under empty plots 2 blocks from a rail and dirt 3 blocks from the rail, and the warehouse holds wheat seeds
@@ -97,23 +97,23 @@ To plant, the harvester SHALL take the field's crop item from its cargo, which h
 - **THEN** every harvested plot is planted again with seeds from the harvest and the spare seeds are put away
 
 #### Scenario: Seeds from storage
-- **WHEN** a hydrated field with wheat set has only empty farmland and a crate in the warehouse holds wheat seeds
-- **THEN** the harvester picks seeds from the crate, plants the farmland and the crate holds fewer seeds
+- **WHEN** a hydrated field with wheat set has only empty farmland and a rack on the harvester's floor holds wheat seeds
+- **THEN** the harvester picks seeds from the rack, plants the farmland and the rack holds fewer seeds
 
 ### Requirement: Harvest put-away
-The harvest SHALL go into warehouse storage by the put-away routing of inbound stations: zoned blocks listing the item first, then zoned blocks matching by tag, then general storage. The harvester SHALL drive to a rail of each target it can reach and insert there; a target no rail of the warehouse reaches SHALL take its part at once. A target whose rails the harvester reaches only by lift SHALL be skipped. A target may be a Heavy Duty Rack the harvester can reach. When no block it may use has room for some of the cargo, the harvester SHALL wait on the rail of its garage with that cargo and try again about once a second; it SHALL NOT go back to work meanwhile.
+The harvest SHALL go into warehouse storage by the put-away routing of inbound stations: zoned racks listing the item first, then zoned racks matching by tag, then general storage. The harvester SHALL drive to the front rail of each rack it can reach and insert there. A rack whose rails the harvester reaches only by lift SHALL be skipped. When no rack it may use has room for some of the cargo, the harvester SHALL wait on the rail of its garage with that cargo and try again about once a second; it SHALL NOT go back to work meanwhile.
 
 #### Scenario: Zones apply
-- **WHEN** a warehouse has a crate zoned for wheat and an unzoned crate, and a harvester brings wheat
-- **THEN** the wheat goes into the zoned crate
+- **WHEN** a warehouse has a rack zoned for wheat and an unzoned rack, and a harvester brings wheat
+- **THEN** the wheat goes into the zoned rack
 
 #### Scenario: Warehouse full
-- **WHEN** the only crate of a warehouse is full and a harvester comes back with wheat
-- **THEN** the harvester waits at its garage holding the wheat, and puts it away once the player empties the crate
+- **WHEN** the only rack of a warehouse is full and a harvester comes back with wheat
+- **THEN** the harvester waits at its garage holding the wheat, and puts it away once the player empties the rack
 
 #### Scenario: Storage upstairs is skipped
-- **WHEN** the crate zoned for wheat stands beside a rail one floor up, reached only by the shaft, and an unzoned crate stands on the harvester's floor
-- **THEN** the wheat goes into the crate on the harvester's floor
+- **WHEN** the rack zoned for wheat faces a rail one floor up, reached only by the shaft, and an unzoned rack stands on the harvester's floor
+- **THEN** the wheat goes into the rack on the harvester's floor
 
 ### Requirement: Runs that cannot go on
 - When the Field Head is removed or no longer serves the field, the harvester SHALL stop working, put away what it carries and go home.

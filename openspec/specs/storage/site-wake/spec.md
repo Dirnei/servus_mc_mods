@@ -71,13 +71,39 @@ Wake tickets SHALL be dropped when a world loads, and team registrations made by
 - **WHEN** an op runs the sites command with two sites recorded
 - **THEN** chat lists both with their names and chunk counts
 
-### Requirement: Record knows the wireless stations
-A site's record SHALL also keep the teams that have a powered Wireless Packing Station in the site's warehouse and, apart from them, the teams whose stations there are all unpowered, updated while the site is online when such a station joins, leaves or its powered state changes, and kept while it sleeps.
+### Requirement: Record knows whether the site can trade
+A site's record SHALL also keep whether its controller holds a Wireless Upgrade, whether the controller is powered for wireless, and whether the site has a Packing Station. The record SHALL be updated while the site is online when the upgrade is inserted or taken, when the powered state flips, and when the first Packing Station joins or the last one leaves, and SHALL be kept while the site sleeps. A sleeping site's controller keeps its FE, so the record stays right while it sleeps.
 
-#### Scenario: Station placed
-- **WHEN** a Wireless Packing Station of a team joins an online site by rail
-- **THEN** the site's record lists that team as having a Wireless Packing Station there
+#### Scenario: Upgrade inserted
+- **WHEN** a Wireless Upgrade goes into the controller of an online site with FE
+- **THEN** the site's record says it holds the upgrade and is powered for wireless
 
-#### Scenario: Station loses power
-- **WHEN** the only Wireless Packing Station of a team at an online site runs out of FE
-- **THEN** the site's record lists that team as having only unpowered stations there, and the site stays so while it sleeps
+#### Scenario: Controller loses power
+- **WHEN** the controller of an online site runs out of FE and its chunks unload
+- **THEN** the site's record says it is not powered for wireless, and stays so while the site sleeps
+
+#### Scenario: Last Packing Station removed
+- **WHEN** the only Packing Station of an online site is broken
+- **THEN** the site's record says it has no Packing Station
+
+### Requirement: Waking costs FE per chunk
+While a wake holds a site loaded, awake or in its grace time, the woken site's controller SHALL pay `wake_fe_per_chunk_per_tick` (example 2, `storage/power.json`) for every chunk of the site each tick. A site loaded by players or other chunk loaders without a wake SHALL pay nothing for being loaded. When a tick of a wake cannot be paid, the wake SHALL end at once and release every chunk it loaded, with the reason no power. A refused draw of another consumer (a shuttle, a Crafting Station) SHALL NOT end the wake.
+
+#### Scenario: Nine chunks
+- **WHEN** a site of 9 chunks is woken for 30 seconds with 2 FE per chunk and tick
+- **THEN** its controller pays 18 FE per tick, 10,800 FE in total
+
+#### Scenario: Runs dry while awake
+- **WHEN** a woken site's controller cannot pay the next tick
+- **THEN** the site's chunks are released and its wake line says no power
+
+### Requirement: No wake without power
+A site SHALL NOT wake unless its controller holds at least the FE for one second awake: chunks times `wake_fe_per_chunk_per_tick` times 20. For a sleeping site the FE SHALL be taken from its record; a request SHALL then wait with the reason "no power". The site record SHALL keep the FE its controller held when its chunk unloaded, refreshed with the stock snapshot while online.
+
+#### Scenario: Not enough stored
+- **WHEN** a site of 9 chunks sleeps with 100 FE in its controller and 2 FE per chunk and tick
+- **THEN** a wake is refused with the reason no power and no chunk is loaded
+
+#### Scenario: Enough stored
+- **WHEN** the same site slept with 5,000 FE
+- **THEN** it wakes and its chunks load

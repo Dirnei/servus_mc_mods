@@ -13,8 +13,8 @@ The Spreader SHALL be a craftable tool module. It SHALL go into a shuttle throug
 - **THEN** the shuttle has the Spreader as its tool
 
 #### Scenario: Spreaders stay out of the warehouse
-- **WHEN** a warehouse has only a Spreader shuttle and a player requests cobblestone from a crate beside a rail
-- **THEN** the cobblestone is served instantly as without shuttles and the Spreader stays in its garage
+- **WHEN** a warehouse has only a Spreader shuttle and a player requests cobblestone from a rack on the rails
+- **THEN** the request is refused because it needs a shuttle and the Spreader stays in its garage
 
 #### Scenario: Spreaders do not harvest
 - **WHEN** a warehouse has only a Spreader shuttle and its field has a harvest due
@@ -40,15 +40,15 @@ At every field check (`field_check_interval`) a warehouse SHALL queue a fertiliz
 - **THEN** the Spreader serves one field and then the other
 
 ### Requirement: Fertilizer from stock above the reserve
-Before it drives to the field the Spreader SHALL pick the field's fertilizer from the warehouse: the plots that need a dose times `doses_per_plot` (in `field.json`, example 2), but never more than the warehouse holds above the head's reserve and never more than its cargo has room for. It SHALL drive to a storage block holding the fertilizer, and to further ones while it is short; a block no rail reaches SHALL give its part at once. Storage it reaches only by lift SHALL be skipped. With nothing above the reserve no run SHALL go out.
+Before it drives to the field the Spreader SHALL pick the field's fertilizer from the warehouse: the plots that need a dose times `doses_per_plot` (in `field.json`, example 2), but never more than the warehouse holds above the head's reserve and never more than its cargo has room for. It SHALL drive to a rack holding the fertilizer, and to further ones while it is short. Racks it reaches only by lift SHALL be skipped. With nothing above the reserve no run SHALL go out.
 
 #### Scenario: Picks what the plots need
-- **WHEN** two plots need a dose, `doses_per_plot` is 2, the reserve is 0 and a crate holds 20 bone meal
-- **THEN** the Spreader takes 4 bone meal from the crate
+- **WHEN** two plots need a dose, `doses_per_plot` is 2, the reserve is 0 and a rack holds 20 bone meal
+- **THEN** the Spreader takes 4 bone meal from the rack
 
 #### Scenario: Stock equal to the reserve
 - **WHEN** a field's reserve is 10 and the warehouse holds exactly 10 bone meal
-- **THEN** no Spreader drives out and the crate keeps its 10 bone meal
+- **THEN** no Spreader drives out and the rack keeps its 10 bone meal
 
 #### Scenario: Only the part above the reserve
 - **WHEN** four plots need a dose, `doses_per_plot` is 2, the reserve is 5 and the warehouse holds 8 bone meal
@@ -65,13 +65,6 @@ On the field the Spreader SHALL drive to the nearest farm rail whose plots need 
 - **WHEN** a field set to fertilize until a ripe share has one ripe and one young wheat plot
 - **THEN** only the young wheat gets doses
 
-### Requirement: Leftover put away
-When no plot needs a dose any more, fertilizer the Spreader still carries SHALL go back into warehouse storage by the put-away routing of the harvest, to blocks it can reach or that take their part at once; when nothing has room it SHALL wait at its garage and try again about once a second. Then it SHALL go home.
-
-#### Scenario: Leftover back in the crate
-- **WHEN** a Spreader took 3 bone meal for a wheat plot one dose short of ripe
-- **THEN** the plot gets one dose and the other 2 bone meal go back into the crate
-
 ### Requirement: Fertilize runs that cannot go on
 When the Field Head is removed, no longer serves the field or fertilizing is turned off during a run, the Spreader SHALL stop dosing, put away what it carries and go home. When the rail it stands on or drives over is removed, its garage loses the way home, its garage is removed or the player recalls the garage's shuttles, it SHALL be back in its garage and its cargo SHALL drop at the garage. A fertilize run that ends in one of these ways SHALL NOT be queued again by itself.
 
@@ -82,3 +75,10 @@ When the Field Head is removed, no longer serves the field or fertilizing is tur
 #### Scenario: Recall
 - **WHEN** the player recalls the garage while its Spreader is out
 - **THEN** the Spreader is back in its garage and its fertilizer lies on the ground at the garage
+
+### Requirement: Leftover goes back to a rack
+When no plot needs a dose any more, fertilizer the Spreader still carries SHALL go back into warehouse storage by the put-away routing of the harvest, to racks it can reach; when nothing has room it SHALL wait at its garage and try again about once a second. Then it SHALL go home.
+
+#### Scenario: Leftover back in the rack
+- **WHEN** a Spreader took 3 bone meal for a wheat plot one dose short of ripe
+- **THEN** the plot gets one dose and the other 2 bone meal go back into the rack

@@ -47,7 +47,7 @@ Selecting an item SHALL highlight that item, every recipe that produces it and, 
 
 #### Scenario: Shuttle
 - **WHEN** the user selects the shuttle
-- **THEN** the shuttle recipe, the rail and its recipe, iron ingot, redstone and stick are highlighted and the crate recipe is dimmed
+- **THEN** the shuttle recipe, the rail and its recipe, iron ingot, redstone and stick are highlighted and the Heavy Duty Rack recipe is dimmed
 
 ### Requirement: Item panel
 Selecting an item SHALL open a panel with the item's name and mod, the drawn recipes that produce it with their inputs (shaped recipes drawn as their grid), and the drawn recipes that use it.

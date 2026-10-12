@@ -22,21 +22,21 @@ The Storage Terminal GUI SHALL list every indexed item of the warehouses it reac
 - **THEN** the grid shows cobblestone, bread, apple
 
 ### Requirement: Push into the warehouse
-Clicking the grid with a carried stack SHALL move it into the Input row, and shift clicking an inventory slot SHALL move that slot into the Input row; the Input row stores it. What does not fit into the Input row SHALL stay on the cursor or in the inventory slot. Stored items reach racks, crates and foreign inventories through a Packing Station like any intake.
+Clicking the grid with a carried stack SHALL move it into the Input row, and shift clicking an inventory slot SHALL move that slot into the Input row; the Input row stores it. What does not fit into the Input row SHALL stay on the cursor or in the inventory slot. Stored items reach the warehouse's racks through a Packing Station and a shuttle put-away like any intake.
 
 #### Scenario: Shift click to store
-- **WHEN** the player shift clicks 20 cobblestone in the inventory while a Packing Station of the warehouse is on the line
-- **THEN** the slot is empty and the warehouse holds 20 more cobblestone once they are put away
+- **WHEN** the player shift clicks 20 cobblestone in the inventory while a Packing Station of a warehouse with a shuttle is on the line
+- **THEN** the slot is empty and the warehouse holds 20 more cobblestone once a shuttle has put them away
 
 #### Scenario: Only racks have room
-- **WHEN** the player pushes bread while every crate is full and a rack has room
+- **WHEN** the player pushes bread and a rack has room
 - **THEN** a shuttle puts the bread into the rack
 
 ### Requirement: Live stock while open
 The terminal SHALL send its full content (stock, craftable items, requests, rules) when the game opens the screen, without waiting for the periodic update. The client SHALL keep the last content of each terminal for the session and SHALL show it at once when that terminal is opened again, replacing it when the fresh content arrives; the screen SHALL show a loading hint only while it has no content for that terminal yet. While the GUI is open the stock shown SHALL refresh within half a second after the index changes, without resending when nothing changed.
 
 #### Scenario: Machine output arrives
-- **WHEN** a hopper puts 10 bread into a crate while the GUI is open
+- **WHEN** a machine's output reaches an Inbound Station and a shuttle puts 10 bread from it into a rack while the GUI is open
 - **THEN** the bread count rises within a second
 
 #### Scenario: Instant content
@@ -66,14 +66,14 @@ The Storage Terminal SHALL be crafted from glass, iron ingots, a chest and plank
 - **THEN** a Storage Terminal is produced
 
 ### Requirement: Request items
-Clicking an entry SHALL open an amount prompt defaulting to one stack, with buttons for -stack, -10, -1, +1, +10 and +stack and a text field, and confirming SHALL create a request for that amount. +stack SHALL raise the amount to the next full stack above it and -stack SHALL lower it to the full stack below it; the amount SHALL stay between 1 and 99999. Shift clicking an entry SHALL request one stack at once, or the whole stock of that item when it holds less than one stack. A request SHALL be shipped through the Packing Station with the shortest shuttle trip that shares the terminal's data line: picks land in that Packing Station (instantly for stock no shuttle can reach in crates and foreign inventories, by shuttle for stock a shuttle can reach, never instantly from a rack) and travel on as packets into the output slots. A request SHALL be refused with the reason when no Packing Station shares the line, when its stock sits only in racks no shuttle can reach, or when it needs a shuttle while the Packing Station touches no rail. When stock falls short and a producer can make the item, the shortfall SHALL become a work order linked to the request.
+Clicking an entry SHALL open an amount prompt defaulting to one stack, with buttons for -stack, -10, -1, +1, +10 and +stack and a text field, and confirming SHALL create a request for that amount. +stack SHALL raise the amount to the next full stack above it and -stack SHALL lower it to the full stack below it; the amount SHALL stay between 1 and 99999. Shift clicking an entry SHALL request one stack at once, or the whole stock of that item when it holds less than one stack. A request SHALL be shipped through the Packing Station with the shortest shuttle trip that shares the terminal's data line: shuttles pick the items from the racks into that Packing Station, and they travel on as packets into the output slots. A request SHALL be refused with the reason when no Packing Station shares the line, when no shuttle can reach the racks holding the item (needs a shuttle), or when the Packing Station touches no rail. When stock falls short and a producer can make the item, the shortfall SHALL become a work order linked to the request.
 
 #### Scenario: Request a stack
-- **WHEN** the player shift clicks cobblestone, the warehouse holds 50 in a crate touching the controller and has no garage
-- **THEN** a request for 50 is made, 50 cobblestone arrive in the output slots as packets shortly after and nothing is left missing
+- **WHEN** the player shift clicks cobblestone, the warehouse holds 50 in a rack on the rails and has a garage with a shuttle
+- **THEN** a request for 50 is made, a shuttle brings them to the Packing Station, 50 cobblestone arrive in the output slots as packets and nothing is left missing
 
 #### Scenario: Request an amount
-- **WHEN** the player clicks iron ingots, presses +10 three times and confirms, and the ingots sit in a crate beside a rail with a shuttle available
+- **WHEN** the player clicks iron ingots, presses +10 three times and confirms, and the ingots sit in a rack beside a rail with a shuttle available
 - **THEN** a request for 94 is listed, a shuttle fetches two loads to the Packing Station, and 94 ingots land in the output slots over time
 
 #### Scenario: Stack steps
@@ -85,7 +85,7 @@ Clicking an entry SHALL open an amount prompt defaulting to one stack, with butt
 - **THEN** the amount is 1
 
 #### Scenario: Rack needs a shuttle
-- **WHEN** the player requests bread that only sits in a rack and the warehouse has no garage
+- **WHEN** the player requests bread that sits in a rack and the warehouse has no garage
 - **THEN** the request is refused and the GUI says the item needs a shuttle
 
 #### Scenario: No Packing Station
@@ -97,11 +97,11 @@ Clicking an entry SHALL open an amount prompt defaulting to one stack, with butt
 - **THEN** 70 are delivered and the request shows 30 missing until more arrives or it is cancelled
 
 #### Scenario: Shortage ordered
-- **WHEN** the player requests 8 sticks, none are in stock, and an Outbound Station faces a Crafting Station with the sticks recipe
+- **WHEN** the player requests 8 sticks, none are in stock, and a Crafting Station on the line with a formed CPU can make sticks from a pattern
 - **THEN** the request is listed as producing and the sticks arrive in the output slots once crafted
 
 ### Requirement: Output slots
-The terminal SHALL have `terminal_output_slots` output slots (example 9, from `warehouse.json`, at most 9 shown) in one Output row below the Input row. Deliveries SHALL land there and the player SHALL take them out by hand or shift click. The output slots SHALL NOT be indexed as warehouse stock. Automation SHALL only insert into them as the automation inserts requirement says; nothing SHALL be extracted from them by hoppers or ducts. Breaking the terminal SHALL drop their contents.
+The terminal SHALL have `terminal_output_slots` output slots (example 9, from `warehouse.json`, at most 9 shown) in one Output row below the Input row. Deliveries SHALL land there as packets and the player SHALL take them out by hand or shift click. The output slots SHALL NOT be indexed as warehouse stock. Hoppers, item pipes and other automation SHALL neither insert into nor extract from them. Breaking the terminal SHALL drop their contents.
 
 #### Scenario: Collect
 - **WHEN** packets have delivered 64 cobblestone into the output slots
@@ -150,7 +150,7 @@ The amount prompt SHALL have a Rule mode with minimum and maximum fields, Save a
 - **THEN** the marker and tooltip line are gone
 
 ### Requirement: Terminal sits on the data line
-The Storage Terminal SHALL be a member of a data line with the link role, and SHALL NOT join a warehouse network by touching rails, crates, racks or controllers. A warehouse SHALL be reachable from the terminal when its controller or one of its Packing Stations is a member of the terminal's data network and the warehouse is online. The terminal's lamp SHALL be lit while at least one warehouse is reachable.
+The Storage Terminal SHALL be a member of a data line with the link role, and SHALL NOT join a warehouse network by touching rails, racks or controllers. A warehouse SHALL be reachable from the terminal when its controller or one of its Packing Stations is a member of the terminal's data network and the warehouse is online. The terminal's lamp SHALL be lit while at least one warehouse is reachable.
 
 #### Scenario: Reached over the data line
 - **WHEN** a terminal and a Packing Station of an online warehouse are linked by data ducts
@@ -274,24 +274,6 @@ The crafting popup SHALL have a 3x3 crafting grid with a result slot. The result
 - **WHEN** the player puts a plank above a plank into the grid and takes the result
 - **THEN** the player gets four sticks and the planks are used up
 
-### Requirement: Grid refills from the warehouse
-After every craft, each grid slot that lost an ingredient SHALL be topped up with one of the same item from the instant stock of the warehouses the terminal reaches, crates and foreign inventories but not Heavy Duty Racks. Shift clicking the result SHALL craft again and again while the grid still matches and the player inventory has room.
-
-#### Scenario: Shift craft from a crate
-- **WHEN** the grid holds a plank above a plank, a crate on the line holds 6 planks and the player shift clicks the result
-- **THEN** the player gets 16 sticks, the crate holds no planks and the grid is empty
-
-#### Scenario: Rack stock is not used
-- **WHEN** the only planks are in a Heavy Duty Rack and the player crafts the last sticks the grid can make
-- **THEN** the grid stays empty and the rack keeps its planks
-
-### Requirement: Pull a stack to the cursor
-Alt clicking a stock entry with an empty cursor SHALL put up to one stack of that item from instant stock onto the cursor. With a carried stack or without instant stock nothing SHALL happen. Plain, shift, Ctrl and middle clicks on entries SHALL keep their request and craft meanings.
-
-#### Scenario: Pull planks
-- **WHEN** a crate holds 80 planks and the player Alt clicks the planks entry
-- **THEN** the cursor holds 64 planks and the crate 16
-
 ### Requirement: Clear the grid
 A clear button in the crafting popup SHALL move every grid stack into the Input row, which stores it; what does not fit SHALL go to the player inventory, and what still does not fit SHALL drop at the player.
 
@@ -307,11 +289,15 @@ When the terminal screen closes, the grid contents SHALL go into the Input row, 
 - **THEN** the plank is stored through the Input row
 
 ### Requirement: JEI fills the grid
-With JEI installed, the transfer button on a vanilla crafting recipe while the Storage Terminal is open SHALL open the crafting popup, move the grid contents back to the warehouse and fill the grid with the recipe's ingredients, taking each from instant warehouse stock first and from the player inventory second. Ingredients found in neither SHALL leave their grid slot empty. With max transfer the grid SHALL be filled for as many crafts as fit in a stack.
+With JEI installed, the transfer button on a vanilla crafting recipe while the Storage Terminal is open SHALL open the crafting popup, move the grid contents into the Input row, which stores them, and fill the grid with the recipe's ingredients taken from the player inventory. Ingredients the player does not carry SHALL leave their grid slot empty. With max transfer the grid SHALL be filled for as many crafts as fit in a stack.
 
 #### Scenario: Transfer sticks
-- **WHEN** a crate holds planks and the player presses JEI's transfer button on the stick recipe
-- **THEN** the grid holds a plank above a plank taken from the crate and the result shows four sticks
+- **WHEN** the player carries planks and presses JEI's transfer button on the stick recipe
+- **THEN** the grid holds a plank above a plank taken from the player inventory and the result shows four sticks
+
+#### Scenario: Warehouse stock is not used
+- **WHEN** the player carries no planks, a rack holds planks and the player presses JEI's transfer button on the stick recipe
+- **THEN** the grid stays empty and the rack keeps its planks
 
 ### Requirement: View settings
 The side column SHALL have buttons, each with an icon and a tooltip naming its current value, for the sort (name, amount, mod), the direction (ascending, descending), the view (all, stock, craftable), the search mode (normal, JEI synced, JEI two way) and the height (small, medium, tall, auto). The settings SHALL be saved per player on the client, SHALL be the same for every Storage Terminal and SHALL be kept across restarts.
@@ -332,7 +318,7 @@ With JEI installed, the search mode JEI synced SHALL copy the terminal's search 
 - **THEN** the search mode stays normal and the terminal works unchanged
 
 ### Requirement: Input row
-The Storage Terminal SHALL have an Input row of 9 slots below the item grid. Stacks in the Input row SHALL be moved over the data line to the Packing Station on the terminal's data line nearest to the terminal, which puts them away like any intake (racks by shuttle, zones, crates and foreign inventories). Items SHALL leave the Input row only as fast as the Packing Station takes them: at most its conversion rate into storage and only while its To storage buffer has room, so the row shrinks over time and keeps what the station cannot take yet. Without a Packing Station on the line the stacks SHALL stay and the message line SHALL say that no Packing Station is on the data line. The input slots SHALL NOT be indexed as warehouse stock, also when the terminal touches a storage node or the controller, SHALL never be a put-away target or a source for picks, and SHALL be saved with the terminal and dropped when it breaks.
+The Storage Terminal SHALL have an Input row of 9 slots below the item grid, filled by the player and by packets that no request of the terminal waits for. Stacks in the Input row SHALL be moved over the data line to the Packing Station on the terminal's data line nearest to the terminal, which puts them away like any intake (racks by shuttle, zones). Items SHALL leave the Input row only as fast as the Packing Station takes them: at most its conversion rate into storage and only while its To storage buffer has room, so the row shrinks over time and keeps what the station cannot take yet. Without a Packing Station on the line the stacks SHALL stay and the message line SHALL say that no Packing Station is on the data line. The input slots SHALL NOT be indexed as warehouse stock, also when the terminal touches a storage node or the controller, SHALL never be a put-away target or a source for picks, and SHALL be saved with the terminal and dropped when it breaks.
 
 #### Scenario: Hand in cobblestone
 - **WHEN** the player puts 20 cobblestone into an input slot while a Packing Station of the warehouse is on the line
@@ -358,16 +344,9 @@ The Storage Terminal SHALL have an Input row of 9 slots below the item grid. Sta
 - **WHEN** the player puts logs into the Input row and no storage of the warehouse has room for them
 - **THEN** the Packing Station shows the blocked lamp and its status line says why, instead of the logs waiting silently
 
-### Requirement: Automation inserts
-A hopper, duct or packet inserting into the terminal SHALL put items an open request of the terminal still waits for into the output slots, and every other item into the input slots, which store it. Nothing SHALL be extracted from the terminal by automation.
-
-#### Scenario: Hopper hands in
-- **WHEN** a hopper above the terminal holds cobblestone and no request waits for cobblestone
-- **THEN** the cobblestone goes through the input slots into the warehouse
-
-#### Scenario: Delivery lands in the output
-- **WHEN** a request waits for sticks and packets deliver sticks
-- **THEN** the sticks land in the output slots
+#### Scenario: Hopper above the terminal
+- **WHEN** a hopper above the terminal holds cobblestone
+- **THEN** the cobblestone stays in the hopper and the Input row is unchanged
 
 ### Requirement: Crafting popup
 A Craft button on the title row SHALL open a popup over the item grid with the 3x3 crafting grid, its arrow, result slot and clear button. While the popup is closed its slots SHALL NOT take clicks or show. Closing the popup SHALL store the grid contents like the clear button. JEI's transfer button SHALL open the popup before filling the grid.
@@ -381,11 +360,19 @@ A Craft button on the title row SHALL open a popup over the item grid with the 3
 - **THEN** the grid is empty and the warehouse holds two more planks
 
 ### Requirement: Other sites in the terminal
-The Storage Terminal's title SHALL be a site selector: "This site" shows the stock of the warehouses the terminal reaches as before; clicking cycles through the other sites of the team in the same dimension that have a Wireless Packing Station of the team, powered or not, by name, and back. The team SHALL be the team of the first warehouse the terminal reaches. An online site SHALL show its live stock; a sleeping site SHALL show its last known stock with every entry greyed out and a line saying when it can wake or that it cannot be ordered from. A site whose Wireless Packing Stations of the team are all unpowered SHALL show a line in the alert colour saying its Wireless Packing Station has no power. While another site is shown, the craft list, stock rules and pulling to the cursor SHALL apply to nothing; the open requests and the Input and Output rows stay those of this terminal. While another site is shown the Input row SHALL be closed: no click, shift click, carried stack or grid clear puts items into it, it is drawn greyed with a grey arrow, and hovering it says that it is closed while another site is shown, because what is handed in would be stored at this site.
+The Storage Terminal's title SHALL be a site selector only while the controller of the first warehouse the terminal reaches is wireless capable. "This site" shows the stock of the warehouses the terminal reaches as before; clicking cycles through the other sites of the same team in the same dimension whose controller holds a Wireless Upgrade, powered or not, by name, and back. While this site's controller is not wireless capable the title SHALL show only this site, clicking it SHALL do nothing, and a terminal that showed another site SHALL go back to "This site". An online site SHALL show its live stock; a sleeping site SHALL show its last known stock with every entry greyed out and a line saying when it can wake or that it cannot be ordered from. A site whose controller has no power SHALL show a line in the alert colour saying it has no power for wireless. While another site is shown, the craft list and stock rules SHALL apply to nothing; the open requests and the Input and Output rows stay those of this terminal. While another site is shown the Input row SHALL be closed: no click, shift click, carried stack or grid clear puts items into it, it is drawn greyed with a grey arrow, and hovering it says that it is closed while another site is shown, because what is handed in would be stored at this site. No text of the terminal SHALL use the word team.
 
 #### Scenario: Pick the outpost
-- **WHEN** a base terminal is open and the team's outpost has a Wireless Packing Station and the player clicks the title
+- **WHEN** a base terminal is open, the base controller is wireless capable, the outpost's controller holds a Wireless Upgrade and the player clicks the title
 - **THEN** the title reads the outpost's name and the grid shows the outpost's stock
+
+#### Scenario: This site only
+- **WHEN** the base controller has no Wireless Upgrade and the player clicks the terminal's title
+- **THEN** the title stays on this site and no other site is offered
+
+#### Scenario: Power lost while viewing
+- **WHEN** the terminal shows the outpost and the base controller runs out of FE
+- **THEN** the terminal goes back to "This site" and the title offers no other site until FE arrives
 
 #### Scenario: Input closed for another site
 - **WHEN** the terminal shows the outpost and the player shift clicks logs from the inventory
@@ -396,16 +383,65 @@ The Storage Terminal's title SHALL be a site selector: "This site" shows the sto
 - **THEN** the grid shows 40 iron ingots greyed out
 
 ### Requirement: Transfers from another site
-Requesting an item while another site is shown SHALL make a transfer to this site: the other site ships the items over the wireless line to a Wireless Packing Station of the warehouse this terminal reaches first, and they are put away there. The request SHALL be refused with the reason when this site has no Wireless Packing Station of the team or none of them is powered, when the other site has none, has only unpowered ones or sleeps without enough Chunk Loader Upgrades to wake, or when the other site, online, refuses the shipment. A sleeping site that can wake SHALL be woken and held awake until the transfer ends or is cancelled. The transfer SHALL be listed with the open requests with its delivered and requested amounts and a state (waking, picking, sending, waiting for power, missing) and SHALL end when the items arrived at this site's Wireless Packing Station; clicking it SHALL cancel it like a request. Transfers SHALL survive a reload like requests.
+Requesting an item while another site is shown SHALL make a transfer to this site: the other site ships the items from one of its Packing Stations to a Packing Station of the warehouse this terminal reaches first that reaches the terminal by data line, and that station passes them on as packets into the terminal's output slots like a request from this site's storage; they SHALL NOT be put away at this site. The request SHALL be refused with the reason when this site's controller is not wireless capable, when this site has no Packing Station, when the other site's controller is not wireless capable, when the other site has no Packing Station or sleeps without enough Chunk Loader Upgrades to wake, or when the other site, online, refuses the shipment. A sleeping site that can wake SHALL be woken and held awake until the transfer ends or is cancelled. The transfer SHALL be listed with the open requests with its delivered and requested amounts and a state (waking, picking, sending, waiting for power, missing) and SHALL end when the items arrived in the terminal's output slots; clicking it SHALL cancel it like a request. Transfers SHALL survive a reload like requests.
 
 #### Scenario: Transfer from an online outpost
-- **WHEN** the player requests 16 iron ingots of the online outpost at the base terminal and both sites have a Wireless Packing Station with power at the base
-- **THEN** a transfer for 16 is listed, the iron arrives in the base's storage and the transfer leaves the list
+- **WHEN** the player requests 16 iron ingots of the online outpost at the base terminal, both controllers are wireless capable and both sites have a Packing Station
+- **THEN** a transfer for 16 is listed, the iron arrives in the terminal's output slots, the base's storage does not change and the transfer leaves the list
+
+#### Scenario: Output full
+- **WHEN** a transfer from the outpost arrives while the terminal's output slots are full
+- **THEN** the items wait in the receiving Packing Station like packets of a local request and move on once the player empties the output
 
 #### Scenario: Wake for a transfer
-- **WHEN** the outpost sleeps, has enough Chunk Loader Upgrades and the player requests iron from it
+- **WHEN** the outpost sleeps, has enough Chunk Loader Upgrades and a wireless capable controller, and the player requests iron from it
 - **THEN** the outpost wakes, the transfer shows waking and then picking, and the outpost sleeps again after the transfer and its grace time
 
 #### Scenario: Cannot be ordered
 - **WHEN** the outpost sleeps without a Chunk Loader Upgrade
 - **THEN** a request is refused with the reason that the site sleeps and cannot wake
+
+#### Scenario: Outpost without power
+- **WHEN** the outpost's controller holds a Wireless Upgrade but no FE and the player requests iron from it
+- **THEN** the request is refused with "That site has no power for wireless"
+
+#### Scenario: No Packing Station here
+- **WHEN** the base has no Packing Station on its rails and the player requests iron from the outpost
+- **THEN** the request is refused with "This site has no Packing Station"
+
+### Requirement: Repeated crafting
+Shift clicking the result of the crafting grid SHALL craft again and again while the grid still matches and the player inventory has room. The grid SHALL NOT refill from the warehouse: each craft uses up what lies in the grid.
+
+#### Scenario: Shift craft
+- **WHEN** the grid holds 3 planks above 3 planks and the player shift clicks the result
+- **THEN** the player gets 12 sticks and the grid is empty
+
+#### Scenario: No refill
+- **WHEN** the grid holds one plank above one plank, the warehouse holds 100 planks and the player takes the result
+- **THEN** the player gets four sticks, the grid is empty and the warehouse still holds 100 planks
+
+### Requirement: Packets land in the terminal
+Packets delivered to the terminal over the data line SHALL enter through its packet inlet: items an open request of the terminal still waits for SHALL land in the output slots, every other item in the Input row, which stores it. Items that do not fit SHALL wait at their source as the data line rules say. The terminal SHALL register no item capability, so item pipes show no item arm toward it.
+
+#### Scenario: Delivery lands in the output
+- **WHEN** a request waits for sticks and packets deliver sticks
+- **THEN** the sticks land in the output slots
+
+#### Scenario: Unrequested packets are stored
+- **WHEN** packets deliver cobblestone that no request of the terminal waits for
+- **THEN** the cobblestone lands in the Input row and goes on into the warehouse
+
+#### Scenario: Item pipe beside the terminal
+- **WHEN** a duct with the Item Pipe is placed beside a terminal
+- **THEN** the duct shows no item arm toward the terminal
+
+### Requirement: Terminal shows warehouse power
+While a warehouse the terminal reaches is in the no power state, the terminal SHALL show a line in the alert colour saying the warehouse has no power and requests wait. The stock SHALL stay shown and requests SHALL still be accepted; since every item leaves the warehouse by shuttle, an open request that waits for a shuttle or a Crafting Station SHALL show the state waiting for power until the warehouse has power again. A transfer from another site whose wake ended for lack of power SHALL show waiting for power and stay cancellable.
+
+#### Scenario: Request without power
+- **WHEN** the warehouse is in the no power state and the player requests iron that sits only in a rack
+- **THEN** the request is listed as waiting for power and the iron arrives after FE comes back
+
+#### Scenario: Stock still shown
+- **WHEN** the warehouse is in the no power state and the player opens the terminal
+- **THEN** the grid shows the stock and the no power line is shown

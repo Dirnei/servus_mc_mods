@@ -21,27 +21,8 @@ The Outbound Station SHALL be a block with a horizontal facing, a buffer of `inb
 - **WHEN** the player right clicks a keep slot with an empty hand
 - **THEN** the slot is empty
 
-### Requirement: Buffer is kept stocked
-Every `outbound_check_interval` ticks (example 40) an online warehouse SHALL compare each keep slot's amount with the buffer count of that item plus what is already on its way to the station, and SHALL request the difference through the normal delivery path: instantly from crates and foreign inventories no shuttle reaches, by shuttle from stock a shuttle can reach, never instantly from a rack. What is not in stock SHALL be requested again at the next check. The station SHALL NOT send anything back to storage.
-
-#### Scenario: Restocked from a crate
-- **WHEN** a keep slot says 16 sticks, the buffer is empty and a crate touching the controller holds 50 sticks
-- **THEN** within the check interval 16 sticks are in the buffer and 34 remain in the crate
-
-#### Scenario: Topped up after use
-- **WHEN** a hopper takes 5 of the 16 sticks out of the buffer
-- **THEN** 5 more sticks arrive within the check interval
-
-#### Scenario: Restocked by shuttle
-- **WHEN** the sticks sit only in a rack and the station and rack stand on rails with a garage shuttle
-- **THEN** a shuttle brings the sticks to the station
-
-#### Scenario: Out of stock
-- **WHEN** no sticks are in stock
-- **THEN** the buffer stays as it is and the station's GUI says sticks are out of stock
-
 ### Requirement: Side modes
-Every relative side of the station but the front SHALL be in one of three modes of the Lib side configuration: Push, Output or Off; the front is fixed to Off. On a Push side the station SHALL push its buffer into the neighbour's item handler every `push_interval` ticks (example 8), stacks the neighbour refuses waiting in the buffer. On an Output side the neighbour MAY extract from the buffer through the item handler capability. Inserting through any side SHALL be refused. The back SHALL default to Push and the other sides to Off. The Configuration Carrot used on a face SHALL cycle that face's mode Push, Output, Off, and the GUI SHALL show the Lib side panel.
+Every relative side of the station but the front SHALL be in one of three modes of the Lib side configuration: Push, Output or Off; the front is fixed to Off. On a Push side the station SHALL push its buffer into the neighbour's item handler every `push_interval` ticks (example 8), stacks the neighbour refuses waiting in the buffer. On Push and Output sides the buffer SHALL be exposed as an item handler that allows extraction and refuses inserts, so a neighbour MAY extract from it and item pipes show an item arm toward those sides. Off sides SHALL expose nothing. Inserting through any side SHALL be refused. The back SHALL default to Push and the other sides to Off. The Configuration Carrot used on a face SHALL cycle that face's mode Push, Output, Off, and the GUI SHALL show the Lib side panel.
 
 #### Scenario: Pushed into an Assembler
 - **WHEN** the back faces an Assembler with the iron gear recipe and 4 iron ingots sit in the buffer
@@ -50,6 +31,10 @@ Every relative side of the station but the front SHALL be in one of three modes 
 #### Scenario: Refused by the machine
 - **WHEN** cobblestone sits in the buffer and the Assembler's recipes do not use it
 - **THEN** the cobblestone stays in the buffer
+
+#### Scenario: Pushed into a pipe
+- **WHEN** the back touches a duct whose Item Pipe side toward the station takes items in, and iron ingots sit in the buffer
+- **THEN** the duct shows an item arm toward the station and the station pushes the ingots into the duct, which carries them on
 
 #### Scenario: Hopper on an extract side
 - **WHEN** the bottom side is set to Output and a hopper hangs under the station
@@ -90,8 +75,8 @@ The station SHALL be a member of the warehouse network only through rails, like 
 The warehouse SHALL deliver a requested amount of an item into the station's buffer when asked by `/servus_warehouse feed <station> <item> <count>`, planned like a terminal request and answering with the refusal reason when it cannot. Such deliveries SHALL come on top of the keep amounts. Work orders SHALL NOT deliver to Outbound Stations.
 
 #### Scenario: Op feeds a station
-- **WHEN** an op feeds 4 iron ingots to a station while a crate touching the controller holds 10
-- **THEN** 4 ingots are in the buffer at once
+- **WHEN** an op feeds 4 iron ingots to a station on the rails while a rack holds 10 and a garage holds a shuttle
+- **THEN** a shuttle brings 4 ingots into the buffer
 
 ### Requirement: Station GUI
 Right clicking the station SHALL open a GUI with the keep row, the buffer row, six side buttons, the player inventory and a state line that names the first keep slot that cannot be filled and why, or the offline reason. Shift clicking an inventory stack SHALL move it into the buffer.
@@ -106,3 +91,22 @@ The station SHALL be craftable from vanilla materials including planks, recordin
 #### Scenario: Crafting
 - **WHEN** the player places iron ingots, a chest, a hopper, a dropper and planks in the station pattern (for example chest over dropper framed by ingots over a hopper between planks)
 - **THEN** an Outbound Station carrying the wood of the planks is produced
+
+### Requirement: Buffer is restocked by shuttle
+Every `outbound_check_interval` ticks (example 40) an online warehouse SHALL compare each keep slot's amount with the buffer count of that item plus what is already on its way to the station, and SHALL request the difference through the normal delivery path: by shuttle from racks a shuttle can reach. What is not in stock, or needs a shuttle the warehouse does not have, SHALL be requested again at the next check. The station SHALL NOT send anything back to storage.
+
+#### Scenario: Restocked by shuttle
+- **WHEN** a keep slot says 16 sticks, the buffer is empty, a rack on the rails holds 50 sticks and a garage holds a shuttle
+- **THEN** a shuttle brings 16 sticks into the buffer and 34 remain in the rack
+
+#### Scenario: Topped up after use
+- **WHEN** the station pushes 5 of the 16 sticks into the block behind it
+- **THEN** a shuttle brings 5 more sticks after the next check
+
+#### Scenario: Out of stock
+- **WHEN** no sticks are in stock
+- **THEN** the buffer stays as it is and the station's GUI says sticks are out of stock
+
+#### Scenario: No shuttle
+- **WHEN** the sticks sit in a rack and the warehouse has no garage
+- **THEN** the buffer stays as it is and the station's GUI says sticks need a shuttle

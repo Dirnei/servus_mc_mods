@@ -40,21 +40,6 @@ An elevator segment SHALL connect to elevator segments directly above and below 
 - **WHEN** two segments stand beside each other on the same level
 - **THEN** they show no connection to each other
 
-### Requirement: Rail levels join through a shaft
-Every elevator segment SHALL be a node of the warehouse network. Segments SHALL link to the segments directly above and below them and to rails beside them, so rails on different floors linked by a shaft form one warehouse. A storage block touching a segment SHALL NOT join the warehouse through that segment; only rails and direct contact between storage blocks carry membership.
-
-#### Scenario: Two floors one controller
-- **WHEN** a crate stands beside a rail on the ground floor, the rail meets a shaft, and three segments up another rail leads to a controller and a terminal
-- **THEN** the warehouse is online and the terminal lists the crate's contents
-
-#### Scenario: Broken segment
-- **WHEN** the middle segment of that shaft is broken
-- **THEN** the ground floor leaves the controller's network and the crate's items leave the index
-
-#### Scenario: Crate against the shaft
-- **WHEN** a crate touches a segment of an online warehouse and no rail or storage block of it
-- **THEN** the crate is not part of the warehouse, its items are not listed and its lamp stays dark
-
 ### Requirement: Segments hold nothing
 An elevator segment SHALL NOT be indexed as a source and SHALL NOT make the inventories beside it part of the warehouse.
 
@@ -223,3 +208,18 @@ The elevator item SHALL use the placement assist for sneak clicks: a sneak click
 #### Scenario: Click on the ground
 - **WHEN** a player clicks the top of a stone block that has no segment while holding an elevator
 - **THEN** a segment is placed on the stone as with any block
+
+### Requirement: Floors join through a shaft
+Every elevator segment SHALL be a node of the warehouse network. Segments SHALL link to the segments directly above and below them and to rails beside them, so rails on different floors linked by a shaft form one warehouse. A storage block touching a segment SHALL NOT join the warehouse through that segment; only rails carry membership.
+
+#### Scenario: Two floors one controller
+- **WHEN** a rack faces a rail on the ground floor, the rail meets a shaft, and three segments up another rail leads to a controller, and a terminal reaches the warehouse over the data line
+- **THEN** the warehouse is online and the terminal lists the rack's contents
+
+#### Scenario: Broken segment
+- **WHEN** the middle segment of that shaft is broken
+- **THEN** the ground floor leaves the controller's network and the rack's items leave the index
+
+#### Scenario: Rack against the shaft
+- **WHEN** a rack touches a segment of an online warehouse and no rail stands in front of it
+- **THEN** the rack is not part of the warehouse and its items are not listed

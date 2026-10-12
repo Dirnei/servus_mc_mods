@@ -42,11 +42,15 @@ A Heavy Duty Rack bay SHALL hold any items in a fixed number of slots (`slots` i
 - **THEN** the GUI opens and nothing is placed
 
 ### Requirement: Automation access
-A rack bay SHALL expose an item handler on every side covering the slots that bay stores, not the rest of its section.
+A rack bay SHALL expose an item handler on every side, covering the slots that bay stores and not the rest of its section, while its section is standalone: no Warehouse Rail or Farm Rail stands in front of any bay of the section. Opening the section GUI by hand SHALL work whether or not the section is standalone.
 
 #### Scenario: Hopper into a rack
-- **WHEN** a hopper feeds cobblestone into a rack
-- **THEN** the cobblestone appears in that bay's slots, in the section GUI and in the warehouse index
+- **WHEN** a hopper feeds cobblestone into a rack with no rail in front of it
+- **THEN** the cobblestone appears in that bay's slots and in the section GUI
+
+#### Scenario: Hand GUI on a docked rack
+- **WHEN** a player right clicks the front of a rack whose section has a front rail of an online warehouse
+- **THEN** the section GUI opens and the player can take and store items by hand
 
 ### Requirement: Bays connect visually
 Racks with the same facing and the same wood that stand in a row SHALL form sections of up to `bays_per_section` bays (`rack.json`, example 3). A bay joins the section beside it on placement only while that section has room; otherwise it starts a new section. Joins SHALL be decided when a bay is placed and SHALL NOT move when further bays are placed anywhere. A bay placed on top of a row SHALL copy the section boundaries of the row below wherever a rack stands below it or below its neighbour. Within a section the shared posts disappear and the floor board, the middle shelf and the beams run through; posts stand at section ends. Stacked racks SHALL keep their top and bottom beams, so an iron band marks where two bays meet; the posts run through. A rack placed directly on top of another rack SHALL take that rack's facing, whatever its wood. Racks of different woods SHALL NOT join. Bays joined side by side SHALL share one inventory (see the GUI requirement); stacked bays SHALL keep separate inventories. The frame SHALL render without flickering faces.
@@ -201,8 +205,8 @@ The creative tab and the recipe viewer SHALL list one Heavy Duty Rack, the oak o
 - **WHEN** the player opens the Servus Storage creative tab
 - **THEN** one Heavy Duty Rack with oak boards is listed
 
-### Requirement: Rack joins through its front rail
-A rack SHALL be a stock holding node of the warehouse network that joins only through a rail in front of a bay of its section: a section belongs to the network of a rail standing in front of any of its bays, and the bays of one section belong together. A rack SHALL NOT join through touching the controller, crates, stations, garages, elevators or racks of another section, on any side, and SHALL pass no connection on. A rack SHALL NOT pull neighbouring inventories into the warehouse, and no storage block SHALL index a rack as a foreign inventory. Rails dock onto a rack's front only. A rack SHALL be picked from and filled only through a shuttle parked on a front rail of its section. A rack SHALL NOT carry a connection lamp.
+### Requirement: Racks join only through a front rail
+A rack SHALL be a stock holding node of the warehouse network that joins only through a rail in front of a bay of its section: a section belongs to the network of a rail standing in front of any of its bays, and the bays of one section belong together. A rack SHALL NOT join through touching the controller, stations, garages, elevators or racks of another section, on any side, and SHALL pass no connection on. Neither a rack nor any other member SHALL pull neighbouring inventories into the warehouse. Rails dock onto a rack's front only. A rack SHALL be picked from and filled only through a shuttle parked on a front rail of its section. A rack SHALL NOT carry a connection lamp.
 
 #### Scenario: Rack beside a rail
 - **WHEN** a rack is placed with a rail of an online warehouse in front of it
@@ -220,8 +224,8 @@ A rack SHALL be a stock holding node of the warehouse network that joins only th
 - **WHEN** a section of three bays holds bread in its right bay and a rail of an online warehouse is placed in front of its left bay
 - **THEN** the terminal lists the bread, and breaking that rail removes it from the list again
 
-#### Scenario: Crate behind a rack
-- **WHEN** a crate holding apples touches only the back of a rack that has a front rail of an online warehouse
+#### Scenario: Chest behind a rack
+- **WHEN** a chest holding apples touches only the back of a rack that has a front rail of an online warehouse
 - **THEN** the terminal does not list the apples
 
 #### Scenario: Rack by shuttle
@@ -235,3 +239,26 @@ A rack SHALL be a stock holding node of the warehouse network that joins only th
 #### Scenario: Neighbouring section not joined
 - **WHEN** a lone rack stands beside a section with a front rail, does not join it, holds bread and has no front rail of its own
 - **THEN** the terminal does not list that bread
+
+### Requirement: Docked sections are shuttles only
+While a rail stands in front of any bay of a section, every bay of that section SHALL expose no item handler, so hoppers and item pipes neither insert nor extract and pipes show no item arm toward it. Placing or breaking a rail in front of a bay, and a bay joining or leaving the section, SHALL update every bay of the section at once, without polling. Whether the rail belongs to an online warehouse SHALL NOT matter.
+
+#### Scenario: Rail docks and closes the rack
+- **WHEN** a hopper feeds cobblestone into a standalone rack and a rail is then placed in front of the rack
+- **THEN** the hopper stops inserting, and a duct with the Item Pipe beside the rack loses its item arm toward it
+
+#### Scenario: Rail removed opens the rack
+- **WHEN** the only rail in front of a rack's section is broken
+- **THEN** a hopper pointing into the rack inserts again and a duct with the Item Pipe beside it shows its item arm again
+
+#### Scenario: One docked bay closes the section
+- **WHEN** a section of three bays has a rail in front of its left bay only and a hopper points into its right bay
+- **THEN** the hopper inserts nothing into the right bay
+
+#### Scenario: Joining a docked section
+- **WHEN** a standalone rack fed by a hopper is joined by a new bay placed beside it that has a rail in front of it
+- **THEN** the hopper stops inserting into the first rack
+
+#### Scenario: Rail without a controller
+- **WHEN** a rail that belongs to no controller is placed in front of a rack fed by a hopper
+- **THEN** the hopper stops inserting
