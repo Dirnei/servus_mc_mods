@@ -49,7 +49,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
     public static final int DEFAULT_INBOUND_BUFFER_SLOTS = 9;
     public static final int DEFAULT_PUT_AWAY_PER_TICK = 1;
-    public static final int DEFAULT_CPU_ORDER_SLOTS = 2;
+    public static final int DEFAULT_CPU_ORDERS_PER_CPU_BLOCK = 1;
+    public static final int DEFAULT_CPU_STACKS_PER_BUFFER_BLOCK = 1;
+    public static final int DEFAULT_CPU_MAX_BLOCKS = 512;
     public static final int DEFAULT_HANDOFF_WAIT_TICKS = 100;
     public static final int DEFAULT_PATTERNS_PER_BLOCK = 9;
     public static final double DEFAULT_PACKING_ITEMS_PER_SECOND = 8.0;
@@ -111,7 +113,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
     private volatile int inboundBufferSlots = DEFAULT_INBOUND_BUFFER_SLOTS;
     private volatile int putAwayPerTick = DEFAULT_PUT_AWAY_PER_TICK;
-    private volatile int cpuOrderSlots = DEFAULT_CPU_ORDER_SLOTS;
+    private volatile int cpuOrdersPerCpuBlock = DEFAULT_CPU_ORDERS_PER_CPU_BLOCK;
+    private volatile int cpuStacksPerBufferBlock = DEFAULT_CPU_STACKS_PER_BUFFER_BLOCK;
+    private volatile int cpuMaxBlocks = DEFAULT_CPU_MAX_BLOCKS;
     private volatile int handoffWaitTicks = DEFAULT_HANDOFF_WAIT_TICKS;
     private volatile int patternsPerBlock = DEFAULT_PATTERNS_PER_BLOCK;
     private volatile double packingItemsPerSecond = DEFAULT_PACKING_ITEMS_PER_SECOND;
@@ -165,7 +169,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
         inboundBufferSlots = intField(files.get(WAREHOUSE), "inbound_buffer_slots", DEFAULT_INBOUND_BUFFER_SLOTS);
         putAwayPerTick = intField(files.get(WAREHOUSE), "put_away_per_tick", DEFAULT_PUT_AWAY_PER_TICK);
-        cpuOrderSlots = intField(files.get(CPU), "order_slots", DEFAULT_CPU_ORDER_SLOTS);
+        cpuOrdersPerCpuBlock = intField(files.get(CPU), "orders_per_cpu_block", DEFAULT_CPU_ORDERS_PER_CPU_BLOCK);
+        cpuStacksPerBufferBlock = intField(files.get(CPU), "stacks_per_buffer_block", DEFAULT_CPU_STACKS_PER_BUFFER_BLOCK);
+        cpuMaxBlocks = intField(files.get(CPU), "max_blocks", DEFAULT_CPU_MAX_BLOCKS);
         handoffWaitTicks = intField(files.get(CPU), "handoff_wait_ticks", DEFAULT_HANDOFF_WAIT_TICKS);
         patternsPerBlock = intField(files.get(PATTERN_STORAGE), "patterns_per_block", DEFAULT_PATTERNS_PER_BLOCK);
         packingItemsPerSecond = doubleField(files.get(PACKING_STATION), "items_per_second", DEFAULT_PACKING_ITEMS_PER_SECOND);
@@ -252,14 +258,24 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         return stockRuleInterval;
     }
 
-    /** Orders one formed Crafting CPU runs at a time. */
     /** How long a step's outputs wait at their producer for a busy later step before they go to storage. */
     public int handoffWaitTicks() {
         return handoffWaitTicks;
     }
 
-    public int cpuOrderSlots() {
-        return cpuOrderSlots;
+    /** Order slots each Crafting CPU block adds to its formed CPU. */
+    public int cpuOrdersPerCpuBlock() {
+        return cpuOrdersPerCpuBlock;
+    }
+
+    /** Buffer stacks each CPU Buffer block adds to its formed CPU. */
+    public int cpuStacksPerBufferBlock() {
+        return cpuStacksPerBufferBlock;
+    }
+
+    /** The most blocks one CPU box may have; bounds the forming flood fill. */
+    public int cpuMaxBlocks() {
+        return cpuMaxBlocks;
     }
 
     /** Encoded Patterns one Pattern Storage holds. */

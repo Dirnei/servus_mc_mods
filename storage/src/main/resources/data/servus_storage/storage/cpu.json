@@ -1,4 +1,6 @@
 {
-  "order_slots": 2,
+  "orders_per_cpu_block": 1,
+  "stacks_per_buffer_block": 1,
+  "max_blocks": 512,
   "handoff_wait_ticks": 100
 }

@@ -80,7 +80,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
 
     /** Orders one CPU runs at a time. */
     public int slots() {
-        return Math.max(1, StorageStatsManager.INSTANCE.cpuOrderSlots());
+        return 2 * StorageStatsManager.INSTANCE.cpuOrdersPerCpuBlock();
     }
 
     /** The work orders of this CPU; only meaningful on the master. */
