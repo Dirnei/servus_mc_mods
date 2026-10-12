@@ -121,6 +121,20 @@ Current recipes (generated `data/servus_storage/recipe`): Heavy Duty Rack 4 iron
 - [Hoppers into a docked rack stop] Players who fed racks by hopper see it stop when they lay a rail. → Intended; the docs explain it.
 - [Ordering with other changes] See D11.
 
+## Decisions made during apply
+
+Recorded on 2026-10-12 while applying, where the code differs from the decisions above:
+
+- **D5, where the refresh lives.** `RackDock` stays pure (JUnit only); the event side is `HeavyRackBlock.railInFront` and `HeavyRackBlock.refreshDock(level, bays)`, called from `neighborChanged` (when the bay's unsaved `frontRail` flag changed), `onPlace` and `affectNeighborsAfterRemoval` (the sections on both sides of the removed bay). It uses the two argument `Level.updateNeighborsAt(pos, block)` that the duct already uses.
+- **D6, naming.** `StorageNodeBlockEntity.stock()` returns the node's `ItemView`; the controller's Foundation stock provider accessor, which had the same name, is now `stockProvider()`.
+- **D7, leftovers.** `WarehouseEvent.NeighborsChanged`, `StorageNodeBlockEntity.neighborsChanged` and `pullsNeighbours`, and the `neighborChanged` forwards of the controller, garage and stations only fed the foreign discovery and are gone. The field runs in `ShuttleFleet` keep their branches for non rack sources; they are dead now that every source is a rack and were left alone, since field work is not part of this change.
+- **D8, Crafting Station.** The per side handlers are gone: one inlet handler serves every face (job filtered inputs in, outputs out). A Crafting Station fed by an Outbound Station now pulls from it on a Pull side, since the Outbound Station can no longer push into the station.
+- **D10, test order.** GameTests that needed crates or instant stock were deleted when the crates went (task 5.2: `quadCrateCompartments`, `stationPutsAwayInstantly`, `feedOutboundFromCrate`, `terminalBesideCrateIsNoStock`) and with group 4.4 (the grid refill, Alt pull and crate first JEI tests, replaced in 9.1 by `gridShiftCraftUsesOnlyGrid`, `gridDoesNotRefillFromRack` and `gridFillFromInventoryOnly`); `shipFromCrate` became `shipFromRack` in 4.2 and `crateBehindRackNotLinked` became `chestBehindRackNotLinked`. Until 6.3 a temporary planner in `WarehouseNetwork` kept instant picks from non rack sources so the GameTests stayed green between the groups.
+- **D10, data line tests.** `DataPacketGameTests` and `DataBandwidthGameTests` use a Storage Terminal as the line end instead of the controller, which no longer gives or takes items: moves from it take their items from a test stock handed in as the delivery source (`DataPackets.move` with a source view), moves into it land in its Input row.
+- **D10, helper.** Besides `MiniWarehouse.build`, `MiniWarehouse.under(helper, controller)` builds the layout most line tests share: rails one block down under the controller and the Packing Station south of it, two racks west of those rails and a garage north of them.
+- **Testing.** No Foundation `PacketInletGameTests`: no Foundation block registers the inlet, so the inlet is covered by Storage `PacketInletGameTests` (including the Machine Adapter fallback) while the Foundation GameTests stay green. Two timing sensitive tests were hardened on the way (`recordKeepsNameSpanAndStock` compares spans instead of counting chunks, and the wake tests' site is the controller alone; `seedsFromStorage` got a longer limit).
+- **PLAN check.** `grep -i crate PLAN.md` finds only the change name `m11-drop-crates-pipe-access`.
+
 ## Migration Plan
 
 Nothing is released, so no world migration. Dev worlds lose placed crates (unknown block) and keep everything else; old side modes fall back as D4 says. After archiving, the empty `openspec/specs/storage/crate/` spec is deleted.
