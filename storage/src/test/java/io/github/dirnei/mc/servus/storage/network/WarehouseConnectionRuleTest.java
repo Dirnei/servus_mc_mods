@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 class WarehouseConnectionRuleTest {
 
     @Test
-    void stockLinksToStockAndRailsOnAnySide() {
+    void controllerLinksToRailsAndAControllerOnAnySide() {
         for (Side side : Side.ALL) {
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, NodeKind.STOCK));
             assertTrue(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, NodeKind.RAIL));
@@ -20,7 +20,7 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
-    void stockNeverLinksStraightToAnElevator() {
+    void controllerNeverLinksStraightToAnElevator() {
         for (Side side : Side.ALL) {
             assertFalse(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, NodeKind.ELEVATOR));
             assertFalse(WarehouseConnectionRule.accepts(NodeKind.ELEVATOR, side, NodeKind.STOCK));
@@ -56,7 +56,7 @@ class WarehouseConnectionRuleTest {
     }
 
     @Test
-    void stockAndGarageNeverLinkToStations() {
+    void controllerAndGarageNeverLinkToStations() {
         for (Side side : Side.ALL) {
             assertFalse(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, NodeKind.STATION));
             assertFalse(WarehouseConnectionRule.accepts(NodeKind.GARAGE, side, NodeKind.STATION));
@@ -126,5 +126,15 @@ class WarehouseConnectionRuleTest {
     void railsTakeRacks() {
         assertTrue(WarehouseConnectionRule.accepts(NodeKind.RAIL, Side.NORTH, NodeKind.RACK));
         assertTrue(WarehouseConnectionRule.accepts(NodeKind.RACK, Side.SOUTH, NodeKind.RAIL));
+    }
+
+    @Test
+    void controllerNeverLinksToShuttleServedBlocks() {
+        for (Side side : Side.ALL) {
+            for (NodeKind kind : new NodeKind[] {NodeKind.RACK, NodeKind.STATION, NodeKind.GARAGE, NodeKind.ELEVATOR}) {
+                assertFalse(WarehouseConnectionRule.accepts(NodeKind.STOCK, side, kind), "controller to " + kind);
+                assertFalse(WarehouseConnectionRule.accepts(kind, side, NodeKind.STOCK), kind + " to controller");
+            }
+        }
     }
 }

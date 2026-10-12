@@ -3,19 +3,19 @@ package io.github.dirnei.mc.servus.storage.network;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 
 /**
- * Which warehouse nodes link up when they touch. Stock holding blocks served
- * instantly (crates, foreign inventories, the controller) link to each other
- * and to rails on any side. Blocks shuttles serve (racks, stations, Access
- * Points, garages) are rail only: they link only to rails (racks also to bays
- * of their own section), so they never join or pass on a warehouse by
- * touching it. Rails link
- * sideways to rails and to elevator segments. Segments link vertically to
- * segments and sideways to rails, never straight to a storage block or a
- * station. Pure, no Minecraft imports.
+ * Which warehouse nodes link up when they touch. {@code STOCK} is the
+ * Warehouse Controller: it links to rails and to another controller on any
+ * side, so two touching controllers make one offline network. Blocks shuttles
+ * serve (racks, stations, Access Points, garages) are rail only: they link
+ * only to rails (racks also to bays of their own section), so they never join
+ * or pass on a warehouse by touching it. Rails link sideways to rails and to
+ * elevator segments. Segments link vertically to segments and sideways to
+ * rails, never straight to the controller, a rack or a station. Pure, no
+ * Minecraft imports.
  */
 public final class WarehouseConnectionRule {
 
-    /** What a node is, as far as linking is concerned. */
+    /** What a node is, as far as linking is concerned; {@code STOCK} is the controller. */
     public enum NodeKind { STOCK, RAIL, ELEVATOR, STATION, GARAGE, RACK }
 
     private WarehouseConnectionRule() {
