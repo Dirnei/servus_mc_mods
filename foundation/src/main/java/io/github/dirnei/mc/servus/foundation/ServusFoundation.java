@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation;
 
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
@@ -49,7 +50,7 @@ public final class ServusFoundation {
         ServusGameTests.register(modEventBus, ServusFoundationIds.MOD_ID, List.of(
                 AdapterGameTests.class, DataCableTierGameTests.class, FluidTankGameTests.class,
                 ServusLogisticsGameTests.class, UpgradeGameTests.class, MachineBaseGameTests.class,
-                MachineGameTests.class, PumpGameTests.class, SinkGameTests.class));
+                MachineGameTests.class, PumpGameTests.class, SinkGameTests.class, CoalGeneratorGameTests.class));
         LOGGER.info("Servus: Foundation loaded");
     }
 }

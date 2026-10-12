@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
+import net.minecraft.core.Direction;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderBlockEntity;
@@ -23,7 +25,7 @@ public final class MachineGameTests {
     /** One coal in the fuel slot fills the generator's buffer at its rate. */
     @ServusGameTest(timeoutTicks = 60)
     public static void generatorMakesEnergyFromCoal(GameTestHelper helper) {
-        helper.setBlock(MACHINE, MachineContent.COAL_GENERATOR.get().defaultBlockState());
+        CoalGeneratorGameTests.place(helper, MACHINE, Direction.NORTH);
         CoalGeneratorBlockEntity generator = helper.getBlockEntity(MACHINE, CoalGeneratorBlockEntity.class);
         generator.inventory().setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL));
         helper.runAfterDelay(20, () -> {

@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorBlock;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.data.DataMember;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
@@ -48,7 +50,7 @@ public final class MachineBaseGameTests {
     /** A Pull side takes what the machine accepts from the neighbour and leaves the rest. */
     @ServusGameTest(timeoutTicks = 100)
     public static void machinePullsFromNeighbour(GameTestHelper helper) {
-        helper.setBlock(POS, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
+        CoalGeneratorGameTests.place(helper, POS, Direction.NORTH);
         BlockPos chestPos = POS.west();
         helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
         ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
@@ -67,7 +69,7 @@ public final class MachineBaseGameTests {
     /** The front of a machine takes nothing, gives nothing and cannot be set to anything else. */
     @ServusGameTest(timeoutTicks = 60)
     public static void machineFrontIsClosed(GameTestHelper helper) {
-        helper.setBlock(POS, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
+        CoalGeneratorGameTests.place(helper, POS, Direction.NORTH);
         MachineBlockEntity generator = helper.getBlockEntity(POS, MachineBlockEntity.class);
         helper.assertTrue(generator.sideMode(Direction.NORTH) == SideMode.DISABLED, "the front starts closed");
         helper.assertTrue(generator.cycleFace(Direction.NORTH) == SideMode.DISABLED, "the front cannot be cycled");
@@ -88,6 +90,9 @@ public final class MachineBaseGameTests {
             helper.setBlock(pos, burners.get(i).defaultBlockState());
             if (burners.get(i) instanceof BurnerPumpBlock pump) {
                 helper.setBlock(pos.above(), pump.upperOf(pump.defaultBlockState()));
+            }
+            if (burners.get(i) instanceof CoalGeneratorBlock generator) {
+                helper.setBlock(pos.above(), generator.upperOf(generator.defaultBlockState()));
             }
             for (Direction side : Direction.values()) {
                 UpkeepHolder holder = upkeep(helper, pos, side);
@@ -126,7 +131,7 @@ public final class MachineBaseGameTests {
     public static void generatorJoinsTheDataLineForUpkeep(GameTestHelper helper) {
         BlockPos generator = new BlockPos(5, 2, 3);
         BlockPos duct = new BlockPos(4, 2, 3);
-        helper.setBlock(generator, MachineContent.COAL_GENERATOR.get().defaultBlockState());
+        CoalGeneratorGameTests.place(helper, generator, Direction.NORTH);
         dataDuct(helper, duct);
         helper.succeedWhen(() -> {
             DataMember generatorMember = member(helper, duct, generator).orElse(null);

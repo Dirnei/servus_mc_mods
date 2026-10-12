@@ -18,7 +18,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 4. GameTests
 
-- [ ] 4.1 `machine/generator/CoalGeneratorGameTests.java` (new, registered with the Foundation GameTests): `placesTwoHalves`, `noRoomAbove`, `breakChimneyDropsOneAndFuel`, `creativeDropsNothing`, `carrotOnChimneyDismantles`, `pistonMovesNothing`, `chimneyOpensGui`, `chimneyHasNoCapabilities`, `noEnergyUpward`, `pushesIntoNeighbourBeside`; update existing tests that place a generator with a block above it (`MachineBaseGameTests`, Manufacturing and Storage GameTests that build generators, found with `grep -rn COAL_GENERATOR`). Run the Foundation, Manufacturing and Storage GameTests.
+- [x] 4.1 `machine/generator/CoalGeneratorGameTests.java` (new, registered with the Foundation GameTests): `placesTwoHalves`, `noRoomAbove`, `breakChimneyDropsOneAndFuel`, `creativeDropsNothing`, `carrotOnChimneyDismantles`, `pistonMovesNothing`, `chimneyOpensGui`, `chimneyHasNoCapabilities`, `noEnergyUpward`, `pushesIntoNeighbourBeside`; update existing tests that place a generator with a block above it (`MachineBaseGameTests`, Manufacturing and Storage GameTests that build generators, found with `grep -rn COAL_GENERATOR`). Run the Foundation, Manufacturing and Storage GameTests.
 
 ## 5. Docs and plan
 

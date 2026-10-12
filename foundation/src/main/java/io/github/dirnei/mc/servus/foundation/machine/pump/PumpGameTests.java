@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
@@ -323,7 +324,7 @@ public final class PumpGameTests {
         // Facing north, the pump takes energy on its east side.
         placeElectricPump(helper, pump);
         BlockPos generator = pump.east();
-        helper.setBlock(generator, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
+        CoalGeneratorGameTests.place(helper, generator, Direction.NORTH);
         MachineBlockEntity burner = helper.getBlockEntity(generator, MachineBlockEntity.class);
         burner.inventory().setStackInSlot(0, new ItemStack(Items.COAL, 4));
         helper.succeedWhen(() -> {
@@ -346,10 +347,10 @@ public final class PumpGameTests {
         BlockPos pumpA = new BlockPos(8, 2, 1);
         BlockPos generatorB = new BlockPos(6, 2, 3);
         BlockPos pumpB = new BlockPos(8, 2, 3);
-        helper.setBlock(generatorA, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
+        CoalGeneratorGameTests.place(helper, generatorA, Direction.NORTH);
         MachineBlockEntity fuelled = helper.getBlockEntity(generatorA, MachineBlockEntity.class);
         fuelled.inventory().setStackInSlot(0, new ItemStack(Items.COAL, 64));
-        helper.setBlock(generatorB, facing(MachineContent.COAL_GENERATOR.get(), Direction.NORTH));
+        CoalGeneratorGameTests.place(helper, generatorB, Direction.NORTH);
         // Facing north, a pump takes energy on its west side, where the cable runs.
         placeElectricPump(helper, pumpA);
         placeElectricPump(helper, pumpB);

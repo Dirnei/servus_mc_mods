@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.gametest;
 
+import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
@@ -214,7 +215,7 @@ public final class ControllerWirelessGameTests {
         BlockPos ductPos = generatorPos.east();
         BlockPos controllerPos = ductPos.east();
         WarehouseControllerBlockEntity controller = controller(helper, controllerPos, UUID.randomUUID());
-        helper.setBlock(generatorPos, MachineContent.COAL_GENERATOR.get().defaultBlockState());
+        CoalGeneratorGameTests.place(helper, generatorPos, Direction.NORTH);
         helper.getBlockEntity(generatorPos, CoalGeneratorBlockEntity.class).inventory()
                 .setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.COAL, 4));
         helper.setBlock(ductPos, ServusLogisticsBlocks.UTILITY_DUCT.get().defaultBlockState());
