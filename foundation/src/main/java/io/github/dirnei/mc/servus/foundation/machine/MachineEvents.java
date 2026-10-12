@@ -5,6 +5,7 @@ import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.sink.SinkStatsManager;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
+import net.minecraft.core.Direction;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -43,8 +44,9 @@ public final class MachineEvents {
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.Item.BLOCK, MachineContent.COAL_GENERATOR_ENTITY.get(),
                     (machine, side) -> machine.sideHandler(side));
+            // The generator's top carries its chimney: no energy there.
             event.registerBlockEntity(Capabilities.Energy.BLOCK, MachineContent.COAL_GENERATOR_ENTITY.get(),
-                    (machine, side) -> machine.energyStorage());
+                    (machine, side) -> side == Direction.UP ? null : machine.energyStorage());
             // Burner machines keep their fuel slot stocked from the data line.
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, MachineContent.COAL_GENERATOR_ENTITY.get(),
                     (machine, side) -> machine.upkeep());

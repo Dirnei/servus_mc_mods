@@ -16,17 +16,25 @@ public final class EnergyNeighbors {
 
     private final BlockCapabilityCache<EnergyHandler, Direction>[] caches;
 
-    @SuppressWarnings("unchecked")
     public EnergyNeighbors(ServerLevel level, BlockPos pos) {
+        this(level, pos, null);
+    }
+
+    /** The neighbours of every face but {@code skipped}, which is never looked at; null skips none. */
+    @SuppressWarnings("unchecked")
+    public EnergyNeighbors(ServerLevel level, BlockPos pos, Direction skipped) {
         caches = new BlockCapabilityCache[Direction.values().length];
         for (Direction direction : Direction.values()) {
-            caches[direction.ordinal()] = BlockCapabilityCache.create(
-                    Capabilities.Energy.BLOCK, level, pos.relative(direction), direction.getOpposite());
+            if (direction != skipped) {
+                caches[direction.ordinal()] = BlockCapabilityCache.create(
+                        Capabilities.Energy.BLOCK, level, pos.relative(direction), direction.getOpposite());
+            }
         }
     }
 
     public EnergyHandler get(Direction direction) {
-        return caches[direction.ordinal()].getCapability();
+        BlockCapabilityCache<EnergyHandler, Direction> cache = caches[direction.ordinal()];
+        return cache == null ? null : cache.getCapability();
     }
 
     /** Visits every neighbour that currently offers an energy capability. */

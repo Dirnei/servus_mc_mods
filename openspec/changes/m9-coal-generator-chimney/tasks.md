@@ -9,7 +9,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 ## 2. Generator halves
 
 - [x] 2.1 `machine/generator/CoalGeneratorBlock.java`: `HALF`, placement and partner handling through `TwoHalves`, block entity only on the lower half, `LIT` mirrored on the upper half, shapes, carrot forwarding, smoke `animateTick` on the upper half (design.md D2, D5). Run `gradlew build`.
-- [ ] 2.2 `machine/MachineEvents.java` and `machine/EnergyNeighbors.java` (no energy toward `UP` for the generator), `machine/generator/CoalGeneratorBlockEntity.java` (top side locked Off) (design.md D3). Run `gradlew build`.
+- [x] 2.2 `machine/MachineEvents.java` and `machine/EnergyNeighbors.java` (no energy toward `UP` for the generator), `machine/generator/CoalGeneratorBlockEntity.java` (top side locked Off) (design.md D3). Run `gradlew build`.
 
 ## 3. Look
 

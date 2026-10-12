@@ -11,7 +11,10 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineDefaults;
 import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
+import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
@@ -38,6 +41,8 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
     public CoalGeneratorBlockEntity(BlockPos pos, BlockState state) {
         super(MachineContent.COAL_GENERATOR_ENTITY.get(), pos, state, 1);
         this.energy = new MachineEnergyStorage(DEFAULTS.energyCapacity(), 0, Integer.MAX_VALUE, this::setChanged);
+        // The chimney sits on top: no fuel passes there.
+        sideConfig().lock(RelativeSide.TOP, SideMode.DISABLED);
     }
 
     public MachineEnergyStorage energyStorage() {
@@ -100,7 +105,8 @@ public class CoalGeneratorBlockEntity extends BurnerMachineBlockEntity {
             return;
         }
         if (neighbors == null) {
-            neighbors = new EnergyNeighbors(server, worldPosition);
+            // The top carries the chimney: never push upward.
+            neighbors = new EnergyNeighbors(server, worldPosition, Direction.UP);
         }
         int rate = stats().energyPerTick();
         neighbors.forEach((direction, storage) -> {
