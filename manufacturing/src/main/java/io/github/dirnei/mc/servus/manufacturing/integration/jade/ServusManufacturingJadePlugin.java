@@ -56,10 +56,13 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
-        BLOCKS.forEach(block -> registration.registerBlockComponent(Provider.INSTANCE, block));
-        registration.registerBlockComponent(PurifierProvider.INSTANCE, PurifierBlock.class);
-        registration.registerBlockComponent(PurifierProvider.INSTANCE, PurifierSideBlock.class);
-        registration.registerBlockComponent(AthanorProvider.INSTANCE, AthanorBlock.class);
+        // Since Minecraft 1.21.6 Jade wants the tooltip in a client provider apart from the data provider; both share the uid.
+        IBlockComponentProvider calciner = new ClientProvider(Provider.UID, Provider.INSTANCE::appendTooltip);
+        IBlockComponentProvider purifier = new ClientProvider(PurifierProvider.UID, PurifierProvider.INSTANCE::appendTooltip);
+        BLOCKS.forEach(block -> registration.registerBlockComponent(calciner, block));
+        registration.registerBlockComponent(purifier, PurifierBlock.class);
+        registration.registerBlockComponent(purifier, PurifierSideBlock.class);
+        registration.registerBlockComponent(new ClientProvider(AthanorProvider.UID, AthanorProvider.INSTANCE::appendTooltip), AthanorBlock.class);
         // The space above a formed Athanor, where its item lies, shows the Athanor.
         registration.addRayTraceCallback((hit, accessor, original) -> {
             if (accessor instanceof BlockAccessor block && block.getBlock() instanceof AthanorCrownBlock) {
@@ -71,8 +74,27 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
         });
     }
 
+    /** Draws the tooltip of one data provider on the client. */
+    private record ClientProvider(Identifier uid, Tooltip tooltip) implements IBlockComponentProvider {
+
+        @Override
+        public void appendTooltip(ITooltip lines, BlockAccessor accessor, IPluginConfig config) {
+            tooltip.append(lines, accessor, config);
+        }
+
+        @Override
+        public Identifier getUid() {
+            return uid;
+        }
+    }
+
+    @FunctionalInterface
+    private interface Tooltip {
+        void append(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config);
+    }
+
     /** The Athanor has no GUI: its stage, its work and what its tanks hold. */
-    private enum AthanorProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+    private enum AthanorProvider implements IServerDataProvider<BlockAccessor> {
         INSTANCE;
 
         private static final Identifier UID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor");
@@ -95,8 +117,7 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
             data.put("Athanor", tag);
         }
 
-        @Override
-        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+        void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
             CompoundTag data = accessor.getServerData();
             if (!data.contains("Athanor")) {
                 return;
@@ -121,7 +142,7 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
         }
     }
 
-    private enum PurifierProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+    private enum PurifierProvider implements IServerDataProvider<BlockAccessor> {
         INSTANCE;
 
         private static final Identifier UID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purifier");
@@ -142,8 +163,7 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
             data.put("Purifier", tag);
         }
 
-        @Override
-        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+        void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
             CompoundTag data = accessor.getServerData();
             if (!data.contains("Purifier")) {
                 return;
@@ -164,7 +184,7 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
         }
     }
 
-    private enum Provider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+    private enum Provider implements IServerDataProvider<BlockAccessor> {
         INSTANCE;
 
         private static final Identifier UID = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calciner");
@@ -188,8 +208,7 @@ public final class ServusManufacturingJadePlugin implements IWailaPlugin {
             data.put("Calciner", tag);
         }
 
-        @Override
-        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+        void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
             CompoundTag data = accessor.getServerData();
             if (!data.contains("Calciner")) {
                 return;
