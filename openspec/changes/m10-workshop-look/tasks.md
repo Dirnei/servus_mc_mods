@@ -10,7 +10,7 @@ Paths are relative to `storage/src/main/java/io/github/dirnei/mc/servus/storage/
 
 ## 2. Carrot dismantle
 
-- [ ] 2.1 `shuttle/module/ShuttleWorkshopBlockEntity.java`: the shuttle and supplies as `DataComponents.CONTAINER` (7 entries) in `collectImplicitComponents` and `applyImplicitComponents`, removed from the tag in `removeComponentsFromTag`; a method that clears both handlers and resets `handBuild` and `buildStep` (design.md D4). `shuttle/module/ShuttleWorkshopBlock.java`: implement `Wrenchable`; sneak carrot drops one item with `collectComponents()`, clears the handlers, removes the block; a plain carrot click passes. Run `gradlew build`.
+- [x] 2.1 `shuttle/module/ShuttleWorkshopBlockEntity.java`: the shuttle and supplies as `DataComponents.CONTAINER` (7 entries) in `collectImplicitComponents` and `applyImplicitComponents`, removed from the tag in `removeComponentsFromTag`; a method that clears both handlers and resets `handBuild` and `buildStep` (design.md D4). `shuttle/module/ShuttleWorkshopBlock.java`: implement `Wrenchable`; sneak carrot drops one item with `collectComponents()`, clears the handlers, removes the block; a plain carrot click passes. Run `gradlew build`.
 - [ ] 2.2 GameTests in `gametest/ShuttleModuleGameTests.java`: `workshopDismantleKeepsContents` (one item entity dropped, placed again it holds the Mk2 shuttle with Speed 1, 8 iron ingots and spruce), `workshopDismantleCancelsHandBuild`, `workshopPlainCarrotDoesNothing`; the existing break test still drops the contents. Run the Storage GameTests.
 
 ## 3. Look

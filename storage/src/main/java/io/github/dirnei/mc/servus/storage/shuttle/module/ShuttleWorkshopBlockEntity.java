@@ -32,6 +32,10 @@ import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
 import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.component.ItemContainerContents;
+import java.util.ArrayList;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -234,6 +238,30 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
         return true;
     }
 
+    /**
+     * Empties the shuttle and supply slots and ends a build by hand, without
+     * dropping anything; the carrot dismantle has copied them into the item.
+     */
+    public void clearForDismantle() {
+        handBuild = false;
+        buildStep = 0;
+        shuttle.setStackInSlot(0, ItemStack.EMPTY);
+        for (int i = 0; i < supplies.getSlots(); i++) {
+            supplies.setStackInSlot(i, ItemStack.EMPTY);
+        }
+        setChanged();
+    }
+
+    /** The shuttle, then the supplies, as one list for the item's container. */
+    private List<ItemStack> contents() {
+        List<ItemStack> list = new ArrayList<>(1 + SUPPLY_SLOTS);
+        list.add(shuttle.getStackInSlot(0).copy());
+        for (int i = 0; i < supplies.getSlots(); i++) {
+            list.add(supplies.getStackInSlot(i).copy());
+        }
+        return list;
+    }
+
     /** Pops the shuttle and the supplies; called when the block is broken. */
     public void dropContents() {
         if (level == null) {
@@ -312,12 +340,25 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         woodSlot.apply(input.get(WoodContent.WOOD.get()));
+        ItemContainerContents container = input.get(DataComponents.CONTAINER);
+        if (container != null) {
+            NonNullList<ItemStack> list = NonNullList.withSize(1 + SUPPLY_SLOTS, ItemStack.EMPTY);
+            container.copyInto(list);
+            shuttle.setStackInSlot(0, list.get(0));
+            for (int i = 0; i < supplies.getSlots(); i++) {
+                supplies.setStackInSlot(i, list.get(1 + i));
+            }
+        }
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
         woodSlot.collect(builder);
+        List<ItemStack> contents = contents();
+        if (contents.stream().anyMatch(stack -> !stack.isEmpty())) {
+            builder.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(contents));
+        }
     }
 
     @Override
@@ -325,6 +366,8 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolde
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
         WoodSlot.removeFromTag(output);
+        output.discard("Shuttle");
+        output.discard("Supplies");
     }
 
     @Override
