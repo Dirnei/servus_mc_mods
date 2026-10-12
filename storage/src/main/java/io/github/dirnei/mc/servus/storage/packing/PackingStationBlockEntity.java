@@ -587,6 +587,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             int moved = WirelessCost.movable(ready, shipment.missing(), allowance(Flow.OUT), to.allowance(Flow.IN), room, paid);
             if (moved <= 0) {
                 if (paid <= 0) {
+                    there.get().refuseEnergy();
                     waitWireless(Component.translatable(prefix + "no_power_there", name), true);
                 } else if (room <= 0) {
                     waitWireless(Component.translatable(prefix + "receiver_full", name), true);

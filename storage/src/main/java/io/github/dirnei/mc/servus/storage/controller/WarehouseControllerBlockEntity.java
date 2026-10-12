@@ -63,6 +63,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private boolean wasCapable;
     /** Whether the controller was powered for wireless at the last energy change; the site record keeps it. */
     private boolean wasPowered;
+    /** Whether the controller was in the no power state when last looked at; a flip refreshes the lamp. */
+    private boolean wasNoPower = true;
     /** Set when the chunk unloads, so the removal that follows keeps the site's record. */
     private boolean unloading;
 
@@ -229,7 +231,58 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
 
     /** Spends FE from the buffer, for wireless transfers this controller receives. */
     public void spendEnergy(long amount) {
-        energy.spend(amount);
+        energy.spend(gameTime(), amount);
+    }
+
+    /** A wireless transfer found nothing it could pay: counts as a refused draw. */
+    public void refuseEnergy() {
+        energy.refused(gameTime());
+        powerStateChanged();
+    }
+
+    /**
+     * Draws FE for one of the warehouse's consumers: shuttles, wakes, Crafting
+     * Stations. Paid in full or not at all.
+     *
+     * @return whether the draw was paid
+     */
+    public boolean drawEnergy(long amount) {
+        boolean paid = energy.draw(gameTime(), amount);
+        if (!paid) {
+            powerStateChanged();
+        }
+        return paid;
+    }
+
+    /** Whether the warehouse is in the no power state: an empty buffer or a draw refused during the last second. */
+    public boolean noPower() {
+        return energy.noPower(gameTime());
+    }
+
+    /** FE drawn during the last second. */
+    public long usedLastSecond() {
+        return energy.usedLastSecond(gameTime());
+    }
+
+    /** Once per tick from the warehouse: a no power state whose second has passed ends here. */
+    public void tickPower() {
+        powerStateChanged();
+    }
+
+    private long gameTime() {
+        return level == null ? 0 : level.getGameTime();
+    }
+
+    /** Compares the no power state with the last one; a flip refreshes the lamp. */
+    private void powerStateChanged() {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        boolean now = noPower();
+        if (now != wasNoPower) {
+            wasNoPower = now;
+            refreshSiteLamp();
+        }
     }
 
     /** Whether the controller holds the FE of one item at the smallest wireless cost. */
@@ -256,6 +309,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private void energyChanged() {
         setChanged();
         wirelessStateChanged();
+        powerStateChanged();
     }
 
     private void wirelessUpgradeChanged() {
@@ -287,9 +341,9 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         syncRecord();
     }
 
-    /** What the activity lamp shows: red over capacity, green otherwise. */
+    /** What the activity lamp shows: red over capacity or without power, orange while awake, green otherwise. */
     protected StorageNodeBlocks.Activity lampActivity() {
-        if (siteState() == SiteCapacity.State.OVER) {
+        if (siteState() == SiteCapacity.State.OVER || noPower()) {
             return StorageNodeBlocks.Activity.BLOCKED;
         }
         boolean awake = level != null && io.github.dirnei.mc.servus.storage.site.SiteWakes.isAwake(level.dimension(), worldPosition);
@@ -318,6 +372,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     public void onLoad() {
         super.onLoad();
         unloading = false;
+        wasNoPower = noPower();
         refreshSiteLamp();
         syncRecord();
         if (legacyShuttles > 0 && level instanceof ServerLevel) {

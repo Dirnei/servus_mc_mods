@@ -692,6 +692,23 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return loaded(controllerPos) instanceof WarehouseControllerBlockEntity controller ? Optional.of(controller) : Optional.empty();
     }
 
+    /**
+     * Draws FE from the controller's buffer for one of the warehouse's
+     * consumers; refused while the warehouse is offline or its controller is
+     * not loaded. A free draw is always paid.
+     */
+    public boolean drawPower(long amount) {
+        if (amount <= 0) {
+            return true;
+        }
+        return controller().map(controller -> controller.drawEnergy(amount)).orElse(false);
+    }
+
+    /** Whether the warehouse is in the no power state; an offline one or one without a loaded controller has none. */
+    public boolean noPower() {
+        return controller().map(WarehouseControllerBlockEntity::noPower).orElse(true);
+    }
+
     /** The position of the single controller, empty unless online. */
     public Optional<BlockPos> controllerPos() {
         return status() == Status.ONLINE ? Optional.ofNullable(controllerPos) : Optional.empty();
@@ -1046,6 +1063,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).updateWireless(controller, controller.hasWirelessUpgrade(),
                         controller.poweredForWireless(), !packingStations().isEmpty());
             });
+        }
+        if (level != null && controllers == 1) {
+            controller().ifPresent(WarehouseControllerBlockEntity::tickPower);
         }
         if (level != null && controllers == 1 && ++snapshotTimer >= StorageStatsManager.INSTANCE.siteSnapshotInterval()) {
             snapshotTimer = 0;
@@ -1502,7 +1522,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             case MULTIPLE_CONTROLLERS -> "offline, more than one controller";
         };
         return Component.literal("Warehouse #" + id() + ": " + state + ", " + size() + " nodes, " + connectors.size() + " connectors, " + sources.size()
-                + " sources, " + stations.size() + " stations, " + garages.size() + " garages, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary());
+                + " sources, " + stations.size() + " stations, " + garages.size() + " garages, " + index.typeCount() + " item types, " + index.totalItems() + " items, " + fleet.summary()
+                + (status() == Status.ONLINE && noPower() ? ", no power" : ""));
     }
 
     // Operations
