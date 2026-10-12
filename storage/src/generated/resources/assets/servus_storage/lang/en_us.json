@@ -211,7 +211,6 @@
   "gui.servus_storage.site.state.online": "Online",
   "gui.servus_storage.site.state.sleeping": "Sleeping, wakes for a transfer",
   "gui.servus_storage.site.state.unreachable": "Sleeping, cannot wake",
-  "gui.servus_storage.site.wireless": "Has a Wireless Packing Station",
   "gui.servus_storage.station.blocked.no_room": "%s: no room in %s or in general storage",
   "gui.servus_storage.station.blocked.no_room_general": "%s: no room in general storage",
   "gui.servus_storage.station.blocked.no_shuttle": "%s: only racks have room and no shuttle can reach them",

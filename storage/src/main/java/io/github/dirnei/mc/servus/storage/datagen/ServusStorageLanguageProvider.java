@@ -334,7 +334,6 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.site.state.online", "Online");
         add("gui.servus_storage.site.state.sleeping", "Sleeping, wakes for a transfer");
         add("gui.servus_storage.site.state.unreachable", "Sleeping, cannot wake");
-        add("gui.servus_storage.site.wireless", "Has a Wireless Packing Station");
         add("gui.servus_storage.site.no_wireless", "No Wireless Packing Station");
         add("gui.servus_storage.terminal.message.offline", "No warehouse on this data line");
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");

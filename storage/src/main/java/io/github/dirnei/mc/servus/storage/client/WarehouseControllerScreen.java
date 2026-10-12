@@ -137,11 +137,13 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             graphics.setTooltipForNextFrame(font, font.split(Component.translatable("gui.servus_storage.controller.map.tooltip"), 180), mouseX, mouseY);
         } else if (siteUnder(mouseX, mouseY, status) != null) {
             io.github.dirnei.mc.servus.storage.terminal.SiteRow site = siteUnder(mouseX, mouseY, status);
-            graphics.setComponentTooltipForNextFrame(font, List.of(Component.literal(site.name()),
-                    Component.translatable("gui.servus_storage.site.state." + site.remoteState().name().toLowerCase(java.util.Locale.ROOT)),
-                    site.wireless() ? Component.translatable("gui.servus_storage.site.wireless")
-                            : Component.translatable("gui.servus_storage.site.no_wireless").withColor(COLOUR_NO_STATION & 0xFFFFFF)),
-                    mouseX, mouseY);
+            // Name and state; a site without a Wireless Packing Station also says why it is orange.
+            List<Component> lines = new java.util.ArrayList<>(List.of(Component.literal(site.name()),
+                    Component.translatable("gui.servus_storage.site.state." + site.remoteState().name().toLowerCase(java.util.Locale.ROOT))));
+            if (!site.wireless()) {
+                lines.add(Component.translatable("gui.servus_storage.site.no_wireless").withColor(COLOUR_NO_STATION & 0xFFFFFF));
+            }
+            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
         } else if (onlineLineY >= 0 && x >= WarehouseControllerMenu.STATUS_X && y >= onlineLineY && y < onlineLineY + 9
                 && !status.summary().getString().isEmpty()) {
             graphics.setTooltipForNextFrame(font, font.split(status.summary(), 200), mouseX, mouseY);
@@ -184,7 +186,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         return leftPos + imageWidth + SITES_GAP;
     }
 
-    /** The side panel: a title, then one row per site with a state mark, its name and a mark for a wireless station. */
+    /** The side panel: a title, then one row per site with a state mark and its name, orange without a wireless station. */
     private void renderSites(GuiGraphicsExtractor graphics, SiteStatusPayload status) {
         if (status == SiteStatusPayload.EMPTY) {
             return;
@@ -206,13 +208,9 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
                 case UNREACHABLE -> 0xFFC03030;
             };
             graphics.fill(left + 6, y + 1, left + 12, y + 7, mark);
-            String name = font.plainSubstrByWidth(site.name(), SITES_WIDTH - 30);
+            String name = font.plainSubstrByWidth(site.name(), SITES_WIDTH - 21);
             // A site without a Wireless Packing Station cannot trade; its name shows in orange.
             graphics.text(font, name, left + 15, y, site.wireless() ? COLOUR_TEXT : COLOUR_NO_STATION, false);
-            if (site.wireless()) {
-                graphics.fill(left + SITES_WIDTH - 10, y + 1, left + SITES_WIDTH - 8, y + 7, 0xFF9050C0);
-                graphics.fill(left + SITES_WIDTH - 12, y + 1, left + SITES_WIDTH - 6, y + 2, 0xFF9050C0);
-            }
         }
     }
 
