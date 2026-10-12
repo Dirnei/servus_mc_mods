@@ -261,14 +261,10 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         switch (status.capacityState()) {
             case COVERED -> y = lines(graphics, Component.translatable("gui.servus_storage.controller.covered",
                     status.chunks().size(), status.capacity()), y, COLOUR_GOOD);
-            case OVER -> {
-                y = lines(graphics, Component.translatable("gui.servus_storage.controller.over",
-                        status.chunks().size(), status.capacity()), y, COLOUR_BAD);
-                y = lines(graphics, Component.translatable("gui.servus_storage.controller.cannot_wake"), y, COLOUR_BAD);
-            }
+            case OVER -> y = lines(graphics, Component.translatable("gui.servus_storage.controller.over",
+                    status.chunks().size(), status.capacity()), y, COLOUR_BAD);
+            // The empty upgrade slots say it on their own.
             case NO_UPGRADE -> {
-                y = lines(graphics, Component.translatable("gui.servus_storage.controller.no_upgrade"), y, COLOUR_DIM);
-                y = lines(graphics, Component.translatable("gui.servus_storage.controller.cannot_wake"), y, COLOUR_DIM);
             }
         }
         if (!status.wake().getString().isEmpty()) {

@@ -127,8 +127,6 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.controller.chunks", "Spans %s chunks");
         add("gui.servus_storage.controller.covered", "%s of %s chunks covered");
         add("gui.servus_storage.controller.over", "%s of %s chunks: over capacity");
-        add("gui.servus_storage.controller.no_upgrade", "No Chunk Loader Upgrade");
-        add("gui.servus_storage.controller.cannot_wake", "Cannot wake while nobody is near");
         add("gui.servus_storage.controller.upgrades", "Chunk Loader Upgrades");
         add("gui.servus_storage.controller.upgrades.tooltip", "Each upgrade covers more chunks of the site. A site larger than its upgrades cover never wakes");
         add("gui.servus_storage.controller.wake.awake", "Awake for a transfer");
