@@ -13,17 +13,17 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
-/** NBT helpers for saving work orders and their steps. */
-final class Saving {
+/** NBT helpers for saving work orders, their steps and the CPU buffer. */
+public final class Saving {
 
     private Saving() {
     }
 
-    static CompoundTag key(ItemKey key, HolderLookup.Provider registries) {
+    public static CompoundTag key(ItemKey key, HolderLookup.Provider registries) {
         return (CompoundTag) ValueIo.saveStack(registries, key.stack(1));
     }
 
-    static Optional<ItemKey> key(CompoundTag tag, HolderLookup.Provider registries) {
+    public static Optional<ItemKey> key(CompoundTag tag, HolderLookup.Provider registries) {
         ItemStack stack = ValueIo.parseStack(registries, tag);
         return stack.isEmpty() ? Optional.empty() : Optional.of(ItemKey.of(stack));
     }

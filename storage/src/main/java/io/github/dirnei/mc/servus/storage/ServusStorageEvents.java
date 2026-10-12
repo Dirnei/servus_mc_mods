@@ -83,6 +83,9 @@ public final class ServusStorageEvents {
                     (point, side) -> point);
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.CRAFTING_CPU.get(),
                     (cpu, side) -> cpu.dataLink());
+            // The CPU takes packets into its buffer through the packet inlet only; no item capability, so pipes and hoppers never see it.
+            event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusStorageBlockEntities.CRAFTING_CPU.get(),
+                    (cpu, side) -> cpu.packetInlet());
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PRODUCTION_TERMINAL.get(),
                     (terminal, side) -> terminal);
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PATTERN_STORAGE.get(),

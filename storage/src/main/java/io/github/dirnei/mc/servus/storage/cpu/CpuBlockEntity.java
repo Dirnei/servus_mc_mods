@@ -37,6 +37,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.Containers;
+import io.github.dirnei.mc.servus.storage.order.Saving;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -78,6 +82,11 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     private int bufferBlocks;
     /** On the master: a block of the box that was a member of a data line when last asked. */
     private BlockPos memberCache;
+    /** On the master: intermediates that wait for later steps of their order. */
+    private CpuBuffer<ItemKey> buffer;
+    /** Items of a saved buffer that a master loading unformed drops in {@link #onLoad()}. */
+    private List<ItemStack> lostBuffer = List.of();
+    private final CpuInlet inlet = new CpuInlet(this);
 
     public CpuBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.CRAFTING_CPU.get(), pos, state);
@@ -100,7 +109,35 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
 
     /** Buffer stacks in use. */
     public int bufferUsed() {
-        return 0;
+        return buffer == null ? 0 : buffer().used();
+    }
+
+    /** The buffer of this CPU, on the master; its room follows {@code cpu.json}. */
+    public CpuBuffer<ItemKey> buffer() {
+        if (buffer == null) {
+            buffer = new CpuBuffer<>(room());
+        }
+        buffer.setCapacity(room());
+        return buffer;
+    }
+
+    /** Items landed through the inlet: credited to the open arrivals of the key. */
+    int landInBuffer(ItemKey key, int count) {
+        int landed = buffer().land(key, count);
+        if (landed > 0) {
+            setChanged();
+        }
+        return landed;
+    }
+
+    /** The master of the box this block belongs to, or null while unformed. */
+    CpuBlockEntity master() {
+        return level == null ? null : CpuBlock.master(level, worldPosition);
+    }
+
+    /** The CPU's packet inlet: only on a formed block, never an item capability. */
+    public net.neoforged.neoforge.transfer.ResourceHandler<net.neoforged.neoforge.transfer.item.ItemResource> packetInlet() {
+        return CpuBlock.isFormed(getBlockState()) && masterOffset != null ? inlet : null;
     }
 
     public int cpuBlocks() {
@@ -291,6 +328,9 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         if (book != null) {
             tag.put("Orders", book.save(registries));
         }
+        if (buffer != null && !buffer.isEmpty()) {
+            tag.put("Buffer", saveBuffer(buffer, registries));
+        }
         output.store(tag);
     }
 
@@ -317,6 +357,16 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         }
         if (tag.contains("Orders") && CpuBlock.isFormed(state) && isMaster()) {
             book().load(tag.getCompoundOrEmpty("Orders"), registries);
+        }
+        buffer = null;
+        lostBuffer = List.of();
+        if (tag.contains("Buffer")) {
+            CpuBuffer<ItemKey> loaded = loadBuffer(tag.getCompoundOrEmpty("Buffer"), registries);
+            if (CpuBlock.isFormed(state) && isMaster()) {
+                buffer = loaded;
+            } else {
+                lostBuffer = stacks(loaded.clear());
+            }
         }
     }
 
@@ -648,6 +698,67 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         return points.stream().min(Comparator.comparingLong(BlockPos::asLong));
     }
 
+    // Buffer saving
+
+    private static CompoundTag saveBuffer(CpuBuffer<ItemKey> buffer, HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        ListTag entries = new ListTag();
+        for (CpuBuffer.Entry<ItemKey> entry : buffer.entries()) {
+            CompoundTag item = new CompoundTag();
+            item.putLong("Order", entry.order());
+            item.put("Item", Saving.key(entry.key(), registries));
+            item.putInt("Count", entry.count());
+            item.putInt("MaxStack", entry.maxStack());
+            item.putBoolean("Leaving", entry.leaving());
+            entries.add(item);
+        }
+        ListTag arrivals = new ListTag();
+        for (CpuBuffer.Arrival<ItemKey> arrival : buffer.arrivals()) {
+            CompoundTag item = new CompoundTag();
+            item.putLong("Transfer", arrival.transfer());
+            item.putLong("Order", arrival.order());
+            item.put("Item", Saving.key(arrival.key(), registries));
+            item.putInt("Expected", arrival.expected());
+            item.putInt("Landed", arrival.landed());
+            item.putInt("MaxStack", arrival.maxStack());
+            arrivals.add(item);
+        }
+        tag.put("Entries", entries);
+        tag.put("Arrivals", arrivals);
+        return tag;
+    }
+
+    private CpuBuffer<ItemKey> loadBuffer(CompoundTag tag, HolderLookup.Provider registries) {
+        CpuBuffer<ItemKey> loaded = new CpuBuffer<>(room());
+        for (Tag raw : tag.getListOrEmpty("Entries")) {
+            CompoundTag item = (CompoundTag) raw;
+            Saving.key(item.getCompoundOrEmpty("Item"), registries).ifPresent(key -> loaded.restore(new CpuBuffer.Entry<>(
+                    item.getLongOr("Order", 0), key, item.getIntOr("Count", 0), item.getIntOr("MaxStack", 64),
+                    item.getBooleanOr("Leaving", false))));
+        }
+        for (Tag raw : tag.getListOrEmpty("Arrivals")) {
+            CompoundTag item = (CompoundTag) raw;
+            Saving.key(item.getCompoundOrEmpty("Item"), registries).ifPresent(key -> loaded.restore(new CpuBuffer.Arrival<>(
+                    item.getLongOr("Transfer", 0), item.getLongOr("Order", 0), key, item.getIntOr("Expected", 0),
+                    item.getIntOr("Landed", 0), item.getIntOr("MaxStack", 64))));
+        }
+        return loaded;
+    }
+
+    /** The items of buffer entries as stacks of at most their max stack size. */
+    static List<ItemStack> stacks(List<CpuBuffer.Entry<ItemKey>> entries) {
+        List<ItemStack> list = new ArrayList<>();
+        for (CpuBuffer.Entry<ItemKey> entry : entries) {
+            int left = entry.count();
+            while (left > 0) {
+                int count = Math.min(left, Math.max(1, entry.maxStack()));
+                list.add(entry.key().stack(count));
+                left -= count;
+            }
+        }
+        return list;
+    }
+
     // Wood: the planks the block was crafted from, shown as its boards
 
     @Override
@@ -697,6 +808,14 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     public void onLoad() {
         super.onLoad();
         carrier.carry(CpuBlock.isFormed(getBlockState()));
+        if (level instanceof ServerLevel server && !lostBuffer.isEmpty()) {
+            // A master that loads unformed has lost its CPU; what its buffer held lands at its position.
+            for (ItemStack stack : lostBuffer) {
+                Containers.dropItemStack(server, worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, stack);
+            }
+            lostBuffer = List.of();
+            setChanged();
+        }
     }
 
     /** A box carries the data network while formed; forming and unforming change the block state. */
