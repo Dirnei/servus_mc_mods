@@ -5,7 +5,7 @@ import io.github.dirnei.mc.servus.storage.packing.WarehouseSupplier;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import net.minecraft.network.chat.Component;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlockEntities;

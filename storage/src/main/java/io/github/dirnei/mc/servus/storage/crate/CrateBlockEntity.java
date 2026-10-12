@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.crate;
 
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;

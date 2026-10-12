@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.crate;
+package io.github.dirnei.mc.servus.storage.stats;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

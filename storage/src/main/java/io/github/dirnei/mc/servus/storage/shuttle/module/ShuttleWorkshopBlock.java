@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.storage.shuttle.module;
 
 import com.mojang.serialization.MapCodec;
-import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;

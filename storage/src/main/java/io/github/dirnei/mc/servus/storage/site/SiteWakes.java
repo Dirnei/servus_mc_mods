@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.storage.site;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderData;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import java.util.ArrayList;
 import java.util.HashSet;

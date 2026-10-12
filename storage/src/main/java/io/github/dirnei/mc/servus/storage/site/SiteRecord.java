@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.storage.site;
 
 import net.minecraft.core.UUIDUtil;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
-import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import java.util.Collections;
 import java.util.LinkedHashMap;

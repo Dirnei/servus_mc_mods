@@ -1,4 +1,4 @@
-package io.github.dirnei.mc.servus.storage.crate;
+package io.github.dirnei.mc.servus.storage.stats;
 
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.util.ExtraCodecs;

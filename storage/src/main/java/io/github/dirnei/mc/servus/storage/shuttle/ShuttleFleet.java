@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.field.FertilizePlan;
 import io.github.dirnei.mc.servus.storage.field.FieldCargo;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
