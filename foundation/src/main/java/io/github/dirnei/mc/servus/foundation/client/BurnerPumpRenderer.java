@@ -13,7 +13,7 @@ import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BeamStroke;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpParts;
+import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpParts;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -64,8 +64,8 @@ public class BurnerPumpRenderer implements BlockEntityRenderer<BurnerPumpBlockEn
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         float angle = state.angle;
         int light = state.light;
-        float pivotX = BurnerPumpParts.PIVOT_X / 16.0F;
-        float pivotY = BurnerPumpParts.PIVOT_Y / 16.0F;
+        float pivotX = BeamPumpParts.PIVOT_X / 16.0F;
+        float pivotY = BeamPumpParts.PIVOT_Y / 16.0F;
 
         poseStack.pushPose();
         // The models are built facing north; turn like the blockstate does.
@@ -73,11 +73,11 @@ public class BurnerPumpRenderer implements BlockEntityRenderer<BurnerPumpBlockEn
         poseStack.mulPose(Axis.YP.rotationDegrees(-((state.facing.toYRot() + 180.0F) % 360.0F)));
         poseStack.translate(-0.5F, -0.5F, -0.5F);
 
-        float rod = BeamStroke.rodOffset(angle, BurnerPumpParts.ROD_X - BurnerPumpParts.PIVOT_X) / 16.0F;
+        float rod = BeamStroke.rodOffset(angle, BeamPumpParts.ROD_X - BeamPumpParts.PIVOT_X) / 16.0F;
         draw(ROD_MODEL, poseStack, collector, light, 0, rod);
 
         poseStack.translate(0.0F, 1.0F, 0.0F);
-        float piston = BeamStroke.rodOffset(angle, BurnerPumpParts.PISTON_X - BurnerPumpParts.PIVOT_X) / 16.0F;
+        float piston = BeamStroke.rodOffset(angle, BeamPumpParts.PISTON_X - BeamPumpParts.PIVOT_X) / 16.0F;
         draw(PISTON_MODEL, poseStack, collector, light, 0, piston);
 
         poseStack.pushPose();

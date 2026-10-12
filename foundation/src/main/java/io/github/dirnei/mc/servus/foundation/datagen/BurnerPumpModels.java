@@ -3,6 +3,7 @@ package io.github.dirnei.mc.servus.foundation.datagen;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
+import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpParts;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpParts;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
 import java.util.Map;
@@ -53,7 +54,7 @@ final class BurnerPumpModels {
             }
         }
         beam(provider);
-        rod(provider, NAME + "_rod", BurnerPumpParts.ROD);
+        rod(provider, NAME + "_rod", BeamPumpParts.ROD);
         rod(provider, NAME + "_piston", BurnerPumpParts.PISTON);
         provider.simpleBlockItem(block, item(provider));
     }
@@ -77,12 +78,12 @@ final class BurnerPumpModels {
     }
 
     private static void addLower(BlockModelBuilder model, float dy) {
-        box(model, BurnerPumpParts.BASE, dy, "#stone", "#stone");
+        box(model, BeamPumpParts.BASE, dy, "#stone", "#stone");
         // The front keeps the box UVs so its bricks line up with the vanilla bricks on the sides.
         box(model, BurnerPumpParts.FIREBOX, dy, "#brick", "#oxidized_cut")
                 .face(Direction.NORTH).texture("#front").end();
         box(model, BurnerPumpParts.DRUM_LOWER, dy, "#copper", "#copper");
-        box(model, BurnerPumpParts.SOCKET, dy, "#oxidized", "#oxidized");
+        box(model, BeamPumpParts.SOCKET, dy, "#oxidized", "#oxidized");
     }
 
     private static ModelFile upper(BlockStateProvider provider) {
@@ -94,14 +95,14 @@ final class BurnerPumpModels {
     private static void addUpper(BlockModelBuilder model, float dy) {
         box(model, BurnerPumpParts.DRUM_UPPER, dy, "#copper", "#copper");
         box(model, BurnerPumpParts.CYLINDER, dy, "#copper", "#iron");
-        box(model, BurnerPumpParts.POST, dy, "#wood", "#wood");
+        box(model, BeamPumpParts.POST, dy, "#wood", "#wood");
         box(model, BurnerPumpParts.CHIMNEY, dy, "#brick", "#brick");
     }
 
     /** The beam in the upper half's frame, level; the renderer rocks it about the pivot. */
     private static void beam(BlockStateProvider provider) {
         BlockModelBuilder model = base(provider, NAME + "_beam");
-        box(model, BurnerPumpParts.BEAM, 0, "#wood", "#wood");
+        box(model, BeamPumpParts.BEAM, 0, "#wood", "#wood");
     }
 
     /** A thin iron rod; its sides take a strip of the texture, since it is taller than a block. */
@@ -118,8 +119,8 @@ final class BurnerPumpModels {
         BlockModelBuilder model = base(provider, NAME + "_item").texture("front", provider.modLoc("block/" + NAME + "_front"));
         addLower(model, 0);
         addUpper(model, 16);
-        box(model, BurnerPumpParts.BEAM, 16, "#wood", "#wood");
-        float[] rod = BurnerPumpParts.ROD;
+        box(model, BeamPumpParts.BEAM, 16, "#wood", "#wood");
+        float[] rod = BeamPumpParts.ROD;
         model.element().from(rod[0], rod[1], rod[2]).to(rod[3], rod[4], rod[5])
                 .allFaces((direction, face) -> face.texture("#iron").uvs(7, 0, 8, 16));
         // The model is 32 pixels tall: scale it down and lower it by its extra half.

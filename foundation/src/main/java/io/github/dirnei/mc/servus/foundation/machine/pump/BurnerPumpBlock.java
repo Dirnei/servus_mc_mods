@@ -55,7 +55,7 @@ public class BurnerPumpBlock extends PumpBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
 
     /** Symmetric, so one shape fits every facing; the small rod socket takes no space. */
-    private static final VoxelShape LOWER = Shapes.or(box(BurnerPumpParts.BASE), box(BurnerPumpParts.FIREBOX),
+    private static final VoxelShape LOWER = Shapes.or(box(BeamPumpParts.BASE), box(BurnerPumpParts.FIREBOX),
             box(BurnerPumpParts.DRUM_LOWER));
     /** The upper parts per facing; the moving beam and rods take no space. */
     private static final Map<Direction, VoxelShape> UPPER = new EnumMap<>(Direction.class);
@@ -64,9 +64,9 @@ public class BurnerPumpBlock extends PumpBlock {
         for (Direction facing : Direction.Plane.HORIZONTAL) {
             int quarters = quarters(facing);
             VoxelShape shape = Shapes.empty();
-            for (float[] part : new float[][] {BurnerPumpParts.DRUM_UPPER, BurnerPumpParts.CYLINDER, BurnerPumpParts.POST,
+            for (float[] part : new float[][] {BurnerPumpParts.DRUM_UPPER, BurnerPumpParts.CYLINDER, BeamPumpParts.POST,
                     BurnerPumpParts.CHIMNEY}) {
-                shape = Shapes.or(shape, box(BurnerPumpParts.rotated(part, quarters)));
+                shape = Shapes.or(shape, box(BeamPumpParts.rotated(part, quarters)));
             }
             UPPER.put(facing, shape);
         }
@@ -183,7 +183,7 @@ public class BurnerPumpBlock extends PumpBlock {
         if (isUpper(state) || !state.getValue(LIT) || random.nextFloat() >= 0.5F) {
             return;
         }
-        float[] top = BurnerPumpParts.rotatedPoint(BurnerPumpParts.SMOKE_X, BurnerPumpParts.SMOKE_Z, quarters(state.getValue(FACING)));
+        float[] top = BeamPumpParts.rotatedPoint(BurnerPumpParts.SMOKE_X, BurnerPumpParts.SMOKE_Z, quarters(state.getValue(FACING)));
         level.addAlwaysVisibleParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, true,
                 pos.getX() + top[0] / 16.0 + (random.nextDouble() - 0.5) / 16.0,
                 pos.getY() + 1 + BurnerPumpParts.SMOKE_Y / 16.0 + random.nextDouble() * 0.1,
