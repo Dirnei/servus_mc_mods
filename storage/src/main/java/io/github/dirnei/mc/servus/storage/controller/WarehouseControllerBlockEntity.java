@@ -61,6 +61,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private final ControllerEnergy energy = new ControllerEnergy(StorageStatsManager.INSTANCE.controllerEnergyCapacity(), this::energyChanged);
     /** Whether the controller was wireless capable at the last upgrade or energy change; a flip tells the warehouse. */
     private boolean wasCapable;
+    /** Whether the controller was powered for wireless at the last energy change; the site record keeps it. */
+    private boolean wasPowered;
     /** Set when the chunk unloads, so the removal that follows keeps the site's record. */
     private boolean unloading;
 
@@ -248,6 +250,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     public void clearEnergyForItem() {
         energy.load(0);
         wasCapable = capable();
+        wasPowered = poweredForWireless();
     }
 
     private void energyChanged() {
@@ -267,10 +270,12 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     /** Compares the capable state with the last one; on a flip the warehouse and the site record learn it. */
     private void wirelessStateChanged() {
         boolean now = capable();
-        if (now == wasCapable) {
+        boolean powered = poweredForWireless();
+        if (now == wasCapable && powered == wasPowered) {
             return;
         }
         wasCapable = now;
+        wasPowered = powered;
         if (level != null && !level.isClientSide()) {
             network().ifPresent(WarehouseNetwork::wirelessChanged);
         }
@@ -394,6 +399,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         }
         energy.load(input.getIntOr("Energy", 0));
         wasCapable = capable();
+        wasPowered = poweredForWireless();
     }
 
     // Wood: the planks the block was crafted from, shown as its boards

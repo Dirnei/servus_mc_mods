@@ -158,7 +158,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** Set by every membership or source change; the controller's span is recomputed once on the next tick. */
     private boolean spanDirty = true;
     private int snapshotTimer;
-    /** Set when a Wireless Packing Station joins, leaves or changes its team; the site record learns it next tick. */
+    /**
+     * Set when a Packing Station joins or leaves, or the controller's Wireless
+     * Upgrade or power changes; the site record learns it next tick.
+     */
     private boolean wirelessDirty = true;
     private long snapshotVersion = -1;
 
@@ -201,8 +204,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         lampsDirty = true;
         spanDirty = true;
-        wirelessDirty |= node instanceof io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity
-                || node instanceof WarehouseControllerBlockEntity;
+        wirelessDirty |= node instanceof PackingStationBlockEntity || node instanceof WarehouseControllerBlockEntity;
         fleet.refreshHomes();
     }
 
@@ -230,7 +232,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         lampsDirty = true;
         spanDirty = true;
-        wirelessDirty |= node instanceof io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity;
+        wirelessDirty |= node instanceof PackingStationBlockEntity || node instanceof WarehouseControllerBlockEntity;
         fleet.refreshHomes();
     }
 
@@ -577,27 +579,33 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Sends items over the wireless line to a Wireless Packing Station of
-     * another site: picked into this warehouse's Wireless Packing Station of the
-     * team with the shortest shuttle trip, then moved by that station.
+     * Sends items over the wireless line to a Packing Station of another site:
+     * picked into this warehouse's Packing Station with the shortest shuttle
+     * trip, with or without a data line, then moved by that station. The
+     * refusals name this warehouse as "there", since the site that asks for the
+     * items shows them.
      *
-     * Only powered stations send; a warehouse whose stations of the team are all
-     * unpowered refuses with {@code no_power_there}.
-     *
-     * @return refusal keys: {@code offline}, {@code no_wireless_station}, {@code no_power_there}, {@code out_of_stock},
-     *         {@code needs_shuttle} or {@code no_rail}
+     * @return refusal keys: {@code offline}, {@code no_wireless_there} (no Wireless Upgrade), {@code no_power_there},
+     *         {@code no_packing_there}, {@code out_of_stock}, {@code needs_shuttle} or {@code no_rail}
      */
-    public Shipping shipWireless(BlockPos receiver, ItemKey key, int amount, int requestId, java.util.UUID team) {
+    public Shipping shipWireless(BlockPos receiver, ItemKey key, int amount, int requestId) {
         if (status() != Status.ONLINE || level == null) {
             return new Shipping("offline", Optional.empty(), null);
         }
-        List<PackingStationBlockEntity> candidates = new ArrayList<>(wirelessStations(team));
-        candidates.removeIf(point -> point.getBlockPos().equals(receiver));
-        if (!candidates.isEmpty() && candidates.stream().noneMatch(point -> ((io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity) point).powered())) {
-            return new Shipping("no_power_there", Optional.empty(), null);
+        Optional<WarehouseControllerBlockEntity> controller = controller();
+        if (controller.isEmpty()) {
+            return new Shipping("offline", Optional.empty(), null);
         }
-        candidates.removeIf(point -> !((io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity) point).powered());
-        return shipThrough(candidates, receiver, key, amount, requestId, "no_wireless_station");
+        if (!controller.get().capable()) {
+            return new Shipping(controller.get().hasWirelessUpgrade() ? "no_power_there" : "no_wireless_there", Optional.empty(), null);
+        }
+        List<PackingStationBlockEntity> candidates = new ArrayList<>();
+        for (BlockPos pos : packingStations()) {
+            if (!pos.equals(receiver) && loaded(pos) instanceof PackingStationBlockEntity point) {
+                candidates.add(point);
+            }
+        }
+        return shipThrough(candidates, receiver, key, amount, requestId, "no_packing_there");
     }
 
     /** Plans the picks into the candidate with the shortest shuttle trip and opens its shipment to the target. */
@@ -645,6 +653,14 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         }
         return sum;
+    }
+
+    /** Open incoming wireless transfers per Packing Station of this warehouse, for the choice of the receiver. */
+    private final Map<BlockPos, Integer> incoming = new HashMap<>();
+
+    /** How many open wireless transfers are on their way to the Packing Station at that position. */
+    public int incomingWireless(BlockPos station) {
+        return incoming.getOrDefault(station, 0);
     }
 
     /** The Packing Stations of this warehouse. */
@@ -1021,7 +1037,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (wirelessDirty && level != null && controllers == 1) {
             controller().ifPresent(controller -> {
                 wirelessDirty = false;
-                io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).updateWireless(controller, wirelessTeams(), wirelessStationTeams());
+                io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).updateWireless(controller, controller.hasWirelessUpgrade(),
+                        controller.poweredForWireless(), !packingStations().isEmpty());
             });
         }
         if (level != null && controllers == 1 && ++snapshotTimer >= StorageStatsManager.INSTANCE.siteSnapshotInterval()) {
@@ -1393,48 +1410,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         });
     }
 
-    /** A Wireless Packing Station's team or powered state changed: the site record learns it next tick. */
+    /** The controller's Wireless Upgrade or powered state changed: the site record learns it next tick. */
     public void wirelessChanged() {
         wirelessDirty = true;
-    }
-
-    /** The Wireless Packing Stations of this warehouse whose team is {@code team}, lowest position first. */
-    public List<io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity> wirelessStations(java.util.UUID team) {
-        List<io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity> found = new ArrayList<>();
-        if (level == null || team == null) {
-            return found;
-        }
-        for (BlockPos pos : stations) {
-            if (loaded(pos) instanceof io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity station
-                    && station.team().filter(team::equals).isPresent()) {
-                found.add(station);
-            }
-        }
-        found.sort(java.util.Comparator.comparingLong(station -> station.getBlockPos().asLong()));
-        return found;
-    }
-
-    /** The teams that have a powered Wireless Packing Station in this warehouse: the teams whose wireless line reaches it. */
-    public Set<java.util.UUID> wirelessTeams() {
-        return wirelessStationTeams(true);
-    }
-
-    /** The teams that have a Wireless Packing Station in this warehouse, powered or not. */
-    public Set<java.util.UUID> wirelessStationTeams() {
-        return wirelessStationTeams(false);
-    }
-
-    private Set<java.util.UUID> wirelessStationTeams(boolean poweredOnly) {
-        Set<java.util.UUID> teams = new LinkedHashSet<>();
-        if (level == null) {
-            return teams;
-        }
-        for (BlockPos pos : stations) {
-            if (loaded(pos) instanceof io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity station && (!poweredOnly || station.powered())) {
-                station.team().ifPresent(teams::add);
-            }
-        }
-        return teams;
     }
 
     /**
@@ -1457,8 +1435,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 continue;
             }
             BlockState state = level.getBlockState(pos);
-            // An unpowered Wireless Packing Station is off the wireless line: its lamp stays dark.
-            boolean lit = online && !(level.getBlockEntity(pos) instanceof io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity station && !station.powered());
+            boolean lit = online;
             if (state.hasProperty(StorageNodeBlocks.ONLINE) && state.getValue(StorageNodeBlocks.ONLINE) != lit) {
                 level.setBlock(pos, state.setValue(StorageNodeBlocks.ONLINE, lit), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
             }

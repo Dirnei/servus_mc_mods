@@ -98,18 +98,16 @@ public final class SiteRegistry extends SavedData {
     }
 
     /**
-     * The teams with a powered Wireless Packing Station at the controller's
-     * site, and those with one at all; written only when they changed.
+     * Whether the controller of the site holds a Wireless Upgrade, is powered
+     * for wireless, and whether the site has a Packing Station; written only
+     * when one of them changed.
      */
-    public void updateWireless(WarehouseControllerBlockEntity controller, Set<UUID> powered, Set<UUID> stations) {
+    public void updateWireless(WarehouseControllerBlockEntity controller, boolean upgrade, boolean powered, boolean packing) {
         SiteRecord record = update(controller);
-        Set<UUID> unpowered = new java.util.LinkedHashSet<>(stations);
-        unpowered.removeAll(powered);
-        if (!record.wireless.equals(powered) || !record.unpowered.equals(unpowered)) {
-            record.wireless.clear();
-            record.wireless.addAll(powered);
-            record.unpowered.clear();
-            record.unpowered.addAll(unpowered);
+        if (record.upgrade != upgrade || record.powered != powered || record.packing != packing) {
+            record.upgrade = upgrade;
+            record.powered = powered;
+            record.packing = packing;
             setDirty();
         }
     }
@@ -119,14 +117,16 @@ public final class SiteRegistry extends SavedData {
      * as it is remembered while it sleeps.
      */
     public SiteRecord remember(ResourceKey<Level> dimension, BlockPos pos, String name, UUID team, Set<Long> span, int upgrades,
-                               Map<ItemKey, Long> stock, Set<UUID> wireless) {
+                               Map<ItemKey, Long> stock, boolean upgrade, boolean powered, boolean packing) {
         SiteRecord record = new SiteRecord(dimension, pos);
         record.name = name;
         record.team = team;
         record.span.addAll(span);
         record.upgrades = upgrades;
         record.stock.putAll(stock);
-        record.wireless.addAll(wireless);
+        record.upgrade = upgrade;
+        record.powered = powered;
+        record.packing = packing;
         sites.put(record.key(), record);
         setDirty();
         return record;

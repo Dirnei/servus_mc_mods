@@ -59,21 +59,19 @@ public final class PipeAccessGameTests {
     private static final BlockPos TERMINAL = new BlockPos(4, 1, 2);
     private static final BlockPos HEAD = new BlockPos(6, 1, 2);
     private static final BlockPos STATION = new BlockPos(8, 1, 2);
-    private static final BlockPos WIRELESS = new BlockPos(10, 1, 2);
 
     private static void stations(GameTestHelper helper) {
         helper.setBlock(PACKING, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         helper.setBlock(TERMINAL, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState().setValue(StorageTerminalBlock.FACING, Direction.NORTH));
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        helper.setBlock(WIRELESS, ServusStorageBlocks.WIRELESS_PACKING_STATION.get().defaultBlockState());
     }
 
-    /** No face of the Packing Station, terminal, Field Head, Crafting Station or Wireless Packing Station offers items. */
+    /** No face of the Packing Station, terminal, Field Head or Crafting Station offers items. */
     @ServusGameTest(timeoutTicks = 20)
     public static void noItemCapabilityOnStations(GameTestHelper helper) {
         stations(helper);
-        for (BlockPos pos : List.of(PACKING, TERMINAL, HEAD, STATION, WIRELESS)) {
+        for (BlockPos pos : List.of(PACKING, TERMINAL, HEAD, STATION)) {
             helper.assertTrue(!itemCapability(helper, pos, null), "no item capability without a side at " + pos);
             for (Direction side : Direction.values()) {
                 helper.assertTrue(!itemCapability(helper, pos, side), "no item capability on " + side + " at " + pos);
@@ -120,7 +118,7 @@ public final class PipeAccessGameTests {
         helper.setBlock(centre.east(), ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState().setValue(StorageTerminalBlock.FACING, Direction.EAST));
         helper.setBlock(centre.north(), ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
         helper.setBlock(centre.south(), ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.SOUTH));
-        helper.setBlock(centre.above(), ServusStorageBlocks.WIRELESS_PACKING_STATION.get().defaultBlockState());
+        helper.setBlock(centre.above(), ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState());
         UtilityDuctBlockEntity duct = itemDuct(helper, centre);
         helper.assertTrue(duct.arms(Line.ITEM) == 0, "no item arm toward the stations, got mask " + duct.arms(Line.ITEM));
         helper.succeed();

@@ -24,7 +24,7 @@ import org.lwjgl.glfw.GLFW;
 public class WarehouseControllerScreen extends AbstractContainerScreen<WarehouseControllerMenu> {
 
     private static final int COLOUR_TEXT = 0xFF404040;
-    private static final int COLOUR_NO_STATION = 0xFFD07020;
+    private static final int COLOUR_NO_TRADE = 0xFFD07020;
     private static final int COLOUR_GOOD = 0xFF2E7D32;
     private static final int COLOUR_BAD = 0xFFB71C1C;
     private static final int COLOUR_DIM = 0xFF707070;
@@ -137,13 +137,9 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             graphics.setTooltipForNextFrame(font, font.split(Component.translatable("gui.servus_storage.controller.map.tooltip"), 180), mouseX, mouseY);
         } else if (siteUnder(mouseX, mouseY, status) != null) {
             io.github.dirnei.mc.servus.storage.terminal.SiteRow site = siteUnder(mouseX, mouseY, status);
-            // Name and state; a site without a powered Wireless Packing Station also says why it is orange.
-            List<Component> lines = new java.util.ArrayList<>(List.of(Component.literal(site.name()),
-                    Component.translatable("gui.servus_storage.site.state." + site.remoteState().name().toLowerCase(java.util.Locale.ROOT))));
-            if (!site.wireless()) {
-                String why = site.unpowered() ? "gui.servus_storage.site.no_power" : "gui.servus_storage.site.no_wireless";
-                lines.add(Component.translatable(why).withColor(COLOUR_NO_STATION & 0xFFFFFF));
-            }
+            // Name and state only.
+            List<Component> lines = List.of(Component.literal(site.name()),
+                    Component.translatable("gui.servus_storage.site.state." + site.remoteState().name().toLowerCase(java.util.Locale.ROOT)));
             graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
         } else if (onlineLineY >= 0 && x >= WarehouseControllerMenu.STATUS_X && y >= onlineLineY && y < onlineLineY + 9
                 && !status.summary().getString().isEmpty()) {
@@ -187,7 +183,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         return leftPos + imageWidth + SITES_GAP;
     }
 
-    /** The side panel: a title, then one row per site with a state mark and its name, orange without a wireless station. */
+    /** The side panel: a title, then one row per site with a state mark and its name, orange when it cannot trade. */
     private void renderSites(GuiGraphicsExtractor graphics, SiteStatusPayload status) {
         if (status == SiteStatusPayload.EMPTY) {
             return;
@@ -210,8 +206,8 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             };
             graphics.fill(left + 6, y + 1, left + 12, y + 7, mark);
             String name = font.plainSubstrByWidth(site.name(), SITES_WIDTH - 21);
-            // A site without a powered Wireless Packing Station cannot trade; its name shows in orange.
-            graphics.text(font, name, left + 15, y, site.wireless() ? COLOUR_TEXT : COLOUR_NO_STATION, false);
+            // A site whose controller is not wireless capable cannot trade; its name shows in orange.
+            graphics.text(font, name, left + 15, y, site.trade() ? COLOUR_TEXT : COLOUR_NO_TRADE, false);
         }
     }
 

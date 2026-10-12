@@ -13,7 +13,7 @@
 
 ## 3. Remove the Wireless Packing Station
 
-- [ ] 3.1 Delete `packing/WirelessPackingStationBlock.java`, `WirelessPackingStationBlockEntity.java`, `storage/wireless_packing_station.json`, their entries in `ServusStorageBlocks`, `ServusStorageItems`, `ServusStorageBlockEntities`, the creative tab, wood registration, `ServusStorageEvents`, datagen (block state, model, loot, recipe, mineable tag, lang) and textures; `gametest/WirelessPackingStationGameTests.java` is removed here and its cases come back in 5.1. Grep the storage tree for `WirelessPackingStation` and `wireless_packing_station`: no hits outside docs and PLAN.md. Run `gradlew :storage:runData`, then `gradlew build`.
+- [x] 3.1 Delete `packing/WirelessPackingStationBlock.java`, `WirelessPackingStationBlockEntity.java`, `storage/wireless_packing_station.json`, their entries in `ServusStorageBlocks`, `ServusStorageItems`, `ServusStorageBlockEntities`, the creative tab, wood registration, `ServusStorageEvents`, datagen (block state, model, loot, recipe, mineable tag, lang) and textures; `gametest/WirelessPackingStationGameTests.java` is removed here and its cases come back in 5.1. Grep the storage tree for `WirelessPackingStation` and `wireless_packing_station`: no hits outside docs and PLAN.md. Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 4. Transfers through Packing Stations
 

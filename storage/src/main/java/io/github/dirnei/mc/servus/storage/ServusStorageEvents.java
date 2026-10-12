@@ -74,9 +74,6 @@ public final class ServusStorageEvents {
             // Packets enter a Packing Station through its inlet; pipes and hoppers see no item capability.
             event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusStorageBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point.intake());
-            // The Wireless Packing Station takes FE but no items from outside and never joins a data line.
-            event.registerBlockEntity(Capabilities.Energy.BLOCK, ServusStorageBlockEntities.WIRELESS_PACKING_STATION.get(),
-                    (point, side) -> point.energy());
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PACKING_STATION.get(),
                     (point, side) -> point);
             event.registerBlockEntity(ServusFoundationCapabilities.TRANSFER_GATE, ServusStorageBlockEntities.PACKING_STATION.get(),

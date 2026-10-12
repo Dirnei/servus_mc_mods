@@ -264,13 +264,9 @@ public final class TerminalRequests {
                     return RequestState.SENDING;
                 }
             }
-            for (Tracked tracked : request.shipments) {
-                // A transfer whose sending or receiving station lost power waits until it has FE again.
-                if (level.isLoaded(tracked.packingStation())
-                        && level.getBlockEntity(tracked.packingStation()) instanceof io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity point
-                        && point.waitsForPower(tracked.shipmentId())) {
-                    return RequestState.NO_POWER;
-                }
+            if (!request.shipments.isEmpty() && RemoteTransfers.receiverUnpowered(level, terminal.getBlockPos())) {
+                // This site's controller lost its upgrade or power: the transfer waits until it is capable again.
+                return RequestState.NO_POWER;
             }
             return request.shipments.isEmpty() ? RequestState.MISSING : RequestState.PICKING;
         }

@@ -41,9 +41,6 @@ public final class ServusStorageBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<InboundStationBlockEntity>> INBOUND_STATION =
             BLOCK_ENTITIES.register("inbound_station", () -> new BlockEntityType<>(InboundStationBlockEntity::new, ServusStorageBlocks.INBOUND_STATION.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity>> WIRELESS_PACKING_STATION =
-            BLOCK_ENTITIES.register("wireless_packing_station", () -> new BlockEntityType<>(io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity::new, ServusStorageBlocks.WIRELESS_PACKING_STATION.get()));
-
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PackingStationBlockEntity>> PACKING_STATION =
             BLOCK_ENTITIES.register("packing_station", () -> new BlockEntityType<>(PackingStationBlockEntity::new, ServusStorageBlocks.PACKING_STATION.get()));
 

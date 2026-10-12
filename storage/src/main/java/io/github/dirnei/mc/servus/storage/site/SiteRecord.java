@@ -32,10 +32,12 @@ public final class SiteRecord {
     final Set<Long> span = new LinkedHashSet<>();
     int upgrades;
     final Map<ItemKey, Long> stock = new LinkedHashMap<>();
-    /** Teams with a powered Wireless Packing Station at the site: their wireless line reaches it. */
-    final Set<UUID> wireless = new LinkedHashSet<>();
-    /** Teams whose Wireless Packing Stations at the site are all unpowered. */
-    final Set<UUID> unpowered = new LinkedHashSet<>();
+    /** Whether the site's controller holds a Wireless Upgrade. */
+    boolean upgrade;
+    /** Whether the site's controller holds the FE of one item at the smallest wireless cost. */
+    boolean powered;
+    /** Whether the site has a Packing Station on its rails. */
+    boolean packing;
     long lastSeen;
 
     public SiteRecord(ResourceKey<Level> dimension, BlockPos pos) {
@@ -92,18 +94,24 @@ public final class SiteRecord {
         return Collections.unmodifiableMap(stock);
     }
 
-    /** Whether a powered Wireless Packing Station of that team stands at the site, so the team's wireless line reaches it. */
-    public boolean hasWireless(UUID team) {
-        return team != null && wireless.contains(team);
+    /** Whether the site's controller holds a Wireless Upgrade. */
+    public boolean hasUpgrade() {
+        return upgrade;
     }
 
-    /** Whether a Wireless Packing Station of that team stands at the site, powered or not. */
-    public boolean hasStation(UUID team) {
-        return team != null && (wireless.contains(team) || unpowered.contains(team));
+    /** Whether the site's controller is powered for wireless; kept while the site sleeps. */
+    public boolean powered() {
+        return powered;
     }
 
-    public Set<UUID> wireless() {
-        return Collections.unmodifiableSet(wireless);
+    /** Whether the site has a Packing Station on its rails. */
+    public boolean hasPacking() {
+        return packing;
+    }
+
+    /** Whether the site's controller is wireless capable: it holds the upgrade and is powered. */
+    public boolean canTrade() {
+        return upgrade && powered;
     }
 
     /** Game time of the last stock report. */
@@ -130,12 +138,9 @@ public final class SiteRecord {
             items.add(entry);
         });
         tag.put("Stock", items);
-        ListTag teams = new ListTag();
-        wireless.forEach(id -> teams.add(new net.minecraft.nbt.IntArrayTag(net.minecraft.core.UUIDUtil.uuidToIntArray(id))));
-        tag.put("Wireless", teams);
-        ListTag off = new ListTag();
-        unpowered.forEach(id -> off.add(new net.minecraft.nbt.IntArrayTag(net.minecraft.core.UUIDUtil.uuidToIntArray(id))));
-        tag.put("Unpowered", off);
+        tag.putBoolean("Wireless", upgrade);
+        tag.putBoolean("Powered", powered);
+        tag.putBoolean("Packing", packing);
         return tag;
     }
 
@@ -152,12 +157,9 @@ public final class SiteRecord {
         }
         record.upgrades = tag.getIntOr("Upgrades", 0);
         record.lastSeen = tag.getLongOr("Seen", 0L);
-        for (Tag raw : tag.getListOrEmpty("Wireless")) {
-            record.wireless.add(net.minecraft.core.UUIDUtil.uuidFromIntArray(((net.minecraft.nbt.IntArrayTag) raw).getAsIntArray()));
-        }
-        for (Tag raw : tag.getListOrEmpty("Unpowered")) {
-            record.unpowered.add(net.minecraft.core.UUIDUtil.uuidFromIntArray(((net.minecraft.nbt.IntArrayTag) raw).getAsIntArray()));
-        }
+        record.upgrade = tag.getBooleanOr("Wireless", false);
+        record.powered = tag.getBooleanOr("Powered", false);
+        record.packing = tag.getBooleanOr("Packing", false);
         ListTag items = tag.getListOrEmpty("Stock");
         for (int i = 0; i < items.size(); i++) {
             CompoundTag entry = items.getCompoundOrEmpty(i);

@@ -462,20 +462,16 @@ public final class PackingStationGameTests {
         inputStack(helper, false);
     }
 
-    /** The same with a powered Wireless Packing Station on the rails: the input still goes through the Packing Station and all 64 arrive. */
+    /** The same with a second Packing Station without a data line on the rails: the input still arrives, all 64. */
     @ServusGameTest(timeoutTicks = 1200)
-    public static void inputStackReachesRackBesideWirelessStation(GameTestHelper helper) {
+    public static void inputStackReachesRackBesidePackingStation(GameTestHelper helper) {
         inputStack(helper, true);
     }
 
-    private static void inputStack(GameTestHelper helper, boolean wireless) {
+    private static void inputStack(GameTestHelper helper, boolean second) {
         Setup setup = setup(helper, 0, false, true);
-        if (wireless) {
-            BlockPos at = new BlockPos(5, 1, 7);
-            helper.setBlock(at, ServusStorageBlocks.WIRELESS_PACKING_STATION.get().defaultBlockState());
-            var station = helper.getBlockEntity(at, io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity.class);
-            station.setTeam(java.util.UUID.randomUUID());
-            station.setEnergy(10000);
+        if (second) {
+            helper.setBlock(new BlockPos(5, 1, 7), ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         }
         BlockPos terminalPos = new BlockPos(4, 1, 9);
         helper.setBlock(terminalPos, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
@@ -493,7 +489,7 @@ public final class PackingStationGameTests {
     }
 
     /**
-     * A terminal touching the controller and a Wireless Packing Station
+     * A terminal touching the controller and a second Packing Station
      * beside it are no foreign inventories: neither the terminal's
      * rows nor the station's buffers count as stock, and the Input row's logs
      * all reach the rack.
@@ -508,8 +504,8 @@ public final class PackingStationGameTests {
             data(helper, new BlockPos(x, 1, 8));
         }
         BlockPos wirelessPos = new BlockPos(0, 1, 5);
-        helper.setBlock(wirelessPos, ServusStorageBlocks.WIRELESS_PACKING_STATION.get().defaultBlockState());
-        var wireless = helper.getBlockEntity(wirelessPos, io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity.class);
+        helper.setBlock(wirelessPos, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
+        var wireless = helper.getBlockEntity(wirelessPos, PackingStationBlockEntity.class);
         wireless.outgoing().setStackInSlot(0, new ItemStack(Items.EMERALD, 7));
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = helper.getBlockEntity(terminalPos, StorageTerminalBlockEntity.class);
@@ -519,7 +515,7 @@ public final class PackingStationGameTests {
             io.github.dirnei.mc.servus.storage.network.ItemKey logs = io.github.dirnei.mc.servus.storage.network.ItemKey.of(new ItemStack(Items.OAK_LOG));
             helper.succeedWhen(() -> {
                 helper.assertTrue(network.index().count(io.github.dirnei.mc.servus.storage.network.ItemKey.of(new ItemStack(Items.EMERALD))) == 0,
-                        "the Wireless Packing Station's buffer is no stock");
+                        "the second Packing Station's buffer is no stock");
                 helper.assertTrue(count(setup.rack().items(), Items.OAK_LOG) == 64, "the rack should hold 64 logs, got "
                         + count(setup.rack().items(), Items.OAK_LOG) + ", input " + terminal.input().getStackInSlot(0).getCount());
                 helper.assertTrue(terminal.input().getStackInSlot(0).isEmpty(), "the input should be empty");

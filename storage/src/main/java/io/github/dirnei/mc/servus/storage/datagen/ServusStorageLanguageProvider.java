@@ -22,16 +22,6 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("tooltip.servus_storage.heavy_rack.wood", "Wood: %s");
         add(ServusStorageBlocks.INBOUND_STATION.get(), "Inbound Station");
         add(ServusStorageBlocks.PACKING_STATION.get(), "Packing Station");
-        add(ServusStorageBlocks.WIRELESS_PACKING_STATION.get(), "Wireless Packing Station");
-        add("tooltip.servus_storage.wireless_packing_station", "Links the warehouse to the other sites over a wireless line, for FE per item and distance");
-        add("gui.servus_storage.wireless.status.sending", "Sending %s to %s");
-        add("gui.servus_storage.wireless.status.idle", "Idle, %s of %s FE");
-        add("gui.servus_storage.wireless.status.no_team", "Placed by nobody: no wireless line");
-        add("gui.servus_storage.wireless.status.needs_power", "%s needs power: %s FE per item");
-        add("gui.servus_storage.wireless.status.needs_power_here", "Needs power to receive: %s FE per item");
-        add("gui.servus_storage.wireless.status.receiver_full", "%s has no room in To storage");
-        add("gui.servus_storage.wireless.status.receiver_asleep", "Waiting for the receiving site to load");
-        add("gui.servus_storage.wireless.status.no_power", "No power: needs %s FE to be on the wireless line");
         add(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "Shuttle Garage");
         add(ServusStorageBlocks.OUTBOUND_STATION.get(), "Outbound Station");
         add(ServusStorageBlocks.CRAFTING_STATION.get(), "Crafting Station");
@@ -370,8 +360,6 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.site.state.online", "Online");
         add("gui.servus_storage.site.state.sleeping", "Sleeping, wakes for a transfer");
         add("gui.servus_storage.site.state.unreachable", "Sleeping, cannot wake");
-        add("gui.servus_storage.site.no_wireless", "No Wireless Packing Station");
-        add("gui.servus_storage.site.no_power", "Wireless Packing Station has no power");
         add("gui.servus_storage.terminal.message.offline", "No warehouse on this data line");
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");
         add("gui.servus_storage.terminal.message.no_rail", "The Packing Station has no rail for shuttle deliveries");

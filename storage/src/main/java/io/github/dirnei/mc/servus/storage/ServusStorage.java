@@ -32,7 +32,7 @@ public final class ServusStorage {
         ServusStorageComponents.COMPONENTS.register(modEventBus);
         ServusStorageRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         NetworkTypes.register(WarehouseNetwork.TYPE);
-        for (var block : java.util.List.of(ServusStorageBlocks.CRAFTING_CPU, ServusStorageBlocks.CPU_BUFFER, ServusStorageBlocks.PACKING_STATION, ServusStorageBlocks.WIRELESS_PACKING_STATION,
+        for (var block : java.util.List.of(ServusStorageBlocks.CRAFTING_CPU, ServusStorageBlocks.CPU_BUFFER, ServusStorageBlocks.PACKING_STATION,
                 ServusStorageBlocks.INBOUND_STATION, ServusStorageBlocks.OUTBOUND_STATION, ServusStorageBlocks.STORAGE_TERMINAL,
                 ServusStorageBlocks.PRODUCTION_TERMINAL, ServusStorageBlocks.PATTERN_STORAGE, ServusStorageBlocks.CRAFTING_STATION,
                 ServusStorageBlocks.WAREHOUSE_CONTROLLER, ServusStorageBlocks.SHUTTLE_GARAGE, ServusStorageBlocks.FIELD_HEAD,
@@ -75,8 +75,7 @@ public final class ServusStorage {
                 io.github.dirnei.mc.servus.storage.gametest.StorageTerminalRowsGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.TerminalCableGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.TerminalCraftGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.TerminalSpeedGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.WirelessPackingStationGameTests.class));
+                io.github.dirnei.mc.servus.storage.gametest.TerminalSpeedGameTests.class));
         LOGGER.info("Servus: Storage loaded");
     }
 }

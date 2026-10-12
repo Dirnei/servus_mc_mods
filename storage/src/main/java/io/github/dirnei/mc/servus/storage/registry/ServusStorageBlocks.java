@@ -102,14 +102,6 @@ public final class ServusStorageBlocks {
                             .requiresCorrectToolForDrops()
                             .sound(SoundType.METAL));
 
-    public static final DeferredBlock<io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlock> WIRELESS_PACKING_STATION =
-            BLOCKS.registerBlock("wireless_packing_station", io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlock::new,
-                    () -> BlockBehaviour.Properties.of()
-                            .mapColor(MapColor.COLOR_PURPLE)
-                            .strength(3.0F)
-                            .requiresCorrectToolForDrops()
-                            .sound(SoundType.METAL));
-
     public static final DeferredBlock<PackingStationBlock> PACKING_STATION =
             BLOCKS.registerBlock("packing_station", PackingStationBlock::new,
                     () -> BlockBehaviour.Properties.of()

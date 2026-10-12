@@ -52,9 +52,6 @@ public final class ServusStorageItems {
     public static final DeferredItem<WoodBlockItem> PACKING_STATION = ITEMS.registerItem("packing_station",
             properties -> new WoodBlockItem(ServusStorageBlocks.PACKING_STATION.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
-    public static final DeferredItem<WoodBlockItem> WIRELESS_PACKING_STATION = ITEMS.registerItem("wireless_packing_station",
-            properties -> new WoodBlockItem(ServusStorageBlocks.WIRELESS_PACKING_STATION.get(), properties),
-            Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<WoodBlockItem> SHUTTLE_GARAGE = ITEMS.registerItem("shuttle_garage",
             properties -> new WoodBlockItem(ServusStorageBlocks.SHUTTLE_GARAGE.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
@@ -94,7 +91,7 @@ public final class ServusStorageItems {
     public static final DeferredItem<ZoneLabelItem> ZONE_LABEL = ITEMS.registerItem("zone_label", ZoneLabelItem::new, () -> new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(HEAVY_RACK, WAREHOUSE_CONTROLLER, CHUNK_LOADER_UPGRADE, WIRELESS_UPGRADE, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, WIRELESS_PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, CPU_BUFFER, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, HARVESTER, SPREADER, FARM_RAIL, FIELD_HEAD, RANGE_UPGRADE, ZONE_LABEL);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(HEAVY_RACK, WAREHOUSE_CONTROLLER, CHUNK_LOADER_UPGRADE, WIRELESS_UPGRADE, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, CRAFTING_STATION, CRAFTING_CPU, CPU_BUFFER, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, HARVESTER, SPREADER, FARM_RAIL, FIELD_HEAD, RANGE_UPGRADE, ZONE_LABEL);
 
     private ServusStorageItems() {
     }

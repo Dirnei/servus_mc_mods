@@ -181,8 +181,8 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         for (var site : io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).ofTeam(team, level.dimension())) {
             if (!site.key().equals(self)) {
                 rows.add(new io.github.dirnei.mc.servus.storage.terminal.SiteRow(site.key(), site.name(),
-                        io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.state(level, site).ordinal(), site.hasWireless(team),
-                        site.hasStation(team)));
+                        io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.state(level, site).ordinal(),
+                        io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.canTrade(level, site)));
             }
         }
         return rows;
