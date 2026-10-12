@@ -14,7 +14,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 ## 3. Renderer and particles
 
 - [x] 3.1 `client/EnderAnchorRenderer.java` (new: lid, sclera and iris quads from `chunk_loader_eye`, nearest player, wrapping `SideMarkerRenderer` for markers) and the client only eye view on `machine/loader/ChunkLoaderBlockEntity.java`; register in `client/MachineClient.java` instead of `SideMarkerRenderer` (design.md D1, D3). Verify `Level#getNearestPlayer` with `javap` on `build/moddev/artifacts/minecraft-patched-26.1.2.116-merged.jar`. Run `gradlew build`.
-- [ ] 3.2 `machine/loader/ChunkLoaderBlock.java`: portal particles in `animateTick` while `LIT` (design.md D4). Run `gradlew build`.
+- [x] 3.2 `machine/loader/ChunkLoaderBlock.java`: portal particles in `animateTick` while `LIT` (design.md D4). Run `gradlew build`.
 
 ## 4. GameTests
 
