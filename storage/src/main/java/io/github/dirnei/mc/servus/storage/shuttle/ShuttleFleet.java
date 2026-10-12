@@ -41,6 +41,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.network.PacketDistributor;
+import io.github.dirnei.mc.servus.storage.power.StepPower;
 
 /**
  * The shuttles of one warehouse, kept per garage and per garage slot: each
@@ -111,6 +112,16 @@ public final class ShuttleFleet {
 
         /** How many of the key the warehouse holds. */
         long available(ItemKey key);
+
+        /** Draws FE from the warehouse's controller: paid in full or refused. */
+        default boolean drawPower(long amount) {
+            return true;
+        }
+
+        /** Whether the warehouse is in the no power state; no new job starts while it is. */
+        default boolean noPower() {
+            return false;
+        }
     }
 
     /**
@@ -414,7 +425,10 @@ public final class ShuttleFleet {
 
     public void tick() {
         // Shuttles already out keep moving even when no garage has a home; only new jobs need one.
-        assignJobs();
+        // Without power no shuttle leaves its garage for a new job or field run.
+        if (!host.noPower()) {
+            assignJobs();
+        }
         boolean moving = false;
         for (Map.Entry<BlockPos, LiftCar> entry : lifts.entrySet()) {
             LiftCar car = entry.getValue();
@@ -475,7 +489,7 @@ public final class ShuttleFleet {
                 if (!shuttle.motion.arrived()) {
                     moving = true;
                     boolean wasHeld = shuttle.motion.held();
-                    boolean done = shuttle.motion.advance(drive(shuttle), segment -> mayStart(shuttle, segment));
+                    boolean done = shuttle.motion.advance(drive(shuttle), segment -> pay(shuttle, segment) && mayStart(shuttle, segment));
                     if (shuttle.motion.held()) {
                         shuttle.speed = 0;
                     }
@@ -1905,6 +1919,44 @@ public final class ShuttleFleet {
     }
 
     /**
+     * Pays for the segment the shuttle is about to start, once per segment of
+     * a path: one block of rail, or, when the shuttle enters a shaft to ride
+     * the car, that block and the whole ride at once. A ride a shuttle starts
+     * inside a shaft is paid when it starts. Refused, the shuttle stands at
+     * the start of the segment, beside the shaft for a ride, and asks again
+     * next tick.
+     */
+    private boolean pay(Shuttle shuttle, int segment) {
+        ShuttleMotion motion = shuttle.motion;
+        if (shuttle.paidFor == motion && segment <= shuttle.paidThrough) {
+            return true;
+        }
+        List<NodePos> path = motion.path();
+        double perBlock = StorageStatsManager.INSTANCE.shuttleFePerBlock();
+        ShaftSteps.Kind kind = ShaftSteps.classify(path, segment, host::shaftOf);
+        long cost;
+        int last;
+        if (kind == ShaftSteps.Kind.ENTER_RIDE) {
+            int end = ShaftSteps.rideEnd(path, segment + 1);
+            cost = StepPower.segmentCost(false, 1, perBlock) + StepPower.segmentCost(true, end - (segment + 1), perBlock);
+            last = Math.max(segment, end - 1);
+        } else if (kind == ShaftSteps.Kind.RIDE) {
+            int end = ShaftSteps.rideEnd(path, segment);
+            cost = StepPower.segmentCost(true, end - segment, perBlock);
+            last = Math.max(segment, end - 1);
+        } else {
+            cost = StepPower.segmentCost(false, 1, perBlock);
+            last = segment;
+        }
+        if (!StepPower.mayStart(host.drawPower(cost))) {
+            return false;
+        }
+        shuttle.paidFor = motion;
+        shuttle.paidThrough = last;
+        return true;
+    }
+
+    /**
      * The gate before each path segment: shuttles wait for the car before a
      * ride, wait for a folded deck before a crossing, and never drive up or
      * down a shaft by themselves.
@@ -2267,6 +2319,9 @@ public final class ShuttleFleet {
         int handover;
         /** Whether that pause is over, so the waiting step may go on. */
         boolean handedOver;
+        /** The path whose segments up to paidThrough are paid for. */
+        ShuttleMotion paidFor;
+        int paidThrough = -1;
 
         Shuttle(Garage garage, int slot, ShuttleProfile profile) {
             this.garage = garage;

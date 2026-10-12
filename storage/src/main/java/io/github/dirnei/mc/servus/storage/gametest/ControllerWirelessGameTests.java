@@ -147,6 +147,9 @@ public final class ControllerWirelessGameTests {
         }
         upgrade(a);
         upgrade(b);
+        // These tests count the FE of wireless transfers; the shuttles of both sites drive for free.
+        PowerFixtures.freeDraws(a);
+        PowerFixtures.freeDraws(b);
         a.setEnergy(1000);
         // The sender pays nothing but must be powered to be on the wireless line.
         b.setEnergy(SENDER_CHARGE);

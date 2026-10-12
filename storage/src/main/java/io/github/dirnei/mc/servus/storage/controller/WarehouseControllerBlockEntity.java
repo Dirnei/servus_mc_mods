@@ -63,6 +63,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private boolean wasCapable;
     /** Whether the controller was powered for wireless at the last energy change; the site record keeps it. */
     private boolean wasPowered;
+    /** For GameTests only, not saved: draws of shuttles, wakes and stations are paid without taking FE. */
+    private boolean freeDraws;
     /** Whether the controller was in the no power state when last looked at; a flip refreshes the lamp. */
     private boolean wasNoPower = true;
     /** Set when the chunk unloads, so the removal that follows keeps the site's record. */
@@ -247,6 +249,9 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
      * @return whether the draw was paid
      */
     public boolean drawEnergy(long amount) {
+        if (freeDraws) {
+            return true;
+        }
         boolean paid = energy.draw(gameTime(), amount);
         if (!paid) {
             powerStateChanged();
@@ -262,6 +267,14 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     /** FE drawn during the last second. */
     public long usedLastSecond() {
         return energy.usedLastSecond(gameTime());
+    }
+
+    /**
+     * For GameTests that count other FE (wireless): shuttles, wakes and
+     * Crafting Stations of this controller draw nothing. Not saved.
+     */
+    public void setFreeDrawsForTests(boolean free) {
+        freeDraws = free;
     }
 
     /** Once per tick from the warehouse: a no power state whose second has passed ends here. */

@@ -21,6 +21,14 @@ public final class PowerFixtures {
         }
     }
 
+    /**
+     * Lets the controller's shuttles, wakes and Crafting Stations run without
+     * taking FE, for tests that count the FE of wireless transfers.
+     */
+    public static void freeDraws(WarehouseControllerBlockEntity controller) {
+        controller.setFreeDrawsForTests(true);
+    }
+
     /** Fills a controller's buffer. */
     public static void fill(WarehouseControllerBlockEntity controller) {
         controller.setEnergy(controller.energy().capacity());

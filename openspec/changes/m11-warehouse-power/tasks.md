@@ -14,7 +14,7 @@
 
 ## 3. Consumers
 
-- [ ] 3.1 `shuttle/ShuttleFleet.java`: pay per block in the `mayStart` gate, pay a ride in `handover`, no `assignJobs` and no field run start while no power. Run `gradlew build`.
+- [x] 3.1 `shuttle/ShuttleFleet.java`: pay per block in the `mayStart` gate, pay a ride in `handover`, no `assignJobs` and no field run start while no power. Run `gradlew build`.
 - [ ] 3.2 `crafting/CraftingStationBlockEntity.java` (pay per working tick from the first reachable warehouse, cached per second; `waitingForPower`, status, front), `cpu/CpuOrders.java` and the Production Terminal step text (waiting for power). Run `gradlew :storage:runData`, then `gradlew build`.
 - [ ] 3.3 `site/SiteWakes.java` (charge per tick, release on refusal, allowance with live or recorded FE), `site/SiteRecord.java` and `site/SiteRegistry.java` (`energy` on unload and snapshot), `WarehouseControllerBlockEntity.onChunkUnloaded`. Run `gradlew build`.
 - [ ] 3.4 `terminal/StockSyncPayload.java` (`noPower`), `terminal/TerminalRequests.java` (`NO_POWER` row state for requests waiting on shuttles or stations), `client/StorageTerminalScreen.java` (alert line), lang. Run `gradlew :storage:runData`, then `gradlew build`.
