@@ -36,7 +36,7 @@ public final class ServusStorage {
                 ServusStorageBlocks.INBOUND_STATION, ServusStorageBlocks.OUTBOUND_STATION, ServusStorageBlocks.STORAGE_TERMINAL,
                 ServusStorageBlocks.PRODUCTION_TERMINAL, ServusStorageBlocks.PATTERN_STORAGE, ServusStorageBlocks.CRAFTING_STATION,
                 ServusStorageBlocks.WAREHOUSE_CONTROLLER, ServusStorageBlocks.SHUTTLE_GARAGE, ServusStorageBlocks.FIELD_HEAD,
-                ServusStorageBlocks.RAIL, ServusStorageBlocks.FARM_RAIL)) {
+                ServusStorageBlocks.RAIL, ServusStorageBlocks.FARM_RAIL, ServusStorageBlocks.SHUTTLE_WORKSHOP)) {
             Wood.register(block.getId());
         }
         // The pattern editor matches crafting grids on the client too.

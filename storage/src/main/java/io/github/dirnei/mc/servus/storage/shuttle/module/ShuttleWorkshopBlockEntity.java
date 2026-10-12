@@ -27,6 +27,15 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import io.github.dirnei.mc.servus.foundation.wood.WoodSlot;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * The workshop keeps one shuttle, the supplies for its next tier and the
@@ -34,10 +43,12 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
  * a tier build uses the supplies and swaps the shuttle for the next tier's
  * item. While a build by hand runs, the shuttle and the supplies are locked.
  */
-public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvider {
+public class ShuttleWorkshopBlockEntity extends BlockEntity implements WoodHolder, MenuProvider {
 
     public static final int SUPPLY_SLOTS = 6;
     private static final Component TITLE = Component.translatable("container.servus_storage.shuttle_workshop");
+
+    private final WoodSlot woodSlot = new WoodSlot(this);
 
     private final ItemSlots shuttle = new ItemSlots(1) {
         @Override
@@ -259,6 +270,7 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
         output.putBoolean("HandBuild", handBuild);
         output.putInt("BuildStep", buildStep);
         output.store(tag);
+        woodSlot.save(output);
     }
 
     @Override
@@ -274,6 +286,50 @@ public class ShuttleWorkshopBlockEntity extends BlockEntity implements MenuProvi
         }
         handBuild = input.getBooleanOr("HandBuild", false);
         buildStep = Math.max(0, input.getIntOr("BuildStep", 0));
+        woodSlot.load(input);
+    }
+
+    // Wood: the planks the block was crafted from, shown as its boards
+
+    @Override
+    public WoodSlot woodSlot() {
+        return woodSlot;
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        woodSlot.save(tag);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    protected void applyImplicitComponents(DataComponentGetter input) {
+        super.applyImplicitComponents(input);
+        woodSlot.apply(input.get(WoodContent.WOOD.get()));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        woodSlot.collect(builder);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        WoodSlot.removeFromTag(output);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return woodSlot.modelData();
     }
 
     /** Moved from the block's removal hook (26.1): runs on the server when the block is removed. */
