@@ -34,7 +34,7 @@ Apply and archive this change after `m0-port-minecraft-26-1-2` and `m11-drop-cra
 
 ## 5. Docs and plan
 
-- [ ] 5.1 `PLAN.md` section 2.4 (Crafting CPU as a box of CPU and Buffer blocks, the buffer for intermediates, balance follows) and `docs/src/content/docs/mods/storage.md` (box forming and reasons, Buffer block, buffer in the terminal, item pipes attach but cannot use the CPU). Run `gradlew :manufacturing:runData` for the docs gamedata, the docs tests, and `openspec validate m8-cpu-buffer`.
+- [x] 5.1 `PLAN.md` section 2.4 (Crafting CPU as a box of CPU and Buffer blocks, the buffer for intermediates, balance follows) and `docs/src/content/docs/mods/storage.md` (box forming and reasons, Buffer block, buffer in the terminal, item pipes attach but cannot use the CPU). Run `gradlew :manufacturing:runData` for the docs gamedata, the docs tests, and `openspec validate m8-cpu-buffer`.
 
 ## 6. Verification
 

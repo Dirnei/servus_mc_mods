@@ -723,6 +723,25 @@
         {"item": "servus_storage:crafting_cpu", "count": 4}
       ]
     },
+    "servus_storage:crafting_cpu_buffer": {
+      "type": "servus_foundation:wood_shaped",
+      "pattern": ["IRI", "RCR", "PPP"],
+      "key": {
+        "C": {"item": "minecraft:chest"},
+        "I": {"item": "minecraft:iron_ingot"},
+        "P": {"tag": "minecraft:planks"},
+        "R": {"item": "minecraft:redstone"}
+      },
+      "inputs": [
+        {"tag": "minecraft:planks", "count": 3},
+        {"item": "minecraft:chest", "count": 1},
+        {"item": "minecraft:iron_ingot", "count": 2},
+        {"item": "minecraft:redstone", "count": 3}
+      ],
+      "outputs": [
+        {"item": "servus_storage:crafting_cpu_buffer", "count": 4}
+      ]
+    },
     "servus_storage:crafting_station": {
       "type": "servus_foundation:wood_shaped",
       "pattern": ["ITI", "ICI", "PPP"],
@@ -1343,6 +1362,9 @@
     },
     "servus_storage:crafting_cpu": {
       "name": "Crafting CPU"
+    },
+    "servus_storage:crafting_cpu_buffer": {
+      "name": "CPU Buffer"
     },
     "servus_storage:crafting_station": {
       "name": "Crafting Station"
