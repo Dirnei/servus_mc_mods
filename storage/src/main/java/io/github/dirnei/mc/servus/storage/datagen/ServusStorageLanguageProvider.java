@@ -26,7 +26,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.INBOUND_STATION.get(), "Inbound Station");
         add(ServusStorageBlocks.PACKING_STATION.get(), "Packing Station");
         add(ServusStorageBlocks.WIRELESS_PACKING_STATION.get(), "Wireless Packing Station");
-        add("tooltip.servus_storage.wireless_packing_station", "Links the warehouse to the other sites of your team over a wireless line, for FE per item and distance");
+        add("tooltip.servus_storage.wireless_packing_station", "Links the warehouse to the other sites over a wireless line, for FE per item and distance");
         add("gui.servus_storage.wireless.status.sending", "Sending %s to %s");
         add("gui.servus_storage.wireless.status.idle", "Idle, %s of %s FE");
         add("gui.servus_storage.wireless.status.no_team", "Placed by nobody: no wireless line");
@@ -320,14 +320,14 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.state.missing", "%s missing");
         add("gui.servus_storage.terminal.state.waking", "waking the other site");
         add("gui.servus_storage.terminal.this_site", "This site");
-        add("gui.servus_storage.terminal.site_tooltip", "Click for the next site of your team, right click for the previous one. Items requested from another site arrive in this site's storage");
+        add("gui.servus_storage.terminal.site_tooltip", "Click for the next site, right click for the previous one. Items requested from another site arrive in this site's storage");
         add("gui.servus_storage.terminal.view.online", "%s: requests arrive in this site's storage");
         add("gui.servus_storage.terminal.view.sleeping", "%s sleeps: last known stock, a request wakes it");
         add("gui.servus_storage.terminal.view.unreachable", "%s sleeps and cannot wake: last known stock");
-        add("gui.servus_storage.terminal.message.no_team", "This site has no owner team");
-        add("gui.servus_storage.terminal.message.no_site", "That site is gone or has no Wireless Packing Station of your team");
-        add("gui.servus_storage.terminal.message.no_wireless_here", "This site has no Wireless Packing Station of your team");
-        add("gui.servus_storage.terminal.message.no_wireless_station", "The other site has no Wireless Packing Station of your team");
+        add("gui.servus_storage.terminal.message.no_team", "This site has no owner");
+        add("gui.servus_storage.terminal.message.no_site", "That site is gone or has no Wireless Packing Station");
+        add("gui.servus_storage.terminal.message.no_wireless_here", "This site has no Wireless Packing Station");
+        add("gui.servus_storage.terminal.message.no_wireless_station", "The other site has no Wireless Packing Station");
         add("gui.servus_storage.terminal.message.site_asleep", "That site sleeps and cannot wake without enough Chunk Loader Upgrades");
         add("gui.servus_storage.controller.sites", "Other sites");
         add("gui.servus_storage.controller.sites.none", "No other sites");

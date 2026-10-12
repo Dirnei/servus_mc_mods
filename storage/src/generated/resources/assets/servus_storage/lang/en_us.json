@@ -249,10 +249,10 @@
   "gui.servus_storage.terminal.message.no_packing_station": "No Packing Station of the warehouse on this data line",
   "gui.servus_storage.terminal.message.no_producer": "Nothing on this data line makes that",
   "gui.servus_storage.terminal.message.no_rail": "The Packing Station has no rail for shuttle deliveries",
-  "gui.servus_storage.terminal.message.no_site": "That site is gone or has no Wireless Packing Station of your team",
-  "gui.servus_storage.terminal.message.no_team": "This site has no owner team",
-  "gui.servus_storage.terminal.message.no_wireless_here": "This site has no Wireless Packing Station of your team",
-  "gui.servus_storage.terminal.message.no_wireless_station": "The other site has no Wireless Packing Station of your team",
+  "gui.servus_storage.terminal.message.no_site": "That site is gone or has no Wireless Packing Station",
+  "gui.servus_storage.terminal.message.no_team": "This site has no owner",
+  "gui.servus_storage.terminal.message.no_wireless_here": "This site has no Wireless Packing Station",
+  "gui.servus_storage.terminal.message.no_wireless_station": "The other site has no Wireless Packing Station",
   "gui.servus_storage.terminal.message.offline": "No warehouse on this data line",
   "gui.servus_storage.terminal.message.out_of_stock": "Nothing of that in stock",
   "gui.servus_storage.terminal.message.site_asleep": "That site sleeps and cannot wake without enough Chunk Loader Upgrades",
@@ -294,7 +294,7 @@
   "gui.servus_storage.terminal.setting.view.all": "All",
   "gui.servus_storage.terminal.setting.view.craftable": "Craftable",
   "gui.servus_storage.terminal.setting.view.stock": "Stock",
-  "gui.servus_storage.terminal.site_tooltip": "Click for the next site of your team, right click for the previous one. Items requested from another site arrive in this site's storage",
+  "gui.servus_storage.terminal.site_tooltip": "Click for the next site, right click for the previous one. Items requested from another site arrive in this site's storage",
   "gui.servus_storage.terminal.state.missing": "%s missing",
   "gui.servus_storage.terminal.state.picking": "picking",
   "gui.servus_storage.terminal.state.producing": "producing",
@@ -378,5 +378,5 @@
   "tooltip.servus_storage.shuttle.plain": "No upgrades",
   "tooltip.servus_storage.shuttle.speed": "Speed upgrades: %s",
   "tooltip.servus_storage.shuttle.tool": "Tool: %s",
-  "tooltip.servus_storage.wireless_packing_station": "Links the warehouse to the other sites of your team over a wireless line, for FE per item and distance"
+  "tooltip.servus_storage.wireless_packing_station": "Links the warehouse to the other sites over a wireless line, for FE per item and distance"
 }
