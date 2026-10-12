@@ -71,6 +71,22 @@ Each half's outline and collision is the union of its part boxes, rotated per fa
 
 PLAN.md open decisions settled: none.
 
+## Decisions made during apply
+
+Recorded on 2026-10-12 while applying, where the code differs from or adds to the decisions above:
+
+- **`TwoHalves` API.** `machine/TwoHalves` holds `HALF`, `isUpper`, `lowerPos`, `canPlace(context)`, `placeUpper(level, pos, upper)`, `keepTogether(block, state, direction, neighbour)` (null when the direction does not point at the partner, air when the partner is gone, else the state unchanged so the block copies what the upper half mirrors), `breakPartner(block, level, pos, state, player)` and `forwardWrench(context, state, lowerWrench)`. `BeamPumpBlock` keeps `HALF` as an alias, `quarters`, `shapeOf(parts, facing)`, the faces, the shapes from two abstract methods `lowerShape(facing)` and `upperShape(facing)`, and the client ticker. The upper half mirrors only `FACING`, as before.
+- **Shared stroke and client clock.** The stroke constants (12 degrees, 40 ticks) moved from `BurnerPumpRenderer` into a small pure `machine/pump/StrokeClock` that the block entities keep through a new interface `BeamPumpEngine` (`strokeClock()`); `tick(working)` returns the number of bottoms for the splash, `phase(partialTick, working)` gives the renderers a smooth phase. JUnit `StrokeClockTest` covers one splash per stroke and standing still while idle.
+- **`bottoms` direction.** The pump rod hangs on the beam's short side (negative arm), so its lowest point is where the beam angle peaks, a quarter period into each stroke; `BeamStroke.bottoms` counts those. `bottomIsAtTheLargestAngle` pins it.
+- **Splash and sparks.** Six `SPLASH` particles at the top of the socket per bottom; one `ELECTRIC_SPARK` in 6 client ticks at the top winding on the crank side. Both particle types checked with `javap`.
+- **Parts.** The terminal box sits on the front of the housing (`{6, 8, 1.5, 10, 11.5, 3}`) instead of the back: the back carries a stub up to two lines wide (x 5..11, y 5..11) that would run through the box. The front never has a stub and faces the player. The shared `POST` starts at y 3 (on the burner's drum), so the electric upper half adds a `POST_FOOT` `{7, 2, 3, 9, 3, 5}` down to its 2 px cap. The fan is one thin plate `FAN` with the blades painted on (crossed bars read worse at this size) spinning about the x axis behind the grille slats on the west face; the grille is a frame box `GRILLE_FRAME` whose west face has the slat texture with open rows and a solid `GRILLE_BOX` behind it.
+- **Con rod.** `CON_ROD` is modelled straight up from the pin at its top (`CRANK_Y + PIN_R`) to the level beam at `PISTON_X`; the renderer tilts and stretches it from the pin where it is to the beam end where it is, so the rod always connects although the beam keeps its sine stroke. `ElectricPumpPartsTest.conRodFromCrankPinToTheBeam` checks that rest pose; `CrankDriveTest` checks that the pin and the beam end above it peak together.
+- **Extra texture.** The crank wheel uses its own `electric_pump_wheel.png` (rim, spokes and hub, clear outside the rim), drawn only on its two flat faces so it stays round while it turns. Materials: base and caps `polished_blackstone`, windings `copper_block`, post, beam, rods and pin `iron_block`, socket `oxidized_copper` like the burner. The upper half, the wheel, the fan and the item model use the cutout render type.
+- **Pistons.** The Electric Pump now has `PushReaction.BLOCK` like the Burner Pump, and its top side is locked Off like the burner's.
+- **GUI test.** A mock server player cannot receive NeoForge's open screen payload in a GameTest, so `electricTopOpensGui` uses a plain player that records the menu provider and position passed to `openMenu`, and checks it is the lower half's Electric Pump block entity whose menu is an `ElectricPumpMenu`.
+- **Docs data.** `gradlew :manufacturing:runData` left `docs/src/data/gamedata.json` unchanged (no recipe or balance change).
+- **Task 6.1.** Build, unit tests and the Foundation, Manufacturing and Storage GameTests are green; the client launch and the play check are left to the user from the main checkout.
+
 ## Risks / Trade-offs
 
 - [Refactor of a working block] Moving the half logic could break the Burner Pump. → Its existing GameTests (placing, breaking, creative, piston, carrot, upper half forwarding) must stay green before the electric pump uses the base.
