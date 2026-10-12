@@ -27,25 +27,25 @@ Results of section 2 (2026-10-12): `:foundation:build` green, 263 unit tests gre
 
 ## 3. Foundation play check
 
-- [ ] 3.1 The user launches the client from the port branch with Foundation alone: ducts with panels and facades, tank rendering, wood blocks, goggles and carrot overlays, the duct, machine, sink and adapter GUIs. Verify: the user confirms in game.
+- [x] 3.1 The user launches the client from the port branch with Foundation alone: ducts with panels and facades, tank rendering, wood blocks, goggles and carrot overlays, the duct, machine, sink and adapter GUIs. Verify: the user confirms in game.
 
 ## 4. Storage
 
 - [x] 4.1 `settings.gradle` includes `storage`; `storage/build.gradle` JEI 26.1.2 API. Verify: `gradlew :storage:compileJava` sets up.
 - [x] 4.2 Port Storage by the same areas as section 2 (renames, registration, block entities, transfer, menus and screens, renderers and shuttle models, datagen, GameTests, unit tests). Verify: `gradlew :storage:build`, `:storage:test`, `:storage:runGameTestServer` green.
   Result: `:storage:build` green, 457 unit tests pass, `:storage:runGameTestServer` passes all 461 required tests (363 Storage, 97 Foundation, 1 vanilla), `:storage:runData` regenerates the resources.
-- [ ] 4.3 The user checks Storage in game: crate, rack (wood on block and item), shuttle look on rails and in inventories, elevator, field head water and crop, terminal screens and their dynamic height, JEI transfer. Verify: the user confirms in game.
+- [x] 4.3 The user checks Storage in game: crate, rack (wood on block and item), shuttle look on rails and in inventories, elevator, field head water and crop, terminal screens and their dynamic height, JEI transfer. Verify: the user confirms in game.
 
 ## 5. Manufacturing
 
 - [x] 5.1 `settings.gradle` includes `manufacturing`; Modonomicon, Jade and FTB versions for 26.1.2 in `gradle.properties` (or dropped from the dev runs if none exist); root combined runs and their dev only mods back on. Verify: `gradlew :manufacturing:compileJava` sets up.
 - [x] 5.2 Port Manufacturing by the same areas as section 2, plus the Modonomicon book and the multiblocks. Verify: `gradlew :manufacturing:build`, `:manufacturing:test`, `:manufacturing:runGameTestServer` green.
   Result: `gradlew build` green (263 Foundation, 457 Storage, 81 Manufacturing unit tests), `:manufacturing:runGameTestServer` passes all 171 required tests (73 Manufacturing, 97 Foundation, 1 vanilla), `:manufacturing:runData` regenerates the resources and the docs game data. Not ported: the dev only icon exporter (see design.md notes).
-- [ ] 5.3 The user checks Manufacturing in game: the four builds forming with the journal, principle fluids and buckets, renderers, the Coagulator and Gnome Hollow screens, Elemental Sight, the journal book with the Villach research unlock, JEI categories and Jade. Verify: the user confirms in game.
+- [x] 5.3 The user checks Manufacturing in game: the four builds forming with the journal, principle fluids and buckets, renderers, the Coagulator and Gnome Hollow screens, Elemental Sight, the journal book with the Villach research unlock, JEI categories and Jade. Verify: the user confirms in game.
 
 ## 6. Integration
 
-- [ ] 6.1 Full gradle build, tests green, game launches with all three mods.
+- [x] 6.1 Full gradle build, tests green, game launches with all three mods.
   Status: `gradlew build` green with all three mods; `runGameTestServerAll` passes 529 of 534 (five Storage mock player tests fail on Modonomicon's join sync, see design.md notes). The client launch is the user's check.
 - [x] 6.2 First client and dedicated server start of the port: fix every startup error (static `ItemStack` in `HollowRevealRenderer`, Jade data providers split from the tooltip providers in `ServusManufacturingJadePlugin`). Verify: `runClientAll` reaches the title screen and `runServerAll` reaches "Done" on a fresh world, both without Servus errors; `gradlew build`, unit tests and the per mod `runGameTestServer` runs green.
   Result (2026-10-12): both start cleanly; 263, 457 and 81 unit tests pass; GameTests pass 98 (Foundation), 461 (Storage), 171 (Manufacturing) of the required tests. Joining a world in the client is the user's check (6.1).

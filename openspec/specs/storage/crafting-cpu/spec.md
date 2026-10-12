@@ -39,7 +39,7 @@ A formed CPU block touching a data line SHALL be a member of that data line with
 - **THEN** the duct shows no arm toward it
 
 ### Requirement: Order slots
-A formed CPU SHALL run at most `order_slots` open orders at a time (example 2, from `data/<ns>/storage/cpu.json`), the oldest first. Further orders on that CPU SHALL wait and show "waiting for CPU" until a slot is free. Right clicking a formed CPU block with an empty hand or with any item except the Configuration Carrot SHALL show in the action bar how many slots are in use and how many orders wait; a sneaking player holding an item uses that item instead.
+A formed CPU SHALL run at most `order_slots` open orders at a time (example 2, from `data/<ns>/storage/cpu.json`), the oldest first. Further orders on that CPU SHALL wait and show "waiting for CPU" until a slot is free. Right clicking a formed CPU block with an empty hand or with any item except the Configuration Carrot and a Crafting CPU block SHALL show in the action bar how many slots are in use and how many orders wait; a sneaking player holding an item uses that item instead. Right clicking any CPU block, formed or not, while holding a Crafting CPU block SHALL place that block against it without sneaking.
 
 #### Scenario: Third order waits
 - **WHEN** one CPU with 2 slots holds three open orders
@@ -52,6 +52,10 @@ A formed CPU SHALL run at most `order_slots` open orders at a time (example 2, f
 #### Scenario: Summary while holding a block
 - **WHEN** a player holding cobblestone right clicks a formed CPU block without sneaking
 - **THEN** the action bar shows the slot summary and no cobblestone is placed
+
+#### Scenario: CPU blocks build on each other
+- **WHEN** a player holding a Crafting CPU block right clicks an unformed CPU block without sneaking
+- **THEN** the new CPU block is placed against the clicked face and no message about forming is shown
 
 ### Requirement: Choice of CPU
 A new order SHALL go to the CPU of the data line that has a free slot, the one with the lowest position first. When no CPU has a free slot, it SHALL go to the CPU with the fewest open orders, the lowest position on a tie. Orders SHALL NOT move between CPUs afterwards.
