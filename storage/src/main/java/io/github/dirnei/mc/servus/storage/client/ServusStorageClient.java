@@ -19,6 +19,7 @@ import net.neoforged.neoforge.client.event.RegisterItemModelsEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
 
 /** Client only mod bus hooks. */
 @EventBusSubscriber(modid = ServusStorageIds.MOD_ID, value = Dist.CLIENT)
@@ -54,6 +55,12 @@ public final class ServusStorageClient {
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.HEAVY_RACK.get(), HeavyRackRenderer::new);
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.SHUTTLE_GARAGE.get(), ShuttleGarageRenderer::new);
         event.registerBlockEntityRenderer(ServusStorageBlockEntities.ELEVATOR.get(), ElevatorRenderer::new);
+    }
+
+    /** The Shuttle Workshop draws its shuttle large as a picture in picture. */
+    @SubscribeEvent
+    public static void onRegisterPictureInPicture(RegisterPictureInPictureRenderersEvent event) {
+        event.register(GuiLargeItemRenderState.class, GuiLargeItemRenderer::new);
     }
 
     /** The rack shows the wood it remembers, on placed blocks and on items. */

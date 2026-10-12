@@ -228,11 +228,8 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         ItemStack shuttle = menu.shuttle();
         if (!shuttle.isEmpty()) {
             // The composed item model, five times its size, so the shuttle's look shows.
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(boardLeft + BOARD_W / 2.0F - 8 * MODEL_SCALE, boardTop + BOARD_H / 2.0F - 8 * MODEL_SCALE);
-            graphics.pose().scale(MODEL_SCALE, MODEL_SCALE);
-            graphics.item(shuttle, 0, 0);
-            graphics.pose().popMatrix();
+            GuiLargeItemRenderState.submit(graphics, shuttle, boardLeft, boardTop, boardLeft + BOARD_W, boardTop + BOARD_H,
+                    16 * MODEL_SCALE);
         }
         if (menu.building() && !done()) {
             graphics.pose().pushMatrix();
