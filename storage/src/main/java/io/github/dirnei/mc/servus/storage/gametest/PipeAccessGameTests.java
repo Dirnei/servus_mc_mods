@@ -119,6 +119,7 @@ public final class PipeAccessGameTests {
         helper.setBlock(centre.north(), ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
         helper.setBlock(centre.south(), ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.SOUTH));
         helper.setBlock(centre.above(), ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState());
+        PowerFixtures.fill(helper, centre.above());
         UtilityDuctBlockEntity duct = itemDuct(helper, centre);
         helper.assertTrue(duct.arms(Line.ITEM) == 0, "no item arm toward the stations, got mask " + duct.arms(Line.ITEM));
         helper.succeed();

@@ -36,6 +36,7 @@ public final class StationRailGameTests {
     private static WarehouseControllerBlockEntity controller(GameTestHelper helper) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, CONTROLLER);
         return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
     }
 

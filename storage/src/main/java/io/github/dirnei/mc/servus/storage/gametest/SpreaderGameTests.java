@@ -89,6 +89,7 @@ public final class SpreaderGameTests {
         StorageStatsManager.INSTANCE.setDosesPerPlot(2);
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, CONTROLLER);
         for (int x = 1; x <= 7; x++) {
             rail(helper, new BlockPos(x, 1, RAIL_Z), x <= 3 ? ServusStorageBlocks.RAIL.get() : ServusStorageBlocks.FARM_RAIL.get());
         }

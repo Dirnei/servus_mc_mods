@@ -85,6 +85,7 @@ public final class PackingStationGameTests {
     private static Setup setup(GameTestHelper helper, int rackPlanks, boolean far, boolean near) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, CONTROLLER);
         for (int x = 2; x <= 9; x++) {
             rail(helper, new BlockPos(x, 1, 6));
         }

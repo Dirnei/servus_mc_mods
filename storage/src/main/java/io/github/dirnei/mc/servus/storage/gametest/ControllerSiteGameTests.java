@@ -56,6 +56,7 @@ public final class ControllerSiteGameTests {
     static WarehouseControllerBlockEntity controller(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, pos);
         return helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
     }
 

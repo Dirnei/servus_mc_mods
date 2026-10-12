@@ -41,6 +41,7 @@ public final class TerminalCableGameTests {
     private static HeavyRackBlockEntity warehouse(GameTestHelper helper, BlockPos controller, Item item, int count) {
         helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, controller);
         BlockPos rail = controller.below();
         TerminalWiring.rail(helper, rail);
         TerminalWiring.rail(helper, rail.east());

@@ -374,6 +374,7 @@ public final class ShuttleModuleGameTests {
     private static ShuttleGarageBlockEntity fleetSetup(GameTestHelper helper, ItemStack shuttle, int slot, int... stacks) {
         helper.setBlock(FL_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, FL_CONTROLLER);
         TerminalWiring.place(helper, FL_TERMINAL);
         for (int x = 2; x <= 9; x++) {
             helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
@@ -494,6 +495,7 @@ public final class ShuttleModuleGameTests {
     public static void mk2PutAwayLoadsThree(GameTestHelper helper) {
         helper.setBlock(PW_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, PW_CONTROLLER);
         for (int x = 2; x <= 10; x++) {
             helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());

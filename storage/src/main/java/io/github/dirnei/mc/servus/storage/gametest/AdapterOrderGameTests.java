@@ -54,6 +54,7 @@ public final class AdapterOrderGameTests {
     private static void setup(GameTestHelper helper, ItemStack material) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, CONTROLLER);
         for (BlockPos rail : List.of(CONTROLLER.below(), ACCESS.below())) {
             TerminalWiring.rail(helper, rail);
         }

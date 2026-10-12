@@ -127,6 +127,7 @@ public final class FieldGameTests {
         BlockPos rack = new BlockPos(7, 1, 3);
         helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, controller);
         rail(helper, warehouseRail, ServusStorageBlocks.RAIL.get().defaultBlockState());
         for (int x = 4; x <= 6; x++) {
             farmRail(helper, new BlockPos(x, 1, 3));
@@ -155,6 +156,7 @@ public final class FieldGameTests {
         BlockPos rackPos = new BlockPos(9, 1, 5);
         helper.setBlock(controllerPos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, controllerPos);
         TerminalWiring.place(helper, terminalPos);
         for (int x = 2; x <= 9; x++) {
             helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());

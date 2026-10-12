@@ -63,6 +63,7 @@ public final class MiniWarehouse {
                 .setValue(HeavyRackBlock.FACING, Direction.SOUTH));
         helper.setBlock(warehouse.controllerPos(), ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, warehouse.controllerPos());
         if (garage) {
             warehouse.addGarage();
         }
@@ -109,6 +110,7 @@ public final class MiniWarehouse {
     public static java.util.List<BlockPos> under(GameTestHelper helper, BlockPos controller) {
         helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, controller);
         BlockPos railA = controller.below();
         BlockPos railB = railA.south();
         TerminalWiring.rail(helper, railA);

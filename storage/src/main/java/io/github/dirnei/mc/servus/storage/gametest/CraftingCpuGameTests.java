@@ -108,6 +108,7 @@ public final class CraftingCpuGameTests {
     static void setup(GameTestHelper helper, boolean withCpu) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, CONTROLLER);
         for (BlockPos rail : List.of(CONTROLLER.below(), ACCESS.below())) {
             TerminalWiring.rail(helper, rail);
         }
@@ -664,6 +665,7 @@ public final class CraftingCpuGameTests {
     public static void stockRulesPersist(GameTestHelper helper) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, CONTROLLER);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
         controller.rules().set(new StockRule(STICK, 8, 16));
         net.minecraft.nbt.CompoundTag tag = controller.saveWithoutMetadata(helper.getLevel().registryAccess());

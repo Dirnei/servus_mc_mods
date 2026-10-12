@@ -117,6 +117,7 @@ public final class ChainHandoffGameTests {
         BlockPos controller = new BlockPos(2, 1, 2);
         helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, controller);
         // Rails at y 0 under the controller and the Packing Station, two racks west of them, a garage north.
         BlockPos access = new BlockPos(2, 1, 3);
         for (BlockPos rail : List.of(controller.below(), access.below())) {

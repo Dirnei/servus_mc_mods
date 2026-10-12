@@ -108,6 +108,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(RAIL_B, ServusStorageBlocks.RAIL.get().defaultBlockState());
         helper.setBlock(RAIL_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, RAIL_CONTROLLER);
         TerminalWiring.place(helper, RAIL_TERMINAL);
         helper.setBlock(RAIL_CHEST, Blocks.CHEST.defaultBlockState());
         MiniWarehouse.stock(helper, RAIL_RACK, new ItemStack(Items.COBBLESTONE, 40));
@@ -160,6 +161,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(LIFT_RAIL_HIGH, ServusStorageBlocks.RAIL.get().defaultBlockState());
         helper.setBlock(LIFT_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, LIFT_CONTROLLER);
         // The Packing Station joins only through a rail: two rails south of the controller and the Packing Station.
         for (BlockPos rail : List.of(LIFT_CONTROLLER.south(), LIFT_TERMINAL.south())) {
             helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
@@ -242,6 +244,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         helper.setBlock(RACK_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, RACK_CONTROLLER);
         // The rack joins only through the rail in front of it, which runs on to the controller.
         for (BlockPos rail : List.of(RACK.north(), RACK_CONTROLLER.north())) {
             helper.setBlock(rail.below(), Blocks.STONE.defaultBlockState());
@@ -286,6 +289,7 @@ public final class ServusStorageGameTests {
     public static void shuttlePicksFromRail(GameTestHelper helper) {
         helper.setBlock(SH_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, SH_CONTROLLER);
         TerminalWiring.place(helper, SH_TERMINAL);
         for (int x = 3; x <= 7; x++) {
             helper.setBlock(new BlockPos(x, 0, 6), Blocks.STONE.defaultBlockState());
@@ -335,6 +339,7 @@ public final class ServusStorageGameTests {
         placeRail(helper, FR_SIDE_RAIL);
         helper.setBlock(FR_SIDE_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, FR_SIDE_CONTROLLER);
         TerminalWiring.place(helper, FR_SIDE_TERMINAL);
         HeavyRackBlockEntity rack = helper.getBlockEntity(FR_RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.SAND, 20), false);
@@ -351,6 +356,7 @@ public final class ServusStorageGameTests {
             placeRail(helper, FR_FRONT_RAIL);
             helper.setBlock(FR_FRONT_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                     .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+            PowerFixtures.fill(helper, FR_FRONT_CONTROLLER);
             TerminalWiring.place(helper, FR_FRONT_TERMINAL);
             helper.runAfterDelay(10, () -> {
                 StorageTerminalBlockEntity frontTerminal = TerminalWiring.at(helper, FR_FRONT_TERMINAL);
@@ -873,6 +879,7 @@ public final class ServusStorageGameTests {
         BlockPos controllerPos = new BlockPos(5, 1, 9);
         helper.setBlock(controllerPos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, controllerPos);
         helper.setBlock(ZL_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack ores = label("Ores", new ZoneFilter(List.of(), List.of("c:ores")));
@@ -962,6 +969,7 @@ public final class ServusStorageGameTests {
         }
         helper.setBlock(IZ_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, IZ_CONTROLLER);
         for (BlockPos pos : List.of(IZ_ORES, IZ_PLAIN, IZ_SPARE, IZ_IRON)) {
             helper.setBlock(pos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         }
@@ -1021,6 +1029,7 @@ public final class ServusStorageGameTests {
     private static InboundStationBlockEntity stationSetup(GameTestHelper helper) {
         helper.setBlock(ST_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, ST_CONTROLLER);
         helper.setBlock(ST_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         TerminalWiring.railUnder(helper, ST_STATION);
@@ -1155,6 +1164,7 @@ public final class ServusStorageGameTests {
     public static void shuttleCarriesPutAway(GameTestHelper helper) {
         helper.setBlock(PA_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, PA_CONTROLLER);
         for (int x = 3; x <= 8; x++) {
             helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
@@ -1193,6 +1203,7 @@ public final class ServusStorageGameTests {
     public static void shuttlePutAwayOnStationRail(GameTestHelper helper) {
         helper.setBlock(PA_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, PA_CONTROLLER);
         for (int x = 3; x <= 8; x++) {
             helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
@@ -1312,6 +1323,7 @@ public final class ServusStorageGameTests {
     public static void shuttlesParkAtTheirGarage(GameTestHelper helper) {
         helper.setBlock(TG_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, TG_CONTROLLER);
         TerminalWiring.place(helper, TG_TERMINAL);
         for (int x = 2; x <= 10; x++) {
             helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
@@ -1357,6 +1369,7 @@ public final class ServusStorageGameTests {
     public static void rackNeedsShuttle(GameTestHelper helper) {
         helper.setBlock(RS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, RS_CONTROLLER);
         TerminalWiring.place(helper, RS_TERMINAL);
         helper.setBlock(RS_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         // A rail from the rack's front round to the controller joins the rack; there is no garage.
@@ -1392,6 +1405,7 @@ public final class ServusStorageGameTests {
     public static void stationWaitsForShuttleOnRacks(GameTestHelper helper) {
         helper.setBlock(SW_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, SW_CONTROLLER);
         for (int x = 1; x <= 6; x++) {
             helper.setBlock(new BlockPos(x, 0, 11), Blocks.STONE.defaultBlockState());
         }
@@ -1436,6 +1450,7 @@ public final class ServusStorageGameTests {
     public static void rackPickByShuttle(GameTestHelper helper) {
         helper.setBlock(RP_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, RP_CONTROLLER);
         for (int x = 3; x <= 8; x++) {
             helper.setBlock(new BlockPos(x, 0, 11), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 11), ServusStorageBlocks.RAIL.get().defaultBlockState());
@@ -1494,6 +1509,7 @@ public final class ServusStorageGameTests {
         }
         helper.setBlock(SR_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, SR_CONTROLLER);
         TerminalWiring.place(helper, SR_TERMINAL);
         helper.setBlock(SR_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(SR_GARAGE, ShuttleGarageBlockEntity.class);
@@ -1568,6 +1584,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         helper.setBlock(RACK_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, RACK_CONTROLLER);
         TerminalWiring.place(helper, RACK_TERMINAL);
         HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         rack.items().insertItem(0, new ItemStack(Items.BREAD, 9), false);
@@ -1608,6 +1625,7 @@ public final class ServusStorageGameTests {
         }
         helper.setBlock(SS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, SS_CONTROLLER);
         TerminalWiring.place(helper, SS_TERMINAL);
         helper.setBlock(SS_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(SS_GARAGE, ShuttleGarageBlockEntity.class);
@@ -1634,6 +1652,7 @@ public final class ServusStorageGameTests {
     private static StorageTerminalMenu requestSetup(GameTestHelper helper, Player player, int cobblestone) {
         helper.setBlock(RQ_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, RQ_CONTROLLER);
         for (int x = 2; x <= 6; x++) {
             helper.setBlock(new BlockPos(x, 0, 1), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 1), ServusStorageBlocks.RAIL.get().defaultBlockState());
@@ -1856,6 +1875,7 @@ public final class ServusStorageGameTests {
     public static void feedOutboundByShuttle(GameTestHelper helper) {
         helper.setBlock(FD_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, FD_CONTROLLER);
         for (int x = 2; x <= 7; x++) {
             helper.setBlock(new BlockPos(x, 0, 7), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 7), ServusStorageBlocks.RAIL.get().defaultBlockState());
@@ -2060,6 +2080,7 @@ public final class ServusStorageGameTests {
     private static WarehouseControllerBlockEntity recallSetup(GameTestHelper helper) {
         helper.setBlock(RC_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, RC_CONTROLLER);
         TerminalWiring.place(helper, RC_TERMINAL);
         for (int x = 2; x <= 9; x++) {
             helper.setBlock(new BlockPos(x, 0, 4), Blocks.STONE.defaultBlockState());
@@ -2180,6 +2201,7 @@ public final class ServusStorageGameTests {
         helper.setBlock(LC_TOP, ServusStorageBlocks.ELEVATOR.get().defaultBlockState());
         helper.setBlock(LC_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, LC_CONTROLLER);
         TerminalWiring.place(helper, LC_TERMINAL);
         helper.setBlock(LC_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(LC_GARAGE, ShuttleGarageBlockEntity.class);
@@ -2459,6 +2481,7 @@ public final class ServusStorageGameTests {
         hangRack(helper, 2, 2, Direction.SOUTH);
         helper.setBlock(new BlockPos(8, HANG_Y, 2), ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, new BlockPos(8, HANG_Y, 2));
         clickRail(helper, player, new BlockPos(2, HANG_Y, 2), Direction.SOUTH);
         clickRail(helper, player, new BlockPos(2, HANG_Y, 2), Direction.EAST);
         clickRail(helper, player, new BlockPos(8, HANG_Y, 2), Direction.SOUTH);

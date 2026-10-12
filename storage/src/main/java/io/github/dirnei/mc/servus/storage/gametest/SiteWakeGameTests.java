@@ -54,6 +54,7 @@ public final class SiteWakeGameTests {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(GRACE);
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, CONTROLLER);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
         if (team != null) {
             controller.setTeam(team);
@@ -202,6 +203,7 @@ public final class SiteWakeGameTests {
         UUID team = UUID.randomUUID();
         helper.setBlock(SH_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, SH_CONTROLLER);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(SH_CONTROLLER, WarehouseControllerBlockEntity.class);
         controller.setTeam(team);
         controller.upgrades().insertItem(0, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()), false);

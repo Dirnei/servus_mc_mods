@@ -96,6 +96,7 @@ public final class DataCableGameTests {
     private static void controller(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, pos);
     }
 
     /** Three data ducts in a row form one network and show data arms toward each other. */

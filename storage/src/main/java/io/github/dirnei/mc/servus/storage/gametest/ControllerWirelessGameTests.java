@@ -95,6 +95,7 @@ public final class ControllerWirelessGameTests {
     private static WarehouseControllerBlockEntity controller(GameTestHelper helper, BlockPos pos, UUID team) {
         helper.setBlock(pos, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        PowerFixtures.fill(helper, pos);
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
         controller.setTeam(team);
         return controller;
