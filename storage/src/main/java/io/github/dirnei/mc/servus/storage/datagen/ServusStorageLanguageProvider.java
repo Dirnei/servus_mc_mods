@@ -346,6 +346,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.state.missing", "%s missing");
         add("gui.servus_storage.terminal.state.waking", "waking the other site");
         add("gui.servus_storage.terminal.state.no_power", "waiting for power");
+        add("gui.servus_storage.terminal.no_power", "No power: requests wait until the warehouse has FE");
         add("gui.servus_storage.terminal.this_site", "This site");
         add("gui.servus_storage.terminal.site_tooltip", "Click for the next site, right click for the previous one. Items requested from another site arrive in this site's storage");
         add("gui.servus_storage.terminal.view.online", "%s: requests arrive in this site's storage");

@@ -256,7 +256,8 @@ public final class TerminalRequests {
     static RequestState state(ServerLevel level, StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
         if (request.remote != null) {
             if (!request.shipped) {
-                return RemoteTransfers.receiverUnpowered(level, terminal.getBlockPos()) ? RequestState.NO_POWER : RequestState.WAKING;
+                return RemoteTransfers.receiverUnpowered(level, terminal.getBlockPos()) || wakeWaitsForPower(level, request.remote)
+                        ? RequestState.NO_POWER : RequestState.WAKING;
             }
             for (Tracked tracked : request.shipments) {
                 if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
@@ -269,9 +270,10 @@ public final class TerminalRequests {
                 return RequestState.NO_POWER;
             }
             for (Tracked tracked : request.shipments) {
-                // The sending site's controller, or this one as the sender sees it, is not wireless capable.
+                // The sending site's controller, or this one as the sender sees it, is not wireless capable,
+                // or the sending site's shuttles wait for power.
                 if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
-                        && point.waitsForPower(tracked.shipmentId())) {
+                        && (point.waitsForPower(tracked.shipmentId()) || point.network().map(WarehouseNetwork::noPower).orElse(false))) {
                     return RequestState.NO_POWER;
                 }
             }
@@ -285,13 +287,23 @@ public final class TerminalRequests {
                 return fits ? RequestState.SENDING : RequestState.WAITING_ROOM;
             }
         }
+        // Shuttles and Crafting Stations stop without power: what waits for them waits for power.
+        boolean noPower = warehouses.stream().anyMatch(WarehouseNetwork::noPower);
         if (!request.shipments.isEmpty()) {
-            return RequestState.PICKING;
+            return noPower ? RequestState.NO_POWER : RequestState.PICKING;
         }
         if (CpuOrders.cpuAt(level, request.orderCpu).filter(cpu -> cpu.book().hasOpenOrderFor(request.id)).isPresent()) {
-            return RequestState.PRODUCING;
+            return noPower ? RequestState.NO_POWER : RequestState.PRODUCING;
         }
         return RequestState.MISSING;
+    }
+
+    /** Whether the wake of the other site waits because its controller had too little FE to wake. */
+    private static boolean wakeWaitsForPower(ServerLevel level, String siteKey) {
+        return io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(level).site(siteKey)
+                .flatMap(site -> io.github.dirnei.mc.servus.storage.site.SiteWakes.status(site.dimension(), site.pos()))
+                .map(status -> status.reason() == io.github.dirnei.mc.servus.storage.site.WakeAllowance.Reason.NO_POWER)
+                .orElse(false);
     }
 
     /** The first reachable warehouse, for rules and pushes. */

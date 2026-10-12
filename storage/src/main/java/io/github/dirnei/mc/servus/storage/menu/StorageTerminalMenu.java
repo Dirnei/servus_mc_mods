@@ -549,18 +549,19 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         }
         List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites =
                 io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.sites(server, terminal.getBlockPos());
+        boolean noPower = warehouses.stream().anyMatch(WarehouseNetwork::noPower);
         if (!view.isEmpty()) {
             var site = io.github.dirnei.mc.servus.storage.site.SiteRegistry.of(server).site(view);
             if (site.isPresent() && sites.stream().anyMatch(row -> row.key().equals(view))) {
                 int state = io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.state(server, site.get()).ordinal();
                 return new StockSyncPayload(terminal.getBlockPos(), true, "",
                         entries(io.github.dirnei.mc.servus.storage.terminal.RemoteTransfers.stock(server, site.get())), requests, shown,
-                        List.of(), List.of(), sites, view, state);
+                        List.of(), List.of(), sites, view, state, noPower);
             }
             view = "";
         }
         return new StockSyncPayload(terminal.getBlockPos(), true, "", entries(TerminalWarehouses.stock(warehouses)), requests, shown,
-                warehouses.get(0).ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES), sites, "", -1);
+                warehouses.get(0).ruleRows(), TerminalCraftables.of(server, terminal.getBlockPos(), MAX_ENTRIES), sites, "", -1, noPower);
     }
 
     private static List<StockEntry> entries(List<Map.Entry<ItemKey, Long>> stock) {
@@ -578,6 +579,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         long hash = payload.online() ? 1 : 0;
         hash = hash * 31 + payload.view().hashCode();
         hash = hash * 31 + payload.viewState();
+        hash = hash * 31 + (payload.noPower() ? 1 : 0);
         hash = hash * 31 + payload.sites().hashCode();
         hash = hash * 31 + payload.reason().hashCode();
         hash = hash * 31 + payload.message().hashCode();

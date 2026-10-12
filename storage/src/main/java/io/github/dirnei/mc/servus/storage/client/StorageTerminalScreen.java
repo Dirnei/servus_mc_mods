@@ -805,6 +805,11 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             Component text = Component.translatable("gui.servus_storage.terminal.message." + ClientStock.message());
             graphics.text(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
                     leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, COLOUR_ALERT, false);
+        } else if (ClientStock.noPower() && ClientStock.online()) {
+            // The stock stays shown and requests are taken; they wait until the warehouse has FE again.
+            Component text = Component.translatable("gui.servus_storage.terminal.no_power");
+            graphics.text(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
+                    leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, COLOUR_ALERT, false);
         }
     }
 

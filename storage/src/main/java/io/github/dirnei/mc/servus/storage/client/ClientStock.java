@@ -77,6 +77,11 @@ public final class ClientStock {
         return shown != null && shown.online();
     }
 
+    /** Whether a warehouse the open terminal reaches has no power. */
+    public static boolean noPower() {
+        return shown != null && shown.noPower();
+    }
+
     public static String reason() {
         return shown == null ? "" : shown.reason();
     }
