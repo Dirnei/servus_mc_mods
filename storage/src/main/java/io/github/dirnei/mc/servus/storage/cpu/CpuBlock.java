@@ -3,6 +3,15 @@ package io.github.dirnei.mc.servus.storage.cpu;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -31,17 +40,19 @@ import net.minecraft.world.phys.BlockHitResult;
 import io.github.dirnei.mc.servus.foundation.wood.Wood;
 
 /**
- * A Crafting CPU block. 27 of them in a 3x3x3 cube form a CPU when the
- * carrot clicks one; {@link #FORMED} and {@link #PART} describe the formed
- * cube (see {@link CpuShape}). Part 0, the lowest corner, is the master that
- * owns the work orders.
+ * A Crafting CPU block. CPU and Buffer blocks that fill a solid box of at
+ * least 2x2x2 form a CPU when the carrot clicks one (see {@link CpuBox});
+ * {@link #FORMED} and {@link #PART} (the place class in the box, see
+ * {@link CpuShape}) describe the formed box. Part 0, the lowest corner, is
+ * the master that owns the work orders and the buffer; every other block
+ * saves the offset to it.
  */
 public class CpuBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<CpuBlock> CODEC = simpleCodec(CpuBlock::new);
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
     public static final IntegerProperty PART = IntegerProperty.create("part", 0, CpuShape.PARTS - 1);
-    /** A formed cube whose CPU has open orders: its lights run. */
+    /** A formed box whose CPU has open orders: its lights run. */
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     public CpuBlock(Properties properties) {
@@ -87,90 +98,180 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
         return state.getBlock() instanceof CpuBlock && state.getValue(FORMED);
     }
 
-    /** The master position of the formed block {@code state} at {@code pos}. */
-    public static BlockPos masterPos(BlockPos pos, BlockState state) {
-        CpuShape.Vec offset = CpuShape.offset(state.getValue(PART));
-        return pos.offset(-offset.x(), -offset.y(), -offset.z());
-    }
-
     /** The master of the formed CPU the block at {@code pos} belongs to, or null. */
     public static CpuBlockEntity master(BlockGetter level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        if (!isFormed(state)) {
+        if (!isFormed(level.getBlockState(pos)) || !(level.getBlockEntity(pos) instanceof CpuBlockEntity block)) {
             return null;
         }
-        BlockPos master = masterPos(pos, state);
-        if (level instanceof Level world && !world.isLoaded(master)) {
+        BlockPos master = block.masterPos();
+        if (master == null || level instanceof Level world && !world.isLoaded(master)) {
             return null;
         }
         BlockState masterState = level.getBlockState(master);
-        if (!isFormed(masterState) || masterState.getValue(PART) != 0) {
+        if (!isFormed(masterState) || masterState.getValue(PART) != 0
+                || !(level.getBlockEntity(master) instanceof CpuBlockEntity cpu) || !cpu.isMaster()) {
             return null;
         }
-        return level.getBlockEntity(master) instanceof CpuBlockEntity cpu ? cpu : null;
-    }
-
-    private static BlockPos partPos(BlockPos origin, int part) {
-        CpuShape.Vec offset = CpuShape.offset(part);
-        return origin.offset(offset.x(), offset.y(), offset.z());
+        return cpu;
     }
 
     // Forming and unforming
 
-    /** Forms the first full cube of unformed CPU blocks that contains {@code pos}; false when there is none. */
-    public boolean tryForm(Level level, BlockPos pos) {
-        for (CpuShape.Vec origin : CpuShape.origins(pos.getX(), pos.getY(), pos.getZ())) {
-            BlockPos corner = new BlockPos(origin.x(), origin.y(), origin.z());
-            if (allUnformed(level, corner)) {
-                form(level, corner);
-                return true;
+    /** The unformed CPU and Buffer blocks joined face to face to {@code start}, at most {@code limit}. */
+    static Set<BlockPos> joined(Level level, BlockPos start, int limit) {
+        Set<BlockPos> found = new LinkedHashSet<>();
+        Deque<BlockPos> queue = new ArrayDeque<>();
+        found.add(start.immutable());
+        queue.add(start.immutable());
+        while (!queue.isEmpty() && found.size() < limit) {
+            BlockPos at = queue.poll();
+            for (Direction direction : Direction.values()) {
+                BlockPos next = at.relative(direction);
+                if (found.contains(next) || !level.isLoaded(next)) {
+                    continue;
+                }
+                BlockState state = level.getBlockState(next);
+                if (state.getBlock() instanceof CpuBlock && !state.getValue(FORMED)) {
+                    found.add(next);
+                    queue.add(next);
+                    if (found.size() >= limit) {
+                        break;
+                    }
+                }
             }
         }
-        return false;
+        return found;
     }
 
-    private boolean allUnformed(Level level, BlockPos origin) {
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            BlockState state = level.getBlockState(partPos(origin, part));
-            if (!state.is(this) || state.getValue(FORMED)) {
-                return false;
+    /** Checks the blocks joined to {@code pos} and forms them when they fill a box. */
+    public static CpuBox.Result tryForm(Level level, BlockPos pos) {
+        int maxBlocks = StorageStatsManager.INSTANCE.cpuMaxBlocks();
+        Set<BlockPos> blocks = joined(level, pos, maxBlocks + 1);
+        Set<CpuShape.Vec> joined = new HashSet<>();
+        Set<CpuShape.Vec> cpuBlocks = new HashSet<>();
+        for (BlockPos at : blocks) {
+            CpuShape.Vec vec = new CpuShape.Vec(at.getX(), at.getY(), at.getZ());
+            joined.add(vec);
+            if (!(level.getBlockState(at).getBlock() instanceof CpuBufferBlock)) {
+                cpuBlocks.add(vec);
             }
         }
-        return true;
+        CpuBox.Result result = CpuBox.check(joined, cpuBlocks, maxBlocks);
+        if (result.formed()) {
+            form(level, result.box());
+        }
+        return result;
     }
 
-    private void form(Level level, BlockPos origin) {
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            level.setBlock(partPos(origin, part), defaultBlockState().setValue(FORMED, true).setValue(PART, part), Block.UPDATE_ALL);
+    private static void form(Level level, CpuBox.Box box) {
+        BlockPos corner = new BlockPos(box.corner().x(), box.corner().y(), box.corner().z());
+        List<BlockPos> all = positions(corner, box.size());
+        for (BlockPos at : all) {
+            BlockState state = level.getBlockState(at);
+            CpuShape.Vec offset = new CpuShape.Vec(at.getX() - corner.getX(), at.getY() - corner.getY(), at.getZ() - corner.getZ());
+            level.setBlock(at, state.getBlock().defaultBlockState().setValue(FORMED, true).setValue(PART, box.part(offset)),
+                    Block.UPDATE_ALL);
+            if (level.getBlockEntity(at) instanceof CpuBlockEntity block) {
+                block.joinBox(corner, at.equals(corner) ? box : null);
+            }
         }
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            level.invalidateCapabilities(partPos(origin, part));
+        for (BlockPos at : all) {
+            level.invalidateCapabilities(at);
         }
-        level.playSound(null, origin.offset(1, 1, 1), SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.6F, 1.4F);
+        BlockPos centre = corner.offset(box.size().x() / 2, box.size().y() / 2, box.size().z() / 2);
+        level.playSound(null, centre, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.6F, 1.4F);
     }
 
-    /** A formed block went away: the master cancels its orders and every other block of the cube unforms. */
+    /** Every position of a box, lowest corner first. */
+    static List<BlockPos> positions(BlockPos corner, CpuShape.Vec size) {
+        List<BlockPos> list = new ArrayList<>(size.x() * size.y() * size.z());
+        for (int y = 0; y < size.y(); y++) {
+            for (int z = 0; z < size.z(); z++) {
+                for (int x = 0; x < size.x(); x++) {
+                    list.add(corner.offset(x, y, z));
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Unforms the box of a master: every block of it except {@code removed}
+     * goes back to its unformed state and forgets its master.
+     */
+    static void unformBlocks(Level level, CpuBlockEntity master, BlockPos removed) {
+        CpuShape.Vec size = master.boxSize();
+        if (size == null) {
+            return;
+        }
+        BlockPos corner = master.getBlockPos();
+        List<BlockPos> all = positions(corner, size);
+        for (BlockPos at : all) {
+            if (at.equals(removed) || !level.isLoaded(at)) {
+                continue;
+            }
+            BlockState state = level.getBlockState(at);
+            if (isFormed(state) && level.getBlockEntity(at) instanceof CpuBlockEntity block && corner.equals(block.masterPos())) {
+                block.leaveBox();
+                level.setBlock(at, state.getBlock().defaultBlockState(), Block.UPDATE_ALL);
+            }
+        }
+        for (BlockPos at : all) {
+            if (level.isLoaded(at)) {
+                level.invalidateCapabilities(at);
+            }
+        }
+    }
+
+    /**
+     * A formed block went away without its block entity unforming the box
+     * first (a removal that skips block entity side effects): formed
+     * neighbours unform the rest of the box, through their master when it is
+     * still there.
+     */
     @Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
-        if (isFormed(state)) {
-            unform(level, masterPos(pos, state), state.getValue(PART));
+        if (!isFormed(state)) {
+            return;
+        }
+        for (Direction direction : Direction.values()) {
+            BlockPos next = pos.relative(direction);
+            BlockState neighbour = level.getBlockState(next);
+            if (!isFormed(neighbour) || !(level.getBlockEntity(next) instanceof CpuBlockEntity block)) {
+                continue;
+            }
+            CpuBlockEntity master = master(level, next);
+            if (master != null && master.boxContains(pos)) {
+                master.unform(pos);
+            } else if (master == null && pos.equals(block.masterPos())) {
+                unformOrphans(level, next, block.masterPos());
+            }
         }
     }
 
-    private void unform(Level level, BlockPos origin, int removedPart) {
-        if (level.getBlockEntity(origin) instanceof CpuBlockEntity master) {
-            master.cancelAll();
-        }
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            if (part == removedPart) {
+    /** Unforms the formed blocks joined to {@code start} that name a master that is gone. */
+    private static void unformOrphans(Level level, BlockPos start, BlockPos masterPos) {
+        int limit = StorageStatsManager.INSTANCE.cpuMaxBlocks();
+        Deque<BlockPos> queue = new ArrayDeque<>();
+        Set<BlockPos> seen = new HashSet<>();
+        queue.add(start);
+        seen.add(start);
+        while (!queue.isEmpty() && seen.size() <= limit) {
+            BlockPos at = queue.poll();
+            BlockState state = level.getBlockState(at);
+            if (!isFormed(state) || !(level.getBlockEntity(at) instanceof CpuBlockEntity block)
+                    || !masterPos.equals(block.masterPos())) {
                 continue;
             }
-            BlockPos at = partPos(origin, part);
-            BlockState state = level.getBlockState(at);
-            if (isFormed(state) && state.getValue(PART) == part) {
-                level.setBlock(at, defaultBlockState(), Block.UPDATE_ALL);
-                level.invalidateCapabilities(at);
+            block.leaveBox();
+            level.setBlock(at, state.getBlock().defaultBlockState(), Block.UPDATE_ALL);
+            level.invalidateCapabilities(at);
+            for (Direction direction : Direction.values()) {
+                BlockPos next = at.relative(direction);
+                if (level.isLoaded(next) && seen.add(next)) {
+                    queue.add(next);
+                }
             }
         }
     }
@@ -203,7 +304,22 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
         return InteractionResult.SUCCESS;
     }
 
-    /** Carrot: forms the cube around the clicked block. Sneak carrot: dismantles this block. */
+    /** What the carrot click says: formed with the box's size, or why not. */
+    static Component message(CpuBox.Result result) {
+        if (result.formed()) {
+            CpuShape.Vec size = result.box().size();
+            return Component.translatable("message.servus_storage.cpu.formed", size.x(), size.y(), size.z(),
+                    result.box().cpuBlocks(), result.box().bufferBlocks());
+        }
+        String key = "message.servus_storage.cpu." + result.reason().id();
+        return switch (result.reason()) {
+            case TOO_BIG -> Component.translatable(key, StorageStatsManager.INSTANCE.cpuMaxBlocks());
+            case GAP -> Component.translatable(key, result.gap().x(), result.gap().y(), result.gap().z());
+            default -> Component.translatable(key);
+        };
+    }
+
+    /** Carrot: forms the box around the clicked block. Sneak carrot: dismantles this block. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
@@ -221,10 +337,9 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
             level.removeBlock(pos, false);
             return InteractionResult.SUCCESS;
         }
-        boolean formed = tryForm(level, pos);
+        CpuBox.Result result = tryForm(level, pos);
         if (player != null) {
-            player.sendOverlayMessage(Component.translatable(formed ? "message.servus_storage.cpu.formed"
-                    : "message.servus_storage.cpu.incomplete"));
+            player.sendOverlayMessage(message(result));
         }
         return InteractionResult.SUCCESS;
     }

@@ -55,10 +55,11 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.neoforged.neoforge.model.data.ModelData;
 
 /**
- * One block of a Crafting CPU. Every formed block is a link member of the
- * data line it touches; the master (part 0) owns the CPU's work orders. They
- * are saved with the master, pause while it is unloaded and are cancelled
- * when the cube unforms.
+ * One block of a Crafting CPU, a CPU block or a Buffer block. Every formed
+ * block is a link member of the data line it touches and saves the offset to
+ * its master; the master (the lowest corner) saves the box and owns the CPU's
+ * work orders. They are saved with the master, pause while it is unloaded and
+ * are cancelled when the box unforms.
  */
 public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink {
 
@@ -69,6 +70,15 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
 
     private OrderBook book;
 
+    /** From this block to its master while formed, else null. */
+    private BlockPos masterOffset;
+    /** On the master: the size of the box and its counts of CPU and Buffer blocks. */
+    private CpuShape.Vec boxSize;
+    private int cpuBlocks;
+    private int bufferBlocks;
+    /** On the master: a block of the box that was a member of a data line when last asked. */
+    private BlockPos memberCache;
+
     public CpuBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.CRAFTING_CPU.get(), pos, state);
     }
@@ -78,9 +88,102 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         return CpuBlock.isFormed(getBlockState()) ? this : null;
     }
 
-    /** Orders one CPU runs at a time. */
+    /** Orders one CPU runs at a time: its CPU blocks times {@code orders_per_cpu_block}. */
     public int slots() {
-        return 2 * StorageStatsManager.INSTANCE.cpuOrdersPerCpuBlock();
+        return cpuBlocks * StorageStatsManager.INSTANCE.cpuOrdersPerCpuBlock();
+    }
+
+    /** Buffer stacks of the CPU: its Buffer blocks times {@code stacks_per_buffer_block}. */
+    public int room() {
+        return bufferBlocks * StorageStatsManager.INSTANCE.cpuStacksPerBufferBlock();
+    }
+
+    public int cpuBlocks() {
+        return cpuBlocks;
+    }
+
+    public int bufferBlocks() {
+        return bufferBlocks;
+    }
+
+    // Box
+
+    /** The master's position while formed, else null. */
+    public BlockPos masterPos() {
+        return masterOffset == null ? null : worldPosition.offset(masterOffset);
+    }
+
+    /** Whether this block is the master of a formed box. */
+    public boolean isMaster() {
+        return masterOffset != null && masterOffset.equals(BlockPos.ZERO) && boxSize != null;
+    }
+
+    /** The size of the box, on the master only. */
+    public CpuShape.Vec boxSize() {
+        return boxSize;
+    }
+
+    /** Whether a position lies in this master's box. */
+    public boolean boxContains(BlockPos pos) {
+        if (boxSize == null) {
+            return false;
+        }
+        int dx = pos.getX() - worldPosition.getX();
+        int dy = pos.getY() - worldPosition.getY();
+        int dz = pos.getZ() - worldPosition.getZ();
+        return dx >= 0 && dy >= 0 && dz >= 0 && dx < boxSize.x() && dy < boxSize.y() && dz < boxSize.z();
+    }
+
+    /** Joins a formed box with its lowest corner at {@code corner}; the master gets the box. */
+    void joinBox(BlockPos corner, CpuBox.Box box) {
+        masterOffset = corner.subtract(worldPosition);
+        if (box != null) {
+            boxSize = box.size();
+            cpuBlocks = box.cpuBlocks();
+            bufferBlocks = box.bufferBlocks();
+            memberCache = null;
+        }
+        setChanged();
+    }
+
+    /** Forgets the box. */
+    void leaveBox() {
+        masterOffset = null;
+        boxSize = null;
+        cpuBlocks = 0;
+        bufferBlocks = 0;
+        memberCache = null;
+        setChanged();
+    }
+
+    /** On the master: a block of the box went away; cancels the orders and unforms the rest of the box. */
+    void unform(BlockPos removed) {
+        if (!isMaster() || level == null) {
+            return;
+        }
+        cancelAll();
+        CpuBlock.unformBlocks(level, this, removed);
+    }
+
+    /** Positions of the box, on the master only. */
+    private List<BlockPos> boxPositions() {
+        return boxSize == null ? List.of() : CpuBlock.positions(worldPosition, boxSize);
+    }
+
+    /** The block is about to go: a formed block unforms its box through the master first. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (!(level instanceof ServerLevel server) || !CpuBlock.isFormed(state) || masterOffset == null) {
+            return;
+        }
+        BlockPos master = masterPos();
+        if (isMaster()) {
+            unform(pos);
+        } else if (server.isLoaded(master) && server.getBlockEntity(master) instanceof CpuBlockEntity cpu && cpu.isMaster()
+                && cpu.boxContains(pos)) {
+            cpu.unform(pos);
+        }
     }
 
     /** The work orders of this CPU; only meaningful on the master. */
@@ -96,15 +199,18 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         return memberPos().flatMap(pos -> DataNetworks.networkAt(serverLevel(), pos));
     }
 
-    /** A block of the cube that is a member of a data line. */
+    /** A block of the box that is a member of a data line; cached and looked for again once it is not. */
     private Optional<BlockPos> memberPos() {
         if (!(level instanceof ServerLevel server)) {
             return Optional.empty();
         }
-        for (int part = 0; part < CpuShape.PARTS; part++) {
-            CpuShape.Vec offset = CpuShape.offset(part);
-            BlockPos pos = worldPosition.offset(offset.x(), offset.y(), offset.z());
-            if (DataNetworks.networkAt(server, pos).isPresent()) {
+        if (memberCache != null && boxContains(memberCache) && DataNetworks.networkAt(server, memberCache).isPresent()) {
+            return Optional.of(memberCache);
+        }
+        memberCache = null;
+        for (BlockPos pos : boxPositions()) {
+            if (server.isLoaded(pos) && DataNetworks.networkAt(server, pos).isPresent()) {
+                memberCache = pos;
                 return Optional.of(pos);
             }
         }
@@ -122,22 +228,25 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     }
 
     /**
-     * Sets the lights of every block of a formed cube to running while the
+     * Sets the lights of every block of a formed box to running while the
      * master has open orders and to the slow glow otherwise. Called when the
      * order book changes, never per tick; only changed states are written.
      */
     void updateActive() {
         BlockState state = getBlockState();
-        if (!(level instanceof ServerLevel server) || !CpuBlock.isFormed(state) || state.getValue(CpuBlock.PART) != 0) {
+        if (!(level instanceof ServerLevel server) || !CpuBlock.isFormed(state) || !isMaster()) {
             return;
         }
         boolean active = book != null && book.openCount() > 0;
         if (state.getValue(CpuBlock.ACTIVE) == active) {
             return;
         }
-        for (int part = CpuShape.PARTS - 1; part >= 0; part--) {
-            CpuShape.Vec offset = CpuShape.offset(part);
-            BlockPos at = worldPosition.offset(offset.x(), offset.y(), offset.z());
+        List<BlockPos> box = boxPositions();
+        for (int i = box.size() - 1; i >= 0; i--) {
+            BlockPos at = box.get(i);
+            if (!server.isLoaded(at)) {
+                continue;
+            }
             BlockState partState = server.getBlockState(at);
             if (CpuBlock.isFormed(partState) && partState.getValue(CpuBlock.ACTIVE) != active) {
                 server.setBlock(at, partState.setValue(CpuBlock.ACTIVE, active), Block.UPDATE_CLIENTS);
@@ -145,7 +254,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         }
     }
 
-    /** Cancels every open order; called when the cube unforms. */
+    /** Cancels every open order; called when the box unforms. */
     void cancelAll() {
         if (book != null) {
             book.cancelAll();
@@ -160,6 +269,20 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
         woodSlot.save(output);
+        if (masterOffset != null) {
+            CompoundTag box = new CompoundTag();
+            box.putInt("MasterX", masterOffset.getX());
+            box.putInt("MasterY", masterOffset.getY());
+            box.putInt("MasterZ", masterOffset.getZ());
+            if (boxSize != null) {
+                box.putInt("SizeX", boxSize.x());
+                box.putInt("SizeY", boxSize.y());
+                box.putInt("SizeZ", boxSize.z());
+                box.putInt("CpuBlocks", cpuBlocks);
+                box.putInt("BufferBlocks", bufferBlocks);
+            }
+            tag.put("Box", box);
+        }
         if (book != null) {
             tag.put("Orders", book.save(registries));
         }
@@ -174,7 +297,20 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         HolderLookup.Provider registries = input.lookup();
         woodSlot.load(input);
         BlockState state = getBlockState();
-        if (tag.contains("Orders") && CpuBlock.isFormed(state) && state.getValue(CpuBlock.PART) == 0) {
+        masterOffset = null;
+        boxSize = null;
+        cpuBlocks = 0;
+        bufferBlocks = 0;
+        if (tag.contains("Box") && CpuBlock.isFormed(state)) {
+            CompoundTag box = tag.getCompoundOrEmpty("Box");
+            masterOffset = new BlockPos(box.getIntOr("MasterX", 0), box.getIntOr("MasterY", 0), box.getIntOr("MasterZ", 0));
+            if (box.contains("SizeX")) {
+                boxSize = new CpuShape.Vec(box.getIntOr("SizeX", 2), box.getIntOr("SizeY", 2), box.getIntOr("SizeZ", 2));
+                cpuBlocks = box.getIntOr("CpuBlocks", 0);
+                bufferBlocks = box.getIntOr("BufferBlocks", 0);
+            }
+        }
+        if (tag.contains("Orders") && CpuBlock.isFormed(state) && isMaster()) {
             book().load(tag.getCompoundOrEmpty("Orders"), registries);
         }
     }
@@ -557,7 +693,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         carrier.carry(CpuBlock.isFormed(getBlockState()));
     }
 
-    /** A cube carries the data network while formed; forming and unforming change the block state. */
+    /** A box carries the data network while formed; forming and unforming change the block state. */
     @Override
     public void setBlockState(BlockState state) {
         super.setBlockState(state);

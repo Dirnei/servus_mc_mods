@@ -153,7 +153,7 @@ public final class ChainHandoffGameTests {
             CpuShape.Vec offset = CpuShape.offset(part);
             helper.setBlock(cpuPos.offset(offset.x(), offset.y(), offset.z()), ServusStorageBlocks.CRAFTING_CPU.get().defaultBlockState());
         }
-        helper.assertTrue(ServusStorageBlocks.CRAFTING_CPU.get().tryForm(helper.getLevel(), helper.absolutePos(cpuPos)), "the cube should form");
+        helper.assertTrue(io.github.dirnei.mc.servus.storage.cpu.CpuBlock.tryForm(helper.getLevel(), helper.absolutePos(cpuPos)).formed(), "the cube should form");
         int[] seen = watch(helper, controller, STONE);
         TerminalWiring.when(helper, () -> DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(line))
                 .map(network -> network.dataMembers(DataRole.PRODUCER).size() == 2

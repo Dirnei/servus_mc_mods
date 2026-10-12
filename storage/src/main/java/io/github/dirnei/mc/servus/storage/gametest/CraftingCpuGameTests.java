@@ -92,7 +92,7 @@ public final class CraftingCpuGameTests {
     }
 
     private static boolean form(GameTestHelper helper, BlockPos at) {
-        return ServusStorageBlocks.CRAFTING_CPU.get().tryForm(helper.getLevel(), helper.absolutePos(at));
+        return io.github.dirnei.mc.servus.storage.cpu.CpuBlock.tryForm(helper.getLevel(), helper.absolutePos(at)).formed();
     }
 
     static CpuBlockEntity cpu(GameTestHelper helper, BlockPos origin) {

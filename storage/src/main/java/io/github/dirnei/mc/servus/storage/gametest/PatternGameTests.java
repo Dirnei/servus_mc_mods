@@ -71,7 +71,7 @@ public final class PatternGameTests {
                 CpuShape.Vec offset = CpuShape.offset(part);
                 helper.setBlock(CPU.offset(offset.x(), offset.y(), offset.z()), ServusStorageBlocks.CRAFTING_CPU.get().defaultBlockState());
             }
-            helper.assertTrue(ServusStorageBlocks.CRAFTING_CPU.get().tryForm(helper.getLevel(), helper.absolutePos(CPU)), "the cube should form");
+            helper.assertTrue(io.github.dirnei.mc.servus.storage.cpu.CpuBlock.tryForm(helper.getLevel(), helper.absolutePos(CPU)).formed(), "the cube should form");
         }
         helper.setBlock(TERMINAL, ServusStorageBlocks.PRODUCTION_TERMINAL.get().defaultBlockState());
         storage(helper, STORAGE_A);

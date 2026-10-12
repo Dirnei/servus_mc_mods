@@ -111,7 +111,7 @@ public final class AdjacentDataGameTests {
         PatternStorageBlockEntity storage = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         storage.set(0, StationJobs.sticks());
         cube(helper);
-        helper.assertTrue(ServusStorageBlocks.CRAFTING_CPU.get().tryForm(helper.getLevel(), helper.absolutePos(CPU)), "the cube should form");
+        helper.assertTrue(io.github.dirnei.mc.servus.storage.cpu.CpuBlock.tryForm(helper.getLevel(), helper.absolutePos(CPU)).formed(), "the cube should form");
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         TerminalWiring.when(helper, () -> network(helper, TERMINAL)
                         .map(net -> CpuOrders.cpus(helper.getLevel(), net).size() == 1 && member(net, helper, ACCESS, DataRole.LINK))
@@ -184,7 +184,7 @@ public final class AdjacentDataGameTests {
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(CpuOrders.cpus(helper.getLevel(), network(helper, STATION).orElseThrow()).isEmpty(),
                     "an unformed cube carries nothing");
-            helper.assertTrue(ServusStorageBlocks.CRAFTING_CPU.get().tryForm(helper.getLevel(), helper.absolutePos(CPU)), "the cube should form");
+            helper.assertTrue(io.github.dirnei.mc.servus.storage.cpu.CpuBlock.tryForm(helper.getLevel(), helper.absolutePos(CPU)).formed(), "the cube should form");
             TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), network(helper, STATION).orElseThrow()).size() == 1, 20,
                     () -> "the formed CPU should be on the terminal's network", () -> {
                 helper.setBlock(CPU.offset(2, 2, 2), Blocks.AIR.defaultBlockState());
