@@ -2,8 +2,6 @@ package io.github.dirnei.mc.servus.storage.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
@@ -25,33 +23,29 @@ import net.minecraft.world.level.GameType;
 public final class CraftingGridGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
-    private static final BlockPos CRATE = new BlockPos(3, 1, 3);
-    private static final BlockPos CONTROLLER = new BlockPos(4, 1, 3);
+    /** The mini warehouse's rails start here, so its Packing Station stands at {@link #TERMINAL}. */
+    private static final BlockPos ORIGIN = new BlockPos(4, 1, 2);
     private static final BlockPos TERMINAL = new BlockPos(5, 1, 3);
-    private static final BlockPos RACK = new BlockPos(4, 1, 2);
 
     private CraftingGridGameTests() {
     }
 
-    /** A crate with planks beside a controller, the terminal wiring beside it; runs the test once the warehouse is up. */
+    /** A mini warehouse whose rack holds planks and the terminal on its Packing Station; runs the test once the warehouse is up. */
     private static void setup(GameTestHelper helper, int planks, Consumer<Fixture> test) {
-        helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        TerminalWiring.place(helper, TERMINAL);
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
-        if (planks > 0) {
-            crate.insert(new ItemStack(Items.OAK_PLANKS, planks), false);
-        }
+        MiniWarehouse warehouse = MiniWarehouse.build(helper, ORIGIN).withTerminal().stock(new ItemStack(Items.OAK_PLANKS, planks));
+        HeavyRackBlockEntity rack = warehouse.rack();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, TERMINAL));
             helper.assertTrue(menu.stock().online(), "warehouse should be online");
-            test.accept(new Fixture(menu, crate, player));
+            test.accept(new Fixture(menu, rack, player));
         });
     }
 
-    private record Fixture(StorageTerminalMenu menu, CrateBlockEntity crate, Player player) {
+    private record Fixture(StorageTerminalMenu menu, HeavyRackBlockEntity rack, Player player) {
+        int planks() {
+            return MiniWarehouse.count(rack, Items.OAK_PLANKS);
+        }
     }
 
     /** A plank above a plank in the grid. */
@@ -73,7 +67,7 @@ public final class CraftingGridGameTests {
         return true;
     }
 
-    /** Taking the result crafts four sticks, and the used planks come back from the crate. */
+    /** Taking the result crafts four sticks from the grid alone; the rack keeps its planks. */
     @ServusGameTest(timeoutTicks = 100)
     public static void gridCraftsSticks(GameTestHelper helper) {
         setup(helper, 10, f -> {
@@ -83,101 +77,34 @@ public final class CraftingGridGameTests {
             f.menu().clicked(f.menu().resultIndex(), 0, ContainerInput.PICKUP, f.player());
             helper.assertTrue(f.menu().getCarried().is(Items.STICK) && f.menu().getCarried().getCount() == 4,
                     "the cursor holds four sticks, got " + f.menu().getCarried());
-            helper.assertTrue(f.menu().craftSlots().getItem(1).is(Items.OAK_PLANKS) && f.menu().craftSlots().getItem(4).is(Items.OAK_PLANKS),
-                    "the grid is refilled from the crate");
-            helper.assertTrue(f.crate().count(0) == 8, "the crate gave two planks, holds " + f.crate().count(0));
-            helper.succeed();
-        });
-    }
-
-    /** Shift clicking the result crafts until the crate runs dry. */
-    @ServusGameTest(timeoutTicks = 100)
-    public static void gridShiftCraftRefills(GameTestHelper helper) {
-        setup(helper, 6, f -> {
-            sticksPattern(f.menu(), 1);
-            f.menu().clicked(f.menu().resultIndex(), 0, ContainerInput.QUICK_MOVE, f.player());
-            int sticks = f.player().getInventory().countItem(Items.STICK);
-            helper.assertTrue(sticks == 16, "sixteen sticks in the inventory, got " + sticks);
-            helper.assertTrue(f.crate().count(0) == 0, "the crate is empty, holds " + f.crate().count(0));
-            helper.assertTrue(gridEmpty(f.menu()), "the grid is empty");
-            helper.succeed();
-        });
-    }
-
-    /** Planks in a Heavy Duty Rack are not used to refill the grid. */
-    @ServusGameTest(timeoutTicks = 100)
-    public static void gridSkipsRackStock(GameTestHelper helper) {
-        helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
-        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
-        rack.items().insertItem(0, new ItemStack(Items.OAK_PLANKS, 32), false);
-        setup(helper, 0, f -> {
-            sticksPattern(f.menu(), 1);
-            f.menu().clicked(f.menu().resultIndex(), 0, ContainerInput.QUICK_MOVE, f.player());
-            helper.assertTrue(f.player().getInventory().countItem(Items.STICK) == 4, "one craft only");
-            helper.assertTrue(gridEmpty(f.menu()), "the grid stays empty");
-            helper.assertTrue(rack.items().getStackInSlot(0).getCount() == 32, "the rack keeps its planks");
+            helper.assertTrue(gridEmpty(f.menu()), "the grid is not refilled from the warehouse");
+            helper.assertTrue(f.planks() == 10, "the rack keeps its planks, holds " + f.planks());
             helper.succeed();
         });
     }
 
     /** The clear button moves the grid into the warehouse. */
-    @ServusGameTest(timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 400)
     public static void gridClearStores(GameTestHelper helper) {
         setup(helper, 4, f -> {
             sticksPattern(f.menu(), 1);
             f.menu().clearGrid();
             helper.assertTrue(gridEmpty(f.menu()), "the grid is empty");
             helper.assertTrue(result(f.menu()).isEmpty(), "no result without ingredients");
-            TerminalWiring.when(helper, () -> f.crate().count(0) == 6, 200,
-                    () -> "the crate should get the two planks back through the input, holds " + f.crate().count(0), helper::succeed);
+            TerminalWiring.when(helper, () -> f.planks() == 6, 350,
+                    () -> "the rack should get the two planks back through the input, holds " + f.planks(), helper::succeed);
         });
     }
 
     /** Closing the terminal moves the grid into the warehouse. */
-    @ServusGameTest(timeoutTicks = 300)
+    @ServusGameTest(timeoutTicks = 400)
     public static void gridCloseStores(GameTestHelper helper) {
         setup(helper, 4, f -> {
             f.menu().craftSlots().setItem(0, new ItemStack(Items.OAK_PLANKS, 3));
             f.menu().removed(f.player());
             helper.assertTrue(f.player().getInventory().countItem(Items.OAK_PLANKS) == 0, "nothing went to the player");
-            TerminalWiring.when(helper, () -> f.crate().count(0) == 7, 200,
-                    () -> "the crate should get three planks back through the input, holds " + f.crate().count(0), helper::succeed);
-        });
-    }
-
-    /** JEI fill takes from the crate first and from the player inventory for what the warehouse lacks. */
-    @ServusGameTest(timeoutTicks = 100)
-    public static void gridFillFromCrateFirst(GameTestHelper helper) {
-        setup(helper, 10, f -> {
-            f.player().getInventory().add(new ItemStack(Items.OAK_PLANKS, 5));
-            f.player().getInventory().add(new ItemStack(Items.COAL, 3));
-            List<List<ItemStack>> options = new ArrayList<>();
-            for (int slot = 0; slot < 9; slot++) {
-                options.add(List.of());
-            }
-            options.set(1, List.of(new ItemStack(Items.COAL)));
-            options.set(4, List.of(new ItemStack(Items.OAK_PLANKS)));
-            f.menu().fillGrid(options, false);
-            helper.assertTrue(f.menu().craftSlots().getItem(4).is(Items.OAK_PLANKS), "planks in slot 4");
-            helper.assertTrue(f.crate().count(0) == 9, "the plank came from the crate, crate holds " + f.crate().count(0));
-            helper.assertTrue(f.player().getInventory().countItem(Items.OAK_PLANKS) == 5, "the player keeps their planks");
-            helper.assertTrue(f.menu().craftSlots().getItem(1).is(Items.COAL), "coal in slot 1 from the player");
-            helper.assertTrue(f.player().getInventory().countItem(Items.COAL) == 2, "one coal left the inventory");
-            helper.succeed();
-        });
-    }
-
-    /** Alt click puts a stack from instant stock onto the empty cursor. */
-    @ServusGameTest(timeoutTicks = 100)
-    public static void gridPullToCursor(GameTestHelper helper) {
-        setup(helper, 80, f -> {
-            f.menu().pullToCursor(ItemKey.of(new ItemStack(Items.OAK_PLANKS)));
-            helper.assertTrue(f.menu().getCarried().is(Items.OAK_PLANKS) && f.menu().getCarried().getCount() == 64,
-                    "the cursor holds a stack, got " + f.menu().getCarried());
-            helper.assertTrue(f.crate().count(0) == 16, "the crate holds the rest, " + f.crate().count(0));
-            f.menu().pullToCursor(ItemKey.of(new ItemStack(Items.OAK_PLANKS)));
-            helper.assertTrue(f.crate().count(0) == 16, "a carried stack blocks another pull");
-            helper.succeed();
+            TerminalWiring.when(helper, () -> f.planks() == 7, 350,
+                    () -> "the rack should get three planks back through the input, holds " + f.planks(), helper::succeed);
         });
     }
 }

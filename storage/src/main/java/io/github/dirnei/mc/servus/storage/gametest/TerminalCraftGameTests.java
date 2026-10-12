@@ -5,7 +5,6 @@ import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -120,8 +119,6 @@ public final class TerminalCraftGameTests {
     @ServusGameTest(timeoutTicks = 1400)
     public static void craftStartDeliversSticks(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
-        // A crate compartment holds one item; the planks crate cannot take the crafted sticks.
-        helper.setBlock(new BlockPos(2, 1, 1), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         TerminalWiring.when(helper, () -> stocked(helper, player), 160, () -> "stations and CPU should join the line", () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);

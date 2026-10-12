@@ -3,8 +3,7 @@ package io.github.dirnei.mc.servus.storage.gametest;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -27,10 +26,10 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 public final class StorageTerminalRowsGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
-    private static final BlockPos FULL_CRATE = new BlockPos(3, 1, 3);
-    private static final BlockPos CONTROLLER = new BlockPos(4, 1, 3);
+    /** The mini warehouse's rails start here, so its Packing Station stands at {@link #TERMINAL}. */
+    private static final BlockPos ORIGIN = new BlockPos(4, 1, 2);
     private static final BlockPos TERMINAL = new BlockPos(5, 1, 3);
-    private static final BlockPos FREE_CRATE = new BlockPos(4, 1, 2);
+    private static final BlockPos RACK = new BlockPos(4, 1, 1);
 
     private StorageTerminalRowsGameTests() {
     }
@@ -38,17 +37,14 @@ public final class StorageTerminalRowsGameTests {
     private record Fixture(StorageTerminalMenu menu, StorageTerminalBlockEntity terminal, Player player) {
     }
 
-    /** A crate full of planks, optionally an empty crate, the controller and the terminal wiring. */
-    private static void setup(GameTestHelper helper, boolean freeCrate, java.util.function.Consumer<Fixture> test) {
-        helper.setBlock(FULL_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity planks = helper.getBlockEntity(FULL_CRATE, CrateBlockEntity.class);
-        planks.insert(new ItemStack(Items.OAK_PLANKS, planks.capacity()), false);
-        if (freeCrate) {
-            helper.setBlock(FREE_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+    /** A mini warehouse whose rack holds planks, full unless {@code room}, and the terminal on its Packing Station. */
+    private static void setup(GameTestHelper helper, boolean room, java.util.function.Consumer<Fixture> test) {
+        MiniWarehouse warehouse = MiniWarehouse.build(helper, ORIGIN).withTerminal();
+        HeavyRackBlockEntity rack = warehouse.rack();
+        int slots = room ? 1 : rack.items().getSlots();
+        for (int slot = 0; slot < slots; slot++) {
+            rack.items().setStackInSlot(slot, new ItemStack(Items.OAK_PLANKS, 64));
         }
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        TerminalWiring.place(helper, TERMINAL);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, TERMINAL);
@@ -59,17 +55,16 @@ public final class StorageTerminalRowsGameTests {
     }
 
     private static int cobble(GameTestHelper helper) {
-        CrateBlockEntity crate = helper.getBlockEntity(FREE_CRATE, CrateBlockEntity.class);
-        return crate.count(0);
+        return MiniWarehouse.count(helper.getBlockEntity(RACK, HeavyRackBlockEntity.class), Items.COBBLESTONE);
     }
 
     /** Cobblestone put into an input slot is stored over a few seconds and the slot empties. */
-    @ServusGameTest(timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 400)
     public static void inputStores(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             fixture.terminal().input().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 20));
-            TerminalWiring.when(helper, () -> cobble(helper) == 20 && fixture.terminal().input().getStackInSlot(0).isEmpty(), 150,
-                    () -> "the cobblestone should be stored, crate holds " + cobble(helper), helper::succeed);
+            TerminalWiring.when(helper, () -> cobble(helper) == 20 && fixture.terminal().input().getStackInSlot(0).isEmpty(), 350,
+                    () -> "the cobblestone should be stored, rack holds " + cobble(helper), helper::succeed);
         });
     }
 
@@ -93,31 +88,31 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** Clicking the grid with a carried stack moves it into the input row, which stores it. */
-    @ServusGameTest(timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 400)
     public static void gridPushGoesThroughInput(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             fixture.menu().setCarried(new ItemStack(Items.COBBLESTONE, 20));
             fixture.menu().pushCarried();
             helper.assertTrue(fixture.menu().getCarried().isEmpty(), "the carried stack should go into the input");
-            TerminalWiring.when(helper, () -> cobble(helper) == 20, 150,
-                    () -> "the cobblestone should end in the crate, crate holds " + cobble(helper), helper::succeed);
+            TerminalWiring.when(helper, () -> cobble(helper) == 20, 350,
+                    () -> "the cobblestone should end in the rack, rack holds " + cobble(helper), helper::succeed);
         });
     }
 
     /** Shift clicking an inventory slot moves it into the input row, which stores it. */
-    @ServusGameTest(timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 300)
     public static void shiftClickToInput(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             fixture.player().getInventory().setItem(0, new ItemStack(Items.COBBLESTONE, 20));
             fixture.menu().quickMoveStack(fixture.player(), fixture.menu().inventoryStart() + 27);
             helper.assertTrue(fixture.player().getInventory().getItem(0).isEmpty(), "the inventory slot should be empty");
-            TerminalWiring.when(helper, () -> cobble(helper) == 20, 40,
-                    () -> "the cobblestone should end in the crate, crate holds " + cobble(helper), helper::succeed);
+            TerminalWiring.when(helper, () -> cobble(helper) == 20, MiniWarehouse.TRIP_TICKS * 2,
+                    () -> "the cobblestone should end in the rack, rack holds " + cobble(helper), helper::succeed);
         });
     }
 
     /** Automation: an item no request waits for goes through the input; a waited for item lands in the output. */
-    @ServusGameTest(timeoutTicks = 100)
+    @ServusGameTest(timeoutTicks = 300)
     public static void automationRouting(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             BlockPos pos = helper.absolutePos(TerminalWiring.terminalPos(TERMINAL));
@@ -130,8 +125,8 @@ public final class StorageTerminalRowsGameTests {
             helper.assertTrue(sticks.isEmpty(), "the sticks should be taken, left " + sticks);
             int inOutput = fixture.terminal().outputCount(Items.STICK);
             helper.assertTrue(inOutput == 4, "the requested sticks should land in the output, got " + inOutput);
-            TerminalWiring.when(helper, () -> cobble(helper) == 10, 40,
-                    () -> "the cobblestone should go through the input into the crate, crate holds " + cobble(helper), helper::succeed);
+            TerminalWiring.when(helper, () -> cobble(helper) == 10, MiniWarehouse.TRIP_TICKS * 2,
+                    () -> "the cobblestone should go through the input into the rack, rack holds " + cobble(helper), helper::succeed);
         });
     }
 
@@ -188,7 +183,7 @@ public final class StorageTerminalRowsGameTests {
     }
 
     /** A stack in the Input row leaves at the Packing Station's 8 per second, not all at once. */
-    @ServusGameTest(timeoutTicks = 400)
+    @ServusGameTest(timeoutTicks = 600)
     public static void inputDrainsGradually(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             long start = helper.getTick();
@@ -199,8 +194,8 @@ public final class StorageTerminalRowsGameTests {
                 helper.assertTrue(left >= 64 - 25 && left <= 64 - 10,
                         "about 16 to 24 cobblestone should have left after 2 seconds, " + left + " left");
             });
-            TerminalWiring.when(helper, () -> cobble(helper) == 64 && fixture.terminal().input().getStackInSlot(0).isEmpty(), 350,
-                    () -> "all 64 cobblestone should be stored, crate holds " + cobble(helper), () -> {
+            TerminalWiring.when(helper, () -> cobble(helper) == 64 && fixture.terminal().input().getStackInSlot(0).isEmpty(), 550,
+                    () -> "all 64 cobblestone should be stored, rack holds " + cobble(helper), () -> {
                 long took = helper.getTick() - start;
                 helper.assertTrue(took >= 120, "64 cobblestone at 8 per second take about 7 seconds, took " + took + " ticks");
                 helper.succeed();
@@ -215,7 +210,7 @@ public final class StorageTerminalRowsGameTests {
             io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point =
                     helper.getBlockEntity(TerminalWiring.packingStationPos(TERMINAL), io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity.class);
             io.github.dirnei.mc.servus.foundation.transfer.ItemSlots buffer = point.buffer();
-            // Nothing can be put away (no crate takes cobblestone or diamonds), so the buffer stays as it is.
+            // Nothing can be put away (the only rack is full), so the buffer stays as it is.
             for (int slot = 0; slot < buffer.getSlots(); slot++) {
                 buffer.setStackInSlot(slot, slot == 0 ? new ItemStack(Items.COBBLESTONE, 48) : new ItemStack(Items.DIAMOND, 64));
             }

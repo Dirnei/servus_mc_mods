@@ -8,8 +8,6 @@ import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
@@ -38,7 +36,8 @@ public final class TerminalSpeedGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
-    private static final BlockPos CRATE = new BlockPos(1, 1, 2);
+    /** The rack west of the rail under the controller. */
+    private static final BlockPos RACK = new BlockPos(1, 0, 2);
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     private static final BlockPos ADAPTER = new BlockPos(4, 1, 3);
     private static final BlockPos FURNACE = new BlockPos(5, 1, 3);
@@ -76,11 +75,8 @@ public final class TerminalSpeedGameTests {
     }
 
     private static void setup(GameTestHelper helper) {
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
-        crate.insert(new ItemStack(Items.COBBLESTONE, 16), false);
+        MiniWarehouse.under(helper, CONTROLLER);
+        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.COBBLESTONE, 16));
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(FURNACE, Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
         helper.setBlock(ADAPTER, AdapterContent.BLOCK.get().defaultBlockState().setValue(MachineAdapterBlock.FACING, Direction.EAST));
