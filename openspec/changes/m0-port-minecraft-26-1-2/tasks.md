@@ -47,3 +47,5 @@ Results of section 2 (2026-10-12): `:foundation:build` green, 263 unit tests gre
 
 - [ ] 6.1 Full gradle build, tests green, game launches with all three mods.
   Status: `gradlew build` green with all three mods; `runGameTestServerAll` passes 529 of 534 (five Storage mock player tests fail on Modonomicon's join sync, see design.md notes). The client launch is the user's check.
+- [x] 6.2 First client and dedicated server start of the port: fix every startup error (static `ItemStack` in `HollowRevealRenderer`, Jade data providers split from the tooltip providers in `ServusManufacturingJadePlugin`). Verify: `runClientAll` reaches the title screen and `runServerAll` reaches "Done" on a fresh world, both without Servus errors; `gradlew build`, unit tests and the per mod `runGameTestServer` runs green.
+  Result (2026-10-12): both start cleanly; 263, 457 and 81 unit tests pass; GameTests pass 98 (Foundation), 461 (Storage), 171 (Manufacturing) of the required tests. Joining a world in the client is the user's check (6.1).
