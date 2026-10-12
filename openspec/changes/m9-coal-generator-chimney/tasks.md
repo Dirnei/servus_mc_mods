@@ -4,7 +4,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 1. Shared two half helper
 
-- [ ] 1.1 `machine/TwoHalves.java` (new helper, design.md D1), unless `m9-electric-pump-engine` already added it; `machine/pump/BurnerPumpBlock.java` (or `BeamPumpBlock.java`) calls the helper instead of its own copies. Run `gradlew build` and the Foundation GameTests: every Burner Pump test stays green.
+- [x] 1.1 `machine/TwoHalves.java` (new helper, design.md D1), unless `m9-electric-pump-engine` already added it; `machine/pump/BurnerPumpBlock.java` (or `BeamPumpBlock.java`) calls the helper instead of its own copies. Run `gradlew build` and the Foundation GameTests: every Burner Pump test stays green.
 
 ## 2. Generator halves
 
