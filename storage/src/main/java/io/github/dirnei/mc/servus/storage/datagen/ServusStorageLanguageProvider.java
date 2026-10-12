@@ -267,6 +267,8 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.search", "Search");
         add("gui.servus_storage.stored", "Stored: %s");
         add("gui.servus_storage.terminal.no_warehouse", "No warehouse on this data line");
+        add("gui.servus_storage.terminal.no_controller", "Its rails reach no Warehouse Controller");
+        add("gui.servus_storage.terminal.multiple_controllers", "Its rails reach more than one Warehouse Controller");
         add("gui.servus_storage.terminal.requests", "Requests");
         add("gui.servus_storage.terminal.crafting", "Crafting");
         add("gui.servus_storage.terminal.clear_grid", "Move the grid into the warehouse");

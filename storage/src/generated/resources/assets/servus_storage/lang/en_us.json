@@ -259,6 +259,8 @@
   "gui.servus_storage.terminal.message.offline": "No warehouse on this data line",
   "gui.servus_storage.terminal.message.out_of_stock": "Nothing of that in stock",
   "gui.servus_storage.terminal.message.site_asleep": "That site sleeps and cannot wake without enough Chunk Loader Upgrades",
+  "gui.servus_storage.terminal.multiple_controllers": "Its rails reach more than one Warehouse Controller",
+  "gui.servus_storage.terminal.no_controller": "Its rails reach no Warehouse Controller",
   "gui.servus_storage.terminal.no_requests": "No open requests",
   "gui.servus_storage.terminal.no_warehouse": "No warehouse on this data line",
   "gui.servus_storage.terminal.output": "Output",
