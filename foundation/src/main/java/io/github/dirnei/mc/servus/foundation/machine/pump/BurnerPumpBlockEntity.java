@@ -22,16 +22,14 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /** Burns furnace fuel and pumps water while it stands on an infinite water source. */
-public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements PumpMachine {
+public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements PumpMachine, BeamPumpEngine {
 
     public static final int SLOT_FUEL = 0;
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "burner_pump");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final PumpLogic pump = new PumpLogic(DEFAULTS.fluidCapacity(), this::setChanged);
-    /** Client only: how many ticks the beam has rocked, and the frame time it was advanced to. */
-    public double beamPhase;
-    public double beamTime = -1;
+    private final StrokeClock strokeClock = new StrokeClock();
 
     public BurnerPumpBlockEntity(BlockPos pos, BlockState state) {
         super(MachineContent.BURNER_PUMP_ENTITY.get(), pos, state, 1);
@@ -43,6 +41,11 @@ public class BurnerPumpBlockEntity extends BurnerMachineBlockEntity implements P
     @Override
     public PumpLogic pump() {
         return pump;
+    }
+
+    @Override
+    public StrokeClock strokeClock() {
+        return strokeClock;
     }
 
     /** The fluid capability from {@code side}; null means no particular side. */

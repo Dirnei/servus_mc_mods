@@ -13,6 +13,7 @@ import com.mojang.math.Axis;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BeamStroke;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
+import io.github.dirnei.mc.servus.foundation.machine.pump.StrokeClock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpParts;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -23,17 +24,15 @@ import net.minecraft.world.phys.AABB;
 
 /**
  * Rocks the Burner Pump's beam while it burns and moves the pump rod and the
- * piston rod with the beam's ends. Drawn from the lower half; the beam keeps
- * its pose while the pump is unlit.
+ * piston rod with the beam's ends, from the stroke phase its block entity
+ * keeps on the client. Drawn from the lower half; the beam keeps its pose
+ * while the pump is unlit.
  */
 public class BurnerPumpRenderer implements BlockEntityRenderer<BurnerPumpBlockEntity, BurnerPumpRenderer.State> {
 
     public static final StandaloneModelKey<BlockStateModelPart> BEAM_MODEL = ModelKeys.key("block/burner_pump_beam");
     public static final StandaloneModelKey<BlockStateModelPart> ROD_MODEL = ModelKeys.key("block/burner_pump_rod");
     public static final StandaloneModelKey<BlockStateModelPart> PISTON_MODEL = ModelKeys.key("block/burner_pump_piston");
-
-    /** Look only: twelve degrees either way, one stroke every two seconds. */
-    private static final BeamStroke STROKE = new BeamStroke(12, 40);
 
     /** The beam angle and lighting of one frame. */
     public static final class State extends BlockEntityRenderState {
@@ -55,7 +54,7 @@ public class BurnerPumpRenderer implements BlockEntityRenderer<BurnerPumpBlockEn
                                    ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(pump, state, partialTick, cameraPosition, breakProgress);
         BlockState blockState = pump.getBlockState();
-        state.angle = STROKE.angle(advance(pump, blockState, partialTick));
+        state.angle = StrokeClock.STROKE.angle(pump.strokeClock().phase(partialTick, blockState.getValue(MachineBlock.LIT)));
         state.light = pump.getLevel() == null ? state.lightCoords : LevelRenderer.getLightCoords(pump.getLevel(), pump.getBlockPos().above());
         state.facing = blockState.getValue(MachineBlock.FACING);
     }
@@ -102,19 +101,5 @@ public class BurnerPumpRenderer implements BlockEntityRenderer<BurnerPumpBlockEn
     @Override
     public AABB getRenderBoundingBox(BurnerPumpBlockEntity pump) {
         return new AABB(pump.getBlockPos()).expandTowards(0, 1, 0);
-    }
-
-    /** Advances the stroke while lit and keeps the pose while unlit. */
-    private static double advance(BurnerPumpBlockEntity pump, BlockState state, float partialTick) {
-        if (pump.getLevel() == null) {
-            return pump.beamPhase;
-        }
-        double now = pump.getLevel().getGameTime() + (double) partialTick;
-        double elapsed = pump.beamTime < 0 ? 0 : Math.max(0, now - pump.beamTime);
-        pump.beamTime = now;
-        if (state.getValue(MachineBlock.LIT)) {
-            pump.beamPhase += elapsed;
-        }
-        return pump.beamPhase;
     }
 }

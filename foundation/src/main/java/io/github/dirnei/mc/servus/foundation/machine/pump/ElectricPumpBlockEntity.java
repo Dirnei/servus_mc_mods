@@ -21,12 +21,13 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /** Spends FE and pumps water while it stands on an infinite water source. No item slots. */
-public class ElectricPumpBlockEntity extends PoweredMachineBlockEntity implements PumpMachine {
+public class ElectricPumpBlockEntity extends PoweredMachineBlockEntity implements PumpMachine, BeamPumpEngine {
 
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "electric_pump");
     private static final MachineStats DEFAULTS = MachineDefaults.stats(ID.toString());
 
     private final PumpLogic pump = new PumpLogic(DEFAULTS.fluidCapacity(), this::setChanged);
+    private final StrokeClock strokeClock = new StrokeClock();
 
     public ElectricPumpBlockEntity(BlockPos pos, BlockState state) {
         super(MachineContent.ELECTRIC_PUMP_ENTITY.get(), pos, state, 0);
@@ -36,6 +37,11 @@ public class ElectricPumpBlockEntity extends PoweredMachineBlockEntity implement
     @Override
     public PumpLogic pump() {
         return pump;
+    }
+
+    @Override
+    public StrokeClock strokeClock() {
+        return strokeClock;
     }
 
     /** The fluid capability from {@code side}; null means no particular side. */

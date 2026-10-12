@@ -1,6 +1,10 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
+import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.TwoHalves;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -136,6 +140,30 @@ public abstract class BeamPumpBlock extends PumpBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return isUpper(state) ? null : super.newBlockEntity(pos, state);
+    }
+
+    /** The server runs the machine; the client advances the stroke and splashes at the socket. */
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (!level.isClientSide()) {
+            return super.getTicker(level, state, type);
+        }
+        return isUpper(state) ? null : createTickerHelper(type, blockEntityType(), BeamPumpBlock::clientTick);
+    }
+
+    private static void clientTick(Level level, BlockPos pos, BlockState state, MachineBlockEntity machine) {
+        if (!(machine instanceof BeamPumpEngine engine) || engine.strokeClock().tick(state.getValue(LIT)) == 0) {
+            return;
+        }
+        float[] socket = BeamPumpParts.rotatedPoint(BeamPumpParts.SPLASH_X, BeamPumpParts.SPLASH_Z, quarters(state.getValue(FACING)));
+        RandomSource random = level.getRandom();
+        for (int i = 0; i < 6; i++) {
+            level.addParticle(ParticleTypes.SPLASH,
+                    pos.getX() + socket[0] / 16.0 + (random.nextDouble() - 0.5) * 0.15,
+                    pos.getY() + BeamPumpParts.SPLASH_Y / 16.0,
+                    pos.getZ() + socket[1] / 16.0 + (random.nextDouble() - 0.5) * 0.15,
+                    (random.nextDouble() - 0.5) * 0.1, 0.15, (random.nextDouble() - 0.5) * 0.1);
+        }
     }
 
     @Override

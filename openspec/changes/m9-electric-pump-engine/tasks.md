@@ -10,7 +10,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 ## 2. Shared two half block
 
 - [x] 2.1 `machine/TwoHalves.java` (new static helper with the half logic from `BurnerPumpBlock`) and `machine/pump/BeamPumpBlock.java` (new abstract base for the pump specific half parts, calling the helper) (design.md D1); `machine/pump/BurnerPumpBlock.java` extends it and keeps smoke and its shapes; move static `isUpper` and `lowerPos` callers. Run `gradlew build` and the Foundation GameTests: every existing Burner Pump test stays green.
-- [ ] 2.2 Client stroke phase on both pump block entities (`machine/pump/BurnerPumpBlockEntity.java`, `ElectricPumpBlockEntity.java`, client tickers from the blocks' `getTicker`), splash particles at the socket when `BeamStroke.bottoms` is above zero; `client/BurnerPumpRenderer.java` reads the phase instead of advancing it (design.md D4). Run `gradlew build`.
+- [x] 2.2 Client stroke phase on both pump block entities (`machine/pump/BurnerPumpBlockEntity.java`, `ElectricPumpBlockEntity.java`, client tickers from the blocks' `getTicker`), splash particles at the socket when `BeamStroke.bottoms` is above zero; `client/BurnerPumpRenderer.java` reads the phase instead of advancing it (design.md D4). Run `gradlew build`.
 
 ## 3. Electric engine
 
