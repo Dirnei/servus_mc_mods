@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
@@ -52,11 +53,15 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     protected void init() {
         super.init();
         this.inventoryLabelY = WarehouseControllerMenu.INVENTORY_Y - 11;
-        name = new EditBox(font, leftPos + 8, topPos + WarehouseControllerMenu.NAME_Y, imageWidth - 16, 12,
+        // The name is the title: a borderless field in the title row, showing the default name until one is typed.
+        name = new EditBox(font, leftPos + titleLabelX, topPos + titleLabelY, imageWidth - 2 * titleLabelX, 10,
                 Component.translatable("gui.servus_storage.controller.name"));
         name.setMaxLength(SiteName.MAX_LENGTH);
-        name.setHint(Component.translatable("gui.servus_storage.controller.name_hint"));
-        name.setBordered(true);
+        name.setHint(Component.literal(SiteName.display("", menu.pos().getX(), menu.pos().getZ())));
+        name.setBordered(false);
+        name.setTextColor(COLOUR_TEXT);
+        name.setTextShadow(false);
+        name.setTooltip(Tooltip.create(Component.translatable("gui.servus_storage.controller.name_hint")));
         name.setValue(menu.name());
         sentName = menu.name();
         addRenderableWidget(name);
@@ -240,8 +245,6 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         SiteStatusPayload status = ClientSiteStatus.status();
-        Component heading = status == SiteStatusPayload.EMPTY ? title : Component.literal(status.title());
-        graphics.text(font, heading, titleLabelX, titleLabelY, COLOUR_TEXT, false);
         graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOUR_TEXT, false);
         Component upgrades = Component.translatable("gui.servus_storage.controller.upgrades");
         graphics.text(font, upgrades, (imageWidth - font.width(upgrades)) / 2, WarehouseControllerMenu.UPGRADES_Y - 11, COLOUR_TEXT, false);
