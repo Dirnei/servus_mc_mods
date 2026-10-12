@@ -38,7 +38,7 @@ public final class DuctOverlayRenderer {
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent.AfterTranslucentBlocks event) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || !GogglesItem.reveals(minecraft.player)) {
+        if (minecraft.player == null || minecraft.level == null || !GogglesItem.reveals(minecraft.player)) {
             return;
         }
         Vec3 camera = event.getLevelRenderState().cameraRenderState.pos;
@@ -46,10 +46,7 @@ public final class DuctOverlayRenderer {
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
         VertexConsumer consumer = buffers.getBuffer(ServusRenderTypes.OVERLAY);
         boolean any = false;
-        for (UtilityDuctBlockEntity duct : DuctTracker.ducts()) {
-            if (duct.isRemoved()) {
-                continue;
-            }
+        for (UtilityDuctBlockEntity duct : DuctTracker.live(minecraft.level)) {
             BlockPos pos = duct.getBlockPos();
             if (pos.getCenter().distanceToSqr(camera) > RANGE_SQ) {
                 continue;
