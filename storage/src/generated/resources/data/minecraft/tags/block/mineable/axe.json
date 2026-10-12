@@ -1,8 +1,5 @@
 {
   "values": [
-    "servus_storage:crate",
-    "servus_storage:double_crate",
-    "servus_storage:quad_crate",
     "servus_storage:storage_terminal",
     "servus_storage:crafting_station",
     "servus_storage:shuttle_workshop"

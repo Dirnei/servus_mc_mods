@@ -1,8 +1,6 @@
 {
   "block.servus_storage.crafting_cpu": "Crafting CPU",
   "block.servus_storage.crafting_station": "Crafting Station",
-  "block.servus_storage.crate": "Crate",
-  "block.servus_storage.double_crate": "Double Crate",
   "block.servus_storage.elevator": "Rail Elevator",
   "block.servus_storage.farm_rail": "Farm Rail",
   "block.servus_storage.field_head": "Field Head",
@@ -12,7 +10,6 @@
   "block.servus_storage.packing_station": "Packing Station",
   "block.servus_storage.pattern_storage": "Pattern Storage",
   "block.servus_storage.production_terminal": "Production Terminal",
-  "block.servus_storage.quad_crate": "Quad Crate",
   "block.servus_storage.rail": "Warehouse Rail",
   "block.servus_storage.shuttle_garage": "Shuttle Garage",
   "block.servus_storage.shuttle_workshop": "Shuttle Workshop",
