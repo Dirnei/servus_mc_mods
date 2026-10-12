@@ -40,6 +40,8 @@ final class ShuttleModels {
         provider.itemModels().withExistingParent("shuttle_mk3", part(provider, "body_mk3"));
         for (String item : new String[] {"shuttle", "shuttle_mk2", "shuttle_mk3"}) {
             provider.itemModels().itemModelType(provider.modLoc(item), "servus_storage:shuttle");
+            // Tools reach past the 16 pixel slot; 26.1 would cut them off at its edge.
+            provider.itemModels().oversizedInGui(provider.modLoc(item));
         }
     }
 

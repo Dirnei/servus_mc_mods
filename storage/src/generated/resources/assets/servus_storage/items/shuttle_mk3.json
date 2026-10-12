@@ -2,5 +2,6 @@
   "model": {
     "type": "servus_storage:shuttle",
     "model": "servus_storage:item/shuttle_mk3"
-  }
+  },
+  "oversized_in_gui": true
 }

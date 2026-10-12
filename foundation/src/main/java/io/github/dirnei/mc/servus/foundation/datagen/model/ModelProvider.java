@@ -90,6 +90,8 @@ public class ModelProvider<T extends ModelBuilder<T>> {
 
     private final Map<Identifier, JsonObject> rawItemModels = new LinkedHashMap<>();
 
+    private final java.util.Set<Identifier> oversizedInGui = new java.util.HashSet<>();
+
     /** Writes an item's definition with this item model object as is (for loader models without a model file). */
     public void itemModelDefinition(Identifier itemId, JsonObject model) {
         rawItemModels.put(itemId, model);
@@ -98,6 +100,14 @@ public class ModelProvider<T extends ModelBuilder<T>> {
     /** Names a custom item model type for an item's definition, instead of {@code minecraft:model}. */
     public void itemModelType(Identifier itemId, String type) {
         itemTypes.put(itemId, type);
+    }
+
+    /**
+     * Marks an item whose model reaches past its slot in GUIs; its definition gets
+     * {@code "oversized_in_gui": true} so the slot icon is not cut at the 16 pixel slot.
+     */
+    public void oversizedInGui(Identifier itemId) {
+        oversizedInGui.add(itemId);
     }
 
     /** Writes every model; for item models also the 1.21.4+ item model definition under {@code items/}. */
@@ -116,6 +126,9 @@ public class ModelProvider<T extends ModelBuilder<T>> {
                     } else if (Wood.isWoodBlock(itemId)) {
                         // Wood block items retexture their boards per stack.
                         definition.getAsJsonObject("model").addProperty("type", "servus_foundation:wood");
+                    }
+                    if (oversizedInGui.contains(itemId)) {
+                        definition.addProperty("oversized_in_gui", true);
                     }
                     futures.add(DataProvider.saveStable(cache, definition, items.json(itemId)));
                 }
