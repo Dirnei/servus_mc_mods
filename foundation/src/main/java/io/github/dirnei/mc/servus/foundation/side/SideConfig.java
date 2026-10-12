@@ -18,6 +18,8 @@ public final class SideConfig {
     public static final List<SideMode> INBOUND_MODES = List.of(SideMode.INPUT, SideMode.PULL, SideMode.DISABLED);
     /** Push, Output, Off: a block that only hands items out. */
     public static final List<SideMode> OUTBOUND_MODES = List.of(SideMode.PUSH, SideMode.OUTPUT, SideMode.DISABLED);
+    /** Push, Pull, Off: a block with no item capability that moves items to and from its neighbours itself. */
+    public static final List<SideMode> STATION_MODES = List.of(SideMode.PUSH, SideMode.PULL, SideMode.DISABLED);
 
     private final SideMode[] modes = new SideMode[RelativeSide.values().length];
     private final List<SideMode> supported;
@@ -48,6 +50,11 @@ public final class SideConfig {
 
     public static SideConfig outbound() {
         return new SideConfig(OUTBOUND_MODES, SideMode.DISABLED);
+    }
+
+    /** Push, Pull, Off, Push by default: a station that acts on its neighbours itself. */
+    public static SideConfig station() {
+        return new SideConfig(STATION_MODES, SideMode.PUSH);
     }
 
     public List<SideMode> supported() {

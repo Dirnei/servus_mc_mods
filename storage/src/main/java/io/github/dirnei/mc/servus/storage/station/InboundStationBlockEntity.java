@@ -148,9 +148,9 @@ public class InboundStationBlockEntity extends StorageNodeBlockEntity implements
         return getBlockState().hasProperty(InboundStationBlock.FACING) ? getBlockState().getValue(InboundStationBlock.FACING) : Direction.NORTH;
     }
 
-    /** The item handler a neighbour on that side sees: the intake where insertion is allowed, nothing elsewhere. */
+    /** The item handler a neighbour on that side sees: the insert only intake on every side that is not Off, so pipes connect to Input and Pull sides. */
     public ResourceHandler<ItemResource> handlerFor(Direction side) {
-        if (side == null || sideMode(side).allowsInsert()) {
+        if (side == null || sideMode(side) != SideMode.DISABLED) {
             return intake;
         }
         return null;

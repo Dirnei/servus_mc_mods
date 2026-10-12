@@ -111,7 +111,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     private static final int LAMP_TICKS = 20;
     private int pushTimer;
 
-    private final SideConfig sides = SideConfig.machine();
+    private final SideConfig sides = SideConfig.station();
     private final java.util.Map<Direction, LegacyItemHandler> sideHandlers = new java.util.EnumMap<>(Direction.class);
     private final LegacyItemHandler anySide = new SideHandler(null);
 

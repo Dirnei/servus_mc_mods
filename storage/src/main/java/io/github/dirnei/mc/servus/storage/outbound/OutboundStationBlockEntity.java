@@ -159,9 +159,9 @@ public class OutboundStationBlockEntity extends StorageNodeBlockEntity implement
         return sides;
     }
 
-    /** The item handler a neighbour on that side sees: the extract view where extraction is allowed, nothing elsewhere. */
+    /** The item handler a neighbour on that side sees: the extract only view on every side that is not Off, so pipes connect to Push and Output sides. */
     public ResourceHandler<ItemResource> handlerFor(Direction side) {
-        if (side == null || sideMode(side).allowsExtract()) {
+        if (side == null || sideMode(side) != SideMode.DISABLED) {
             return extractOnly;
         }
         return null;

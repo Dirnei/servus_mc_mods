@@ -103,4 +103,15 @@ class SideConfigTest {
         copy.fromBytes(new byte[] {9});
         assertEquals(SideMode.AUTO, copy.mode(RelativeSide.FRONT));
     }
+
+    @Test
+    void stationCyclesPushPullOff() {
+        SideConfig config = SideConfig.station();
+        assertEquals(SideMode.PUSH, config.mode(RelativeSide.TOP));
+        assertEquals(SideMode.PULL, config.cycle(RelativeSide.TOP));
+        assertEquals(SideMode.DISABLED, config.cycle(RelativeSide.TOP));
+        assertEquals(SideMode.PUSH, config.cycle(RelativeSide.TOP));
+        config.set(RelativeSide.TOP, SideMode.AUTO);
+        assertEquals(SideMode.PUSH, config.mode(RelativeSide.TOP), "a machine mode falls back to Push");
+    }
 }
