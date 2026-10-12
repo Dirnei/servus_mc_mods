@@ -196,13 +196,6 @@ public final class ServusStoragePayloads {
                         menu.pushCarried();
                     }
                 });
-        registrar.playToServer(GridPullPayload.TYPE, GridPullPayload.STREAM_CODEC,
-                (payload, context) -> {
-                    if (context.player() instanceof ServerPlayer player
-                            && player.containerMenu instanceof StorageTerminalMenu menu && !payload.item().isEmpty()) {
-                        menu.pullToCursor(ItemKey.of(payload.item()));
-                    }
-                });
         registrar.playToServer(GridClearPayload.TYPE, GridClearPayload.STREAM_CODEC,
                 (payload, context) -> {
                     if (context.player() instanceof ServerPlayer player

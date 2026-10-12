@@ -208,12 +208,6 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
                 ? TerminalWarehouses.reachable(server, terminal.getBlockPos()) : List.of();
     }
 
-    /** Instant warehouse stock no longer exists; nothing is taken. */
-    private ItemStack takeInstant(ItemKey key, int amount) {
-        // Racks are served only by shuttles: there is no instant stock.
-        return ItemStack.EMPTY;
-    }
-
     /** Hands a stack to the input row, which stores it through a Packing Station; returns what did not fit. Nothing while another site is shown. */
     private ItemStack store(ItemStack stack) {
         return inputOpen() ? terminal.queueInput(stack) : stack;
@@ -229,43 +223,6 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         if (player.level().isClientSide()) {
             view = shown == null ? "" : shown;
         }
-    }
-
-    /** After a craft, every grid slot that lost an ingredient gets one more of it from instant stock. */
-    private void refill(ItemStack[] before) {
-        if (player.level().isClientSide()) {
-            return;
-        }
-        for (int slot = 0; slot < before.length; slot++) {
-            ItemStack old = before[slot];
-            if (old.isEmpty()) {
-                continue;
-            }
-            ItemStack now = craftSlots.getItem(slot);
-            int lost = now.isEmpty() ? old.getCount() : ItemStack.isSameItemSameComponents(now, old) ? old.getCount() - now.getCount() : 0;
-            if (lost <= 0) {
-                continue;
-            }
-            ItemStack got = takeInstant(ItemKey.of(old), lost);
-            if (got.isEmpty()) {
-                continue;
-            }
-            if (now.isEmpty()) {
-                craftSlots.setItem(slot, got);
-            } else {
-                now.grow(got.getCount());
-                craftSlots.setItem(slot, now);
-            }
-        }
-    }
-
-    /** Alt click on a stock entry: up to one stack from instant stock onto the empty cursor. Not for another site. */
-    public void pullToCursor(ItemKey key) {
-        if (!getCarried().isEmpty() || !view.isEmpty()) {
-            return;
-        }
-        setCarried(takeInstant(key, key.stack(1).getMaxStackSize()));
-        forceSync();
     }
 
     /** Moves every grid stack into the warehouse; the rest goes to the player. */
@@ -289,8 +246,9 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     /**
      * JEI transfer: clears the grid, then fills each slot with the first
-     * acceptable stack found in instant stock, else in the player inventory.
-     * With max, a slot takes up to a stack instead of one item.
+     * acceptable stack found in the player inventory. The warehouse fills
+     * nothing, since its racks are served only by shuttles. With max, a slot
+     * takes up to a stack instead of one item.
      */
     public void fillGrid(List<List<ItemStack>> options, boolean max) {
         if (player.level().isClientSide()) {
@@ -303,10 +261,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
                     continue;
                 }
                 int count = max ? option.getMaxStackSize() : 1;
-                ItemStack got = takeInstant(ItemKey.of(option), count);
-                if (got.isEmpty()) {
-                    got = takeFromInventory(option, count);
-                }
+                ItemStack got = takeFromInventory(option, count);
                 if (!got.isEmpty()) {
                     craftSlots.setItem(slot, got);
                     break;
@@ -342,7 +297,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         clearGrid();
     }
 
-    /** Takes the crafted result like a crafting table and refills the grid from the warehouse afterwards. */
+    /** Takes the crafted result like a crafting table; the grid is not refilled from the warehouse. */
     private final class GridResultSlot extends ResultSlot {
 
         GridResultSlot(Player player, CraftingContainer grid, Container result, int x, int y) {
@@ -354,15 +309,6 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
             return craftOpen;
         }
 
-        @Override
-        public void onTake(Player taker, ItemStack stack) {
-            ItemStack[] before = new ItemStack[craftSlots.getContainerSize()];
-            for (int slot = 0; slot < before.length; slot++) {
-                before[slot] = craftSlots.getItem(slot).copy();
-            }
-            super.onTake(taker, stack);
-            refill(before);
-        }
     }
 
     /** The first reachable warehouse, for rules and pushes. */

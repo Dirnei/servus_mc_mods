@@ -12,7 +12,6 @@ import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.storage.terminal.CraftPreviewRequestPayload;
 import io.github.dirnei.mc.servus.storage.terminal.CraftStartPayload;
 import io.github.dirnei.mc.servus.storage.terminal.GridClearPayload;
-import io.github.dirnei.mc.servus.storage.terminal.GridPullPayload;
 import io.github.dirnei.mc.servus.storage.terminal.PushCarriedPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestItemPayload;
 import io.github.dirnei.mc.servus.storage.terminal.RequestRow;
@@ -984,13 +983,6 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             }
             if (!menu.getCarried().isEmpty()) {
                 ClientPacketDistributor.sendToServer(PushCarriedPayload.INSTANCE);
-                return true;
-            }
-            if (cell.isPresent() && Minecraft.getInstance().hasAltDown()) {
-                // Alt click: a stack from instant stock onto the cursor, for the crafting grid.
-                if (cell.get().stocked()) {
-                    ClientPacketDistributor.sendToServer(new GridPullPayload(cell.get().stack()));
-                }
                 return true;
             }
             if (cell.isPresent()) {

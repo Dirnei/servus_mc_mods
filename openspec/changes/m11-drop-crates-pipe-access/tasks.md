@@ -59,7 +59,7 @@ Each task rewrites the listed classes to build racks with `MiniWarehouse` instea
 
 ## 9. Storage Terminal without instant stock
 
-- [ ] 9.1 `menu/StorageTerminalMenu.java` (no `refill`, no Alt pull), `client/StorageTerminalScreen.java` (Alt click does nothing), `integration/jei/StorageTerminalRecipeTransferHandler.java` (player inventory only), lang strings that mention the warehouse as the grid's pantry. GameTests: delete `CraftingGridGameTests.gridShiftCraftRefills`, `gridSkipsRackStock`, `gridFillFromCrateFirst`, `gridPullToCursor`; add `gridShiftCraftUsesOnlyGrid` and `gridDoesNotRefillFromRack`; `TerminalCableGameTests.hopperCannotTakeTerminalOutput` kept. Run the Storage GameTests.
+- [x] 9.1 `menu/StorageTerminalMenu.java` (no `refill`, no Alt pull), `client/StorageTerminalScreen.java` (Alt click does nothing), `integration/jei/StorageTerminalRecipeTransferHandler.java` (player inventory only), lang strings that mention the warehouse as the grid's pantry. GameTests: delete `CraftingGridGameTests.gridShiftCraftRefills`, `gridSkipsRackStock`, `gridFillFromCrateFirst`, `gridPullToCursor`; add `gridShiftCraftUsesOnlyGrid` and `gridDoesNotRefillFromRack`; `TerminalCableGameTests.hopperCannotTakeTerminalOutput` kept. Run the Storage GameTests.
 
 ## 10. Plan and docs
 

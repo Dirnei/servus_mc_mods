@@ -23,8 +23,8 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 
 /**
  * JEI plus button on crafting recipes while a Storage Terminal is open: opens
- * the crafting popup and asks the server to fill the crafting grid, from the warehouse first and the
- * player inventory second. JEI's crafting view lists its nine input slots in
+ * the crafting popup and asks the server to fill the crafting grid from the
+ * player inventory; the warehouse's racks are served only by shuttles. JEI's crafting view lists its nine input slots in
  * grid order, so slot view i becomes grid slot i.
  */
 public final class StorageTerminalRecipeTransferHandler implements IRecipeTransferHandler<StorageTerminalMenu, RecipeHolder<CraftingRecipe>> {

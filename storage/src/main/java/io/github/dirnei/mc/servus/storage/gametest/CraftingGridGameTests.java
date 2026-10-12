@@ -83,6 +83,52 @@ public final class CraftingGridGameTests {
         });
     }
 
+    /** Shift clicking the result crafts only what the grid holds: two planks give four sticks, the rack's planks stay. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void gridShiftCraftUsesOnlyGrid(GameTestHelper helper) {
+        setup(helper, 6, f -> {
+            sticksPattern(f.menu(), 1);
+            f.menu().clicked(f.menu().resultIndex(), 0, ContainerInput.QUICK_MOVE, f.player());
+            int sticks = f.player().getInventory().countItem(Items.STICK);
+            helper.assertTrue(sticks == 4, "four sticks in the inventory, got " + sticks);
+            helper.assertTrue(gridEmpty(f.menu()), "the grid is empty");
+            helper.assertTrue(f.planks() == 6, "the rack keeps its planks, holds " + f.planks());
+            helper.succeed();
+        });
+    }
+
+    /** After a craft the grid is not refilled from the rack. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void gridDoesNotRefillFromRack(GameTestHelper helper) {
+        setup(helper, 32, f -> {
+            sticksPattern(f.menu(), 1);
+            f.menu().clicked(f.menu().resultIndex(), 0, ContainerInput.PICKUP, f.player());
+            helper.assertTrue(gridEmpty(f.menu()) && result(f.menu()).isEmpty(), "the grid stays empty after the craft");
+            helper.assertTrue(f.planks() == 32, "the rack keeps its 32 planks, holds " + f.planks());
+            helper.succeed();
+        });
+    }
+
+    /** JEI fill takes from the player inventory only, never from the warehouse. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void gridFillFromInventoryOnly(GameTestHelper helper) {
+        setup(helper, 10, f -> {
+            f.player().getInventory().add(new ItemStack(Items.COAL, 3));
+            List<List<ItemStack>> options = new ArrayList<>();
+            for (int slot = 0; slot < 9; slot++) {
+                options.add(List.of());
+            }
+            options.set(1, List.of(new ItemStack(Items.COAL)));
+            options.set(4, List.of(new ItemStack(Items.OAK_PLANKS)));
+            f.menu().fillGrid(options, false);
+            helper.assertTrue(f.menu().craftSlots().getItem(1).is(Items.COAL), "coal in slot 1 from the player");
+            helper.assertTrue(f.menu().craftSlots().getItem(4).isEmpty(), "no planks: the player has none and the rack gives none");
+            helper.assertTrue(f.planks() == 10, "the rack keeps its planks");
+            helper.assertTrue(f.player().getInventory().countItem(Items.COAL) == 2, "one coal left the inventory");
+            helper.succeed();
+        });
+    }
+
     /** The clear button moves the grid into the warehouse. */
     @ServusGameTest(timeoutTicks = 400)
     public static void gridClearStores(GameTestHelper helper) {
