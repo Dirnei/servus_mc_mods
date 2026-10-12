@@ -7,6 +7,7 @@ public final class WakeAllowance {
         ALLOWED,
         NO_UPGRADE,
         OVER_CAPACITY,
+        NO_POWER,
         NO_OWNER,
         FTB_CHUNKS,
         TEAM_LIMIT;
@@ -30,11 +31,26 @@ public final class WakeAllowance {
      */
     public static Reason check(boolean hasTeam, boolean ftbBlocks, SiteCapacity.State capacity, boolean registered,
                                int teamActive, int teamCap) {
+        return check(hasTeam, ftbBlocks, capacity, registered, teamActive, teamCap, 1, 0);
+    }
+
+    /**
+     * As above, with the site's power: a site whose controller holds less
+     * than the FE to start a wake does not wake.
+     *
+     * @param stored  FE the site's controller holds, live or from its record
+     * @param toStart FE one second awake costs
+     */
+    public static Reason check(boolean hasTeam, boolean ftbBlocks, SiteCapacity.State capacity, boolean registered,
+                               int teamActive, int teamCap, long stored, long toStart) {
         if (capacity == SiteCapacity.State.NO_UPGRADE) {
             return Reason.NO_UPGRADE;
         }
         if (capacity == SiteCapacity.State.OVER) {
             return Reason.OVER_CAPACITY;
+        }
+        if (stored < toStart) {
+            return Reason.NO_POWER;
         }
         if (!hasTeam) {
             return Reason.NO_OWNER;

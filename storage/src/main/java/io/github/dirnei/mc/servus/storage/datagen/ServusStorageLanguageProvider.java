@@ -155,6 +155,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.wake.reason.no_owner", "no owner");
         add("gui.servus_storage.wake.reason.ftb_chunks", "use FTB Chunks");
         add("gui.servus_storage.wake.reason.team_limit", "team limit reached");
+        add("gui.servus_storage.wake.reason.no_power", "no power");
         add("gui.servus_storage.controller.map.tooltip", "The chunks of this site. The gold square holds the controller");
         add(ServusStorageItems.HARVESTER.get(), "Harvester");
         add(ServusStorageItems.SPREADER.get(), "Spreader");

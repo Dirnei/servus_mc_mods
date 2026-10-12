@@ -40,4 +40,23 @@ class WakeAllowanceTest {
         assertFalse(Reason.TEAM_LIMIT.hardLimit());
         assertFalse(Reason.FTB_CHUNKS.hardLimit());
     }
+
+    @Test
+    void noPowerAfterCapacityBeforeOwner() {
+        assertEquals(Reason.NO_UPGRADE, WakeAllowance.check(true, false, State.NO_UPGRADE, false, 0, 4, 100, 360));
+        assertEquals(Reason.OVER_CAPACITY, WakeAllowance.check(true, false, State.OVER, false, 0, 4, 100, 360));
+        assertEquals(Reason.NO_POWER, WakeAllowance.check(true, false, State.COVERED, false, 0, 4, 100, 360));
+        assertEquals(Reason.NO_POWER, WakeAllowance.check(false, true, State.COVERED, false, 9, 4, 100, 360));
+    }
+
+    @Test
+    void enoughStoredWakes() {
+        assertEquals(Reason.ALLOWED, WakeAllowance.check(true, false, State.COVERED, false, 0, 4, 5000, 360));
+        assertEquals(Reason.ALLOWED, WakeAllowance.check(true, false, State.COVERED, false, 0, 4, 360, 360));
+    }
+
+    @Test
+    void noPowerIsNoHardLimit() {
+        assertFalse(Reason.NO_POWER.hardLimit());
+    }
 }
