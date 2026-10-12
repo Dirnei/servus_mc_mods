@@ -2,8 +2,8 @@
 
 ## 1. Exporter on the picture in picture path
 
-- [ ] 1.1 `manufacturing/src/main/java/io/github/dirnei/mc/servus/manufacturing/client/IconExportRenderState.java` (record with the export list and a 1x1 rectangle) and `IconExportRenderer.java` (own 64x64 color and depth textures, item drawing as `GuiItemAtlas.drawToSlot`, copy to a mapped buffer, fence wait, PNG through `NativeImage`, restores overrides and projection) per design.md D1 to D4. Run `gradlew :manufacturing:compileJava`.
-- [ ] 1.2 `IconExporter.java` (registration when both properties are set, title screen hook submits the state once, quits once the renderer is done, unknown ids skipped) and `ServusManufacturingClient.java` (registers the renderer in `RegisterPictureInPictureRenderersEvent` when the run asks for icons). Run `gradlew build` and `gradlew test`.
+- [x] 1.1 `manufacturing/src/main/java/io/github/dirnei/mc/servus/manufacturing/client/IconExportRenderState.java` (record with the export list and a 1x1 rectangle) and `IconExportRenderer.java` (own 64x64 color and depth textures, item drawing as `GuiItemAtlas.drawToSlot`, copy to a mapped buffer, fence wait, PNG through `NativeImage`, restores overrides and projection) per design.md D1, D2, D3 and D5. Run `gradlew :manufacturing:compileJava`.
+- [x] 1.2 `IconExporter.java` (registration when both properties are set, title screen hook submits the state once, quits once the renderer is done, unknown ids skipped, item components bound from the built in registries per design.md D4) and `ServusManufacturingClient.java` (registers the renderer in `RegisterPictureInPictureRenderersEvent` when the run asks for icons). Run `gradlew build` and `gradlew test`.
 
 ## 2. Icons
 

@@ -40,16 +40,21 @@ That is the transform of a 16 unit slot drawn at four times its size, the same a
 
 - `GpuDevice.createBuffer(label, GpuBuffer.USAGE_MAP_READ | GpuBuffer.USAGE_COPY_DST, 64 * 64 * 4)` (as `Screenshot.takeScreenshot`).
 - `CommandEncoder.copyTextureToBuffer(color, buffer, 0, () -> {}, 0)`. On OpenGL this is a `glReadPixels` into a pixel pack buffer and queues the callback behind a fence; the callback only runs at a later frame.
-- To write the file in the same call, the renderer creates its own `GpuFence` (`CommandEncoder.createFence()`) right after the copy and waits with `awaitCompletion(timeout)`, then `mapBuffer(buffer, true, false)` and reads the bytes.
+- To write the file in the same call, the renderer creates its own `GpuFence` (`CommandEncoder.createFence()`) right after the copy and waits for it, then `mapBuffer(buffer, true, false)` and reads the bytes. `GlFence.awaitCompletion(timeoutMs)` hands the value straight to `glClientWaitSync`, which counts nanoseconds (found when a 10000 "ms" wait returned at once), so the renderer polls `awaitCompletion(1)` against its own 10 second deadline.
 - Rows come bottom up (`Projection.setupOrtho(..., invertY = true)` and the GL origin, as in `Screenshot`), so row `y` goes to image row `63 - y`. Each pixel is read byte by byte as R, G, B, A and stored with `NativeImage.setPixelABGR` (independent of the buffer's byte order); alpha is kept, unlike the screenshot code. `NativeImage(64, 64, false)` in RGBA format and `writeToFile(Path)` write the PNG.
 
 The colour values are what blending leaves on a transparent target, the same as on 1.21.1.
 
-### D4. Errors and quitting
+### D4. Item components on the title screen
+
+On 26.1 an `ItemStack` needs the default components of its item, and they are bound only when a world loads its registries (`ReloadableServerResources.updateComponentsAndStaticRegistryTags`, or `RegistryDataCollector.updateComponents` on joining). The title screen has none, so `new ItemStack(item)` throws "Components not bound yet". Before building the item models the exporter binds them itself the way vanilla's `RegistryComponentsReport` does: `BuiltInRegistries.DATA_COMPONENT_INITIALIZERS.build(VanillaRegistries.createLookup())` and `PendingComponents.apply()` for each. That lookup has no tags, so tag based components (tool rules and the like) hold placeholder tag sets (`HolderSet.emptyNamed`), which NeoForge's dev only component check (`CommonHooks.validateComponent`, active while `SharedConstants.IS_RUNNING_IN_IDE`) rejects; the flag is switched off while binding and restored afterwards. Rendering never reads those tags, and the game quits after the export, so no world sees these bindings. Loading a throwaway world instead was rejected: slower, writes a save and needs a screen after joining.
+
+### D5. Errors and quitting
 
 An unknown item id is logged and skipped; any exception during the export is logged, the overrides and projection are restored and the game still quits, so a broken export never leaves a dev client hanging. The renderer's textures, views, buffer and projection buffer are closed in `close()` and after the export.
 
 ## Risks / Trade-offs
 
 - Waiting on a fence per item stalls the GPU once per icon. About 100 items at 64x64 take well under a second; it is a dev run.
+- The component binding of D4 is a dev only shortcut; if a future item model reads a tag or a datapack registry entry while rendering, its icon fails and the export logs it.
 - Oversized models (shuttle, Harvester, Spreader) are cut at the 64 pixel square, as on 1.21.1. Fitting them would change the look of the committed icons; left for a later change if the docs need it.

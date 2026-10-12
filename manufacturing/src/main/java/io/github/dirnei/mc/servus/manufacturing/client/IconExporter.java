@@ -10,8 +10,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.core.component.DataComponentInitializers;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.registries.VanillaRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
@@ -19,40 +30,85 @@ import net.neoforged.neoforge.common.NeoForge;
  * Dev only: renders every item of the game data export as an inventory icon PNG for the documentation site, then
  * quits the game. Active only when the {@code iconExport} run sets {@code servus.icons.output} (the icon folder) and
  * {@code servus.icons.gamedata} (the {@code gamedata.json} listing the items). Icons go to
- * {@code <output>/<namespace>/<path>.png}.
+ * {@code <output>/<namespace>/<path>.png}. The drawing and the GPU readback happen in {@link IconExportRenderer}.
  */
 public final class IconExporter {
 
-    /** Pixels per side: the GUI's 16 units drawn at four times their size. */
-    private static final int SIZE = 64;
-
-    private static boolean done;
+    private static boolean submitted;
+    private static volatile boolean done;
 
     private IconExporter() {
     }
 
+    private static boolean requested() {
+        return System.getProperty("servus.icons.output") != null && System.getProperty("servus.icons.gamedata") != null;
+    }
+
+    private static Path output() {
+        return Path.of(System.getProperty("servus.icons.output"));
+    }
+
     /** Hooks the exporter in when the run asks for it. */
     public static void registerIfRequested() {
-        if (System.getProperty("servus.icons.output") != null && System.getProperty("servus.icons.gamedata") != null) {
+        if (requested()) {
             NeoForge.EVENT_BUS.addListener(IconExporter::onScreenRender);
         }
     }
 
-    /** Runs once, on the first title screen frame, where the render thread and a GL context are ready. */
+    /** Registers the icon renderer when the run asks for it; the normal client never gets it. */
+    public static void registerRendererIfRequested(RegisterPictureInPictureRenderersEvent event) {
+        if (requested()) {
+            Path output = output();
+            event.register(IconExportRenderState.class, buffers -> new IconExportRenderer(buffers, output, written -> {
+                ServusManufacturing.LOGGER.info("Icon export: {} icons written to {}", written, output);
+                done = true;
+            }));
+        }
+    }
+
+    /**
+     * On the first title screen frame after loading, submits all icons once; the GUI render pass of that frame draws
+     * them. The next title screen frame after the export quits the game.
+     */
     private static void onScreenRender(ScreenEvent.Render.Post event) {
-        if (done || !(event.getScreen() instanceof TitleScreen)) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (!(event.getScreen() instanceof TitleScreen) || minecraft.getOverlay() != null) {
             return;
         }
-        done = true;
-        Path output = Path.of(System.getProperty("servus.icons.output"));
+        if (done) {
+            minecraft.stop();
+            return;
+        }
+        if (submitted) {
+            return;
+        }
+        submitted = true;
         try {
-            List<String> ids = itemIds(Path.of(System.getProperty("servus.icons.gamedata")));
-            int written = export(ids, output);
-            ServusManufacturing.LOGGER.info("Icon export: {} icons written to {}", written, output);
+            bindItemComponents();
+            List<IconExportRenderState.Icon> icons = icons(itemIds(Path.of(System.getProperty("servus.icons.gamedata"))));
+            event.getGuiGraphics().submitPictureInPictureRenderState(IconExportRenderState.of(icons));
         } catch (IOException | RuntimeException e) {
             ServusManufacturing.LOGGER.error("Icon export failed", e);
+            done = true;
         }
-        Minecraft.getInstance().stop();
+    }
+
+    /**
+     * Item stacks need their default components, which are bound only when a world loads its registries. The title
+     * screen has none, so the export binds them from the built in registries, as vanilla's registry components report
+     * does. Tags are not loaded there, so tag based components hold placeholder tag sets; NeoForge's dev only
+     * component check rejects those, so it is switched off while binding. The game quits after the export, so no
+     * world ever sees these bindings.
+     */
+    private static void bindItemComponents() {
+        boolean ide = SharedConstants.IS_RUNNING_IN_IDE;
+        SharedConstants.IS_RUNNING_IN_IDE = false;
+        try {
+            BuiltInRegistries.DATA_COMPONENT_INITIALIZERS.build(VanillaRegistries.createLookup())
+                    .forEach(DataComponentInitializers.PendingComponents::apply);
+        } finally {
+            SharedConstants.IS_RUNNING_IN_IDE = ide;
+        }
     }
 
     private static List<String> itemIds(Path gamedata) throws IOException {
@@ -62,14 +118,22 @@ public final class IconExporter {
         }
     }
 
-    /**
-     * Not ported to Minecraft 26.1 yet: the 1.21.1 exporter drew into an off screen
-     * GL target with the removed RenderSystem matrix and texture calls. The GUI now
-     * renders through GpuDevice command encoders; until the exporter is rewritten
-     * against them it writes nothing (see the port change's tasks).
-     */
-    private static int export(List<String> ids, Path output) throws IOException {
-        ServusManufacturing.LOGGER.warn("Icon export is not ported to Minecraft 26.1 yet; {} icons skipped", ids.size());
-        return 0;
+    /** The GUI model of every known item; unknown ids are logged and skipped. */
+    private static List<IconExportRenderState.Icon> icons(List<String> ids) {
+        Minecraft minecraft = Minecraft.getInstance();
+        List<IconExportRenderState.Icon> icons = new ArrayList<>();
+        for (String id : ids) {
+            Identifier location = Identifier.parse(id);
+            Item item = BuiltInRegistries.ITEM.getValue(location);
+            if (item == null || item == Items.AIR) {
+                ServusManufacturing.LOGGER.warn("Icon export: unknown item {}", id);
+                continue;
+            }
+            ItemStackRenderState model = new ItemStackRenderState();
+            minecraft.getItemModelResolver().updateForTopItem(model, new ItemStack(item), ItemDisplayContext.GUI, null,
+                    null, 0);
+            icons.add(new IconExportRenderState.Icon(location, model));
+        }
+        return icons;
     }
 }
