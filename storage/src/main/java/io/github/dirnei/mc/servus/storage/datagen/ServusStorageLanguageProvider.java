@@ -36,6 +36,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add(ServusStorageBlocks.OUTBOUND_STATION.get(), "Outbound Station");
         add(ServusStorageBlocks.CRAFTING_STATION.get(), "Crafting Station");
         add(ServusStorageBlocks.CRAFTING_CPU.get(), "Crafting CPU");
+        add(ServusStorageBlocks.CPU_BUFFER.get(), "CPU Buffer");
         add(ServusStorageBlocks.PRODUCTION_TERMINAL.get(), "Production Terminal");
         add(ServusStorageBlocks.PATTERN_STORAGE.get(), "Pattern Storage");
         add("gui.servus_storage.production.tab.machines", "Machines");
@@ -85,10 +86,14 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.production.origin.request", "request");
         add("gui.servus_storage.production.origin.rule", "stock rule");
         add("gui.servus_storage.production.origin.manual", "manual");
-        add("message.servus_storage.cpu.casing", "Not formed: build a full 3x3x3 cube and use the Configuration Carrot on it");
-        add("message.servus_storage.cpu.incomplete", "A Crafting CPU needs a full 3x3x3 cube of unformed CPU blocks");
-        add("message.servus_storage.cpu.formed", "Crafting CPU formed");
-        add("message.servus_storage.cpu.summary", "Crafting CPU: %s of %s order slots in use, %s waiting");
+        add("message.servus_storage.cpu.casing", "Not formed: build a solid box of at least 2x2x2 CPU and Buffer blocks and use the Configuration Carrot on it");
+        add("message.servus_storage.cpu.too_big", "Not formed: more than %s blocks are joined");
+        add("message.servus_storage.cpu.too_small", "Not formed: every side of a CPU needs at least 2 blocks");
+        add("message.servus_storage.cpu.not_a_box", "Not formed: the blocks are not a box");
+        add("message.servus_storage.cpu.gap", "Not formed: gap at %s %s %s");
+        add("message.servus_storage.cpu.no_cpu_block", "Not formed: a CPU needs at least one Crafting CPU block");
+        add("message.servus_storage.cpu.formed", "Crafting CPU formed: %sx%sx%s, %s CPU blocks, %s Buffer blocks");
+        add("message.servus_storage.cpu.summary", "Crafting CPU: %s of %s order slots in use, %s waiting, %s of %s buffer stacks");
         add("gui.servus_storage.crafting_station.save", "Save");
         add("gui.servus_storage.crafting_station.delete", "Delete");
         add("gui.servus_storage.crafting_station.cancel", "Cancel");

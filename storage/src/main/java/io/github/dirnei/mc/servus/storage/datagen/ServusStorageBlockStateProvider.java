@@ -49,6 +49,7 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         station(ServusStorageBlocks.OUTBOUND_STATION.get(), "outbound_station");
         craftingStation(ServusStorageBlocks.CRAFTING_STATION.get(), "crafting_station");
         cpu(ServusStorageBlocks.CRAFTING_CPU.get(), "crafting_cpu");
+        cpu(ServusStorageBlocks.CPU_BUFFER.get(), "crafting_cpu_buffer");
         itemModels().basicItem(ServusStorageItems.ZONE_LABEL.get());
         itemModels().basicItem(ServusStorageItems.HANDLING_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.RANGE_UPGRADE.get());
@@ -63,8 +64,8 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
     }
 
     /**
-     * The CPU: a riveted casing while unformed; formed, each block shows the
-     * tile of its position on every face (see {@link CpuTiles}) with running
+     * A CPU or Buffer block: a riveted casing while unformed; formed, each
+     * block shows the tile of its place in the box on every face (see {@link CpuTiles}) with running
      * or idle lights.
      */
     private void cpu(Block block, String name) {

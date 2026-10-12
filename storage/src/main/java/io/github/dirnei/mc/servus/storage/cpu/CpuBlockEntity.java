@@ -98,6 +98,11 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         return bufferBlocks * StorageStatsManager.INSTANCE.cpuStacksPerBufferBlock();
     }
 
+    /** Buffer stacks in use. */
+    public int bufferUsed() {
+        return 0;
+    }
+
     public int cpuBlocks() {
         return cpuBlocks;
     }
@@ -318,7 +323,8 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     public Component summary() {
         int open = book == null ? 0 : book.openCount();
         int slots = slots();
-        return Component.translatable("message.servus_storage.cpu.summary", Math.min(open, slots), slots, Math.max(0, open - slots));
+        return Component.translatable("message.servus_storage.cpu.summary", Math.min(open, slots), slots, Math.max(0, open - slots),
+                bufferUsed(), room());
     }
 
     private List<WarehouseNetwork> warehouses() {

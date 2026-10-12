@@ -111,6 +111,17 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_redstone", has(Items.REDSTONE))
                 .save(WoodRecipes.output(output, registries));
 
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusStorageItems.CPU_BUFFER.get(), 4)
+                .pattern("IRI")
+                .pattern("RCR")
+                .pattern("PPP")
+                .define('I', Items.IRON_INGOT)
+                .define('R', Items.REDSTONE)
+                .define('C', Items.CHEST)
+                .define('P', ItemTags.PLANKS)
+                .unlockedBy("has_redstone", has(Items.REDSTONE))
+                .save(WoodRecipes.output(output, registries));
+
         // Steel heads on sleepers in the wood of the planks.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusStorageItems.RAIL.get(), 16)
                 .pattern("I I")

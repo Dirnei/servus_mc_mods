@@ -22,7 +22,7 @@ final class ServusStorageBlockLoot extends BlockLootSubProvider {
     private static final List<Block> WOODEN = List.of(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(),
             ServusStorageBlocks.STORAGE_TERMINAL.get(), ServusStorageBlocks.INBOUND_STATION.get(), ServusStorageBlocks.PACKING_STATION.get(),
             ServusStorageBlocks.WIRELESS_PACKING_STATION.get(), ServusStorageBlocks.SHUTTLE_GARAGE.get(), ServusStorageBlocks.OUTBOUND_STATION.get(), ServusStorageBlocks.CRAFTING_STATION.get(),
-            ServusStorageBlocks.CRAFTING_CPU.get(), ServusStorageBlocks.PRODUCTION_TERMINAL.get(),
+            ServusStorageBlocks.CRAFTING_CPU.get(), ServusStorageBlocks.CPU_BUFFER.get(), ServusStorageBlocks.PRODUCTION_TERMINAL.get(),
             ServusStorageBlocks.FIELD_HEAD.get(), ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.FARM_RAIL.get());
 
     ServusStorageBlockLoot(HolderLookup.Provider registries) {

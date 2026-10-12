@@ -1,0 +1,328 @@
+{
+  "variants": {
+    "active=false,formed=false,part=0": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=1": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=10": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=11": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=12": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=13": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=14": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=15": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=16": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=17": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=18": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=19": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=2": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=20": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=21": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=22": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=23": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=24": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=25": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=26": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=3": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=4": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=5": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=6": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=7": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=8": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=false,part=9": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=false,formed=true,part=0": {
+      "model": "servus_storage:block/crafting_cpu_buffer_0_idle"
+    },
+    "active=false,formed=true,part=1": {
+      "model": "servus_storage:block/crafting_cpu_buffer_1_idle"
+    },
+    "active=false,formed=true,part=10": {
+      "model": "servus_storage:block/crafting_cpu_buffer_10_idle"
+    },
+    "active=false,formed=true,part=11": {
+      "model": "servus_storage:block/crafting_cpu_buffer_11_idle"
+    },
+    "active=false,formed=true,part=12": {
+      "model": "servus_storage:block/crafting_cpu_buffer_12_idle"
+    },
+    "active=false,formed=true,part=13": {
+      "model": "servus_storage:block/crafting_cpu_buffer_13_idle"
+    },
+    "active=false,formed=true,part=14": {
+      "model": "servus_storage:block/crafting_cpu_buffer_14_idle"
+    },
+    "active=false,formed=true,part=15": {
+      "model": "servus_storage:block/crafting_cpu_buffer_15_idle"
+    },
+    "active=false,formed=true,part=16": {
+      "model": "servus_storage:block/crafting_cpu_buffer_16_idle"
+    },
+    "active=false,formed=true,part=17": {
+      "model": "servus_storage:block/crafting_cpu_buffer_17_idle"
+    },
+    "active=false,formed=true,part=18": {
+      "model": "servus_storage:block/crafting_cpu_buffer_18_idle"
+    },
+    "active=false,formed=true,part=19": {
+      "model": "servus_storage:block/crafting_cpu_buffer_19_idle"
+    },
+    "active=false,formed=true,part=2": {
+      "model": "servus_storage:block/crafting_cpu_buffer_2_idle"
+    },
+    "active=false,formed=true,part=20": {
+      "model": "servus_storage:block/crafting_cpu_buffer_20_idle"
+    },
+    "active=false,formed=true,part=21": {
+      "model": "servus_storage:block/crafting_cpu_buffer_21_idle"
+    },
+    "active=false,formed=true,part=22": {
+      "model": "servus_storage:block/crafting_cpu_buffer_22_idle"
+    },
+    "active=false,formed=true,part=23": {
+      "model": "servus_storage:block/crafting_cpu_buffer_23_idle"
+    },
+    "active=false,formed=true,part=24": {
+      "model": "servus_storage:block/crafting_cpu_buffer_24_idle"
+    },
+    "active=false,formed=true,part=25": {
+      "model": "servus_storage:block/crafting_cpu_buffer_25_idle"
+    },
+    "active=false,formed=true,part=26": {
+      "model": "servus_storage:block/crafting_cpu_buffer_26_idle"
+    },
+    "active=false,formed=true,part=3": {
+      "model": "servus_storage:block/crafting_cpu_buffer_3_idle"
+    },
+    "active=false,formed=true,part=4": {
+      "model": "servus_storage:block/crafting_cpu_buffer_4_idle"
+    },
+    "active=false,formed=true,part=5": {
+      "model": "servus_storage:block/crafting_cpu_buffer_5_idle"
+    },
+    "active=false,formed=true,part=6": {
+      "model": "servus_storage:block/crafting_cpu_buffer_6_idle"
+    },
+    "active=false,formed=true,part=7": {
+      "model": "servus_storage:block/crafting_cpu_buffer_7_idle"
+    },
+    "active=false,formed=true,part=8": {
+      "model": "servus_storage:block/crafting_cpu_buffer_8_idle"
+    },
+    "active=false,formed=true,part=9": {
+      "model": "servus_storage:block/crafting_cpu_buffer_9_idle"
+    },
+    "active=true,formed=false,part=0": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=1": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=10": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=11": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=12": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=13": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=14": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=15": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=16": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=17": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=18": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=19": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=2": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=20": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=21": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=22": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=23": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=24": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=25": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=26": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=3": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=4": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=5": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=6": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=7": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=8": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=false,part=9": {
+      "model": "servus_storage:block/crafting_cpu_buffer"
+    },
+    "active=true,formed=true,part=0": {
+      "model": "servus_storage:block/crafting_cpu_buffer_0_active"
+    },
+    "active=true,formed=true,part=1": {
+      "model": "servus_storage:block/crafting_cpu_buffer_1_active"
+    },
+    "active=true,formed=true,part=10": {
+      "model": "servus_storage:block/crafting_cpu_buffer_10_active"
+    },
+    "active=true,formed=true,part=11": {
+      "model": "servus_storage:block/crafting_cpu_buffer_11_active"
+    },
+    "active=true,formed=true,part=12": {
+      "model": "servus_storage:block/crafting_cpu_buffer_12_active"
+    },
+    "active=true,formed=true,part=13": {
+      "model": "servus_storage:block/crafting_cpu_buffer_13_active"
+    },
+    "active=true,formed=true,part=14": {
+      "model": "servus_storage:block/crafting_cpu_buffer_14_active"
+    },
+    "active=true,formed=true,part=15": {
+      "model": "servus_storage:block/crafting_cpu_buffer_15_active"
+    },
+    "active=true,formed=true,part=16": {
+      "model": "servus_storage:block/crafting_cpu_buffer_16_active"
+    },
+    "active=true,formed=true,part=17": {
+      "model": "servus_storage:block/crafting_cpu_buffer_17_active"
+    },
+    "active=true,formed=true,part=18": {
+      "model": "servus_storage:block/crafting_cpu_buffer_18_active"
+    },
+    "active=true,formed=true,part=19": {
+      "model": "servus_storage:block/crafting_cpu_buffer_19_active"
+    },
+    "active=true,formed=true,part=2": {
+      "model": "servus_storage:block/crafting_cpu_buffer_2_active"
+    },
+    "active=true,formed=true,part=20": {
+      "model": "servus_storage:block/crafting_cpu_buffer_20_active"
+    },
+    "active=true,formed=true,part=21": {
+      "model": "servus_storage:block/crafting_cpu_buffer_21_active"
+    },
+    "active=true,formed=true,part=22": {
+      "model": "servus_storage:block/crafting_cpu_buffer_22_active"
+    },
+    "active=true,formed=true,part=23": {
+      "model": "servus_storage:block/crafting_cpu_buffer_23_active"
+    },
+    "active=true,formed=true,part=24": {
+      "model": "servus_storage:block/crafting_cpu_buffer_24_active"
+    },
+    "active=true,formed=true,part=25": {
+      "model": "servus_storage:block/crafting_cpu_buffer_25_active"
+    },
+    "active=true,formed=true,part=26": {
+      "model": "servus_storage:block/crafting_cpu_buffer_26_active"
+    },
+    "active=true,formed=true,part=3": {
+      "model": "servus_storage:block/crafting_cpu_buffer_3_active"
+    },
+    "active=true,formed=true,part=4": {
+      "model": "servus_storage:block/crafting_cpu_buffer_4_active"
+    },
+    "active=true,formed=true,part=5": {
+      "model": "servus_storage:block/crafting_cpu_buffer_5_active"
+    },
+    "active=true,formed=true,part=6": {
+      "model": "servus_storage:block/crafting_cpu_buffer_6_active"
+    },
+    "active=true,formed=true,part=7": {
+      "model": "servus_storage:block/crafting_cpu_buffer_7_active"
+    },
+    "active=true,formed=true,part=8": {
+      "model": "servus_storage:block/crafting_cpu_buffer_8_active"
+    },
+    "active=true,formed=true,part=9": {
+      "model": "servus_storage:block/crafting_cpu_buffer_9_active"
+    }
+  }
+}
