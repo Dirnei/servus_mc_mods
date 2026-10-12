@@ -16,7 +16,11 @@ Every FE cost of a warehouse SHALL be paid from its controller's FE buffer: wire
 - **THEN** no FE is taken and the shuttle waits
 
 ### Requirement: No power state
-A controller SHALL be in the no power state while its buffer is empty or a draw was refused during the last second. In that state no new shuttle job SHALL start, shuttles on a trip SHALL wait at the next block, Crafting Stations SHALL pause, no wake SHALL start and a running wake SHALL end. The state SHALL end by itself once FE arrives and the waiting draws are paid; automation then resumes where it stopped. Stock SHALL stay visible and racks, crates and their GUIs SHALL stay usable by hand.
+A controller SHALL show the no power state while its buffer is empty or a draw was refused during the last second; the state is a warning and stops nothing by itself. Each consumer SHALL stop only when its own draw is refused: a shuttle whose draw for the next block is refused waits at that block with its cargo, a new shuttle job does not start while its first draw cannot be paid, a Crafting Station whose draw for a tick is refused pauses, a wake does not start without its own FE and a running wake ends only when its own cost for a tick cannot be paid. A refused draw of one consumer SHALL NOT stop another. Every stopped consumer SHALL resume by itself where it stopped once its draw is paid, and the state SHALL end once no draw was refused for a second and the buffer holds FE. Stock SHALL stay visible and racks, crates and their GUIs SHALL stay usable by hand.
+
+#### Scenario: A shuttle draw fails, the wake stays
+- **WHEN** a woken outpost holds enough FE for its wake but not for a long shuttle trip
+- **THEN** the shuttle waits at the next block, the no power line shows, and the wake keeps the site loaded
 
 #### Scenario: Generator runs out
 - **WHEN** the only Coal Generator feeding a busy warehouse runs out of coal and the controller's buffer empties

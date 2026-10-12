@@ -73,6 +73,8 @@ Pure, JUnit: `WirelessCost` (kept), `WirelessReach`, `ReceiverChoice`, `RemoteSi
 - [Receiver choice from a runtime count] After a restart the counts start from the loaded senders only. Mitigation: it only affects spreading, never correctness; a full receiver makes the sender wait, as before.
 - [Distance from the controllers] A Packing Station far from its controller pays as if it stood at the controller. Accepted: sites are compact compared to the distances between them.
 
-## Open Questions
+## Answered Questions
 
-- Recipe of the Wireless Upgrade (example: ender eye in the middle, iron ingots, redstone, copper ingot) can be tuned in the play check without changing the specs.
+Answered by the user on 2026-10-12:
+- Wireless Upgrade recipe: ender eye in the middle, iron ingots, redstone and a copper ingot.
+- Sites stay limited to the same team internally; only the GUI never says "team".

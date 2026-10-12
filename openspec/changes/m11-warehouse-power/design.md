@@ -68,9 +68,16 @@ Pure, JUnit: `PowerBudget`, `WakeCost`, `StepPower`, `WakeAllowance` (new reason
 
 - [Existing GameTests start without FE] Every test that moves a shuttle or crafts would stall. Mitigation: the shared helper fills the controller in the test setup; a grep for `ShuttleGarage` and `CraftingStation` placements in `gametest/` lists them.
 - [No priority between consumers] Shuttles can starve a Crafting Station when FE is short. Accepted for now; the no power state and the use readout show the player that more power is needed.
-- [A woken outpost runs dry] Its wake ends, its shuttles freeze mid trip until the next visit or wake. Mitigation: nothing is lost, everything resumes; the terminal shows waiting for power.
+- [A woken outpost runs dry] Its wake ends once the wake's own cost cannot be paid (a refused shuttle draw alone never ends it); its shuttles freeze mid trip until the next visit or wake. Mitigation: nothing is lost, everything resumes; the terminal shows waiting for power.
 - [Recorded FE of a sleeping site] Correct only because sleeping controllers neither gain nor spend FE; a mod that pushes FE into unloaded block entities would break it. Mitigation: while loaded the live value is used; at worst a wake starts and ends at once for no power.
 - [Balance] See the Balance lab section.
+
+## Answered Questions
+
+Answered by the user on 2026-10-12:
+- The example costs (shuttle 20 FE per block, wake 2 FE per chunk per tick, Crafting Station 5 FE per working tick, buffer 100,000 FE) are fine as starting values.
+- The no power state is a warning only: each consumer stops only on its own refused draw, so a failed shuttle draw never ends a running wake.
+- `PLAN.md` gets both an M11 item and a sentence in section 2.3 that the warehouse runs on FE through its controller.
 
 ## Open Questions
 
