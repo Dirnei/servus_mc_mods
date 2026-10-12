@@ -38,5 +38,5 @@ Apply and archive this change after `m0-port-minecraft-26-1-2` and `m11-drop-cra
 
 ## 6. Verification
 
-- [ ] 6.1 Full `gradlew build`, `gradlew test` and `gradlew :storage:runGameTestServer` green; the client launches with all three mods.
+- [x] 6.1 Full `gradlew build`, `gradlew test` and `gradlew :storage:runGameTestServer` green; the client launches with all three mods.
 - [ ] 6.2 Play check by the user: build a 2x2x2 of CPU blocks and use the carrot (8 order slots in the summary); break one, rebuild as 2 CPU blocks and 6 Buffer blocks and form it (2 slots, 6 stacks); try a box with a hole and an L shape and read the reasons. On a line with one Crafting Station, a planks pattern and a crafting table pattern, request a crafting table: the planks never show up at the Packing Station or in the terminal stock, the CPUs tab shows them in the buffer and the Crafting tab shows them under the job, and the table arrives. Fill the buffer with a big chain and see the overflow note. Break a Buffer block while planks wait: they land in the Packing Station and a shuttle puts them into a rack.
