@@ -137,11 +137,12 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             graphics.setTooltipForNextFrame(font, font.split(Component.translatable("gui.servus_storage.controller.map.tooltip"), 180), mouseX, mouseY);
         } else if (siteUnder(mouseX, mouseY, status) != null) {
             io.github.dirnei.mc.servus.storage.terminal.SiteRow site = siteUnder(mouseX, mouseY, status);
-            // Name and state; a site without a Wireless Packing Station also says why it is orange.
+            // Name and state; a site without a powered Wireless Packing Station also says why it is orange.
             List<Component> lines = new java.util.ArrayList<>(List.of(Component.literal(site.name()),
                     Component.translatable("gui.servus_storage.site.state." + site.remoteState().name().toLowerCase(java.util.Locale.ROOT))));
             if (!site.wireless()) {
-                lines.add(Component.translatable("gui.servus_storage.site.no_wireless").withColor(COLOUR_NO_STATION & 0xFFFFFF));
+                String why = site.unpowered() ? "gui.servus_storage.site.no_power" : "gui.servus_storage.site.no_wireless";
+                lines.add(Component.translatable(why).withColor(COLOUR_NO_STATION & 0xFFFFFF));
             }
             graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
         } else if (onlineLineY >= 0 && x >= WarehouseControllerMenu.STATUS_X && y >= onlineLineY && y < onlineLineY + 9
@@ -209,7 +210,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             };
             graphics.fill(left + 6, y + 1, left + 12, y + 7, mark);
             String name = font.plainSubstrByWidth(site.name(), SITES_WIDTH - 21);
-            // A site without a Wireless Packing Station cannot trade; its name shows in orange.
+            // A site without a powered Wireless Packing Station cannot trade; its name shows in orange.
             graphics.text(font, name, left + 15, y, site.wireless() ? COLOUR_TEXT : COLOUR_NO_STATION, false);
         }
     }

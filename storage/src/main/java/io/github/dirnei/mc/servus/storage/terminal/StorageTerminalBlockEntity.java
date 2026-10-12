@@ -68,7 +68,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     private final WoodSlot woodSlot = new WoodSlot(this);
 
     /** How a request is doing, as the GUI shows it. */
-    public enum RequestState { PICKING, SENDING, WAITING_ROOM, PRODUCING, MISSING, WAKING }
+    public enum RequestState { PICKING, SENDING, WAITING_ROOM, PRODUCING, MISSING, WAKING, NO_POWER }
 
     /** A shipment a Packing Station runs for a request, by its ledger id, and how many items were asked of it. */
     public record Tracked(BlockPos packingStation, long shipmentId, int asked) {

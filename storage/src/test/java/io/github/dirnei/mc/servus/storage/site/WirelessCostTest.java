@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.storage.site;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -45,5 +47,22 @@ class WirelessCostTest {
     @Test
     void negativeInputsCountAsZero() {
         assertEquals(0.0, WirelessCost.perItem(-5, -1, -1), 1e-9);
+    }
+
+    @Test
+    void poweredNeedsOneItemAtTheSmallestCost() {
+        assertEquals(4, WirelessCost.minimumCharge(4));
+        assertEquals(5, WirelessCost.minimumCharge(4.2), "fractions round up");
+        assertTrue(WirelessCost.powered(4, 4));
+        assertFalse(WirelessCost.powered(3, 4));
+        assertFalse(WirelessCost.powered(0, 4), "an empty buffer is unpowered");
+    }
+
+    @Test
+    void poweredNeedsAtLeastOneFe() {
+        assertEquals(1, WirelessCost.minimumCharge(0));
+        assertEquals(1, WirelessCost.minimumCharge(-3));
+        assertFalse(WirelessCost.powered(0, 0), "free transfers still need a charged station");
+        assertTrue(WirelessCost.powered(1, 0));
     }
 }

@@ -11,6 +11,19 @@ public final class WirelessCost {
         return Math.max(0, base) + Math.max(0, perBlock) * Math.max(0, distance);
     }
 
+    /**
+     * The FE a station must hold to count as powered: one item at the smallest
+     * cost (no distance), rounded up, and never less than 1 FE.
+     */
+    public static long minimumCharge(double base) {
+        return Math.max(1, cost(1, Math.max(0, base)));
+    }
+
+    /** Whether a station holding this much FE is powered, that is, on the wireless line. */
+    public static boolean powered(long energy, double base) {
+        return energy >= minimumCharge(base);
+    }
+
     /** FE for n items, rounded up to whole FE. */
     public static long cost(int items, double perItem) {
         if (items <= 0 || perItem <= 0) {

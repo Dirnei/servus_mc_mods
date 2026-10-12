@@ -256,12 +256,20 @@ public final class TerminalRequests {
     static RequestState state(ServerLevel level, StorageTerminalBlockEntity terminal, Request request, List<WarehouseNetwork> warehouses) {
         if (request.remote != null) {
             if (!request.shipped) {
-                return RequestState.WAKING;
+                return RemoteTransfers.receiverUnpowered(level, terminal.getBlockPos()) ? RequestState.NO_POWER : RequestState.WAKING;
             }
             for (Tracked tracked : request.shipments) {
                 if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
                         && point.isSending(tracked.shipmentId())) {
                     return RequestState.SENDING;
+                }
+            }
+            for (Tracked tracked : request.shipments) {
+                // A transfer whose sending or receiving station lost power waits until it has FE again.
+                if (level.isLoaded(tracked.packingStation())
+                        && level.getBlockEntity(tracked.packingStation()) instanceof io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity point
+                        && point.waitsForPower(tracked.shipmentId())) {
+                    return RequestState.NO_POWER;
                 }
             }
             return request.shipments.isEmpty() ? RequestState.MISSING : RequestState.PICKING;

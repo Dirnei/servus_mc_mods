@@ -97,12 +97,19 @@ public final class SiteRegistry extends SavedData {
         }
     }
 
-    /** The teams with a Wireless Packing Station at the controller's site; written only when they changed. */
-    public void updateWireless(WarehouseControllerBlockEntity controller, Set<UUID> teams) {
+    /**
+     * The teams with a powered Wireless Packing Station at the controller's
+     * site, and those with one at all; written only when they changed.
+     */
+    public void updateWireless(WarehouseControllerBlockEntity controller, Set<UUID> powered, Set<UUID> stations) {
         SiteRecord record = update(controller);
-        if (!record.wireless.equals(teams)) {
+        Set<UUID> unpowered = new java.util.LinkedHashSet<>(stations);
+        unpowered.removeAll(powered);
+        if (!record.wireless.equals(powered) || !record.unpowered.equals(unpowered)) {
             record.wireless.clear();
-            record.wireless.addAll(teams);
+            record.wireless.addAll(powered);
+            record.unpowered.clear();
+            record.unpowered.addAll(unpowered);
             setDirty();
         }
     }

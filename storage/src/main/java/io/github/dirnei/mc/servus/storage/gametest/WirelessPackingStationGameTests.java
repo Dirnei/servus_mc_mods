@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity;
@@ -27,6 +28,7 @@ import io.github.dirnei.mc.servus.storage.terminal.StockSyncPayload;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
@@ -61,6 +63,8 @@ public final class WirelessPackingStationGameTests {
     private static final double FE_PER_BLOCK = 0.5;
     /** The stations are 6 blocks apart: 2 + 0.5 x 6 = 5 FE per item. */
     private static final int COST = 5;
+    /** What the outpost's station holds: powered, and it never spends it as the sender. */
+    private static final int SENDER_CHARGE = 100;
 
     private WirelessPackingStationGameTests() {
     }
@@ -112,6 +116,8 @@ public final class WirelessPackingStationGameTests {
         crateB.insert(new ItemStack(Items.IRON_INGOT, 32), false);
         rails(helper, B_CONTROLLER);
         WirelessPackingStationBlockEntity wirelessB = wireless(helper, B_WIRELESS, teamB == null ? team : teamB);
+        // The sender pays nothing but must be powered to be on the wireless line.
+        wirelessB.setEnergy(SENDER_CHARGE);
         return new Sites(team, a, b, crateA, crateB, wirelessA, wirelessB);
     }
 
@@ -130,6 +136,15 @@ public final class WirelessPackingStationGameTests {
     /** Whether the outpost's warehouse has indexed its crate. */
     private static boolean indexed(Sites sites) {
         return sites.b().network().map(network -> network.index().count(ItemKey.of(new ItemStack(Items.IRON_INGOT))) == 32).orElse(false);
+    }
+
+    /** The terminal's row of a site, if it lists it. */
+    private static Optional<SiteRow> row(GameTestHelper helper, String site) {
+        return RemoteTransfers.sites(helper.getLevel(), terminal(helper).getBlockPos()).stream().filter(row -> row.key().equals(site)).findFirst();
+    }
+
+    private static boolean lit(GameTestHelper helper, BlockPos pos) {
+        return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);
     }
 
     private static long stock(StockSyncPayload payload, Item item) {
@@ -212,6 +227,7 @@ public final class WirelessPackingStationGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void terminalListsSitesAndRemoteStock(GameTestHelper helper) {
         Sites sites = sites(helper, null);
+        sites.wirelessA().setEnergy(1000);
         ServerLevel level = helper.getLevel();
         SiteRegistry registry = SiteRegistry.of(level);
         BlockPos far = helper.absolutePos(new BlockPos(3, 1, 3)).offset(160000, 0, 0);
@@ -279,6 +295,7 @@ public final class WirelessPackingStationGameTests {
     public static void wakeableSiteHeldForRequest(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setWakeGraceTicks(20);
         Sites sites = sites(helper, null);
+        sites.wirelessA().setEnergy(1000);
         ServerLevel level = helper.getLevel();
         // A recorded site whose controller is not there: it sleeps, and its one chunk is the test area's.
         BlockPos camp = helper.absolutePos(new BlockPos(10, 1, 10));
@@ -321,5 +338,99 @@ public final class WirelessPackingStationGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    /** An unpowered outpost station takes the outpost off the wireless line and refuses requests; FE brings it back. */
+    @ServusGameTest(timeoutTicks = 400)
+    public static void unpoweredStationRefusesRequest(GameTestHelper helper) {
+        Sites sites = sites(helper, null);
+        sites.wirelessA().setEnergy(10000);
+        sites.wirelessB().setEnergy(0);
+        ServerLevel level = helper.getLevel();
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        String outpost = key(helper, B_CONTROLLER);
+        ItemKey iron = ItemKey.of(new ItemStack(Items.IRON_INGOT));
+        TerminalWiring.when(helper, () -> indexed(sites) && row(helper, outpost).filter(SiteRow::unpowered).isPresent(), 60,
+                () -> "the outpost is listed off the wireless line, had " + row(helper, outpost), () -> {
+            SiteRecord record = SiteRegistry.of(level).site(outpost).orElseThrow();
+            helper.assertTrue(record.hasStation(sites.team()) && !record.hasWireless(sites.team()), "the record keeps the station as unpowered");
+            helper.assertTrue(!lit(helper, B_WIRELESS), "the unpowered station's lamp is dark");
+            helper.assertTrue(sites.wirelessB().status().alert() && sites.wirelessB().status().line().getString().contains("power"),
+                    "its status says no power, was " + sites.wirelessB().status().line().getString());
+            WarehouseNetwork.Shipping direct = sites.b().network().orElseThrow().shipWireless(sites.wirelessA().getBlockPos(), iron, 8, 0, sites.team());
+            helper.assertTrue(!direct.shipped() && direct.refusal().equals("no_power_there"), "the outpost refuses to ship, was " + direct.refusal());
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal(helper));
+            menu.selectSite(outpost);
+            menu.request(iron, 8);
+            helper.assertTrue(menu.stock().message().equals("no_power_there"), "the request is refused, was " + menu.stock().message());
+            helper.assertTrue(terminal(helper).requests().isEmpty(), "nothing is listed");
+            Transfer.receiveEnergy(sites.wirelessB().energy(), 500, false);
+            TerminalWiring.when(helper, () -> row(helper, outpost).filter(SiteRow::wireless).isPresent() && lit(helper, B_WIRELESS), 40,
+                    () -> "with FE the outpost is back on the wireless line, had " + row(helper, outpost), () -> {
+                menu.request(iron, 8);
+                helper.assertTrue(menu.stock().message().isEmpty(), "the request is made, was " + menu.stock().message());
+                TerminalWiring.when(helper, () -> count(sites.crateA(), Items.IRON_INGOT) == 8, 200,
+                        () -> "8 iron arrive at the base, had " + count(sites.crateA(), Items.IRON_INGOT), helper::succeed);
+            });
+        });
+    }
+
+    /** A base whose only station is unpowered cannot receive: the request is refused at the base. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void unpoweredReceiverRefusesRequest(GameTestHelper helper) {
+        Sites sites = sites(helper, null);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        String outpost = key(helper, B_CONTROLLER);
+        TerminalWiring.when(helper, () -> indexed(sites) && row(helper, outpost).filter(SiteRow::wireless).isPresent(), 60,
+                () -> "the outpost is listed", () -> {
+            helper.assertTrue(!lit(helper, A_WIRELESS), "the base station's lamp is dark");
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal(helper));
+            menu.selectSite(outpost);
+            menu.request(ItemKey.of(new ItemStack(Items.IRON_INGOT)), 8);
+            helper.assertTrue(menu.stock().message().equals("no_power_here"), "the request is refused, was " + menu.stock().message());
+            helper.assertTrue(terminal(helper).requests().isEmpty(), "nothing is listed");
+            helper.succeed();
+        });
+    }
+
+    /** A running transfer whose receiver loses power stops, shows it, and resumes with FE. */
+    @ServusGameTest(timeoutTicks = 500)
+    public static void transferWaitsForPower(GameTestHelper helper) {
+        Sites sites = sites(helper, null);
+        sites.wirelessA().setEnergy(10000);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        String outpost = key(helper, B_CONTROLLER);
+        TerminalWiring.when(helper, () -> indexed(sites) && row(helper, outpost).filter(SiteRow::wireless).isPresent(), 60,
+                () -> "the outpost is listed", () -> {
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal(helper));
+            menu.selectSite(outpost);
+            menu.request(ItemKey.of(new ItemStack(Items.IRON_INGOT)), 24);
+            helper.assertTrue(menu.stock().message().isEmpty(), "the transfer is made, was " + menu.stock().message());
+            TerminalWiring.when(helper, () -> delivered(helper, terminal(helper)) > 0, 200, () -> "the first iron arrives", () -> {
+                sites.wirelessA().setEnergy(0);
+                int stopped = delivered(helper, terminal(helper));
+                helper.runAfterDelay(30, () -> {
+                    helper.assertTrue(delivered(helper, terminal(helper)) == stopped, "nothing moves without power");
+                    List<RequestRow> rows = menu.stock().requests();
+                    helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("NO_POWER"), "the transfer waits for power, was " + rows);
+                    sites.wirelessA().setEnergy(10000);
+                    TerminalWiring.when(helper, () -> count(sites.crateA(), Items.IRON_INGOT) == 24 && terminal(helper).requests().isEmpty(), 300,
+                            () -> "with FE the rest arrives, had " + count(sites.crateA(), Items.IRON_INGOT), helper::succeed);
+                });
+            });
+        });
+    }
+
+    /** Items of the terminal's open transfers that arrived so far. */
+    private static int delivered(GameTestHelper helper, StorageTerminalBlockEntity terminal) {
+        int sum = 0;
+        for (StorageTerminalBlockEntity.Request request : terminal.requests()) {
+            sum += request.delivered;
+            for (StorageTerminalBlockEntity.Tracked tracked : request.shipments) {
+                ProductionLedger.Transfer transfer = ProductionLedger.get(helper.getLevel()).transfer(tracked.shipmentId());
+                sum += transfer == null ? 0 : transfer.delivered();
+            }
+        }
+        return sum;
     }
 }

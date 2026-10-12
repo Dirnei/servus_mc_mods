@@ -34,6 +34,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.wireless.status.needs_power_here", "Needs power to receive: %s FE per item");
         add("gui.servus_storage.wireless.status.receiver_full", "%s has no room in To storage");
         add("gui.servus_storage.wireless.status.receiver_asleep", "Waiting for the receiving site to load");
+        add("gui.servus_storage.wireless.status.no_power", "No power: needs %s FE to be on the wireless line");
         add(ServusStorageBlocks.SHUTTLE_GARAGE.get(), "Shuttle Garage");
         add(ServusStorageBlocks.OUTBOUND_STATION.get(), "Outbound Station");
         add(ServusStorageBlocks.CRAFTING_STATION.get(), "Crafting Station");
@@ -319,15 +320,19 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.rule_state.no_cpu", "no CPU");
         add("gui.servus_storage.terminal.state.missing", "%s missing");
         add("gui.servus_storage.terminal.state.waking", "waking the other site");
+        add("gui.servus_storage.terminal.state.no_power", "waiting for power");
         add("gui.servus_storage.terminal.this_site", "This site");
         add("gui.servus_storage.terminal.site_tooltip", "Click for the next site, right click for the previous one. Items requested from another site arrive in this site's storage");
         add("gui.servus_storage.terminal.view.online", "%s: requests arrive in this site's storage");
         add("gui.servus_storage.terminal.view.sleeping", "%s sleeps: last known stock, a request wakes it");
         add("gui.servus_storage.terminal.view.unreachable", "%s sleeps and cannot wake: last known stock");
+        add("gui.servus_storage.terminal.view.no_power", "%s: its Wireless Packing Station has no power");
         add("gui.servus_storage.terminal.message.no_team", "This site has no owner");
         add("gui.servus_storage.terminal.message.no_site", "That site is gone or has no Wireless Packing Station");
         add("gui.servus_storage.terminal.message.no_wireless_here", "This site has no Wireless Packing Station");
         add("gui.servus_storage.terminal.message.no_wireless_station", "The other site has no Wireless Packing Station");
+        add("gui.servus_storage.terminal.message.no_power_here", "The Wireless Packing Station of this site has no power");
+        add("gui.servus_storage.terminal.message.no_power_there", "The Wireless Packing Station of that site has no power");
         add("gui.servus_storage.terminal.message.site_asleep", "That site sleeps and cannot wake without enough Chunk Loader Upgrades");
         add("gui.servus_storage.controller.sites", "Other sites");
         add("gui.servus_storage.controller.sites.none", "No other sites");
@@ -335,6 +340,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.site.state.sleeping", "Sleeping, wakes for a transfer");
         add("gui.servus_storage.site.state.unreachable", "Sleeping, cannot wake");
         add("gui.servus_storage.site.no_wireless", "No Wireless Packing Station");
+        add("gui.servus_storage.site.no_power", "Wireless Packing Station has no power");
         add("gui.servus_storage.terminal.message.offline", "No warehouse on this data line");
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");
         add("gui.servus_storage.terminal.message.no_rail", "The Packing Station has no rail for shuttle deliveries");

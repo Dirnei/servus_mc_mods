@@ -67,7 +67,11 @@ public final class RemoteTransfers {
         return RemoteSite.state(network(level, site).isPresent(), site.capacityState());
     }
 
-    /** The other sites of the team in this dimension that have a Wireless Packing Station of the team, by name. */
+    /**
+     * The other sites of the team in this dimension that have a Wireless
+     * Packing Station of the team, by name; a site whose stations are all
+     * unpowered is listed off the wireless line, so a request there says why.
+     */
     public static List<SiteRow> sites(ServerLevel level, BlockPos terminal) {
         Optional<UUID> team = team(level, terminal);
         if (team.isEmpty()) {
@@ -76,8 +80,8 @@ public final class RemoteTransfers {
         Set<String> here = local(level, terminal);
         List<SiteRow> rows = new ArrayList<>();
         for (SiteRecord site : SiteRegistry.of(level).ofTeam(team.get(), level.dimension())) {
-            if (!here.contains(site.key()) && site.hasWireless(team.get())) {
-                rows.add(new SiteRow(site.key(), site.name(), state(level, site).ordinal(), true));
+            if (!here.contains(site.key()) && site.hasStation(team.get())) {
+                rows.add(new SiteRow(site.key(), site.name(), state(level, site).ordinal(), site.hasWireless(team.get()), true));
             }
         }
         return rows;
@@ -94,17 +98,31 @@ public final class RemoteTransfers {
         return Collections.unmodifiableList(list);
     }
 
-    /** The Wireless Packing Station of this site that receives transfers: of the team, on the first reachable warehouse. */
+    /** The Wireless Packing Station of this site that receives transfers: powered, of the team, on the first reachable warehouse. */
     private static Optional<WirelessPackingStationBlockEntity> receiver(ServerLevel level, BlockPos terminal, UUID team) {
-        return TerminalRequests.first(level, terminal).flatMap(warehouse -> warehouse.wirelessStations(team).stream().findFirst());
+        return TerminalRequests.first(level, terminal)
+                .flatMap(warehouse -> warehouse.wirelessStations(team).stream().filter(WirelessPackingStationBlockEntity::powered).findFirst());
+    }
+
+    /** Why this site cannot receive: {@code no_wireless_here} without a station of the team, {@code no_power_here} when none is powered. */
+    private static String noReceiver(ServerLevel level, BlockPos terminal, UUID team) {
+        boolean any = TerminalRequests.first(level, terminal).map(warehouse -> !warehouse.wirelessStations(team).isEmpty()).orElse(false);
+        return any ? "no_power_here" : "no_wireless_here";
+    }
+
+    /** Whether this site has Wireless Packing Stations of the team but none is powered. */
+    static boolean receiverUnpowered(ServerLevel level, BlockPos terminal) {
+        Optional<UUID> team = team(level, terminal);
+        return team.isPresent() && receiver(level, terminal, team.get()).isEmpty()
+                && noReceiver(level, terminal, team.get()).equals("no_power_here");
     }
 
     /**
      * Requests {@code amount} of {@code key} from the site with that key.
      *
      * @return an empty string when the transfer was made, else the refusal key:
-     *         {@code offline}, {@code no_team}, {@code no_site}, {@code no_wireless_here}, {@code site_asleep}
-     *         or a refusal of the other site's shipment
+     *         {@code offline}, {@code no_team}, {@code no_site}, {@code no_wireless_here}, {@code no_power_here},
+     *         {@code no_power_there}, {@code site_asleep} or a refusal of the other site's shipment
      */
     public static String request(ServerLevel level, StorageTerminalBlockEntity terminal, String siteKey, ItemKey key, int amount) {
         if (TerminalWarehouses.reachable(level, terminal.getBlockPos()).isEmpty()) {
@@ -116,11 +134,14 @@ public final class RemoteTransfers {
         }
         Optional<SiteRecord> site = SiteRegistry.of(level).site(siteKey);
         if (site.isEmpty() || !site.get().dimension().equals(level.dimension()) || !team.get().equals(site.get().team().orElse(null))
-                || !site.get().hasWireless(team.get()) || local(level, terminal.getBlockPos()).contains(siteKey)) {
+                || !site.get().hasStation(team.get()) || local(level, terminal.getBlockPos()).contains(siteKey)) {
             return "no_site";
         }
         if (receiver(level, terminal.getBlockPos(), team.get()).isEmpty()) {
-            return "no_wireless_here";
+            return noReceiver(level, terminal.getBlockPos(), team.get());
+        }
+        if (!site.get().hasWireless(team.get()) && !poweredNow(level, site.get(), team.get())) {
+            return "no_power_there";
         }
         if (!state(level, site.get()).orderable()) {
             return "site_asleep";
@@ -157,12 +178,18 @@ public final class RemoteTransfers {
         }
         Optional<WirelessPackingStationBlockEntity> receiver = receiver(level, terminal.getBlockPos(), team.get());
         if (receiver.isEmpty()) {
-            return "no_wireless_here";
+            // Waits until this site has a powered station again; the row says no power.
+            return noReceiver(level, terminal.getBlockPos(), team.get());
         }
         Hold hold = new Hold(terminal.getBlockPos(), request.id);
         boolean wakeable = site.get().capacityState() == SiteCapacity.State.COVERED;
         Optional<WarehouseNetwork> remote = network(level, site.get());
         if (remote.isEmpty()) {
+            if (!site.get().hasWireless(team.get())) {
+                // A sleeping site's stations keep their FE: one that slept unpowered cannot send when it wakes.
+                request.shipped = true;
+                return "no_power_there";
+            }
             if (!wakeable) {
                 request.shipped = true;
                 return "site_asleep";
@@ -190,6 +217,15 @@ public final class RemoteTransfers {
         request.missing = Math.max(0, request.missing - shipment.planned());
         terminal.setChanged();
         return "";
+    }
+
+    /**
+     * Whether an online site has a powered station of the team right now, for
+     * the tick between a station getting FE and its site record learning it.
+     */
+    private static boolean poweredNow(ServerLevel level, SiteRecord site, UUID team) {
+        return network(level, site).map(network -> network.wirelessStations(team).stream().anyMatch(WirelessPackingStationBlockEntity::powered))
+                .orElse(false);
     }
 
     /** Lets the site of a remote request sleep again. */

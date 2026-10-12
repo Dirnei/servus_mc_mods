@@ -784,8 +784,11 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private void renderMessage(GuiGraphicsExtractor graphics) {
         io.github.dirnei.mc.servus.storage.site.RemoteSite.State state = ClientStock.viewState();
         if (ClientStock.message().isEmpty() && state != null) {
-            Component text = Component.translatable("gui.servus_storage.terminal.view." + state.name().toLowerCase(Locale.ROOT), ClientStock.viewName());
-            int colour = state == io.github.dirnei.mc.servus.storage.site.RemoteSite.State.UNREACHABLE ? COLOUR_ALERT : 0xFF404040;
+            // A site whose Wireless Packing Stations are all unpowered is off the wireless line: that comes first.
+            boolean unpowered = ClientStock.sites().stream().anyMatch(row -> row.key().equals(ClientStock.view()) && row.unpowered());
+            String line = unpowered ? "no_power" : state.name().toLowerCase(Locale.ROOT);
+            Component text = Component.translatable("gui.servus_storage.terminal.view." + line, ClientStock.viewName());
+            int colour = unpowered || state == io.github.dirnei.mc.servus.storage.site.RemoteSite.State.UNREACHABLE ? COLOUR_ALERT : 0xFF404040;
             graphics.text(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
                     leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, colour, false);
             return;

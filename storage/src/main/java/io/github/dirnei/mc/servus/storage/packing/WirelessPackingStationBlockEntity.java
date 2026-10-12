@@ -47,6 +47,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
         @Override
         protected void onEnergyChanged(int previousAmount) {
             setChanged();
+            powerChanged();
         }
 
         int getEnergyStored() {
@@ -60,6 +61,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
         void spend(long amount) {
             energy = (int) Math.max(0, energy - amount);
             setChanged();
+            powerChanged();
         }
 
         void setStored(int amount) {
@@ -75,6 +77,8 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
     private int sentAgo = SENDING_TICKS + 1;
     /** Why the oldest waiting transfer does not move, null while nothing waits for the receiver. */
     private Component waiting;
+    /** Whether the station was powered when its energy last changed; a flip tells the warehouse and the lamp. */
+    private boolean wasPowered;
 
     public WirelessPackingStationBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.WIRELESS_PACKING_STATION.get(), pos, state);
@@ -106,6 +110,54 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
     public void setEnergy(int amount) {
         energy.setStored(amount);
         setChanged();
+        powerChanged();
+    }
+
+    /**
+     * Whether the station is on the wireless line: it holds the FE of one item
+     * at the smallest cost. An unpowered station neither sends nor receives,
+     * does not count as its site's station and shows a dark lamp.
+     */
+    public boolean powered() {
+        return WirelessCost.powered(energy.getEnergyStored(), StorageStatsManager.INSTANCE.wirelessFePerItem());
+    }
+
+    /** Called on every energy change: when the powered state flips, the site record and the lamp learn it. */
+    private void powerChanged() {
+        boolean now = powered();
+        if (now == wasPowered) {
+            return;
+        }
+        wasPowered = now;
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        network().ifPresent(network -> {
+            network.wirelessChanged();
+            BlockState state = getBlockState();
+            boolean lit = network.status() == WarehouseNetwork.Status.ONLINE && now;
+            if (state.hasProperty(io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks.ONLINE)
+                    && state.getValue(io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks.ONLINE) != lit) {
+                level.setBlock(worldPosition, state.setValue(io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks.ONLINE, lit),
+                        net.minecraft.world.level.block.Block.UPDATE_CLIENTS | net.minecraft.world.level.block.Block.UPDATE_KNOWN_SHAPE);
+            }
+        });
+    }
+
+    /**
+     * Whether a shipment of this station waits for power: this station or its
+     * loaded receiver is unpowered. Never loads the receiver's chunk.
+     */
+    public boolean waitsForPower(long shipmentId) {
+        if (!(level instanceof ServerLevel server)) {
+            return false;
+        }
+        for (Shipment shipment : shipments()) {
+            if (shipment.id() == shipmentId && !shipment.ended()) {
+                return !powered() || receiver(server, shipment.target()).filter(to -> !to.powered()).isPresent();
+            }
+        }
+        return false;
     }
 
     @Override
@@ -166,6 +218,18 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
     protected void ship(ServerLevel server) {
         sentAgo++;
         waiting = null;
+        if (!powered()) {
+            // Unpowered: open transfers stop and resume once FE arrives; the warehouse side keeps working.
+            if (liveShipments().stream().anyMatch(shipment -> missingOf(shipment) > 0)) {
+                waiting = Component.translatable("gui.servus_storage.wireless.status.no_power",
+                        WirelessCost.minimumCharge(StorageStatsManager.INSTANCE.wirelessFePerItem()));
+            }
+            returnOrphans();
+            if (!sending()) {
+                setActivity(false);
+            }
+            return;
+        }
         for (Shipment shipment : new ArrayList<>(liveShipments())) {
             int ready = Math.min(missingOf(shipment), outgoingCount(shipment.key()));
             if (ready <= 0) {
@@ -183,7 +247,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
             WirelessPackingStationBlockEntity to = found.get();
             double perItem = costPerItem(to.getBlockPos());
             int room = to.intakeRoom(shipment.key(), ready);
-            int paid = WirelessCost.affordable(to.energy.getEnergyStored(), perItem, ready);
+            int paid = to.powered() ? WirelessCost.affordable(to.energy.getEnergyStored(), perItem, ready) : 0;
             int moved = WirelessCost.movable(ready, missingOf(shipment), allowance(TransferGate.Flow.OUT),
                     to.allowance(TransferGate.Flow.IN), room, paid);
             if (moved <= 0) {
@@ -266,6 +330,10 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
         if (team == null) {
             return line(Component.translatable("gui.servus_storage.wireless.status.no_team"), true);
         }
+        if (!powered()) {
+            return line(Component.translatable("gui.servus_storage.wireless.status.no_power",
+                    WirelessCost.minimumCharge(StorageStatsManager.INSTANCE.wirelessFePerItem())), true);
+        }
         if (sending() && sendingKey != null && level instanceof ServerLevel server) {
             Component target = receiver(server, sendingTo).map(WirelessPackingStationBlockEntity::siteName)
                     .orElse(Component.literal(sendingTo.toShortString()));
@@ -311,5 +379,6 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
         CompoundTag tag = ValueIo.whole(input);
         team = tag.read("Team", UUIDUtil.CODEC).isPresent() ? tag.read("Team", UUIDUtil.CODEC).orElseThrow() : null;
         energy.setStored(input.getIntOr("Energy", 0));
+        wasPowered = powered();
     }
 }

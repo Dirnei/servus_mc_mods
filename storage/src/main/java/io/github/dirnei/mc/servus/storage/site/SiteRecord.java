@@ -32,8 +32,10 @@ public final class SiteRecord {
     final Set<Long> span = new LinkedHashSet<>();
     int upgrades;
     final Map<ItemKey, Long> stock = new LinkedHashMap<>();
-    /** Teams with a Wireless Packing Station at the site. */
+    /** Teams with a powered Wireless Packing Station at the site: their wireless line reaches it. */
     final Set<UUID> wireless = new LinkedHashSet<>();
+    /** Teams whose Wireless Packing Stations at the site are all unpowered. */
+    final Set<UUID> unpowered = new LinkedHashSet<>();
     long lastSeen;
 
     public SiteRecord(ResourceKey<Level> dimension, BlockPos pos) {
@@ -90,9 +92,14 @@ public final class SiteRecord {
         return Collections.unmodifiableMap(stock);
     }
 
-    /** Whether a Wireless Packing Station of that team stands at the site. */
+    /** Whether a powered Wireless Packing Station of that team stands at the site, so the team's wireless line reaches it. */
     public boolean hasWireless(UUID team) {
         return team != null && wireless.contains(team);
+    }
+
+    /** Whether a Wireless Packing Station of that team stands at the site, powered or not. */
+    public boolean hasStation(UUID team) {
+        return team != null && (wireless.contains(team) || unpowered.contains(team));
     }
 
     public Set<UUID> wireless() {
@@ -126,6 +133,9 @@ public final class SiteRecord {
         ListTag teams = new ListTag();
         wireless.forEach(id -> teams.add(new net.minecraft.nbt.IntArrayTag(net.minecraft.core.UUIDUtil.uuidToIntArray(id))));
         tag.put("Wireless", teams);
+        ListTag off = new ListTag();
+        unpowered.forEach(id -> off.add(new net.minecraft.nbt.IntArrayTag(net.minecraft.core.UUIDUtil.uuidToIntArray(id))));
+        tag.put("Unpowered", off);
         return tag;
     }
 
@@ -144,6 +154,9 @@ public final class SiteRecord {
         record.lastSeen = tag.getLongOr("Seen", 0L);
         for (Tag raw : tag.getListOrEmpty("Wireless")) {
             record.wireless.add(net.minecraft.core.UUIDUtil.uuidFromIntArray(((net.minecraft.nbt.IntArrayTag) raw).getAsIntArray()));
+        }
+        for (Tag raw : tag.getListOrEmpty("Unpowered")) {
+            record.unpowered.add(net.minecraft.core.UUIDUtil.uuidFromIntArray(((net.minecraft.nbt.IntArrayTag) raw).getAsIntArray()));
         }
         ListTag items = tag.getListOrEmpty("Stock");
         for (int i = 0; i < items.size(); i++) {
