@@ -33,7 +33,7 @@
 ## 6b. Transfers land in the terminal's output (play check decision)
 
 - [x] 6b.1 `packing/PackingStationBlockEntity.java` (wireless `Shipment` carries the requesting terminal position, saved; on arrival a terminal bound transfer goes into the receiver's To network buffer and opens a data line shipment to the terminal; room checked against To network), `terminal/RemoteTransfers.java` (receiver only among stations reaching the terminal by data line; the request tracks the second leg), `network/WarehouseNetwork.shipWireless` (passes the terminal), `terminal/StorageTerminalBlockEntity.java` and `TerminalRequests.java` (request ends when the items are in the output) (design.md, decision after the play check). Update GameTests in `ControllerWirelessGameTests.java`: the online outpost transfer ends in the terminal's output slots and the base's rack count stays the same; new `transferWaitsWhileOutputFull`; operator and test shipments without a terminal still land in To storage. Run `gradlew build`, `gradlew test` and `gradlew :storage:runGameTestServer`.
-- [ ] 6b.2 `docs/src/content/docs/mods/storage.md`: a request from another site lands in the terminal's output. Run `cd docs && npm test`.
+- [x] 6b.2 `docs/src/content/docs/mods/storage.md`: a request from another site lands in the terminal's output. Run `cd docs && npm test`.
 
 ## 7. Verification
 
