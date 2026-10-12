@@ -15,15 +15,15 @@ import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 
 final class ServusStorageBlockLoot extends BlockLootSubProvider {
 
-    private static final List<Block> SELF_DROPPING = List.of(ServusStorageBlocks.ELEVATOR.get(),
-            ServusStorageBlocks.SHUTTLE_WORKSHOP.get());
+    private static final List<Block> SELF_DROPPING = List.of(ServusStorageBlocks.ELEVATOR.get());
 
     /** Blocks that keep the wood of their recipe. */
     private static final List<Block> WOODEN = List.of(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(),
             ServusStorageBlocks.STORAGE_TERMINAL.get(), ServusStorageBlocks.INBOUND_STATION.get(), ServusStorageBlocks.PACKING_STATION.get(),
             ServusStorageBlocks.SHUTTLE_GARAGE.get(), ServusStorageBlocks.OUTBOUND_STATION.get(), ServusStorageBlocks.CRAFTING_STATION.get(),
             ServusStorageBlocks.CRAFTING_CPU.get(), ServusStorageBlocks.CPU_BUFFER.get(), ServusStorageBlocks.PRODUCTION_TERMINAL.get(),
-            ServusStorageBlocks.FIELD_HEAD.get(), ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.FARM_RAIL.get());
+            ServusStorageBlocks.FIELD_HEAD.get(), ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.FARM_RAIL.get(),
+            ServusStorageBlocks.SHUTTLE_WORKSHOP.get());
 
     ServusStorageBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

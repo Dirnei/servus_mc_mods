@@ -229,7 +229,7 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
                 .define('C', Items.CRAFTING_TABLE)
                 .define('P', ItemTags.PLANKS)
                 .unlockedBy("has_shuttle", has(ServusStorageItems.SHUTTLE_MK1.get()))
-                .save(output);
+                .save(WoodRecipes.output(output, registries));
 
         // Copper heads on sleepers in the wood of the planks.
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusStorageItems.FARM_RAIL.get(), 16)
