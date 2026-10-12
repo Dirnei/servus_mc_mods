@@ -66,17 +66,17 @@ Pure `cpu/CpuBuffer<K>` (no Minecraft imports, keys are generic) keeps, per orde
 
 The master wraps the book with `ItemKey` keys and saves it next to `Orders` in its tag (`Buffer`: entries with order id, item, count; arrivals with transfer id, order id, item, count). Buffered items belong to their order only: they are not part of `Host.stock()`, are not indexed by any warehouse, are not reserved, and are never fed to another order.
 
-### D6. How items get in: an insert only inlet
+### D6. How items get in: a packet inlet, not an inventory
 
-The CPU becomes a packet target by exposing `Capabilities.Item.BLOCK` on every formed block, registered in `ServusStorageEvents` with `event.registerBlockEntity(Capabilities.Item.BLOCK, CRAFTING_CPU.get(), (cpu, side) -> cpu.inlet())`, as for the Packing Station and the terminal. The handler is a `foundation/transfer/LegacyItemHandler` that:
+Decided with the user: the CPU registers no item capability, so item pipes and hoppers never see it and no duct shows an item arm toward it. Packets reach it through a Servus packet inlet instead of `Capabilities.Item.BLOCK`. That inlet is introduced by the change that takes pipe access away from blocks not meant for pipes (stations, Packing Station, terminal, Field Head, Crafting Station; see the pipe access decisions), where `PacketIo.accepts` and `DataPackets.move` learn to deliver into a block's packet inlet; this change archives after it and only registers the CPU's inlet. The inlet:
 
-- accepts a key only up to the items of that key still expected by open arrivals of the master's buffer, so nothing else (a hopper, an item pipe) can fill it,
-- gives nothing out (`extractItem` returns empty), so pipes cannot drain it,
-- is null on unformed blocks, so `PacketIo.accepts` refuses them.
+- accepts a key only up to the items of that key still expected by open arrivals of the master's buffer,
+- gives nothing out,
+- is absent on unformed blocks, so `PacketIo.accepts` refuses them.
 
 The collection to the buffer is `DataPackets.move(level, producer, cpuMember, like, count)` from the producer to the CPU block that is a member of the line (`memberPos`, cached on the master and checked again when it is no longer a member), booked as `ledger.open(count)` and `step.collecting(key, transfer, count, cpuPos)`. It counts as collected for the step when it lands, like a collection to a Packing Station; `DataPackets.move` takes items from the producer only as far as the CPU accepts them, so nothing is in flight.
 
-Alternative: `ServusFoundationCapabilities.STOCK_SINK`. Rejected: it gives the CPU the `STOCK` data role (see `DataNetwork.Probe.roles`), which the duct summary counts as storage.
+Alternatives: an insert only `Capabilities.Item.BLOCK` (rejected by the user: pipes show arms toward a block that refuses them) and `ServusFoundationCapabilities.STOCK_SINK` (rejected: it gives the CPU the `STOCK` data role, which the duct summary counts as storage).
 
 ### D7. Where outputs go: `Handoff.split` learns the buffer
 
@@ -120,7 +120,7 @@ This change archives after `m0-port-minecraft-26-1-2`, because both modify the "
 
 ### APIs used (checked in the 26.1.2 worktree)
 
-- `RegisterCapabilitiesEvent.registerBlockEntity` with `Capabilities.Item.BLOCK`: `storage/ServusStorageEvents.java`.
+- The packet inlet registration from the pipe access change: `storage/ServusStorageEvents.java`.
 - `ResourceHandler<ItemResource>` through `foundation/transfer/LegacyItemHandler` and `ItemView`.
 - `DataPackets.move` (both forms) and `Delivery.onEnd`: `foundation/data/packet/DataPackets.java`; target check `PacketIo.accepts`.
 - `ProductionLedger.open`, `delivered`, `end`, `transfer`: `storage/order/ProductionLedger.java`.
@@ -133,7 +133,7 @@ This change archives after `m0-port-minecraft-26-1-2`, because both modify the "
 - [Balance] A 2x2x2 of CPU blocks runs 8 orders where a 3x3x3 cube ran 2, with a recipe that gives 4 blocks. → Values live in `cpu.json`; the CPU block recipe and values are part of the open M9 balance pass. Start values: `orders_per_cpu_block` 1, `stacks_per_buffer_block` 1.
 - [Small buffer] One stack per Buffer block is little for big chains. → Overflow falls back to today's behaviour and the terminal shows it, so players see when to add Buffer blocks.
 - [One order fills the buffer] First come first served lets one big order take all room. → Accepted; oldest orders run first anyway. A per order quota can follow if play tests ask for it.
-- [Item pipes attach to CPU blocks] Exposing the item capability lets item pipes show arms toward a formed CPU. → The inlet refuses unexpected items and gives nothing out; documented in the docs site.
+- [Depends on the packet inlet] The CPU buffer needs the packet inlet from the pipe access change. → Apply that change first; until then this change cannot be applied.
 - [Flood fill cost] A click on a huge wall of CPU blocks. → Bounded by `max_blocks`, only on a click.
 - [Member lookup] `memberPos` walked 27 blocks and would walk up to `max_blocks` now. → Cache the member block on the master and look again only when it is no longer a member.
 - [Ledger forgets an arrival] A transfer into the buffer the ledger forgot counts as collected for the step but the buffer holds only what arrived. → The later step feeds the rest from storage, as for handoffs today.
@@ -143,6 +143,10 @@ This change archives after `m0-port-minecraft-26-1-2`, because both modify the "
 
 Nothing is released, so there is no migration. `order_slots` is removed from `cpu.json`. Side note for dev worlds: formed CPUs saved before this change have no master offset in their block entities and act unformed; break one block and form them again with the carrot.
 
-## Open Questions
+## Answered Questions
 
-- Exact Buffer block recipe (proposed: like the CPU recipe with a chest instead of the crafting table, 4 per craft); can be tuned in the balance pass.
+Answered by the user on 2026-10-12:
+- Buffer block recipe: like the CPU recipe with a chest instead of the crafting table, 4 per craft.
+- `stacks_per_buffer_block` starts at 1; a full buffer taking the detour through storage is wanted.
+- No item pipe connection to the CPU (D6).
+- The buffer is shared first come first served, no quota per order.

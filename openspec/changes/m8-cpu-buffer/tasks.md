@@ -18,7 +18,7 @@ Archive this change after `m0-port-minecraft-26-1-2` (see design.md D13).
 
 ## 3. Buffer in the order flow
 
-- [ ] 3.1 `CpuBlockEntity.java`: the `CpuBuffer` on the master with `ItemKey` keys, saved as `Buffer` next to `Orders`, loaded only by a formed master, dropped at the master's position by a master that loads unformed; the insert only inlet (`LegacyItemHandler`) and its `Capabilities.Item.BLOCK` registration in `ServusStorageEvents.java` (design.md D5, D6). Run `gradlew build`.
+- [ ] 3.1 `CpuBlockEntity.java`: the `CpuBuffer` on the master with `ItemKey` keys, saved as `Buffer` next to `Orders`, loaded only by a formed master, dropped at the master's position by a master that loads unformed; the CPU's packet inlet (expected arrivals only, nothing out, absent while unformed) registered through the packet inlet from the pipe access change in `ServusStorageEvents.java`; no item capability (design.md D5, D6). Run `gradlew build`.
 - [ ] 3.2 `CpuBlockEntity.handOff` with the new `Handoff.split`: buffered part moved by `DataPackets.move` to the CPU member block, booked in the ledger and as a buffer arrival, credited on `onEnd`; `WorkOrder.java` keeps and saves `overflowed` per key (design.md D7). Run `gradlew build`.
 - [ ] 3.3 `OrderBook.java` (`Host.feedFromBuffer` before `Host.feed`) and `CpuBlockEntity` (move with the order's buffer view as source, booked as a feeding) (design.md D8). Run `gradlew build`.
 - [ ] 3.4 Leftovers and unform: done and cancelled orders' entries leave as packets to `collectionPoint` on each book run; `CpuBlock.unform` empties the buffer into the reachable warehouses with `WarehouseNetwork.insert` before the blocks change, the rest dropped at the removed block (design.md D9). Run `gradlew build`.
