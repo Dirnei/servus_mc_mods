@@ -54,7 +54,7 @@ Each task rewrites the listed classes to build racks with `MiniWarehouse` instea
 
 ## 8. Heavy Duty Rack pipe access
 
-- [ ] 8.1 `rack/HeavyRackBlockEntity.java` (`standalone()`, unsaved `frontRail` flag set on load), `rack/HeavyRackBlock.java` (`neighborChanged`, `onPlace`, `affectNeighborsAfterRemoval` call `RackDock.refresh`), `rack/RackDock.java` (`refresh`: `Level.invalidateCapabilities` and `Level.updateNeighborsAt(bay, block, null)` for every bay of the old and new section), `ServusStorageEvents.java` (HEAVY_RACK provider returns `items()` only while standalone) (design.md D5). Run `gradlew build`.
+- [x] 8.1 `rack/HeavyRackBlockEntity.java` (`standalone()`, unsaved `frontRail` flag set on load), `rack/HeavyRackBlock.java` (`neighborChanged`, `onPlace`, `affectNeighborsAfterRemoval` call `RackDock.refresh`), `rack/RackDock.java` (`refresh`: `Level.invalidateCapabilities` and `Level.updateNeighborsAt(bay, block, null)` for every bay of the old and new section), `ServusStorageEvents.java` (HEAVY_RACK provider returns `items()` only while standalone) (design.md D5). Run `gradlew build`.
 - [ ] 8.2 GameTests in `gametest/RackDockGameTests.java` (new): `hopperFillsStandaloneRack`, `railDockClosesRack` (capability lookup becomes null and the hopper stops), `railRemovedOpensRack`, `oneDockedBayClosesSection`, `joiningDockedSectionCloses`, `ductArmFollowsDock` (Item Pipe arm disappears and returns), `railWithoutControllerCloses`, `handGuiOnDockedRack`. Run the Storage GameTests.
 
 ## 9. Storage Terminal without instant stock

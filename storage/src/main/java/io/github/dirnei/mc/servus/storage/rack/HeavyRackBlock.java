@@ -25,6 +25,8 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -195,6 +197,8 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
                 node.refreshLinks();
             }
         }
+        // A bay joining a docked section closes it to pipes; a fresh section may be open.
+        refreshDock(level, section(level, pos));
     }
 
     private static void mirror(Level level, BlockPos neighbourPos, BooleanProperty flag, boolean joined, BlockState placed) {
@@ -267,6 +271,41 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof HeavyRackBlockEntity rack && rack.frontRailChanged()) {
+            refreshDock(level, section(level, pos));
+        }
+    }
+
+    /** Whether a warehouse rail (or farm rail) stands in front of the bay at that position. */
+    public static boolean railInFront(BlockGetter level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        return state.getBlock() instanceof HeavyRackBlock
+                && level.getBlockState(pos.relative(state.getValue(FACING))).getBlock() instanceof RailBlock;
+    }
+
+    /**
+     * The section's pipe access may have changed: every bay drops its cached
+     * capability and tells its neighbours, so ducts recompute their arms and
+     * hoppers ask again. Event driven, never polled; it does not loop, because
+     * the bays' front rail flags do not change on the second pass.
+     */
+    public static void refreshDock(Level level, List<BlockPos> bays) {
+        for (BlockPos bay : bays) {
+            level.invalidateCapabilities(bay);
+            level.updateNeighborsAt(bay, level.getBlockState(bay).getBlock());
+        }
+    }
+
+    /** A bay that leaves splits or shrinks the sections beside it: both may open to pipes. */
+    @Override
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+        Direction facing = state.getValue(FACING);
+        for (BlockPos side : List.of(pos.relative(facing.getCounterClockWise()), pos.relative(facing.getClockWise()))) {
+            if (level.getBlockState(side).getBlock() instanceof HeavyRackBlock) {
+                refreshDock(level, section(level, side));
+            }
+        }
     }
 
     @Override

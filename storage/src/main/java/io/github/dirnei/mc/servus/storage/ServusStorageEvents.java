@@ -66,8 +66,9 @@ public final class ServusStorageEvents {
                     (head, side) -> head.packetInlet());
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusStorageBlockEntities.FIELD_HEAD.get(),
                     (head, side) -> head.upkeep());
+            // A rack is a chest for hoppers and pipes only while no rail docks to its section.
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.HEAVY_RACK.get(),
-                    (rack, side) -> rack.items());
+                    (rack, side) -> rack.standalone() ? rack.items() : null);
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
             // Packets enter a Packing Station through its inlet; pipes and hoppers see no item capability.

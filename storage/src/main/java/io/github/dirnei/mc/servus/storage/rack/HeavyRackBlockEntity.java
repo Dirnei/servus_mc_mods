@@ -86,6 +86,49 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
         return new ItemView(items);
     }
 
+    // Pipe access
+
+    /** Whether a rail stood in front of this bay at the last look; not saved, set on load. */
+    private boolean frontRail;
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (level != null) {
+            frontRail = HeavyRackBlock.railInFront(level, worldPosition);
+        }
+    }
+
+    /**
+     * Whether the rail in front of this bay changed since the last look; remembers
+     * the new state. Called by the block when a neighbour changes.
+     */
+    boolean frontRailChanged() {
+        boolean now = level != null && HeavyRackBlock.railInFront(level, worldPosition);
+        if (now == frontRail) {
+            return false;
+        }
+        frontRail = now;
+        return true;
+    }
+
+    /**
+     * Whether the rack is a chest for hoppers and pipes: only while no
+     * warehouse rail stands in front of any bay of its section. Looked up live,
+     * so a stale flag can never open a docked rack.
+     */
+    public boolean standalone() {
+        if (level == null) {
+            return true;
+        }
+        List<BlockPos> bays = HeavyRackBlock.section(level, worldPosition);
+        int[] offsets = new int[bays.size()];
+        for (int i = 0; i < offsets.length; i++) {
+            offsets[i] = i;
+        }
+        return !RackDock.closed(offsets, i -> HeavyRackBlock.railInFront(level, bays.get(i)));
+    }
+
     /** A rack is its own node kind: it links only to rails on its front and to its own section. */
     @Override
     public WarehouseConnectionRule.NodeKind kind() {
