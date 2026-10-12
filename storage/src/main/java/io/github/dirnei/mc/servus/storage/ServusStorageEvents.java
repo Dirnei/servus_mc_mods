@@ -98,8 +98,6 @@ public final class ServusStorageEvents {
                     (station, side) -> station.production());
             event.registerBlockEntity(ServusFoundationCapabilities.STOCK_PROVIDER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
                     (controller, side) -> controller.stockProvider());
-            event.registerBlockEntity(ServusFoundationCapabilities.STOCK_SINK, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
-                    (controller, side) -> controller.sink());
             event.registerBlockEntity(ServusFoundationCapabilities.SUPPLIER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
                     (controller, side) -> new WarehouseSupplier(controller));
             event.registerBlockEntity(ServusFoundationCapabilities.SUPPLIER, ServusStorageBlockEntities.PACKING_STATION.get(),

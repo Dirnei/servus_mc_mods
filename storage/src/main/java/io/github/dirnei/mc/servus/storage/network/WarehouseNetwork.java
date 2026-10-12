@@ -222,7 +222,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             fleet.releaseGarage(blockPos);
         }
         held.remove(blockPos);
-        deferred.remove(blockPos);
         if (node instanceof WarehouseControllerBlockEntity) {
             controllers--;
             if (blockPos.equals(controllerPos)) {
@@ -254,8 +253,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         pendingStations.addAll(that.stations);
         garages.addAll(that.garages);
         that.held.forEach((pos, loads) -> held.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(loads));
-        that.deferred.forEach((pos, picks) -> deferred.computeIfAbsent(pos, p -> new ArrayList<>()).addAll(picks));
-        that.deferred.clear();
         zoneOf.putAll(that.zoneOf);
         that.sources.forEach((pos, source) -> {
             sources.put(pos, source);
@@ -527,26 +524,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     // Requests and shipments
 
-    /** Instant loads that did not fit into a destination's delivery buffer yet, per destination. */
+    /**
+     * Loads that did not fit into a destination's delivery buffer yet, per
+     * destination: what a shuttle carried when its terminal lost its rail.
+     */
     private final Map<BlockPos, List<HeldLoad>> held = new HashMap<>();
 
     private record HeldLoad(PickJob job, ItemStack stack) {
-    }
-
-    /**
-     * Instant picks for a Packing Station that wait in their source until the
-     * station's To network buffer has room, per station, oldest first.
-     */
-    private final Map<BlockPos, List<DeferredPick>> deferred = new HashMap<>();
-
-    private static final class DeferredPick {
-        private final PickJob job;
-        private int left;
-
-        private DeferredPick(PickJob job) {
-            this.job = job;
-            this.left = job.amount();
-        }
     }
 
     /** Whether some garage shuttle can drive to a rail beside the position. */
@@ -627,7 +611,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         BlockPos destination = chosen.get().getBlockPos();
         boolean reachable = fleet.canReach(destination);
-        Planned plan = planWithInstant(amount, key, reachable);
+        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), reachable, stockOf(key));
         if (plan.jobs().isEmpty()) {
             String refusal = plan.needsShuttle() ? (fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle") : "out_of_stock";
             return new Shipping(refusal, Optional.empty(), destination);
@@ -867,42 +851,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return stock;
     }
 
-    /** A pick: by shuttle or straight out of a non rack source. */
-    private record PlannedJob(BlockPos source, int count, boolean byShuttle) {
-    }
-
-    private record Planned(List<PlannedJob> jobs, int unservable, boolean needsShuttle) {
-        int planned() {
-            return jobs.stream().mapToInt(PlannedJob::count).sum();
-        }
-    }
-
-    /** Instant picks from non rack sources no shuttle serves, then the shuttle plan. Goes with the instant paths. */
-    private Planned planWithInstant(int amount, ItemKey key, boolean hasShuttle) {
-        List<PlannedJob> jobs = new ArrayList<>();
-        int wanted = Math.max(0, amount);
-        int maxStack = key.stack(1).getMaxStackSize();
-        List<RequestPlan.Stock<BlockPos>> shuttleStock = new ArrayList<>();
-        for (RequestPlan.Stock<BlockPos> entry : stockOf(key)) {
-            if (isRack(entry.source()) || entry.reachable() && hasShuttle) {
-                shuttleStock.add(entry);
-                continue;
-            }
-            int available = Math.min(entry.count(), wanted);
-            while (available > 0) {
-                int count = Math.min(available, maxStack);
-                jobs.add(new PlannedJob(entry.source(), count, false));
-                available -= count;
-                wanted -= count;
-            }
-        }
-        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(wanted, maxStack, hasShuttle, shuttleStock);
-        for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
-            jobs.add(new PlannedJob(job.source(), job.count(), true));
-        }
-        return new Planned(List.copyOf(jobs), plan.unservable(), plan.needsShuttle());
-    }
-
     /** What a plan and start did: how many are on their way, how many the stock lacked, or why nothing happened. */
     public record Started(String refusal, int planned, int unservable) {
     }
@@ -912,7 +860,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return new Started("offline", 0, amount);
         }
         boolean reachable = fleet.canReach(destination);
-        Planned plan = planWithInstant(amount, key, reachable);
+        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), reachable, stockOf(key));
         if (plan.jobs().isEmpty()) {
             if (plan.needsShuttle()) {
                 return new Started(fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle", 0, amount);
@@ -923,23 +871,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return new Started("", plan.planned(), plan.unservable());
     }
 
-    private void startJobs(Planned plan, int requestId, ItemKey key, BlockPos destination) {
-        startPicks(plan, requestId, key, destination);
-        releaseDeferred(destination);
-    }
-
-    private void startPicks(Planned plan, int requestId, ItemKey key, BlockPos destination) {
-        for (PlannedJob job : plan.jobs()) {
-            PickJob pick = new PickJob(requestId, key, job.count(), job.source(), destination);
-            if (job.byShuttle()) {
-                fleet.requestPick(pick);
-            } else if (loaded(destination) instanceof PackingStationBlockEntity) {
-                deferred.computeIfAbsent(destination, pos -> new ArrayList<>()).add(new DeferredPick(pick));
-            } else {
-                ItemStack taken = extractFrom(job.source(), key, job.count());
-                pickLoaded(pick, taken.getCount());
-                deliverInstant(pick, taken);
-            }
+    /** Queues one shuttle pick per planned job. */
+    private void startJobs(RequestPlan.Plan<BlockPos> plan, int requestId, ItemKey key, BlockPos destination) {
+        for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
+            fleet.requestPick(new PickJob(requestId, key, job.count(), job.source(), destination));
         }
     }
 
@@ -978,51 +913,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
-    /**
-     * Picks for a Packing Station from crates and foreign inventories as far as
-     * its To network buffer has room; the rest stays in its source until the
-     * buffer drains. A source that holds less than planned cuts the shipment.
-     */
-    private void releaseDeferred(BlockPos stationPos) {
-        List<DeferredPick> picks = deferred.get(stationPos);
-        if (picks == null || level == null) {
-            return;
-        }
-        if (!(loaded(stationPos) instanceof PackingStationBlockEntity station)) {
-            return;
-        }
-        while (!picks.isEmpty()) {
-            DeferredPick pick = picks.get(0);
-            int room = station.outgoingRoom(pick.job.key(), pick.left);
-            if (room <= 0) {
-                break;
-            }
-            ItemStack taken = extractFrom(pick.job.source(), pick.job.key(), room);
-            int got = taken.getCount();
-            if (got < room) {
-                station.shortfall(pick.job.key(), room - got);
-            }
-            deliverInstant(pick.job, taken);
-            pick.left -= room;
-            if (pick.left <= 0) {
-                picks.remove(0);
-            }
-        }
-        if (picks.isEmpty()) {
-            deferred.remove(stationPos);
-        }
-    }
-
-    /** Ends what deferred picks still owe as shortfalls, when this network goes away without handing them on. */
-    private void dropDeferred() {
-        deferred.forEach((pos, picks) -> {
-            if (level != null && level.isLoaded(pos) && level.getBlockEntity(pos) instanceof PackingStationBlockEntity station) {
-                picks.forEach(pick -> station.shortfall(pick.job.key(), pick.left));
-            }
-        });
-        deferred.clear();
-    }
-
     /** Retries the held loads of a destination after its delivery buffer changed. */
     private void retryHeld(BlockPos terminalPos) {
         List<HeldLoad> loads = held.get(terminalPos);
@@ -1053,7 +943,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         stations.clear();
         garages.clear();
         held.clear();
-        dropDeferred();
         pendingStations.clear();
         blockedStations.clear();
         zoneOf.clear();
@@ -1098,7 +987,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             }
         } else if (event instanceof WarehouseEvent.OutputChanged output) {
             retryHeld(output.pos());
-            releaseDeferred(output.pos());
         } else if (event instanceof WarehouseEvent.Intake intake) {
             if (stations.contains(intake.pos())) {
                 pendingStations.add(intake.pos());
@@ -1241,14 +1129,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 continue;
             }
             budget--;
-            if (fleet.canCarry(pos, target.get())) {
-                station.claim(slot);
-                fleet.requestPutAway(new PutAwayJob(pos, slot, key, stack.getCount(), target.get()));
-            } else {
-                ItemStack taken = station.buffer().extractItem(slot, stack.getCount(), false);
-                ItemStack left = insertAt(target.get(), taken);
-                returnToStation(pos, left);
-            }
+            station.claim(slot);
+            fleet.requestPutAway(new PutAwayJob(pos, slot, key, stack.getCount(), target.get()));
         }
         if (more) {
             pendingStations.add(pos);
@@ -1557,13 +1439,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /**
      * Whether the site's own work runs: shuttles out or jobs waiting, inbound
-     * buffers to drain, deliveries held or deferred. A woken site stays loaded
+     * buffers to drain, deliveries held. A woken site stays loaded
      * while this is true.
      */
     public boolean siteBusy() {
         return fleet.busy() > 0 || fleet.queued() > 0 || !pendingStations.isEmpty()
-                || held.values().stream().anyMatch(loads -> !loads.isEmpty())
-                || deferred.values().stream().anyMatch(picks -> !picks.isEmpty());
+                || held.values().stream().anyMatch(loads -> !loads.isEmpty());
     }
 
     /** Writes the online state into every loaded stock holding member whose lamp is wrong. */
@@ -1643,89 +1524,29 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     // Operations
 
-    /** Pulls up to {@code amount} (at most one stack) of the key out of the warehouse. */
-    public ItemStack extract(ItemKey key, int amount) {
+    /**
+     * Takes up to {@code amount} (at most one stack) of the key straight out of
+     * the racks, for the op command {@code /servus_warehouse take} only; players
+     * and machines get items by shuttle.
+     */
+    public ItemStack takeDirect(ItemKey key, int amount) {
         ItemStack result = ItemStack.EMPTY;
         int wanted = Math.min(amount, key.stack(1).getMaxStackSize());
-        for (BlockPos pos : index.sourcesHolding(key)) {
-            if (isRack(pos)) {
-                continue;
-            }
-            Source source = sources.get(pos);
-            ItemView handler = handlerOf(source);
-            if (handler == null) {
-                continue;
-            }
-            for (int slot = 0; slot < handler.getSlots() && wanted > 0; slot++) {
-                if (!key.matches(handler.getStackInSlot(slot))) {
-                    continue;
-                }
-                ItemStack taken = handler.extractItem(slot, wanted, false);
-                if (taken.isEmpty()) {
-                    continue;
-                }
-                if (result.isEmpty()) {
-                    result = taken;
-                } else {
-                    result.grow(taken.getCount());
-                }
-                wanted -= taken.getCount();
-            }
-            markDirty(pos);
+        for (BlockPos pos : List.copyOf(index.sourcesHolding(key))) {
             if (wanted <= 0) {
                 break;
             }
-        }
-        return result;
-    }
-
-    /**
-     * Puts a stack into the warehouse instantly by the put-away routing: zoned
-     * blocks listing the exact item, then zoned blocks matching by tag, then
-     * general storage; within a tier sources already holding it, then empty
-     * crates, then other storage nodes, then foreign inventories in use.
-     * Racks are skipped: only shuttles fill them.
-     *
-     * @return what did not fit
-     */
-    public ItemStack insert(ItemStack stack) {
-        if (stack.isEmpty()) {
-            return stack;
-        }
-        ItemKey key = ItemKey.of(stack);
-        ItemStack remaining = stack.copy();
-        for (List<BlockPos> tier : targetTiers(key, tiers(key))) {
-            for (BlockPos pos : tier) {
-                if (remaining.isEmpty()) {
-                    break;
-                }
-                if (!isRack(pos)) {
-                    remaining = insertInto(List.of(pos), remaining);
-                }
-            }
-            if (remaining.isEmpty()) {
-                break;
-            }
-        }
-        return remaining;
-    }
-
-    private ItemStack insertInto(List<BlockPos> positions, ItemStack remaining) {
-        for (BlockPos pos : positions) {
-            if (remaining.isEmpty()) {
-                break;
-            }
-            Source source = sources.get(pos);
-            ItemView handler = handlerOf(source);
-            if (handler == null) {
+            ItemStack taken = extractFrom(pos, key, wanted);
+            if (taken.isEmpty()) {
                 continue;
             }
-            int before = remaining.getCount();
-            remaining = handler.insertItem(remaining, false);
-            if (remaining.getCount() != before) {
-                markDirty(pos);
+            if (result.isEmpty()) {
+                result = taken;
+            } else {
+                result.grow(taken.getCount());
             }
+            wanted -= taken.getCount();
         }
-        return remaining;
+        return result;
     }
 }

@@ -244,7 +244,11 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         return network().filter(network -> network.status() == WarehouseNetwork.Status.ONLINE);
     }
 
-    /** The Lib stock provider view: counts from the index, instant extracts. Offline it has nothing. */
+    /**
+     * The Foundation stock provider view: counts from the index of the racks.
+     * Taking gives nothing, since items leave the warehouse only by shuttle
+     * through a Packing Station. Offline it has nothing.
+     */
     public StockProvider stockProvider() {
         return new StockProvider() {
             @Override
@@ -254,17 +258,9 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
 
             @Override
             public ItemStack extract(ItemStack like, int amount) {
-                if (like.isEmpty() || amount <= 0) {
-                    return ItemStack.EMPTY;
-                }
-                return online().map(network -> network.extract(ItemKey.of(like), amount)).orElse(ItemStack.EMPTY);
+                return ItemStack.EMPTY;
             }
         };
-    }
-
-    /** The Lib stock sink view: inserts by the warehouse's zone routing. Offline it takes nothing. */
-    public StockSink sink() {
-        return stack -> online().map(network -> network.insert(stack)).orElse(stack);
     }
 
     @Override

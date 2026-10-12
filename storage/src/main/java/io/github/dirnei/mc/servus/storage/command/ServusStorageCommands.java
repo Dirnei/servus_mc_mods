@@ -166,7 +166,7 @@ public final class ServusStorageCommands {
         }
         ItemStack wanted = ItemArgument.getItem(context, "item").createItemStack(1);
         int count = IntegerArgumentType.getInteger(context, "count");
-        ItemStack taken = network.get().extract(ItemKey.of(wanted), count);
+        ItemStack taken = network.get().takeDirect(ItemKey.of(wanted), count);
         if (taken.isEmpty()) {
             source.sendFailure(Component.literal("Nothing taken"));
             return 0;

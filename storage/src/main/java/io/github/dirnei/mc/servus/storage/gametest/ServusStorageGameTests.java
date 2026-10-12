@@ -1352,7 +1352,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos RS_TERMINAL = new BlockPos(1, 1, 9);
     private static final BlockPos RS_RACK = new BlockPos(1, 1, 7);
 
-    /** A rack is never served instantly: extract skips it, insert and terminal pushes leave it alone. */
+    /** Without a garage nothing reaches a rack: a terminal push waits and the rack is untouched. */
     @ServusGameTest(timeoutTicks = 100)
     public static void rackNeedsShuttle(GameTestHelper helper) {
         helper.setBlock(RS_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
@@ -1371,8 +1371,6 @@ public final class ServusStorageGameTests {
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = controller.network().orElseThrow();
             helper.assertTrue(network.index().count(ItemKey.of(new ItemStack(Items.BREAD))) == 40, "the rack's bread is indexed");
-            helper.assertTrue(network.extract(ItemKey.of(new ItemStack(Items.BREAD)), 64).isEmpty(), "instant extract must skip the rack");
-            helper.assertTrue(network.insert(new ItemStack(Items.COBBLESTONE, 20)).getCount() == 20, "instant insert must skip the rack");
 
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, RS_TERMINAL);
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
@@ -1694,9 +1692,9 @@ public final class ServusStorageGameTests {
         });
     }
 
-    /** The controller's stock provider counts the racks but gives nothing: items leave only by shuttle. */
+    /** The controller's stock provider counts the racks but gives nothing, and it has no stock sink: items move only by shuttle. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void controllerExposesStock(GameTestHelper helper) {
+    public static void controllerProviderGivesNothing(GameTestHelper helper) {
         MiniWarehouse warehouse = MiniWarehouse.build(helper, new BlockPos(4, 1, 7), false).stock(new ItemStack(Items.COBBLESTONE, 80));
         helper.runAfterDelay(10, () -> {
             BlockPos absolute = helper.absolutePos(warehouse.controllerPos());
@@ -1705,6 +1703,7 @@ public final class ServusStorageGameTests {
             helper.assertTrue(provider.count(new ItemStack(Items.COBBLESTONE)) == 80, "count should be 80, was " + provider.count(new ItemStack(Items.COBBLESTONE)));
             ItemStack taken = provider.extract(new ItemStack(Items.COBBLESTONE), 20);
             helper.assertTrue(taken.isEmpty() && warehouse.rackCount(Items.COBBLESTONE) == 80, "extract gives nothing and the rack keeps 80");
+            helper.assertTrue(helper.getLevel().getCapability(ServusFoundationCapabilities.STOCK_SINK, absolute, null) == null, "the controller has no stock sink");
             helper.succeed();
         });
     }
@@ -1796,6 +1795,55 @@ public final class ServusStorageGameTests {
         station.sideConfig().set(RelativeSide.TOP, SideMode.BOTH);
         helper.assertTrue(station.sideMode(Direction.UP) == SideMode.DISABLED, "an unsupported mode falls back to off");
         helper.succeed();
+    }
+
+    /** Without a garage a request is refused as needing a shuttle and nothing leaves the rack. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void requestWithoutGarageNeedsShuttle(GameTestHelper helper) {
+        MiniWarehouse warehouse = MiniWarehouse.build(helper, new BlockPos(3, 1, 4), false).withTerminal().stock(new ItemStack(Items.COBBLESTONE, 30));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), warehouse.terminal());
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 10);
+            helper.assertTrue(menu.stock().message().equals("needs_shuttle"), "the request needs a shuttle, got " + menu.stock().message());
+            helper.assertTrue(menu.stock().requests().isEmpty(), "no request is created");
+            helper.runAfterDelay(20, () -> {
+                helper.assertTrue(warehouse.rackCount(Items.COBBLESTONE) == 30 && warehouse.terminal().outputCount(Items.COBBLESTONE) == 0,
+                        "the rack keeps its cobblestone");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Without a garage a put-away waits in the Inbound Station, which says it needs a shuttle. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void putAwayWithoutGarageWaits(GameTestHelper helper) {
+        MiniWarehouse warehouse = MiniWarehouse.build(helper, new BlockPos(3, 1, 4), false);
+        InboundStationBlockEntity station = warehouse.withInbound();
+        helper.runAfterDelay(10, () -> {
+            Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 20), false);
+            helper.runAfterDelay(30, () -> {
+                helper.assertTrue(!station.isEmpty() && warehouse.rack().isEmpty(), "the cobblestone waits in the buffer");
+                helper.assertTrue(station.blockedReason() == PutAwayPlan.Reason.NO_SHUTTLE, "reason should be no shuttle, was " + station.blockedReason());
+                helper.assertTrue(blocked(helper, warehouse.inboundPos()), "the lamp should be red");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** The op command takes straight out of the racks. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void takeCommandReadsRacks(GameTestHelper helper) {
+        MiniWarehouse warehouse = MiniWarehouse.build(helper, new BlockPos(3, 1, 4), false).stock(new ItemStack(Items.COBBLESTONE, 30));
+        helper.runAfterDelay(10, () -> {
+            BlockPos at = helper.absolutePos(warehouse.controllerPos());
+            var source = helper.getLevel().getServer().createCommandSourceStack().withLevel(helper.getLevel())
+                    .withPermission(net.minecraft.server.permissions.LevelBasedPermissionSet.OWNER).withSuppressedOutput();
+            helper.getLevel().getServer().getCommands().performPrefixedCommand(source,
+                    "servus_warehouse take " + at.getX() + " " + at.getY() + " " + at.getZ() + " minecraft:cobblestone 12");
+            helper.assertTrue(warehouse.rackCount(Items.COBBLESTONE) == 18, "the command takes 12 from the rack, it holds " + warehouse.rackCount(Items.COBBLESTONE));
+            helper.succeed();
+        });
     }
 
     private static final BlockPos FD_CONTROLLER = new BlockPos(1, 1, 7);

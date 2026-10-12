@@ -506,7 +506,8 @@ public final class ShuttleFleet {
      * Walks the queue in order and hands each job to the free shuttle with
      * the shortest way among those whose modules fit it; that shuttle also
      * takes queued jobs sharing the way while it has room. A job only busy
-     * shuttles fit waits; a job no shuttle fits is served without one.
+     * shuttles fit waits; a job no shuttle fits is refused: a pick ends as a
+     * shortfall, a put-away goes back to its station, which waits for a shuttle.
      */
     private void assignJobs() {
         if (jobs.isEmpty()) {
@@ -514,7 +515,7 @@ public final class ShuttleFleet {
         }
         List<ShuttleJob> queue = new ArrayList<>(jobs);
         Set<ShuttleJob> taken = Collections.newSetFromMap(new IdentityHashMap<>());
-        List<ShuttleJob> instant = new ArrayList<>();
+        List<ShuttleJob> refused = new ArrayList<>();
         Set<JobNeeds> waiting = new HashSet<>();
         for (int index = 0; index < queue.size(); index++) {
             ShuttleJob job = queue.get(index);
@@ -529,7 +530,7 @@ public final class ShuttleFleet {
                     // Field work needs a shuttle: a field job nobody fits is dropped, the field asks again later.
                     taken.add(job);
                     if (!job.needs().field()) {
-                        instant.add(job);
+                        refused.add(job);
                     }
                 }
                 continue;
@@ -549,7 +550,7 @@ public final class ShuttleFleet {
             taken.add(job);
             if (best == null) {
                 if (!job.needs().field()) {
-                    instant.add(job);
+                    refused.add(job);
                 }
                 continue;
             }
@@ -589,8 +590,8 @@ public final class ShuttleFleet {
         }
         jobs.clear();
         jobs.addAll(kept);
-        for (ShuttleJob job : instant) {
-            serveInstantly(job);
+        for (ShuttleJob job : refused) {
+            refuse(job);
         }
     }
 
@@ -637,21 +638,16 @@ public final class ShuttleFleet {
         return free;
     }
 
-    /** Does a job without a shuttle: picks extract anywhere, put-aways move station to target at once. */
-    private void serveInstantly(ShuttleJob job) {
+    /**
+     * A job no shuttle can take: a pick ends as a shortfall (needs a shuttle),
+     * a put-away releases its claim and the station waits, showing that it
+     * needs a shuttle. Nothing moves without one.
+     */
+    private void refuse(ShuttleJob job) {
         if (job instanceof PickJob pick) {
-            if (host.isRack(pick.source())) {
-                host.pickLoaded(pick, 0);
-                return;
-            }
-            ItemStack taken = host.extractFrom(pick.source(), pick.key(), pick.amount());
-            host.pickLoaded(pick, taken.getCount());
-            host.deliverInstant(pick, taken);
+            host.pickLoaded(pick, 0);
         } else if (job instanceof PutAwayJob putAway) {
-            ItemStack taken = host.takeFromStation(putAway.station(), putAway.slot(), putAway.key(), putAway.amount());
-            if (!taken.isEmpty()) {
-                host.returnToStation(putAway.station(), host.insertAt(putAway.target(), taken));
-            }
+            host.releaseClaim(putAway.station(), putAway.slot());
         }
     }
 

@@ -208,25 +208,10 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
                 ? TerminalWarehouses.reachable(server, terminal.getBlockPos()) : List.of();
     }
 
-    /** Takes up to the amount of the key from instant warehouse stock (crates and foreign inventories, never racks). */
+    /** Instant warehouse stock no longer exists; nothing is taken. */
     private ItemStack takeInstant(ItemKey key, int amount) {
-        ItemStack result = ItemStack.EMPTY;
-        for (WarehouseNetwork network : warehouses()) {
-            int wanted = amount - result.getCount();
-            if (wanted <= 0) {
-                break;
-            }
-            ItemStack taken = network.extract(key, wanted);
-            if (taken.isEmpty()) {
-                continue;
-            }
-            if (result.isEmpty()) {
-                result = taken;
-            } else {
-                result.grow(taken.getCount());
-            }
-        }
-        return result;
+        // Racks are served only by shuttles: there is no instant stock.
+        return ItemStack.EMPTY;
     }
 
     /** Hands a stack to the input row, which stores it through a Packing Station; returns what did not fit. Nothing while another site is shown. */
