@@ -97,6 +97,32 @@ public final class MiniWarehouse {
         return helper.getBlockEntity(inboundPos(), InboundStationBlockEntity.class);
     }
 
+    /**
+     * The warehouse many line tests share, built under a controller at
+     * {@code controller} whose Packing Station stands south of it: rails at
+     * y - 1 under both, two racks west of those rails facing east and a garage
+     * north of the controller's rail with one shuttle. Places the controller,
+     * not the Packing Station.
+     *
+     * @return the rack west of the controller's rail, then the one west of the Packing Station's
+     */
+    public static java.util.List<BlockPos> under(GameTestHelper helper, BlockPos controller) {
+        helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
+                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
+        BlockPos railA = controller.below();
+        BlockPos railB = railA.south();
+        TerminalWiring.rail(helper, railA);
+        TerminalWiring.rail(helper, railB);
+        java.util.List<BlockPos> racks = java.util.List.of(railA.west(), railB.west());
+        for (BlockPos rack : racks) {
+            helper.setBlock(rack, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
+        }
+        BlockPos garage = railA.north();
+        helper.setBlock(garage, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.assertTrue(helper.getBlockEntity(garage, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
+        return racks;
+    }
+
     /** Fills the rack's slots with the stacks, as test setup. */
     public MiniWarehouse stock(ItemStack... stacks) {
         stock(helper, rackPos(), stacks);

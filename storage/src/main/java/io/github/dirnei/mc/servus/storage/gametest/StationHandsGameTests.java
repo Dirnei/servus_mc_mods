@@ -11,8 +11,7 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
@@ -36,7 +35,8 @@ public final class StationHandsGameTests {
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
-    private static final BlockPos CRATE = new BlockPos(1, 1, 2);
+    /** The rack west of the rail under the controller. */
+    private static final BlockPos RACK = new BlockPos(1, 0, 2);
     private static final BlockPos STATION_A = new BlockPos(4, 1, 2);
     private static final BlockPos STATION_B = new BlockPos(5, 1, 2);
     private static final BlockPos PATTERNS = new BlockPos(4, 3, 2);
@@ -48,12 +48,10 @@ public final class StationHandsGameTests {
     }
 
     /** Warehouse with planks, Packing Station, two plain stations, a sticks pattern and a CPU on one data line. */
-    static CrateBlockEntity setup(GameTestHelper helper, int planks) {
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
-        crate.insert(new ItemStack(Items.OAK_PLANKS, planks), false);
+    static HeavyRackBlockEntity setup(GameTestHelper helper, int planks) {
+        MiniWarehouse.under(helper, CONTROLLER);
+        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, planks));
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         TerminalWiring.place(helper, ACCESS);
         for (BlockPos station : List.of(STATION_A, STATION_B)) {
             helper.setBlock(station, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
@@ -69,7 +67,7 @@ public final class StationHandsGameTests {
             helper.setBlock(CPU.offset(offset.x(), offset.y(), offset.z()), ServusStorageBlocks.CRAFTING_CPU.get().defaultBlockState());
         }
         helper.assertTrue(ServusStorageBlocks.CRAFTING_CPU.get().tryForm(helper.getLevel(), helper.absolutePos(CPU)), "the cube should form");
-        return crate;
+        return rack;
     }
 
     static DataNetwork line(GameTestHelper helper) {
@@ -217,8 +215,7 @@ public final class StationHandsGameTests {
     public static void cancelReturnsStationToIdle(GameTestHelper helper) {
         setup(helper, 0);
         TerminalWiring.when(helper, () -> ready(helper), 60, () -> "stations and CPU should join the line", () -> {
-            CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
-            crate.insert(new ItemStack(Items.OAK_PLANKS, 1), false);
+            MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 1));
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();

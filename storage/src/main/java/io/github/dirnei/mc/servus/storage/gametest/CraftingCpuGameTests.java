@@ -22,8 +22,10 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -51,7 +53,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Crafting CPUs on the data line. The warehouse is a controller at (2,1,2)
- * with crates west of it and a Packing Station at (2,1,3), a data duct on the
+ * and a Packing Station at (2,1,3) on rails at y 0, two racks west of those
+ * rails and a garage east of them, a data duct on the
  * Packing Station and the Storage Terminal on top. Data ducts run along y 2
  * from the Packing Station east to a Crafting Station at (4,1,2) and on to the
  * CPU cube at x 6 to 8, z 1 to 3; a second cube can stand at z 5 to 7.
@@ -61,8 +64,11 @@ public final class CraftingCpuGameTests {
     private static final String EMPTY = "empty_12x6x12";
     static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     static final BlockPos ACCESS = new BlockPos(2, 1, 3);
-    static final BlockPos CRATE_A = new BlockPos(1, 1, 2);
-    static final BlockPos CRATE_B = new BlockPos(1, 1, 3);
+    /** Two racks under the controller's row, facing the rails at y 0 that link the controller and the Packing Station. */
+    static final BlockPos RACK_A = new BlockPos(1, 0, 2);
+    static final BlockPos RACK_B = new BlockPos(1, 0, 3);
+    /** The garage east of the rail under the Packing Station, with one shuttle. */
+    static final BlockPos GARAGE = new BlockPos(3, 0, 3);
     static final BlockPos STATION = new BlockPos(4, 1, 2);
     static final BlockPos PATTERNS = new BlockPos(4, 3, 2);
     static final BlockPos CPU_A = new BlockPos(6, 1, 1);
@@ -110,9 +116,14 @@ public final class CraftingCpuGameTests {
     static void setup(GameTestHelper helper, boolean withCpu) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        for (BlockPos pos : List.of(CRATE_A, CRATE_B)) {
-            helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        for (BlockPos rail : List.of(CONTROLLER.below(), ACCESS.below())) {
+            TerminalWiring.rail(helper, rail);
         }
+        for (BlockPos pos : List.of(RACK_A, RACK_B)) {
+            helper.setBlock(pos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
+        }
+        helper.setBlock(GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.EAST));
+        helper.assertTrue(helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
         TerminalWiring.place(helper, ACCESS);
         sticksStation(helper);
         for (BlockPos pos : List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), new BlockPos(5, 2, 2))) {
@@ -133,12 +144,11 @@ public final class CraftingCpuGameTests {
         return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2))).orElseThrow();
     }
 
-    static CrateBlockEntity crate(GameTestHelper helper, BlockPos pos, Item item, int count) {
-        CrateBlockEntity crate = helper.getBlockEntity(pos, CrateBlockEntity.class);
+    static HeavyRackBlockEntity stock(GameTestHelper helper, BlockPos pos, Item item, int count) {
         if (count > 0) {
-            crate.insert(new ItemStack(item, count), false);
+            MiniWarehouse.stock(helper, pos, new ItemStack(item, count));
         }
-        return crate;
+        return helper.getBlockEntity(pos, HeavyRackBlockEntity.class);
     }
 
     private static RuleRow ruleRow(WarehouseNetwork network, Item item) {
@@ -199,7 +209,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 1000)
     public static void cpuOrderCraftsShortfallOverTheLine(GameTestHelper helper) {
         setup(helper, true);
-        CrateBlockEntity planks = crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
+        HeavyRackBlockEntity planks = stock(helper, RACK_A, Items.OAK_PLANKS, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
@@ -219,7 +229,7 @@ public final class CraftingCpuGameTests {
                             && cpu.book().orders().stream().noneMatch(WorkOrder::open), 900,
                     () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK) + " orders " + cpu.book().orders()
                             + " steps " + cpu.book().orders().get(0).steps().stream().map(st -> st.state() + "/" + st.reason()).toList(), () -> {
-                        helper.assertTrue(planks.count() == 6, "four planks should have been used, crate has " + planks.count());
+                        helper.assertTrue(MiniWarehouse.count(planks, Items.OAK_PLANKS) == 6, "four planks should have been used, rack has " + MiniWarehouse.count(planks, Items.OAK_PLANKS));
                         helper.assertTrue(cpu.book().orders().stream().noneMatch(WorkOrder::open), "the order should be done: " + cpu.book().orders());
                         helper.succeed();
                     });
@@ -248,7 +258,7 @@ public final class CraftingCpuGameTests {
         setup(helper, true);
         PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, StationJobs.planks());
-        CrateBlockEntity logs = crate(helper, CRATE_A, Items.OAK_LOG, 2);
+        HeavyRackBlockEntity logs = stock(helper, RACK_A, Items.OAK_LOG, 2);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
@@ -265,7 +275,7 @@ public final class CraftingCpuGameTests {
             TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 1300,
                     () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK) + " steps "
                             + cpu.book().orders().get(0).steps().stream().map(st -> st.state() + "/" + st.reason()).toList(), () -> {
-                        helper.assertTrue(logs.count() == 1, "one log should be left, crate has " + logs.count());
+                        helper.assertTrue(MiniWarehouse.count(logs, Items.OAK_LOG) == 1, "one log should be left, rack has " + MiniWarehouse.count(logs, Items.OAK_LOG));
                         helper.succeed();
                     });
         });
@@ -275,7 +285,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void cancelReleasesReservation(GameTestHelper helper) {
         setup(helper, true);
-        crate(helper, CRATE_A, Items.OAK_PLANKS, 4);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 4);
         helper.runAfterDelay(10, () -> {
             OrderBook book = cpu(helper, CPU_A).book();
             OrderBook.Created first = book.create(STICK, 8, 0);
@@ -344,7 +354,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void cpuUnformCancelsOrders(GameTestHelper helper) {
         setup(helper, true);
-        crate(helper, CRATE_A, Items.OAK_PLANKS, 4);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 4);
         helper.runAfterDelay(10, () -> {
             CpuBlockEntity cpu = cpu(helper, CPU_A);
             OrderBook.Created created = cpu.book().create(STICK, 8, 0);
@@ -361,8 +371,8 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 400)
     public static void noCpuLeavesShortfallMissing(GameTestHelper helper) {
         setup(helper, false);
-        crate(helper, CRATE_B, Items.STICK, 3);
-        crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
+        stock(helper, RACK_B, Items.STICK, 3);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
@@ -385,8 +395,8 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 1200)
     public static void stockRuleOrdersThroughCpu(GameTestHelper helper) {
         setup(helper, true);
-        crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
-        crate(helper, CRATE_B, Items.STICK, 2);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 10);
+        stock(helper, RACK_B, Items.STICK, 2);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = warehouse(helper);
             network.setStockRule(STICK, 8, 16);
@@ -408,7 +418,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 300)
     public static void stockRuleIgnoresWhenEnough(GameTestHelper helper) {
         setup(helper, true);
-        crate(helper, CRATE_B, Items.STICK, 10);
+        stock(helper, RACK_B, Items.STICK, 10);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = warehouse(helper);
             network.setStockRule(STICK, 8, 16);
@@ -443,8 +453,8 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 300)
     public static void stockRuleWithoutCpu(GameTestHelper helper) {
         setup(helper, false);
-        crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
-        crate(helper, CRATE_B, Items.STICK, 2);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 10);
+        stock(helper, RACK_B, Items.STICK, 2);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = warehouse(helper);
             network.setStockRule(STICK, 8, 16);
@@ -532,7 +542,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 1000)
     public static void sticksGoStraightToTerminal(GameTestHelper helper) {
         setup(helper, true);
-        crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         int[] stockedSticks = {0};
         helper.onEachTick(() -> {
@@ -563,7 +573,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 1000)
     public static void surplusIsPutAway(GameTestHelper helper) {
         setup(helper, true);
-        crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);
@@ -586,7 +596,7 @@ public final class CraftingCpuGameTests {
         setup(helper, true);
         PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, StationJobs.planks());
-        crate(helper, CRATE_A, Items.OAK_LOG, 2);
+        stock(helper, RACK_A, Items.OAK_LOG, 2);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         int[] seen = {0, 0};
         helper.onEachTick(() -> {
@@ -616,7 +626,7 @@ public final class CraftingCpuGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void deliverToSaved(GameTestHelper helper) {
         setup(helper, true);
-        crate(helper, CRATE_A, Items.OAK_PLANKS, 10);
+        stock(helper, RACK_A, Items.OAK_PLANKS, 10);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.runAfterDelay(10, () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);

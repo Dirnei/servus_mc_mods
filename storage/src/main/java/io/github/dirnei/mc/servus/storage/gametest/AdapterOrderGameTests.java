@@ -10,8 +10,9 @@ import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
@@ -31,9 +32,11 @@ public final class AdapterOrderGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
-    private static final BlockPos COBBLE_CRATE = new BlockPos(1, 1, 2);
-    private static final BlockPos COAL_CRATE = new BlockPos(2, 1, 1);
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
+    /** Racks west of the rails at y 0 under the controller and the Packing Station; the garage north of them. */
+    private static final BlockPos COBBLE_RACK = new BlockPos(1, 0, 2);
+    private static final BlockPos COAL_RACK = new BlockPos(1, 0, 3);
+    private static final BlockPos GARAGE = new BlockPos(2, 0, 1);
     private static final BlockPos ADAPTER = new BlockPos(4, 1, 3);
     private static final BlockPos FURNACE = new BlockPos(5, 1, 3);
     private static final BlockPos CPU = new BlockPos(6, 1, 1);
@@ -48,17 +51,20 @@ public final class AdapterOrderGameTests {
         setup(helper, new ItemStack(Items.COBBLESTONE, 16));
     }
 
-    /** The same line with {@code material} instead of cobblestone in the first crate. */
+    /** The same line with {@code material} instead of cobblestone in the first rack. */
     private static void setup(GameTestHelper helper, ItemStack material) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        for (BlockPos pos : List.of(COBBLE_CRATE, COAL_CRATE)) {
-            helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        for (BlockPos rail : List.of(CONTROLLER.below(), ACCESS.below())) {
+            TerminalWiring.rail(helper, rail);
         }
-        CrateBlockEntity cobble = helper.getBlockEntity(COBBLE_CRATE, CrateBlockEntity.class);
-        cobble.insert(material, false);
-        CrateBlockEntity coal = helper.getBlockEntity(COAL_CRATE, CrateBlockEntity.class);
-        coal.insert(new ItemStack(Items.COAL, 32), false);
+        for (BlockPos pos : List.of(COBBLE_RACK, COAL_RACK)) {
+            helper.setBlock(pos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
+        }
+        MiniWarehouse.stock(helper, COBBLE_RACK, material);
+        MiniWarehouse.stock(helper, COAL_RACK, new ItemStack(Items.COAL, 32));
+        helper.setBlock(GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.assertTrue(helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(FURNACE, Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
         helper.setBlock(ADAPTER, AdapterContent.BLOCK.get().defaultBlockState().setValue(MachineAdapterBlock.FACING, Direction.EAST));
@@ -119,7 +125,8 @@ public final class AdapterOrderGameTests {
         });
     }
 
-    private static final BlockPos SECOND_CRATE = new BlockPos(3, 1, 2);
+    /** A third rack east of the rail under the controller, facing it. */
+    private static final BlockPos SECOND_RACK = new BlockPos(3, 0, 2);
     private static final ItemKey CHARCOAL = ItemKey.of(new ItemStack(Items.CHARCOAL));
 
     /** Charcoal with only birch logs in stock runs on birch, not on the first log the furnace knows. */
@@ -145,9 +152,8 @@ public final class AdapterOrderGameTests {
     @ServusGameTest(timeoutTicks = 200)
     public static void charcoalPreviewSplitsLogs(GameTestHelper helper) {
         setup(helper, new ItemStack(Items.OAK_LOG, 6));
-        helper.setBlock(SECOND_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity birch = helper.getBlockEntity(SECOND_CRATE, CrateBlockEntity.class);
-        birch.insert(new ItemStack(Items.BIRCH_LOG, 4), false);
+        helper.setBlock(SECOND_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
+        MiniWarehouse.stock(helper, SECOND_RACK, new ItemStack(Items.BIRCH_LOG, 4));
         TerminalWiring.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
             TerminalWiring.when(helper, () -> CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10).missing().isEmpty(), 100,
                     () -> "nothing should be missing, got " + CpuOrders.preview(helper.getLevel(), line(helper), CHARCOAL, 10), () -> {

@@ -15,8 +15,6 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks;
@@ -51,7 +49,8 @@ public final class ProductionTerminalGameTests {
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
-    private static final BlockPos CRATE = new BlockPos(1, 1, 2);
+    /** The rack west of the rail under the controller. */
+    private static final BlockPos RACK = new BlockPos(1, 0, 2);
     private static final BlockPos STATION = new BlockPos(4, 1, 2);
     private static final BlockPos CPU = new BlockPos(6, 1, 1);
     private static final BlockPos TERMINAL = new BlockPos(5, 3, 2);
@@ -63,9 +62,7 @@ public final class ProductionTerminalGameTests {
     }
 
     private static void setup(GameTestHelper helper, boolean withCpu) {
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        MiniWarehouse.under(helper, CONTROLLER);
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
         CraftingStationBlockEntity station = helper.getBlockEntity(STATION, CraftingStationBlockEntity.class);
@@ -172,9 +169,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 600)
     public static void productionTerminalJobWording(GameTestHelper helper) {
         setup(helper, true);
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
-        crate.insert(new ItemStack(Items.OAK_PLANKS, 4), false);
-        helper.setBlock(new BlockPos(2, 1, 1), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 4));
         TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
@@ -240,8 +235,7 @@ public final class ProductionTerminalGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void productionTerminalCancelsOrder(GameTestHelper helper) {
         setup(helper, true);
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
-        crate.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
+        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 10));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
             CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);

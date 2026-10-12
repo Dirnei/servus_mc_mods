@@ -8,8 +8,6 @@ import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.storage.ServusStorageIds;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
@@ -40,9 +38,8 @@ public final class PatternResultGameTests {
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     private static final BlockPos PATTERNS = new BlockPos(4, 3, 2);
     private static final BlockPos LONE = new BlockPos(10, 1, 10);
-    /** Extra stock beside the controller: a quad crate and a crate. */
-    private static final BlockPos QUAD = new BlockPos(3, 1, 2);
-    private static final BlockPos BIRCH = new BlockPos(2, 1, 1);
+    /** The second rack of {@link StationHandsGameTests#setup}, for extra stock. */
+    private static final BlockPos EXTRA = new BlockPos(1, 0, 3);
     private static final Identifier RACK_RECIPE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "heavy_rack");
     private static final Identifier STORAGE_RECIPE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
 
@@ -84,13 +81,9 @@ public final class PatternResultGameTests {
         return ready(helper) && menu(helper, player).stock().entries().stream().anyMatch(entry -> entry.stack().is(item));
     }
 
-    /** Fills a quad crate beside the controller, one item per compartment. */
-    private static void quad(GameTestHelper helper, List<ItemStack> stacks) {
-        helper.setBlock(QUAD, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(QUAD, CrateBlockEntity.class);
-        for (ItemStack stack : stacks) {
-            crate.insert(stack, false);
-        }
+    /** Puts extra stock into the second rack. */
+    private static void extra(GameTestHelper helper, List<ItemStack> stacks) {
+        MiniWarehouse.stock(helper, EXTRA, stacks.toArray(ItemStack[]::new));
     }
 
     /** A saved rack pattern carries the wood of its oak planks. */
@@ -123,7 +116,7 @@ public final class PatternResultGameTests {
     @ServusGameTest(timeoutTicks = 1600)
     public static void rackRequestArrives(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
-        quad(helper, List.of(new ItemStack(Items.IRON_INGOT, 16)));
+        extra(helper, List.of(new ItemStack(Items.IRON_INGOT, 16)));
         PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, rack(new ItemStack(ServusStorageItems.HEAVY_RACK.get())));
         ItemKey rack = ItemKey.of(patterns.pattern(1).orElseThrow().result());
@@ -141,11 +134,9 @@ public final class PatternResultGameTests {
     @ServusGameTest(timeoutTicks = 1600)
     public static void woodBlockRequestArrives(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 16);
-        quad(helper, List.of(new ItemStack(Items.IRON_INGOT, 8), new ItemStack(Items.PAPER, 4),
+        extra(helper, List.of(new ItemStack(Items.IRON_INGOT, 8), new ItemStack(Items.PAPER, 4),
                 new ItemStack(Items.REDSTONE, 8), new ItemStack(Items.CHEST, 4)));
-        helper.setBlock(BIRCH, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity birch = helper.getBlockEntity(BIRCH, CrateBlockEntity.class);
-        birch.insert(new ItemStack(Items.BIRCH_PLANKS, 16), false);
+        extra(helper, List.of(new ItemStack(Items.BIRCH_PLANKS, 16)));
         PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, birchStorage());
         ItemStack expected = patterns.pattern(1).orElseThrow().result();

@@ -14,8 +14,9 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
+import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
@@ -52,7 +53,7 @@ public final class ChainHandoffGameTests {
                 .setValue(CraftingStationBlock.FACING, Direction.NORTH));
         PatternStorageBlockEntity patterns = helper.getBlockEntity(CraftingCpuGameTests.PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, StationJobs.planks());
-        CraftingCpuGameTests.crate(helper, CraftingCpuGameTests.CRATE_A, Items.OAK_LOG, 2);
+        CraftingCpuGameTests.stock(helper, CraftingCpuGameTests.RACK_A, Items.OAK_LOG, 2);
     }
 
     private static boolean twoProducers(GameTestHelper helper) {
@@ -71,6 +72,13 @@ public final class ChainHandoffGameTests {
             }
         });
         return seen;
+    }
+
+    /** Waits until a shuttle has put {@code count} sticks away, then succeeds. */
+    private static void putAway(GameTestHelper helper, int count) {
+        TerminalWiring.when(helper, () -> CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK) == count,
+                MiniWarehouse.TRIP_TICKS * 2, () -> count + " sticks should be put away, warehouse has "
+                        + CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK), helper::succeed);
     }
 
     private static String steps(WorkOrder order) {
@@ -98,9 +106,7 @@ public final class ChainHandoffGameTests {
                 helper.assertTrue(!steps.get(0).producer().equals(steps.get(1).producer()), "the steps should run on two stations");
                 helper.assertTrue(handed[0], "the planks step should hand off");
                 helper.assertTrue(planks[0] == 0, "no planks should enter the warehouse, saw " + planks[0]);
-                long sticks = CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK);
-                helper.assertTrue(sticks == 8, "eight sticks should be put away, warehouse has " + sticks);
-                helper.succeed();
+                putAway(helper, 8);
             });
         });
     }
@@ -111,17 +117,21 @@ public final class ChainHandoffGameTests {
         BlockPos controller = new BlockPos(2, 1, 2);
         helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        BlockPos cobbleCrate = new BlockPos(1, 1, 2);
-        BlockPos coalCrate = new BlockPos(2, 1, 1);
-        BlockPos spareCrate = new BlockPos(1, 1, 3);
-        for (BlockPos pos : List.of(cobbleCrate, coalCrate, spareCrate)) {
-            helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        }
-        CrateBlockEntity cobble = helper.getBlockEntity(cobbleCrate, CrateBlockEntity.class);
-        cobble.insert(new ItemStack(Items.COBBLESTONE, 16), false);
-        CrateBlockEntity coal = helper.getBlockEntity(coalCrate, CrateBlockEntity.class);
-        coal.insert(new ItemStack(Items.COAL, 32), false);
+        // Rails at y 0 under the controller and the Packing Station, two racks west of them, a garage north.
         BlockPos access = new BlockPos(2, 1, 3);
+        for (BlockPos rail : List.of(controller.below(), access.below())) {
+            TerminalWiring.rail(helper, rail);
+        }
+        BlockPos cobbleRack = new BlockPos(1, 0, 2);
+        BlockPos coalRack = new BlockPos(1, 0, 3);
+        for (BlockPos pos : List.of(cobbleRack, coalRack)) {
+            helper.setBlock(pos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
+        }
+        MiniWarehouse.stock(helper, cobbleRack, new ItemStack(Items.COBBLESTONE, 16));
+        MiniWarehouse.stock(helper, coalRack, new ItemStack(Items.COAL, 32));
+        BlockPos garagePos = new BlockPos(2, 0, 1);
+        helper.setBlock(garagePos, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
+        helper.assertTrue(helper.getBlockEntity(garagePos, ShuttleGarageBlockEntity.class).addShuttle(), "the garage takes a shuttle");
         TerminalWiring.place(helper, access);
         helper.setBlock(new BlockPos(5, 1, 3), Blocks.FURNACE.defaultBlockState().setValue(FurnaceBlock.FACING, Direction.SOUTH));
         helper.setBlock(new BlockPos(4, 1, 3), AdapterContent.BLOCK.get().defaultBlockState().setValue(MachineAdapterBlock.FACING, Direction.EAST));
@@ -176,9 +186,7 @@ public final class ChainHandoffGameTests {
             TerminalWiring.when(helper, () -> planks[0] > 0, 900, () -> "the planks should go to storage after the wait, " + steps(order), () -> {
                 second.release(owner);
                 TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 600, () -> "the order should finish, " + steps(order), () -> {
-                    long sticks = CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK);
-                    helper.assertTrue(sticks == 8, "eight sticks should be put away, warehouse has " + sticks);
-                    helper.succeed();
+                    putAway(helper, 8);
                 });
             });
         });
@@ -203,11 +211,9 @@ public final class ChainHandoffGameTests {
                 WorkOrder order = loaded.book().order(id);
                 helper.assertTrue(order != null, "the order should survive the reload");
                 TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 1300, () -> "the order should finish, " + steps(order), () -> {
-                    long sticks = CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK);
                     long planks = CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.PLANKS);
-                    helper.assertTrue(sticks == 8, "eight sticks should be put away, warehouse has " + sticks);
                     helper.assertTrue(planks == 0, "no planks should be left over in storage, has " + planks);
-                    helper.succeed();
+                    putAway(helper, 8);
                 });
             });
         });

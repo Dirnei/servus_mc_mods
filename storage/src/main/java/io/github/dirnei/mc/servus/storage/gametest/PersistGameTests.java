@@ -8,7 +8,6 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.ProductionLedger;
 import io.github.dirnei.mc.servus.storage.order.StepRef;
@@ -100,9 +99,6 @@ public final class PersistGameTests {
     @ServusGameTest(timeoutTicks = 1200)
     public static void orderFinishesAfterReload(GameTestHelper helper) {
         StationHandsGameTests.setup(helper, 8);
-        // A second crate beside the controller takes the crafted sticks; a compartment holds one item type.
-        helper.setBlock(new BlockPos(2, 1, 1), ServusStorageBlocks.CRATE.get().defaultBlockState()
-                .setValue(CrateBlock.FACING, Direction.NORTH));
         TerminalWiring.when(helper, () -> ready(helper) && planksIndexed(helper), 100,
                 () -> "stations, CPU and the planks should be on the line", () -> {
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, ACCESS);

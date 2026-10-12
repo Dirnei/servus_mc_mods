@@ -11,7 +11,6 @@ import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.menu.ProductionTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
@@ -49,7 +48,6 @@ public final class PatternGameTests {
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
-    private static final BlockPos CRATE = new BlockPos(1, 1, 2);
     private static final BlockPos STATION = new BlockPos(4, 1, 2);
     private static final BlockPos CPU = new BlockPos(6, 1, 1);
     private static final BlockPos TERMINAL = new BlockPos(5, 3, 2);
@@ -62,9 +60,7 @@ public final class PatternGameTests {
     }
 
     private static void setup(GameTestHelper helper, boolean withCpu, boolean twoStorages) {
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        MiniWarehouse.under(helper, CONTROLLER);
         TerminalWiring.place(helper, ACCESS);
         helper.setBlock(STATION, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
         for (BlockPos pos : List.of(new BlockPos(3, 2, 3), new BlockPos(4, 2, 3), new BlockPos(4, 2, 2), DUCT)) {
