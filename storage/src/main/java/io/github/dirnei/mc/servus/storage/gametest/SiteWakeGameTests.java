@@ -41,7 +41,7 @@ public final class SiteWakeGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
-    /** A rail east of the controller and a rack east of the rail, facing it. */
+    /** For the stock test: a rail east of the controller and a rack east of the rail, facing it. */
     private static final BlockPos RAIL = new BlockPos(3, 1, 2);
     private static final BlockPos RACK = new BlockPos(4, 1, 2);
     /** Every wake test runs with the same short grace time, set by each test because tests of a batch run at once. */
@@ -61,9 +61,6 @@ public final class SiteWakeGameTests {
         for (int i = 0; i < upgrades; i++) {
             controller.upgrades().insertItem(i, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()), false);
         }
-        helper.setBlock(RAIL.below(), Blocks.STONE.defaultBlockState());
-        TerminalWiring.rail(helper, RAIL);
-        helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
         return controller;
     }
 
@@ -88,6 +85,9 @@ public final class SiteWakeGameTests {
     public static void recordKeepsNameSpanAndStock(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setSiteSnapshotInterval(5);
         WarehouseControllerBlockEntity controller = site(helper, UUID.randomUUID(), 0);
+        helper.setBlock(RAIL.below(), Blocks.STONE.defaultBlockState());
+        TerminalWiring.rail(helper, RAIL);
+        helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
         MiniWarehouse.stock(helper, RACK, new ItemStack(Items.IRON_INGOT, 40));
         controller.setSiteName("Iron Outpost");
         // The rack may stand in the next chunk, so the span is compared, not counted.

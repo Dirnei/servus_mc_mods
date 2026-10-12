@@ -49,8 +49,8 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
  * The warehouse's door to the data line and its only throughput limit. Items
  * that arrive over the line land in the inherited intake buffer (To storage)
  * and are put away like at an Inbound Station; the outgoing buffer (To
- * network) receives shuttle and instant picks for shipments and sends them on,
- * one delivery at a time. As a {@link TransferGate} it converts at most
+ * network) receives what shuttles pick from the racks for shipments and sends
+ * it on, one delivery at a time. As a {@link TransferGate} it converts at most
  * {@code items_per_second} per direction, the two directions independent.
  */
 public class PackingStationBlockEntity extends InboundStationBlockEntity implements DeliveryTarget, DataLink, TransferGate {
@@ -273,15 +273,6 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
         toStorage.tick();
         toNetwork.tick();
-    }
-
-    /** How many of up to {@code max} items like the key the To network buffer has room for. */
-    public int outgoingRoom(ItemKey key, int max) {
-        if (max <= 0) {
-            return 0;
-        }
-        ItemStack probe = key.stack(max);
-        return max - outgoing.insertItemStacked(probe, true).getCount();
     }
 
     // Menu
