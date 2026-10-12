@@ -52,6 +52,18 @@ JUnit for `EyeMotion` (D2). GameTests cannot see the renderer; the existing load
 
 PLAN.md open decisions settled: none.
 
+## Decisions made during apply
+
+Recorded on 2026-10-12 while applying, where the code differs from or adds to the decisions above:
+
+- **Blink schedule.** Time is cut into windows of 6 s; each window holds one blink starting at a point in its first 3 s picked from a hash of the seed (the block position) and the window number, so blinks come 3 to 9 s apart and the lid at any time is computed from two windows without walking the schedule from time 0. A blink lasts 0.15 s, closing and opening in a triangle. `EyeMotion.lid(openness, blink)` is `1 - openness * (1 - blink)`.
+- **Iris.** `EyeMotion.iris(dx, dy, dz, quarters)` takes the facing as quarter turns from north (the blockstate's), turns the offset back into the north built frame and gives the iris offset in the model's x and y, `IRIS_RADIUS * offset / distance`. The radius is 1.0 px instead of 1.5: the iris quad is 4 px in a 6 px lens, so 1 px is the most that stays inside it. The renderer eases the iris at rate 8 per second. The player is looked up with `Level#getNearestPlayer(x, y, z, 8, false)` from the front centre of the block (checked with `javap` on `EntityGetter`).
+- **Renderer.** `EnderAnchorRenderer` draws on `Sheets.cutoutBlockSheet()` with the `chunk_loader_eye` sprite from the block atlas: the lens (u, v 0..6), the iris (u 8..12, v 0..4) and two lid strips whose edge rows show as they close (upper strip v 8..11, lower v 12..15), each layer 1/256 further out of the front. While the eye is fully shut it draws nothing, so the shut lid painted into `chunk_loader_front` shows, which is also what the item shows. The eye state lives in a small client only `machine/loader/EyeView` kept on `ChunkLoaderBlockEntity` (`eyeView()`); frame steps are capped at a quarter second. Light comes from the block in front of the face.
+- **Textures.** `chunk_loader_eye.png` holds the lens with a dark rim, the iris with a 2 px pupil and the two lid strips, drawn to match the painted shut lid so a blink looks the same as a closed eye. The top's purple core and side marks brighten while lit. The unused `MachineDataParts.machine` helper is gone; the loader has its own `chunkLoader` datagen and the lit variant only swaps the top.
+- **Particles.** One `PORTAL` particle in 3 client ticks on average while lit, from one of the four upper corners of the block outward, like the ender chest.
+- **Test.** `chunkLoaderLitFollowsActive` sits in `MachineGameTests` next to the existing loader test: one more powered loader than the team cap, all owned by one team, plus an unpowered loader of another team; exactly the cap is lit, `LIT` equals the active status on each, and the unpowered one is not lit.
+- **Task 6.1.** Build, unit tests and the Foundation, Manufacturing and Storage GameTests are green; the client launch and the play check are left to the user from the main checkout.
+
 ## Risks / Trade-offs
 
 - [Renderer cost] One small renderer per loader; loaders are capped per team (default 4), so few exist.
