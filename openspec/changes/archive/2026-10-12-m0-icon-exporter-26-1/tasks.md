@@ -13,4 +13,4 @@
 
 ## 3. Check
 
-- [ ] 3.1 User looks at the icons in the docs Balance lab and recipe graph.
+- [x] 3.1 User looks at the icons in the docs Balance lab and recipe graph.
