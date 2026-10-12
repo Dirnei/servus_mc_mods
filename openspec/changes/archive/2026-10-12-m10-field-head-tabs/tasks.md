@@ -19,4 +19,4 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Play check by the user: the GUI opens on the Field tab, each tab shows its page with the inventory below, honeycomb and Range Upgrades shift click into their slots from any tab, a dry or corroded field marks the Water tab red, a warning work status marks the Field tab red.
+- [x] 5.1 Play check by the user: the GUI opens on the Field tab, each tab shows its page with the inventory below, honeycomb and Range Upgrades shift click into their slots from any tab, a dry or corroded field marks the Water tab red, a warning work status marks the Field tab red.

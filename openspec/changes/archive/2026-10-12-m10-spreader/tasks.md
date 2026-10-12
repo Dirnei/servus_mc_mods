@@ -33,4 +33,4 @@
 
 ## 8. Verification
 
-- [ ] 8.1 Play check by the user: craft a Spreader, fit it in the workshop and see the hopper box on the shuttle; the Fertilizer tab picks bone meal with stock counts, sets the modes, threshold and reserve and shows the status and red marker; after planting, the Spreader picks bone meal above the reserve, doses the new crops (particles, growth), puts the rest away and parks; Until ripe share stops at the threshold; stock at the reserve keeps it home.
+- [x] 8.1 Play check by the user: craft a Spreader, fit it in the workshop and see the hopper box on the shuttle; the Fertilizer tab picks bone meal with stock counts, sets the modes, threshold and reserve and shows the status and red marker; after planting, the Spreader picks bone meal above the reserve, doses the new crops (particles, growth), puts the rest away and parks; Until ripe share stops at the threshold; stock at the reserve keeps it home.

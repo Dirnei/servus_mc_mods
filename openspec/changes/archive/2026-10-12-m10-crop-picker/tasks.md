@@ -25,4 +25,4 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Play check by the user: the Field tab shows the picker button with the crop or "None, harvest only"; the list opens, scrolls, searches, lists modded crops, shows warehouse counts that update while open, greys zero stock entries with the hint; choosing a crop or harvest only sets it without the item in the inventory; the top plate shows the new crop.
+- [x] 6.1 Play check by the user: the Field tab shows the picker button with the crop or "None, harvest only"; the list opens, scrolls, searches, lists modded crops, shows warehouse counts that update while open, greys zero stock entries with the hint; choosing a crop or harvest only sets it without the item in the inventory; the top plate shows the new crop.
