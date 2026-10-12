@@ -589,6 +589,40 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
+    /** A look at the crown picks it as the client does; the click lays the item on and takes the result, in both game modes. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void athanorCrownByLook(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        BlockPos crown = helper.absolutePos(MACHINE.above());
+        for (GameType gameType : new GameType[] {GameType.SURVIVAL, GameType.CREATIVE}) {
+            athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_INPUT, ItemStack.EMPTY);
+            net.minecraft.server.level.ServerPlayer player = PlayerClicks.player(helper, MACHINE, new ItemStack(Items.GUNPOWDER, 2), gameType);
+            BlockHitResult hit = PlayerClicks.lookAndUse(helper, player, Vec3.atCenterOf(crown));
+            helper.assertTrue(hit.getBlockPos().equals(crown), gameType + ": the look picks the crown, not " + hit.getBlockPos() + " " + hit.getType());
+            helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).is(Items.GUNPOWDER),
+                    gameType + ": a click on the crown lays the item on the Athanor");
+            athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_OUTPUT, new ItemStack(Items.BLAZE_POWDER, 2));
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            PlayerClicks.lookAndUse(helper, player, Vec3.atCenterOf(crown));
+            helper.assertTrue(player.getInventory().countItem(Items.BLAZE_POWDER) == 2, gameType + ": an empty hand on the crown takes the result");
+        }
+        helper.succeed();
+    }
+
+    /** The Villach chapter advancement unlocks the journal's Villach research node, which opens Schwaz and the Albedo entries. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void villachAdvancementUnlocksTheResearchNode(GameTestHelper helper) {
+        net.minecraft.server.level.ServerPlayer player = PlayerClicks.player(helper, MACHINE, ItemStack.EMPTY);
+        Identifier node = Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "journal/villach");
+        var research = com.klikli_dev.modonomicon.research.ResearchServices.state();
+        helper.assertFalse(research.isNodeUnlocked(player, node), "the Villach node starts locked");
+        AdvancementHolder villach = helper.getLevel().getServer().getAdvancements().get(Journal.advancementId(ServusManufacturingIds.MOD_ID + ":villach"));
+        helper.assertTrue(villach != null, "the Villach chapter advancement exists");
+        villach.value().criteria().keySet().forEach(criterion -> player.getAdvancements().award(villach, criterion));
+        helper.assertTrue(research.isNodeUnlocked(player, node), "the Villach advancement unlocks the Villach node");
+        helper.succeed();
+    }
+
     /** Breaking the crown breaks the Athanor below. */
     @ServusGameTest(timeoutTicks = 20)
     public static void breakingTheCrownBreaksTheAthanor(GameTestHelper helper) {
