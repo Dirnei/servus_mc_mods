@@ -30,11 +30,13 @@ import net.minecraft.resources.Identifier;
  * @param capable  whether the controller is wireless capable
  * @param hint     why the sites panel lists nothing: {@link #HINT_NONE}, {@link #HINT_NO_UPGRADE} or {@link #HINT_NO_POWER}
  * @param needs    FE the controller needs for wireless, shown with {@link #HINT_NO_POWER}
+ * @param used     FE the warehouse drew during the last second
+ * @param noPower  whether the warehouse is in the no power state
  * @param sites    the other sites in the dimension, empty while the controller is not wireless capable
  */
 public record SiteStatusPayload(String name, String title, int online, Component summary, List<Long> chunks, long home,
                                 int upgrades, int capacity, int state, Component wake, boolean wakeAlert,
-                                int energy, int energyCapacity, boolean capable, int hint, long needs,
+                                int energy, int energyCapacity, boolean capable, int hint, long needs, long used, boolean noPower,
                                 List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites) implements CustomPacketPayload {
 
     public static final int HINT_NONE = 0;
@@ -48,7 +50,7 @@ public record SiteStatusPayload(String name, String title, int online, Component
             StreamCodec.ofMember(SiteStatusPayload::write, SiteStatusPayload::read);
 
     public static final SiteStatusPayload EMPTY =
-            new SiteStatusPayload("", "", 1, Component.empty(), List.of(), 0L, 0, 0, 0, Component.empty(), false, 0, 0, false, HINT_NONE, 0L,
+            new SiteStatusPayload("", "", 1, Component.empty(), List.of(), 0L, 0, 0, 0, Component.empty(), false, 0, 0, false, HINT_NONE, 0L, 0L, false,
                     List.of());
 
     public SiteCapacity.State capacityState() {
@@ -74,6 +76,8 @@ public record SiteStatusPayload(String name, String title, int online, Component
         buf.writeBoolean(capable);
         buf.writeVarInt(hint);
         buf.writeVarLong(needs);
+        buf.writeVarLong(Math.max(0, used));
+        buf.writeBoolean(noPower);
         List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sent = sites.subList(0, Math.min(sites.size(), 256));
         buf.writeVarInt(sent.size());
         sent.forEach(row -> io.github.dirnei.mc.servus.storage.terminal.SiteRow.STREAM_CODEC.encode(buf, row));
@@ -100,13 +104,15 @@ public record SiteStatusPayload(String name, String title, int online, Component
         boolean capable = buf.readBoolean();
         int hint = buf.readVarInt();
         long needs = buf.readVarLong();
+        long used = buf.readVarLong();
+        boolean noPower = buf.readBoolean();
         int siteCount = Math.min(buf.readVarInt(), 256);
         List<io.github.dirnei.mc.servus.storage.terminal.SiteRow> sites = new ArrayList<>(siteCount);
         for (int i = 0; i < siteCount; i++) {
             sites.add(io.github.dirnei.mc.servus.storage.terminal.SiteRow.STREAM_CODEC.decode(buf));
         }
         return new SiteStatusPayload(name, title, online, summary, chunks, home, upgrades, capacity, state, wake, wakeAlert,
-                energy, energyCapacity, capable, hint, needs, sites);
+                energy, energyCapacity, capable, hint, needs, used, noPower, sites);
     }
 
     @Override

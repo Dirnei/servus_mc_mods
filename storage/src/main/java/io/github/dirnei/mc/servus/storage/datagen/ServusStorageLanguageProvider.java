@@ -132,8 +132,11 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.controller.wireless.tooltip",
                 "A Wireless Upgrade makes this controller the site's antenna. With power it trades with other sites; Packing Stations pack and unpack");
         add("gui.servus_storage.controller.energy", "%s / %s FE");
+        add("gui.servus_storage.controller.energy_use", "%s / %s FE, using %s FE/s");
+        add("gui.servus_storage.controller.no_power", "No power: the warehouse's automation waits");
         add("gui.servus_storage.controller.energy.tooltip",
-                "FE stored. Feed the controller through a power line. Wireless transfers this site receives are paid from it");
+                "FE stored and FE used during the last second. Feed the controller through a power line. "
+                        + "Shuttles, wakes, Crafting Stations and the wireless transfers this site receives are paid from it");
         add("gui.servus_storage.controller.sites.no_upgrade", "Insert a Wireless Upgrade to trade with other sites");
         add("gui.servus_storage.controller.sites.no_power", "Needs %s FE for wireless");
         add("gui.servus_storage.controller.name", "Site name");

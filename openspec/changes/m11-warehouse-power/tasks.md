@@ -9,7 +9,7 @@
 
 - [x] 2.1 `storage/src/main/resources/data/servus_storage/storage/power.json` (`shuttle_fe_per_block`, `wake_fe_per_chunk_per_tick`, `crafting_station_fe_per_tick`), `stats/StorageStatsManager.java` (read with defaults, GameTest setters). Run `gradlew build`.
 - [x] 2.2 `controller/ControllerEnergy.java` (`draw`, `noPower`, use per second through `PowerBudget`), `WarehouseControllerBlockEntity.java` (lamp red on no power, flip refreshes lamp and status), wireless spend through `draw`, `network/WarehouseNetwork.java` (`power()` access for consumers, summary line). Run `gradlew build`.
-- [ ] 2.3 `controller/SiteStatusPayload.java` (use, no power), `client/WarehouseControllerScreen.java` (use next to FE, red no power line, which red applies), lang via `datagen/ServusStorageLanguageProvider.java`. Run `gradlew :storage:runData`, then `gradlew build`.
+- [x] 2.3 `controller/SiteStatusPayload.java` (use, no power), `client/WarehouseControllerScreen.java` (use next to FE, red no power line, which red applies), lang via `datagen/ServusStorageLanguageProvider.java`. Run `gradlew :storage:runData`, then `gradlew build`.
 - [ ] 2.4 `gametest/PowerFixtures.java` (fill a controller's buffer) and every existing Storage GameTest that runs shuttles, wakes or Crafting Stations calls it (grep `gametest/` for garages, `SiteWakes` and Crafting Stations). Run `gradlew :storage:runGameTestServer`; all storage GameTests green before the consumers start paying.
 
 ## 3. Consumers

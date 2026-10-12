@@ -313,9 +313,13 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             }
         }
         energyLineY = y;
-        y = lines(graphics, Component.translatable("gui.servus_storage.controller.energy",
-                String.format(java.util.Locale.ROOT, "%,d", status.energy()), String.format(java.util.Locale.ROOT, "%,d", status.energyCapacity())),
-                y, status.capable() || status.hint() != SiteStatusPayload.HINT_NO_POWER ? COLOUR_TEXT : COLOUR_BAD);
+        y = lines(graphics, Component.translatable("gui.servus_storage.controller.energy_use",
+                String.format(java.util.Locale.ROOT, "%,d", status.energy()), String.format(java.util.Locale.ROOT, "%,d", status.energyCapacity()),
+                String.format(java.util.Locale.ROOT, "%,d", status.used())),
+                y, !status.noPower() && (status.capable() || status.hint() != SiteStatusPayload.HINT_NO_POWER) ? COLOUR_TEXT : COLOUR_BAD);
+        if (status.noPower()) {
+            y = lines(graphics, Component.translatable("gui.servus_storage.controller.no_power"), y, COLOUR_BAD);
+        }
         if (!status.wake().getString().isEmpty()) {
             lines(graphics, status.wake(), y, status.wakeAlert() ? COLOUR_BAD : COLOUR_TEXT);
         }

@@ -184,7 +184,8 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         return new SiteStatusPayload(controller.siteName(), controller.displayName(), online, summary,
                 new ArrayList<>(controller.span()), controller.homeChunk(), controller.upgrades().count(), controller.capacity(),
                 controller.siteState().ordinal(), controller.wakeLine(), controller.wakeAlert(), controller.energyStored(),
-                controller.energy().capacity(), capable, hint, needs, capable ? sites(controller) : List.of());
+                controller.energy().capacity(), capable, hint, needs, controller.usedLastSecond(),
+                online == 0 && controller.noPower(), capable ? sites(controller) : List.of());
     }
 
     /** The other sites of the controller's owner in its dimension, by name. */
