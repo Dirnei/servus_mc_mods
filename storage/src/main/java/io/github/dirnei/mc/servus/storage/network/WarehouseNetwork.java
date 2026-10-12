@@ -1,7 +1,5 @@
 package io.github.dirnei.mc.servus.storage.network;
 
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.graph.NodePos;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.network.Conversions;
@@ -17,7 +15,6 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.shuttle.RequestPlan;
 import io.github.dirnei.mc.servus.storage.site.SiteChunks;
 import java.util.function.Predicate;
-import io.github.dirnei.mc.servus.storage.index.CandidateNeighbours;
 import io.github.dirnei.mc.servus.storage.index.WarehouseIndex;
 import io.github.dirnei.mc.servus.storage.shuttle.PickJob;
 import io.github.dirnei.mc.servus.storage.shuttle.PutAwayJob;
@@ -66,14 +63,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
- * One connected set of storage blocks plus the inventories touching them.
- * Keeps an index of everything they hold, refreshed in batches, and offers
- * extract and insert over all of it.
+ * One connected set of storage blocks. Keeps an index of everything its own
+ * racks hold, refreshed in batches; inventories touching a member are never
+ * indexed. Every pick and put-away runs through racks and shuttles.
  */
 public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity, WarehouseEvent> implements ShuttleFleet.Host {
 
@@ -112,29 +107,23 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         };
     }
 
-    /** An indexed block: a node read through {@link StorageNodeBlockEntity#stock()}, or a foreign inventory through its cache. */
-    private record Source(BlockPos pos, boolean node, BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> cache) {
+    /** An indexed member, read through {@link StorageNodeBlockEntity#stock()}. */
+    private record Source(BlockPos pos) {
     }
 
-    /** The slots of a source: the node's own stock, or a foreign inventory's item capability. */
+    /** The slots of a source, or null when its chunk is not loaded or it holds no stock. */
     private ItemView handlerOf(Source source) {
-        if (source == null) {
-            return null;
-        }
-        if (source.node()) {
-            return loaded(source.pos()) instanceof StorageNodeBlockEntity node ? node.stock() : null;
-        }
-        return source.cache() == null ? null : ItemView.of(source.cache().getCapability());
+        return source != null && loaded(source.pos()) instanceof StorageNodeBlockEntity node ? node.stock() : null;
     }
 
     private final Map<BlockPos, Source> sources = new LinkedHashMap<>();
-    /** Members that hold no stock, such as rails. Never sources, never surrounded by candidates. */
+    /** Members that hold no stock, such as rails. Never sources. */
     private final Set<BlockPos> connectors = new HashSet<>();
     /** Elevator segments, a subset of the connectors; grouped into shafts on the tick after a change. */
     private final Set<NodePos> elevators = new HashSet<>();
     private Map<NodePos, Shaft> shaftFloors = Map.of();
     private boolean shaftsDirty;
-    /** The zone each zoned stock node carries. Unzoned nodes and foreign inventories are absent. */
+    /** The zone each zoned stock node carries. Unzoned nodes are absent. */
     private final Map<BlockPos, ZoneDefinition> zoneOf = new LinkedHashMap<>();
     /** Set when a zone or rule changed; stations with waiting stacks retry on the next tick. */
     private boolean zonesDirty;
@@ -166,8 +155,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private int outboundTimer;
     private int fieldTimer;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
-    /** Foreign inventories that answered with an item handler: they count for the site's chunk span. */
-    private final Set<BlockPos> indexedForeign = new HashSet<>();
     /** Set by every membership or source change; the controller's span is recomputed once on the next tick. */
     private boolean spanDirty = true;
     private int snapshotTimer;
@@ -189,22 +176,19 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         level = server;
         BlockPos blockPos = Conversions.toBlockPos(pos);
         if (node.holdsStock()) {
-            addSource(blockPos, true);
-            addCandidatesAround(blockPos);
+            if (node.stock() != null) {
+                addSource(blockPos);
+            }
             rememberZone(blockPos, node);
             // A new storage block may give waiting stacks a place to go.
             zonesDirty = true;
         } else if (node.kind() == WarehouseConnectionRule.NodeKind.STATION) {
-            // A stock neighbour may have listed this position as a candidate inventory; the buffer is never stock.
-            dropSource(blockPos);
             stations.add(blockPos);
             pendingStations.add(blockPos);
         } else if (node instanceof ShuttleGarageBlockEntity garage) {
-            dropSource(blockPos);
             garages.add(blockPos);
             fleet.adoptGarage(blockPos, garage.slots(), garage.isActive());
         } else {
-            dropSource(blockPos);
             connectors.add(blockPos);
             if (node.kind() == WarehouseConnectionRule.NodeKind.ELEVATOR) {
                 elevators.add(pos);
@@ -248,7 +232,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         lampsDirty = true;
         spanDirty = true;
         wirelessDirty |= node instanceof io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity;
-        rebuildCandidates();
         fleet.refreshHomes();
     }
 
@@ -275,14 +258,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         that.deferred.clear();
         zoneOf.putAll(that.zoneOf);
         that.sources.forEach((pos, source) -> {
-            if (!sources.containsKey(pos) || source.node()) {
-                sources.put(pos, source);
-                index.update(pos, that.index.snapshot(pos));
-            }
+            sources.put(pos, source);
+            index.update(pos, that.index.snapshot(pos));
         });
         pollOrderStale = true;
         lampsDirty = true;
-        indexedForeign.addAll(that.indexedForeign);
         spanDirty = true;
         wirelessDirty = true;
         fleet.absorb(that.fleet);
@@ -395,7 +375,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         Set<BlockPos> general = new LinkedHashSet<>();
         for (Source source : sources.values()) {
             ZoneDefinition zone = zoneOf.get(source.pos());
-            if ((zone == null || zone.filter().isEmpty()) && (source.node() || !index.isEmptySource(source.pos()))) {
+            if (zone == null || zone.filter().isEmpty()) {
                 general.add(source.pos());
             }
         }
@@ -1080,61 +1060,23 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         dirtyQueue.clear();
         dirtySet.clear();
         pollOrder.clear();
-        indexedForeign.clear();
         controllers = 0;
     }
 
-    private void addSource(BlockPos pos, boolean node) {
-        // Storage blocks join as members or not at all, never as foreign inventories (a rack without a front rail).
-        // Doors into the warehouse such as the Storage Terminal are no storage at all.
-        if (!node && (loaded(pos) instanceof StorageNodeBlockEntity || loaded(pos) instanceof NoStock)) {
-            return;
+    private void addSource(BlockPos pos) {
+        if (!sources.containsKey(pos)) {
+            sources.put(pos, new Source(pos));
+            pollOrderStale = true;
         }
-        Source existing = sources.get(pos);
-        if (existing != null && existing.node() == node) {
-            markDirty(pos);
-            return;
-        }
-        sources.put(pos, new Source(pos, node, node ? null : BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, pos, null)));
-        pollOrderStale = true;
         markDirty(pos);
     }
 
     private void dropSource(BlockPos pos) {
         if (sources.remove(pos) != null) {
-            if (indexedForeign.remove(pos)) {
-                spanDirty = true;
-            }
             index.remove(pos);
             dirtySet.remove(pos);
             pollOrderStale = true;
         }
-    }
-
-    private void addCandidatesAround(BlockPos nodePos) {
-        if (connectors.contains(nodePos) || !pullsAround(nodePos)) {
-            return;
-        }
-        for (Direction direction : Direction.values()) {
-            BlockPos neighbour = nodePos.relative(direction);
-            if (connectors.contains(neighbour) || stations.contains(neighbour) || garages.contains(neighbour)) {
-                continue;
-            }
-            if (!sources.containsKey(neighbour)) {
-                addSource(neighbour, false);
-            } else {
-                markDirty(neighbour);
-            }
-        }
-    }
-
-    /** Whether the member at that position pulls the inventories touching it in; racks do not. */
-    private boolean pullsAround(BlockPos pos) {
-        Optional<StorageNodeBlockEntity> member = owner().graph().node(Conversions.toNodePos(pos));
-        if (member.isPresent()) {
-            return member.get().pullsNeighbours();
-        }
-        return !(loaded(pos) instanceof StorageNodeBlockEntity node) || node.pullsNeighbours();
     }
 
     /**
@@ -1146,41 +1088,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return level != null && level.isLoaded(pos) ? level.getBlockEntity(pos) : null;
     }
 
-    /** Candidates are the neighbours of the remaining stock holding members that are not members. */
-    private void rebuildCandidates() {
-        Set<NodePos> memberPositions = new HashSet<>(members());
-        Set<NodePos> connectorPositions = new HashSet<>();
-        for (BlockPos connector : connectors) {
-            connectorPositions.add(Conversions.toNodePos(connector));
-        }
-        for (BlockPos station : stations) {
-            connectorPositions.add(Conversions.toNodePos(station));
-        }
-        for (BlockPos garage : garages) {
-            connectorPositions.add(Conversions.toNodePos(garage));
-        }
-        for (NodePos member : memberPositions) {
-            if (!pullsAround(Conversions.toBlockPos(member))) {
-                connectorPositions.add(member);
-            }
-        }
-        Set<BlockPos> wanted = new LinkedHashSet<>();
-        for (NodePos pos : CandidateNeighbours.compute(memberPositions, connectorPositions)) {
-            wanted.add(Conversions.toBlockPos(pos));
-        }
-        for (BlockPos pos : new ArrayList<>(sources.keySet())) {
-            Source source = sources.get(pos);
-            if (!source.node() && !wanted.contains(pos)) {
-                dropSource(pos);
-            }
-        }
-        for (BlockPos pos : wanted) {
-            if (!sources.containsKey(pos)) {
-                addSource(pos, false);
-            }
-        }
-    }
-
     // Events and polling
 
     @Override
@@ -1188,10 +1095,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (event instanceof WarehouseEvent.Dirty dirty) {
             if (sources.containsKey(dirty.pos())) {
                 markDirty(dirty.pos());
-            }
-        } else if (event instanceof WarehouseEvent.NeighborsChanged changed) {
-            if (sources.containsKey(changed.pos())) {
-                addCandidatesAround(changed.pos());
             }
         } else if (event instanceof WarehouseEvent.OutputChanged output) {
             retryHeld(output.pos());
@@ -1571,9 +1474,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     }
 
     /**
-     * Hands the controller the chunks its site spans: every member and every
-     * indexed foreign inventory of this network, merged with the chunks it knew
-     * that are not loaded. In memory only, no block is looked at.
+     * Hands the controller the chunks its site spans: every member of this
+     * network, merged with the chunks it knew that are not loaded. In memory
+     * only, no block is looked at.
      */
     private void updateSpan() {
         if (!(loaded(controllerPos) instanceof WarehouseControllerBlockEntity controller)) {
@@ -1583,9 +1486,6 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         Set<Long> current = new LinkedHashSet<>();
         for (NodePos member : members()) {
             current.add(SiteChunks.ofBlock(member.x(), member.z()));
-        }
-        for (BlockPos pos : indexedForeign) {
-            current.add(SiteChunks.ofBlock(pos.getX(), pos.getZ()));
         }
         controller.setSpan(SiteChunks.merge(controller.span(), current,
                 key -> level.getChunkSource().hasChunk(SiteChunks.x(key), SiteChunks.z(key))));
@@ -1686,23 +1586,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     private void poll(BlockPos pos) {
         Source source = sources.get(pos);
-        if (!source.node() && (loaded(pos) instanceof StorageNodeBlockEntity || loaded(pos) instanceof NoStock)) {
-            // Added while its chunk was not loaded: storage blocks join as members or not at all, terminals never.
-            dropSource(pos);
-            return;
-        }
         ItemView handler = handlerOf(source);
         long before = total(index.snapshot(pos));
         if (handler == null) {
-            if (source.node()) {
-                index.remove(pos);
-            } else {
-                dropSource(pos);
-            }
+            index.remove(pos);
             return;
-        }
-        if (!source.node() && indexedForeign.add(pos)) {
-            spanDirty = true;
         }
         Map<ItemKey, Integer> snapshot = new HashMap<>();
         for (int slot = 0; slot < handler.getSlots(); slot++) {

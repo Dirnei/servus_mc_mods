@@ -98,12 +98,6 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
     }
 
     /** Chunk Loader Upgrades drop when the controller goes. */
-    @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
-                                   boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
-        StorageNodeBlockEntity.neighborsChanged(level, pos);
-    }
 
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {

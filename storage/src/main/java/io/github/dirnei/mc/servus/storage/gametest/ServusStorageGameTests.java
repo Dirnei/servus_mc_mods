@@ -1057,6 +1057,36 @@ public final class ServusStorageGameTests {
         });
     }
 
+    /** A chest touching the controller is no stock and no put-away target. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void chestBesideControllerIsNotStock(GameTestHelper helper) {
+        MiniWarehouse warehouse = MiniWarehouse.build(helper, new BlockPos(3, 1, 5), false);
+        BlockPos chestPos = warehouse.controllerPos().east();
+        helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
+        helper.getBlockEntity(chestPos, ChestBlockEntity.class).setItem(0, new ItemStack(Items.BREAD, 30));
+        helper.runAfterDelay(20, () -> {
+            WarehouseNetwork network = warehouse.network();
+            helper.assertTrue(network.index().count(ItemKey.of(new ItemStack(Items.BREAD))) == 0, "bread beside the controller is not stock");
+            helper.assertTrue(network.sourceCount() == 1, "only the rack is a source, got " + network.sourceCount());
+            helper.assertTrue(network.putAwayTarget(new ItemStack(Items.BREAD, 5), pos -> true).filter(pos -> pos.equals(helper.absolutePos(chestPos))).isEmpty(),
+                    "the chest is no put-away target");
+            helper.succeed();
+        });
+    }
+
+    /** A chest touching a rack is no stock either. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void chestBesideRackIsNotStock(GameTestHelper helper) {
+        MiniWarehouse warehouse = MiniWarehouse.build(helper, new BlockPos(3, 1, 5), false);
+        BlockPos chestPos = warehouse.rackPos().west();
+        helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
+        helper.getBlockEntity(chestPos, ChestBlockEntity.class).setItem(0, new ItemStack(Items.BREAD, 30));
+        helper.runAfterDelay(20, () -> {
+            helper.assertTrue(warehouse.network().index().count(ItemKey.of(new ItemStack(Items.BREAD))) == 0, "bread beside the rack is not stock");
+            helper.succeed();
+        });
+    }
+
     /** Neither a chest feeding the station nor the buffer itself counts as warehouse stock. */
     @ServusGameTest(timeoutTicks = 200)
     public static void chestOnStationIsNotStock(GameTestHelper helper) {

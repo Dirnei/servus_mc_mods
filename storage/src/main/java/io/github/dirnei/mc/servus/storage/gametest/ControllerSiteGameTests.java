@@ -98,18 +98,19 @@ public final class ControllerSiteGameTests {
         });
     }
 
-    /** A chest across the border touching the controller counts its chunk until it is broken. */
+    /** A chest across the border touching the controller is no part of the site: its chunk does not count. */
     @ServusGameTest(template = WIDE, timeoutTicks = 200)
-    public static void foreignChestCountsItsChunk(GameTestHelper helper) {
+    public static void chestAcrossBorderCountsNothing(GameTestHelper helper) {
         int border = border(helper);
         WarehouseControllerBlockEntity controller = controller(helper, new BlockPos(border - 1, 1, ROW_Z));
         BlockPos chest = new BlockPos(border, 1, ROW_Z);
         helper.setBlock(chest, Blocks.CHEST.defaultBlockState());
-        TerminalWiring.when(helper, () -> controller.span().size() == 2, 80,
-                () -> "the chest's chunk counts, had " + controller.span().size(), () -> {
-            helper.setBlock(chest, Blocks.AIR.defaultBlockState());
-            TerminalWiring.when(helper, () -> controller.span().size() == 1, 80,
-                    () -> "without the chest one chunk is left, had " + controller.span().size(), helper::succeed);
+        helper.getBlockEntity(chest, net.minecraft.world.level.block.entity.ChestBlockEntity.class).setItem(0, new ItemStack(Items.BREAD, 5));
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(controller.span().size() == 1 && controller.span().contains(controller.homeChunk()),
+                    "only the controller's chunk counts, had " + controller.span().size());
+            helper.assertTrue(controller.network().orElseThrow().index().count(ItemKey.of(new ItemStack(Items.BREAD))) == 0, "the chest is not indexed");
+            helper.succeed();
         });
     }
 

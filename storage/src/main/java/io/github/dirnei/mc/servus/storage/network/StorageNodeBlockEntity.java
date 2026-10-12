@@ -152,16 +152,11 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     }
 
     /**
-     * Whether this node is indexed as a source and pulls neighbouring
-     * inventories into the warehouse. Connector nodes such as rails do not.
+     * Whether this node may be indexed: racks and the controller. Only nodes
+     * with {@link #stock()} are sources; inventories touching a node never are.
      */
     public final boolean holdsStock() {
         return kind() == NodeKind.STOCK || kind() == NodeKind.RACK;
-    }
-
-    /** Whether this node pulls the inventories touching it into the warehouse. Racks do not. */
-    public final boolean pullsNeighbours() {
-        return kind() == NodeKind.STOCK;
     }
 
     /**
@@ -188,12 +183,5 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     /** Tells the network this node's contents changed. */
     protected void postDirty() {
         network().ifPresent(network -> network.post(new WarehouseEvent.Dirty(worldPosition)));
-    }
-
-    /** Called by storage blocks from {@code neighborChanged}. */
-    public static void neighborsChanged(Level level, BlockPos pos) {
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof StorageNodeBlockEntity node) {
-            node.network().ifPresent(network -> network.post(new WarehouseEvent.NeighborsChanged(pos)));
-        }
     }
 }

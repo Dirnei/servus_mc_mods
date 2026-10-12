@@ -89,12 +89,6 @@ public class ShuttleGarageBlock extends BaseEntityBlock implements Wrenchable {
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
-                                   boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
-        StorageNodeBlockEntity.neighborsChanged(level, pos);
-    }
 
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {

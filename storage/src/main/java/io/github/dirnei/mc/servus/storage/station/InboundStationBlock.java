@@ -84,12 +84,6 @@ public class InboundStationBlock extends BaseEntityBlock implements Wrenchable {
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
-                                   boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
-        StorageNodeBlockEntity.neighborsChanged(level, pos);
-    }
 
     /** The carrot cycles the clicked side; sneaking dismantles and keeps the side modes on the item. */
     @Override

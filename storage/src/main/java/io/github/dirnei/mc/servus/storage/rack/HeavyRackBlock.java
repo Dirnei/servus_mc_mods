@@ -267,7 +267,6 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable {
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation,
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
-        StorageNodeBlockEntity.neighborsChanged(level, pos);
     }
 
     @Override
