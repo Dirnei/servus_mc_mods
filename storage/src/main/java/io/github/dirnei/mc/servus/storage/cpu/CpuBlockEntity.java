@@ -43,7 +43,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.Capabilities;
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
 import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
@@ -476,7 +476,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     private static int extractable(ServerLevel level, BlockPos producer, ItemKey key) {
         int best = 0;
         for (Direction side : Direction.values()) {
-            ItemView handler = ItemView.of(level.getCapability(Capabilities.Item.BLOCK, producer, side));
+            ItemView handler = PacketInlets.handler(level, producer, side);
             if (handler == null) {
                 continue;
             }
