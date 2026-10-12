@@ -24,6 +24,7 @@ import org.lwjgl.glfw.GLFW;
 public class WarehouseControllerScreen extends AbstractContainerScreen<WarehouseControllerMenu> {
 
     private static final int COLOUR_TEXT = 0xFF404040;
+    private static final int COLOUR_NO_STATION = 0xFFD07020;
     private static final int COLOUR_GOOD = 0xFF2E7D32;
     private static final int COLOUR_BAD = 0xFFB71C1C;
     private static final int COLOUR_DIM = 0xFF707070;
@@ -138,7 +139,8 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             io.github.dirnei.mc.servus.storage.terminal.SiteRow site = siteUnder(mouseX, mouseY, status);
             graphics.setComponentTooltipForNextFrame(font, List.of(Component.literal(site.name()),
                     Component.translatable("gui.servus_storage.site.state." + site.remoteState().name().toLowerCase(java.util.Locale.ROOT)),
-                    Component.translatable(site.wireless() ? "gui.servus_storage.site.wireless" : "gui.servus_storage.site.no_wireless")),
+                    site.wireless() ? Component.translatable("gui.servus_storage.site.wireless")
+                            : Component.translatable("gui.servus_storage.site.no_wireless").withColor(COLOUR_NO_STATION & 0xFFFFFF)),
                     mouseX, mouseY);
         } else if (onlineLineY >= 0 && x >= WarehouseControllerMenu.STATUS_X && y >= onlineLineY && y < onlineLineY + 9
                 && !status.summary().getString().isEmpty()) {
@@ -205,7 +207,8 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             };
             graphics.fill(left + 6, y + 1, left + 12, y + 7, mark);
             String name = font.plainSubstrByWidth(site.name(), SITES_WIDTH - 30);
-            graphics.text(font, name, left + 15, y, COLOUR_TEXT, false);
+            // A site without a Wireless Packing Station cannot trade; its name shows in orange.
+            graphics.text(font, name, left + 15, y, site.wireless() ? COLOUR_TEXT : COLOUR_NO_STATION, false);
             if (site.wireless()) {
                 graphics.fill(left + SITES_WIDTH - 10, y + 1, left + SITES_WIDTH - 8, y + 7, 0xFF9050C0);
                 graphics.fill(left + SITES_WIDTH - 12, y + 1, left + SITES_WIDTH - 6, y + 2, 0xFF9050C0);

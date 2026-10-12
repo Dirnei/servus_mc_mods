@@ -329,13 +329,13 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.message.no_wireless_here", "This site has no Wireless Packing Station of your team");
         add("gui.servus_storage.terminal.message.no_wireless_station", "The other site has no Wireless Packing Station of your team");
         add("gui.servus_storage.terminal.message.site_asleep", "That site sleeps and cannot wake without enough Chunk Loader Upgrades");
-        add("gui.servus_storage.controller.sites", "Sites of your team");
+        add("gui.servus_storage.controller.sites", "Other sites");
         add("gui.servus_storage.controller.sites.none", "No other sites");
         add("gui.servus_storage.site.state.online", "Online");
         add("gui.servus_storage.site.state.sleeping", "Sleeping, wakes for a transfer");
         add("gui.servus_storage.site.state.unreachable", "Sleeping, cannot wake");
-        add("gui.servus_storage.site.wireless", "Has a Wireless Packing Station of your team");
-        add("gui.servus_storage.site.no_wireless", "No Wireless Packing Station of your team");
+        add("gui.servus_storage.site.wireless", "Has a Wireless Packing Station");
+        add("gui.servus_storage.site.no_wireless", "No Wireless Packing Station");
         add("gui.servus_storage.terminal.message.offline", "No warehouse on this data line");
         add("gui.servus_storage.terminal.message.needs_shuttle", "Only racks hold this and no shuttle can reach them");
         add("gui.servus_storage.terminal.message.no_rail", "The Packing Station has no rail for shuttle deliveries");
