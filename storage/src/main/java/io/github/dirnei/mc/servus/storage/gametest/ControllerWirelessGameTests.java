@@ -189,11 +189,10 @@ public final class ControllerWirelessGameTests {
                 () -> "the outpost is listed, had " + row(helper, outpost), then);
     }
 
-    /** Items of the terminal's open transfers that arrived so far. */
+    /** Items of the terminal's open transfers that crossed the wireless line so far. */
     private static int delivered(GameTestHelper helper, StorageTerminalBlockEntity terminal) {
         int sum = 0;
         for (StorageTerminalBlockEntity.Request request : terminal.requests()) {
-            sum += request.delivered;
             for (StorageTerminalBlockEntity.Tracked tracked : request.shipments) {
                 ProductionLedger.Transfer transfer = ProductionLedger.get(helper.getLevel()).transfer(tracked.shipmentId());
                 sum += transfer == null ? 0 : transfer.delivered();
@@ -331,10 +330,10 @@ public final class ControllerWirelessGameTests {
             StockSyncPayload after = menu.stock();
             helper.assertTrue(after.message().isEmpty(), "the transfer is made, message " + after.message());
             helper.assertTrue(after.requests().size() == 1 && after.requests().get(0).requested() == 20, "the transfer is listed");
-            TerminalWiring.when(helper, () -> count(sites.rackA(), Items.IRON_INGOT) == 20 && terminal(helper).requests().isEmpty(), 540,
-                    () -> "20 iron arrive at the base and the transfer leaves the list, had " + count(sites.rackA(), Items.IRON_INGOT)
-                            + " and " + terminal(helper).requests().size() + " requests", () -> {
-                helper.assertTrue(terminal(helper).outputCount(Items.IRON_INGOT) == 0, "nothing lands in the output slots");
+            TerminalWiring.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 20 && terminal(helper).requests().isEmpty(), 540,
+                    () -> "20 iron arrive in the output slots and the transfer leaves the list, had "
+                            + terminal(helper).outputCount(Items.IRON_INGOT) + " and " + terminal(helper).requests().size() + " requests", () -> {
+                helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
                 helper.assertTrue(count(sites.rackB(), Items.IRON_INGOT) == 12, "12 iron stay at the outpost");
                 helper.succeed();
             });
@@ -442,8 +441,8 @@ public final class ControllerWirelessGameTests {
                     List<RequestRow> rows = menu.stock().requests();
                     helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("NO_POWER"), "the transfer waits for power, was " + rows);
                     sites.a().setEnergy(10000);
-                    TerminalWiring.when(helper, () -> count(sites.rackA(), Items.IRON_INGOT) == 24 && terminal(helper).requests().isEmpty(), 540,
-                            () -> "with FE the rest arrives, had " + count(sites.rackA(), Items.IRON_INGOT), helper::succeed);
+                    TerminalWiring.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 24 && terminal(helper).requests().isEmpty(), 540,
+                            () -> "with FE the rest arrives, had " + terminal(helper).outputCount(Items.IRON_INGOT), helper::succeed);
                 });
             });
         });
@@ -469,8 +468,8 @@ public final class ControllerWirelessGameTests {
                     List<RequestRow> rows = menu.stock().requests();
                     helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("NO_POWER"), "the transfer waits, was " + rows);
                     upgrade(sites.b());
-                    TerminalWiring.when(helper, () -> count(sites.rackA(), Items.IRON_INGOT) == 24 && terminal(helper).requests().isEmpty(), 540,
-                            () -> "with the upgrade back the rest arrives, had " + count(sites.rackA(), Items.IRON_INGOT), helper::succeed);
+                    TerminalWiring.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 24 && terminal(helper).requests().isEmpty(), 540,
+                            () -> "with the upgrade back the rest arrives, had " + terminal(helper).outputCount(Items.IRON_INGOT), helper::succeed);
                 });
             });
         });
@@ -579,6 +578,8 @@ public final class ControllerWirelessGameTests {
         Sites sites = sites(helper);
         sites.a().setEnergy(10000);
         helper.setBlock(A_SECOND, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
+        // The second station reaches the terminal by data line too.
+        TerminalWiring.dataDuct(helper, A_SECOND.above());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         TerminalWiring.when(helper, () -> indexed(sites) && row(helper, key(helper, B_CONTROLLER)).filter(SiteRow::trade).isPresent()
                 && sites.a().network().map(network -> network.packingStations().size() == 2).orElse(false), 60,
@@ -590,8 +591,48 @@ public final class ControllerWirelessGameTests {
             PackingStationBlockEntity sender = helper.getBlockEntity(B_PACKING, PackingStationBlockEntity.class);
             List<BlockPos> targets = sender.shipments().stream().map(PackingStationBlockEntity.Shipment::target).distinct().toList();
             helper.assertTrue(sender.shipments().size() == 2 && targets.size() == 2, "each base station receives one transfer, targets " + targets);
-            TerminalWiring.when(helper, () -> count(sites.rackA(), Items.IRON_INGOT) == 16 && terminal(helper).requests().isEmpty(), 780,
-                    () -> "16 iron arrive at the base, had " + count(sites.rackA(), Items.IRON_INGOT), helper::succeed);
+            TerminalWiring.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 16 && terminal(helper).requests().isEmpty(), 780,
+                    () -> "16 iron arrive in the output slots, had " + terminal(helper).outputCount(Items.IRON_INGOT), () -> {
+                helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** A transfer that arrives while the output slots are full waits in the receiving Packing Station and moves on once they are emptied. */
+    @ServusGameTest(timeoutTicks = 1000)
+    public static void transferWaitsWhileOutputFull(GameTestHelper helper) {
+        Sites sites = sites(helper);
+        sites.a().setEnergy(10000);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalBlockEntity terminal = terminal(helper);
+        for (int slot = 0; slot < terminal.output().getSlots(); slot++) {
+            terminal.output().setStackInSlot(slot, new ItemStack(Items.COBBLESTONE, 64));
+        }
+        listed(helper, sites, () -> {
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal(helper));
+            menu.selectSite(key(helper, B_CONTROLLER));
+            menu.request(iron(), 16);
+            helper.assertTrue(menu.stock().message().isEmpty(), "the transfer is made, was " + menu.stock().message());
+            // The outpost sent everything: only the relay of the base's Packing Station is left.
+            TerminalWiring.when(helper, () -> terminal(helper).requests().size() == 1 && terminal(helper).requests().get(0).shipments.isEmpty()
+                            && terminal(helper).requests().get(0).relay != null, 540,
+                    () -> "the outpost sent all 16 iron to the base's Packing Station", () -> {
+                helper.runAfterDelay(20, () -> {
+                    helper.assertTrue(terminal(helper).outputCount(Items.IRON_INGOT) == 0, "no iron fits into the full output slots");
+                    helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "nothing is put away at the base");
+                    List<RequestRow> rows = menu.stock().requests();
+                    helper.assertTrue(rows.size() == 1 && rows.get(0).state().equals("WAITING_ROOM"), "the transfer waits for room, was " + rows);
+                    for (int slot = 0; slot < terminal(helper).output().getSlots(); slot++) {
+                        terminal(helper).output().setStackInSlot(slot, ItemStack.EMPTY);
+                    }
+                    TerminalWiring.when(helper, () -> terminal(helper).outputCount(Items.IRON_INGOT) == 16 && terminal(helper).requests().isEmpty(), 300,
+                            () -> "with room the iron moves on, had " + terminal(helper).outputCount(Items.IRON_INGOT), () -> {
+                        helper.assertTrue(count(sites.rackA(), Items.IRON_INGOT) == 0, "still nothing is put away at the base");
+                        helper.succeed();
+                    });
+                });
+            });
         });
     }
 

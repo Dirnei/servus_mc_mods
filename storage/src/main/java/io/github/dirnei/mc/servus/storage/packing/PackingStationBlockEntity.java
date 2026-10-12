@@ -58,7 +58,9 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
  * it on, one delivery at a time. It also carries the wireless line: a wireless
  * shipment leaves the To network buffer for a Packing Station of another site,
  * moved every tick and paid with FE by the receiving site's controller, with or
- * without a data line. As a {@link TransferGate} it converts at most
+ * without a data line. A transfer requested at a Storage Terminal lands in the
+ * receiver's To network buffer and goes on to that terminal as a relay, a
+ * data line shipment fed by the transfer. As a {@link TransferGate} it converts at most
  * {@code items_per_second} per direction, the two directions independent, shared
  * by data line deliveries and wireless transfers.
  */
@@ -75,13 +77,31 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         private final ProductionLedger.Transfer transfer;
         private final boolean wireless;
         private final String site;
+        private final BlockPos terminal;
+        private final long feed;
 
-        Shipment(BlockPos target, ItemKey key, ProductionLedger.Transfer transfer, boolean wireless, String site) {
+        Shipment(BlockPos target, ItemKey key, ProductionLedger.Transfer transfer, boolean wireless, String site, BlockPos terminal, long feed) {
             this.target = target;
             this.key = key;
             this.transfer = transfer;
             this.wireless = wireless;
             this.site = site == null ? "" : site;
+            this.terminal = terminal;
+            this.feed = feed;
+        }
+
+        /**
+         * The Storage Terminal a wireless shipment was requested at: its items
+         * land in the receiver's To network buffer and go on to that terminal.
+         * Empty for operator and test shipments, which are put away.
+         */
+        public Optional<BlockPos> terminal() {
+            return Optional.ofNullable(terminal);
+        }
+
+        /** Whether this data line shipment passes on the items of a wireless transfer instead of shuttle picks. */
+        public boolean relay() {
+            return feed >= 0;
         }
 
         /** Whether the shipment goes over the wireless line to a Packing Station of another site. */
@@ -125,7 +145,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     /** A saved shipment, resolved against the ledger on the first tick after loading. */
-    private record SavedShipment(long id, BlockPos target, ItemKey key, boolean wireless, String site) {
+    private record SavedShipment(long id, BlockPos target, ItemKey key, boolean wireless, String site, BlockPos terminal, long feed) {
     }
 
     /** Ticks after the last wireless item moved during which the station counts as sending. */
@@ -297,7 +317,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             return status(Component.translatable(prefix + "to_storage_full"), true);
         }
         for (Shipment shipment : shipments) {
-            if (!shipment.ended() && shipment.missing() > outgoingCount(shipment.key)) {
+            if (!shipment.ended() && !shipment.relay() && shipment.missing() > outgoingCount(shipment.key)) {
                 return status(Component.translatable(prefix + "waiting_shuttle",
                         shipment.key.stack(1).getHoverName()), false);
             }
@@ -334,19 +354,46 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
 
     /** Registers a shipment of {@code planned} items; picks arrive in the outgoing buffer afterwards. */
     public Shipment addShipment(BlockPos target, ItemKey key, int planned) {
-        Shipment shipment = new Shipment(target.immutable(), key, ledger().open(planned), false, "");
+        Shipment shipment = new Shipment(target.immutable(), key, ledger().open(planned), false, "", null, -1);
         shipments.add(shipment);
         setChanged();
         return shipment;
     }
 
     /**
+     * Registers a data line shipment of {@code planned} items to the Storage
+     * Terminal at {@code terminal} that passes on the wireless transfer with
+     * ledger id {@code feed}: its items arrive in the outgoing buffer from the
+     * other site, not from shuttles, and it waits for no more than that
+     * transfer brings.
+     */
+    public Shipment addRelay(BlockPos terminal, ItemKey key, int planned, long feed) {
+        Shipment shipment = new Shipment(terminal.immutable(), key, ledger().open(planned), false, "", null, feed);
+        shipments.add(shipment);
+        setChanged();
+        return shipment;
+    }
+
+    /** Whether an open data line shipment of this station passes on the wireless transfer with that ledger id. */
+    private boolean relays(long feed) {
+        for (Shipment shipment : shipments) {
+            if (shipment.feed == feed && !shipment.ended()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Registers a wireless shipment of {@code planned} items to the Packing
      * Station at {@code target} of the site with key {@code site}; picks arrive
-     * in the outgoing buffer afterwards and are moved every tick.
+     * in the outgoing buffer afterwards and are moved every tick. With a
+     * {@code terminal} the items land in the receiver's To network buffer for
+     * that terminal, without one in its To storage buffer.
      */
-    public Shipment addWirelessShipment(BlockPos target, String site, ItemKey key, int planned) {
-        Shipment shipment = new Shipment(target.immutable(), key, ledger().open(planned), true, site);
+    public Shipment addWirelessShipment(BlockPos target, String site, ItemKey key, int planned, BlockPos terminal) {
+        Shipment shipment = new Shipment(target.immutable(), key, ledger().open(planned), true, site,
+                terminal == null ? null : terminal.immutable(), -1);
         shipments.add(shipment);
         WirelessIncoming.add(level.dimension(), shipment.target, shipment.id());
         setChanged();
@@ -468,6 +515,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             return;
         }
         pruneEnded();
+        capRelays();
         for (Shipment shipment : shipments) {
             if (shipment.wireless) {
                 continue;
@@ -496,6 +544,29 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
     }
 
+    /**
+     * Lets each relay wait for no more than its wireless transfer brings: what
+     * that transfer still asks while it runs, what it delivered once it ended.
+     * A transfer the ledger forgot leaves the relay what waits in the buffer.
+     */
+    private void capRelays() {
+        ProductionLedger ledger = ledger();
+        for (Shipment shipment : shipments) {
+            if (!shipment.relay() || shipment.ended()) {
+                continue;
+            }
+            ProductionLedger.Transfer feed = ledger.transfer(shipment.feed);
+            int cut = feed == null
+                    ? ShipmentCap.relayCut(shipment.planned(), shipment.delivered() + outgoingCount(shipment.key), 0, false)
+                    : ShipmentCap.relayCut(shipment.planned(), feed.asked(), feed.delivered(), feed.ended());
+            if (cut > 0) {
+                ledger.shortfall(shipment.transfer, cut);
+                endIfComplete(shipment);
+                setChanged();
+            }
+        }
+    }
+
     // Wireless
 
     /** The controller of this station's warehouse while it is online. */
@@ -514,6 +585,14 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             return 0;
         }
         return max - Transfer.insertItemStacked(intake(), key.stack(max), true).getCount();
+    }
+
+    /** How many of up to {@code max} items like the key the To network buffer takes now. */
+    private int outgoingRoom(ItemKey key, int max) {
+        if (max <= 0) {
+            return 0;
+        }
+        return max - outgoing.insertItemStacked(key.stack(max), true).getCount();
     }
 
     private void waitWireless(Component why, boolean alert) {
@@ -582,7 +661,9 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             }
             double perItem = WirelessCost.perItem(Math.sqrt(here.get().getBlockPos().distSqr(there.get().getBlockPos())),
                     StorageStatsManager.INSTANCE.wirelessFePerItem(), StorageStatsManager.INSTANCE.wirelessFePerItemPerBlock());
-            int room = to.intakeRoom(shipment.key, ready);
+            // A transfer for a terminal goes on from the receiver's To network buffer, unless its relay there ended.
+            boolean relayed = shipment.terminal != null && to.relays(shipment.id());
+            int room = relayed ? to.outgoingRoom(shipment.key, ready) : to.intakeRoom(shipment.key, ready);
             int paid = WirelessCost.affordable(there.get().energyStored(), perItem, ready);
             int moved = WirelessCost.movable(ready, shipment.missing(), allowance(Flow.OUT), to.allowance(Flow.IN), room, paid);
             if (moved <= 0) {
@@ -595,7 +676,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
                 return;
             }
             ItemStack taken = takeOutgoing(shipment.key, moved);
-            ItemStack left = Transfer.insertItemStacked(to.intake(), taken, false);
+            ItemStack left = relayed ? to.outgoing.insertItemStacked(taken, false) : Transfer.insertItemStacked(to.intake(), taken, false);
             int arrived = taken.getCount() - left.getCount();
             if (!left.isEmpty()) {
                 outgoing.insertItemStacked(left, false);
@@ -697,7 +778,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         for (SavedShipment saved : unresolved) {
             ProductionLedger.Transfer transfer = ledger.transfer(saved.id());
             if (transfer != null && !transfer.ended()) {
-                Shipment shipment = new Shipment(saved.target(), saved.key(), transfer, saved.wireless(), saved.site());
+                Shipment shipment = new Shipment(saved.target(), saved.key(), transfer, saved.wireless(), saved.site(), saved.terminal(), saved.feed());
                 shipments.add(shipment);
                 if (shipment.wireless) {
                     WirelessIncoming.add(level.dimension(), shipment.target, shipment.id());
@@ -712,8 +793,17 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             }
         }
         for (ItemKey key : keys) {
-            List<Shipment> ofKey = shipments.stream().filter(shipment -> shipment.key.equals(key)).toList();
-            List<Integer> cuts = ShipmentCap.shortfalls(ofKey.stream().map(Shipment::missing).toList(), outgoingCount(key));
+            // Relays wait for their wireless transfer, not for lost picks; they keep what already arrived for them.
+            int reserved = 0;
+            for (Shipment shipment : shipments) {
+                if (shipment.key.equals(key) && shipment.relay()) {
+                    ProductionLedger.Transfer feed = ledger.transfer(shipment.feed);
+                    reserved += feed == null ? shipment.missing()
+                            : Math.min(shipment.missing(), Math.max(0, feed.delivered() - shipment.delivered()));
+                }
+            }
+            List<Shipment> ofKey = shipments.stream().filter(shipment -> shipment.key.equals(key) && !shipment.relay()).toList();
+            List<Integer> cuts = ShipmentCap.shortfalls(ofKey.stream().map(Shipment::missing).toList(), outgoingCount(key) - reserved);
             for (int i = 0; i < ofKey.size(); i++) {
                 ledger.shortfall(ofKey.get(i).transfer, cuts.get(i));
                 endIfComplete(ofKey.get(i));
@@ -778,7 +868,8 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         ListTag list = new ListTag();
         for (Shipment shipment : shipments) {
             if (!shipment.ended()) {
-                list.add(savedShipment(new SavedShipment(shipment.id(), shipment.target, shipment.key, shipment.wireless, shipment.site), registries));
+                list.add(savedShipment(new SavedShipment(shipment.id(), shipment.target, shipment.key, shipment.wireless, shipment.site,
+                        shipment.terminal, shipment.feed), registries));
             }
         }
         for (SavedShipment saved : unresolved) {
@@ -815,7 +906,8 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             ItemStack item = ValueIo.parseStack(registries, entry.getCompoundOrEmpty("Item"));
             if (target.isPresent() && !item.isEmpty() && entry.contains("Id")) {
                 unresolved.add(new SavedShipment(entry.getLongOr("Id", 0L), target.get(), ItemKey.of(item),
-                        entry.getBooleanOr("Wireless", false), entry.getStringOr("Site", "")));
+                        entry.getBooleanOr("Wireless", false), entry.getStringOr("Site", ""),
+                        ValueIo.readPos(entry, "Terminal").orElse(null), entry.getLongOr("Feed", -1L)));
             }
         }
     }
@@ -828,6 +920,12 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         if (saved.wireless()) {
             entry.putBoolean("Wireless", true);
             entry.putString("Site", saved.site());
+        }
+        if (saved.terminal() != null) {
+            entry.put("Terminal", ValueIo.posTag(saved.terminal()));
+        }
+        if (saved.feed() >= 0) {
+            entry.putLong("Feed", saved.feed());
         }
         return entry;
     }

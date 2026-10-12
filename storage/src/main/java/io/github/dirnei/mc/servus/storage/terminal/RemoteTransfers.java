@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.terminal;
 
+import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -26,7 +27,8 @@ import net.minecraft.server.level.ServerLevel;
 /**
  * Transfers from other sites, requested at a Storage Terminal: the other site
  * ships from one of its Packing Stations over the wireless line into a Packing
- * Station of this site, where the items are put away. Both controllers must be
+ * Station of this site that reaches the terminal by data line, which passes the
+ * items on as packets into the terminal's output slots. Both controllers must be
  * wireless capable. A sleeping site that can wake is held awake while the
  * request is open. Server thread only.
  */
@@ -118,7 +120,8 @@ public final class RemoteTransfers {
 
     /**
      * The Packing Station of this site that receives a transfer: on the first
-     * reachable warehouse, the one with the fewest open incoming transfers.
+     * reachable warehouse, among those that reach the terminal by data line,
+     * the one with the fewest open incoming transfers.
      */
     private static Optional<PackingStationBlockEntity> receiver(ServerLevel level, BlockPos terminal) {
         Optional<WarehouseNetwork> first = TerminalRequests.first(level, terminal);
@@ -127,7 +130,8 @@ public final class RemoteTransfers {
         }
         List<PackingStationBlockEntity> stations = new ArrayList<>();
         for (BlockPos pos : first.get().packingStations()) {
-            if (level.getBlockEntity(pos) instanceof PackingStationBlockEntity point) {
+            if (level.getBlockEntity(pos) instanceof PackingStationBlockEntity point
+                    && DataNetworks.networkAt(level, pos).filter(network -> network.reaches(terminal)).isPresent()) {
                 stations.add(point);
             }
         }
@@ -273,7 +277,8 @@ public final class RemoteTransfers {
         }
         String here = controller(level, terminal.getBlockPos()).map(controller -> SiteRecord.key(level.dimension(), controller.getBlockPos()))
                 .orElse("");
-        WarehouseNetwork.Shipping shipping = remote.get().shipWireless(receiver.getBlockPos(), here, request.key, request.missing, request.id);
+        WarehouseNetwork.Shipping shipping = remote.get().shipWireless(receiver.getBlockPos(), here, request.key, request.missing, request.id,
+                terminal.getBlockPos());
         if (!shipping.shipped() && request.tries < WAKE_TRIES) {
             // A site that just woke may not have joined its stations or indexed its storage yet: ask again with the next retry.
             request.tries++;
@@ -285,6 +290,9 @@ public final class RemoteTransfers {
         }
         PackingStationBlockEntity.Shipment shipment = shipping.shipment().orElseThrow();
         request.shipments.add(new Tracked(shipping.packingStation(), shipment.id(), shipment.planned()));
+        // The receiver passes the items on to this terminal like the packets of a request of this site.
+        PackingStationBlockEntity.Shipment relay = receiver.addRelay(terminal.getBlockPos(), request.key, shipment.planned(), shipment.id());
+        request.relay = new Tracked(receiver.getBlockPos(), relay.id(), relay.planned());
         request.missing = Math.max(0, request.missing - shipment.planned());
         terminal.setChanged();
         return "";

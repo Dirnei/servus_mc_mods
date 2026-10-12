@@ -21,4 +21,24 @@ class ShipmentCapTest {
     void firstShipmentShort() {
         assertEquals(List.of(5, 4), ShipmentCap.shortfalls(List.of(8, 4), 3));
     }
+
+    @Test
+    void relayKeepsWhatARunningTransferAsks() {
+        assertEquals(0, ShipmentCap.relayCut(16, 16, 4, false));
+    }
+
+    @Test
+    void relayFollowsAShortPick() {
+        assertEquals(6, ShipmentCap.relayCut(16, 10, 4, false));
+    }
+
+    @Test
+    void relayEndsWithWhatTheTransferDelivered() {
+        assertEquals(4, ShipmentCap.relayCut(16, 16, 12, true));
+    }
+
+    @Test
+    void relayAlreadyCut() {
+        assertEquals(0, ShipmentCap.relayCut(8, 16, 12, true));
+    }
 }

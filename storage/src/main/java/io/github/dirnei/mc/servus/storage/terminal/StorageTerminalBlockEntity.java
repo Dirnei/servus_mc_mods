@@ -87,8 +87,14 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
         public BlockPos orderCpu;
         /** The key of the other site a transfer comes from, null for a request of this site. */
         public String remote;
-        /** Whether the other site was asked once; a transfer ends with its shipments after that. */
+        /** Whether the other site was asked once; a transfer ends with its shipments and its relay after that. */
         public boolean shipped;
+        /**
+         * The data line shipment of this site's receiving Packing Station that
+         * passes a transfer's items on into the output slots, null before the
+         * other site shipped and once it ended.
+         */
+        public Tracked relay;
         /** Retries a just woken site gets before its missing stock counts; not saved. */
         public int tries;
 
@@ -212,7 +218,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
     /** Whether an open request still waits for this item. */
     public boolean waitsFor(ItemKey key) {
         for (Request request : requests) {
-            if (request.remote == null && request.key.equals(key) && request.delivered < request.requested) {
+            if (request.key.equals(key) && request.delivered < request.requested) {
                 return true;
             }
         }
@@ -225,7 +231,7 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             if (count <= 0) {
                 return;
             }
-            if (request.remote == null && request.key.equals(key) && request.delivered < request.requested) {
+            if (request.key.equals(key) && request.delivered < request.requested) {
                 int share = Math.min(count, request.requested - request.delivered);
                 request.delivered += share;
                 count -= share;
@@ -421,20 +427,32 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             if (request.remote != null) {
                 entry.putString("Remote", request.remote);
                 entry.putBoolean("Shipped", request.shipped);
+                if (request.relay != null) {
+                    entry.put("Relay", tracked(request.relay));
+                }
             }
             ListTag shipments = new ListTag();
             for (Tracked tracked : request.shipments) {
-                CompoundTag shipment = new CompoundTag();
-                shipment.put("PackingStation", ValueIo.posTag(tracked.packingStation()));
-                shipment.putLong("Id", tracked.shipmentId());
-                shipment.putInt("Asked", tracked.asked());
-                shipments.add(shipment);
+                shipments.add(tracked(tracked));
             }
             entry.put("Shipments", shipments);
             list.add(entry);
         }
         tag.put("Requests", list);
         output.store(tag);
+    }
+
+    private static CompoundTag tracked(Tracked tracked) {
+        CompoundTag shipment = new CompoundTag();
+        shipment.put("PackingStation", ValueIo.posTag(tracked.packingStation()));
+        shipment.putLong("Id", tracked.shipmentId());
+        shipment.putInt("Asked", tracked.asked());
+        return shipment;
+    }
+
+    private static Optional<Tracked> tracked(CompoundTag shipment) {
+        return ValueIo.readPos(shipment, "PackingStation")
+                .map(point -> new Tracked(point, shipment.getLongOr("Id", 0L), shipment.getIntOr("Asked", 0)));
     }
 
     @Override
@@ -471,10 +489,11 @@ public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolde
             request.orderCpu = ValueIo.readPos(entry, "OrderCpu").orElse(null);
             request.remote = entry.contains("Remote") ? entry.getStringOr("Remote", "") : null;
             request.shipped = entry.getBooleanOr("Shipped", false);
+            if (entry.contains("Relay")) {
+                request.relay = tracked(entry.getCompoundOrEmpty("Relay")).orElse(null);
+            }
             for (Tag rawShipment : entry.getListOrEmpty("Shipments")) {
-                CompoundTag shipment = (CompoundTag) rawShipment;
-                ValueIo.readPos(shipment, "PackingStation").ifPresent(point -> request.shipments.add(
-                        new Tracked(point, shipment.getLongOr("Id", 0L), shipment.getIntOr("Asked", 0))));
+                tracked((CompoundTag) rawShipment).ifPresent(request.shipments::add);
             }
             requests.add(request);
         }

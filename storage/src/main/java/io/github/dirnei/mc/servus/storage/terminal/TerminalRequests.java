@@ -132,7 +132,11 @@ public final class TerminalRequests {
         return Math.max(0, remaining);
     }
 
-    /** Books ended shipments: what they did not bring is missing again. Drops requests that are done. */
+    /**
+     * Books ended shipments: what they did not bring is missing again. A
+     * transfer counts only at its relay, the last leg into the output slots.
+     * Drops requests that are done.
+     */
     private static void book(ServerLevel level, StorageTerminalBlockEntity terminal) {
         List<Integer> done = new ArrayList<>();
         ProductionLedger ledger = ProductionLedger.get(level);
@@ -142,18 +146,25 @@ public final class TerminalRequests {
                 ProductionLedger.Transfer transfer = ledger.transfer(tracked.shipmentId());
                 // A shipment the ledger forgot is shipped again rather than waited for.
                 if (transfer == null || transfer.ended()) {
-                    int delivered = transfer == null ? 0 : transfer.delivered();
-                    request.missing += Math.max(0, tracked.asked() - delivered);
-                    if (request.remote != null) {
-                        // A transfer's items arrive in this site's storage, not in the output slots.
-                        request.delivered += delivered;
+                    if (request.remote == null) {
+                        int delivered = transfer == null ? 0 : transfer.delivered();
+                        request.missing += Math.max(0, tracked.asked() - delivered);
                     }
                     it.remove();
                     terminal.setChanged();
                 }
             }
-            if (request.delivered >= request.requested && request.shipments.isEmpty()
-                    || request.remote != null && request.shipped && request.shipments.isEmpty()) {
+            if (request.relay != null) {
+                ProductionLedger.Transfer transfer = ledger.transfer(request.relay.shipmentId());
+                if (transfer == null || transfer.ended()) {
+                    int delivered = transfer == null ? 0 : transfer.delivered();
+                    request.missing += Math.max(0, request.relay.asked() - delivered);
+                    request.relay = null;
+                    terminal.setChanged();
+                }
+            }
+            if (request.relay == null && request.shipments.isEmpty()
+                    && (request.delivered >= request.requested || request.remote != null && request.shipped)) {
                 done.add(request.id);
             }
         }
@@ -226,7 +237,11 @@ public final class TerminalRequests {
             RemoteTransfers.dropQueued(level, request);
         }
         CpuOrders.cancelForRequest(level, terminal.getBlockPos(), requestId);
-        for (Tracked tracked : request.shipments) {
+        List<Tracked> legs = new ArrayList<>(request.shipments);
+        if (request.relay != null) {
+            legs.add(request.relay);
+        }
+        for (Tracked tracked : legs) {
             if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point) {
                 point.cancel(tracked.shipmentId());
             }
@@ -237,16 +252,8 @@ public final class TerminalRequests {
     /** The open requests as the GUI lists them. */
     public static List<RequestRow> rows(ServerLevel level, StorageTerminalBlockEntity terminal, List<WarehouseNetwork> warehouses) {
         List<RequestRow> rows = new ArrayList<>();
-        ProductionLedger ledger = ProductionLedger.get(level);
         for (Request request : terminal.requests()) {
             int delivered = request.delivered;
-            if (request.remote != null) {
-                // Items of a running transfer that already arrived at this site.
-                for (Tracked tracked : request.shipments) {
-                    ProductionLedger.Transfer transfer = ledger.transfer(tracked.shipmentId());
-                    delivered += transfer == null ? 0 : transfer.delivered();
-                }
-            }
             rows.add(new RequestRow(request.id, request.key.stack(1), request.requested, Math.min(request.requested, delivered),
                     request.missing, state(level, terminal, request, warehouses).name()));
         }
@@ -277,14 +284,23 @@ public final class TerminalRequests {
                     return RequestState.NO_POWER;
                 }
             }
-            return request.shipments.isEmpty() ? RequestState.MISSING : RequestState.PICKING;
+            if (request.relay != null && level.isLoaded(request.relay.packingStation())
+                    && level.getBlockEntity(request.relay.packingStation()) instanceof PackingStationBlockEntity receiver
+                    && receiver.isSending(request.relay.shipmentId())) {
+                // Packets from this site's receiving Packing Station, like those of a request of this site.
+                return fits(terminal, request) ? RequestState.SENDING : RequestState.WAITING_ROOM;
+            }
+            if (request.shipments.isEmpty()) {
+                // The other site sent everything: the rest waits at this site's receiving Packing Station.
+                return request.relay == null ? RequestState.MISSING : fits(terminal, request) ? RequestState.SENDING : RequestState.WAITING_ROOM;
+            }
+            return RequestState.PICKING;
         }
         for (Tracked tracked : request.shipments) {
             if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
                     && point.isSending(tracked.shipmentId())) {
                 // Packets that find no room wait at the terminal.
-                boolean fits = terminal.output().insertItemStacked(request.key.stack(1), true).isEmpty();
-                return fits ? RequestState.SENDING : RequestState.WAITING_ROOM;
+                return fits(terminal, request) ? RequestState.SENDING : RequestState.WAITING_ROOM;
             }
         }
         // Shuttles and Crafting Stations stop without power: what waits for them waits for power.
@@ -296,6 +312,11 @@ public final class TerminalRequests {
             return noPower ? RequestState.NO_POWER : RequestState.PRODUCING;
         }
         return RequestState.MISSING;
+    }
+
+    /** Whether one more of the request's item fits into the output slots. */
+    private static boolean fits(StorageTerminalBlockEntity terminal, Request request) {
+        return terminal.output().insertItemStacked(request.key.stack(1), true).isEmpty();
     }
 
     /** Whether the wake of the other site waits because its controller had too little FE to wake. */
