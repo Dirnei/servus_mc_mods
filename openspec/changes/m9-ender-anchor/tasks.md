@@ -18,7 +18,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 4. GameTests
 
-- [ ] 4.1 New GameTest `chunkLoaderLitFollowsActive` in the Foundation loader GameTests (where the existing Chunk Loader tests live, found with `grep -rn CHUNK_LOADER foundation/src/main/java/**/gametest* foundation/src/main/java/**/*GameTests.java`); existing loader tests stay green. Run the Foundation GameTests.
+- [x] 4.1 New GameTest `chunkLoaderLitFollowsActive` in the Foundation loader GameTests (where the existing Chunk Loader tests live, found with `grep -rn CHUNK_LOADER foundation/src/main/java/**/gametest* foundation/src/main/java/**/*GameTests.java`); existing loader tests stay green. Run the Foundation GameTests.
 
 ## 5. Docs and plan
 

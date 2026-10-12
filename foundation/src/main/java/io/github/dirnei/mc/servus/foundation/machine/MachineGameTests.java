@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine;
 
+import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.machine.generator.CoalGeneratorGameTests;
 import net.minecraft.core.Direction;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
@@ -52,6 +53,43 @@ public final class MachineGameTests {
             helper.setBlock(MACHINE, Blocks.AIR.defaultBlockState());
             helper.assertTrue(!loader.ticketHeld(), "breaking the loader should release the ticket");
             helper.assertTrue(data.countFor(team) == 0, "breaking the loader should free the team slot");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * The eye on the front reads {@code LIT}: it is set while a loader holds its
+     * chunk and clear for a loader over the team cap or without power.
+     */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void chunkLoaderLitFollowsActive(GameTestHelper helper) {
+        int cap = ServusFoundationConfig.maxChunkLoadersPerTeam();
+        helper.assertTrue(cap >= 1 && cap <= 8, "the test fits a team cap of 1 to 8, got " + cap);
+        UUID team = UUID.randomUUID();
+        for (int i = 0; i <= cap; i++) {
+            BlockPos pos = new BlockPos(1 + i, 1, 6);
+            helper.setBlock(pos, MachineContent.CHUNK_LOADER.get().defaultBlockState());
+            ChunkLoaderBlockEntity loader = helper.getBlockEntity(pos, ChunkLoaderBlockEntity.class);
+            loader.setOwner(team);
+            loader.energyStorage().receiveEnergy(4000, false);
+        }
+        BlockPos unpowered = new BlockPos(1, 1, 8);
+        helper.setBlock(unpowered, MachineContent.CHUNK_LOADER.get().defaultBlockState());
+        helper.getBlockEntity(unpowered, ChunkLoaderBlockEntity.class).setOwner(UUID.randomUUID());
+        helper.runAfterDelay(10, () -> {
+            int lit = 0;
+            for (int i = 0; i <= cap; i++) {
+                BlockPos pos = new BlockPos(1 + i, 1, 6);
+                ChunkLoaderBlockEntity loader = helper.getBlockEntity(pos, ChunkLoaderBlockEntity.class);
+                boolean on = helper.getBlockState(pos).getValue(MachineBlock.LIT);
+                boolean active = loader.status() == ChunkLoaderBlockEntity.STATUS_ACTIVE;
+                helper.assertTrue(on == active, "LIT follows the active state at " + pos + ", status " + loader.status());
+                helper.assertTrue(active || loader.status() == ChunkLoaderBlockEntity.STATUS_TEAM_LIMIT,
+                        "a powered loader is active or over the cap, status " + loader.status());
+                lit += on ? 1 : 0;
+            }
+            helper.assertTrue(lit == cap, "exactly the team cap of loaders is lit, got " + lit);
+            helper.assertFalse(helper.getBlockState(unpowered).getValue(MachineBlock.LIT), "a loader without power is not lit");
             helper.succeed();
         });
     }
