@@ -40,7 +40,7 @@ import net.minecraft.world.level.block.FurnaceBlock;
  * The Production Terminal on the data line. Same layout as the CPU tests: the
  * warehouse controller at (2,1,2) with crates west, a Packing Station at (2,1,3)
  * with a data duct and Storage Terminal above, data ducts along y 2 to a
- * Crafting Station at (4,1,2) and the CPU cube at x 6 to 8, z 1 to 3. The
+ * Crafting Station at (4,1,2) and a 2x2x2 CPU of 2 CPU and 6 Buffer blocks at x 6 to 7, z 1 to 2. The
  * Production Terminal stands on the duct at (5,2,2).
  */
 public final class ProductionTerminalGameTests {
@@ -96,6 +96,92 @@ public final class ProductionTerminalGameTests {
 
     private static CpuBlockEntity cpu(GameTestHelper helper) {
         return CpuBlock.master(helper.getLevel(), helper.absolutePos(CPU));
+    }
+
+    // CPUs tab and buffer lines
+
+    private static final ItemKey PLANKS = ItemKey.of(new ItemStack(Items.OAK_PLANKS));
+    private static final ItemKey IRON = ItemKey.of(new ItemStack(Items.IRON_INGOT));
+
+    /** Puts items of an order into the CPU's buffer as if they had arrived. */
+    private static void buffer(CpuBlockEntity cpu, long transfer, int order, ItemKey key, int count) {
+        cpu.buffer().expect(transfer, order, key, count, key.stack(1).getMaxStackSize());
+        cpu.buffer().land(key, count);
+        cpu.buffer().arrived(transfer);
+    }
+
+    /** A 3x2x2 CPU with 4 slots and 8 stacks runs 2 jobs and holds planks and ingots: its row shows all of it. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void cpuRowsShowSlotsAndBuffer(GameTestHelper helper) {
+        setup(helper, false);
+        java.util.Set<BlockPos> cpus = java.util.Set.of(new BlockPos(0, 0, 0), new BlockPos(1, 0, 0), new BlockPos(2, 0, 0), new BlockPos(0, 1, 0));
+        CpuBuild.box(helper, CPU, 3, 2, 2, offset -> !cpus.contains(offset));
+        CpuBuild.formed(helper, CPU);
+        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+            CpuBlockEntity cpu = cpu(helper);
+            int first = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0).created().order().id();
+            int second = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0).created().order().id();
+            buffer(cpu, 1, first, PLANKS, 4);
+            buffer(cpu, 2, second, IRON, 2);
+            CpuRow row = view(helper, TERMINAL).cpus().get(0);
+            helper.assertTrue(row.sizeX() == 3 && row.sizeY() == 2 && row.sizeZ() == 2, "a 3x2x2 box, got " + row);
+            helper.assertTrue(row.slots() == 4 && row.inUse() == 2 && row.waiting() == 0, "2 of 4 slots, got " + row);
+            helper.assertTrue(row.room() == 8 && row.used() == 2 && row.cpuBlocks() == 4 && row.bufferBlocks() == 8, "2 of 8 stacks, got " + row);
+            helper.assertTrue(row.buffered().size() == 2 && row.buffered().get(0).item().is(Items.OAK_PLANKS) && row.buffered().get(0).count() == 4
+                            && row.buffered().get(0).order() == first && row.buffered().get(1).item().is(Items.IRON_INGOT)
+                            && row.buffered().get(1).count() == 2 && !row.buffered().get(1).leaving(),
+                    "planks and ingots with counts, got " + row.buffered());
+            helper.succeed();
+        });
+    }
+
+    /** Planks of a crafting table job in the buffer show as a line for the table step's Crafting Station. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void jobShowsBufferedItems(GameTestHelper helper) {
+        setup(helper, true);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
+        patterns.set(1, StationJobs.planks());
+        patterns.set(2, StationJobs.craftingTable());
+        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+            CpuBlockEntity cpu = cpu(helper);
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), ItemKey.of(new ItemStack(Items.CRAFTING_TABLE)), 1, 0);
+            helper.assertTrue(placed.made() && placed.created().order().steps().size() == 2, "a planks and a table step, refused " + placed.refusal());
+            buffer(cpu, 1, placed.created().order().id(), PLANKS, 4);
+            JobRow job = view(helper, TERMINAL).jobs().get(0);
+            helper.assertTrue(job.buffer().size() == 1, "one buffer line, got " + job.buffer());
+            io.github.dirnei.mc.servus.storage.production.ProductionRows.BufferLine line = job.buffer().get(0);
+            helper.assertTrue(line.machine().equals(ServusStorageBlocks.CRAFTING_STATION.get().getName().getString())
+                            && line.items().size() == 1 && line.items().get(0).item().is(Items.OAK_PLANKS) && line.items().get(0).count() == 4,
+                    "In CPU buffer for Crafting Station: 4 Oak Planks, got " + line);
+            helper.assertTrue(job.overflow().isEmpty(), "no overflow, got " + job.overflow());
+            helper.succeed();
+        });
+    }
+
+    /** Planks that went to storage because the buffer was full show as an overflow line under the job. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void jobShowsOverflow(GameTestHelper helper) {
+        setup(helper, true);
+        TerminalWiring.when(helper, () -> CpuOrders.cpus(helper.getLevel(), line(helper)).size() == 1, 40, () -> "the CPU should be on the line", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STICK, 8, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            placed.created().order().overflowed(PLANKS, 16);
+            JobRow job = view(helper, TERMINAL).jobs().get(0);
+            helper.assertTrue(job.overflow().size() == 1 && job.overflow().get(0).item().is(Items.OAK_PLANKS) && job.overflow().get(0).count() == 16,
+                    "Buffer full: 16 Oak Planks went to storage, got " + job.overflow());
+            helper.succeed();
+        });
+    }
+
+    /** Without a formed CPU the view has no CPU rows, so the CPUs tab says no CPU is on the line. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void cpusTabWithoutCpu(GameTestHelper helper) {
+        setup(helper, false);
+        helper.runAfterDelay(20, () -> {
+            ProductionPayload view = view(helper, TERMINAL);
+            helper.assertTrue(view.cpus().isEmpty(), "no CPU rows, got " + view.cpus());
+            helper.succeed();
+        });
     }
 
     /** On a line with a CPU the terminal is a link member and its lamp lights. */
