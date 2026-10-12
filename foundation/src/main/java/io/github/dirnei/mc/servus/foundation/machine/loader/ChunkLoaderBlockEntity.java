@@ -40,6 +40,7 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
     private UUID owner;
     private boolean ticketHeld;
     private int status = STATUS_NO_POWER;
+    private final EyeView eyeView = new EyeView();
 
     public ChunkLoaderBlockEntity(BlockPos pos, BlockState state) {
         super(MachineContent.CHUNK_LOADER_ENTITY.get(), pos, state, 0);
@@ -58,6 +59,11 @@ public class ChunkLoaderBlockEntity extends PoweredMachineBlockEntity implements
 
     public int status() {
         return status;
+    }
+
+    /** Client only: where the eye on the front stands, for the renderer. */
+    public EyeView eyeView() {
+        return eyeView;
     }
 
     /** Whether this loader currently holds its chunk ticket. */

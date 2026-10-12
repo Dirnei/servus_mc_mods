@@ -62,6 +62,6 @@ public final class MachineClient {
         event.registerBlockEntityRenderer(MachineContent.BURNER_PUMP_ENTITY.get(), BurnerPumpRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.ELECTRIC_PUMP_ENTITY.get(), ElectricPumpRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.SINK_ENTITY.get(), SinkRenderer::new);
-        event.registerBlockEntityRenderer(MachineContent.CHUNK_LOADER_ENTITY.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(MachineContent.CHUNK_LOADER_ENTITY.get(), EnderAnchorRenderer::new);
     }
 }
