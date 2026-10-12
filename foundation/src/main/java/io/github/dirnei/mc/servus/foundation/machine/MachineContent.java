@@ -45,7 +45,8 @@ public final class MachineContent {
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, ServusFoundationIds.MOD_ID);
 
     public static final DeferredBlock<CoalGeneratorBlock> COAL_GENERATOR =
-            BLOCKS.registerBlock("coal_generator", CoalGeneratorBlock::new, () -> machine());
+            BLOCKS.registerBlock("coal_generator", CoalGeneratorBlock::new,
+                    () -> machine().noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<BlockItem> COAL_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(COAL_GENERATOR);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR_ENTITY =
             BLOCK_ENTITIES.register("coal_generator", () -> new BlockEntityType<>(CoalGeneratorBlockEntity::new, COAL_GENERATOR.get()));
