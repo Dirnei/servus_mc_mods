@@ -660,12 +660,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return sum;
     }
 
-    /** Open incoming wireless transfers per Packing Station of this warehouse, for the choice of the receiver. */
-    private final Map<BlockPos, Integer> incoming = new HashMap<>();
-
-    /** How many open wireless transfers are on their way to the Packing Station at that position. */
+    /**
+     * How many open wireless transfers are on their way to the Packing Station
+     * at that position, as the sending stations reported them; used to spread
+     * transfers over this warehouse's Packing Stations.
+     */
     public int incomingWireless(BlockPos station) {
-        return incoming.getOrDefault(station, 0);
+        return level == null ? 0 : io.github.dirnei.mc.servus.storage.packing.WirelessIncoming.count(level.dimension(), station);
     }
 
     /** The Packing Stations of this warehouse. */
