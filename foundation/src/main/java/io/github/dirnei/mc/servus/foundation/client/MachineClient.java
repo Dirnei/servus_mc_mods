@@ -41,13 +41,18 @@ public final class MachineClient {
         event.register(MachineContent.CHUNK_LOADER_MENU.get(), ChunkLoaderScreen::new);
     }
 
-    /** The Sink fan and the Burner Pump beam and rods are standalone models drawn by block entity renderers. */
+    /** The Sink fan and the moving parts of both beam pumps are standalone models drawn by block entity renderers. */
     @SubscribeEvent
     public static void onRegisterStandaloneModels(ModelEvent.RegisterStandalone event) {
         ModelKeys.register(event, SinkRenderer.FAN_MODEL, "block/sink_fan");
         ModelKeys.register(event, BurnerPumpRenderer.BEAM_MODEL, "block/burner_pump_beam");
         ModelKeys.register(event, BurnerPumpRenderer.ROD_MODEL, "block/burner_pump_rod");
         ModelKeys.register(event, BurnerPumpRenderer.PISTON_MODEL, "block/burner_pump_piston");
+        ModelKeys.register(event, ElectricPumpRenderer.BEAM_MODEL, "block/electric_pump_beam");
+        ModelKeys.register(event, ElectricPumpRenderer.ROD_MODEL, "block/electric_pump_rod");
+        ModelKeys.register(event, ElectricPumpRenderer.CON_ROD_MODEL, "block/electric_pump_con_rod");
+        ModelKeys.register(event, ElectricPumpRenderer.WHEEL_MODEL, "block/electric_pump_wheel");
+        ModelKeys.register(event, ElectricPumpRenderer.FAN_MODEL, "block/electric_pump_fan");
     }
 
     /** Every machine draws its side modes on the block. */
@@ -55,7 +60,7 @@ public final class MachineClient {
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(MachineContent.COAL_GENERATOR_ENTITY.get(), SideMarkerRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.BURNER_PUMP_ENTITY.get(), BurnerPumpRenderer::new);
-        event.registerBlockEntityRenderer(MachineContent.ELECTRIC_PUMP_ENTITY.get(), SideMarkerRenderer::new);
+        event.registerBlockEntityRenderer(MachineContent.ELECTRIC_PUMP_ENTITY.get(), ElectricPumpRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.SINK_ENTITY.get(), SinkRenderer::new);
         event.registerBlockEntityRenderer(MachineContent.CHUNK_LOADER_ENTITY.get(), SideMarkerRenderer::new);
     }

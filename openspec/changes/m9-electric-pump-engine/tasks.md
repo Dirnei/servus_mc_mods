@@ -17,7 +17,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 - [x] 3.1 `machine/pump/ElectricPumpBlock.java` extends `BeamPumpBlock` with its shapes from `ElectricPumpParts` and the spark `animateTick` (design.md D6, D7); verify `ParticleTypes.ELECTRIC_SPARK` and `SPLASH` with `javap` on `build/moddev/artifacts/minecraft-patched-26.1.2.116-merged.jar`. Run `gradlew build`.
 - [x] 3.2 Textures by script in `C:\Users\Dirnei\AppData\Local\Temp\servus-helpers\jobs\electric-pump\gen_electric_pump.py` (not in the repo): `textures/block/electric_pump_housing.png`, `electric_pump_grille.png`, `electric_pump_fan.png`, `electric_pump_terminal.png`; delete `electric_pump_front.png` and `electric_pump_front_lit.png` (design.md D5). Check 16x16 RGBA. Run `gradlew build`.
 - [x] 3.3 `datagen/ElectricPumpModels.java` (new, lower, upper, beam, pump rod, con rod, crank wheel, fan, item; blockstates by `HALF` and `FACING` with the stub parts) and `datagen/MachineDataParts.java` (no old electric model; loot like the Burner Pump, one item from the lower half). Run `gradlew :foundation:runData` and `gradlew build`.
-- [ ] 3.4 `client/ElectricPumpRenderer.java` (new; crank wheel and fan rotate, con rod from pin to beam, beam rocks, pump rod follows, design.md D5) registered in `client/MachineClient.java` instead of `SideMarkerRenderer`; standalone model keys registered like the burner's. Run `gradlew build`.
+- [x] 3.4 `client/ElectricPumpRenderer.java` (new; crank wheel and fan rotate, con rod from pin to beam, beam rocks, pump rod follows, design.md D5) registered in `client/MachineClient.java` instead of `SideMarkerRenderer`; standalone model keys registered like the burner's. Run `gradlew build`.
 
 ## 4. GameTests
 
