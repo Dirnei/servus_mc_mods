@@ -72,6 +72,28 @@ public final class PersistGameTests {
         return helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
     }
 
+    /** Planks in the buffer survive a reload of the CPU's master, and the crafting table is made. */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void reloadKeepsBuffer(GameTestHelper helper) {
+        CpuBlockEntity cpu = CraftingCpuGameTests.bufferedSetup(helper, 6, 1);
+        TerminalWiring.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+            io.github.dirnei.mc.servus.storage.order.WorkOrder order = cpu.book().create(CraftingCpuGameTests.CRAFTING_TABLE, 1, 0).order();
+            int id = order.id();
+            CraftingCpuGameTests.whenBuffered(helper, cpu, order, CraftingCpuGameTests.PLANKS, () -> {
+                int held = cpu.buffer().held(id, CraftingCpuGameTests.PLANKS);
+                CpuBlockEntity loaded = reload(helper, cpu.getBlockPos().subtract(helper.absolutePos(BlockPos.ZERO)));
+                helper.assertTrue(loaded != cpu && loaded.buffer().held(id, CraftingCpuGameTests.PLANKS) == held,
+                        "the buffer keeps " + held + " planks, has " + loaded.buffer());
+                io.github.dirnei.mc.servus.storage.order.WorkOrder reloaded = loaded.book().order(id);
+                helper.assertTrue(reloaded != null, "the order survives the reload");
+                TerminalWiring.when(helper, () -> reloaded.state() == io.github.dirnei.mc.servus.storage.order.WorkOrder.State.DONE
+                                && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.CRAFTING_TABLE) == 1, 1200,
+                        () -> "the crafting table should be made, " + reloaded.state() + " " + reloaded.steps().stream()
+                                .map(step -> step.state() + "/" + step.reason()).toList() + " buffer " + loaded.buffer(), helper::succeed);
+            });
+        });
+    }
+
     /** Open requests come back with their amounts, and a new request gets an id above the saved one. */
     @ServusGameTest(timeoutTicks = 100)
     public static void terminalRequestsSurviveReload(GameTestHelper helper) {

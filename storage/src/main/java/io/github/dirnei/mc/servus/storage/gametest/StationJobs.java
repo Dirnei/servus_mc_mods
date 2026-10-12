@@ -27,6 +27,13 @@ final class StationJobs {
                 new ItemStack(Items.OAK_PLANKS, 4));
     }
 
+    /** Four oak planks in a square make a crafting table. */
+    static EncodedPattern craftingTable() {
+        ItemStack planks = new ItemStack(Items.OAK_PLANKS);
+        return new EncodedPattern(Identifier.withDefaultNamespace("crafting_table"),
+                List.of(planks, planks, ItemStack.EMPTY, planks, planks), new ItemStack(Items.CRAFTING_TABLE));
+    }
+
     /** Hands the station a sticks job owned by a fresh test object, so it takes planks. */
     static Object sticksJob(CraftingStationBlockEntity station, int crafts) {
         Object owner = new Object();

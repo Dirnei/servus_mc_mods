@@ -23,6 +23,7 @@ import io.github.dirnei.mc.servus.storage.pattern.EncodedPattern;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
+import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,7 +34,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FurnaceBlock;
 
-/** Intermediates of a chain go straight from one producer to the next instead of through storage. */
+/** Intermediates of a chain go straight from one producer to the next, or wait in the CPU buffer, instead of going through storage. */
 public final class ChainHandoffGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
@@ -167,7 +168,108 @@ public final class ChainHandoffGameTests {
         });
     }
 
-    /** The second station is held by another job past the wait: the planks go to storage and the order still finishes. */
+    // Buffer
+
+    /**
+     * Oak logs to a crafting table on one Crafting Station: the planks wait in
+     * the CPU's buffer, never show up at the Packing Station or in the
+     * warehouse, and the crafting table is made.
+     */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void chainOnOneStationUsesBuffer(GameTestHelper helper) {
+        CpuBlockEntity cpu = CraftingCpuGameTests.bufferedSetup(helper, 6, 1);
+        int[] planks = CraftingCpuGameTests.watchStorage(helper, Items.OAK_PLANKS);
+        int[] buffered = {0};
+        helper.onEachTick(() -> buffered[0] = Math.max(buffered[0], cpu.bufferUsed()));
+        TerminalWiring.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.CRAFTING_TABLE, 1, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            WorkOrder order = placed.created().order();
+            helper.assertTrue(order.steps().size() == 2 && order.steps().get(0).producer().equals(order.steps().get(1).producer()),
+                    "a planks step and a table step on the one station, got " + steps(order));
+            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE
+                            && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.CRAFTING_TABLE) == 1,
+                    1300, () -> "the crafting table should be made and put away, " + steps(order), () -> {
+                        helper.assertTrue(buffered[0] > 0, "the planks should wait in the buffer");
+                        helper.assertTrue(planks[0] == 0, "no planks at the Packing Station or in the warehouse, saw " + planks[0]);
+                        helper.assertTrue(order.overflowed().isEmpty(), "nothing overflowed: " + order.overflowed());
+                        helper.assertTrue(cpu.bufferUsed() == 0, "the buffer is empty again");
+                        helper.succeed();
+                    });
+        });
+    }
+
+    /** The second station stays busy past the wait: with buffer room the planks wait in the buffer, not at the station or in storage. */
+    @ServusGameTest(timeoutTicks = 1600)
+    public static void busyProducerUsesBuffer(GameTestHelper helper) {
+        CraftingCpuGameTests.setup(helper, false);
+        CpuBuild.formSlotted(helper, CraftingCpuGameTests.CPU_A);
+        helper.setBlock(STATION_B, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState()
+                .setValue(CraftingStationBlock.FACING, Direction.NORTH));
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(CraftingCpuGameTests.PATTERNS, PatternStorageBlockEntity.class);
+        patterns.set(1, StationJobs.planks());
+        CraftingCpuGameTests.stock(helper, CraftingCpuGameTests.RACK_A, Items.OAK_LOG, 2);
+        CraftingStationBlockEntity second = helper.getBlockEntity(STATION_B, CraftingStationBlockEntity.class);
+        Object owner = StationJobs.sticksJob(second, 1);
+        int[] planks = watch(helper, CraftingCpuGameTests.CONTROLLER, CraftingCpuGameTests.PLANKS);
+        TerminalWiring.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
+            CpuBlockEntity cpu = CraftingCpuGameTests.cpu(helper, CraftingCpuGameTests.CPU_A);
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.STICK, 8, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            WorkOrder order = placed.created().order();
+            TerminalWiring.when(helper, () -> cpu.buffer().held(order.id(), CraftingCpuGameTests.PLANKS) >= 4, 900,
+                    () -> "the planks should wait in the buffer, " + steps(order), () -> {
+                        // Well past the wait: still in the buffer, nothing held at the station, nothing in storage.
+                        helper.runAfterDelay(StorageStatsManager.INSTANCE.handoffWaitTicks() + 60, () -> {
+                            helper.assertTrue(cpu.buffer().held(order.id(), CraftingCpuGameTests.PLANKS) >= 4,
+                                    "the planks stay in the buffer, " + steps(order));
+                            helper.assertTrue(planks[0] == 0, "no planks in storage, saw " + planks[0]);
+                            helper.assertTrue(order.overflowed().isEmpty(), "nothing overflowed: " + order.overflowed());
+                            second.release(owner);
+                            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE, 900, () -> "the order should finish, " + steps(order), () -> {
+                                helper.assertTrue(planks[0] == 0, "no planks ever in storage, saw " + planks[0]);
+                                putAway(helper, 8);
+                            });
+                        });
+                    });
+        });
+    }
+
+    /**
+     * One stack of room and 80 planks for 20 crafting tables on one station:
+     * 64 planks wait in the buffer, 16 go to storage, the order notes it and
+     * still completes.
+     */
+    @ServusGameTest(timeoutTicks = 3600)
+    public static void fullBufferOverflowsToStorage(GameTestHelper helper) {
+        CpuBlockEntity cpu = CraftingCpuGameTests.bufferedSetup(helper, 1, 20);
+        int[] most = {0};
+        helper.onEachTick(() -> {
+            if (cpu.buffer() != null) {
+                for (var entry : cpu.buffer().entries()) {
+                    most[0] = Math.max(most[0], entry.count());
+                }
+            }
+        });
+        TerminalWiring.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+            helper.assertTrue(cpu.room() == 1, "one stack of room, got " + cpu.room());
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.CRAFTING_TABLE, 20, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            WorkOrder order = placed.created().order();
+            TerminalWiring.when(helper, () -> order.state() == WorkOrder.State.DONE
+                            && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.CRAFTING_TABLE) == 20,
+                    3400, () -> "20 crafting tables should be made, " + steps(order) + " overflow " + order.overflowed(), () -> {
+                        helper.assertTrue(most[0] == 64, "the buffer held one full stack, most " + most[0]);
+                        helper.assertTrue(order.overflowed().getOrDefault(CraftingCpuGameTests.PLANKS, 0) == 16,
+                                "16 planks overflowed, got " + order.overflowed());
+                        helper.assertTrue(CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.PLANKS) == 0,
+                                "the stored planks were used");
+                        helper.succeed();
+                    });
+        });
+    }
+
+    /** Without Buffer blocks the second station is held by another job past the wait: the planks go to storage and the order still finishes. */
     @ServusGameTest(timeoutTicks = 1600)
     public static void busyNextProducerFallsBack(GameTestHelper helper) {
         twoStations(helper);

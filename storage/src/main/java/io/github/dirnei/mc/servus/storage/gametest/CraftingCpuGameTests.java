@@ -126,6 +126,68 @@ public final class CraftingCpuGameTests {
         }
     }
 
+    static final ItemKey CRAFTING_TABLE = ItemKey.of(new ItemStack(Items.CRAFTING_TABLE));
+
+    /**
+     * The CPU test line with a 2x2x2 CPU of {@code 8 - bufferBlocks} CPU blocks and
+     * {@code bufferBlocks} Buffer blocks, the planks and crafting table patterns
+     * next to the sticks pattern and {@code logs} oak logs in the first rack.
+     */
+    static CpuBlockEntity bufferedSetup(GameTestHelper helper, int bufferBlocks, int logs) {
+        setup(helper, false);
+        CpuBuild.box(helper, CPU_A, 2, 2, 2, 8 - bufferBlocks);
+        CpuBlockEntity cpu = CpuBuild.formed(helper, CPU_A);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(PATTERNS, PatternStorageBlockEntity.class);
+        patterns.set(1, StationJobs.planks());
+        patterns.set(2, StationJobs.craftingTable());
+        stock(helper, RACK_A, Items.OAK_LOG, logs);
+        return cpu;
+    }
+
+    /** Whether the line has the station and the CPU, so orders can be planned. */
+    static boolean lineReady(GameTestHelper helper) {
+        return DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(new BlockPos(4, 2, 2)))
+                .map(network -> !network.dataMembers(DataRole.PRODUCER).isEmpty()
+                        && CpuOrders.cpus(helper.getLevel(), network).size() == 1)
+                .orElse(false);
+    }
+
+    /** The most of the key the warehouse and its Packing Station's buffers held at any tick so far, in {@code seen[0]}. */
+    static int[] watchStorage(GameTestHelper helper, Item item) {
+        int[] seen = {0};
+        ItemKey key = ItemKey.of(new ItemStack(item));
+        helper.onEachTick(() -> {
+            int count = 0;
+            if (helper.getBlockEntity(CONTROLLER, BlockEntity.class) instanceof WarehouseControllerBlockEntity controller) {
+                count += controller.network().map(network -> (int) network.available(key)).orElse(0);
+            }
+            if (helper.getBlockEntity(ACCESS, BlockEntity.class) instanceof io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point) {
+                count += countIn(point.buffer(), item) + countIn(point.outgoing(), item);
+            }
+            seen[0] = Math.max(seen[0], count);
+        });
+        return seen;
+    }
+
+    static int countIn(io.github.dirnei.mc.servus.foundation.transfer.ItemSlots slots, Item item) {
+        int count = 0;
+        for (int i = 0; i < slots.getSlots(); i++) {
+            if (slots.getStackInSlot(i).is(item)) {
+                count += slots.getStackInSlot(i).getCount();
+            }
+        }
+        return count;
+    }
+
+    /** Runs {@code then} once, on the first tick the order holds the key in its CPU's buffer. */
+    static void whenBuffered(GameTestHelper helper, CpuBlockEntity cpu, WorkOrder order, ItemKey key, Runnable then) {
+        // Polled every tick; onEachTick cannot be added while the test ticks.
+        TerminalWiring.when(helper, () -> cpu.buffer().held(order.id(), key) > 0, 1200,
+                () -> "the order should hold " + key.stack(1).getHoverName().getString() + " in the buffer, order "
+                        + order.state() + " " + order.steps().stream().map(step -> step.state() + "/" + step.reason()).toList()
+                        + " buffer " + cpu.buffer(), then);
+    }
+
     static WarehouseNetwork warehouse(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
         return controller.network().orElseThrow();
@@ -677,6 +739,159 @@ public final class CraftingCpuGameTests {
                                 () -> "the lights should glow again once the order is cancelled", helper::succeed);
                     });
         });
+    }
+
+    // Buffer
+
+    /** Planks one order holds in the buffer are not stock for a second order, which plans with the warehouse only. */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void bufferedPlanksNotForOthers(GameTestHelper helper) {
+        CpuBlockEntity cpu = bufferedSetup(helper, 6, 1);
+        TerminalWiring.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+            OrderBook book = cpu.book();
+            WorkOrder first = book.create(CRAFTING_TABLE, 1, 0).order();
+            helper.assertTrue(first != null, "the crafting table order should be made");
+            whenBuffered(helper, cpu, first, PLANKS, () -> {
+                OrderBook.Preview preview = book.preview(STICK, 4);
+                helper.assertTrue(preview.fromStock().getOrDefault(PLANKS, 0) == 0,
+                        "the buffered planks are no stock for others: " + preview.fromStock());
+                OrderBook.Created second = book.create(STICK, 4, 0);
+                helper.assertTrue(second.made() && second.order().reserved().getOrDefault(PLANKS, 0) == 0
+                        && second.order().state() == WorkOrder.State.BLOCKED, "the second order misses planks: " + second.order().state());
+                int held = cpu.buffer().held(first.id(), PLANKS);
+                helper.assertTrue(held == 4, "the first order keeps its 4 planks, has " + held);
+                book.cancel(second.order().id());
+                TerminalWiring.when(helper, () -> first.state() == WorkOrder.State.DONE, 1200, () -> "the crafting table should be made", helper::succeed);
+            });
+        });
+    }
+
+    /** Cancelling an order with planks in the buffer sends them to the Packing Station; a shuttle puts them into a rack. */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void cancelSendsBufferToStorage(GameTestHelper helper) {
+        CpuBlockEntity cpu = bufferedSetup(helper, 6, 1);
+        TerminalWiring.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+            WorkOrder order = cpu.book().create(CRAFTING_TABLE, 1, 0).order();
+            whenBuffered(helper, cpu, order, PLANKS, () -> {
+                helper.assertTrue(cpu.book().cancel(order.id()), "the order can be cancelled");
+                TerminalWiring.when(helper, () -> warehouse(helper).available(PLANKS) == 4 && cpu.bufferUsed() == 0, 600,
+                        () -> "the 4 planks should be put away, warehouse has " + warehouse(helper).available(PLANKS)
+                                + ", buffer " + cpu.buffer(), helper::succeed);
+            });
+        });
+    }
+
+    /** Breaking a Buffer block while planks wait sends them to the Packing Station and a shuttle puts them into a rack. */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void unformPutsBufferAway(GameTestHelper helper) {
+        CpuBlockEntity cpu = bufferedSetup(helper, 6, 1);
+        TerminalWiring.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+            WorkOrder order = cpu.book().create(CRAFTING_TABLE, 1, 0).order();
+            whenBuffered(helper, cpu, order, PLANKS, () -> {
+                BlockPos buffer = CPU_A.offset(1, 1, 0);
+                helper.assertTrue(helper.getBlockState(buffer).is(ServusStorageBlocks.CPU_BUFFER.get()), "a Buffer block is broken");
+                helper.setBlock(buffer, Blocks.AIR.defaultBlockState());
+                helper.assertTrue(!helper.getBlockState(CPU_A).getValue(CpuBlock.FORMED), "the CPU unforms");
+                helper.assertTrue(order.state() == WorkOrder.State.CANCELLED, "the order is cancelled");
+                TerminalWiring.when(helper, () -> warehouse(helper).available(PLANKS) == 4, 600,
+                        () -> "the 4 planks should be put away, warehouse has " + warehouse(helper).available(PLANKS), () -> {
+                            helper.assertTrue(droppedNear(helper, CPU_A, 3, Items.OAK_PLANKS) == 0, "no planks dropped at the CPU");
+                            helper.succeed();
+                        });
+            });
+        });
+    }
+
+    /** Breaking a block while the only Packing Station's To storage buffer is full drops the planks beside the station. */
+    @ServusGameTest(timeoutTicks = 1400)
+    public static void unformFullPackingStationDrops(GameTestHelper helper) {
+        CpuBlockEntity cpu = bufferedSetup(helper, 6, 1);
+        TerminalWiring.when(helper, () -> lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+            WorkOrder order = cpu.book().create(CRAFTING_TABLE, 1, 0).order();
+            whenBuffered(helper, cpu, order, PLANKS, () -> {
+                io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point =
+                        helper.getBlockEntity(ACCESS, io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity.class);
+                for (int i = 0; i < point.buffer().getSlots(); i++) {
+                    point.buffer().setStackInSlot(i, new ItemStack(Items.COBBLESTONE, 64));
+                }
+                helper.setBlock(CPU_A.offset(1, 1, 1), Blocks.AIR.defaultBlockState());
+                TerminalWiring.when(helper, () -> droppedNear(helper, ACCESS, 2, Items.OAK_PLANKS) == 4, 100,
+                        () -> "the 4 planks should drop beside the Packing Station, found " + droppedNear(helper, ACCESS, 2, Items.OAK_PLANKS)
+                                + " there and " + droppedNear(helper, CPU_A, 3, Items.OAK_PLANKS) + " at the CPU", helper::succeed);
+            });
+        });
+    }
+
+    /** Without a Packing Station on the line the buffered planks drop at the broken block. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void unformWithoutPackingStationDrops(GameTestHelper helper) {
+        TerminalWiring.dataDuct(helper, new BlockPos(5, 2, 2));
+        CpuBlockEntity cpu = CpuBuild.formSlotted(helper, CPU_A);
+        cpu.buffer().expect(1, 7, PLANKS, 4, 64);
+        cpu.buffer().land(PLANKS, 4);
+        BlockPos broken = CPU_A.offset(1, 1, 1);
+        helper.runAfterDelay(5, () -> {
+            helper.setBlock(broken, Blocks.AIR.defaultBlockState());
+            helper.assertTrue(droppedNear(helper, broken, 1, Items.OAK_PLANKS) == 4,
+                    "the 4 planks drop at the broken block, found " + droppedNear(helper, broken, 1, Items.OAK_PLANKS));
+            helper.succeed();
+        });
+    }
+
+    /** A hopper above a formed CPU cannot put items in: the CPU has no item capability, even while its buffer expects planks. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void inletRefusesHopper(GameTestHelper helper) {
+        CpuBlockEntity cpu = CpuBuild.formSlotted(helper, CPU_A);
+        cpu.buffer().expect(1, 7, PLANKS, 4, 64);
+        BlockPos hopperPos = CPU_A.offset(0, 2, 0);
+        helper.setBlock(hopperPos, Blocks.HOPPER.defaultBlockState());
+        net.minecraft.world.level.block.entity.HopperBlockEntity hopper =
+                helper.getBlockEntity(hopperPos, net.minecraft.world.level.block.entity.HopperBlockEntity.class);
+        hopper.setItem(0, new ItemStack(Items.OAK_PLANKS, 4));
+        helper.assertTrue(helper.getLevel().getCapability(net.neoforged.neoforge.capabilities.Capabilities.Item.BLOCK,
+                helper.absolutePos(CPU_A.offset(0, 1, 0)), Direction.UP) == null, "a CPU block has no item capability");
+        helper.assertTrue(helper.getLevel().getCapability(io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities.PACKET_INLET,
+                helper.absolutePos(CPU_A.offset(0, 1, 0)), Direction.UP) != null, "a formed CPU block has a packet inlet");
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(hopper.getItem(0).getCount() == 4, "the hopper keeps its planks");
+            helper.assertTrue(cpu.buffer().held(7, PLANKS) == 0, "nothing reached the buffer");
+            helper.succeed();
+        });
+    }
+
+    /** The summary counts buffer stacks in use against the room. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void summaryShowsBuffer(GameTestHelper helper) {
+        setup(helper, false);
+        CpuBlockEntity cpu = CpuBuild.formSlotted(helper, CPU_A);
+        helper.runAfterDelay(10, () -> {
+            for (int i = 0; i < 3; i++) {
+                helper.assertTrue(cpu.book().create(STICK, 8, 0).made(), "order " + i + " should be made");
+            }
+            cpu.buffer().expect(1, 1, PLANKS, 4, 64);
+            cpu.buffer().expect(2, 2, PLANKS, 4, 64);
+            cpu.buffer().expect(3, 3, PLANKS, 4, 64);
+            cpu.buffer().land(PLANKS, 12);
+            Component summary = cpu.summary();
+            helper.assertTrue(summary.getContents() instanceof TranslatableContents contents
+                            && java.util.Arrays.equals(contents.getArgs(), new Object[] {2, 2, 1, 3, 6}),
+                    "summary should say 2 of 2 in use, 1 waiting and 3 of 6 buffer stacks, got " + summary.getString());
+            helper.succeed();
+        });
+    }
+
+    /** Planks lying as items within {@code radius} of a test position. */
+    static int droppedNear(GameTestHelper helper, BlockPos at, int radius, Item item) {
+        BlockPos pos = helper.absolutePos(at);
+        net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(pos).inflate(radius);
+        int count = 0;
+        for (net.minecraft.world.entity.item.ItemEntity entity
+                : helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, box)) {
+            if (entity.getItem().is(item)) {
+                count += entity.getItem().getCount();
+            }
+        }
+        return count;
     }
 
     // Direct delivery
