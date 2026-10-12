@@ -533,4 +533,43 @@ public final class PackingStationGameTests {
             });
         });
     }
+
+    /**
+     * A terminal touching the controller and a Wireless Packing Station
+     * touching the crate are no foreign inventories: neither the terminal's
+     * rows nor the station's buffers count as stock, and the Input row's logs
+     * all reach the rack.
+     */
+    @ServusGameTest(timeoutTicks = 1200)
+    public static void terminalBesideControllerIsNoStock(GameTestHelper helper) {
+        Setup setup = setup(helper, 0, 0, false, true);
+        setup.crate().insert(new ItemStack(Items.COBBLESTONE, setup.crate().capacity()), false);
+        BlockPos terminalPos = new BlockPos(1, 1, 7);
+        helper.setBlock(terminalPos, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
+                .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
+        for (int x = 1; x <= 2; x++) {
+            data(helper, new BlockPos(x, 1, 8));
+        }
+        BlockPos wirelessPos = new BlockPos(0, 1, 5);
+        helper.setBlock(wirelessPos, ServusStorageBlocks.WIRELESS_PACKING_STATION.get().defaultBlockState());
+        var wireless = helper.getBlockEntity(wirelessPos, io.github.dirnei.mc.servus.storage.packing.WirelessPackingStationBlockEntity.class);
+        wireless.outgoing().setStackInSlot(0, new ItemStack(Items.EMERALD, 7));
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalBlockEntity terminal = helper.getBlockEntity(terminalPos, StorageTerminalBlockEntity.class);
+            terminal.output().setStackInSlot(0, new ItemStack(Items.DIAMOND, 5));
+            terminal.input().setStackInSlot(0, new ItemStack(Items.OAK_LOG, 64));
+            WarehouseNetwork network = helper.getBlockEntity(NEAR, PackingStationBlockEntity.class).network().orElseThrow();
+            io.github.dirnei.mc.servus.storage.network.ItemKey logs = io.github.dirnei.mc.servus.storage.network.ItemKey.of(new ItemStack(Items.OAK_LOG));
+            helper.succeedWhen(() -> {
+                helper.assertTrue(network.index().count(io.github.dirnei.mc.servus.storage.network.ItemKey.of(new ItemStack(Items.EMERALD))) == 0,
+                        "the Wireless Packing Station's buffer is no stock");
+                helper.assertTrue(count(setup.rack().items(), Items.OAK_LOG) == 64, "the rack should hold 64 logs, got "
+                        + count(setup.rack().items(), Items.OAK_LOG) + ", input " + terminal.input().getStackInSlot(0).getCount());
+                helper.assertTrue(terminal.input().getStackInSlot(0).isEmpty(), "the input should be empty");
+                helper.assertTrue(network.index().count(io.github.dirnei.mc.servus.storage.network.ItemKey.of(new ItemStack(Items.DIAMOND))) == 0,
+                        "the Output row is no stock");
+                helper.assertTrue(network.index().count(logs) == 64, "stock counts the 64 logs once, got " + network.index().count(logs));
+            });
+        });
+    }
 }

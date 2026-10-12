@@ -70,7 +70,8 @@ import net.neoforged.neoforge.model.data.ModelData;
  * outputs for the CPU; without a job it crafts nothing, automation inserts
  * nothing and leftover outputs are pushed into neighbours.
  */
-public class CraftingStationBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, SidedBlockEntity {
+public class CraftingStationBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, SidedBlockEntity,
+        io.github.dirnei.mc.servus.storage.network.NoStock {
 
     /** Carries the data network to touching data nodes, like a piece of cable. */
     private final DataCarrier carrier = new DataCarrier(this);
