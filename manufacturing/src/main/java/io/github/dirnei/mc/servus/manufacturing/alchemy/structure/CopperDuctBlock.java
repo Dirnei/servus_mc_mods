@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.structure;
 
+import net.minecraft.server.level.ServerLevel;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
@@ -107,17 +108,15 @@ public class CopperDuctBlock extends Block implements Wrenchable {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            if (athanorPiece(state)) {
-                if (!level.isClientSide() && level.getBlockEntity(athanorPos(state, pos)) instanceof AthanorBlockEntity athanor) {
-                    athanor.checkHearth();
-                }
-            } else {
-                CalcinerStructure.broken(level, state, pos);
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        if (athanorPiece(state)) {
+            if (level.getBlockEntity(athanorPos(state, pos)) instanceof AthanorBlockEntity athanor) {
+                athanor.checkHearth();
             }
+        } else {
+            CalcinerStructure.broken(level, state, pos);
         }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override

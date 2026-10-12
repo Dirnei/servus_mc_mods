@@ -23,29 +23,29 @@ public final class ServusManufacturingRecipes {
             Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "calcination");
     public static final DeferredHolder<RecipeType<?>, RecipeType<CalcinationRecipe>> CALCINATION =
             RECIPE_TYPES.register("calcination", () -> RecipeType.simple(CALCINATION_ID));
-    public static final DeferredHolder<RecipeSerializer<?>, CalcinationRecipe.Serializer> CALCINATION_SERIALIZER =
-            RECIPE_SERIALIZERS.register("calcination", CalcinationRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CalcinationRecipe>> CALCINATION_SERIALIZER =
+            RECIPE_SERIALIZERS.register("calcination", () -> CalcinationRecipe.SERIALIZER);
 
     public static final Identifier COAGULATION_ID =
             Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "coagulation");
     public static final DeferredHolder<RecipeType<?>, RecipeType<CoagulationRecipe>> COAGULATION =
             RECIPE_TYPES.register("coagulation", () -> RecipeType.simple(COAGULATION_ID));
-    public static final DeferredHolder<RecipeSerializer<?>, CoagulationRecipe.Serializer> COAGULATION_SERIALIZER =
-            RECIPE_SERIALIZERS.register("coagulation", CoagulationRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CoagulationRecipe>> COAGULATION_SERIALIZER =
+            RECIPE_SERIALIZERS.register("coagulation", () -> CoagulationRecipe.SERIALIZER);
 
     public static final Identifier ATHANOR_ID =
             Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "athanor");
     public static final DeferredHolder<RecipeType<?>, RecipeType<AthanorRecipe>> ATHANOR =
             RECIPE_TYPES.register("athanor", () -> RecipeType.simple(ATHANOR_ID));
-    public static final DeferredHolder<RecipeSerializer<?>, AthanorRecipe.Serializer> ATHANOR_SERIALIZER =
-            RECIPE_SERIALIZERS.register("athanor", AthanorRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<AthanorRecipe>> ATHANOR_SERIALIZER =
+            RECIPE_SERIALIZERS.register("athanor", () -> AthanorRecipe.SERIALIZER);
 
     public static final Identifier PURIFICATION_ID =
             Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purification");
     public static final DeferredHolder<RecipeType<?>, RecipeType<PurificationRecipe>> PURIFICATION =
             RECIPE_TYPES.register("purification", () -> RecipeType.simple(PURIFICATION_ID));
-    public static final DeferredHolder<RecipeSerializer<?>, PurificationRecipe.Serializer> PURIFICATION_SERIALIZER =
-            RECIPE_SERIALIZERS.register("purification", PurificationRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PurificationRecipe>> PURIFICATION_SERIALIZER =
+            RECIPE_SERIALIZERS.register("purification", () -> PurificationRecipe.SERIALIZER);
 
     private ServusManufacturingRecipes() {
     }

@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator;
 
+import net.minecraft.server.level.ServerLevel;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
@@ -22,8 +24,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.fluids.FluidUtil;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
  * A Principle Vat of the Coagulator, placed three times above it. While formed, {@link #PIECE}
@@ -58,9 +59,9 @@ public class VatBlock extends Block implements Wrenchable {
         if (!state.getValue(FORMED) || !PrincipleBuckets.holdsPrinciple(stack)) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        FluidView vat = CoagulatorStructure.vatHandler(level, pos, state);
+        LegacyFluidHandler vat = CoagulatorStructure.vatHandler(level, pos, state);
         if (vat != null && !level.isClientSide()) {
-            FluidUtil.interactWithFluidHandler(player, hand, vat);
+            FluidUtil.interactWithFluidHandler(player, hand, pos, vat, null);
         }
         return InteractionResult.SUCCESS;
     }
@@ -73,11 +74,9 @@ public class VatBlock extends Block implements Wrenchable {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            CoagulatorStructure.broken(level, state, pos);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        CoagulatorStructure.broken(level, state, pos);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override

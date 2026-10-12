@@ -107,17 +107,17 @@ public final class Journal {
 
     /** Gives the player every chapter advancement their team earned. Safe to call often. */
     public static void catchUp(ServerPlayer player) {
-        AdvancementHolder root = player.server.getAdvancements().get(ROOT);
+        AdvancementHolder root = player.level().getServer().getAdvancements().get(ROOT);
         if (root != null) {
             player.getAdvancements().award(root, CRITERION);
         }
-        for (String chapter : journalOf(player.server, Teams.teamOf(player)).finished()) {
+        for (String chapter : journalOf(player.level().getServer(), Teams.teamOf(player)).finished()) {
             award(player, chapter);
         }
     }
 
     private static void award(ServerPlayer player, String chapter) {
-        AdvancementHolder holder = player.server.getAdvancements().get(advancementId(chapter));
+        AdvancementHolder holder = player.level().getServer().getAdvancements().get(advancementId(chapter));
         if (holder != null) {
             player.getAdvancements().award(holder, CRITERION);
         }

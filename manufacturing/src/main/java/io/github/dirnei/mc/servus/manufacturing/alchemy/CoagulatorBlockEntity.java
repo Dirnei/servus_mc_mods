@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import net.minecraft.world.level.Level;
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import net.minecraft.world.item.crafting.Recipe;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import net.minecraft.world.level.storage.ValueInput;
@@ -12,7 +14,6 @@ import io.github.dirnei.mc.servus.foundation.machine.OwnedMachine;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import io.github.dirnei.mc.servus.foundation.side.SideMode;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.manufacturing.ServusManufacturingIds;
 import io.github.dirnei.mc.servus.manufacturing.journal.Journal;
@@ -32,7 +33,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -53,7 +53,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
     private Identifier selected;
 
-    private final ItemView itemPort = new ItemPort();
+    private final LegacyItemHandler itemPort = new ItemPort();
     /** The fill of each principle in sixteenths, -1 for empty, as last sent to the clients that draw the Vats. */
     private final int[] drawnFill = {-1, -1, -1};
     private int syncCooldown;
@@ -88,9 +88,9 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     }
 
     /** Every coagulation recipe in a fixed order, the same on server and client. */
-    public static List<RecipeHolder<CoagulationRecipe>> sortedRecipes(RecipeManager manager) {
-        return manager.getAllRecipesFor(ServusManufacturingRecipes.COAGULATION.get()).stream()
-                .sorted(Comparator.comparing(holder -> holder.id().toString()))
+    public static List<RecipeHolder<CoagulationRecipe>> sortedRecipes(Level level) {
+        return ServusRecipes.all(level, ServusManufacturingRecipes.COAGULATION.get()).stream()
+                .sorted(Comparator.comparing(holder -> holder.id().identifier().toString()))
                 .toList();
     }
 
@@ -126,7 +126,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     }
 
     /** The casting table: takes the ingredient into slot 0, gives the products from slot 1. */
-    public ItemView itemPort() {
+    public LegacyItemHandler itemPort() {
         return itemPort;
     }
 
@@ -185,7 +185,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
         if (level == null || selected == null) {
             return Optional.empty();
         }
-        return level.recipeAccess().byKey(selected)
+        return ServusRecipes.byId(level, selected)
                 .filter(holder -> holder.value() instanceof CoagulationRecipe)
                 .map(holder -> (RecipeHolder<CoagulationRecipe>) holder);
     }
@@ -278,7 +278,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
             if (level == null || selected == null) {
                 return 0;
             }
-            List<RecipeHolder<CoagulationRecipe>> recipes = sortedRecipes(level.recipeAccess());
+            List<RecipeHolder<CoagulationRecipe>> recipes = sortedRecipes(level);
             for (int i = 0; i < recipes.size(); i++) {
                 if (recipes.get(i).id().equals(selected)) {
                     return i + 1;
@@ -302,17 +302,17 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
                     CoagulationRecipe recipe = holder.value();
                     List<ItemStack> inputs = recipe.ingredient()
                             .map(sized -> {
-                                ItemStack[] items = sized.ingredient().getItems();
-                                return items.length == 0 ? List.<ItemStack>of() : List.of(items[0].copyWithCount(sized.count()));
+                                ItemStack item = ServusRecipes.firstItem(sized.ingredient());
+                                return item.isEmpty() ? List.<ItemStack>of() : List.of(item.copyWithCount(sized.count()));
                             })
                             .orElse(List.of());
-                    return List.of(new ProductionRecipe(holder.id(), inputs, List.of(recipe.result().copy()), Math.max(1, recipe.time())));
+                    return List.of(new ProductionRecipe(holder.id().identifier(), inputs, List.of(recipe.result().copy()), Math.max(1, recipe.time())));
                 }).orElse(List.of());
             }
 
             @Override
             public Optional<Identifier> active() {
-                return selectedHolder().map(RecipeHolder::id);
+                return selectedHolder().map(holder -> holder.id().identifier());
             }
         };
     }
@@ -321,7 +321,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
-        tag.put("Principles", ValueIo.saveStack(registries, tanks));
+        tag.put("Principles", tanks.save(registries));
         return tag;
     }
 
@@ -330,7 +330,7 @@ public class CoagulatorBlockEntity extends MachineBlockEntity implements OwnedMa
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
-        tag.put("Principles", ValueIo.saveStack(registries, tanks));
+        tag.put("Principles", tanks.save(registries));
         if (selected != null) {
             output.putString("Recipe", selected.toString());
         }

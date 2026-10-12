@@ -1,18 +1,18 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.PrincipleCodecs;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.Principles;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -35,7 +35,7 @@ public record AthanorRecipe(SizedIngredient input, Principles principles, int ti
     public static final int DEFAULT_TIME = 100;
 
     public static final MapCodec<AthanorRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            SizedIngredient.FLAT_CODEC.fieldOf("input").forGetter(AthanorRecipe::input),
+            SizedIngredient.NESTED_CODEC.fieldOf("input").forGetter(AthanorRecipe::input),
             PrincipleCodecs.CODEC.optionalFieldOf("principles", Principles.NONE).forGetter(AthanorRecipe::principles),
             Codec.intRange(0, 3).optionalFieldOf("tier", 0).forGetter(AthanorRecipe::tier),
             ItemStack.CODEC.fieldOf("result").forGetter(AthanorRecipe::result),
@@ -62,25 +62,29 @@ public record AthanorRecipe(SizedIngredient input, Principles principles, int ti
     }
 
     @Override
-    public ItemStack assemble(SingleRecipeInput recipeInput, HolderLookup.Provider registries) {
+    public ItemStack assemble(SingleRecipeInput recipeInput) {
         return result.copy();
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return true;
+    public boolean showNotification() {
+        return false;
     }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
-        return result;
+    public String group() {
+        return "";
+    }
+
+    /** Never placed by the recipe book; the machines and JEI read the recipe's own fields. */
+    @Override
+    public PlacementInfo placementInfo() {
+        return PlacementInfo.NOT_PLACEABLE;
     }
 
     @Override
-    public NonNullList<Ingredient> getIngredients() {
-        NonNullList<Ingredient> list = NonNullList.create();
-        list.add(input.ingredient());
-        return list;
+    public RecipeBookCategory recipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     @Override
@@ -89,26 +93,14 @@ public record AthanorRecipe(SizedIngredient input, Principles principles, int ti
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return ServusManufacturingRecipes.ATHANOR_SERIALIZER.get();
+    public RecipeSerializer<AthanorRecipe> getSerializer() {
+        return SERIALIZER;
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<AthanorRecipe> getType() {
         return ServusManufacturingRecipes.ATHANOR.get();
     }
 
-    /** Serializer of Athanor crafts. */
-    public static final class Serializer implements RecipeSerializer<AthanorRecipe> {
-
-        @Override
-        public MapCodec<AthanorRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, AthanorRecipe> streamCodec() {
-            return STREAM_CODEC;
-        }
-    }
+    public static final RecipeSerializer<AthanorRecipe> SERIALIZER = new RecipeSerializer<>(CODEC, STREAM_CODEC);
 }

@@ -25,7 +25,7 @@ public final class JournalBookItem {
 
     /** Gives the journal once per player, the first time they log in. */
     public static void giveOnce(ServerPlayer player) {
-        if (player.getPersistentData().getBoolean(GIVEN)) {
+        if (player.getPersistentData().getBooleanOr(GIVEN, false)) {
             return;
         }
         player.getPersistentData().putBoolean(GIVEN, true);

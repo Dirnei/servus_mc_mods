@@ -130,8 +130,8 @@ public final class CalcinerStructure {
         Check check = check(level, controller);
         if (!check.complete()) {
             Cell wrong = check.firstWrong().orElseThrow();
-            player.displayClientMessage(Component.translatable("message.servus_manufacturing.calciner.missing",
-                    expected(wrong.role()).getName(), where(wrong)), false);
+            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.calciner.missing",
+                    expected(wrong.role()).getName(), where(wrong)));
             return false;
         }
         form(level, controller, check.facing());

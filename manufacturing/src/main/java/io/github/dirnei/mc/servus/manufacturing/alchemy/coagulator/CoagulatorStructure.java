@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.coagulator;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.CoagulatorBlockEntity;
@@ -20,7 +21,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /**
  * Forms and unforms the Coagulator structure following {@link CoagulatorLayout}. The Stone Bricks
@@ -97,9 +97,9 @@ public final class CoagulatorStructure {
         Check check = check(level, controller);
         if (!check.complete()) {
             Cell wrong = check.firstWrong().orElseThrow();
-            player.displayClientMessage(Component.translatable("message.servus_manufacturing.coagulator.missing",
+            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.coagulator.missing",
                     expected(wrong.role()).getName(), Component.translatable("message.servus_manufacturing.coagulator.at."
-                            + CoagulatorLayout.placement(wrong).replace(' ', '_'))), false);
+                            + CoagulatorLayout.placement(wrong).replace(' ', '_'))));
             return false;
         }
         form(level, controller, check.facing());
@@ -206,7 +206,7 @@ public final class CoagulatorStructure {
     }
 
     /** The fill only tank view of a formed Vat: its principle into the Coagulator. */
-    public static FluidView vatHandler(Level level, BlockPos pos, BlockState state) {
+    public static LegacyFluidHandler vatHandler(Level level, BlockPos pos, BlockState state) {
         if (!(state.getBlock() instanceof VatBlock) || !state.getValue(VatBlock.FORMED)) {
             return null;
         }

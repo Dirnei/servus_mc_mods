@@ -64,7 +64,7 @@ public final class ServusManufacturingBlocks {
             BLOCKS.registerBlock("coagulator", CoagulatorBlock::new, () -> MachineContent.machine());
 
     public static final DeferredBlock<Block> SALT_CRYSTAL_BLOCK = BLOCKS.registerSimpleBlock("salt_crystal_block",
-            BlockBehaviour.Properties.of().mapColor(MapColor.QUARTZ).strength(0.8F).requiresCorrectToolForDrops().sound(SoundType.CALCITE));
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.QUARTZ).strength(0.8F).requiresCorrectToolForDrops().sound(SoundType.CALCITE));
 
     public static final DeferredBlock<AthanorBlock> ATHANOR = BLOCKS.registerBlock("athanor", AthanorBlock::new,
             () -> BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F, 6.0F).requiresCorrectToolForDrops()

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
@@ -40,7 +41,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
@@ -82,10 +82,10 @@ public class PurifierBlockEntity extends BlockEntity {
         }
     };
     private final TeamOwnership ownership = new TeamOwnership(this::setChanged);
-    private final ItemView itemPort = new ItemPort();
-    private final ItemView residuePort = new ResiduePort();
-    private final FluidView fluidPort = new FluidPort();
-    private final FluidView saltPort = new SaltPort();
+    private final LegacyItemHandler itemPort = new ItemPort();
+    private final LegacyItemHandler residuePort = new ResiduePort();
+    private final LegacyFluidHandler fluidPort = new FluidPort();
+    private final LegacyFluidHandler saltPort = new SaltPort();
     private int progress;
     private int pushCooldown;
     /** The brine level last sent to the clients, in sixteenths with the fluid kind, -1 before the first send. */
@@ -140,22 +140,22 @@ public class PurifierBlockEntity extends BlockEntity {
     }
 
     /** The Vat: takes items it can purify, gives none back. */
-    public ItemView itemPort() {
+    public LegacyItemHandler itemPort() {
         return itemPort;
     }
 
     /** The Residue Crock: gives the residue, takes nothing. */
-    public ItemView residuePort() {
+    public LegacyItemHandler residuePort() {
         return residuePort;
     }
 
     /** The Vat: takes only water, gives nothing. */
-    public FluidView fluidPort() {
+    public LegacyFluidHandler fluidPort() {
         return fluidPort;
     }
 
     /** The Catch Basin: gives only Salt, takes nothing. */
-    public FluidView saltPort() {
+    public LegacyFluidHandler saltPort() {
         return saltPort;
     }
 
@@ -177,7 +177,7 @@ public class PurifierBlockEntity extends BlockEntity {
         if (level == null || stack.isEmpty()) {
             return false;
         }
-        return level.recipeAccess().getAllRecipesFor(ServusManufacturingRecipes.PURIFICATION.get()).stream()
+        return ServusRecipes.all(level, ServusManufacturingRecipes.PURIFICATION.get()).stream()
                 .anyMatch(holder -> holder.value().accepts(stack));
     }
 
@@ -198,7 +198,7 @@ public class PurifierBlockEntity extends BlockEntity {
         if (level == null || stack.isEmpty()) {
             return Optional.empty();
         }
-        return level.recipeAccess().getRecipeFor(ServusManufacturingRecipes.PURIFICATION.get(), new SingleRecipeInput(stack), level)
+        return ServusRecipes.first(level, ServusManufacturingRecipes.PURIFICATION.get(), new SingleRecipeInput(stack))
                 .map(RecipeHolder::value);
     }
 
@@ -306,6 +306,13 @@ public class PurifierBlockEntity extends BlockEntity {
         int waterFill = water.isEmpty() ? -1 : water.getFluidAmount() * 16 / Math.max(1, water.getCapacity());
         int saltFill = salt.isEmpty() ? -1 : salt.getFluidAmount() * 16 / Math.max(1, salt.getCapacity());
         return (waterFill + 1) * 100 + saltFill + 1;
+    }
+
+    /** A broken Purifier drops its stock, as the block's removal did before 1.21.5. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        dropContents();
+        super.preRemoveSideEffects(pos, state);
     }
 
     public void dropContents() {

@@ -5,7 +5,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 
 /**
@@ -16,7 +15,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
 public final class PrincipleTanks extends LegacyFluidHandler {
 
     private final FluidSlot[] tanks = new FluidSlot[Principle.values().length];
-    private final FluidView[] views = new FluidView[Principle.values().length];
+    private final LegacyFluidHandler[] views = new LegacyFluidHandler[Principle.values().length];
     private final boolean gives;
     private final Runnable changed;
 
@@ -35,7 +34,7 @@ public final class PrincipleTanks extends LegacyFluidHandler {
     }
 
     /** A handler of one principle's tank only, in the same direction as the whole: what a side set to that tank exposes. */
-    public FluidView view(Principle principle) {
+    public LegacyFluidHandler view(Principle principle) {
         return views[principle.ordinal()];
     }
 

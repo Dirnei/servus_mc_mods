@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import net.minecraft.server.level.ServerLevel;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.BlockPos;
@@ -81,11 +82,9 @@ public class CoagulatorBlock extends MachineBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            CoagulatorStructure.broken(level, state, pos);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        CoagulatorStructure.broken(level, state, pos);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override

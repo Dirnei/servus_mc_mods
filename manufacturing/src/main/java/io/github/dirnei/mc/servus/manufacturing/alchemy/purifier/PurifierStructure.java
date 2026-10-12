@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout.Cell;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.purifier.PurifierLayout.Role;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
@@ -18,8 +20,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /**
  * Forms and unforms the Purifier following {@link PurifierLayout}: the Leaching Vat on a log, the
@@ -88,8 +88,8 @@ public final class PurifierStructure {
             }
         }
         Cell wrong = best.orElseThrow();
-        player.displayClientMessage(Component.translatable("message.servus_manufacturing.purifier.missing", shown(wrong.role()).getName(),
-                Component.translatable("message.servus_manufacturing.purifier.at." + PurifierLayout.placement(wrong).replace(' ', '_'))), false);
+        player.sendSystemMessage(Component.translatable("message.servus_manufacturing.purifier.missing", shown(wrong.role()).getName(),
+                Component.translatable("message.servus_manufacturing.purifier.at." + PurifierLayout.placement(wrong).replace(' ', '_'))));
         return false;
     }
 
@@ -193,12 +193,12 @@ public final class PurifierStructure {
     }
 
     /** The Salt drain only view of a formed Basin. */
-    public static FluidView basinHandler(Level level, BlockPos pos, BlockState state) {
+    public static LegacyFluidHandler basinHandler(Level level, BlockPos pos, BlockState state) {
         return formedVat(level, pos, state, CatchBasinBlock.class).map(PurifierBlockEntity::saltPort).orElse(null);
     }
 
     /** The residue extract only view of a formed Crock. */
-    public static ItemView crockHandler(Level level, BlockPos pos, BlockState state) {
+    public static LegacyItemHandler crockHandler(Level level, BlockPos pos, BlockState state) {
         return formedVat(level, pos, state, ResidueCrockBlock.class).map(PurifierBlockEntity::residuePort).orElse(null);
     }
 }

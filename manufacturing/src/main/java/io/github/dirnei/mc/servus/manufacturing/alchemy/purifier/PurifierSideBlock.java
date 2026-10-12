@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 
+import net.minecraft.server.level.ServerLevel;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.BlockPos;
@@ -45,11 +46,9 @@ public abstract class PurifierSideBlock extends Block {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            PurifierStructure.broken(level, state, pos);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        PurifierStructure.broken(level, state, pos);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override

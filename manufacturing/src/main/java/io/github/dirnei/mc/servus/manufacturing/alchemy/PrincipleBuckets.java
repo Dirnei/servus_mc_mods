@@ -1,12 +1,16 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.fluids.FluidActionResult;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidUtil;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
  * Buckets and other fluid containers on the alchemy machines: a click on a principle gauge
@@ -37,28 +41,21 @@ public final class PrincipleBuckets {
         if (carried.isEmpty()) {
             return false;
         }
-        FluidView tank = tanks.view(principle);
-        ItemStack one = carried.copyWithCount(1);
-        FluidActionResult result = FluidUtil.tryFillContainer(one, tank, Integer.MAX_VALUE, player, true);
-        if (!result.isSuccess()) {
-            result = FluidUtil.tryEmptyContainer(one, tank, Integer.MAX_VALUE, player, true);
-        }
-        if (!result.isSuccess()) {
+        ResourceHandler<FluidResource> container = ItemAccess.forPlayerCursor(player, menu).oneByOne()
+                .getCapability(Capabilities.Fluid.ITEM);
+        if (container == null) {
             return false;
         }
-        if (carried.getCount() == 1) {
-            menu.setCarried(result.getResult());
-        } else {
-            carried.shrink(1);
-            if (!player.getInventory().add(result.getResult())) {
-                player.drop(result.getResult(), false);
-            }
-        }
-        return true;
+        // Fill the container from the tank first, else empty it into the tank; the cursor access
+        // replaces the cursor stack or puts the filled container into the inventory.
+        LegacyFluidHandler tank = tanks.view(principle);
+        return ResourceHandlerUtil.moveFirst(tank, container, resource -> true, Integer.MAX_VALUE, null) != null
+                || ResourceHandlerUtil.moveFirst(container, tank, resource -> true, Integer.MAX_VALUE, null) != null;
     }
 
     /** Whether the stack holds a principle, so a click on a machine should pour it in. */
     public static boolean holdsPrinciple(ItemStack stack) {
-        return FluidUtil.getFluidContained(stack).map(FluidStack::getFluid).map(PrincipleFluids::principleOf).isPresent();
+        FluidStack contained = FluidUtil.getFirstStackContained(stack);
+        return !contained.isEmpty() && PrincipleFluids.principleOf(contained.getFluid()) != null;
     }
 }

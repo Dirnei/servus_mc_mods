@@ -1,16 +1,16 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -32,7 +32,7 @@ public record PurificationRecipe(SizedIngredient input, int water, int salt, Ite
     public static final int DEFAULT_TIME = 40;
 
     public static final MapCodec<PurificationRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            SizedIngredient.FLAT_CODEC.fieldOf("input").forGetter(PurificationRecipe::input),
+            SizedIngredient.NESTED_CODEC.fieldOf("input").forGetter(PurificationRecipe::input),
             Codec.INT.fieldOf("water").forGetter(PurificationRecipe::water),
             Codec.INT.fieldOf("salt").forGetter(PurificationRecipe::salt),
             ItemStack.OPTIONAL_CODEC.optionalFieldOf("residue", ItemStack.EMPTY).forGetter(PurificationRecipe::residue),
@@ -64,25 +64,29 @@ public record PurificationRecipe(SizedIngredient input, int water, int salt, Ite
     }
 
     @Override
-    public ItemStack assemble(SingleRecipeInput recipeInput, HolderLookup.Provider registries) {
+    public ItemStack assemble(SingleRecipeInput recipeInput) {
         return ItemStack.EMPTY;
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return true;
+    public boolean showNotification() {
+        return false;
     }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
-        return ItemStack.EMPTY;
+    public String group() {
+        return "";
+    }
+
+    /** Never placed by the recipe book; the machines and JEI read the recipe's own fields. */
+    @Override
+    public PlacementInfo placementInfo() {
+        return PlacementInfo.NOT_PLACEABLE;
     }
 
     @Override
-    public NonNullList<Ingredient> getIngredients() {
-        NonNullList<Ingredient> list = NonNullList.create();
-        list.add(input.ingredient());
-        return list;
+    public RecipeBookCategory recipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     @Override
@@ -91,26 +95,14 @@ public record PurificationRecipe(SizedIngredient input, int water, int salt, Ite
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return ServusManufacturingRecipes.PURIFICATION_SERIALIZER.get();
+    public RecipeSerializer<PurificationRecipe> getSerializer() {
+        return SERIALIZER;
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<PurificationRecipe> getType() {
         return ServusManufacturingRecipes.PURIFICATION.get();
     }
 
-    /** Serializer of purification recipes. */
-    public static final class Serializer implements RecipeSerializer<PurificationRecipe> {
-
-        @Override
-        public MapCodec<PurificationRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, PurificationRecipe> streamCodec() {
-            return STREAM_CODEC;
-        }
-    }
+    public static final RecipeSerializer<PurificationRecipe> SERIALIZER = new RecipeSerializer<>(CODEC, STREAM_CODEC);
 }

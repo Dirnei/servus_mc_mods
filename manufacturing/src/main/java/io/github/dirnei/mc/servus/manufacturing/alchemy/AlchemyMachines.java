@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.side.FluidSides;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
@@ -37,7 +38,7 @@ public final class AlchemyMachines {
      * What a machine's tanks offer on a world face by its Fluids layer: every tank on All sides,
      * one tank on a side set to it, nothing on Off sides. A null face (no side) sees every tank.
      */
-    public static FluidView sideHandler(MachineBlockEntity machine, PrincipleTanks tanks, Direction face) {
+    public static LegacyFluidHandler sideHandler(MachineBlockEntity machine, PrincipleTanks tanks, Direction face) {
         FluidSides sides = machine.fluidSides();
         if (face == null || sides == null) {
             return tanks;
@@ -57,7 +58,7 @@ public final class AlchemyMachines {
                 continue;
             }
             FluidView neighbour = FluidView.of(level.getCapability(Capabilities.Fluid.BLOCK, pos.relative(direction), direction.getOpposite()));
-            if (neighbour == null || neighbour == tanks) {
+            if (neighbour == null || neighbour.handler() == tanks) {
                 continue;
             }
             for (Principle principle : Principle.values()) {

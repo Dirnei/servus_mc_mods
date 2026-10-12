@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.hollow;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
@@ -35,7 +36,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /**
  * A Gnome Hollow: seeded with a sample of ore, ripened with principles, and once a gnome is bound
@@ -86,7 +86,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
     }
 
     /** Neighbours fill the tanks on every non disabled side; nothing comes out. */
-    public FluidView fluidHandler(Direction side) {
+    public LegacyFluidHandler fluidHandler(Direction side) {
         return side == null || sideMode(side).allowsInsert() ? tanks : null;
     }
 
@@ -319,7 +319,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         super.saveAdditional(output);
         CompoundTag tag = new CompoundTag();
         HolderLookup.Provider registries = ValueIo.registries(this);
-        tag.put("Principles", ValueIo.saveStack(registries, tanks));
+        tag.put("Principles", tanks.save(registries));
         if (vein != null) {
             output.putString("Vein", vein.toString());
         }
@@ -355,7 +355,7 @@ public class GnomeHollowBlockEntity extends MachineBlockEntity implements OwnedM
         tag.putInt("Ripeness", growth.ripeness);
         tag.putBoolean("Bound", growth.bound);
         Optional<VeinDef> def = veinDef();
-        tag.put("ShownYield", def.map(d -> d.yield().saveOptional(registries)).orElseGet(CompoundTag::new));
+        tag.put("ShownYield", def.map(d -> d.yield().isEmpty() ? new CompoundTag() : ValueIo.saveStack(registries, d.yield())).orElseGet(CompoundTag::new));
         tag.putInt("ShownSteps", def.map(d -> d.growth().steps()).orElse(0));
         return tag;
     }

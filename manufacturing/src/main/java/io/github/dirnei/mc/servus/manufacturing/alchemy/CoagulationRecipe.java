@@ -1,18 +1,18 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingRecipes;
 import java.util.Optional;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -37,7 +37,7 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
 
     public static final MapCodec<CoagulationRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             PrincipleCodecs.CODEC.fieldOf("input").forGetter(CoagulationRecipe::input),
-            SizedIngredient.FLAT_CODEC.optionalFieldOf("ingredient").forGetter(CoagulationRecipe::ingredient),
+            SizedIngredient.NESTED_CODEC.optionalFieldOf("ingredient").forGetter(CoagulationRecipe::ingredient),
             ItemStack.CODEC.fieldOf("result").forGetter(CoagulationRecipe::result),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(CoagulationRecipe::time),
             Identifier.CODEC.optionalFieldOf("chapter").forGetter(CoagulationRecipe::chapter)
@@ -68,25 +68,29 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
     }
 
     @Override
-    public ItemStack assemble(SingleRecipeInput recipeInput, HolderLookup.Provider registries) {
+    public ItemStack assemble(SingleRecipeInput recipeInput) {
         return result.copy();
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return true;
+    public boolean showNotification() {
+        return false;
     }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
-        return result;
+    public String group() {
+        return "";
+    }
+
+    /** Never placed by the recipe book; the machines and JEI read the recipe's own fields. */
+    @Override
+    public PlacementInfo placementInfo() {
+        return PlacementInfo.NOT_PLACEABLE;
     }
 
     @Override
-    public NonNullList<Ingredient> getIngredients() {
-        NonNullList<Ingredient> list = NonNullList.create();
-        ingredient.ifPresent(sized -> list.add(sized.ingredient()));
-        return list;
+    public RecipeBookCategory recipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     @Override
@@ -95,26 +99,14 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return ServusManufacturingRecipes.COAGULATION_SERIALIZER.get();
+    public RecipeSerializer<CoagulationRecipe> getSerializer() {
+        return SERIALIZER;
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<CoagulationRecipe> getType() {
         return ServusManufacturingRecipes.COAGULATION.get();
     }
 
-    /** Serializer of coagulation recipes. */
-    public static final class Serializer implements RecipeSerializer<CoagulationRecipe> {
-
-        @Override
-        public MapCodec<CoagulationRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, CoagulationRecipe> streamCodec() {
-            return STREAM_CODEC;
-        }
-    }
+    public static final RecipeSerializer<CoagulationRecipe> SERIALIZER = new RecipeSerializer<>(CODEC, STREAM_CODEC);
 }

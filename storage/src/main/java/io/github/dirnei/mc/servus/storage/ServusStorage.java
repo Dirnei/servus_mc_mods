@@ -39,6 +39,8 @@ public final class ServusStorage {
                 ServusStorageBlocks.RAIL, ServusStorageBlocks.FARM_RAIL)) {
             Wood.register(block.getId());
         }
+        // The pattern editor matches crafting grids on the client too.
+        io.github.dirnei.mc.servus.foundation.production.ServusRecipes.syncToClients(() -> net.minecraft.world.item.crafting.RecipeType.CRAFTING);
         ServusGameTests.register(modEventBus, ServusStorageIds.MOD_ID, java.util.List.of(
                 io.github.dirnei.mc.servus.storage.gametest.AdapterOrderGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.AdjacentDataGameTests.class,

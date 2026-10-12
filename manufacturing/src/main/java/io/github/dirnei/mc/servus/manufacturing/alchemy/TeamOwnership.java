@@ -57,11 +57,11 @@ public final class TeamOwnership {
 
     public void save(CompoundTag tag) {
         if (team != null) {
-            tag.putUUID(TAG, team);
+            tag.store(TAG, net.minecraft.core.UUIDUtil.CODEC, team);
         }
     }
 
     public void load(CompoundTag tag) {
-        team = tag.hasUUID(TAG) ? tag.getUUID(TAG) : null;
+        team = tag.read(TAG, net.minecraft.core.UUIDUtil.CODEC).orElse(null);
     }
 }

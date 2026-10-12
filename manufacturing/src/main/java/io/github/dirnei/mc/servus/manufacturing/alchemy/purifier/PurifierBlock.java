@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 
+import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import com.mojang.serialization.MapCodec;
@@ -26,7 +28,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /** The Leaching Vat, the controller of the Purifier build: Ash and water in, Caput Mortuum out. Worked by hand, hopper and pipe; no GUI. */
 public class PurifierBlock extends BaseEntityBlock {
@@ -91,9 +93,9 @@ public class PurifierBlock extends BaseEntityBlock {
         if (!state.getValue(FORMED)) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        if (stack.getCapability(Capabilities.FluidHandler.ITEM) != null) {
+        if (ItemAccess.forStack(stack).getCapability(Capabilities.Fluid.ITEM) != null) {
             if (!level.isClientSide()) {
-                FluidUtil.interactWithFluidHandler(player, hand, purifier.fluidPort());
+                FluidUtil.interactWithFluidHandler(player, hand, pos, purifier.fluidPort(), null);
             }
             return InteractionResult.SUCCESS;
         }
@@ -130,13 +132,9 @@ public class PurifierBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            PurifierStructure.broken(level, state, pos);
-            if (level.getBlockEntity(pos) instanceof PurifierBlockEntity purifier) {
-                purifier.dropContents();
-            }
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        // The contents drop in PurifierBlockEntity#preRemoveSideEffects, while the block entity still exists.
+        PurifierStructure.broken(level, state, pos);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 }

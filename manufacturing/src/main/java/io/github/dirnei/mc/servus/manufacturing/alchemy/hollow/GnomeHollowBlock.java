@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
  * The Gnome Hollow: principle buckets fill it, a Salt Crystal binds a gnome to a ripe vein,
@@ -48,9 +48,9 @@ public class GnomeHollowBlock extends MachineBlock {
         if (stack.getItem() instanceof ConfigurationCarrotItem || !(level.getBlockEntity(pos) instanceof GnomeHollowBlockEntity hollow)) {
             return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
         }
-        if (FluidUtil.getFluidContained(stack).isPresent()) {
+        if (!FluidUtil.getFirstStackContained(stack).isEmpty()) {
             if (!level.isClientSide()) {
-                FluidUtil.interactWithFluidHandler(player, hand, hollow.tanks());
+                FluidUtil.interactWithFluidHandler(player, hand, pos, hollow.tanks(), null);
             }
             return InteractionResult.SUCCESS;
         }

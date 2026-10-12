@@ -50,7 +50,7 @@ public final class VeinData extends SimpleJsonResourceReloadListener<JsonElement
 
     private static final Codec<VeinDef> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             TagKey.codec(Registries.ITEM).listOf().fieldOf("samples").forGetter(VeinDef::samples),
-            ItemStack.SINGLE_ITEM_CODEC.fieldOf("yield").forGetter(VeinDef::yield),
+            ItemStack.CODEC.fieldOf("yield").forGetter(VeinDef::yield),
             Identifier.CODEC.optionalFieldOf("chapter").forGetter(VeinDef::chapter),
             Codec.intRange(1, Integer.MAX_VALUE).fieldOf("steps").forGetter(def -> def.growth().steps()),
             Codec.intRange(1, Integer.MAX_VALUE).fieldOf("step_ticks").forGetter(def -> def.growth().stepTicks()),

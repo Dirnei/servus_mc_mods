@@ -39,7 +39,7 @@ public final class JournalSavedData extends SavedData {
             CompoundTag entry = teams.getCompoundOrEmpty(i);
             TeamJournal journal = data.forTeam(entry.read("Team", UUIDUtil.CODEC).orElseThrow());
             CompoundTag counts = entry.getCompoundOrEmpty("Counts");
-            for (String key : counts.getAllKeys()) {
+            for (String key : counts.keySet()) {
                 String[] parts = key.split("/", 2);
                 if (parts.length == 2) {
                     journal.setCount(parts[0], parts[1], counts.getIntOr(key, 0));

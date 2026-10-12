@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
+import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -135,7 +136,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
             }
             BlockState next = state;
             if (formed && !state.getValue(CopperDuctBlock.FORMED)) {
-                Direction toAthanor = Direction.getNearest(-duct.dx(), 0, -duct.dz());
+                Direction toAthanor = Direction.getApproximateNearest(-duct.dx(), 0, -duct.dz());
                 next = CopperDuctBlock.athanorState(state, duct.overTank() ? CopperDuctBlock.ATHANOR_OVER : CopperDuctBlock.ATHANOR_NEAR, toAthanor);
             } else if (!formed && CopperDuctBlock.athanorPiece(state)) {
                 next = state.setValue(CopperDuctBlock.FORMED, false).setValue(CopperDuctBlock.PIECE, 0);
@@ -270,14 +271,14 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         }
         Tank tank = missingTank();
         if (tank != null) {
-            player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.missing_tank",
-                    Component.translatable("message.servus_manufacturing.athanor.tank." + tank.side().name().toLowerCase(java.util.Locale.ROOT))), false);
+            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.athanor.missing_tank",
+                    Component.translatable("message.servus_manufacturing.athanor.tank." + tank.side().name().toLowerCase(java.util.Locale.ROOT))));
             return;
         }
         Duct duct = missingDuct();
         if (duct != null) {
-            player.displayClientMessage(Component.translatable("message.servus_manufacturing.athanor.missing_duct",
-                    Component.translatable("message.servus_manufacturing.athanor.tank." + duct.side().name().toLowerCase(java.util.Locale.ROOT))), false);
+            player.sendSystemMessage(Component.translatable("message.servus_manufacturing.athanor.missing_duct",
+                    Component.translatable("message.servus_manufacturing.athanor.tank." + duct.side().name().toLowerCase(java.util.Locale.ROOT))));
             return;
         }
         setFormed(true);
@@ -332,7 +333,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         if (level == null || stack.isEmpty()) {
             return Optional.empty();
         }
-        return level.recipeAccess().getRecipeFor(ServusManufacturingRecipes.ATHANOR.get(), new SingleRecipeInput(stack), level);
+        return ServusRecipes.first(level, ServusManufacturingRecipes.ATHANOR.get(), new SingleRecipeInput(stack));
     }
 
     private Optional<AthanorRecipe> currentRecipe() {
@@ -425,7 +426,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
         if (level == null) {
             return false;
         }
-        return level.recipeAccess().getAllRecipesFor(ServusManufacturingRecipes.ATHANOR.get()).stream()
+        return ServusRecipes.all(level, ServusManufacturingRecipes.ATHANOR.get()).stream()
                 .anyMatch(holder -> holder.value().accepts(stack));
     }
 
@@ -444,13 +445,13 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
                     return List.of();
                 }
                 List<ProductionRecipe> recipes = new ArrayList<>();
-                for (RecipeHolder<AthanorRecipe> holder : level.recipeAccess().getAllRecipesFor(ServusManufacturingRecipes.ATHANOR.get())) {
+                for (RecipeHolder<AthanorRecipe> holder : ServusRecipes.all(level, ServusManufacturingRecipes.ATHANOR.get())) {
                     AthanorRecipe recipe = holder.value();
-                    ItemStack[] items = recipe.input().ingredient().getItems();
-                    if (recipe.tier() > tier || items.length == 0) {
+                    ItemStack item = ServusRecipes.firstItem(recipe.input().ingredient());
+                    if (recipe.tier() > tier || item.isEmpty()) {
                         continue;
                     }
-                    recipes.add(new ProductionRecipe(holder.id(), List.of(items[0].copyWithCount(recipe.input().count())),
+                    recipes.add(new ProductionRecipe(holder.id().identifier(), List.of(item.copyWithCount(recipe.input().count())),
                             List.of(recipe.result().copy()), Math.max(1, recipe.time())));
                 }
                 recipes.sort(Comparator.comparing(recipe -> recipe.id().toString()));
@@ -459,7 +460,7 @@ public class AthanorBlockEntity extends MachineBlockEntity implements OwnedMachi
 
             @Override
             public Optional<Identifier> active() {
-                return currentHolder().filter(holder -> holder.value().tier() <= tier).map(RecipeHolder::id);
+                return currentHolder().filter(holder -> holder.value().tier() <= tier).map(holder -> holder.id().identifier());
             }
         };
     }

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
+import net.minecraft.server.level.ServerLevel;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import com.mojang.serialization.MapCodec;
@@ -67,12 +68,13 @@ public class AthanorBlock extends MachineBlock {
         }
     }
 
-    /** The brick right under a formed Athanor is gone: unform at once; the other hearth bricks wait for the slow check. */
+    /** A neighbour changed: unform at once when the hearth is broken. */
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation,
                                    boolean movedByPiston) {
         super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
-        if (!level.isClientSide() && state.getValue(FORMED) && fromPos.equals(pos.below())
+        // The neighbour update no longer names its source (1.21.2); every update checks the hearth.
+        if (!level.isClientSide() && state.getValue(FORMED)
                 && level.getBlockEntity(pos) instanceof AthanorBlockEntity athanor) {
             athanor.checkHearth();
         }
@@ -97,12 +99,13 @@ public class AthanorBlock extends MachineBlock {
 
     /** A broken Athanor gives its ducts back their straight look and takes its crown away. */
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide() && !state.is(newState.getBlock()) && state.getValue(FORMED)) {
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        if (state.getValue(FORMED)) {
             AthanorBlockEntity.setDucts(level, pos, state.getValue(FACING), false);
             AthanorBlockEntity.setCrown(level, pos, false);
         }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+    
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override

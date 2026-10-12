@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.Facing;
@@ -20,7 +21,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidSlot;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 
@@ -49,7 +49,7 @@ public final class CalcinerPorts {
     }
 
     /** Matter at the Calciner block, fuel at the Firebox; nothing elsewhere or while unformed. */
-    public static ItemView items(Level level, BlockPos pos, BlockState state) {
+    public static LegacyItemHandler items(Level level, BlockPos pos, BlockState state) {
         CalcinerBlockEntity calciner = calciner(level, pos, state);
         if (calciner == null) {
             return null;
@@ -76,7 +76,7 @@ public final class CalcinerPorts {
     }
 
     /** The drain only tank of the port's principle on the Ash Pan, the Receiver or the lowest Copper Duct of a formed Calciner. */
-    public static FluidView fluid(Level level, BlockPos pos, BlockState state) {
+    public static LegacyFluidHandler fluid(Level level, BlockPos pos, BlockState state) {
         Cell cell;
         if (state.getBlock() instanceof CalcinerPartBlock part) {
             cell = CalcinerLayout.part(part.role());

@@ -32,6 +32,16 @@ public final class ServusManufacturing {
         ServusManufacturingMenus.MENUS.register(modEventBus);
         ServusManufacturingRecipes.RECIPE_TYPES.register(modEventBus);
         ServusManufacturingRecipes.RECIPE_SERIALIZERS.register(modEventBus);
+        io.github.dirnei.mc.servus.foundation.gametest.ServusGameTests.register(modEventBus, ServusManufacturingIds.MOD_ID, java.util.List.of(
+                io.github.dirnei.mc.servus.manufacturing.gametest.AlchemyGameTests.class,
+                io.github.dirnei.mc.servus.manufacturing.gametest.CalcinerGameTests.class,
+                io.github.dirnei.mc.servus.manufacturing.gametest.PurifierGameTests.class,
+                io.github.dirnei.mc.servus.manufacturing.gametest.CoagulatorGameTests.class));
+        // Screens, JEI and the Jade plugin read the alchemy recipes on the client.
+        io.github.dirnei.mc.servus.foundation.production.ServusRecipes.syncToClients(ServusManufacturingRecipes.CALCINATION);
+        io.github.dirnei.mc.servus.foundation.production.ServusRecipes.syncToClients(ServusManufacturingRecipes.COAGULATION);
+        io.github.dirnei.mc.servus.foundation.production.ServusRecipes.syncToClients(ServusManufacturingRecipes.ATHANOR);
+        io.github.dirnei.mc.servus.foundation.production.ServusRecipes.syncToClients(ServusManufacturingRecipes.PURIFICATION);
         LOGGER.info("Servus: Manufacturing loaded");
     }
 }

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
+import net.minecraft.server.level.ServerLevel;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
@@ -79,11 +80,12 @@ public class AthanorCrownBlock extends Block {
 
     /** Otherwise gone (an explosion, a command): the Athanor below unforms. */
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide() && !state.is(newState.getBlock()) && level.getBlockEntity(pos.below()) instanceof AthanorBlockEntity athanor) {
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        if (level.getBlockEntity(pos.below()) instanceof AthanorBlockEntity athanor) {
             athanor.unform();
         }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+    
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     /** Without a formed Athanor below it has no reason to stay. */
@@ -98,7 +100,7 @@ public class AthanorCrownBlock extends Block {
     }
 
     @Override
-    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
         return new ItemStack(ServusManufacturingItems.ATHANOR.get());
     }
 

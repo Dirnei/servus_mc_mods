@@ -21,7 +21,7 @@ public final class JournalCommand {
         dispatcher.register(Commands.literal("servus_manufacturing")
                 .then(Commands.literal("journal").executes(context -> {
                     ServerPlayer player = context.getSource().getPlayerOrException();
-                    TeamJournal journal = Journal.journalOf(player.server, Teams.teamOf(player));
+                    TeamJournal journal = Journal.journalOf(player.level().getServer(), Teams.teamOf(player));
                     CommandSourceStack source = context.getSource();
                     source.sendSuccess(() -> Component.translatable("commands.servus_manufacturing.journal.header"), false);
                     int shown = 0;

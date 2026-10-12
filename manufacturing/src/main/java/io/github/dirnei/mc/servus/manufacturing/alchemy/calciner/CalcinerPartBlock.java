@@ -1,5 +1,8 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.calciner;
 
+import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.redstone.Orientation;
 import io.github.dirnei.mc.servus.foundation.item.Wrenchable;
@@ -17,8 +20,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidUtil;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -60,7 +62,7 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (role == Role.FIREBOX && state.getValue(FORMED) && stack.getBurnTime(null) > 0) {
+        if (role == Role.FIREBOX && state.getValue(FORMED) && stack.getBurnTime(null, level.fuelValues()) > 0) {
             CalcinerBlockEntity calciner = CalcinerPorts.calciner(level, pos, state);
             if (calciner != null) {
                 if (!level.isClientSide()) {
@@ -70,11 +72,11 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
             }
         }
         if (CalcinerPorts.principle(CalcinerLayout.part(role)) != null && state.getValue(FORMED)
-                && stack.getCapability(Capabilities.FluidHandler.ITEM) != null) {
+                && ItemAccess.forStack(stack).getCapability(Capabilities.Fluid.ITEM) != null) {
             // Empty containers fill with the port's principle; filled ones do nothing here.
-            FluidView port = CalcinerPorts.fluid(level, pos, state);
+            LegacyFluidHandler port = CalcinerPorts.fluid(level, pos, state);
             if (port != null && !level.isClientSide()) {
-                FluidUtil.interactWithFluidHandler(player, hand, port);
+                FluidUtil.interactWithFluidHandler(player, hand, pos, port, null);
             }
             return InteractionResult.SUCCESS;
         }
@@ -146,11 +148,9 @@ public class CalcinerPartBlock extends Block implements Wrenchable {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            CalcinerStructure.broken(level, state, pos);
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        CalcinerStructure.broken(level, state, pos);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     /** A formed part holds the structure together and cannot be pushed. */
