@@ -20,7 +20,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import org.lwjgl.glfw.GLFW;
 
-/** The site GUI of a Warehouse Controller: name, status, chunk map and Chunk Loader Upgrades. */
+/** The site GUI of a Warehouse Controller: name, status, FE, chunk map, Chunk Loader Upgrades, Wireless Upgrade and other sites. */
 public class WarehouseControllerScreen extends AbstractContainerScreen<WarehouseControllerMenu> {
 
     private static final int COLOUR_TEXT = 0xFF404040;
@@ -44,6 +44,8 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
     private String sentName;
     /** Where the online line was drawn, for its summary tooltip. */
     private int onlineLineY = -1;
+    /** Where the FE line was drawn, for its tooltip. */
+    private int energyLineY = -1;
 
     public WarehouseControllerScreen(WarehouseControllerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, WarehouseControllerMenu.WIDTH, WarehouseControllerMenu.IMAGE_HEIGHT);
@@ -118,6 +120,10 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         return new Rect(menu.upgradeX(0), WarehouseControllerMenu.UPGRADES_Y, menu.upgradeSlots() * 18, 18);
     }
 
+    private static Rect wirelessSlot() {
+        return new Rect(WarehouseControllerMenu.WIRELESS_X, WarehouseControllerMenu.UPGRADES_Y, 18, 18);
+    }
+
     private static Rect map() {
         return new Rect(WarehouseControllerMenu.MAP_X, WarehouseControllerMenu.MAP_Y, WarehouseControllerMenu.MAP_SIZE, WarehouseControllerMenu.MAP_SIZE);
     }
@@ -130,9 +136,17 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         SiteStatusPayload status = ClientSiteStatus.status();
         Rect row = upgradesRow();
         Rect map = map();
+        Rect wireless = wirelessSlot();
         boolean overRow = x >= row.x() - 1 && x < row.x() + row.w() + 1 && y >= WarehouseControllerMenu.UPGRADES_Y - 12 && y < row.y() + row.h();
-        if (menu.getCarried().isEmpty() && overRow && (hoveredSlot == null || !hoveredSlot.hasItem())) {
+        boolean overWireless = x >= wireless.x() - 1 && x < wireless.right() && y >= WarehouseControllerMenu.UPGRADES_Y - 12
+                && y < wireless.bottom();
+        boolean emptyHand = menu.getCarried().isEmpty() && (hoveredSlot == null || !hoveredSlot.hasItem());
+        if (emptyHand && overRow) {
             graphics.setTooltipForNextFrame(font, font.split(Component.translatable("gui.servus_storage.controller.upgrades.tooltip"), 180), mouseX, mouseY);
+        } else if (emptyHand && overWireless) {
+            graphics.setTooltipForNextFrame(font, font.split(Component.translatable("gui.servus_storage.controller.wireless.tooltip"), 180), mouseX, mouseY);
+        } else if (energyLineY >= 0 && x >= WarehouseControllerMenu.STATUS_X && y >= energyLineY && y < energyLineY + 9) {
+            graphics.setTooltipForNextFrame(font, font.split(Component.translatable("gui.servus_storage.controller.energy.tooltip"), 180), mouseX, mouseY);
         } else if (x >= map.x() && x < map.right() && y >= map.y() && y < map.bottom()) {
             graphics.setTooltipForNextFrame(font, font.split(Component.translatable("gui.servus_storage.controller.map.tooltip"), 180), mouseX, mouseY);
         } else if (siteUnder(mouseX, mouseY, status) != null) {
@@ -155,6 +169,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         if (menu.upgradeSlots() > 0) {
             PanelPainter.slots(graphics, leftPos, topPos, upgradesRow(), menu.upgradeSlots(), menu.upgradeSlots());
         }
+        PanelPainter.slots(graphics, leftPos, topPos, wirelessSlot(), 1, 1);
         PanelPainter.slots(graphics, leftPos, topPos, new Rect(8, WarehouseControllerMenu.INVENTORY_Y, 9 * 18, 3 * 18), 9, 27);
         PanelPainter.slots(graphics, leftPos, topPos, new Rect(8, menu.hotbarY(), 9 * 18, 18), 9, 9);
         renderMap(graphics, ClientSiteStatus.status());
@@ -167,8 +182,7 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         if (status == SiteStatusPayload.EMPTY) {
             return List.of();
         }
-        int rows = Math.max(1, Math.min(SITES_MAX, status.sites().size()));
-        return List.of(new net.minecraft.client.renderer.Rect2i(sitesLeft(), topPos, SITES_WIDTH, 18 + rows * SITE_ROW + 4));
+        return List.of(new net.minecraft.client.renderer.Rect2i(sitesLeft(), topPos, SITES_WIDTH, 18 + panelRows(status) * SITE_ROW + 4));
     }
 
     /** A click on the site panel is not a click outside the GUI, so a carried stack is not dropped. */
@@ -177,6 +191,23 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         boolean onPanel = extraAreas().stream().anyMatch(area -> mouseX >= area.getX() && mouseX < area.getX() + area.getWidth()
                 && mouseY >= area.getY() && mouseY < area.getY() + area.getHeight());
         return !onPanel && super.hasClickedOutside(mouseX, mouseY, left, top);
+    }
+
+    /** The hint the panel shows instead of sites while the controller is not wireless capable, empty otherwise. */
+    private static Component hint(SiteStatusPayload status) {
+        return switch (status.hint()) {
+            case SiteStatusPayload.HINT_NO_UPGRADE -> Component.translatable("gui.servus_storage.controller.sites.no_upgrade");
+            case SiteStatusPayload.HINT_NO_POWER -> Component.translatable("gui.servus_storage.controller.sites.no_power", status.needs());
+            default -> Component.empty();
+        };
+    }
+
+    /** Rows of the side panel: one per site, or the lines of the hint. */
+    private int panelRows(SiteStatusPayload status) {
+        if (!status.capable()) {
+            return Math.max(1, font.split(hint(status), SITES_WIDTH - 12).size());
+        }
+        return Math.max(1, Math.min(SITES_MAX, status.sites().size()));
     }
 
     private int sitesLeft() {
@@ -188,10 +219,19 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         if (status == SiteStatusPayload.EMPTY) {
             return;
         }
-        int rows = Math.max(1, Math.min(SITES_MAX, status.sites().size()));
+        int rows = panelRows(status);
         int left = sitesLeft();
         PanelPainter.panel(graphics, left, topPos, SITES_WIDTH, 18 + rows * SITE_ROW + 4);
         graphics.text(font, Component.translatable("gui.servus_storage.controller.sites"), left + 6, topPos + 6, COLOUR_TEXT, false);
+        if (!status.capable()) {
+            // Without the upgrade or power no other site is listed, only what is missing.
+            int y = topPos + 19;
+            for (FormattedCharSequence line : font.split(hint(status), SITES_WIDTH - 12)) {
+                graphics.text(font, line, left + 6, y, COLOUR_NO_TRADE, false);
+                y += SITE_ROW;
+            }
+            return;
+        }
         if (status.sites().isEmpty()) {
             graphics.text(font, Component.translatable("gui.servus_storage.controller.sites.none"), left + 6, topPos + 19, COLOUR_DIM, false);
             return;
@@ -245,8 +285,12 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
         SiteStatusPayload status = ClientSiteStatus.status();
         graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, COLOUR_TEXT, false);
         Component upgrades = Component.translatable("gui.servus_storage.controller.upgrades");
-        graphics.text(font, upgrades, (imageWidth - font.width(upgrades)) / 2, WarehouseControllerMenu.UPGRADES_Y - 11, COLOUR_TEXT, false);
+        graphics.text(font, upgrades, menu.upgradeX(0) - 1, WarehouseControllerMenu.UPGRADES_Y - 11, COLOUR_TEXT, false);
+        Component wireless = Component.translatable("gui.servus_storage.controller.wireless");
+        graphics.text(font, wireless, WarehouseControllerMenu.WIRELESS_X + 17 - font.width(wireless), WarehouseControllerMenu.UPGRADES_Y - 11,
+                COLOUR_TEXT, false);
         onlineLineY = -1;
+        energyLineY = -1;
         if (status == SiteStatusPayload.EMPTY) {
             return;
         }
@@ -268,6 +312,10 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             case NO_UPGRADE -> {
             }
         }
+        energyLineY = y;
+        y = lines(graphics, Component.translatable("gui.servus_storage.controller.energy",
+                String.format(java.util.Locale.ROOT, "%,d", status.energy()), String.format(java.util.Locale.ROOT, "%,d", status.energyCapacity())),
+                y, status.capable() || status.hint() != SiteStatusPayload.HINT_NO_POWER ? COLOUR_TEXT : COLOUR_BAD);
         if (!status.wake().getString().isEmpty()) {
             lines(graphics, status.wake(), y, status.wakeAlert() ? COLOUR_BAD : COLOUR_TEXT);
         }

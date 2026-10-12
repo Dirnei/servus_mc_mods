@@ -20,7 +20,7 @@
 - [x] 4.1 `packing/PackingStationBlockEntity.java`: wireless shipments (flag and site key saved), per tick sending with `WirelessCost.movable`, FE from the receiving controller, shared rate budgets, receiver checks, waiting reasons, status lines (no data line not an alert while capable). Run `gradlew build`.
 - [x] 4.2 `network/WarehouseNetwork.java` (`shipWireless` over all Packing Stations, refusals, incoming counts for `ReceiverChoice`, dirty flag for upgrade, power and Packing Station presence), `site/SiteRecord.java` and `site/SiteRegistry.java` (`upgrade`, `powered`, `packing`; `updateWireless`). Run `gradlew build`.
 - [x] 4.3 `terminal/RemoteTransfers.java` (sites only while capable, receiver by `ReceiverChoice`, new refusal keys), `terminal/SiteRow.java` (`trade`), `terminal/TerminalRequests.java` (waiting for power from either controller), `terminal/StockSyncPayload.java`, `menu/StorageTerminalMenu.java` (view back to this site when no rows), `client/StorageTerminalScreen.java` (selector only with rows, no power line). Run `gradlew :storage:runData`, then `gradlew build`.
-- [ ] 4.4 `controller/SiteStatusPayload.java` (`capable`, hint), `menu/WarehouseControllerMenu.java` (wireless slot, FE), `client/WarehouseControllerScreen.java` (slot, FE line, sites panel or hint, orange names, hover name and state only). Run `gradlew build`.
+- [x] 4.4 `controller/SiteStatusPayload.java` (`capable`, hint), `menu/WarehouseControllerMenu.java` (wireless slot, FE), `client/WarehouseControllerScreen.java` (slot, FE line, sites panel or hint, orange names, hover name and state only). Run `gradlew build`.
 
 ## 5. GameTests
 
