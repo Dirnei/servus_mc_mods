@@ -3,8 +3,10 @@ package io.github.dirnei.mc.servus.storage.cpu;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 
 /**
- * Which tile of a formed CPU face a block shows. A tile is named by the
- * edges of the cube it touches, as seen on the texture: {@code tile_tl} has
+ * Which tile of a formed CPU face a block shows, from the block's place
+ * class in the box (see {@link CpuShape}): a block whose class is low or
+ * high on an axis sits on that side of the box. A tile is named by the
+ * edges of the box it touches, as seen on the texture: {@code tile_tl} has
  * frame on its top and left, {@code tile_c} has none. Texture sides follow
  * vanilla's default face UVs: on the north face the texture's left is east,
  * on the south face west, on the west face north, on the east face south;
@@ -16,7 +18,7 @@ public final class CpuTiles {
     private CpuTiles() {
     }
 
-    /** The tile of a part's face; faces inside the cube get the centre tile. */
+    /** The tile of a part's face; faces inside the box get the centre tile. */
     public static String tile(int part, Side face) {
         CpuShape.Vec at = CpuShape.offset(part);
         if (!onBoundary(at, face)) {
@@ -53,7 +55,7 @@ public final class CpuTiles {
         };
     }
 
-    /** Whether the block sits on the cube's outer layer toward a side. */
+    /** Whether the block sits on the box's outer layer toward a side. */
     static boolean onBoundary(CpuShape.Vec at, Side side) {
         int coordinate = side.dx() != 0 ? at.x() : side.dy() != 0 ? at.y() : at.z();
         int step = side.dx() + side.dy() + side.dz();

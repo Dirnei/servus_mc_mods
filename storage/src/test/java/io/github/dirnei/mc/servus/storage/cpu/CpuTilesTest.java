@@ -41,6 +41,28 @@ class CpuTilesTest {
     }
 
     @Test
+    void smallestBoxHasNoCentreTileOutside() {
+        CpuShape.Vec size = new CpuShape.Vec(2, 2, 2);
+        for (int x = 0; x < 2; x++) {
+            for (int y = 0; y < 2; y++) {
+                for (int z = 0; z < 2; z++) {
+                    int part = CpuBox.part(new CpuShape.Vec(x, y, z), size);
+                    CpuShape.Vec place = CpuShape.offset(part);
+                    for (Side face : Side.values()) {
+                        if (CpuTiles.onBoundary(place, face)) {
+                            String tile = CpuTiles.tile(part, face);
+                            org.junit.jupiter.api.Assertions.assertNotEquals("tile_c", tile,
+                                    "block " + x + "," + y + "," + z + " face " + face);
+                            org.junit.jupiter.api.Assertions.assertEquals(7, tile.length(),
+                                    "corner tile expected for " + x + "," + y + "," + z + " face " + face);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     void eastFaceLeftIsSouth() {
         assertEquals("tile_bl", CpuTiles.tile(CpuShape.part(2, 0, 2), Side.EAST));
         assertEquals("tile_r", CpuTiles.tile(CpuShape.part(2, 1, 0), Side.EAST));
