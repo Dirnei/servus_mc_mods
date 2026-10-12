@@ -2,7 +2,7 @@
 
 ## 1. Pure logic
 
-- [ ] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/power/PowerBudget.java` (all or nothing draw, last refusal, power state, use in the last second) per design.md; JUnit `PowerBudgetTest` under `storage/src/test/java/io/github/dirnei/mc/servus/storage/power/` (draw larger than stored refused and nothing taken; exact draw paid; empty buffer is no power; refusal holds no power for 20 ticks then clears after a paid draw; use sums the last 20 ticks and forgets older ones; no negative values). Run `gradlew :storage:test`.
+- [x] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/power/PowerBudget.java` (all or nothing draw, last refusal, power state, use in the last second) per design.md; JUnit `PowerBudgetTest` under `storage/src/test/java/io/github/dirnei/mc/servus/storage/power/` (draw larger than stored refused and nothing taken; exact draw paid; empty buffer is no power; refusal holds no power for 20 ticks then clears after a paid draw; use sums the last 20 ticks and forgets older ones; no negative values). Run `gradlew :storage:test`.
 - [ ] 1.2 `power/WakeCost.java` (cost per tick, FE to start = one second) and `power/StepPower.java` (segment cost horizontal and lift ride, gate decision, craft progress advances only when paid); `site/WakeAllowance.java` gains `NO_POWER` with stored FE and FE to start. JUnit `WakeCostTest` (9 chunks at 2 FE: 18 per tick, 360 to start, zero chunks costs nothing), `StepPowerTest` (one block 20, ride of 4 is 80, unpaid gate refuses, unpaid tick keeps progress, paid tick advances), extend `WakeAllowanceTest` (no power reason, order of reasons with no upgrade and over capacity). Run `gradlew :storage:test`.
 
 ## 2. Controller power
