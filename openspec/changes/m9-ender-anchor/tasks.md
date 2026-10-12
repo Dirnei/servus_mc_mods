@@ -4,7 +4,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 1. Eye motion
 
-- [ ] 1.1 `machine/loader/EyeMotion.java` (new, pure, design.md D2). JUnit `machine/loader/EyeMotionTest.java`: `opensInAboutASecond`, `closesTheSameWay`, `blinkSpacingThreeToNineSeconds`, `blinksAreShort`, `seedsBlinkApart`, `irisPointsTowardPlayer`, `irisCentredBehindOrFar`, `irisStaysInLens`, `smoothingConverges`. Run `gradlew :foundation:test`.
+- [x] 1.1 `machine/loader/EyeMotion.java` (new, pure, design.md D2). JUnit `machine/loader/EyeMotionTest.java`: `opensInAboutASecond`, `closesTheSameWay`, `blinkSpacingThreeToNineSeconds`, `blinksAreShort`, `seedsBlinkApart`, `irisPointsTowardPlayer`, `irisCentredBehindOrFar`, `irisStaysInLens`, `smoothingConverges`. Run `gradlew :foundation:test`.
 
 ## 2. Look
 
