@@ -268,6 +268,13 @@ public final class TerminalRequests {
                 // This site's controller lost its upgrade or power: the transfer waits until it is capable again.
                 return RequestState.NO_POWER;
             }
+            for (Tracked tracked : request.shipments) {
+                // The sending site's controller, or this one as the sender sees it, is not wireless capable.
+                if (level.isLoaded(tracked.packingStation()) && level.getBlockEntity(tracked.packingStation()) instanceof PackingStationBlockEntity point
+                        && point.waitsForPower(tracked.shipmentId())) {
+                    return RequestState.NO_POWER;
+                }
+            }
             return request.shipments.isEmpty() ? RequestState.MISSING : RequestState.PICKING;
         }
         for (Tracked tracked : request.shipments) {

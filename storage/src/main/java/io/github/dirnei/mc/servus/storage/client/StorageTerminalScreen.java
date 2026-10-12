@@ -905,7 +905,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         return !panel && !side;
     }
 
-    /** Whether the title is the site selector: the team has other sites to show. */
+    /** Whether the title is the site selector: this site is wireless capable and has other sites to show. */
     private boolean siteSelector() {
         return ClientStock.loaded() && !ClientStock.sites().isEmpty();
     }

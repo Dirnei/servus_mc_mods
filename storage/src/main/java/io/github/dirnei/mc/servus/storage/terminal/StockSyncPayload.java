@@ -22,7 +22,7 @@ import net.minecraft.resources.Identifier;
  * @param message  refusal key of the last request, empty when it went through
  * @param rules    the warehouse's stock rules with their state
  * @param craftables one of every item a producer of the line can make
- * @param sites    the other sites of the team the terminal can look at
+ * @param sites    the other sites the terminal can look at, empty while this site's controller is not wireless capable
  * @param view     the key of the site shown, empty for this site
  * @param viewState the {@code RemoteSite.State} ordinal of the site shown, -1 for this site
  */
