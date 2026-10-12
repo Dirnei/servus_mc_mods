@@ -249,8 +249,14 @@ public final class ServusStorageCommands {
         }
         int count = 0;
         for (io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity cpu : cpus) {
-            String title = "CPU " + cpu.getBlockPos().toShortString() + ":";
+            io.github.dirnei.mc.servus.storage.cpu.CpuShape.Vec size = cpu.boxSize();
+            int open = cpu.book().openCount();
+            String title = "CPU " + cpu.getBlockPos().toShortString()
+                    + (size == null ? "" : " " + size.x() + "x" + size.y() + "x" + size.z())
+                    + ": " + Math.min(open, cpu.slots()) + " of " + cpu.slots() + " slots, "
+                    + cpu.bufferUsed() + " of " + cpu.room() + " buffer stacks";
             source.sendSuccess(() -> Component.literal(title), false);
+            java.util.List<io.github.dirnei.mc.servus.storage.cpu.CpuBuffer.Entry<ItemKey>> buffered = cpu.buffer().entries();
             for (io.github.dirnei.mc.servus.storage.order.WorkOrder order : cpu.book().orders()) {
                 count++;
                 String head = "  #" + order.id() + " " + order.amount() + " " + order.key().stack(1).getHoverName().getString() + ": "
@@ -262,6 +268,19 @@ public final class ServusStorageCommands {
                     String line = "      " + name + " " + step.producer().toShortString() + ": " + step.output().getHoverName().getString()
                             + " x" + step.batches() + " " + step.state().name().toLowerCase(java.util.Locale.ROOT)
                             + (step.reason().isEmpty() ? "" : ", " + step.reason());
+                    source.sendSuccess(() -> Component.literal(line), false);
+                }
+                for (io.github.dirnei.mc.servus.storage.cpu.CpuBuffer.Entry<ItemKey> entry : buffered) {
+                    if (entry.order() == order.id() && !entry.leaving()) {
+                        String line = "      buffer: " + entry.count() + " " + entry.key().stack(1).getHoverName().getString();
+                        source.sendSuccess(() -> Component.literal(line), false);
+                    }
+                }
+            }
+            for (io.github.dirnei.mc.servus.storage.cpu.CpuBuffer.Entry<ItemKey> entry : buffered) {
+                if (entry.leaving()) {
+                    String line = "  leaving buffer: " + entry.count() + " " + entry.key().stack(1).getHoverName().getString()
+                            + " (#" + entry.order() + ")";
                     source.sendSuccess(() -> Component.literal(line), false);
                 }
             }
