@@ -23,7 +23,7 @@ Archive this change after `m11-wireless-packing-station` (archived) and before `
 
 Each task rewrites the listed classes to build racks with `MiniWarehouse` instead of crates, keeping what each test checks; tests whose behaviour this change removes are deleted in the group that removes it. Timeouts grow only where a shuttle runs.
 
-- [ ] 4.1 `ServusStorageGameTests.java` (29 tests use crates; leave `quadCrateCompartments`, `stationPutsAwayInstantly`, `feedOutboundFromCrate` and `crateBehindRackNotLinked` for groups 5 and 6; `railsLinkCrateAndController` becomes `railsLinkRackAndController`). Run the Storage GameTests.
+- [x] 4.1 `ServusStorageGameTests.java` (29 tests use crates; leave `quadCrateCompartments`, `stationPutsAwayInstantly`, `feedOutboundFromCrate` and `crateBehindRackNotLinked` for groups 5 and 6; `railsLinkCrateAndController` becomes `railsLinkRackAndController`). Run the Storage GameTests.
 - [ ] 4.2 `PackingStationGameTests.java` (17), `DataPacketGameTests.java` (9), `DataBandwidthGameTests.java` (7), `PushedOutputGameTests.java` left for 7.3 (leave `shipFromCrate` and `terminalBesideCrateIsNoStock` for 6.4). Run the Storage GameTests.
 - [ ] 4.3 `CraftingCpuGameTests.java` (21), `ChainHandoffGameTests.java` (4), `AdapterOrderGameTests.java` (4), `PersistGameTests.java` (4), `PatternGameTests.java` (8), `PatternResultGameTests.java` (2), `ProductionTerminalGameTests.java` (9). Run the Storage GameTests.
 - [ ] 4.4 `StorageTerminalRowsGameTests.java` (9), `TerminalCableGameTests.java` (5), `TerminalCraftGameTests.java` (6), `TerminalSpeedGameTests.java` (3), `CraftingGridGameTests.java` (the tests that survive group 8: `gridCraftsSticks`, `gridClearStores`, `gridCloseStores`). Run the Storage GameTests.
