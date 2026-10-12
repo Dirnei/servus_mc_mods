@@ -60,7 +60,8 @@ import net.neoforged.neoforge.model.data.ModelData;
  * requests made here. Requests are saved with the terminal; their ids come
  * from the {@link ProductionLedger}, so they never repeat.
  */
-public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, DataLink {
+public class StorageTerminalBlockEntity extends BlockEntity implements WoodHolder, MenuProvider, DataLink,
+        io.github.dirnei.mc.servus.storage.network.NoStock {
 
     /** Carries the data network to touching data nodes, like a piece of cable. */
     private final DataCarrier carrier = new DataCarrier(this);

@@ -238,4 +238,22 @@ public final class StorageTerminalRowsGameTests {
             });
         });
     }
+
+    /** Logs handed in with no room anywhere do not wait silently: the Packing Station shows the blocked lamp and says why. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void inputWithoutRoomShowsBlocked(GameTestHelper helper) {
+        setup(helper, false, fixture -> {
+            BlockPos pos = TerminalWiring.packingStationPos(TERMINAL);
+            io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity point =
+                    helper.getBlockEntity(pos, io.github.dirnei.mc.servus.storage.packing.PackingStationBlockEntity.class);
+            fixture.terminal().input().setStackInSlot(0, new ItemStack(Items.OAK_LOG, 64));
+            TerminalWiring.when(helper, () -> helper.getBlockState(pos).getValue(io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks.ACTIVITY)
+                    == io.github.dirnei.mc.servus.storage.network.StorageNodeBlocks.Activity.BLOCKED, 150,
+                    () -> "the Packing Station shows the blocked lamp", () -> {
+                helper.assertTrue(point.status().alert() && !point.status().line().getString().isEmpty(),
+                        "its status line says why, was " + point.status().line().getString());
+                helper.succeed();
+            });
+        });
+    }
 }

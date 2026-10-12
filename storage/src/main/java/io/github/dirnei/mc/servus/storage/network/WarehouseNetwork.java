@@ -1071,7 +1071,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     private void addSource(BlockPos pos, boolean node) {
         // Storage blocks join as members or not at all, never as foreign inventories (a rack without a front rail).
-        if (!node && loaded(pos) instanceof StorageNodeBlockEntity) {
+        // Doors into the warehouse such as the Storage Terminal are no storage at all.
+        if (!node && (loaded(pos) instanceof StorageNodeBlockEntity || loaded(pos) instanceof NoStock)) {
             return;
         }
         Source existing = sources.get(pos);
@@ -1670,8 +1671,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     private void poll(BlockPos pos) {
         Source source = sources.get(pos);
-        if (!source.node() && loaded(pos) instanceof StorageNodeBlockEntity) {
-            // Added while its chunk was not loaded: storage blocks join as members or not at all.
+        if (!source.node() && (loaded(pos) instanceof StorageNodeBlockEntity || loaded(pos) instanceof NoStock)) {
+            // Added while its chunk was not loaded: storage blocks join as members or not at all, terminals never.
             dropSource(pos);
             return;
         }
