@@ -25,7 +25,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 
 ## 5. Docs and plan
 
-- [ ] 5.1 `PLAN.md` (Pumps line in section 2.1: the Electric Pump is an electric beam engine two blocks tall, water and power on the lower half's back and sides; M9 row of the milestone table: electric beam engine pump) and the pumps bullet in `docs/src/content/docs/mods/foundation.md` (electric engine, both pumps splash at the well, faces of both pumps); regenerate `docs/src/data/gamedata.json` with `gradlew :manufacturing:runData`. Run `cd docs && npm test`.
+- [x] 5.1 `PLAN.md` (Pumps line in section 2.1: the Electric Pump is an electric beam engine two blocks tall, water and power on the lower half's back and sides; M9 row of the milestone table: electric beam engine pump) and the pumps bullet in `docs/src/content/docs/mods/foundation.md` (electric engine, both pumps splash at the well, faces of both pumps); regenerate `docs/src/data/gamedata.json` with `gradlew :manufacturing:runData`. Run `cd docs && npm test`.
 
 ## 6. Verification
 
