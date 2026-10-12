@@ -193,6 +193,31 @@ public final class HarvesterGameTests {
         });
     }
 
+    /** Warehouse power: without power no harvest run starts; once FE comes the field is harvested. */
+    @ServusGameTest(timeoutTicks = 700)
+    public static void fieldRunWaitsForPower(GameTestHelper helper) {
+        BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1)};
+        for (BlockPos plot : plots) {
+            crop(helper, plot, Blocks.WHEAT, 7);
+        }
+        Farm farm = farm(helper, harvester());
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
+        controller.setEnergy(0);
+        helper.runAfterDelay(2, () -> {
+            water(farm);
+            farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));
+            helper.runAfterDelay(80, () -> {
+                helper.assertTrue(out(helper) == 0, "no harvester leaves without power");
+                for (BlockPos plot : plots) {
+                    helper.assertTrue(ripe(helper, plot), "the wheat is still standing");
+                }
+                PowerFixtures.fill(controller);
+                TerminalWiring.when(helper, () -> held(farm.rack(), Items.WHEAT) == plots.length && out(helper) == 0, 550,
+                        () -> "with FE the field is harvested, rack holds " + held(farm.rack(), Items.WHEAT), helper::succeed);
+            });
+        });
+    }
+
     /**
      * The bar on the head is red while the head has a problem: clear once a
      * harvester, water and a crop are there, red again when the crop is cleared.

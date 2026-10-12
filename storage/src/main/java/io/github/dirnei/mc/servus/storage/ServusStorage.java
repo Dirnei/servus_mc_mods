@@ -76,7 +76,8 @@ public final class ServusStorage {
                 io.github.dirnei.mc.servus.storage.gametest.StorageTerminalRowsGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.TerminalCableGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.TerminalCraftGameTests.class,
-                io.github.dirnei.mc.servus.storage.gametest.TerminalSpeedGameTests.class));
+                io.github.dirnei.mc.servus.storage.gametest.TerminalSpeedGameTests.class,
+                io.github.dirnei.mc.servus.storage.gametest.WarehousePowerGameTests.class));
         LOGGER.info("Servus: Storage loaded");
     }
 }

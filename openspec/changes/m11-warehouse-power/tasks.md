@@ -21,7 +21,7 @@
 
 ## 4. GameTests
 
-- [ ] 4.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/gametest/WarehousePowerGameTests.java`: `idleWarehouseDrawsNothing`, `shuttleTripCostsPerBlock` (six rails out and back is 240 FE), `liftRideCostsPerBlockOfHeight`, `shuttleStopsAndResumesWithCargo`, `noNewJobsWithoutPower`, `fieldRunWaitsForPower`, `craftCostsPerWorkingTick` (40 ticks at 5 FE is 200), `craftPausesAndResumesProgress`, `waitingForInputsIsFree`, `cpuStepWaitsForPowerAndFinishes`, `adapterStepKeepsRunning`, `wakeCostsPerChunkPerTick`, `wakeRefusedWithoutStoredFe`, `wakeEndsWhenDry`, `recordKeepsEnergyWhileAsleep`, `lampRedWithoutPower`, `terminalShowsNoPowerAndKeepsStock`, `rackUsableByHandWithoutPower`, `useReadoutCountsLastSecond`. Run `gradlew :storage:runGameTestServer`; all storage GameTests green.
+- [x] 4.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/gametest/WarehousePowerGameTests.java`: `idleWarehouseDrawsNothing`, `shuttleTripCostsPerBlock` (six rails out and back is 240 FE), `liftRideCostsPerBlockOfHeight`, `shuttleStopsAndResumesWithCargo`, `noNewJobsWithoutPower`, `fieldRunWaitsForPower`, `craftCostsPerWorkingTick` (40 ticks at 5 FE is 200), `craftPausesAndResumesProgress`, `waitingForInputsIsFree`, `cpuStepWaitsForPowerAndFinishes`, `adapterStepKeepsRunning`, `wakeCostsPerChunkPerTick`, `wakeRefusedWithoutStoredFe`, `wakeEndsWhenDry`, `recordKeepsEnergyWhileAsleep`, `lampRedWithoutPower`, `terminalShowsNoPowerAndKeepsStock`, `rackUsableByHandWithoutPower`, `useReadoutCountsLastSecond`. Run `gradlew :storage:runGameTestServer`; all storage GameTests green.
 
 ## 5. Docs and plan
 

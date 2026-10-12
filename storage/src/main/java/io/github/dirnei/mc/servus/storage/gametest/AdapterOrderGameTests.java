@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
+import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
@@ -119,6 +120,30 @@ public final class AdapterOrderGameTests {
                             + " " + step.reason() + ", fed " + step.fed(ItemKey.of(new ItemStack(Items.COBBLESTONE)))
                             + ", collected " + step.collected(STONE) + ", furnace " + furnace(helper).getItem(0) + " / "
                             + furnace(helper).getItem(1) + " / " + furnace(helper).getItem(2), helper::succeed);
+        });
+    }
+
+    /**
+     * Warehouse power: a step on a Machine Adapter runs on the furnace's own
+     * fuel. Once the cobblestone is in the furnace the warehouse loses its FE,
+     * and the furnace still smelts it.
+     */
+    @ServusGameTest(timeoutTicks = 2400)
+    public static void adapterStepKeepsRunning(GameTestHelper helper) {
+        setup(helper);
+        furnace(helper).setItem(1, new ItemStack(Items.COAL, 16));
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
+        TerminalWiring.when(helper, () -> ready(helper), 60, () -> "the adapter and the CPU should join the line", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line(helper), STONE, 4, 0);
+            helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
+            TerminalWiring.when(helper, () -> furnace(helper).getItem(0).is(Items.COBBLESTONE), 2000,
+                    () -> "the cobblestone should reach the furnace, has " + furnace(helper).getItem(0), () -> {
+                controller.setEnergy(0);
+                int before = furnace(helper).getItem(2).getCount();
+                TerminalWiring.when(helper, () -> furnace(helper).getItem(2).getCount() > before
+                                || placed.created().order().steps().get(0).collected(STONE) > 0, 400,
+                        () -> "the furnace keeps smelting without warehouse power, output " + furnace(helper).getItem(2), helper::succeed);
+            });
         });
     }
 

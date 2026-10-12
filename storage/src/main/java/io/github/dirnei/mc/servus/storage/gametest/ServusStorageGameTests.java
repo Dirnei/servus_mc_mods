@@ -2264,6 +2264,44 @@ public final class ServusStorageGameTests {
         });
     }
 
+    /**
+     * Warehouse power: a ride is paid per block of height when the car takes
+     * the shuttle, together with the block into the shaft. Out: one block into
+     * the shaft, two up, one out to the rack; back: one in, two down, one out,
+     * one on to the Packing Station; home: one. Ten blocks in all.
+     */
+    @ServusGameTest(timeoutTicks = 500)
+    public static void liftRideCostsPerBlockOfHeight(GameTestHelper helper) {
+        liftBase(helper, 1);
+        liftRack(helper, new BlockPos(5, 3, 3), Items.BREAD, 20);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(LC_CONTROLLER, WarehouseControllerBlockEntity.class);
+        long perBlock = (long) Math.ceil(StorageStatsManager.INSTANCE.shuttleFePerBlock());
+        long[] last = {-1};
+        long[] biggest = {0};
+        helper.onEachTick(() -> {
+            if (helper.getBlockEntity(LC_CONTROLLER, BlockEntity.class) instanceof WarehouseControllerBlockEntity c) {
+                if (last[0] >= 0) {
+                    biggest[0] = Math.max(biggest[0], last[0] - c.energyStored());
+                }
+                last[0] = c.energyStored();
+            }
+        });
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(10, () -> {
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, LC_TERMINAL);
+            new StorageTerminalMenu(1, player.getInventory(), terminal).request(ItemKey.of(new ItemStack(Items.BREAD)), 20);
+            TerminalWiring.when(helper, () -> terminal.outputCount(Items.BREAD) == 20
+                            && liftNetwork(helper).garageOut(helper.absolutePos(LC_GARAGE)) == 0, 450,
+                    () -> "the bread arrives and the shuttle parks, output " + terminal.outputCount(Items.BREAD), () -> {
+                long paid = controller.energy().capacity() - controller.energyStored();
+                helper.assertTrue(paid == 10 * perBlock, "ten blocks cost " + 10 * perBlock + " FE, paid " + paid);
+                helper.assertTrue(biggest[0] == 3 * perBlock, "the block into the shaft and the ride of two are paid at once, biggest tick "
+                        + biggest[0]);
+                helper.succeed();
+            });
+        });
+    }
+
     /** Two shuttles call the car at the same floor: the first caller rides first, the second waits for the car. */
     @ServusGameTest(timeoutTicks = 700)
     public static void shuttlesQueueForCar(GameTestHelper helper) {
