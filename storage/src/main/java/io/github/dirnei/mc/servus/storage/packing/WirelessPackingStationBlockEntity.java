@@ -70,7 +70,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
     }
 
     private UUID team;
-    private final StationEnergy energy = new StationEnergy(StorageStatsManager.INSTANCE.wirelessEnergyCapacity());
+    private final StationEnergy energy = new StationEnergy(StorageStatsManager.INSTANCE.controllerEnergyCapacity());
     private long sendingId = -1;
     private BlockPos sendingTo;
     private ItemKey sendingKey;
@@ -162,7 +162,7 @@ public class WirelessPackingStationBlockEntity extends PackingStationBlockEntity
 
     @Override
     public double rate() {
-        return StorageStatsManager.INSTANCE.wirelessItemsPerSecond() * upgrades().multiplier();
+        return StorageStatsManager.INSTANCE.packingItemsPerSecond() * upgrades().multiplier();
     }
 
     // Sending

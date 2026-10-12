@@ -41,8 +41,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final int DEFAULT_CHUNK_LOADER_UPGRADE_SLOTS = 4;
     public static final int DEFAULT_CHUNKS_PER_UPGRADE = 9;
     public static final int DEFAULT_WAKE_GRACE_SECONDS = 30;
-    public static final double DEFAULT_WIRELESS_ITEMS_PER_SECOND = 8.0;
-    public static final int DEFAULT_WIRELESS_ENERGY_CAPACITY = 100000;
+    public static final int DEFAULT_CONTROLLER_ENERGY_CAPACITY = 100000;
     public static final double DEFAULT_WIRELESS_FE_PER_ITEM = 4.0;
     public static final double DEFAULT_WIRELESS_FE_PER_ITEM_PER_BLOCK = 0.02;
     public static final int DEFAULT_SITE_SNAPSHOT_INTERVAL = 100;
@@ -81,7 +80,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     private static final Identifier PATTERN_STORAGE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "pattern_storage");
     private static final Identifier SHUTTLE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "shuttle");
     private static final Identifier FIELD = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "field");
-    private static final Identifier WIRELESS = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "wireless_packing_station");
+    private static final Identifier POWER = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "power");
 
     public static final StorageStatsManager INSTANCE = new StorageStatsManager();
 
@@ -106,8 +105,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     private volatile int chunksPerUpgrade = DEFAULT_CHUNKS_PER_UPGRADE;
     private volatile int wakeGraceTicks = DEFAULT_WAKE_GRACE_SECONDS * 20;
     private volatile int siteSnapshotInterval = DEFAULT_SITE_SNAPSHOT_INTERVAL;
-    private volatile double wirelessItemsPerSecond = DEFAULT_WIRELESS_ITEMS_PER_SECOND;
-    private volatile int wirelessEnergyCapacity = DEFAULT_WIRELESS_ENERGY_CAPACITY;
+    private volatile int controllerEnergyCapacity = DEFAULT_CONTROLLER_ENERGY_CAPACITY;
     private volatile double wirelessFePerItem = DEFAULT_WIRELESS_FE_PER_ITEM;
     private volatile double wirelessFePerItemPerBlock = DEFAULT_WIRELESS_FE_PER_ITEM_PER_BLOCK;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
@@ -162,10 +160,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         chunksPerUpgrade = intField(files.get(WAREHOUSE), "chunks_per_upgrade", DEFAULT_CHUNKS_PER_UPGRADE);
         wakeGraceTicks = countField(files.get(WAREHOUSE), "wake_grace_seconds", DEFAULT_WAKE_GRACE_SECONDS) * 20;
         siteSnapshotInterval = intField(files.get(WAREHOUSE), "site_snapshot_interval", DEFAULT_SITE_SNAPSHOT_INTERVAL);
-        wirelessItemsPerSecond = doubleField(files.get(WIRELESS), "items_per_second", DEFAULT_WIRELESS_ITEMS_PER_SECOND);
-        wirelessEnergyCapacity = intField(files.get(WIRELESS), "energy_capacity", DEFAULT_WIRELESS_ENERGY_CAPACITY);
-        wirelessFePerItem = costField(files.get(WIRELESS), "fe_per_item", DEFAULT_WIRELESS_FE_PER_ITEM);
-        wirelessFePerItemPerBlock = costField(files.get(WIRELESS), "fe_per_item_per_block", DEFAULT_WIRELESS_FE_PER_ITEM_PER_BLOCK);
+        controllerEnergyCapacity = intField(files.get(POWER), "controller_energy_capacity", DEFAULT_CONTROLLER_ENERGY_CAPACITY);
+        wirelessFePerItem = costField(files.get(POWER), "wireless_fe_per_item", DEFAULT_WIRELESS_FE_PER_ITEM);
+        wirelessFePerItemPerBlock = costField(files.get(POWER), "wireless_fe_per_item_per_block", DEFAULT_WIRELESS_FE_PER_ITEM_PER_BLOCK);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
         inboundBufferSlots = intField(files.get(WAREHOUSE), "inbound_buffer_slots", DEFAULT_INBOUND_BUFFER_SLOTS);
         putAwayPerTick = intField(files.get(WAREHOUSE), "put_away_per_tick", DEFAULT_PUT_AWAY_PER_TICK);
@@ -338,14 +335,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         return chunksPerUpgrade;
     }
 
-    /** Items per second a Wireless Packing Station converts per direction, before upgrades. */
-    public double wirelessItemsPerSecond() {
-        return wirelessItemsPerSecond;
-    }
-
-    /** FE a Wireless Packing Station holds. */
-    public int wirelessEnergyCapacity() {
-        return wirelessEnergyCapacity;
+    /** FE a Warehouse Controller holds ({@code storage/power.json}). */
+    public int controllerEnergyCapacity() {
+        return controllerEnergyCapacity;
     }
 
     /** FE every item of a wireless transfer costs. */
@@ -353,7 +345,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         return wirelessFePerItem;
     }
 
-    /** FE every item costs per block between the two stations. */
+    /** FE every item costs per block between the two controllers. */
     public double wirelessFePerItemPerBlock() {
         return wirelessFePerItemPerBlock;
     }

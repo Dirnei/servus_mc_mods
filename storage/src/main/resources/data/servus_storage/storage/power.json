@@ -1,0 +1,5 @@
+{
+  "controller_energy_capacity": 100000,
+  "wireless_fe_per_item": 4,
+  "wireless_fe_per_item_per_block": 0.02
+}
