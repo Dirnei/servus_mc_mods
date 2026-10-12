@@ -26,7 +26,17 @@ import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleWorkshopBlockEnt
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
+import java.util.List;
 import java.util.Optional;
+import io.github.dirnei.mc.servus.foundation.item.ConfigurationCarrotItem;
+import io.github.dirnei.mc.servus.foundation.wood.WoodContent;
+import io.github.dirnei.mc.servus.foundation.wood.WoodHolder;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -197,6 +207,106 @@ public final class ShuttleModuleGameTests {
         helper.destroyBlock(WS_POS);
         helper.assertItemEntityPresent(ServusStorageItems.SHUTTLE_MK1.get(), WS_POS, 2);
         helper.assertItemEntityPresent(Items.GOLD_INGOT, WS_POS, 2);
+        helper.succeed();
+    }
+
+    private static final Identifier SPRUCE = BuiltInRegistries.BLOCK.getKey(Blocks.SPRUCE_PLANKS);
+    /** Where a dismantled workshop is placed again. */
+    private static final BlockPos WS_AGAIN = new BlockPos(9, 1, 9);
+
+    /** Uses the carrot on the block at the position, sneaking or not. */
+    private static void carrot(GameTestHelper helper, Player player, BlockPos at, boolean sneak) {
+        player.setShiftKeyDown(sneak);
+        ItemStack carrot = new ItemStack(ServusFoundationItems.CONFIGURATION_CARROT.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, carrot);
+        BlockPos pos = helper.absolutePos(at);
+        ((ConfigurationCarrotItem) carrot.getItem()).useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, carrot,
+                new BlockHitResult(Vec3.atCenterOf(pos), Direction.NORTH, pos, false)));
+        player.setShiftKeyDown(false);
+    }
+
+    /** Every item entity around the position. */
+    private static List<ItemEntity> itemsAround(GameTestHelper helper, BlockPos at) {
+        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(at)).inflate(2));
+    }
+
+    /** Places the item on stone at the position like a player does and returns the placed workshop. */
+    private static ShuttleWorkshopBlockEntity placeAgain(GameTestHelper helper, Player player, ItemStack item, BlockPos at) {
+        helper.setBlock(at.below(), Blocks.STONE.defaultBlockState());
+        ItemStack stack = item.copy();
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        BlockPos floor = helper.absolutePos(at.below());
+        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
+                new BlockHitResult(Vec3.atCenterOf(floor).add(0, 0.5, 0), Direction.UP, floor, false)));
+        helper.assertBlockPresent(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), at);
+        return helper.getBlockEntity(at, ShuttleWorkshopBlockEntity.class);
+    }
+
+    /** The sneaking carrot drops one spruce workshop item that brings back its shuttle and supplies. */
+    @ServusGameTest
+    public static void workshopDismantleKeepsContents(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        workshop(helper, player);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
+        ((WoodHolder) workshop).woodSlot().set(SPRUCE);
+        workshop.shuttle().setStackInSlot(0, shuttle(ServusStorageItems.SHUTTLE_MK2.get(), 1, 0, Optional.empty()));
+        workshop.supplies().setStackInSlot(0, new ItemStack(Items.IRON_INGOT, 8));
+        carrot(helper, player, WS_POS, true);
+        helper.assertBlockNotPresent(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), WS_POS);
+        List<ItemEntity> drops = itemsAround(helper, WS_POS);
+        helper.assertTrue(drops.size() == 1 && drops.get(0).getItem().is(ServusStorageItems.SHUTTLE_WORKSHOP.get()),
+                "exactly one workshop item drops, got " + drops.stream().map(ItemEntity::getItem).toList());
+        ItemStack item = drops.get(0).getItem();
+        helper.assertTrue(SPRUCE.equals(item.get(WoodContent.WOOD.get())), "the item is spruce, got " + item.get(WoodContent.WOOD.get()));
+        drops.get(0).discard();
+
+        ShuttleWorkshopBlockEntity placed = placeAgain(helper, player, item, WS_AGAIN);
+        ItemStack held = placed.shuttle().getStackInSlot(0);
+        helper.assertTrue(held.is(ServusStorageItems.SHUTTLE_MK2.get()) && ShuttleModules.of(held).speed() == 1,
+                "the Mk2 with Speed 1 is back, got " + held);
+        helper.assertTrue(Integer.valueOf(8).equals(placed.supplyCounts().get("minecraft:iron_ingot")),
+                "the 8 iron ingots are back, got " + placed.supplyCounts());
+        helper.assertTrue(SPRUCE.equals(placed.woodSlot().wood()), "the placed workshop is spruce, got " + placed.woodSlot().wood());
+        helper.succeed();
+    }
+
+    /** Dismantling ends a build by hand; placed again, no build runs and the shuttle keeps its tier. */
+    @ServusGameTest
+    public static void workshopDismantleCancelsHandBuild(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        workshop(helper, player);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
+        workshop.shuttle().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
+        supplyFor(workshop, 2);
+        helper.assertTrue(workshop.startHandBuild(), "a build by hand starts");
+        workshop.reportStep(0);
+        workshop.reportStep(1);
+        helper.assertTrue(workshop.handBuild() && workshop.buildStep() == Math.min(2, workshop.steps().size()), "the build is at step 2");
+        carrot(helper, player, WS_POS, true);
+        List<ItemEntity> drops = itemsAround(helper, WS_POS);
+        helper.assertTrue(drops.size() == 1, "one item drops, got " + drops.stream().map(ItemEntity::getItem).toList());
+        ItemStack item = drops.get(0).getItem();
+        drops.get(0).discard();
+        ShuttleWorkshopBlockEntity placed = placeAgain(helper, player, item, WS_AGAIN);
+        helper.assertFalse(placed.handBuild(), "no build by hand runs");
+        helper.assertTrue(placed.shuttle().getStackInSlot(0).is(ServusStorageItems.SHUTTLE_MK1.get()), "the shuttle is still a Mk1");
+        helper.assertTrue(placed.canBuild(), "the supplies came back too");
+        helper.succeed();
+    }
+
+    /** The carrot without sneaking leaves the workshop and its contents alone. */
+    @ServusGameTest
+    public static void workshopPlainCarrotDoesNothing(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        workshop(helper, player);
+        ShuttleWorkshopBlockEntity workshop = helper.getBlockEntity(WS_POS, ShuttleWorkshopBlockEntity.class);
+        workshop.shuttle().setStackInSlot(0, new ItemStack(ServusStorageItems.SHUTTLE_MK1.get()));
+        workshop.supplies().setStackInSlot(0, new ItemStack(Items.IRON_INGOT, 8));
+        carrot(helper, player, WS_POS, false);
+        helper.assertBlockPresent(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), WS_POS);
+        helper.assertTrue(itemsAround(helper, WS_POS).isEmpty(), "nothing drops");
+        helper.assertTrue(workshop.shuttle().getStackInSlot(0).is(ServusStorageItems.SHUTTLE_MK1.get())
+                && workshop.supplies().getStackInSlot(0).getCount() == 8, "the contents stay");
         helper.succeed();
     }
 
