@@ -208,10 +208,7 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
 
     /** The work status is a warning, drawn in the warning colour. */
     private static boolean warning(FieldWork work) {
-        return switch (work) {
-            case WORKING, HARVEST_DUE, READY, GROWING, WAITING_RIPE -> false;
-            default -> true;
-        };
+        return work.problem();
     }
 
     /** The problem the page shows, or null when it has none. */

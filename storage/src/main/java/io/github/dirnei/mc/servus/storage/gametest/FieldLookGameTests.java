@@ -212,6 +212,24 @@ public final class FieldLookGameTests {
         });
     }
 
+    /** Rails on no warehouse are a problem: the bar is red while the ripe step underneath still follows the crops. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void unlinkedFieldShowsRedBar(GameTestHelper helper) {
+        FieldHeadBlockEntity head = wheatField(helper);
+        helper.runAfterDelay(3, () -> {
+            head.setCrop(new ItemStack(Items.WHEAT_SEEDS));
+            threshold(head, 50);
+            ripen(helper, 3);
+            helper.runAfterDelay(2, () -> {
+                helper.assertTrue(head.problem(), "rails without a warehouse are a problem, work " + head.work());
+                helper.assertTrue(helper.getBlockState(HEAD).getValue(FieldHeadBlock.PROBLEM), "the bar is red");
+                int gold = ripeState(helper);
+                helper.assertTrue(gold > FieldHeadLook.EMPTY && gold < FieldHeadLook.READY, "the ripe step stays gold underneath, got " + gold);
+                helper.succeed();
+            });
+        });
+    }
+
     // Client sync
 
     /** The update tag carries the water level in steps, the crop and the mode. */

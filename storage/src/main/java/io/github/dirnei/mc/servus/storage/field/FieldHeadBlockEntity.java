@@ -184,6 +184,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
     private boolean refreshPending = true;
     /** The ripe bar may have changed; the next server tick sets {@link FieldHeadBlock#RIPE}. */
     private boolean lookDirty = true;
+    /** How often the head looks whether it has a problem, for the red bar, besides every change of its own. */
+    private static final int PROBLEM_CHECK_TICKS = 20;
     /** The water level last sent to clients, -1 before the first. */
     private int sentWaterLevel = -1;
     /** Client side: the water level from the last update. */
@@ -246,6 +248,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         if (lookDirty) {
             lookDirty = false;
             applyRipeStep();
+        } else if (level != null && (level.getGameTime() + worldPosition.asLong()) % PROBLEM_CHECK_TICKS == 0) {
+            // The warehouse side of a problem (controller, harvester, way) has no event here; look now and then.
+            applyProblemLook();
         }
         if (status != FieldStatus.SERVING) {
             return;
@@ -1049,6 +1054,29 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
             level.setBlock(worldPosition, state.setValue(FieldHeadBlock.RIPE, step), Block.UPDATE_CLIENTS);
         }
         applyCorrodedLook();
+        applyProblemLook();
+    }
+
+    /**
+     * Whether the head has one of the problems its GUI marks red; the bar on the
+     * head is red while it does. Server side.
+     */
+    public boolean problem() {
+        boolean serving = status == FieldStatus.SERVING && !rails.isEmpty();
+        return FieldHeadLook.problem(serving, serving ? work() : null, corrosion() == FieldCorrosion.CORRODED, hydrated,
+                serving ? fertilizeStatus() : null);
+    }
+
+    /** Sets {@link FieldHeadBlock#PROBLEM} on the block when it changed. Server side. */
+    private void applyProblemLook() {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        boolean problem = problem();
+        BlockState state = level.getBlockState(worldPosition);
+        if (state.hasProperty(FieldHeadBlock.PROBLEM) && state.getValue(FieldHeadBlock.PROBLEM) != problem) {
+            level.setBlock(worldPosition, state.setValue(FieldHeadBlock.PROBLEM, problem), Block.UPDATE_CLIENTS);
+        }
     }
 
     /** The water level of the windows: synced steps on the client, the tank on the server. */

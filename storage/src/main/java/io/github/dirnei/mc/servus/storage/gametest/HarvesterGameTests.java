@@ -12,6 +12,7 @@ import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEnt
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
+import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldWork;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
@@ -191,6 +192,37 @@ public final class HarvesterGameTests {
                 helper.assertTrue(farm.head().ripeCount() == 0 && farm.head().plantedCount() == plots.length,
                         "the head should see four young crops, got " + farm.head().plantedCount() + " planted " + farm.head().ripeCount() + " ripe");
                 helper.succeed();
+            });
+        });
+    }
+
+    /**
+     * The bar on the head is red while the head has a problem: clear once a
+     * harvester, water and a crop are there, red again when the crop is cleared.
+     */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void problemTurnsBarRed(GameTestHelper helper) {
+        BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1)};
+        for (BlockPos plot : plots) {
+            crop(helper, plot, Blocks.WHEAT, 0);
+        }
+        Farm farm = farm(helper, harvester());
+        FieldHeadBlockEntity head = farm.head();
+        helper.runAfterDelay(1, () -> helper.assertTrue(helper.getBlockState(HEAD).getValue(FieldHeadBlock.PROBLEM),
+                "without water and crop the bar is red, work " + head.work()));
+        helper.runAfterDelay(2, () -> {
+            water(farm);
+            head.setCrop(new ItemStack(Items.WHEAT_SEEDS));
+            TerminalWiring.when(helper, () -> !helper.getBlockState(HEAD).getValue(FieldHeadBlock.PROBLEM), 100,
+                    () -> "a watered field with crop and harvester has no red bar, work " + head.work() + " hydrated " + head.hydrated()
+                            + " fertilize " + head.fertilizeStatus(), () -> {
+                helper.assertTrue(!head.problem(), "the head has no problem");
+                head.setCrop(ItemStack.EMPTY);
+                helper.runAfterDelay(2, () -> {
+                    helper.assertTrue(head.work() == FieldWork.NO_CROP, "no crop set, got " + head.work());
+                    helper.assertTrue(helper.getBlockState(HEAD).getValue(FieldHeadBlock.PROBLEM), "no crop: the bar is red again");
+                    helper.succeed();
+                });
             });
         });
     }
@@ -587,6 +619,7 @@ public final class HarvesterGameTests {
             head.setHarvestOnly(true);
             helper.runAfterDelay(150, () -> {
                 helper.assertTrue(head.work() == FieldWork.NO_WAY, "the head says no harvester gets there without a lift, got " + head.work());
+                helper.assertTrue(head.getBlockState().getValue(FieldHeadBlock.PROBLEM), "the bar on the head is red");
                 helper.assertTrue(wentOut[0] == 0, "the harvester never left its garage");
                 helper.assertTrue(ripe(helper, wheat[0]), "the wheat stays ripe on the field");
                 helper.succeed();

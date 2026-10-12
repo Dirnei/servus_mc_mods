@@ -138,27 +138,31 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
     /**
      * The Field Head: station boards and frame, a glass window in the upper
      * panel of every side, the ripe bar of its {@link FieldHeadBlock#RIPE} step
-     * on the front, the crop plate on top and a plain frame below.
+     * on the front (full and red with {@link FieldHeadBlock#PROBLEM}), the crop plate on top and a plain frame below.
      */
     private void fieldHead(Block block, String name) {
-        ModelFile[] models = new ModelFile[FieldHeadLook.READY + 1];
-        ModelFile[] corroded = new ModelFile[FieldHeadLook.READY + 1];
-        for (int step = 0; step <= FieldHeadLook.READY; step++) {
+        // One more model than steps: the last one has the full red bar of a head with a problem.
+        int problemModel = FieldHeadLook.READY + 1;
+        ModelFile[] models = new ModelFile[problemModel + 1];
+        ModelFile[] corroded = new ModelFile[problemModel + 1];
+        for (int step = 0; step <= problemModel; step++) {
             Identifier side = modLoc("block/" + name + "_side");
+            String front = step == problemModel ? "problem" : String.valueOf(step);
             Map<Direction, Identifier> faces = new EnumMap<>(Direction.class);
-            faces.put(Direction.NORTH, modLoc("block/" + name + "_front_" + step));
+            faces.put(Direction.NORTH, modLoc("block/" + name + "_front_" + front));
             faces.put(Direction.SOUTH, side);
             faces.put(Direction.EAST, side);
             faces.put(Direction.WEST, side);
             faces.put(Direction.UP, modLoc("block/" + name + "_top"));
             faces.put(Direction.DOWN, modLoc("block/" + name + "_bottom"));
-            models[step] = LayeredModels.cube(this, name + "_" + step, faces);
+            models[step] = LayeredModels.cube(this, name + "_" + front, faces);
             // A corroded field: the crop plate gets a rust rim.
             faces.put(Direction.UP, modLoc("block/" + name + "_top_corroded"));
-            corroded[step] = LayeredModels.cube(this, name + "_" + step + "_corroded", faces);
+            corroded[step] = LayeredModels.cube(this, name + "_" + front + "_corroded", faces);
         }
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile((state.getValue(FieldHeadBlock.CORRODED) ? corroded : models)[state.getValue(FieldHeadBlock.RIPE)])
+                .modelFile((state.getValue(FieldHeadBlock.CORRODED) ? corroded : models)
+                        [state.getValue(FieldHeadBlock.PROBLEM) ? problemModel : state.getValue(FieldHeadBlock.RIPE)])
                 .rotationY(((int) state.getValue(FieldHeadBlock.FACING).toYRot() + 180) % 360)
                 .build());
         simpleBlockItem(block, models[0]);

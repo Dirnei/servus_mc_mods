@@ -38,15 +38,17 @@ public class FieldHeadBlock extends BaseEntityBlock {
     public static final IntegerProperty RIPE = IntegerProperty.create("ripe", FieldHeadLook.EMPTY, FieldHeadLook.READY);
     /** The served field's rails are corroded: a rust rim on the top plate. */
     public static final BooleanProperty CORRODED = BooleanProperty.create("corroded");
+    /** The head has a problem: the ripe share bar is drawn full and red, whatever its {@link #RIPE} step. */
+    public static final BooleanProperty PROBLEM = BooleanProperty.create("problem");
 
     public FieldHeadBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(RIPE, FieldHeadLook.EMPTY).setValue(CORRODED, false));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(RIPE, FieldHeadLook.EMPTY).setValue(CORRODED, false).setValue(PROBLEM, false));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, RIPE, CORRODED);
+        builder.add(FACING, RIPE, CORRODED, PROBLEM);
     }
 
     @Override

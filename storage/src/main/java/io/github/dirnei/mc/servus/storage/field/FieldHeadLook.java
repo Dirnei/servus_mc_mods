@@ -12,6 +12,25 @@ public final class FieldHeadLook {
     public static final int GOLD_STEPS = 4;
     /** Full and green: a harvest is due. */
     public static final int READY = GOLD_STEPS + 1;
+    /**
+     * Whether the head has a problem, the same ones that put a red marker on a
+     * tab of its GUI: it serves no field, its work status is a problem, the
+     * field is corroded or dry, or the fertilizing is held up. The bar on the
+     * head is red while this holds.
+     *
+     * @param serving    the head serves a field
+     * @param work       the work status, null when not serving
+     * @param corroded   the served field is corroded
+     * @param hydrated   the served field has water
+     * @param fertilize  the fertilize status, null when not serving
+     */
+    public static boolean problem(boolean serving, FieldWork work, boolean corroded, boolean hydrated, FertilizeStatus fertilize) {
+        if (!serving) {
+            return true;
+        }
+        return work != null && work.problem() || corroded || !hydrated || fertilize != null && fertilize.problem();
+    }
+
     /** Window levels; the top one means a full buffer. */
     public static final int WATER_LEVELS = 8;
 

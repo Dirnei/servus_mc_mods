@@ -34,6 +34,14 @@ public enum FieldWork {
 
     private static final FieldWork[] VALUES = values();
 
+    /** Whether this status is a problem: drawn in the warning colour, a red tab marker and a red bar on the head. */
+    public boolean problem() {
+        return switch (this) {
+            case WORKING, HARVEST_DUE, READY, GROWING, WAITING_RIPE -> false;
+            default -> true;
+        };
+    }
+
     public static FieldWork byId(int id) {
         return id >= 0 && id < VALUES.length ? VALUES[id] : NOT_LINKED;
     }
