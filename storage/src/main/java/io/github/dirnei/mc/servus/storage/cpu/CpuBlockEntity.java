@@ -90,6 +90,8 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     /** Ticks between buffer upkeep runs, like the order book's. */
     private static final int BUFFER_INTERVAL = 20;
     private int bufferTimer;
+    /** Leftover moves on their way to a Packing Station, by order and key, with their ledger ids. */
+    private final Map<CpuBuffer.Entry<ItemKey>, Long> leaving = new HashMap<>();
 
     public CpuBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.CRAFTING_CPU.get(), pos, state);
@@ -201,13 +203,91 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         setChanged();
     }
 
-    /** On the master: a block of the box went away; cancels the orders and unforms the rest of the box. */
+    /**
+     * On the master: a block of the box went away. Cancels the orders, sends
+     * what the buffer holds as packets to a Packing Station of the line while
+     * the CPU is still on it (dropped at the removed block without one) and
+     * unforms the rest of the box.
+     */
     void unform(BlockPos removed) {
         if (!isMaster() || level == null) {
             return;
         }
         cancelAll();
+        if (level instanceof ServerLevel server && buffer != null && !buffer.isEmpty()) {
+            emptyBuffer(server, removed);
+        }
         CpuBlock.unformBlocks(level, this, removed);
+    }
+
+    /**
+     * Hands every buffered stack to the line toward the Packing Station that
+     * takes collected outputs; the shipment settles by the line's own rule
+     * once the CPU has left it. Without a Packing Station, or when a send
+     * fails at once, the stack drops at the removed block.
+     */
+    private void emptyBuffer(ServerLevel server, BlockPos removed) {
+        List<ItemStack> stacks = stacks(buffer.clear());
+        leaving.clear();
+        Optional<BlockPos> from = memberPos(removed);
+        Optional<BlockPos> point = from.flatMap(member -> collectionPoint(server, member));
+        for (ItemStack stack : stacks) {
+            if (from.isPresent() && point.isPresent()) {
+                Optional<Delivery> sent = DataPackets.send(server, from.get(), point.get(), stack);
+                if (sent.isPresent() && sent.get().state() != Delivery.State.FAILED) {
+                    continue;
+                }
+            }
+            Containers.dropItemStack(server, removed.getX() + 0.5, removed.getY() + 0.5, removed.getZ() + 0.5, stack);
+        }
+        setChanged();
+    }
+
+    /**
+     * Entries of orders that are no longer open become leftovers and leave as
+     * packets for the Packing Station that takes collected outputs; one move
+     * per entry at a time.
+     */
+    private void sendLeftovers(ServerLevel server) {
+        if (buffer == null || buffer.isEmpty()) {
+            leaving.clear();
+            return;
+        }
+        java.util.Set<Long> open = new java.util.HashSet<>();
+        if (book != null) {
+            for (WorkOrder order : book.orders()) {
+                if (order.open()) {
+                    open.add((long) order.id());
+                }
+            }
+        }
+        for (CpuBuffer.Entry<ItemKey> entry : buffer.entries()) {
+            if (!entry.leaving() && !open.contains(entry.order())) {
+                buffer.leave(entry.order());
+                setChanged();
+            }
+        }
+        ProductionLedger ledger = ProductionLedger.get(server);
+        leaving.entrySet().removeIf(move -> {
+            ProductionLedger.Transfer transfer = ledger.transfer(move.getValue());
+            return transfer == null || transfer.ended();
+        });
+        List<CpuBuffer.Entry<ItemKey>> leftovers = buffer.leftovers();
+        if (leftovers.isEmpty()) {
+            return;
+        }
+        Optional<BlockPos> point = memberPos().flatMap(member -> collectionPoint(server, member));
+        if (point.isEmpty()) {
+            return;
+        }
+        for (CpuBuffer.Entry<ItemKey> entry : leftovers) {
+            CpuBuffer.Entry<ItemKey> slot = new CpuBuffer.Entry<>(entry.order(), entry.key(), 0, 0, true);
+            if (leaving.containsKey(slot)) {
+                continue;
+            }
+            fromBuffer((int) entry.order(), entry.key(), point.get(), entry.count(), true)
+                    .ifPresent(transfer -> leaving.put(slot, transfer));
+        }
     }
 
     /** Positions of the box, on the master only. */
@@ -244,6 +324,18 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         return memberPos().flatMap(pos -> DataNetworks.networkAt(serverLevel(), pos));
     }
 
+    /** A block of the box other than {@code except} that is a member of a data line, else any member. */
+    private Optional<BlockPos> memberPos(BlockPos except) {
+        if (level instanceof ServerLevel server) {
+            for (BlockPos pos : boxPositions()) {
+                if (!pos.equals(except) && server.isLoaded(pos) && DataNetworks.networkAt(server, pos).isPresent()) {
+                    return Optional.of(pos);
+                }
+            }
+        }
+        return memberPos();
+    }
+
     /** A block of the box that is a member of a data line; cached and looked for again once it is not. */
     private Optional<BlockPos> memberPos() {
         if (!(level instanceof ServerLevel server)) {
@@ -273,6 +365,7 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         if (++bufferTimer >= BUFFER_INTERVAL && level instanceof ServerLevel server) {
             bufferTimer = 0;
             settleArrivals(server);
+            sendLeftovers(server);
         }
     }
 
