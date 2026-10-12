@@ -112,20 +112,13 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     private int pushTimer;
 
     private final SideConfig sides = SideConfig.station();
-    private final java.util.Map<Direction, LegacyItemHandler> sideHandlers = new java.util.EnumMap<>(Direction.class);
-    private final LegacyItemHandler anySide = new SideHandler(null);
+    private final LegacyItemHandler inlet = new InletHandler();
 
-    /** All thirteen slots for automation: inputs take only used items, outputs only give, both only where the side allows it. */
-    private final class SideHandler extends LegacyItemHandler {
-        private final Direction side;
-
-        private SideHandler(Direction side) {
-            this.side = side;
-        }
-
-        private SideMode mode() {
-            return side == null ? SideMode.AUTO : sideMode(side);
-        }
+    /**
+     * What data line packets see on every face: the inputs take only items the
+     * job uses, the outputs only give. Pipes and hoppers see no item capability.
+     */
+    private final class InletHandler extends LegacyItemHandler {
 
         @Override
         public int getSlots() {
@@ -139,7 +132,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
 
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            if (slot >= INPUT_SLOTS || !mode().allowsInsert() || !uses(stack)) {
+            if (slot >= INPUT_SLOTS || !uses(stack)) {
                 return stack;
             }
             return inputs.insertItem(slot, stack, simulate);
@@ -147,7 +140,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
 
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return slot < INPUT_SLOTS || !mode().allowsExtract() ? ItemStack.EMPTY : outputs.extractItem(slot - INPUT_SLOTS, amount, simulate);
+            return slot < INPUT_SLOTS ? ItemStack.EMPTY : outputs.extractItem(slot - INPUT_SLOTS, amount, simulate);
         }
 
         @Override
@@ -157,7 +150,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return slot < INPUT_SLOTS && mode().allowsInsert() && uses(stack);
+            return slot < INPUT_SLOTS && uses(stack);
         }
     }
 
@@ -175,12 +168,9 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         return outputs;
     }
 
-    /** The handler a neighbour on that side sees, or the unrestricted view for a null side. */
-    public ResourceHandler<ItemResource> handlerFor(Direction side) {
-        if (side == null) {
-            return anySide;
-        }
-        return sideHandlers.computeIfAbsent(side, SideHandler::new);
+    /** The packet inlet: job filtered inputs in, outputs out, on every face. */
+    public ResourceHandler<ItemResource> packetInlet() {
+        return inlet;
     }
 
     // Sides
@@ -200,7 +190,6 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         SideMode mode = sides.cycle(side);
         setChanged();
         if (level != null && !level.isClientSide()) {
-            level.invalidateCapabilities(worldPosition);
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }

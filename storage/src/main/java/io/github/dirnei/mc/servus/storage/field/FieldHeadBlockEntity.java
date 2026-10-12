@@ -536,8 +536,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, W
         return antiCorrosion;
     }
 
-    /** What hoppers and ducts see: anti-corrosion items go in, nothing comes out. */
-    public ResourceHandler<ItemResource> itemHandler() {
+    /** What data line packets see: anti-corrosion items go in, nothing comes out. Pipes and hoppers see nothing. */
+    public ResourceHandler<ItemResource> packetInlet() {
         return insertOnly;
     }
 

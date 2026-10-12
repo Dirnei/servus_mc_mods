@@ -125,7 +125,7 @@ public final class RailCorrosionGameTests {
         FieldHeadBlockEntity head = field(helper);
         helper.runAfterDelay(3, () -> {
             head.setStage(FieldCorrosion.WEATHERED);
-            ItemStack rest = Transfer.insertItem(head.itemHandler(), 0, new ItemStack(Items.HONEYCOMB, 3), false);
+            ItemStack rest = Transfer.insertItem(head.packetInlet(), 0, new ItemStack(Items.HONEYCOMB, 3), false);
             helper.assertTrue(rest.isEmpty(), "the head takes honeycomb through its item handler");
             head.age(perStep());
             helper.assertTrue(head.corrosion() == FieldCorrosion.WEATHERED, "honeycomb holds weathered, got " + head.corrosion());
@@ -307,7 +307,7 @@ public final class RailCorrosionGameTests {
                     && head.antiCorrosion().getStackInSlot(0).getCount() == 2, "both honeycomb went in");
             helper.assertTrue(upkeep.upkeepCount() == 2, "the upkeep count follows the slot");
             helper.assertTrue(hopper.getItem(1).is(Items.WHEAT_SEEDS), "seeds are refused");
-            helper.assertTrue(Transfer.extractItem(head.itemHandler(), 0, 1, true).isEmpty(), "automation takes nothing out");
+            helper.assertTrue(Transfer.extractItem(head.packetInlet(), 0, 1, true).isEmpty(), "automation takes nothing out");
         });
     }
 }

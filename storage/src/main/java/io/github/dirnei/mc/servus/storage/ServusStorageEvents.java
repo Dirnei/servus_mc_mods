@@ -61,19 +61,19 @@ public final class ServusStorageEvents {
         public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
             event.registerBlockEntity(Capabilities.Fluid.BLOCK, ServusStorageBlockEntities.FIELD_HEAD.get(),
                     (head, side) -> head.fluidHandler());
-            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.FIELD_HEAD.get(),
-                    (head, side) -> head.itemHandler());
+            // Packets bring the anti-corrosion upkeep; pipes and hoppers see no item capability.
+            event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusStorageBlockEntities.FIELD_HEAD.get(),
+                    (head, side) -> head.packetInlet());
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusStorageBlockEntities.FIELD_HEAD.get(),
                     (head, side) -> head.upkeep());
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.HEAVY_RACK.get(),
                     (rack, side) -> rack.items());
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.INBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
-            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.PACKING_STATION.get(),
-                    (point, side) -> point.handlerFor(side));
-            // The Wireless Packing Station takes packets and hoppers like the Packing Station and FE, but never joins a data line.
-            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.WIRELESS_PACKING_STATION.get(),
-                    (point, side) -> point.handlerFor(side));
+            // Packets enter a Packing Station through its inlet; pipes and hoppers see no item capability.
+            event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusStorageBlockEntities.PACKING_STATION.get(),
+                    (point, side) -> point.intake());
+            // The Wireless Packing Station takes FE but no items from outside and never joins a data line.
             event.registerBlockEntity(Capabilities.Energy.BLOCK, ServusStorageBlockEntities.WIRELESS_PACKING_STATION.get(),
                     (point, side) -> point.energy());
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.PACKING_STATION.get(),
@@ -88,12 +88,12 @@ public final class ServusStorageEvents {
                     (storage, side) -> storage);
             event.registerBlockEntity(ServusFoundationCapabilities.DATA_LINK, ServusStorageBlockEntities.STORAGE_TERMINAL.get(),
                     (terminal, side) -> terminal);
-            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.STORAGE_TERMINAL.get(),
+            event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusStorageBlockEntities.STORAGE_TERMINAL.get(),
                     (terminal, side) -> terminal.packetHandler());
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.OUTBOUND_STATION.get(),
                     (station, side) -> station.handlerFor(side));
-            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.CRAFTING_STATION.get(),
-                    (station, side) -> station.handlerFor(side));
+            event.registerBlockEntity(ServusFoundationCapabilities.PACKET_INLET, ServusStorageBlockEntities.CRAFTING_STATION.get(),
+                    (station, side) -> station.packetInlet());
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusStorageBlockEntities.CRAFTING_STATION.get(),
                     (station, side) -> station.production());
             event.registerBlockEntity(ServusFoundationCapabilities.STOCK_PROVIDER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
