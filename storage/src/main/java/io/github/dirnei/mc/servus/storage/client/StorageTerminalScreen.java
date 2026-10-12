@@ -987,7 +987,9 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 if (!found.stocked() || (found.craftable() && craftClick)) {
                     openCraft(found.stack());
                 } else if (Minecraft.getInstance().hasShiftDown()) {
-                    ClientPacketDistributor.sendToServer(new RequestItemPayload(found.stack(), found.stack().getMaxStackSize()));
+                    // Shift click: one full stack, or all there is when the stock is smaller.
+                    int amount = (int) Math.min(found.stack().getMaxStackSize(), found.count());
+                    ClientPacketDistributor.sendToServer(new RequestItemPayload(found.stack(), amount));
                 } else {
                     openRequest(found.stack());
                 }
