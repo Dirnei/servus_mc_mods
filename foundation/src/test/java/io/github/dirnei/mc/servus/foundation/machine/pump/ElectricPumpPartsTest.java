@@ -29,8 +29,7 @@ class ElectricPumpPartsTest {
         for (float[] part : ElectricPumpParts.upperParts()) {
             assertTrue(inside(part), "upper part " + java.util.Arrays.toString(part));
         }
-        for (float[] part : new float[][] {ElectricPumpParts.PIN, ElectricPumpParts.CON_ROD, ElectricPumpParts.FAN_BLADE_Y,
-                ElectricPumpParts.FAN_BLADE_Z}) {
+        for (float[] part : new float[][] {ElectricPumpParts.PIN, ElectricPumpParts.CON_ROD, ElectricPumpParts.FAN}) {
             assertTrue(inside(part), "moving part " + java.util.Arrays.toString(part));
         }
     }

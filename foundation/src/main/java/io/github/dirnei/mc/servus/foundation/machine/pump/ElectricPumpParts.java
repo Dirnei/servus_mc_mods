@@ -54,9 +54,8 @@ public final class ElectricPumpParts {
     public static final float FAN_X = 3.6F;
     public static final float FAN_Y = 5;
     public static final float FAN_Z = 11;
-    /** The two blades, crossed. */
-    public static final float[] FAN_BLADE_Y = {3.4F, FAN_Y - 1.8F, FAN_Z - 0.3F, 3.8F, FAN_Y + 1.8F, FAN_Z + 0.3F};
-    public static final float[] FAN_BLADE_Z = {3.4F, FAN_Y - 0.3F, FAN_Z - 1.8F, 3.8F, FAN_Y + 0.3F, FAN_Z + 1.8F};
+    /** The fan: a thin plate with the blades painted on, spinning in its own plane. */
+    public static final float[] FAN = {FAN_X - 0.05F, FAN_Y - 1.8F, FAN_Z - 1.8F, FAN_X + 0.05F, FAN_Y + 1.8F, FAN_Z + 1.8F};
 
     private ElectricPumpParts() {
     }
