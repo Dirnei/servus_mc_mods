@@ -94,7 +94,7 @@ The controller GUI SHALL have an "Other sites" panel. While the controller is wi
 - **WHEN** the base's controller is wireless capable, its GUI is open, and the team has an online outpost and a sleeping one without upgrades
 - **THEN** the panel shows both by name, the first online, the second sleeping and unable to wake
 
-#### Scenario: Outpost cannot trade
+#### Scenario: Outpost without power
 - **WHEN** the outpost's controller has no Wireless Upgrade or no power
 - **THEN** the base's panel shows the outpost's name in orange and its hover shows only the name and the state
 
