@@ -23,7 +23,8 @@ public final class ServusStorageItems {
     public static final DeferredItem<BlockItem> DOUBLE_CRATE = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.DOUBLE_CRATE);
     public static final DeferredItem<BlockItem> QUAD_CRATE = ITEMS.registerSimpleBlockItem(ServusStorageBlocks.QUAD_CRATE);
     public static final DeferredItem<HeavyRackItem> HEAVY_RACK = ITEMS.registerItem("heavy_rack",
-            properties -> new HeavyRackItem(ServusStorageBlocks.HEAVY_RACK.get(), properties));
+            properties -> new HeavyRackItem(ServusStorageBlocks.HEAVY_RACK.get(), properties),
+            Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<WoodBlockItem> WAREHOUSE_CONTROLLER = ITEMS.registerItem("warehouse_controller",
             properties -> new WoodBlockItem(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
@@ -37,14 +38,17 @@ public final class ServusStorageItems {
             properties -> new WoodBlockItem(ServusStorageBlocks.PATTERN_STORAGE.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<RailItem> RAIL = ITEMS.registerItem("rail",
-            properties -> new RailItem(ServusStorageBlocks.RAIL.get(), properties));
+            properties -> new RailItem(ServusStorageBlocks.RAIL.get(), properties),
+            Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<RailItem> FARM_RAIL = ITEMS.registerItem("farm_rail",
-            properties -> new RailItem(ServusStorageBlocks.FARM_RAIL.get(), properties));
+            properties -> new RailItem(ServusStorageBlocks.FARM_RAIL.get(), properties),
+            Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<WoodBlockItem> FIELD_HEAD = ITEMS.registerItem("field_head",
             properties -> new WoodBlockItem(ServusStorageBlocks.FIELD_HEAD.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<ElevatorItem> ELEVATOR = ITEMS.registerItem("elevator",
-            properties -> new ElevatorItem(ServusStorageBlocks.ELEVATOR.get(), properties));
+            properties -> new ElevatorItem(ServusStorageBlocks.ELEVATOR.get(), properties),
+            Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<WoodBlockItem> INBOUND_STATION = ITEMS.registerItem("inbound_station",
             properties -> new WoodBlockItem(ServusStorageBlocks.INBOUND_STATION.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
