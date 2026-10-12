@@ -25,7 +25,7 @@
 
 ## 5. Docs and plan
 
-- [ ] 5.1 `docs/src/content/docs/mods/storage.md` (warehouse power: one connection, costs, no power state, what keeps working) and `PLAN.md` (M11 item, section 2.3, M11 item 2 note). Run `gradlew :manufacturing:runData` for the docs gamedata, the docs tests, and `openspec validate m11-warehouse-power`.
+- [x] 5.1 `docs/src/content/docs/mods/storage.md` (warehouse power: one connection, costs, no power state, what keeps working) and `PLAN.md` (M11 item, section 2.3, M11 item 2 note). Run `gradlew :manufacturing:runData` for the docs gamedata, the docs tests, and `openspec validate m11-warehouse-power`.
 - [ ] 5.2 Optional: Balance lab page "Warehouse power" under `docs/src/content/docs/lab/` with `storage/power.json` and the Coal Generator output exported into `docs/src/data/gamedata.json` by `manufacturing/.../datagen/gamedata/GameDataExportProvider.java` (JUnit in `GameDataJsonTest` for the new fields). Run `gradlew :manufacturing:test`, `gradlew :manufacturing:runData` and the docs tests.
 
 ## 6. Verification
