@@ -1035,7 +1035,7 @@
       ]
     },
     "servus_storage:shuttle_workshop": {
-      "type": "minecraft:crafting_shaped",
+      "type": "servus_foundation:wood_shaped",
       "pattern": ["III", "PCP", "PPP"],
       "key": {
         "C": {"item": "minecraft:crafting_table"},

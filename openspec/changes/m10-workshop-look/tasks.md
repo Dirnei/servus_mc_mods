@@ -20,7 +20,7 @@ Paths are relative to `storage/src/main/java/io/github/dirnei/mc/servus/storage/
 
 ## 4. Docs and plan
 
-- [ ] 4.1 `PLAN.md` M10: add item 12 `m10-workshop-look` (family look with tools and bench, recipe wood, carrot dismantle keeping contents, no facing); `docs/src/content/docs/mods/storage.md` workshop entry names the wood and the carrot dismantle; regenerate `docs/src/data/gamedata.json` with `gradlew :manufacturing:runData`. Run `cd docs && npm test`.
+- [x] 4.1 `PLAN.md` M10: add item 12 `m10-workshop-look` (family look with tools and bench, recipe wood, carrot dismantle keeping contents, no facing); `docs/src/content/docs/mods/storage.md` workshop entry names the wood and the carrot dismantle; regenerate `docs/src/data/gamedata.json` with `gradlew :manufacturing:runData`. Run `cd docs && npm test`.
 
 ## 5. Verification
 
