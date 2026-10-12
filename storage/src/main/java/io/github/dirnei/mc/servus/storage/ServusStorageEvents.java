@@ -100,6 +100,9 @@ public final class ServusStorageEvents {
                     (station, side) -> station.packetInlet());
             event.registerBlockEntity(ServusFoundationCapabilities.PRODUCTION, ServusStorageBlockEntities.CRAFTING_STATION.get(),
                     (station, side) -> station.production());
+            // The controller's FE buffer: a sink for the power line, never a source.
+            event.registerBlockEntity(Capabilities.Energy.BLOCK, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
+                    (controller, side) -> controller.energy());
             event.registerBlockEntity(ServusFoundationCapabilities.STOCK_PROVIDER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),
                     (controller, side) -> controller.stockProvider());
             event.registerBlockEntity(ServusFoundationCapabilities.SUPPLIER, ServusStorageBlockEntities.WAREHOUSE_CONTROLLER.get(),

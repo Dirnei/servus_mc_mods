@@ -8,7 +8,7 @@
 ## 2. Controller: energy, upgrade, data
 
 - [x] 2.1 `storage/src/main/resources/data/servus_storage/storage/power.json` (`controller_energy_capacity`, `wireless_fe_per_item`, `wireless_fe_per_item_per_block`), `stats/StorageStatsManager.java` (read it, drop the `wireless_packing_station` fields, keep `setWirelessCost` for GameTests). Run `gradlew build`.
-- [ ] 2.2 `controller/ControllerEnergy.java`, `controller/WirelessUpgradeItem.java`, `controller/WirelessUpgradeSlots.java`, `WarehouseControllerBlockEntity.java` (energy saved, upgrade slot saved and dropped, `capable()`, flip on energy and slot change), registries (item, creative tab), `ServusStorageEvents.java` (`Capabilities.Energy.BLOCK` for the controller). Run `gradlew build`.
+- [x] 2.2 `controller/ControllerEnergy.java`, `controller/WirelessUpgradeItem.java`, `controller/WirelessUpgradeSlots.java`, `WarehouseControllerBlockEntity.java` (energy saved, upgrade slot saved and dropped, `capable()`, flip on energy and slot change), registries (item, creative tab), `ServusStorageEvents.java` (`Capabilities.Energy.BLOCK` for the controller). Run `gradlew build`.
 - [ ] 2.3 Datagen: Wireless Upgrade item model, recipe, lang (item, tooltip, controller hint and FE lines, new refusal and status keys without the word team); `ServusStorageLanguageProvider`, recipe provider. Run `gradlew :storage:runData`, then `gradlew build`.
 
 ## 3. Remove the Wireless Packing Station

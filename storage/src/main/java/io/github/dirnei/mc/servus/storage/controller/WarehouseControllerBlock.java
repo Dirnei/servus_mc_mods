@@ -91,13 +91,14 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
             controller.resetSpan();
+            controller.clearEnergyForItem();
             if (placer instanceof ServerPlayer player) {
                 controller.setTeam(Teams.teamOf(player));
             }
         }
     }
 
-    /** Chunk Loader Upgrades drop when the controller goes. */
+    /** Chunk Loader and Wireless Upgrades drop when the controller goes. */
 
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
@@ -111,6 +112,8 @@ public class WarehouseControllerBlock extends BaseEntityBlock implements Wrencha
                 if (level.getBlockEntity(pos) instanceof WarehouseControllerBlockEntity controller) {
                     // Upgrades drop on their own; the item carries the name and the rules.
                     controller.upgrades().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
+                    controller.wirelessUpgrade().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
+                    controller.clearEnergyForItem();
                     BlockEntityItems.saveToItem(controller, drop, level.registryAccess());
                 }
                 Block.popResource(level, pos, drop);

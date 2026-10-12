@@ -55,6 +55,12 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     private final Set<Long> span = new LinkedHashSet<>();
     private final ChunkLoaderUpgradeSlots upgrades =
             new ChunkLoaderUpgradeSlots(StorageStatsManager.INSTANCE.chunkLoaderUpgradeSlots(), this::upgradesChanged);
+    /** The Wireless Upgrade slot: with it, and powered, the controller is the site's antenna. */
+    private final WirelessUpgradeSlots wireless = new WirelessUpgradeSlots(this::wirelessUpgradeChanged);
+    /** The site's FE buffer, filled through the energy capability, spent by the controller. */
+    private final ControllerEnergy energy = new ControllerEnergy(StorageStatsManager.INSTANCE.controllerEnergyCapacity(), this::energyChanged);
+    /** Whether the controller was wireless capable at the last upgrade or energy change; a flip tells the warehouse. */
+    private boolean wasCapable;
     /** Set when the chunk unloads, so the removal that follows keeps the site's record. */
     private boolean unloading;
 
@@ -194,6 +200,82 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         return new io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu(containerId, playerInventory, this);
     }
 
+    // Wireless and energy
+
+    public WirelessUpgradeSlots wirelessUpgrade() {
+        return wireless;
+    }
+
+    /** Whether the controller holds a Wireless Upgrade. */
+    public boolean hasWirelessUpgrade() {
+        return wireless.held();
+    }
+
+    public ControllerEnergy energy() {
+        return energy;
+    }
+
+    /** FE stored. */
+    public int energyStored() {
+        return energy.stored();
+    }
+
+    /** For GameTests and tools: sets the FE stored. */
+    public void setEnergy(int amount) {
+        energy.setStored(amount);
+    }
+
+    /** Spends FE from the buffer, for wireless transfers this controller receives. */
+    public void spendEnergy(long amount) {
+        energy.spend(amount);
+    }
+
+    /** Whether the controller holds the FE of one item at the smallest wireless cost. */
+    public boolean poweredForWireless() {
+        return io.github.dirnei.mc.servus.storage.site.WirelessCost.powered(energy.stored(), StorageStatsManager.INSTANCE.wirelessFePerItem());
+    }
+
+    /**
+     * Whether the controller is the site's antenna: it holds a Wireless Upgrade
+     * and is powered. A site whose controller is not capable neither sends nor receives.
+     */
+    public boolean capable() {
+        return io.github.dirnei.mc.servus.storage.site.WirelessReach.capable(hasWirelessUpgrade(), energy.stored(),
+                StorageStatsManager.INSTANCE.wirelessFePerItem());
+    }
+
+    /** A dismantled or newly placed controller carries no FE in its item. */
+    public void clearEnergyForItem() {
+        energy.load(0);
+        wasCapable = capable();
+    }
+
+    private void energyChanged() {
+        setChanged();
+        wirelessStateChanged();
+    }
+
+    private void wirelessUpgradeChanged() {
+        setChanged();
+        wasCapable = capable();
+        // The record keeps the upgrade itself, so every change is reported, not only a flip.
+        if (level != null && !level.isClientSide()) {
+            network().ifPresent(WarehouseNetwork::wirelessChanged);
+        }
+    }
+
+    /** Compares the capable state with the last one; on a flip the warehouse and the site record learn it. */
+    private void wirelessStateChanged() {
+        boolean now = capable();
+        if (now == wasCapable) {
+            return;
+        }
+        wasCapable = now;
+        if (level != null && !level.isClientSide()) {
+            network().ifPresent(WarehouseNetwork::wirelessChanged);
+        }
+    }
+
     private void upgradesChanged() {
         setChanged();
         refreshSiteLamp();
@@ -276,6 +358,8 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         }
         tag.putLongArray("Span", span.stream().mapToLong(Long::longValue).toArray());
         tag.put("ChunkLoaderUpgrades", upgrades.serializeNBT(registries));
+        tag.put("WirelessUpgrade", wireless.serializeNBT(registries));
+        output.putInt("Energy", energy.stored());
         output.store(tag);
     }
 
@@ -303,6 +387,13 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
                 upgrades.setStackInSlot(slot, slot < saved.getSlots() ? saved.getStackInSlot(slot) : ItemStack.EMPTY);
             }
         }
+        if (tag.contains("WirelessUpgrade")) {
+            WirelessUpgradeSlots saved = new WirelessUpgradeSlots(null);
+            saved.deserializeNBT(registries, tag.getCompoundOrEmpty("WirelessUpgrade"));
+            wireless.setStackInSlot(0, saved.getSlots() > 0 ? saved.getStackInSlot(0) : ItemStack.EMPTY);
+        }
+        energy.load(input.getIntOr("Energy", 0));
+        wasCapable = capable();
     }
 
     // Wood: the planks the block was crafted from, shown as its boards
@@ -358,5 +449,6 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         }
         WarehouseControllerBlockEntity controller = this;
         controller.upgrades().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
+        controller.wirelessUpgrade().takeAll().forEach(stack -> Block.popResource(level, pos, stack));
     }
 }
