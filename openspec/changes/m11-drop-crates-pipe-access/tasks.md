@@ -17,7 +17,7 @@ Archive this change after `m11-wireless-packing-station` (archived) and before `
 
 ## 3. Shared GameTest warehouse
 
-- [ ] 3.1 `gametest/MiniWarehouse.java` (new): controller, rail run of 2 to 3 blocks, a rack facing the rail, a Shuttle Garage at the rail holding one Mk1 shuttle, optional Packing Station with data duct and Storage Terminal through `TerminalWiring`; `stock(helper, stacks...)` fills the rack through `HeavyRackBlockEntity.items()`; helpers for the rack and terminal positions and the shuttle trip time (design.md D10). Add `gametest/MiniWarehouseGameTests.java` with `miniWarehouseServesARequest` (a stack of cobblestone in the rack lands in the terminal's output slots) and `miniWarehousePutsAway` (cobblestone in an Inbound Station on the rail ends in the rack). Run the Storage GameTests.
+- [x] 3.1 `gametest/MiniWarehouse.java` (new): controller, rail run of 2 to 3 blocks, a rack facing the rail, a Shuttle Garage at the rail holding one Mk1 shuttle, optional Packing Station with data duct and Storage Terminal through `TerminalWiring`; `stock(helper, stacks...)` fills the rack through `HeavyRackBlockEntity.items()`; helpers for the rack and terminal positions and the shuttle trip time (design.md D10). Add `gametest/MiniWarehouseGameTests.java` with `miniWarehouseServesARequest` (a stack of cobblestone in the rack lands in the terminal's output slots) and `miniWarehousePutsAway` (cobblestone in an Inbound Station on the rail ends in the rack). Run the Storage GameTests.
 
 ## 4. GameTests off crates (crates still exist)
 
