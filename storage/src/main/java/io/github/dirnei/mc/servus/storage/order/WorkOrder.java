@@ -32,6 +32,8 @@ public final class WorkOrder {
     private BlockPos deliverTo;
     /** How many of the order's item were sent straight to {@link #deliverTo}. */
     private int directSent;
+    /** Intermediates later steps still needed that went to storage because the CPU's buffer was full, per key. */
+    private final Map<ItemKey, Integer> overflowed = new java.util.LinkedHashMap<>();
 
     public WorkOrder(int id, ItemKey key, int amount, int requestId, List<OrderStep> steps,
                      Map<ItemKey, Integer> reserved, Map<ItemKey, Integer> missing) {
@@ -75,6 +77,17 @@ public final class WorkOrder {
 
     public void sentDirect(int count) {
         directSent += count;
+    }
+
+    /** Intermediates that went to storage because the buffer was full, per key. */
+    public Map<ItemKey, Integer> overflowed() {
+        return Collections.unmodifiableMap(overflowed);
+    }
+
+    public void overflowed(ItemKey key, int count) {
+        if (count > 0) {
+            overflowed.merge(key, count, Integer::sum);
+        }
     }
 
     public List<OrderStep> steps() {
@@ -160,6 +173,9 @@ public final class WorkOrder {
         tag.putInt("Direct", directSent);
         tag.put("Reserved", Saving.counts(reserved, registries));
         tag.put("Missing", Saving.counts(missing, registries));
+        if (!overflowed.isEmpty()) {
+            tag.put("Overflowed", Saving.counts(overflowed, registries));
+        }
         ListTag list = new ListTag();
         for (OrderStep step : steps) {
             list.add(step.save(registries));
@@ -188,6 +204,7 @@ public final class WorkOrder {
             order.deliverTo = BlockPos.of(tag.getLongOr("DeliverTo", 0L));
         }
         order.directSent = tag.getIntOr("Direct", 0);
+        order.overflowed.putAll(Saving.counts(tag.getListOrEmpty("Overflowed"), registries));
         return order;
     }
 }

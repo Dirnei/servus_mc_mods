@@ -87,6 +87,9 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     /** Items of a saved buffer that a master loading unformed drops in {@link #onLoad()}. */
     private List<ItemStack> lostBuffer = List.of();
     private final CpuInlet inlet = new CpuInlet(this);
+    /** Ticks between buffer upkeep runs, like the order book's. */
+    private static final int BUFFER_INTERVAL = 20;
+    private int bufferTimer;
 
     public CpuBlockEntity(BlockPos pos, BlockState state) {
         super(ServusStorageBlockEntities.CRAFTING_CPU.get(), pos, state);
@@ -266,6 +269,10 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     void serverTick() {
         if (book != null) {
             book.tick();
+        }
+        if (++bufferTimer >= BUFFER_INTERVAL && level instanceof ServerLevel server) {
+            bufferTimer = 0;
+            settleArrivals(server);
         }
     }
 
@@ -472,7 +479,8 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
                 if (toMove <= 0) {
                     continue;
                 }
-                toMove = handOff(server, step, order, key, toMove);
+                HandOff handed = handOff(server, step, order, key, toMove);
+                toMove = handed.toStorage();
                 if (toMove <= 0) {
                     continue;
                 }
@@ -484,6 +492,10 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
                 }
                 Optional<Delivery> delivery = DataPackets.move(server, producer, target.get(), key.stack(1), toMove);
                 if (delivery.isPresent()) {
+                    if (order != null) {
+                        // Outputs later steps still needed went to storage because the buffer was full.
+                        order.overflowed(key, Math.min(toMove, handed.overflow()));
+                    }
                     // The ledger outlives this block entity, so a landing while the CPU is unloaded still counts.
                     ProductionLedger ledger = ProductionLedger.get(server);
                     ProductionLedger.Transfer transfer = ledger.open(toMove);
@@ -578,15 +590,24 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
     }
 
     /**
-     * Sends outputs a later step of the same order still needs straight to
-     * that step's producer, booked by one ledger id on both steps; keeps
-     * outputs back for a while when the later step's producer is still busy.
+     * Where the outputs of a step went in {@link #handOff}.
      *
-     * @return how many of the key still go to storage
+     * @param toStorage how many still go to storage
+     * @param overflow  the part of it that later steps still owed
      */
-    private int handOff(ServerLevel server, OrderStep step, WorkOrder order, ItemKey key, int toMove) {
+    private record HandOff(int toStorage, int overflow) {
+    }
+
+    /**
+     * Sends outputs a later step of the same order still needs straight to
+     * that step's producer, booked by one ledger id on both steps; puts
+     * outputs for later steps that are not delivering yet into the CPU's
+     * buffer while it has room, and keeps outputs back for a while when the
+     * buffer could not take them and the later step's producer is busy.
+     */
+    private HandOff handOff(ServerLevel server, OrderStep step, WorkOrder order, ItemKey key, int toMove) {
         if (order == null || step.ref() == null) {
-            return toMove;
+            return new HandOff(toMove, 0);
         }
         List<OrderStep> dependants = new ArrayList<>();
         List<Handoff.Dependant> facts = new ArrayList<>();
@@ -605,10 +626,14 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         }
         if (dependants.isEmpty()) {
             step.clearHold();
-            return toMove;
+            return new HandOff(toMove, 0);
         }
         long heldFor = waiting ? step.heldFor(server.getGameTime()) : 0;
-        Handoff.Split split = Handoff.split(toMove, facts, 0, 0, heldFor, StorageStatsManager.INSTANCE.handoffWaitTicks());
+        int maxStack = key.stack(1).getMaxStackSize();
+        CpuBuffer<ItemKey> buffer = buffer();
+        int room = memberPos().isPresent() ? buffer.room(order.id(), key, maxStack) : 0;
+        int held = buffer.held(order.id(), key) + buffer.incoming(order.id(), key);
+        Handoff.Split split = Handoff.split(toMove, facts, room, held, heldFor, StorageStatsManager.INSTANCE.handoffWaitTicks());
         if (split.hold() == 0) {
             step.clearHold();
         }
@@ -634,7 +659,54 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
             });
             setChanged();
         }
-        return split.toStorage() + unsent;
+        int buffered = split.buffered() > 0 ? toBuffer(server, step, order, key, split.buffered()) : 0;
+        int unbuffered = split.buffered() - buffered;
+        return new HandOff(split.toStorage() + unsent + unbuffered, split.overflow() + unbuffered);
+    }
+
+    /**
+     * Moves outputs from the step's producer into the CPU's buffer through
+     * the CPU block on the line, booked as a collection of the step and as
+     * an arrival of the buffer that holds its room until it ends.
+     *
+     * @return how many are on their way
+     */
+    private int toBuffer(ServerLevel server, OrderStep step, WorkOrder order, ItemKey key, int count) {
+        Optional<BlockPos> member = memberPos();
+        if (member.isEmpty()) {
+            return 0;
+        }
+        Optional<Delivery> delivery = DataPackets.move(server, step.producer(), member.get(), key.stack(1), count);
+        if (delivery.isEmpty() || delivery.get().state() == Delivery.State.FAILED) {
+            return 0;
+        }
+        ProductionLedger ledger = ProductionLedger.get(server);
+        ProductionLedger.Transfer transfer = ledger.open(count);
+        step.collecting(key, transfer.id(), count);
+        buffer().expect(transfer.id(), order.id(), key, count, key.stack(1).getMaxStackSize());
+        delivery.get().onEnd(ended -> {
+            ledger.delivered(transfer, ended.delivered());
+            ledger.end(transfer);
+            buffer().arrived(transfer.id());
+            setChanged();
+        });
+        setChanged();
+        return count;
+    }
+
+    /** Arrivals whose transfer ended while the CPU was not listening release the rest of their room. */
+    private void settleArrivals(ServerLevel server) {
+        if (buffer == null) {
+            return;
+        }
+        ProductionLedger ledger = ProductionLedger.get(server);
+        for (CpuBuffer.Arrival<ItemKey> arrival : buffer.arrivals()) {
+            ProductionLedger.Transfer transfer = ledger.transfer(arrival.transfer());
+            if (transfer == null || transfer.ended()) {
+                buffer.arrived(arrival.transfer());
+                setChanged();
+            }
+        }
     }
 
     /** The pattern of the CPU's data line that the step was planned from: same recipe id, same inputs per batch. */
