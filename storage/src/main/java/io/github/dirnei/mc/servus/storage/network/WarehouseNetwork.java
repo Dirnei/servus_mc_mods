@@ -112,7 +112,19 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         };
     }
 
+    /** An indexed block: a node read through {@link StorageNodeBlockEntity#stock()}, or a foreign inventory through its cache. */
     private record Source(BlockPos pos, boolean node, BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> cache) {
+    }
+
+    /** The slots of a source: the node's own stock, or a foreign inventory's item capability. */
+    private ItemView handlerOf(Source source) {
+        if (source == null) {
+            return null;
+        }
+        if (source.node()) {
+            return loaded(source.pos()) instanceof StorageNodeBlockEntity node ? node.stock() : null;
+        }
+        return source.cache() == null ? null : ItemView.of(source.cache().getCapability());
     }
 
     private final Map<BlockPos, Source> sources = new LinkedHashMap<>();
@@ -496,7 +508,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     @Override
     public ItemStack extractFrom(BlockPos pos, ItemKey key, int amount) {
         Source source = sources.get(pos);
-        ItemView handler = source == null ? null : ItemView.of(source.cache().getCapability());
+        ItemView handler = handlerOf(source);
         if (handler == null) {
             return ItemStack.EMPTY;
         }
@@ -1083,7 +1095,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             markDirty(pos);
             return;
         }
-        sources.put(pos, new Source(pos, node, BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, pos, null)));
+        sources.put(pos, new Source(pos, node, node ? null : BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, pos, null)));
         pollOrderStale = true;
         markDirty(pos);
     }
@@ -1354,7 +1366,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         for (List<BlockPos> tier : targetTiers(key, tiers(key))) {
             for (BlockPos pos : tier) {
                 Source source = sources.get(pos);
-                if (source != null && ItemView.of(source.cache().getCapability()) != null) {
+                if (handlerOf(source) != null) {
                     return true;
                 }
             }
@@ -1382,7 +1394,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     private boolean hasRoom(BlockPos pos, ItemStack stack) {
         Source source = sources.get(pos);
-        ItemView handler = source == null ? null : ItemView.of(source.cache().getCapability());
+        ItemView handler = handlerOf(source);
         return handler != null && handler.insertItem(stack, true).getCount() < stack.getCount();
     }
 
@@ -1496,7 +1508,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return stack;
         }
         Source source = sources.get(pos);
-        ItemView handler = source == null ? null : ItemView.of(source.cache().getCapability());
+        ItemView handler = handlerOf(source);
         if (handler == null) {
             return stack;
         }
@@ -1679,7 +1691,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             dropSource(pos);
             return;
         }
-        ItemView handler = ItemView.of(source.cache().getCapability());
+        ItemView handler = handlerOf(source);
         long before = total(index.snapshot(pos));
         if (handler == null) {
             if (source.node()) {
@@ -1752,7 +1764,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 continue;
             }
             Source source = sources.get(pos);
-            ItemView handler = source == null ? null : ItemView.of(source.cache().getCapability());
+            ItemView handler = handlerOf(source);
             if (handler == null) {
                 continue;
             }
@@ -1816,7 +1828,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 break;
             }
             Source source = sources.get(pos);
-            ItemView handler = source == null ? null : ItemView.of(source.cache().getCapability());
+            ItemView handler = handlerOf(source);
             if (handler == null) {
                 continue;
             }

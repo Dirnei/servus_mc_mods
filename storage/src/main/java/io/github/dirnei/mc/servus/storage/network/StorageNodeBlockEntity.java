@@ -11,7 +11,9 @@ import io.github.dirnei.mc.servus.foundation.network.NetworkType;
 import io.github.dirnei.mc.servus.storage.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.storage.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.storage.zone.ZoneFilter;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -52,6 +54,15 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     /** The filter this block applies; empty for unzoned blocks and name only zones. */
     public ZoneFilter zoneFilter() {
         return zone == null ? ZoneFilter.EMPTY : zone.filter();
+    }
+
+    /**
+     * The node's own slots as the warehouse reads and fills them, or null for
+     * nodes that hold no stock. The warehouse never goes through the item
+     * capability, which a docked rack does not expose.
+     */
+    public @Nullable ItemView stock() {
+        return null;
     }
 
     /** Whether a Zone Label may stamp this node: stock blocks that are not the controller or terminal. */

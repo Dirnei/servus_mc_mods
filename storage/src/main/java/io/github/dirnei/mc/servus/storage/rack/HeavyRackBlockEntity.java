@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.storage.rack;
 
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -77,6 +78,12 @@ public class HeavyRackBlockEntity extends StorageNodeBlockEntity implements Menu
     @Override
     public boolean zonable() {
         return true;
+    }
+
+    /** The bay's slots, read and filled by the warehouse's shuttles. */
+    @Override
+    public ItemView stock() {
+        return new ItemView(items);
     }
 
     /** A rack is its own node kind: it links only to rails on its front and to its own section. */

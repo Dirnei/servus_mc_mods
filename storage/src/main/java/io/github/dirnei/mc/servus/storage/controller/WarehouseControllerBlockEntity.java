@@ -245,7 +245,7 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     }
 
     /** The Lib stock provider view: counts from the index, instant extracts. Offline it has nothing. */
-    public StockProvider stock() {
+    public StockProvider stockProvider() {
         return new StockProvider() {
             @Override
             public long count(ItemStack like) {
