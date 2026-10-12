@@ -13,56 +13,58 @@ import org.junit.jupiter.api.Test;
 class RequestPlanTest {
 
     @Test
-    void splitsIntoStacks() {
-        Plan<String> plan = RequestPlan.plan(100, 64, true, List.of(new Stock<>("crate", 200, false, true)));
-        assertEquals(List.of(new Job<>("crate", 64, true), new Job<>("crate", 36, true)), plan.jobs());
+    void reachableStockGivesShuttleJobsOfAtMostAStack() {
+        Plan<String> plan = RequestPlan.plan(100, 64, true, List.of(new Stock<>("rack", 200, true)));
+        assertEquals(List.of(new Job<>("rack", 64), new Job<>("rack", 36)), plan.jobs());
         assertEquals(0, plan.unservable());
         assertFalse(plan.needsShuttle());
     }
 
     @Test
-    void instantSourcesComeBeforeShuttleOnes() {
-        Plan<String> plan = RequestPlan.plan(70, 64, true, List.of(
-                new Stock<>("railCrate", 64, false, true),
-                new Stock<>("nearCrate", 10, false, false)));
-        assertEquals(List.of(new Job<>("nearCrate", 10, false), new Job<>("railCrate", 60, true)), plan.jobs());
-    }
-
-    @Test
-    void withoutShuttlesReachableCratesAreInstant() {
-        Plan<String> plan = RequestPlan.plan(30, 64, false, List.of(new Stock<>("railCrate", 64, false, true)));
-        assertEquals(List.of(new Job<>("railCrate", 30, false)), plan.jobs());
-    }
-
-    @Test
-    void rackWithoutShuttleIsRefused() {
-        Plan<String> plan = RequestPlan.plan(10, 64, false, List.of(new Stock<>("rack", 50, true, true)));
+    void unreachableStockGivesNoJobAndNeedsShuttle() {
+        Plan<String> plan = RequestPlan.plan(10, 64, true, List.of(new Stock<>("farRack", 50, false)));
         assertTrue(plan.jobs().isEmpty());
         assertEquals(10, plan.unservable());
         assertTrue(plan.needsShuttle());
     }
 
     @Test
-    void unreachableRackIsIgnored() {
+    void noShuttleGivesNoJobAndNeedsShuttle() {
+        Plan<String> plan = RequestPlan.plan(10, 64, false, List.of(new Stock<>("rack", 50, true)));
+        assertTrue(plan.jobs().isEmpty());
+        assertEquals(10, plan.unservable());
+        assertTrue(plan.needsShuttle());
+    }
+
+    @Test
+    void mixedStockPlansTheReachablePart() {
         Plan<String> plan = RequestPlan.plan(10, 64, true, List.of(
-                new Stock<>("farRack", 50, true, false),
-                new Stock<>("rack", 5, true, true)));
-        assertEquals(List.of(new Job<>("rack", 5, true)), plan.jobs());
+                new Stock<>("farRack", 50, false),
+                new Stock<>("rack", 5, true)));
+        assertEquals(List.of(new Job<>("rack", 5)), plan.jobs());
         assertEquals(5, plan.unservable());
         assertTrue(plan.needsShuttle());
     }
 
     @Test
     void shortStockIsReported() {
-        Plan<String> plan = RequestPlan.plan(100, 64, true, List.of(new Stock<>("crate", 70, false, false)));
+        Plan<String> plan = RequestPlan.plan(100, 64, true, List.of(new Stock<>("rack", 70, true)));
         assertEquals(70, plan.planned());
         assertEquals(30, plan.unservable());
         assertFalse(plan.needsShuttle());
     }
 
     @Test
+    void zeroStockIsNotNeedsShuttle() {
+        Plan<String> plan = RequestPlan.plan(10, 64, false, List.of());
+        assertTrue(plan.jobs().isEmpty());
+        assertEquals(10, plan.unservable());
+        assertFalse(plan.needsShuttle());
+    }
+
+    @Test
     void zeroAmountGivesNoJobs() {
-        Plan<String> plan = RequestPlan.plan(0, 64, true, List.of(new Stock<>("crate", 70, false, true)));
+        Plan<String> plan = RequestPlan.plan(0, 64, true, List.of(new Stock<>("rack", 70, true)));
         assertTrue(plan.jobs().isEmpty());
         assertEquals(0, plan.unservable());
     }

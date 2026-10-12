@@ -668,7 +668,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         BlockPos destination = chosen.get().getBlockPos();
         boolean reachable = fleet.canReach(destination);
-        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), reachable, stockOf(key));
+        Planned plan = planWithInstant(amount, key, reachable);
         if (plan.jobs().isEmpty()) {
             String refusal = plan.needsShuttle() ? (fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle") : "out_of_stock";
             return new Shipping(refusal, Optional.empty(), destination);
@@ -903,9 +903,45 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             if (count == null || count <= 0 || !sources.containsKey(pos)) {
                 continue;
             }
-            stock.add(new RequestPlan.Stock<>(pos, count, isRack(pos), fleet.canReach(pos)));
+            stock.add(new RequestPlan.Stock<>(pos, count, fleet.canReach(pos)));
         }
         return stock;
+    }
+
+    /** A pick: by shuttle or straight out of a non rack source. */
+    private record PlannedJob(BlockPos source, int count, boolean byShuttle) {
+    }
+
+    private record Planned(List<PlannedJob> jobs, int unservable, boolean needsShuttle) {
+        int planned() {
+            return jobs.stream().mapToInt(PlannedJob::count).sum();
+        }
+    }
+
+    /** Instant picks from non rack sources no shuttle serves, then the shuttle plan. Goes with the instant paths. */
+    private Planned planWithInstant(int amount, ItemKey key, boolean hasShuttle) {
+        List<PlannedJob> jobs = new ArrayList<>();
+        int wanted = Math.max(0, amount);
+        int maxStack = key.stack(1).getMaxStackSize();
+        List<RequestPlan.Stock<BlockPos>> shuttleStock = new ArrayList<>();
+        for (RequestPlan.Stock<BlockPos> entry : stockOf(key)) {
+            if (isRack(entry.source()) || entry.reachable() && hasShuttle) {
+                shuttleStock.add(entry);
+                continue;
+            }
+            int available = Math.min(entry.count(), wanted);
+            while (available > 0) {
+                int count = Math.min(available, maxStack);
+                jobs.add(new PlannedJob(entry.source(), count, false));
+                available -= count;
+                wanted -= count;
+            }
+        }
+        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(wanted, maxStack, hasShuttle, shuttleStock);
+        for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
+            jobs.add(new PlannedJob(job.source(), job.count(), true));
+        }
+        return new Planned(List.copyOf(jobs), plan.unservable(), plan.needsShuttle());
     }
 
     /** What a plan and start did: how many are on their way, how many the stock lacked, or why nothing happened. */
@@ -917,7 +953,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             return new Started("offline", 0, amount);
         }
         boolean reachable = fleet.canReach(destination);
-        RequestPlan.Plan<BlockPos> plan = RequestPlan.plan(amount, key.stack(1).getMaxStackSize(), reachable, stockOf(key));
+        Planned plan = planWithInstant(amount, key, reachable);
         if (plan.jobs().isEmpty()) {
             if (plan.needsShuttle()) {
                 return new Started(fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle", 0, amount);
@@ -928,13 +964,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return new Started("", plan.planned(), plan.unservable());
     }
 
-    private void startJobs(RequestPlan.Plan<BlockPos> plan, int requestId, ItemKey key, BlockPos destination) {
+    private void startJobs(Planned plan, int requestId, ItemKey key, BlockPos destination) {
         startPicks(plan, requestId, key, destination);
         releaseDeferred(destination);
     }
 
-    private void startPicks(RequestPlan.Plan<BlockPos> plan, int requestId, ItemKey key, BlockPos destination) {
-        for (RequestPlan.Job<BlockPos> job : plan.jobs()) {
+    private void startPicks(Planned plan, int requestId, ItemKey key, BlockPos destination) {
+        for (PlannedJob job : plan.jobs()) {
             PickJob pick = new PickJob(requestId, key, job.count(), job.source(), destination);
             if (job.byShuttle()) {
                 fleet.requestPick(pick);
