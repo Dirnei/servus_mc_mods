@@ -29,4 +29,4 @@
 
 ## 7. Verification
 
-- [ ] 7.1 Play check by the user: right click a controller, name it, see the chunk map and count grow when a rail carries a crate into the next chunk; craft a Chunk Loader Upgrade and put it in; with a site larger than the upgrades cover the lamp and the GUI turn red, another upgrade makes it green; dismantle with the carrot and the name comes back on placement while the upgrades drop.
+- [x] 7.1 Play check by the user: right click a controller, name it, see the chunk map and count grow when a rail carries a crate into the next chunk; craft a Chunk Loader Upgrade and put it in; with a site larger than the upgrades cover the lamp and the GUI turn red, another upgrade makes it green; dismantle with the carrot and the name comes back on placement while the upgrades drop.

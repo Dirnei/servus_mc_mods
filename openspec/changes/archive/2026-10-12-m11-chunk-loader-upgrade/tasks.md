@@ -23,4 +23,4 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Play check by the user: build an outpost with a controller and a Chunk Loader Upgrade, fly far away, run `/servus_warehouse sites` (the outpost is listed with its stock) and `/servus_warehouse wake <pos>`; the outpost's chunks load (a hopper or crafting there keeps running, `/forceload query` does not list them since they are tickets, F3 shows the chunks loaded), the controller lamp is orange, and after about 30 s they are released; with a site larger than its upgrades the wake says over capacity; with four active Chunk Loaders the wake says team limit reached.
+- [x] 6.1 Play check by the user: build an outpost with a controller and a Chunk Loader Upgrade, fly far away, run `/servus_warehouse sites` (the outpost is listed with its stock) and `/servus_warehouse wake <pos>`; the outpost's chunks load (a hopper or crafting there keeps running, `/forceload query` does not list them since they are tickets, F3 shows the chunks loaded), the controller lamp is orange, and after about 30 s they are released; with a site larger than its upgrades the wake says over capacity; with four active Chunk Loaders the wake says team limit reached.
