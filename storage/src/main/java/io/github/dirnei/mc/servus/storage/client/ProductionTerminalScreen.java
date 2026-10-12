@@ -189,7 +189,8 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
         }
         rebuildLines();
         Line hovered = lineAt(mouseX, mouseY);
-        graphics.enableScissor(leftPos + MARGIN, topPos + LIST_Y, leftPos + WIDTH - MARGIN, topPos + LIST_BOTTOM);
+        // Labels draw in window coordinates and the scissor follows the pose, so no leftPos or topPos here.
+        graphics.enableScissor(MARGIN, LIST_Y, WIDTH - MARGIN, LIST_BOTTOM);
         int y = LIST_Y - scrolls[selected];
         for (Line line : lines) {
             if (y + line.height() > LIST_Y && y < LIST_BOTTOM) {
