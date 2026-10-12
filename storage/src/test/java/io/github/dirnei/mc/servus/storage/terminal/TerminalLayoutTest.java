@@ -108,7 +108,7 @@ class TerminalLayoutTest {
     void productionAreasDoNotOverlap() {
         assertDisjoint(Production.areas());
         assertDisjoint(Production.editorAreas());
-        assertTrue(Production.tabX(2) + Production.TAB_WIDTH <= Production.TABS.right(), "three tabs fit the tab row");
+        assertTrue(Production.tabX(3) + Production.TAB_WIDTH <= Production.TABS.right(), "four tabs fit the tab row");
     }
 
     @Test
@@ -134,5 +134,21 @@ class TerminalLayoutTest {
         assertTrue(Storage.BASE_HEIGHT <= TerminalLayout.MAX_HEIGHT, "storage panel too tall");
         assertTrue(Production.HEIGHT <= TerminalLayout.MAX_HEIGHT, "production panel too tall");
         assertTrue(Storage.WIDTH <= 480 && Production.WIDTH <= 480, "panels too wide for 1080p at scale 4");
+    }
+
+    @Test
+    void cpuRowPartsDisjointAndInsideTheList() {
+        assertDisjoint(Production.cpuAreas());
+        assertInside(Production.cpuAreas(), Production.LIST.w(), Production.CPU_HEIGHT);
+        assertInside(java.util.List.of(new TerminalLayout.Area("buffer line", Production.BUFFER_LINE)),
+                Production.LIST.w(), Production.BUFFER_LINE_HEIGHT);
+    }
+
+    @Test
+    void cpuItemsCutShortWithARestSlot() {
+        int fit = Production.CPU_ITEMS.w() / Production.CPU_ITEM_STEP;
+        assertTrue(Production.cpuItemsShown(fit) == fit, "all fit");
+        assertTrue(Production.cpuItemsShown(fit + 5) == fit - 1, "one slot left for the rest count");
+        assertTrue(Production.cpuItemsShown(0) == 0, "none");
     }
 }

@@ -171,7 +171,8 @@ public final class TerminalLayout {
     public static final class Production {
         public static final int WIDTH = 240;
         public static final int HEIGHT = 222;
-        public static final int TAB_WIDTH = 64;
+        /** Four tabs fit the 224 wide tab row: 4 x 54 + 3 x 2 = 222. */
+        public static final int TAB_WIDTH = 54;
         public static final int TAB_GAP = 2;
 
         public static final Rect TITLE = new Rect(8, 6, 224, 9);
@@ -218,10 +219,36 @@ public final class TerminalLayout {
         public static final Rect MACHINE_STATE = new Rect(22, 11, 150, 9);
         public static final Rect MACHINE_BAR = new Rect(176, 8, 44, 5);
 
+        /** A line under a job: what waits in the CPU buffer for one step, or what overflowed to storage. */
+        public static final int BUFFER_LINE_HEIGHT = 10;
+        public static final Rect BUFFER_LINE = new Rect(22, 0, 198, 9);
+        /** One CPU of the CPUs tab. */
+        public static final int CPU_HEIGHT = 30;
+        public static final Rect CPU_ICON = new Rect(2, 3, 16, 16);
+        public static final Rect CPU_TITLE = new Rect(22, 2, 120, 9);
+        public static final Rect CPU_ITEMS = new Rect(22, 12, 120, 16);
+        public static final Rect CPU_SLOT_BAR = new Rect(146, 2, 74, 5);
+        public static final Rect CPU_BUFFER_BAR = new Rect(146, 10, 74, 5);
+        public static final Rect CPU_STATE = new Rect(146, 18, 74, 9);
+        /** One buffered item in the CPU row's item strip. */
+        public static final int CPU_ITEM_STEP = 18;
+
         /** The parts of a job row. */
         public static List<Area> jobAreas() {
             return List.of(new Area("job icon", JOB_ICON), new Area("job title", JOB_TITLE), new Area("job bar", JOB_BAR),
                     new Area("job status", JOB_STATUS), new Area("job cancel", JOB_CANCEL));
+        }
+
+        /** The parts of a CPU row. */
+        public static List<Area> cpuAreas() {
+            return List.of(new Area("cpu icon", CPU_ICON), new Area("cpu title", CPU_TITLE), new Area("cpu items", CPU_ITEMS),
+                    new Area("cpu slot bar", CPU_SLOT_BAR), new Area("cpu buffer bar", CPU_BUFFER_BAR), new Area("cpu state", CPU_STATE));
+        }
+
+        /** How many buffered items fit the CPU row's strip, one slot kept for the rest count when they do not all fit. */
+        public static int cpuItemsShown(int items) {
+            int fit = CPU_ITEMS.w() / CPU_ITEM_STEP;
+            return items <= fit ? items : Math.max(0, fit - 1);
         }
 
         /** The parts of a machine row. */
