@@ -64,7 +64,8 @@ public final class MachineContent {
             MENUS.register("burner_pump", () -> IMenuTypeExtension.create(BurnerPumpMenu::fromNetwork));
 
     public static final DeferredBlock<ElectricPumpBlock> ELECTRIC_PUMP =
-            BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new, () -> machine().noOcclusion());
+            BLOCKS.registerBlock("electric_pump", ElectricPumpBlock::new,
+                    () -> machine().noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<PumpItem> ELECTRIC_PUMP_ITEM =
             ITEMS.registerItem("electric_pump", properties -> new PumpItem(ELECTRIC_PUMP.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
