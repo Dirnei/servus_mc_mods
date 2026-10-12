@@ -110,13 +110,13 @@ public final class StorageTerminalRowsGameTests {
         });
     }
 
-    /** Automation: an item no request waits for goes through the input; a waited for item lands in the output. */
+    /** Packets: an item no request waits for goes through the input; a waited for item lands in the output. */
     @ServusGameTest(timeoutTicks = 300)
-    public static void automationRouting(GameTestHelper helper) {
+    public static void packetRouting(GameTestHelper helper) {
         setup(helper, true, fixture -> {
             BlockPos pos = helper.absolutePos(TerminalWiring.terminalPos(TERMINAL));
-            ItemView handler = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP));
-            helper.assertTrue(handler != null, "the terminal should take items from automation");
+            ItemView handler = io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets.handler(helper.getLevel(), pos, Direction.UP);
+            helper.assertTrue(handler != null, "the terminal should take packets through its inlet");
             ItemStack rest = handler.insertItemStacked(new ItemStack(Items.COBBLESTONE, 10), false);
             helper.assertTrue(rest.isEmpty(), "the cobblestone should be taken, left " + rest);
             fixture.terminal().newRequest(helper.getLevel(), ItemKey.of(new ItemStack(Items.STICK)), 4);

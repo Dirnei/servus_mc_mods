@@ -59,6 +59,7 @@ public final class ServusStorage {
                 io.github.dirnei.mc.servus.storage.gametest.PatternGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.PatternResultGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.PersistGameTests.class,
+                io.github.dirnei.mc.servus.storage.gametest.PipeAccessGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.ProductionTerminalGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.RailCorrosionGameTests.class,
                 io.github.dirnei.mc.servus.storage.gametest.RailLookGameTests.class,

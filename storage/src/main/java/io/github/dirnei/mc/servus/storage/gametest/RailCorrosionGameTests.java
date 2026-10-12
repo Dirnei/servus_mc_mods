@@ -289,25 +289,38 @@ public final class RailCorrosionGameTests {
 
     // Upkeep
 
-    /** A hopper fills the anti-corrosion slot with honeycomb and keeps other items; the head is an upkeep holder. */
+    /** A hopper above the head keeps its honeycomb: the anti-corrosion slot is filled by hand or upkeep packets. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void hopperFillsUpkeep(GameTestHelper helper) {
+    public static void hopperCannotFillUpkeep(GameTestHelper helper) {
         FieldHeadBlockEntity head = field(helper);
         BlockPos hopperPos = HEAD.above();
         helper.setBlock(hopperPos, Blocks.HOPPER.defaultBlockState());
         HopperBlockEntity hopper = helper.getBlockEntity(hopperPos, HopperBlockEntity.class);
         hopper.setItem(0, new ItemStack(Items.HONEYCOMB, 2));
-        hopper.setItem(1, new ItemStack(Items.WHEAT_SEEDS, 1));
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(hopper.getItem(0).getCount() == 2, "the hopper keeps its honeycomb");
+            helper.assertTrue(head.antiCorrosion().getStackInSlot(0).isEmpty(), "the anti-corrosion slot stays empty");
+            helper.succeed();
+        });
+    }
+
+    /** Upkeep packets fill the anti-corrosion slot through the inlet, other items are refused; the head is an upkeep holder. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void upkeepPacketsFillSlot(GameTestHelper helper) {
+        FieldHeadBlockEntity head = field(helper);
         UpkeepHolder upkeep = helper.getLevel().getCapability(ServusFoundationCapabilities.UPKEEP, helper.absolutePos(HEAD), Direction.UP);
         helper.assertTrue(upkeep != null && upkeep.upkeepItem().is(Items.HONEYCOMB)
                         && upkeep.upkeepLevel() == StorageStatsManager.INSTANCE.fieldAntiCorrosionLevel(),
                 "the head keeps honeycomb as upkeep");
-        helper.succeedWhen(() -> {
-            helper.assertTrue(head.antiCorrosion().getStackInSlot(0).is(Items.HONEYCOMB)
-                    && head.antiCorrosion().getStackInSlot(0).getCount() == 2, "both honeycomb went in");
-            helper.assertTrue(upkeep.upkeepCount() == 2, "the upkeep count follows the slot");
-            helper.assertTrue(hopper.getItem(1).is(Items.WHEAT_SEEDS), "seeds are refused");
-            helper.assertTrue(Transfer.extractItem(head.packetInlet(), 0, 1, true).isEmpty(), "automation takes nothing out");
-        });
+        io.github.dirnei.mc.servus.foundation.transfer.ItemView inlet = io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets
+                .handler(helper.getLevel(), helper.absolutePos(HEAD), Direction.UP);
+        helper.assertTrue(inlet != null, "the head has a packet inlet");
+        helper.assertTrue(inlet.insertItemStacked(new ItemStack(Items.HONEYCOMB, 2), false).isEmpty(), "both honeycomb go in");
+        helper.assertTrue(inlet.insertItemStacked(new ItemStack(Items.WHEAT_SEEDS, 1), false).getCount() == 1, "seeds are refused");
+        helper.assertTrue(head.antiCorrosion().getStackInSlot(0).is(Items.HONEYCOMB) && head.antiCorrosion().getStackInSlot(0).getCount() == 2,
+                "both honeycomb are in the slot");
+        helper.assertTrue(upkeep.upkeepCount() == 2, "the upkeep count follows the slot");
+        helper.assertTrue(Transfer.extractItem(head.packetInlet(), 0, 1, true).isEmpty(), "packets take nothing out");
+        helper.succeed();
     }
 }

@@ -192,22 +192,18 @@ public final class StationHandsGameTests {
         });
     }
 
-    /** A station without a job refuses a hopper; with a job it takes the planks. */
-    @ServusGameTest(timeoutTicks = 200)
-    public static void stationWithoutJobRefusesHopper(GameTestHelper helper) {
+    /** A station without a job refuses packets of planks through its inlet; with a job it takes them. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void stationWithoutJobRefusesPackets(GameTestHelper helper) {
         helper.setBlock(LONE, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
         CraftingStationBlockEntity station = helper.getBlockEntity(LONE, CraftingStationBlockEntity.class);
-        helper.setBlock(LONE.above(), Blocks.HOPPER.defaultBlockState());
-        HopperBlockEntity hopper = helper.getBlockEntity(LONE.above(), HopperBlockEntity.class);
-        hopper.setItem(0, new ItemStack(Items.OAK_PLANKS, 4));
-        helper.runAfterDelay(40, () -> {
-            helper.assertTrue(hopper.getItem(0).getCount() == 4, "the hopper keeps its planks while the station has no job");
-            StationJobs.sticksJob(station, 4);
-            helper.runAfterDelay(40, () -> {
-                helper.assertTrue(hopper.getItem(0).isEmpty(), "with a job the planks go in");
-                helper.succeed();
-            });
-        });
+        io.github.dirnei.mc.servus.foundation.transfer.ItemView inlet = io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets
+                .handler(helper.getLevel(), helper.absolutePos(LONE), Direction.UP);
+        helper.assertTrue(inlet != null, "the station has a packet inlet");
+        helper.assertTrue(inlet.insertItemStacked(new ItemStack(Items.OAK_PLANKS, 4), false).getCount() == 4, "without a job the planks are refused");
+        StationJobs.sticksJob(station, 4);
+        helper.assertTrue(inlet.insertItemStacked(new ItemStack(Items.OAK_PLANKS, 4), false).isEmpty(), "with a job the planks go in");
+        helper.succeed();
     }
 
     /** Cancelling the order ends the station's job; its inputs stay. */

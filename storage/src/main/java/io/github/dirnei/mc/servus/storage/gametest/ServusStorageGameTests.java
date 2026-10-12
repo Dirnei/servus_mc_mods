@@ -1983,14 +1983,14 @@ public final class ServusStorageGameTests {
         });
     }
 
-    /** Without a job the station crafts nothing, reports no recipes and takes nothing from automation. */
+    /** Without a job the station crafts nothing, reports no recipes and takes nothing through its packet inlet. */
     @ServusGameTest(timeoutTicks = 100)
     public static void craftingStationIdleWithoutJob(GameTestHelper helper) {
         CraftingStationBlockEntity station = plainStation(helper, CR_STATION);
         station.inputs().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 4));
         ProductionProvider provider = helper.getLevel().getCapability(ServusFoundationCapabilities.PRODUCTION, helper.absolutePos(CR_STATION), null);
         helper.assertTrue(provider != null && provider.recipes().isEmpty() && provider.active().isEmpty(), "no recipes and nothing active");
-        ItemView handler = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(CR_STATION), Direction.UP));
+        ItemView handler = new ItemView(station.packetInlet());
         helper.assertTrue(handler.insertItem(new ItemStack(Items.OAK_PLANKS, 5), false).getCount() == 5, "planks are refused without a job");
         helper.runAfterDelay(station.workTicks() + 5, () -> {
             helper.assertTrue(station.outputs().getStackInSlot(0).isEmpty(), "nothing is crafted without a job");
@@ -2002,12 +2002,12 @@ public final class ServusStorageGameTests {
         });
     }
 
-    /** Automation can insert only used items into the inputs and extract only from the outputs. */
+    /** Packets can bring only used items into the inputs and take only from the outputs. */
     @ServusGameTest(timeoutTicks = 100)
     public static void craftingStationRefusesUnusedItems(GameTestHelper helper) {
         CraftingStationBlockEntity station = craftingStationWithSticks(helper, CR_STATION);
-        ItemView handler = ItemView.of(helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(CR_STATION), Direction.UP));
-        helper.assertTrue(handler != null, "the station should expose an item handler");
+        ItemView handler = io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets.handler(helper.getLevel(), helper.absolutePos(CR_STATION), Direction.UP);
+        helper.assertTrue(handler != null, "the station should expose a packet inlet");
         helper.assertTrue(handler.insertItem(new ItemStack(Items.COBBLESTONE, 5), false).getCount() == 5, "cobblestone is refused");
         helper.assertTrue(handler.insertItem(new ItemStack(Items.OAK_PLANKS, 5), false).isEmpty(), "planks are accepted");
         helper.assertTrue(handler.extractItem(0, 5, false).isEmpty(), "inputs cannot be extracted");
@@ -2021,7 +2021,7 @@ public final class ServusStorageGameTests {
     private static final BlockPos DS_OUTBOUND = new BlockPos(2, 1, 6);
     private static final BlockPos DS_INBOUND = new BlockPos(3, 1, 7);
 
-    /** An outbound station pushes planks into the station, an inbound station collects the sticks, which a shuttle puts into the rack. */
+    /** The station pulls planks from an Outbound Station and pushes the sticks into an Inbound Station; a shuttle puts them into the rack. */
     @ServusGameTest(timeoutTicks = 600)
     public static void outboundServesCraftingStation(GameTestHelper helper) {
         MiniWarehouse warehouse = MiniWarehouse.build(helper, DS_ORIGIN);
@@ -2033,6 +2033,8 @@ public final class ServusStorageGameTests {
         helper.setBlock(DS_OUTBOUND, ServusStorageBlocks.OUTBOUND_STATION.get().defaultBlockState().setValue(OutboundStationBlock.FACING, Direction.WEST));
         helper.setBlock(DS_INBOUND, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState().setValue(InboundStationBlock.FACING, Direction.SOUTH));
         CraftingStationBlockEntity station = plainStation(helper, DS_STATION);
+        // The station has no item capability: it pulls the planks from the Outbound Station itself.
+        station.sideConfig().set(station.relativeSide(Direction.WEST), SideMode.PULL);
         Object owner = StationJobs.sticksJob(station, 2);
         OutboundStationBlockEntity outbound = helper.getBlockEntity(DS_OUTBOUND, OutboundStationBlockEntity.class);
         InboundStationBlockEntity inbound = helper.getBlockEntity(DS_INBOUND, InboundStationBlockEntity.class);
