@@ -12,6 +12,11 @@ import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlockEntity;
+import io.github.dirnei.mc.servus.storage.cpu.CpuBuffer;
+import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.BufferItem;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.BufferLine;
+import io.github.dirnei.mc.servus.storage.production.ProductionRows.ItemCount;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.order.OrderStep;
 import io.github.dirnei.mc.servus.storage.order.WorkOrder;
@@ -70,9 +75,10 @@ public final class ProductionView {
         for (CpuBlockEntity cpu : CpuOrders.cpus(level, line.get())) {
             int open = cpu.book().openCount();
             int slots = cpu.slots();
-            cpus.add(new CpuRow(cpu.getBlockPos(), slots, Math.min(open, slots), Math.max(0, open - slots)));
+            List<CpuBuffer.Entry<ItemKey>> buffered = cpu.buffer().entries();
+            cpus.add(cpuRow(cpu, open, buffered));
             for (WorkOrder order : cpu.book().orders()) {
-                jobs.add(job(level, cpu.getBlockPos(), order));
+                jobs.add(job(level, cpu.getBlockPos(), order, buffered));
                 if (order.open()) {
                     for (OrderStep step : order.steps()) {
                         boolean waits = step.state() == OrderStep.State.WAITING_STATION || step.state() == OrderStep.State.DELIVERING;
@@ -124,7 +130,49 @@ public final class ProductionView {
         return new PatternsView(rows, rows.size(), PatternLibrary.capacity(level, line));
     }
 
-    private static JobRow job(ServerLevel level, BlockPos cpu, WorkOrder order) {
+    /** A CPU with its box, slots and what its buffer holds. */
+    private static CpuRow cpuRow(CpuBlockEntity cpu, int open, List<CpuBuffer.Entry<ItemKey>> buffered) {
+        int slots = cpu.slots();
+        CpuShape.Vec size = cpu.boxSize();
+        List<BufferItem> items = new ArrayList<>();
+        for (CpuBuffer.Entry<ItemKey> entry : buffered) {
+            items.add(new BufferItem(entry.key().stack(1), entry.count(), (int) entry.order(), entry.leaving()));
+        }
+        return new CpuRow(cpu.getBlockPos(), slots, Math.min(open, slots), Math.max(0, open - slots),
+                size == null ? 0 : size.x(), size == null ? 0 : size.y(), size == null ? 0 : size.z(),
+                cpu.cpuBlocks(), cpu.bufferBlocks(), cpu.room(), cpu.bufferUsed(), items);
+    }
+
+    /** What waits in the buffer for an open order, one line per later step that will use it, in step order. */
+    static List<BufferLine> bufferLines(ServerLevel level, WorkOrder order, List<CpuBuffer.Entry<ItemKey>> buffered) {
+        if (!order.open()) {
+            return List.of();
+        }
+        Map<OrderStep, List<ItemCount>> byStep = new java.util.LinkedHashMap<>();
+        for (OrderStep step : order.steps()) {
+            byStep.put(step, new ArrayList<>());
+        }
+        for (CpuBuffer.Entry<ItemKey> entry : buffered) {
+            if (entry.order() != order.id() || entry.leaving()) {
+                continue;
+            }
+            for (OrderStep step : order.steps()) {
+                if (step.state() != OrderStep.State.DONE && step.inputs().containsKey(entry.key())) {
+                    byStep.get(step).add(new ItemCount(entry.key().stack(1), entry.count()));
+                    break;
+                }
+            }
+        }
+        List<BufferLine> lines = new ArrayList<>();
+        byStep.forEach((step, items) -> {
+            if (!items.isEmpty()) {
+                lines.add(new BufferLine(machineName(level, step.producer()), items));
+            }
+        });
+        return lines;
+    }
+
+    private static JobRow job(ServerLevel level, BlockPos cpu, WorkOrder order, List<CpuBuffer.Entry<ItemKey>> buffered) {
         ItemKey key = order.key();
         int crafted = 0;
         OrderStep current = null;
@@ -159,8 +207,10 @@ public final class ProductionView {
                     sending, sendingTo);
         }
         JobStatus.Status status = JobStatus.of(state, order.reason(), missingName, missingCount, step);
+        List<ItemCount> overflow = new ArrayList<>();
+        order.overflowed().forEach((item, count) -> overflow.add(new ItemCount(item.stack(1), count)));
         return new JobRow(cpu, order.id(), key.stack(1), order.amount(), crafted, state, order.open() ? -1 : order.doneAt(),
-                status.key(), status.args(), order.requestId());
+                status.key(), status.args(), order.requestId(), bufferLines(level, order, buffered), overflow);
     }
 
     /** crafting, smelting, ... from the recipe's type, working when the recipe is not a known one. */

@@ -388,6 +388,11 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
         for (CpuRow cpu : payload.cpus()) {
             hash = hash * 31 + cpu.cpu().hashCode();
             hash = hash * 31 + cpu.slots() * 7 + cpu.inUse() * 3 + cpu.waiting();
+            hash = hash * 31 + cpu.room() * 7 + cpu.used();
+            for (ProductionRows.BufferItem item : cpu.buffered()) {
+                hash = hash * 31 + item.item().getItem().hashCode() * 7 + item.count();
+                hash = hash * 31 + item.order() * 2 + (item.leaving() ? 1 : 0);
+            }
         }
         for (JobRow job : payload.jobs()) {
             hash = hash * 31 + job.cpu().hashCode() + job.id();
@@ -396,6 +401,15 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
             hash = hash * 31 + Long.hashCode(job.doneAt());
             hash = hash * 31 + job.status().hashCode();
             hash = hash * 31 + job.args().hashCode();
+            for (ProductionRows.BufferLine line : job.buffer()) {
+                hash = hash * 31 + line.machine().hashCode();
+                for (ProductionRows.ItemCount item : line.items()) {
+                    hash = hash * 31 + item.item().getItem().hashCode() * 7 + item.count();
+                }
+            }
+            for (ProductionRows.ItemCount item : job.overflow()) {
+                hash = hash * 31 + item.item().getItem().hashCode() * 7 + item.count();
+            }
         }
         for (ProductionRows.PackingRow station : payload.packing()) {
             hash = hash * 31 + station.pos().hashCode();

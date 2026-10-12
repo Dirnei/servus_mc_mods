@@ -54,20 +54,89 @@ public final class ProductionRows {
     private static final StreamCodec<ByteBuf, List<String>> STRINGS = ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list());
 
     /**
-     * One formed Crafting CPU of the line, for the header tooltip.
-     *
-     * @param cpu     the CPU's master position
-     * @param slots   its order slots
-     * @param inUse   slots taken by open orders
-     * @param waiting open orders beyond the slots
+     * An item with a count; the count travels as a var int next to a one item
+     * stack, so counts above the max stack size travel safely.
      */
-    public record CpuRow(BlockPos cpu, int slots, int inUse, int waiting) {
-        public static final StreamCodec<RegistryFriendlyByteBuf, CpuRow> STREAM_CODEC = StreamCodec.composite(
-                BlockPos.STREAM_CODEC, CpuRow::cpu,
-                ByteBufCodecs.VAR_INT, CpuRow::slots,
-                ByteBufCodecs.VAR_INT, CpuRow::inUse,
-                ByteBufCodecs.VAR_INT, CpuRow::waiting,
-                CpuRow::new);
+    public record ItemCount(ItemStack item, int count) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, ItemCount> STREAM_CODEC = StreamCodec.composite(
+                ItemStack.STREAM_CODEC, ItemCount::item,
+                ByteBufCodecs.VAR_INT, ItemCount::count,
+                ItemCount::new);
+        static final StreamCodec<RegistryFriendlyByteBuf, List<ItemCount>> LIST = STREAM_CODEC.apply(ByteBufCodecs.list());
+    }
+
+    /**
+     * Items waiting in a CPU's buffer for one job.
+     *
+     * @param item    a one item stack
+     * @param count   how many
+     * @param order   the job's order id on that CPU
+     * @param leaving whether its job is done or cancelled and the items wait to leave for storage
+     */
+    public record BufferItem(ItemStack item, int count, int order, boolean leaving) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, BufferItem> STREAM_CODEC = StreamCodec.composite(
+                ItemStack.STREAM_CODEC, BufferItem::item,
+                ByteBufCodecs.VAR_INT, BufferItem::count,
+                ByteBufCodecs.VAR_INT, BufferItem::order,
+                ByteBufCodecs.BOOL, BufferItem::leaving,
+                BufferItem::new);
+    }
+
+    /**
+     * One formed Crafting CPU of the line, for the header tooltip and the CPUs tab.
+     *
+     * @param cpu          the CPU's master position
+     * @param slots        its order slots
+     * @param inUse        slots taken by open orders
+     * @param waiting      open orders beyond the slots
+     * @param sizeX        the box's length along x
+     * @param sizeY        the box's height
+     * @param sizeZ        the box's length along z
+     * @param cpuBlocks    its CPU blocks
+     * @param bufferBlocks its Buffer blocks
+     * @param room         buffer stacks it has
+     * @param used         buffer stacks in use
+     * @param buffered     what the buffer holds, oldest first
+     */
+    public record CpuRow(BlockPos cpu, int slots, int inUse, int waiting, int sizeX, int sizeY, int sizeZ, int cpuBlocks,
+                         int bufferBlocks, int room, int used, List<BufferItem> buffered) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, CpuRow> STREAM_CODEC = StreamCodec.of(CpuRow::write, CpuRow::read);
+        private static final StreamCodec<RegistryFriendlyByteBuf, List<BufferItem>> ITEMS = BufferItem.STREAM_CODEC.apply(ByteBufCodecs.list());
+
+        private static void write(RegistryFriendlyByteBuf buf, CpuRow row) {
+            BlockPos.STREAM_CODEC.encode(buf, row.cpu);
+            buf.writeVarInt(row.slots);
+            buf.writeVarInt(row.inUse);
+            buf.writeVarInt(row.waiting);
+            buf.writeVarInt(row.sizeX);
+            buf.writeVarInt(row.sizeY);
+            buf.writeVarInt(row.sizeZ);
+            buf.writeVarInt(row.cpuBlocks);
+            buf.writeVarInt(row.bufferBlocks);
+            buf.writeVarInt(row.room);
+            buf.writeVarInt(row.used);
+            ITEMS.encode(buf, row.buffered);
+        }
+
+        private static CpuRow read(RegistryFriendlyByteBuf buf) {
+            return new CpuRow(BlockPos.STREAM_CODEC.decode(buf), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
+                    buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
+                    ITEMS.decode(buf));
+        }
+    }
+
+    /**
+     * Intermediates of a job that wait in its CPU's buffer for one later step.
+     *
+     * @param machine the name of the later step's machine
+     * @param items   the buffered items with counts
+     */
+    public record BufferLine(String machine, List<ItemCount> items) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, BufferLine> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, BufferLine::machine,
+                ItemCount.LIST, BufferLine::items,
+                BufferLine::new);
+        static final StreamCodec<RegistryFriendlyByteBuf, List<BufferLine>> LIST = STREAM_CODEC.apply(ByteBufCodecs.list());
     }
 
     /**
@@ -83,9 +152,12 @@ public final class ProductionRows {
      * @param status    lang key suffix of what it is doing, see {@link JobStatus}
      * @param args      the status arguments
      * @param requestId the terminal request, 0 for a manual order, negative for a stock rule
+     * @param buffer    what waits in the CPU's buffer for its later steps, one line per step
+     * @param overflow  intermediates that went to storage because the buffer was full
      */
     public record JobRow(BlockPos cpu, int id, ItemStack item, int amount, int crafted, String state, long doneAt, String status,
-                         List<String> args, int requestId) {
+                         List<String> args, int requestId, List<BufferLine> buffer, List<ItemCount> overflow) {
+
         public static final StreamCodec<RegistryFriendlyByteBuf, JobRow> STREAM_CODEC = StreamCodec.of(JobRow::write, JobRow::read);
 
         public boolean open() {
@@ -103,11 +175,14 @@ public final class ProductionRows {
             buf.writeUtf(row.status);
             STRINGS.encode(buf, row.args);
             buf.writeInt(row.requestId);
+            BufferLine.LIST.encode(buf, row.buffer);
+            ItemCount.LIST.encode(buf, row.overflow);
         }
 
         private static JobRow read(RegistryFriendlyByteBuf buf) {
             return new JobRow(BlockPos.STREAM_CODEC.decode(buf), buf.readVarInt(), ItemStack.STREAM_CODEC.decode(buf), buf.readVarInt(),
-                    buf.readVarInt(), buf.readUtf(), buf.readLong(), buf.readUtf(), STRINGS.decode(buf), buf.readInt());
+                    buf.readVarInt(), buf.readUtf(), buf.readLong(), buf.readUtf(), STRINGS.decode(buf), buf.readInt(),
+                    BufferLine.LIST.decode(buf), ItemCount.LIST.decode(buf));
         }
     }
 
