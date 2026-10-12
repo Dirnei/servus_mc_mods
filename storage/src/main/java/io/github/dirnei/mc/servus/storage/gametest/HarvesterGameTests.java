@@ -9,8 +9,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
@@ -47,7 +47,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * Harvester shuttles on a small farm: a controller, Warehouse Rails x 1 to 3
- * and farm rails x 4 to 7 along z 6, a garage and a quad crate on the
+ * and farm rails x 4 to 7 along z 6, a garage and a Heavy Duty Rack on the
  * Warehouse Rails and the Field Head east of the farm rails. The field's
  * plots are x 0 to 11, z 2 to 10 at y 1, the farmland under them at y 0.
  */
@@ -57,8 +57,8 @@ public final class HarvesterGameTests {
     private static final int RAIL_Z = 6;
     private static final BlockPos CONTROLLER = new BlockPos(0, 1, RAIL_Z);
     private static final BlockPos GARAGE = new BlockPos(1, 1, RAIL_Z + 1);
-    private static final BlockPos CRATE = new BlockPos(2, 1, RAIL_Z - 1);
-    private static final BlockPos SECOND_CRATE = new BlockPos(3, 1, RAIL_Z + 1);
+    private static final BlockPos RACK = new BlockPos(2, 1, RAIL_Z - 1);
+    private static final BlockPos SECOND_RACK = new BlockPos(3, 1, RAIL_Z + 1);
     private static final BlockPos HEAD = new BlockPos(8, 1, RAIL_Z);
 
     private HarvesterGameTests() {
@@ -66,7 +66,7 @@ public final class HarvesterGameTests {
 
     // Helpers
 
-    private record Farm(FieldHeadBlockEntity head, ShuttleGarageBlockEntity garage, CrateBlockEntity crate) {
+    private record Farm(FieldHeadBlockEntity head, ShuttleGarageBlockEntity garage, HeavyRackBlockEntity rack) {
     }
 
     /** A shuttle with a Harvester in its tool slot. */
@@ -81,8 +81,14 @@ public final class HarvesterGameTests {
         helper.setBlock(pos, Block.updateFromNeighbourShapes(rail.defaultBlockState(), helper.getLevel(), helper.absolutePos(pos)));
     }
 
-    /** Builds the farm with that shuttle in the garage, quick work and checks, and the given storage block. */
-    private static Farm farm(GameTestHelper helper, ItemStack shuttle, Block storage) {
+    /** A Heavy Duty Rack facing that way. */
+    private static HeavyRackBlockEntity rack(GameTestHelper helper, BlockPos pos, Direction facing) {
+        helper.setBlock(pos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, facing));
+        return helper.getBlockEntity(pos, HeavyRackBlockEntity.class);
+    }
+
+    /** Builds the farm with that shuttle in the garage, quick work and checks, and a rack on the Warehouse Rails. */
+    private static Farm farm(GameTestHelper helper, ItemStack shuttle) {
         StorageStatsManager.INSTANCE.setFieldWorkTicks(2);
         StorageStatsManager.INSTANCE.setFieldCheckInterval(5);
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
@@ -91,15 +97,11 @@ public final class HarvesterGameTests {
             rail(helper, new BlockPos(x, 1, RAIL_Z), x <= 3 ? ServusStorageBlocks.RAIL.get() : ServusStorageBlocks.FARM_RAIL.get());
         }
         helper.setBlock(GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
-        helper.setBlock(CRATE, storage.defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        HeavyRackBlockEntity rack = rack(helper, RACK, Direction.SOUTH);
         helper.setBlock(HEAD, ServusStorageBlocks.FIELD_HEAD.get().defaultBlockState());
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(GARAGE, ShuttleGarageBlockEntity.class);
         garage.shuttles().setStackInSlot(0, shuttle);
-        return new Farm(helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class), garage, helper.getBlockEntity(CRATE, CrateBlockEntity.class));
-    }
-
-    private static Farm farm(GameTestHelper helper, ItemStack shuttle) {
-        return farm(helper, shuttle, ServusStorageBlocks.QUAD_CRATE.get());
+        return new Farm(helper.getBlockEntity(HEAD, FieldHeadBlockEntity.class), garage, rack);
     }
 
     private static void water(Farm farm) {
@@ -122,15 +124,9 @@ public final class HarvesterGameTests {
         return state.is(block) && ((CropBlock) block).getAge(state) == 0;
     }
 
-    /** How many of the item the crate holds over all its compartments. */
-    private static int held(CrateBlockEntity crate, Item item) {
-        int count = 0;
-        for (int i = 0; i < crate.compartments(); i++) {
-            if (crate.type(i).is(item)) {
-                count += crate.count(i);
-            }
-        }
-        return count;
+    /** How many of the item the rack holds. */
+    private static int held(HeavyRackBlockEntity rack, Item item) {
+        return MiniWarehouse.count(rack, item);
     }
 
     private static WarehouseNetwork network(GameTestHelper helper) {
@@ -168,7 +164,7 @@ public final class HarvesterGameTests {
 
     // Field runs
 
-    /** Ripe wheat is harvested into the crate and every plot is planted again with seeds from the harvest. */
+    /** Ripe wheat is harvested into the rack and every plot is planted again with seeds from the harvest. */
     @ServusGameTest(timeoutTicks = 600)
     public static void harvesterHarvestsIntoStorage(GameTestHelper helper) {
         BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(4, 1, RAIL_Z + 1), new BlockPos(7, 1, RAIL_Z - 1)};
@@ -185,8 +181,8 @@ public final class HarvesterGameTests {
                         return false;
                     }
                 }
-                return held(farm.crate(), Items.WHEAT) == plots.length && out(helper) == 0;
-            }, 550, () -> "the four wheat should be in the crate and replanted, crate holds " + held(farm.crate(), Items.WHEAT)
+                return held(farm.rack(), Items.WHEAT) == plots.length && out(helper) == 0;
+            }, 550, () -> "the four wheat should be in the rack and replanted, rack holds " + held(farm.rack(), Items.WHEAT)
                     + " wheat, harvester out " + out(helper), () -> {
                 helper.assertTrue(noItemsLying(helper), "nothing should drop on the ground");
                 helper.assertTrue(farm.head().ripeCount() == 0 && farm.head().plantedCount() == plots.length,
@@ -239,7 +235,7 @@ public final class HarvesterGameTests {
         helper.setBlock(stone.below(), Blocks.STONE.defaultBlockState());
         helper.setBlock(outside.below(), Blocks.DIRT.defaultBlockState());
         Farm farm = farm(helper, harvester());
-        farm.crate().insert(new ItemStack(Items.WHEAT_SEEDS, 16), false);
+        MiniWarehouse.put(farm.rack(), new ItemStack(Items.WHEAT_SEEDS, 16));
         helper.runAfterDelay(2, () -> {
             water(farm);
             farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));
@@ -250,8 +246,8 @@ public final class HarvesterGameTests {
                 helper.assertBlockPresent(Blocks.STONE, stone.below());
                 helper.assertBlockPresent(Blocks.DIRT, outside.below());
                 helper.assertTrue(helper.getBlockState(outside).isAir(), "nothing is planted five blocks out");
-                helper.assertTrue(held(farm.crate(), Items.WHEAT_SEEDS) == 14, "two seeds should have come from the crate, it holds "
-                        + held(farm.crate(), Items.WHEAT_SEEDS));
+                helper.assertTrue(held(farm.rack(), Items.WHEAT_SEEDS) == 14, "two seeds should have come from the rack, it holds "
+                        + held(farm.rack(), Items.WHEAT_SEEDS));
                 helper.succeed();
             });
         });
@@ -259,13 +255,13 @@ public final class HarvesterGameTests {
 
     /**
      * The crop picker's stock: the menu counts the crop items the warehouse
-     * holds, only non zero ones, and follows the crate as seeds come in.
+     * holds, only non zero ones, and follows the rack as seeds come in.
      */
     @ServusGameTest(timeoutTicks = 200)
     public static void menuCropStockCounts(GameTestHelper helper) {
         Farm farm = farm(helper, harvester());
-        farm.crate().insert(new ItemStack(Items.WHEAT_SEEDS, 40), false);
-        farm.crate().insert(new ItemStack(Items.COBBLESTONE, 5), false);
+        MiniWarehouse.put(farm.rack(), new ItemStack(Items.WHEAT_SEEDS, 40));
+        MiniWarehouse.put(farm.rack(), new ItemStack(Items.COBBLESTONE, 5));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         FieldHeadMenu menu = new FieldHeadMenu(1, player.getInventory(), farm.head());
         Identifier wheat = BuiltInRegistries.ITEM.getKey(Items.WHEAT_SEEDS);
@@ -279,9 +275,9 @@ public final class HarvesterGameTests {
             helper.assertTrue(FieldHeadBlockEntity.cropItems().contains(Items.BEETROOT_SEEDS)
                     && FieldHeadBlockEntity.cropItems().contains(Items.CARROT)
                     && !FieldHeadBlockEntity.cropItems().contains(Items.COBBLESTONE), "the crop items come from the registry");
-            farm.crate().insert(new ItemStack(Items.BEETROOT_SEEDS, 3), false);
+            MiniWarehouse.put(farm.rack(), new ItemStack(Items.BEETROOT_SEEDS, 3));
             TerminalWiring.when(helper, () -> menu.stockPayload().counts().getOrDefault(beetroot, 0L) == 3, 40,
-                    () -> "the menu should follow the crate to 3 beetroot seeds, got " + menu.stockPayload(), helper::succeed);
+                    () -> "the menu should follow the rack to 3 beetroot seeds, got " + menu.stockPayload(), helper::succeed);
         });
     }
 
@@ -295,12 +291,12 @@ public final class HarvesterGameTests {
         BlockPos empty = new BlockPos(4, 1, RAIL_Z + 1);
         helper.setBlock(empty.below(), Blocks.FARMLAND.defaultBlockState());
         Farm farm = farm(helper, harvester());
-        farm.crate().insert(new ItemStack(Items.WHEAT_SEEDS, 16), false);
+        MiniWarehouse.put(farm.rack(), new ItemStack(Items.WHEAT_SEEDS, 16));
         helper.runAfterDelay(2, () -> {
             water(farm);
             farm.head().setHarvestOnly(true);
-            TerminalWiring.when(helper, () -> held(farm.crate(), Items.WHEAT) == 2 && out(helper) == 0, 550,
-                    () -> "the two wheat should be in the crate, it holds " + held(farm.crate(), Items.WHEAT), () -> {
+            TerminalWiring.when(helper, () -> held(farm.rack(), Items.WHEAT) == 2 && out(helper) == 0, 550,
+                    () -> "the two wheat should be in the rack, it holds " + held(farm.rack(), Items.WHEAT), () -> {
                 for (BlockPos plot : plots) {
                     helper.assertTrue(helper.getBlockState(plot).isAir(), "a harvested plot stays empty in harvest only mode");
                     helper.assertBlockPresent(Blocks.FARMLAND, plot.below());
@@ -329,29 +325,30 @@ public final class HarvesterGameTests {
         });
     }
 
-    /** With only a harvester, a request from a crate beside a rail is served instantly and the harvester stays home. */
+    /** With only a harvester, a request from a rack is refused for lack of a shuttle and the harvester stays home. */
     @ServusGameTest(timeoutTicks = 300)
     public static void harvesterTakesNoWarehouseJob(GameTestHelper helper) {
         BlockPos packing = new BlockPos(1, 1, RAIL_Z - 1);
         Farm farm = farm(helper, harvester());
         TerminalWiring.place(helper, packing);
-        farm.crate().insert(new ItemStack(Items.COBBLESTONE, 20), false);
+        MiniWarehouse.put(farm.rack(), new ItemStack(Items.COBBLESTONE, 20));
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork network = network(helper);
-            helper.assertTrue(!network.canReach(helper.absolutePos(CRATE)), "a harvester must not count as a shuttle for warehouse jobs");
+            helper.assertTrue(!network.canReach(helper.absolutePos(RACK)), "a harvester must not count as a shuttle for warehouse jobs");
             StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, packing);
-            new StorageTerminalMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(), terminal)
-                    .request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 20);
-            helper.runAfterDelay(2, () -> helper.assertTrue(out(helper) == 0, "the harvester stays in its garage"));
-            TerminalWiring.when(helper, () -> terminal.outputCount(Items.COBBLESTONE) == 20, 250,
-                    () -> "the cobblestone should arrive, got " + terminal.outputCount(Items.COBBLESTONE), () -> {
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(), terminal);
+            menu.request(ItemKey.of(new ItemStack(Items.COBBLESTONE)), 20);
+            helper.assertTrue(!menu.stock().message().isEmpty() && menu.stock().requests().isEmpty(),
+                    "the request is refused without a warehouse shuttle, got '" + menu.stock().message() + "'");
+            helper.runAfterDelay(60, () -> {
                 helper.assertTrue(out(helper) == 0, "the harvester never left");
+                helper.assertTrue(terminal.outputCount(Items.COBBLESTONE) == 0 && held(farm.rack(), Items.COBBLESTONE) == 20, "the rack keeps its cobblestone");
                 helper.succeed();
             });
         });
     }
 
-    /** Nothing ripe and empty farmland: the harvester picks seeds from the crate and plants. */
+    /** Nothing ripe and empty farmland: the harvester picks seeds from the rack and plants. */
     @ServusGameTest(timeoutTicks = 600)
     public static void seedsFromStorage(GameTestHelper helper) {
         BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(7, 1, RAIL_Z + 1)};
@@ -359,7 +356,7 @@ public final class HarvesterGameTests {
             helper.setBlock(plot.below(), Blocks.FARMLAND.defaultBlockState());
         }
         Farm farm = farm(helper, harvester());
-        farm.crate().insert(new ItemStack(Items.WHEAT_SEEDS, 10), false);
+        MiniWarehouse.put(farm.rack(), new ItemStack(Items.WHEAT_SEEDS, 10));
         helper.runAfterDelay(2, () -> {
             water(farm);
             farm.head().setCrop(new ItemStack(Items.WHEAT_SEEDS));
@@ -371,8 +368,8 @@ public final class HarvesterGameTests {
                 }
                 return out(helper) == 0;
             }, 550, () -> "the three plots should be planted", () -> {
-                helper.assertTrue(held(farm.crate(), Items.WHEAT_SEEDS) == 7, "three seeds should have left the crate, it holds "
-                        + held(farm.crate(), Items.WHEAT_SEEDS));
+                helper.assertTrue(held(farm.rack(), Items.WHEAT_SEEDS) == 7, "three seeds should have left the rack, it holds "
+                        + held(farm.rack(), Items.WHEAT_SEEDS));
                 helper.succeed();
             });
         });
@@ -388,15 +385,14 @@ public final class HarvesterGameTests {
         crop(helper, carrots, Blocks.CARROTS, 7);
         crop(helper, beetroot, Blocks.BEETROOTS, 3);
         Farm farm = farm(helper, harvester());
-        helper.setBlock(SECOND_CRATE, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.SOUTH));
+        HeavyRackBlockEntity second = rack(helper, SECOND_RACK, Direction.NORTH);
         helper.runAfterDelay(2, () -> {
             farm.head().setHarvestOnly(true);
-            CrateBlockEntity second = helper.getBlockEntity(SECOND_CRATE, CrateBlockEntity.class);
             TerminalWiring.when(helper, () -> helper.getBlockState(wheat).isAir() && helper.getBlockState(carrots).isAir()
                     && helper.getBlockState(beetroot).isAir() && out(helper) == 0, 750, () -> "all three crops should be harvested", () -> {
-                int beetroots = held(farm.crate(), Items.BEETROOT) + held(second, Items.BEETROOT);
-                int wheats = held(farm.crate(), Items.WHEAT) + held(second, Items.WHEAT);
-                int carrotCount = held(farm.crate(), Items.CARROT) + held(second, Items.CARROT);
+                int beetroots = held(farm.rack(), Items.BEETROOT) + held(second, Items.BEETROOT);
+                int wheats = held(farm.rack(), Items.WHEAT) + held(second, Items.WHEAT);
+                int carrotCount = held(farm.rack(), Items.CARROT) + held(second, Items.CARROT);
                 helper.assertTrue(beetroots == 1 && wheats == 1 && carrotCount >= 1,
                         "the harvest should be in storage, got " + wheats + " wheat " + carrotCount + " carrots " + beetroots + " beetroot");
                 helper.assertTrue(noItemsLying(helper), "nothing should drop on the ground");
@@ -405,22 +401,21 @@ public final class HarvesterGameTests {
         });
     }
 
-    /** Wheat goes into the crate zoned for wheat, the seeds into general storage. */
+    /** Wheat goes into the rack zoned for wheat, the seeds into general storage. */
     @ServusGameTest(timeoutTicks = 600)
     public static void harvestFollowsZones(GameTestHelper helper) {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         crop(helper, plot, Blocks.WHEAT, 7);
         Farm farm = farm(helper, harvester());
-        helper.setBlock(SECOND_CRATE, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.SOUTH));
-        CrateBlockEntity zoned = helper.getBlockEntity(SECOND_CRATE, CrateBlockEntity.class);
+        HeavyRackBlockEntity zoned = rack(helper, SECOND_RACK, Direction.NORTH);
         zoned.setZone(new ZoneDefinition("Grain", new ZoneFilter(List.of(new ItemStack(Items.WHEAT)), List.of())));
         helper.runAfterDelay(2, () -> {
             farm.head().setHarvestOnly(true);
             TerminalWiring.when(helper, () -> helper.getBlockState(plot).isAir() && out(helper) == 0, 550,
                     () -> "the wheat should be harvested", () -> {
-                helper.assertTrue(held(zoned, Items.WHEAT) == 1 && held(farm.crate(), Items.WHEAT) == 0, "the wheat should be in the zoned crate");
-                helper.assertTrue(held(farm.crate(), Items.WHEAT_SEEDS) >= 1 && held(zoned, Items.WHEAT_SEEDS) == 0,
-                        "the seeds should be in the unzoned crate");
+                helper.assertTrue(held(zoned, Items.WHEAT) == 1 && held(farm.rack(), Items.WHEAT) == 0, "the wheat should be in the zoned rack");
+                helper.assertTrue(held(farm.rack(), Items.WHEAT_SEEDS) >= 1 && held(zoned, Items.WHEAT_SEEDS) == 0,
+                        "the seeds should be in the unzoned rack");
                 helper.succeed();
             });
         });
@@ -440,8 +435,8 @@ public final class HarvesterGameTests {
             farm.head().setHarvestOnly(true);
             TerminalWiring.when(helper, () -> helper.getBlockState(first).isAir(), 400, () -> "the first wheat should be harvested", () -> {
                 helper.setBlock(HEAD, Blocks.AIR.defaultBlockState());
-                TerminalWiring.when(helper, () -> out(helper) == 0 && held(farm.crate(), Items.WHEAT) >= 1, 350,
-                        () -> "the harvester should put its wheat away and park, crate holds " + held(farm.crate(), Items.WHEAT), () -> {
+                TerminalWiring.when(helper, () -> out(helper) == 0 && held(farm.rack(), Items.WHEAT) >= 1, 350,
+                        () -> "the harvester should put its wheat away and park, rack holds " + held(farm.rack(), Items.WHEAT), () -> {
                     int stillRipe = 0;
                     for (BlockPos plot : rest) {
                         stillRipe += ripe(helper, plot) ? 1 : 0;
@@ -458,16 +453,16 @@ public final class HarvesterGameTests {
     public static void warehouseFullWaits(GameTestHelper helper) {
         BlockPos plot = new BlockPos(5, 1, RAIL_Z - 1);
         crop(helper, plot, Blocks.CARROTS, 7);
-        Farm farm = farm(helper, harvester(), ServusStorageBlocks.CRATE.get());
-        farm.crate().insert(new ItemStack(Items.COBBLESTONE, farm.crate().capacity()), false);
+        Farm farm = farm(helper, harvester());
+        MiniWarehouse.fill(farm.rack(), Items.COBBLESTONE);
         helper.runAfterDelay(2, () -> {
             farm.head().setHarvestOnly(true);
             TerminalWiring.when(helper, () -> helper.getBlockState(plot).isAir(), 300, () -> "the carrots should be harvested", () ->
                     helper.runAfterDelay(80, () -> {
                         helper.assertTrue(out(helper) == 1, "the harvester should wait out with its carrots");
                         helper.assertTrue(noItemsLying(helper), "the carrots must not drop");
-                        farm.crate().clear();
-                        TerminalWiring.when(helper, () -> held(farm.crate(), Items.CARROT) >= 1 && out(helper) == 0, 300,
+                        farm.rack().clear();
+                        TerminalWiring.when(helper, () -> held(farm.rack(), Items.CARROT) >= 1 && out(helper) == 0, 300,
                                 () -> "the carrots should be stored once there is room", helper::succeed);
                     }));
         });
@@ -506,7 +501,7 @@ public final class HarvesterGameTests {
                 helper.setBlock(new BlockPos(7, 1, RAIL_Z), Blocks.AIR.defaultBlockState());
                 TerminalWiring.when(helper, () -> out(helper) == 0 && !noItemsLying(helper), 40,
                         () -> "the harvester should be back with its cargo dropped at the garage", () -> {
-                    helper.assertTrue(held(farm.crate(), Items.WHEAT) == 0, "nothing reached storage");
+                    helper.assertTrue(held(farm.rack(), Items.WHEAT) == 0, "nothing reached storage");
                     helper.succeed();
                 });
             });
@@ -530,14 +525,14 @@ public final class HarvesterGameTests {
     }
 
     // Lifts: a shaft at x 4, z 3 from y 1 to 3. Ground rails x 1 to 3 with the controller north of x 1,
-    // the garage north of x 3 and a crate south of x 2; the field lies east of the shaft.
+    // the garage north of x 3 and a rack south of x 2; the field lies east of the shaft.
 
     private static final BlockPos SHAFT_BOTTOM = new BlockPos(4, 1, 3);
     private static final BlockPos SHAFT_CONTROLLER = new BlockPos(1, 1, 2);
     private static final BlockPos SHAFT_GARAGE = new BlockPos(3, 1, 2);
-    private static final BlockPos SHAFT_CRATE = new BlockPos(2, 1, 4);
+    private static final BlockPos SHAFT_RACK = new BlockPos(2, 1, 4);
 
-    /** The ground floor with a Harvester in the garage, a crate and the shaft; the field is built by the test. */
+    /** The ground floor with a Harvester in the garage, a rack and the shaft; the field is built by the test. */
     private static void shaftBase(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setFieldWorkTicks(2);
         StorageStatsManager.INSTANCE.setFieldCheckInterval(5);
@@ -554,7 +549,7 @@ public final class HarvesterGameTests {
         }
         helper.setBlock(SHAFT_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        helper.setBlock(SHAFT_CRATE, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.SOUTH));
+        rack(helper, SHAFT_RACK, Direction.NORTH);
         helper.setBlock(SHAFT_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(SHAFT_GARAGE, ShuttleGarageBlockEntity.class);
         garage.shuttles().setStackInSlot(0, harvester());
@@ -593,10 +588,10 @@ public final class HarvesterGameTests {
         });
         helper.runAfterDelay(2, () -> {
             head.setHarvestOnly(true);
-            CrateBlockEntity crate = helper.getBlockEntity(SHAFT_CRATE, CrateBlockEntity.class);
-            TerminalWiring.when(helper, () -> helper.getBlockState(wheat[0]).isAir() && held(crate, Items.WHEAT) == 1
+            HeavyRackBlockEntity floor = helper.getBlockEntity(SHAFT_RACK, HeavyRackBlockEntity.class);
+            TerminalWiring.when(helper, () -> helper.getBlockState(wheat[0]).isAir() && held(floor, Items.WHEAT) == 1
                     && shaftNetwork(helper).garageOut(helper.absolutePos(SHAFT_GARAGE)) == 0, 550,
-                    () -> "the wheat should be harvested into the crate, crate holds " + held(crate, Items.WHEAT), () -> {
+                    () -> "the wheat should be harvested into the rack, rack holds " + held(floor, Items.WHEAT), () -> {
                 helper.assertTrue(!carMoved[0], "the harvester crossed without calling the car");
                 helper.succeed();
             });
@@ -627,25 +622,24 @@ public final class HarvesterGameTests {
         });
     }
 
-    /** The crate zoned for wheat stands upstairs behind the lift: the harvester skips it and fills the crate on its floor. */
+    /** The rack zoned for wheat stands upstairs behind the lift: the harvester skips it and fills the rack on its floor. */
     @ServusGameTest(timeoutTicks = 600)
     public static void harvestSkipsStorageUpstairs(GameTestHelper helper) {
         shaftBase(helper);
         helper.setBlock(new BlockPos(3, 3, 3), ServusStorageBlocks.RAIL.get().defaultBlockState());
         BlockPos upstairs = new BlockPos(3, 3, 4);
-        helper.setBlock(upstairs, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.SOUTH));
-        CrateBlockEntity zoned = helper.getBlockEntity(upstairs, CrateBlockEntity.class);
+        HeavyRackBlockEntity zoned = rack(helper, upstairs, Direction.NORTH);
         zoned.setZone(new ZoneDefinition("Grain", new ZoneFilter(List.of(new ItemStack(Items.WHEAT)), List.of())));
         BlockPos[] wheat = new BlockPos[1];
         FieldHeadBlockEntity head = shaftField(helper, 1, wheat);
         helper.runAfterDelay(2, () -> {
             head.setHarvestOnly(true);
-            CrateBlockEntity crate = helper.getBlockEntity(SHAFT_CRATE, CrateBlockEntity.class);
+            HeavyRackBlockEntity floor = helper.getBlockEntity(SHAFT_RACK, HeavyRackBlockEntity.class);
             TerminalWiring.when(helper, () -> helper.getBlockState(wheat[0]).isAir()
                     && shaftNetwork(helper).garageOut(helper.absolutePos(SHAFT_GARAGE)) == 0, 550,
                     () -> "the wheat should be harvested", () -> {
-                helper.assertTrue(held(crate, Items.WHEAT) == 1, "the wheat went into the crate on the harvester's floor, it holds " + held(crate, Items.WHEAT));
-                helper.assertTrue(held(zoned, Items.WHEAT) == 0, "the zoned crate upstairs got nothing");
+                helper.assertTrue(held(floor, Items.WHEAT) == 1, "the wheat went into the rack on the harvester's floor, it holds " + held(floor, Items.WHEAT));
+                helper.assertTrue(held(zoned, Items.WHEAT) == 0, "the zoned rack upstairs got nothing");
                 helper.succeed();
             });
         });

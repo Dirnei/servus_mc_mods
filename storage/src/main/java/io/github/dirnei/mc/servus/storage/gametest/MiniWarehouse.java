@@ -131,13 +131,28 @@ public final class MiniWarehouse {
 
     /** Fills the slots of the rack at {@code rack} with the stacks, as test setup. */
     public static void stock(GameTestHelper helper, BlockPos rack, ItemStack... stacks) {
-        HeavyRackBlockEntity entity = helper.getBlockEntity(rack, HeavyRackBlockEntity.class);
+        helper.assertTrue(put(helper.getBlockEntity(rack, HeavyRackBlockEntity.class), stacks), "the rack takes the test stock");
+    }
+
+    /** Puts the stacks into the rack's slots; false when not all of them fit. */
+    public static boolean put(HeavyRackBlockEntity rack, ItemStack... stacks) {
+        boolean all = true;
         for (ItemStack stack : stacks) {
             ItemStack left = stack.copy();
-            for (int slot = 0; slot < entity.items().getSlots() && !left.isEmpty(); slot++) {
-                left = entity.items().insertItem(slot, left, false);
+            for (int slot = 0; slot < rack.items().getSlots() && !left.isEmpty(); slot++) {
+                left = rack.items().insertItem(slot, left, false);
             }
-            helper.assertTrue(left.isEmpty(), "the rack takes the test stock");
+            all &= left.isEmpty();
+        }
+        return all;
+    }
+
+    /** Tops every slot of the rack up: empty slots get full stacks of the item, others their own item. */
+    public static void fill(HeavyRackBlockEntity rack, Item item) {
+        for (int slot = 0; slot < rack.items().getSlots(); slot++) {
+            ItemStack inSlot = rack.items().getStackInSlot(slot);
+            rack.items().insertItem(slot, inSlot.isEmpty() ? new ItemStack(item, item.getDefaultMaxStackSize())
+                    : inSlot.copyWithCount(inSlot.getMaxStackSize()), false);
         }
     }
 

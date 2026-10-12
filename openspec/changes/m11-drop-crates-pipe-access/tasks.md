@@ -27,7 +27,7 @@ Each task rewrites the listed classes to build racks with `MiniWarehouse` instea
 - [x] 4.2 `PackingStationGameTests.java` (17), `DataPacketGameTests.java` (9), `DataBandwidthGameTests.java` (7), `PushedOutputGameTests.java` left for 7.3 (leave `shipFromCrate` and `terminalBesideCrateIsNoStock` for 6.4). Run the Storage GameTests.
 - [x] 4.3 `CraftingCpuGameTests.java` (21), `ChainHandoffGameTests.java` (4), `AdapterOrderGameTests.java` (4), `PersistGameTests.java` (4), `PatternGameTests.java` (8), `PatternResultGameTests.java` (2), `ProductionTerminalGameTests.java` (9). Run the Storage GameTests.
 - [x] 4.4 `StorageTerminalRowsGameTests.java` (9), `TerminalCableGameTests.java` (5), `TerminalCraftGameTests.java` (6), `TerminalSpeedGameTests.java` (3), `CraftingGridGameTests.java` (the tests that survive group 8: `gridCraftsSticks`, `gridClearStores`, `gridCloseStores`). Run the Storage GameTests.
-- [ ] 4.5 `HarvesterGameTests.java` (17), `SpreaderGameTests.java` (6), `FieldGameTests.java` (1), `ShuttleModuleGameTests.java` (1). Run the Storage GameTests.
+- [x] 4.5 `HarvesterGameTests.java` (17), `SpreaderGameTests.java` (6), `FieldGameTests.java` (1), `ShuttleModuleGameTests.java` (1). Run the Storage GameTests.
 - [ ] 4.6 `ControllerSiteGameTests.java` (3), `SiteWakeGameTests.java` (8), `WirelessPackingStationGameTests.java` (11, skip if `m11-controller-wireless` already removed the class), `StationHandsGameTests.java` (5), `StationRailGameTests.java` (2, `crateBesideStationNotLinked` becomes `rackBesideStationNotLinked`), `AdjacentDataGameTests.java` (1), `DataCableGameTests.java` (1). Run the Storage GameTests; no test outside the ones named for later groups still places a crate (`grep -rn CRATE gametest/`).
 
 ## 5. Crates removed

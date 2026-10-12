@@ -20,7 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 /** The Storage Terminal's Input and Output rows, automation inserts, the crafting popup and its id. */
 public final class StorageTerminalRowsGameTests {

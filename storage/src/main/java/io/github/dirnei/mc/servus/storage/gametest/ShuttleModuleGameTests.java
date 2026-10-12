@@ -7,8 +7,8 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
@@ -17,8 +17,6 @@ import io.github.dirnei.mc.servus.storage.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
-import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.shuttle.module.ShuttleItem;
@@ -483,12 +481,12 @@ public final class ShuttleModuleGameTests {
         });
     }
 
-    // Put-away: controller at x 1, rail along z 1 from x 2 to 10, an inbound station and a crate
+    // Put-away: controller at x 1, rail along z 1 from x 2 to 10, an inbound station and a rack
     // beside it, the garage far away at x 10 so the station's stacks are all queued before it arrives.
 
     private static final BlockPos PW_CONTROLLER = new BlockPos(1, 1, 1);
     private static final BlockPos PW_STATION = new BlockPos(3, 1, 2);
-    private static final BlockPos PW_CRATE = new BlockPos(6, 1, 2);
+    private static final BlockPos PW_RACK = new BlockPos(6, 1, 2);
     private static final BlockPos PW_GARAGE = new BlockPos(10, 1, 2);
 
     /** A Mk2 shuttle loads three stacks of the station at once and puts them away on one trip. */
@@ -502,20 +500,20 @@ public final class ShuttleModuleGameTests {
         }
         helper.setBlock(PW_STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
-        helper.setBlock(PW_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(PW_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         helper.setBlock(PW_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.SOUTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(PW_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(new ItemStack(ServusStorageItems.SHUTTLE_MK2.get())), "the garage takes the Mk2 shuttle");
         InboundStationBlockEntity station = helper.getBlockEntity(PW_STATION, InboundStationBlockEntity.class);
-        CrateBlockEntity crate = helper.getBlockEntity(PW_CRATE, CrateBlockEntity.class);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(PW_RACK, HeavyRackBlockEntity.class);
         helper.runAfterDelay(10, () -> {
             for (int i = 0; i < 3; i++) {
                 Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
             }
             TerminalWiring.when(helper, station::isEmpty, 250, () -> "the shuttle should load the station", () -> {
-                helper.assertTrue(crate.count() == 0, "all three stacks left on one shuttle before any reached the crate, crate has " + crate.count());
-                TerminalWiring.when(helper, () -> crate.count() == 192, 200,
-                        () -> "all three stacks should reach the crate, it has " + crate.count(), helper::succeed);
+                helper.assertTrue(rack.isEmpty(), "all three stacks left on one shuttle before any reached the rack");
+                TerminalWiring.when(helper, () -> MiniWarehouse.count(rack, Items.COBBLESTONE) == 192, 200,
+                        () -> "all three stacks should reach the rack, it has " + MiniWarehouse.count(rack, Items.COBBLESTONE), helper::succeed);
             });
         });
     }

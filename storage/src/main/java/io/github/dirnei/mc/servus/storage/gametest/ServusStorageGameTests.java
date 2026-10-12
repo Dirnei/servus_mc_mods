@@ -84,7 +84,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 
 public final class ServusStorageGameTests {
 

@@ -32,7 +32,6 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.FarmlandWaterManager;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /** Copper corrosion of farm rail fields: aging, upkeep, the corroded field, axe scraping and joins (m10-rail-corrosion). */
 public final class RailCorrosionGameTests {

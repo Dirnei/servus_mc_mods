@@ -17,7 +17,6 @@ import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageItems;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.storage.field.FieldStatus;
@@ -55,7 +54,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.common.FarmlandWaterManager;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 
 /** Farm rails, fields and the Field Head: water, hydration and ripeness. */
 public final class FieldGameTests {
@@ -121,29 +119,29 @@ public final class FieldGameTests {
 
     // Farm Rail
 
-    /** Controller, a Warehouse Rail, farm rails and a crate: one network, the two rail kinds link, no water inside. */
+    /** Controller, a Warehouse Rail, farm rails and a rack: one network, the two rail kinds link, no water inside. */
     @ServusGameTest(timeoutTicks = 100)
     public static void farmRailIsARail(GameTestHelper helper) {
         BlockPos controller = new BlockPos(2, 1, 3);
         BlockPos warehouseRail = new BlockPos(3, 1, 3);
-        BlockPos crate = new BlockPos(7, 1, 3);
+        BlockPos rack = new BlockPos(7, 1, 3);
         helper.setBlock(controller, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         rail(helper, warehouseRail, ServusStorageBlocks.RAIL.get().defaultBlockState());
         for (int x = 4; x <= 6; x++) {
             farmRail(helper, new BlockPos(x, 1, 3));
         }
-        helper.setBlock(crate, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(rack, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
         helper.runAfterDelay(10, () -> {
             BlockState first = helper.getBlockState(new BlockPos(4, 1, 3));
             helper.assertTrue(first.getValue(RailBlock.WEST), "the farm rail should connect to the Warehouse Rail");
             helper.assertTrue(helper.getBlockState(warehouseRail).getValue(RailBlock.EAST), "the Warehouse Rail should connect to the farm rail");
             helper.assertTrue(!first.hasProperty(BlockStateProperties.WATERLOGGED), "a farm rail must not be waterloggable");
-            helper.assertTrue(helper.getBlockState(new BlockPos(6, 1, 3)).getValue(RailBlock.DOCK_EAST), "the farm rail should dock onto the crate");
-            Optional<WarehouseNetwork> crateNetwork = network(helper, crate);
-            helper.assertTrue(crateNetwork.isPresent() && crateNetwork.equals(network(helper, controller)),
-                    "the crate should be in the controller's warehouse through the farm rails");
-            helper.assertTrue(network(helper, new BlockPos(5, 1, 3)).equals(crateNetwork), "the farm rail is a node of the warehouse");
+            helper.assertTrue(helper.getBlockState(new BlockPos(6, 1, 3)).getValue(RailBlock.DOCK_EAST), "the farm rail should dock onto the rack");
+            Optional<WarehouseNetwork> rackNetwork = network(helper, rack);
+            helper.assertTrue(rackNetwork.isPresent() && rackNetwork.equals(network(helper, controller)),
+                    "the rack should be in the controller's warehouse through the farm rails");
+            helper.assertTrue(network(helper, new BlockPos(5, 1, 3)).equals(rackNetwork), "the farm rail is a node of the warehouse");
             helper.succeed();
         });
     }
