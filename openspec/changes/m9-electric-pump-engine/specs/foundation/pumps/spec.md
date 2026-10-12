@@ -64,9 +64,13 @@ A pump SHALL have no configurable sides: no side panel in its GUI, no side marke
 - **WHEN** a tank touches the pump's front
 - **THEN** no water reaches it
 
-#### Scenario: Top closed
-- **WHEN** a Burner Pump or an Electric Pump stands in place
-- **THEN** its lower half offers neither water nor a fuel slot nor an energy input toward its upper half
+#### Scenario: Burner Pump top closed
+- **WHEN** a Burner Pump stands in place
+- **THEN** its lower half offers neither water nor a fuel slot toward its upper half
+
+#### Scenario: Electric Pump top closed
+- **WHEN** an Electric Pump stands in place
+- **THEN** its lower half offers neither water nor an energy input toward its upper half
 
 #### Scenario: Fuel by automation
 - **WHEN** a duct pushes coal into the side of a Burner Pump's lower half
@@ -82,6 +86,10 @@ A pump SHALL show a short pipe stub from its body to the block edge on every fac
 #### Scenario: Pipe beside the pump
 - **WHEN** a duct carrying the Fluid Pipe is placed east of a pump's lower half
 - **THEN** the pump shows a stub on its east face that meets the duct's arm
+
+#### Scenario: Pipe on top
+- **WHEN** a Fluid Pipe duct is placed above an Electric Pump
+- **THEN** no stub reaches up to it and the duct gets no water, since the top of the pump is its upper half
 
 #### Scenario: Power Cable
 - **WHEN** a duct carrying only a Power Cable touches the side of an Electric Pump's lower half
