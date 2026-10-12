@@ -56,8 +56,14 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
         itemModels().basicItem(ServusStorageItems.WIRELESS_UPGRADE.get());
         itemModels().basicItem(ServusStorageItems.HARVESTER.get());
         itemModels().basicItem(ServusStorageItems.SPREADER.get());
-        ModelFile workshop = models().cubeBottomTop("shuttle_workshop", modLoc("block/shuttle_workshop_side"),
-                modLoc("block/shuttle_workshop_bottom"), modLoc("block/shuttle_workshop_top"));
+        // The workshop: the same tools on all four sides, the bench on top, no facing.
+        Map<Direction, Identifier> workshopFaces = new EnumMap<>(Direction.class);
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            workshopFaces.put(side, modLoc("block/shuttle_workshop_side"));
+        }
+        workshopFaces.put(Direction.UP, modLoc("block/shuttle_workshop_top"));
+        workshopFaces.put(Direction.DOWN, modLoc("block/shuttle_workshop_bottom"));
+        ModelFile workshop = LayeredModels.cube(this, "shuttle_workshop", workshopFaces);
         simpleBlock(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), workshop);
         simpleBlockItem(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), workshop);
         ShuttleModels.shuttle(this);
