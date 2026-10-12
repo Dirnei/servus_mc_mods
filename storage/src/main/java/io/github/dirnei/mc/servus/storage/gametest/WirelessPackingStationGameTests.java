@@ -433,4 +433,31 @@ public final class WirelessPackingStationGameTests {
         }
         return sum;
     }
+
+    /** While the terminal shows another site its Input row takes nothing: no click, no shift click, no carried stack. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void inputLockedWhileViewingOtherSite(GameTestHelper helper) {
+        Sites sites = sites(helper, null);
+        sites.wirelessA().setEnergy(1000);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        String outpost = key(helper, B_CONTROLLER);
+        TerminalWiring.when(helper, () -> row(helper, outpost).filter(SiteRow::wireless).isPresent(), 60, () -> "the outpost is listed", () -> {
+            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal(helper));
+            menu.selectSite(outpost);
+            helper.assertTrue(!menu.inputOpen(), "the Input row is closed");
+            helper.assertTrue(!menu.getSlot(menu.inputStart()).mayPlace(new ItemStack(Items.OAK_LOG)), "a click places nothing");
+            int pocket = menu.inputStart() + terminal(helper).input().getSlots();
+            menu.getSlot(pocket).set(new ItemStack(Items.OAK_LOG, 16));
+            menu.quickMoveStack(player, pocket);
+            helper.assertTrue(menu.getSlot(pocket).getItem().getCount() == 16, "shift click keeps the logs in the inventory");
+            menu.setCarried(new ItemStack(Items.OAK_LOG, 8));
+            menu.pushCarried();
+            helper.assertTrue(menu.getCarried().getCount() == 8, "the carried stack stays");
+            helper.assertTrue(terminal(helper).input().getStackInSlot(0).isEmpty(), "nothing entered the Input row");
+            menu.selectSite("");
+            menu.quickMoveStack(player, pocket);
+            helper.assertTrue(menu.getSlot(pocket).getItem().isEmpty(), "back on this site the Input row takes them");
+            helper.succeed();
+        });
+    }
 }

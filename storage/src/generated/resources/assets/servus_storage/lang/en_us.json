@@ -240,6 +240,7 @@
   "gui.servus_storage.terminal.filter.all": "All",
   "gui.servus_storage.terminal.filter.craftable": "Craftable",
   "gui.servus_storage.terminal.filter.stock": "Stock",
+  "gui.servus_storage.terminal.input_locked": "Input is closed while another site is shown: items put here would stay at this site",
   "gui.servus_storage.terminal.input_tag": "Input: items put here are stored in the warehouse",
   "gui.servus_storage.terminal.loading": "Loading...",
   "gui.servus_storage.terminal.message.input_no_packing_station": "No Packing Station on this data line",

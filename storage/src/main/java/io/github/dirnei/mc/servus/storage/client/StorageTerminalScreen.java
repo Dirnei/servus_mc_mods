@@ -584,7 +584,12 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         PanelPainter.inset(graphics, leftPos, topPos, layout.scrollbar());
         PanelPainter.slots(graphics, leftPos, topPos, Storage.INPUT, Storage.ROW_SLOTS, Storage.ROW_SLOTS);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.OUTPUT, Storage.ROW_SLOTS, menu.outputSlots());
-        tag(graphics, Storage.INPUT_TAG, true, 0xFF4C9A5A);
+        tag(graphics, Storage.INPUT_TAG, true, menu.inputOpen() ? 0xFF4C9A5A : 0xFF8B8B8B);
+        if (!menu.inputOpen()) {
+            // Another site is shown: what is handed in would be stored here, so the Input row is locked.
+            Rect in = Storage.INPUT;
+            graphics.fill(leftPos + in.x(), topPos + in.y(), leftPos + in.x() + in.w(), topPos + in.y() + in.h(), 0x808B8B8B);
+        }
         tag(graphics, Storage.OUTPUT_TAG, false, 0xFF4C7FB0);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.INVENTORY, 9, 27);
         PanelPainter.slots(graphics, leftPos, topPos, Storage.HOTBAR, 9, 9);
@@ -618,6 +623,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     }
 
     private Component tagTooltip(int x, int y) {
+        if (!menu.inputOpen() && (Storage.INPUT_TAG.contains(x, y) || Storage.INPUT.contains(x, y) && menu.getCarried().isEmpty()
+                && (hoveredSlot == null || !hoveredSlot.hasItem()))) {
+            return Component.translatable("gui.servus_storage.terminal.input_locked");
+        }
         if (Storage.INPUT_TAG.contains(x, y)) {
             return Component.translatable("gui.servus_storage.terminal.input_tag");
         }

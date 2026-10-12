@@ -89,7 +89,13 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         }
         inputStart = slots.size();
         for (int slot = 0; slot < terminal.input().getSlots(); slot++) {
-            addSlot(new ResourceHandlerSlot(terminal.input(), terminal.input()::set, slot, Storage.inputX(slot), Storage.inputY(slot)));
+            addSlot(new ResourceHandlerSlot(terminal.input(), terminal.input()::set, slot, Storage.inputX(slot), Storage.inputY(slot)) {
+                /** Items handed in are stored at this site: no input while another site is shown. */
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return inputOpen() && super.mayPlace(stack);
+                }
+            });
         }
         inventoryStart = slots.size();
         for (int row = 0; row < 3; row++) {
@@ -223,9 +229,21 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
         return result;
     }
 
-    /** Hands a stack to the input row, which stores it through a Packing Station; returns what did not fit. */
+    /** Hands a stack to the input row, which stores it through a Packing Station; returns what did not fit. Nothing while another site is shown. */
     private ItemStack store(ItemStack stack) {
-        return terminal.queueInput(stack);
+        return inputOpen() ? terminal.queueInput(stack) : stack;
+    }
+
+    /** Whether the Input row takes items: only while this site is shown, since what is handed in is stored here. */
+    public boolean inputOpen() {
+        return view.isEmpty();
+    }
+
+    /** On the client: the site the server says is shown, so the Input row locks like on the server. */
+    public void clientView(String shown) {
+        if (player.level().isClientSide()) {
+            view = shown == null ? "" : shown;
+        }
     }
 
     /** After a craft, every grid slot that lost an ingredient gets one more of it from instant stock. */
@@ -445,7 +463,7 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
 
     /** Stores the carried stack through the input row. */
     public void pushCarried() {
-        if (getCarried().isEmpty()) {
+        if (getCarried().isEmpty() || !inputOpen()) {
             return;
         }
         setCarried(terminal.queueInput(getCarried()));
@@ -510,6 +528,9 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
                 slot.setChanged();
             }
             return original;
+        }
+        if (!inputOpen()) {
+            return ItemStack.EMPTY;
         }
         ItemStack original = stack.copy();
         if (!moveItemStackTo(stack, inputStart, inventoryStart, false)) {

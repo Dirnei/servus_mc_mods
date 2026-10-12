@@ -274,6 +274,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.terminal.craft_close", "Done");
         add("gui.servus_storage.terminal.craft_button_hint", "Open or close the crafting grid; closing stores what is left in it");
         add("gui.servus_storage.terminal.input_tag", "Input: items put here are stored in the warehouse");
+        add("gui.servus_storage.terminal.input_locked", "Input is closed while another site is shown: items put here would stay at this site");
         add("gui.servus_storage.terminal.output_tag", "Output: deliveries and crafted requests land here");
         add("gui.servus_storage.terminal.output", "Output");
         add("gui.servus_storage.terminal.amount", "Amount");

@@ -52,6 +52,11 @@ public final class ClientStock {
     public static void update(StockSyncPayload payload) {
         STORE.update(key(payload.terminal()), payload);
         shown = STORE.shown();
+        net.minecraft.client.player.LocalPlayer player = Minecraft.getInstance().player;
+        if (player != null && player.containerMenu instanceof io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu menu
+                && menu.terminal().getBlockPos().equals(payload.terminal())) {
+            menu.clientView(payload.view());
+        }
     }
 
     private static GlobalPos key(BlockPos pos) {
