@@ -44,6 +44,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final int DEFAULT_CONTROLLER_ENERGY_CAPACITY = 100000;
     public static final double DEFAULT_WIRELESS_FE_PER_ITEM = 4.0;
     public static final double DEFAULT_WIRELESS_FE_PER_ITEM_PER_BLOCK = 0.02;
+    public static final double DEFAULT_SHUTTLE_FE_PER_BLOCK = 20;
+    public static final double DEFAULT_WAKE_FE_PER_CHUNK_PER_TICK = 2;
+    public static final double DEFAULT_CRAFTING_STATION_FE_PER_TICK = 5;
     public static final int DEFAULT_SITE_SNAPSHOT_INTERVAL = 100;
     public static final int DEFAULT_RACK_BAYS_PER_SECTION = 3;
     public static final int DEFAULT_INBOUND_BUFFER_SLOTS = 9;
@@ -108,6 +111,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     private volatile int controllerEnergyCapacity = DEFAULT_CONTROLLER_ENERGY_CAPACITY;
     private volatile double wirelessFePerItem = DEFAULT_WIRELESS_FE_PER_ITEM;
     private volatile double wirelessFePerItemPerBlock = DEFAULT_WIRELESS_FE_PER_ITEM_PER_BLOCK;
+    private volatile double shuttleFePerBlock = DEFAULT_SHUTTLE_FE_PER_BLOCK;
+    private volatile double wakeFePerChunkPerTick = DEFAULT_WAKE_FE_PER_CHUNK_PER_TICK;
+    private volatile double craftingStationFePerTick = DEFAULT_CRAFTING_STATION_FE_PER_TICK;
     private volatile int rackBaysPerSection = DEFAULT_RACK_BAYS_PER_SECTION;
     private volatile int inboundBufferSlots = DEFAULT_INBOUND_BUFFER_SLOTS;
     private volatile int putAwayPerTick = DEFAULT_PUT_AWAY_PER_TICK;
@@ -163,6 +169,9 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         controllerEnergyCapacity = intField(files.get(POWER), "controller_energy_capacity", DEFAULT_CONTROLLER_ENERGY_CAPACITY);
         wirelessFePerItem = costField(files.get(POWER), "wireless_fe_per_item", DEFAULT_WIRELESS_FE_PER_ITEM);
         wirelessFePerItemPerBlock = costField(files.get(POWER), "wireless_fe_per_item_per_block", DEFAULT_WIRELESS_FE_PER_ITEM_PER_BLOCK);
+        shuttleFePerBlock = costField(files.get(POWER), "shuttle_fe_per_block", DEFAULT_SHUTTLE_FE_PER_BLOCK);
+        wakeFePerChunkPerTick = costField(files.get(POWER), "wake_fe_per_chunk_per_tick", DEFAULT_WAKE_FE_PER_CHUNK_PER_TICK);
+        craftingStationFePerTick = costField(files.get(POWER), "crafting_station_fe_per_tick", DEFAULT_CRAFTING_STATION_FE_PER_TICK);
         rackBaysPerSection = intField(files.get(RACK), "bays_per_section", DEFAULT_RACK_BAYS_PER_SECTION);
         inboundBufferSlots = intField(files.get(WAREHOUSE), "inbound_buffer_slots", DEFAULT_INBOUND_BUFFER_SLOTS);
         putAwayPerTick = intField(files.get(WAREHOUSE), "put_away_per_tick", DEFAULT_PUT_AWAY_PER_TICK);
@@ -354,6 +363,28 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public void setWirelessCost(double perItem, double perItemPerBlock) {
         wirelessFePerItem = Math.max(0, perItem);
         wirelessFePerItemPerBlock = Math.max(0, perItemPerBlock);
+    }
+
+    /** FE a shuttle pays for every block it starts to drive, and per block of height of a lift ride. */
+    public double shuttleFePerBlock() {
+        return shuttleFePerBlock;
+    }
+
+    /** FE a woken site pays per chunk for every tick a wake holds it. */
+    public double wakeFePerChunkPerTick() {
+        return wakeFePerChunkPerTick;
+    }
+
+    /** FE a Crafting Station pays for every tick it works on a craft. */
+    public double craftingStationFePerTick() {
+        return craftingStationFePerTick;
+    }
+
+    /** For GameTests: the warehouse power costs of shuttles, wakes and Crafting Stations. */
+    public void setWarehousePowerCost(double shuttlePerBlock, double wakePerChunkPerTick, double craftingPerTick) {
+        shuttleFePerBlock = Math.max(0, shuttlePerBlock);
+        wakeFePerChunkPerTick = Math.max(0, wakePerChunkPerTick);
+        craftingStationFePerTick = Math.max(0, craftingPerTick);
     }
 
     /** Ticks a woken site stays loaded after its work is done. */

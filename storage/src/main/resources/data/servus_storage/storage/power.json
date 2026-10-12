@@ -1,5 +1,8 @@
 {
   "controller_energy_capacity": 100000,
   "wireless_fe_per_item": 4,
-  "wireless_fe_per_item_per_block": 0.02
+  "wireless_fe_per_item_per_block": 0.02,
+  "shuttle_fe_per_block": 20,
+  "wake_fe_per_chunk_per_tick": 2,
+  "crafting_station_fe_per_tick": 5
 }
