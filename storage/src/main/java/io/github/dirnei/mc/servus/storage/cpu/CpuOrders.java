@@ -98,30 +98,6 @@ public final class CpuOrders {
         return list;
     }
 
-    /**
-     * A neighbour of a Packing Station pushed {@code count} of the key into it.
-     * Counts them for the running steps of the line's CPUs that run on that
-     * neighbour and make the key, oldest order first.
-     */
-    public static void creditPushed(ServerLevel level, BlockPos packingStation, BlockPos neighbour, ItemKey key, int count) {
-        int left = count;
-        for (CpuBlockEntity cpu : cpus(level, packingStation)) {
-            for (WorkOrder order : cpu.book().orders()) {
-                if (!order.open()) {
-                    continue;
-                }
-                for (OrderStep step : order.steps()) {
-                    if (left <= 0) {
-                        return;
-                    }
-                    if (step.active() && step.producer().equals(neighbour) && step.produces(key)) {
-                        left -= step.creditPushed(key, left);
-                    }
-                }
-            }
-        }
-    }
-
     /** The producers of the line with their reported recipes plus the patterns they can run, lowest position first. */
     public static List<OrderBook.Producer> producers(ServerLevel level, DataNetwork network) {
         List<OrderBook.Producer> list = new ArrayList<>();
