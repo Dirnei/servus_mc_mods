@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.foundation.datagen;
 
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
-import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
+import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpParts;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpParts;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
@@ -38,19 +38,19 @@ final class BurnerPumpModels {
         ModelFile upper = upper(provider);
         MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
         for (Direction facing : Direction.Plane.HORIZONTAL) {
-            int rotation = BurnerPumpBlock.quarters(facing) * 90;
+            int rotation = BeamPumpBlock.quarters(facing) * 90;
             for (boolean isLit : new boolean[] {false, true}) {
                 builder.part().modelFile(isLit ? lit : unlit).rotationY(rotation).addModel()
-                        .condition(BurnerPumpBlock.HALF, DoubleBlockHalf.LOWER)
+                        .condition(BeamPumpBlock.HALF, DoubleBlockHalf.LOWER)
                         .condition(MachineBlock.FACING, facing).condition(MachineBlock.LIT, isLit).end();
             }
             builder.part().modelFile(upper).rotationY(rotation).addModel()
-                    .condition(BurnerPumpBlock.HALF, DoubleBlockHalf.UPPER).condition(MachineBlock.FACING, facing).end();
+                    .condition(BeamPumpBlock.HALF, DoubleBlockHalf.UPPER).condition(MachineBlock.FACING, facing).end();
         }
         for (Map.Entry<Direction, IntegerProperty> stub : PumpBlock.STUBS.entrySet()) {
             for (int size = 1; size <= PumpBlock.MAX_STUB; size++) {
                 builder.part().modelFile(MachineDataParts.pumpStub(provider, stub.getKey(), size)).addModel()
-                        .condition(stub.getValue(), size).condition(BurnerPumpBlock.HALF, DoubleBlockHalf.LOWER).end();
+                        .condition(stub.getValue(), size).condition(BeamPumpBlock.HALF, DoubleBlockHalf.LOWER).end();
             }
         }
         beam(provider);

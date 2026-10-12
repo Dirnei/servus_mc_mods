@@ -10,7 +10,7 @@ import io.github.dirnei.mc.servus.foundation.machine.MachineBlock;
 import io.github.dirnei.mc.servus.foundation.machine.MachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
-import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlock;
+import io.github.dirnei.mc.servus.foundation.machine.pump.BeamPumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.BurnerPumpBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpBlock;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpMachine;
@@ -385,7 +385,7 @@ public final class PumpGameTests {
 
     private static boolean isHalf(GameTestHelper helper, BlockPos pos, DoubleBlockHalf half) {
         BlockState state = helper.getBlockState(pos);
-        return state.is(MachineContent.BURNER_PUMP.get()) && state.getValue(BurnerPumpBlock.HALF) == half;
+        return state.is(MachineContent.BURNER_PUMP.get()) && state.getValue(BeamPumpBlock.HALF) == half;
     }
 
     /** One item fills the clicked spot and the block above, facing the same way. */
@@ -514,7 +514,7 @@ public final class PumpGameTests {
     public static void burnerPumpUpperHalfLeadsToTheEngine(GameTestHelper helper) {
         placeBurnerPump(helper, ENGINE);
         BlockState upper = helper.getBlockState(ENGINE.above());
-        helper.assertTrue(BurnerPumpBlock.lowerPos(upper, helper.absolutePos(ENGINE.above())).equals(helper.absolutePos(ENGINE)),
+        helper.assertTrue(BeamPumpBlock.lowerPos(upper, helper.absolutePos(ENGINE.above())).equals(helper.absolutePos(ENGINE)),
                 "the upper half points at the lower half");
         helper.succeed();
     }
