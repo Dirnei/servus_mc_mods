@@ -446,6 +446,18 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         }
 
         @Override
+        public OrderBook.Feed feedFromBuffer(WorkOrder order, BlockPos producer, ItemKey key, int amount) {
+            int held = buffer == null ? 0 : buffer.held(order.id(), key);
+            int count = Math.min(held, amount);
+            if (count <= 0) {
+                return new OrderBook.Feed(0, "", List.of());
+            }
+            Optional<Long> transfer = fromBuffer(order.id(), key, producer, count, false);
+            return transfer.map(id -> new OrderBook.Feed(count, "", List.of(new OrderBook.Shipped(id, count))))
+                    .orElseGet(() -> new OrderBook.Feed(0, "", List.of()));
+        }
+
+        @Override
         public ProductionLedger.Transfer transfer(long id) {
             return ProductionLedger.get(serverLevel()).transfer(id);
         }
@@ -692,6 +704,56 @@ public class CpuBlockEntity extends BlockEntity implements WoodHolder, DataLink 
         });
         setChanged();
         return count;
+    }
+
+    /**
+     * Moves up to {@code count} of an order's buffered items from the CPU
+     * block on the line to {@code target}, taken from the buffer as they
+     * leave, booked in the ledger.
+     *
+     * @return the ledger id, empty when the move could not start
+     */
+    private Optional<Long> fromBuffer(int orderId, ItemKey key, BlockPos target, int count, boolean leaving) {
+        Optional<BlockPos> member = memberPos();
+        if (member.isEmpty() || !(level instanceof ServerLevel server)) {
+            return Optional.empty();
+        }
+        ItemView source = new ItemView(new BufferSource(this, orderId, key, leaving));
+        Optional<Delivery> delivery = DataPackets.move(server, member.get(), target, key.stack(1), count, source);
+        if (delivery.isEmpty() || delivery.get().state() == Delivery.State.FAILED) {
+            return Optional.empty();
+        }
+        ProductionLedger ledger = ProductionLedger.get(server);
+        ProductionLedger.Transfer transfer = ledger.open(count);
+        delivery.get().onEnd(ended -> {
+            ledger.delivered(transfer, ended.delivered());
+            ledger.end(transfer);
+        });
+        setChanged();
+        return Optional.of(transfer.id());
+    }
+
+    /** Takes items of one order out of the buffer; what a move cannot place comes back in. */
+    int takeFromBuffer(int orderId, ItemKey key, int count, boolean simulate) {
+        if (buffer == null) {
+            return 0;
+        }
+        if (simulate) {
+            return Math.min(count, buffer.held(orderId, key));
+        }
+        int taken = buffer.take(orderId, key, count);
+        if (taken > 0) {
+            setChanged();
+        }
+        return taken;
+    }
+
+    /** Items a move from the buffer could not place come back to their order. */
+    void returnToBuffer(int orderId, ItemKey key, int count, boolean leaving) {
+        if (count > 0) {
+            buffer().restore(new CpuBuffer.Entry<>(orderId, key, count, key.stack(1).getMaxStackSize(), leaving));
+            setChanged();
+        }
     }
 
     /** Arrivals whose transfer ended while the CPU was not listening release the rest of their room. */

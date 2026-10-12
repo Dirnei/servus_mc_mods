@@ -44,6 +44,11 @@ public final class OrderBook {
         /** Ships up to amount of the key to the producer. */
         Feed feed(BlockPos producer, ItemKey key, int amount);
 
+        /** Sends up to amount of the key that waits for the order in the CPU's buffer to the producer. */
+        default Feed feedFromBuffer(WorkOrder order, BlockPos producer, ItemKey key, int amount) {
+            return new Feed(0, "", List.of());
+        }
+
         /** A shipment or collection by its ledger id, null when the ledger forgot it. */
         ProductionLedger.Transfer transfer(long id);
 
@@ -438,7 +443,7 @@ public final class OrderBook {
         }
     }
 
-    /** Ships every input still owed; returns the blocked reason to report, if any. */
+    /** Ships every input still owed, from the CPU's buffer first; returns the blocked reason to report, if any. */
     private String feed(WorkOrder order, OrderStep step, String blocked) {
         String reason = null;
         for (Map.Entry<ItemKey, Integer> input : step.inputs().entrySet()) {
@@ -446,6 +451,15 @@ public final class OrderBook {
             int owed = step.needed(key) - step.fed(key);
             if (owed <= 0) {
                 continue;
+            }
+            // Intermediates of the order waiting in the CPU's buffer go first; storage ships only the rest.
+            Feed buffered = host.feedFromBuffer(order, step.producer(), key, owed);
+            if (buffered.planned() > 0) {
+                step.addFed(key, buffered.planned(), buffered.shipped());
+                owed -= buffered.planned();
+                if (owed <= 0) {
+                    continue;
+                }
             }
             Feed feed = host.feed(step.producer(), key, owed);
             if (feed.planned() > 0) {
