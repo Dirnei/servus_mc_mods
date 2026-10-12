@@ -575,7 +575,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 candidates.add(point);
             }
         }
-        return shipThrough(candidates, target, key, amount, requestId, "no_packing_station");
+        return shipThrough(candidates, target, null, key, amount, requestId, "no_packing_station");
     }
 
     /**
@@ -588,7 +588,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      * @return refusal keys: {@code offline}, {@code no_wireless_there} (no Wireless Upgrade), {@code no_power_there},
      *         {@code no_packing_there}, {@code out_of_stock}, {@code needs_shuttle} or {@code no_rail}
      */
-    public Shipping shipWireless(BlockPos receiver, ItemKey key, int amount, int requestId) {
+    public Shipping shipWireless(BlockPos receiver, String receiverSite, ItemKey key, int amount, int requestId) {
         if (status() != Status.ONLINE || level == null) {
             return new Shipping("offline", Optional.empty(), null);
         }
@@ -605,12 +605,16 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 candidates.add(point);
             }
         }
-        return shipThrough(candidates, receiver, key, amount, requestId, "no_packing_there");
+        return shipThrough(candidates, receiver, receiverSite, key, amount, requestId, "no_packing_there");
     }
 
-    /** Plans the picks into the candidate with the shortest shuttle trip and opens its shipment to the target. */
-    private Shipping shipThrough(List<PackingStationBlockEntity> candidates, BlockPos target, ItemKey key, int amount, int requestId,
-                                 String none) {
+    /**
+     * Plans the picks into the candidate with the shortest shuttle trip and
+     * opens its shipment to the target: a wireless one when {@code site}, the
+     * receiving site's key, is given, else one over the data line.
+     */
+    private Shipping shipThrough(List<PackingStationBlockEntity> candidates, BlockPos target, String site, ItemKey key, int amount,
+                                 int requestId, String none) {
         candidates.sort(java.util.Comparator.comparing(point -> point.getBlockPos().asLong()));
         List<BlockPos> racks = sourcesHolding(key).stream().filter(this::isRack).toList();
         Optional<PackingStationBlockEntity> chosen = PackingStationChoice.choose(candidates, point -> trip(racks, point.getBlockPos()));
@@ -624,7 +628,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             String refusal = plan.needsShuttle() ? (fleet.hasShuttles() && !reachable ? "no_rail" : "needs_shuttle") : "out_of_stock";
             return new Shipping(refusal, Optional.empty(), destination);
         }
-        PackingStationBlockEntity.Shipment shipment = chosen.get().addShipment(target, key, plan.planned());
+        PackingStationBlockEntity.Shipment shipment = site == null ? chosen.get().addShipment(target, key, plan.planned())
+                : chosen.get().addWirelessShipment(target, site, key, plan.planned());
         startJobs(plan, requestId, key, destination);
         return new Shipping("", Optional.of(shipment), destination);
     }

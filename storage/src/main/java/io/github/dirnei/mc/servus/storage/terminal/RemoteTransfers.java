@@ -271,7 +271,9 @@ public final class RemoteTransfers {
             // Keeps the site loaded for the shuttles and its Packing Station until the request leaves the list.
             SiteWakes.hold(level, site.get().pos(), hold);
         }
-        WarehouseNetwork.Shipping shipping = remote.get().shipWireless(receiver.getBlockPos(), request.key, request.missing, request.id);
+        String here = controller(level, terminal.getBlockPos()).map(controller -> SiteRecord.key(level.dimension(), controller.getBlockPos()))
+                .orElse("");
+        WarehouseNetwork.Shipping shipping = remote.get().shipWireless(receiver.getBlockPos(), here, request.key, request.missing, request.id);
         if (!shipping.shipped() && request.tries < WAKE_TRIES) {
             // A site that just woke may not have joined its stations or indexed its storage yet: ask again with the next retry.
             request.tries++;

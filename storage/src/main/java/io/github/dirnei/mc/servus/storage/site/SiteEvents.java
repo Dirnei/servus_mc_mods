@@ -22,6 +22,7 @@ public final class SiteEvents {
     @SubscribeEvent
     public static void onServerStopping(ServerStoppingEvent event) {
         SiteWakes.releaseAll(event.getServer());
+        io.github.dirnei.mc.servus.storage.packing.WirelessIncoming.clear();
     }
 
     @SubscribeEvent
