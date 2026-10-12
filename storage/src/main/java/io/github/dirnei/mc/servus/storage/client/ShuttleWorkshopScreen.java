@@ -55,6 +55,8 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     private static final int COLOUR_SEAM_LATER = 0x60FFFFFF;
     private static final int INFO_X = 30;
     private static final int SHEET_X = 104;
+    /** The remove buttons sit at the right edge of the left panel, clear of the info lines and the sheet. */
+    private static final int REMOVE_X = 164;
     private static final int LINE = 11;
 
     /** The work panel to the right of the old layout. */
@@ -116,7 +118,7 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
     }
 
     private Button small(int y, int id) {
-        return Button.builder(Component.literal("-"), button -> click(id)).bounds(leftPos + 92, y, 10, 10).build();
+        return Button.builder(Component.literal("-"), button -> click(id)).bounds(leftPos + REMOVE_X, y, 10, 10).build();
     }
 
     private void click(int id) {
@@ -427,7 +429,7 @@ public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorksh
         y += LINE;
         Component tool = modules.tool().map(item -> (Component) Component.translatable(item.getDescriptionId()))
                 .orElse(Component.translatable("gui.servus_storage.workshop.no_tool"));
-        graphics.text(font, font.plainSubstrByWidth(Component.translatable("gui.servus_storage.workshop.tool", tool).getString(), 60),
+        graphics.text(font, font.plainSubstrByWidth(Component.translatable("gui.servus_storage.workshop.tool", tool).getString(), SHEET_X - INFO_X - 4),
                 INFO_X, y, COLOUR_TEXT, false);
         drawSheet(graphics, tier);
     }
