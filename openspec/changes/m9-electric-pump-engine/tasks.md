@@ -5,7 +5,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 ## 1. Pure parts and motion
 
 - [x] 1.1 `machine/pump/BeamPumpParts.java` (new, the shared frame moved out of `BurnerPumpParts`), `machine/pump/BurnerPumpParts.java` (burner parts only), `machine/pump/ElectricPumpParts.java` (new, design.md D2); update all users. JUnit: move the frame cases of `machine/pump/BurnerPumpPartsTest.java` to `BeamPumpPartsTest.java`; add `ElectricPumpPartsTest.java` (parts inside their half, con rod from crank pin to the beam at `PISTON_X` at rest, rotated parts inside the block). Run `gradlew :foundation:test`.
-- [ ] 1.2 `machine/pump/CrankDrive.java` (new) and `machine/pump/BeamStroke.java` (`bottoms(previous, phase)`) (design.md D3). JUnit: `CrankDriveTest.java` (pin highest at a quarter period, beam angle equals `BeamStroke.angle` at 8 phases, crank angle wraps), `BeamStrokeTest.java` (`bottomsCountsOncePerPeriod`, none while still, two across two periods). Run `gradlew :foundation:test`.
+- [x] 1.2 `machine/pump/CrankDrive.java` (new) and `machine/pump/BeamStroke.java` (`bottoms(previous, phase)`) (design.md D3). JUnit: `CrankDriveTest.java` (pin highest at a quarter period, beam angle equals `BeamStroke.angle` at 8 phases, crank angle wraps), `BeamStrokeTest.java` (`bottomsCountsOncePerPeriod`, none while still, two across two periods). Run `gradlew :foundation:test`.
 
 ## 2. Shared two half block
 

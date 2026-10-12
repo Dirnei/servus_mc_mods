@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.machine.pump;
 
 /**
- * The rocking of the Burner Pump's beam: a steady sine stroke, and how far a
+ * The rocking of a beam pump's beam: a steady sine stroke, and how far a
  * rod hanging from the beam moves for a given angle. Look only, no balance.
  */
 public final class BeamStroke {
@@ -21,6 +21,20 @@ public final class BeamStroke {
     /** The beam angle in degrees after {@code phase} ticks of work. */
     public float angle(double phase) {
         return (float) (amplitude * Math.sin(2 * Math.PI * phase / period));
+    }
+
+    /**
+     * How many times the pump rod passed its lowest point after
+     * {@code previous} up to and including {@code phase}. The pump rod hangs
+     * on the beam's short side (negative arm), so it is lowest when the beam
+     * angle is largest, a quarter period into each stroke.
+     */
+    public int bottoms(double previous, double phase) {
+        if (phase <= previous) {
+            return 0;
+        }
+        double quarter = period / 4.0;
+        return (int) (Math.floor((phase - quarter) / period) - Math.floor((previous - quarter) / period));
     }
 
     /**

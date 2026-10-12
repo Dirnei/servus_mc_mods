@@ -30,6 +30,37 @@ class BeamStrokeTest {
     }
 
     @Test
+    void bottomsCountsOncePerPeriod() {
+        assertEquals(1, stroke.bottoms(0, 40));
+        assertEquals(1, stroke.bottoms(5, 45));
+        int total = 0;
+        for (double phase = 0; phase < 40; phase += 1) {
+            total += stroke.bottoms(phase, phase + 1);
+        }
+        assertEquals(1, total, "one bottom per stroke, counted tick by tick");
+    }
+
+    @Test
+    void noBottomWhileStill() {
+        assertEquals(0, stroke.bottoms(10, 10));
+        assertEquals(0, stroke.bottoms(12, 12));
+    }
+
+    @Test
+    void twoBottomsAcrossTwoPeriods() {
+        assertEquals(2, stroke.bottoms(0, 80));
+        assertEquals(2, stroke.bottoms(3, 83));
+    }
+
+    /** The pump rod hangs on the negative arm: its bottom is where the beam angle peaks. */
+    @Test
+    void bottomIsAtTheLargestAngle() {
+        assertEquals(1, stroke.bottoms(9.9, 10));
+        assertEquals(0, stroke.bottoms(10, 10.1));
+        assertTrue(BeamStroke.rodOffset(stroke.angle(10), BeamPumpParts.ROD_X - BeamPumpParts.PIVOT_X) < 0);
+    }
+
+    @Test
     void rodRestsAtLevelBeam() {
         assertEquals(0, BeamStroke.rodOffset(0, 6), 1e-6);
     }
