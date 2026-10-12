@@ -9,7 +9,7 @@ Paths are relative to `foundation/src/main/java/io/github/dirnei/mc/servus/found
 ## 2. Look
 
 - [x] 2.1 Texture script `C:\Users\Dirnei\AppData\Local\Temp\servus-helpers\jobs\ender-anchor\gen_ender_anchor.py` (not in the repo) from the L1 sketch (`C:\Users\Dirnei\AppData\Local\Temp\claude\C--games-minecraft-servus-mc-mods\e63664e3-2e9f-4956-97ee-f355bc14ab46\scratchpad\genloader.py` and `round2.py`): `textures/block/chunk_loader_front.png` (socket with closed lid), `chunk_loader_side.png`, `chunk_loader_top.png`, `chunk_loader_top_lit.png`, `chunk_loader_eye.png` (sclera, iris with pupil, lid strips); delete `chunk_loader_front_lit.png`; check 16x16 RGBA. Run `gradlew build`.
-- [ ] 2.2 `datagen/MachineDataParts.java`: the loader's orientable models with the new front, side and top textures, lit variant changes only the top (design.md D1). Run `gradlew :foundation:runData` and `gradlew build`.
+- [x] 2.2 `datagen/MachineDataParts.java`: the loader's orientable models with the new front, side and top textures, lit variant changes only the top (design.md D1). Run `gradlew :foundation:runData` and `gradlew build`.
 
 ## 3. Renderer and particles
 

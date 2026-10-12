@@ -34,7 +34,7 @@ final class MachineDataParts {
 
     static void blockStates(BlockStateProvider provider) {
         CoalGeneratorModels.coalGenerator(provider);
-        machine(provider, MachineContent.CHUNK_LOADER.get(), "chunk_loader");
+        chunkLoader(provider);
         BurnerPumpModels.burnerPump(provider);
         ElectricPumpModels.electricPump(provider);
         SinkModels.sink(provider);
@@ -163,20 +163,21 @@ final class MachineDataParts {
         return model;
     }
 
-    /** Orientable machine with a lit and an unlit front, rotated by facing. */
-    static void machine(BlockStateProvider provider, Block block, String name) {
-        Identifier side = provider.modLoc("block/machine_side");
-        Identifier top = provider.modLoc("block/machine_top");
-        ModelFile unlit = provider.models().orientable(name, side, provider.modLoc("block/" + name + "_front"), top);
-        ModelFile lit = provider.models().orientable(name + "_lit", side, provider.modLoc("block/" + name + "_front_lit"), top);
-        provider.getVariantBuilder(block).forAllStates(state -> {
-            Direction facing = state.getValue(MachineBlock.FACING);
-            boolean isLit = state.getValue(MachineBlock.LIT);
-            return ConfiguredModel.builder()
-                    .modelFile(isLit ? lit : unlit)
-                    .rotationY(((int) facing.toYRot() + 180) % 360)
-                    .build();
-        });
+    /**
+     * The Chunk Loader as an ender anchor: obsidian front with the shut eye in
+     * its socket (the renderer draws the open eye over it), chunk grid sides,
+     * and a top whose purple core brightens while it holds its chunk.
+     */
+    static void chunkLoader(BlockStateProvider provider) {
+        Block block = MachineContent.CHUNK_LOADER.get();
+        Identifier side = provider.modLoc("block/chunk_loader_side");
+        Identifier front = provider.modLoc("block/chunk_loader_front");
+        ModelFile unlit = provider.models().orientable("chunk_loader", side, front, provider.modLoc("block/chunk_loader_top"));
+        ModelFile lit = provider.models().orientable("chunk_loader_lit", side, front, provider.modLoc("block/chunk_loader_top_lit"));
+        provider.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(MachineBlock.LIT) ? lit : unlit)
+                .rotationY(((int) state.getValue(MachineBlock.FACING).toYRot() + 180) % 360)
+                .build());
         provider.simpleBlockItem(block, unlit);
     }
 }
