@@ -51,6 +51,19 @@ Pure logic: none new (the helper is Minecraft bound); no JUnit tests. GameTests 
 
 PLAN.md open decisions settled: none.
 
+## Decisions made during apply
+
+Recorded on 2026-10-12 while applying, where the code differs from or adds to the decisions above:
+
+- **Helper already there.** `m9-electric-pump-engine` was applied first and extracted `machine/TwoHalves`; this change reuses it unchanged (its API is listed in that change's design.md). Task 1.1 needed no code.
+- **Lit chimney.** The cube sets `LIT` with `Block.UPDATE_CLIENTS`; the neighbour shape update still reaches the chimney, whose `updateShape` copies `FACING` and `LIT` from the cube. `pushesIntoNeighbourBeside` also checks that the chimney is lit while the cube burns. Smoke comes from the chimney's own `animateTick`, at the cap centre, at the Burner Pump's rate.
+- **Carrot on the chimney.** A plain carrot click on the chimney returns success and changes nothing; sneaking forwards to the cube through `TwoHalves.forwardWrench`, so it dismantles like a sneak click on the cube.
+- **Block properties.** The generator now has `noOcclusion()` (the chimney is not a full block; the cube's model still culls its own faces) and `PushReaction.BLOCK`. Shapes: the cube a full block, the chimney the stack `{5, 0, 5, 11, 14, 11}` plus the cap `{4, 14, 4, 12, 16, 12}` (`CoalGeneratorBlock.STACK`, `CAP`).
+- **Energy push.** `EnergyNeighbors` got a constructor with a skipped face; the generator builds it with `Direction.UP`, so it never even caches the chimney. The energy capability returns null for `UP`; every other face of the cube, the front included, still offers the buffer as before.
+- **Models.** A new `datagen/CoalGeneratorModels` (next to `BurnerPumpModels` and `ElectricPumpModels`) instead of more code in `MachineDataParts`: the cube as `orientable` with own front, side and top; the chimney as stack and cap elements whose cap top takes the flue painted in the middle of `coal_generator_top` (hidden under the stack on the cube, uv 4..12), so no sixth texture is needed. The copper band is painted on `coal_generator_stack` (rows 8..10, y 6..8 of the stack), not a separate element. Blockstates are variants by `HALF`, `FACING` and `LIT`. Loot from the lower half only for every machine block with `HALF` (`MachineBlockLoot` now checks the property instead of the pump class).
+- **Tests.** `CoalGeneratorGameTests.place(helper, pos, facing)` builds both halves and is used by every test that builds a generator (Foundation machine and pump tests, Storage `ControllerWirelessGameTests`). `chimneyOpensGui` uses a plain player that records the menu provider, as a mock server player cannot receive the open screen payload. `carrotOnChimneyDismantles` also checks that a plain carrot click on the chimney changes no side; `chimneyHasNoCapabilities` checks upkeep as well. `gamedata.json` did not change.
+- **Task 6.1.** Build, unit tests and the Foundation, Manufacturing and Storage GameTests are green; the client launch and the play check are left to the user from the main checkout.
+
 ## Risks / Trade-offs
 
 - [Existing generators in dev worlds] One block generators have no `HALF`; they load as lower halves without a chimney and `updateShape` would remove them. → Nothing is released; the helper treats a lower half without an upper half as broken only on a neighbour update, so old generators vanish when touched. Accepted; docs note to replace them.
