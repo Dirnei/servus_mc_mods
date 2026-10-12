@@ -1,0 +1,357 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#stone",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        },
+        "east": {
+          "texture": "#stone",
+          "uv": [
+            4,
+            14,
+            12,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#stone",
+          "uv": [
+            4,
+            14,
+            12,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#stone",
+          "uv": [
+            4,
+            14,
+            12,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#stone",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        },
+        "west": {
+          "texture": "#stone",
+          "uv": [
+            4,
+            14,
+            12,
+            16
+          ]
+        }
+      },
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        2,
+        12
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron",
+          "uv": [
+            7,
+            11,
+            9,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#iron",
+          "uv": [
+            11,
+            13,
+            13,
+            14
+          ]
+        },
+        "north": {
+          "texture": "#iron",
+          "uv": [
+            7,
+            13,
+            9,
+            14
+          ]
+        },
+        "south": {
+          "texture": "#iron",
+          "uv": [
+            7,
+            13,
+            9,
+            14
+          ]
+        },
+        "up": {
+          "texture": "#iron",
+          "uv": [
+            7,
+            3,
+            9,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#iron",
+          "uv": [
+            3,
+            13,
+            5,
+            14
+          ]
+        }
+      },
+      "from": [
+        7,
+        2,
+        3
+      ],
+      "to": [
+        9,
+        3,
+        5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#iron",
+          "uv": [
+            7,
+            11,
+            9,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#iron",
+          "uv": [
+            11,
+            4,
+            13,
+            13
+          ]
+        },
+        "north": {
+          "texture": "#iron",
+          "uv": [
+            7,
+            4,
+            9,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#iron",
+          "uv": [
+            7,
+            4,
+            9,
+            13
+          ]
+        },
+        "up": {
+          "texture": "#iron",
+          "uv": [
+            7,
+            3,
+            9,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#iron",
+          "uv": [
+            3,
+            4,
+            5,
+            13
+          ]
+        }
+      },
+      "from": [
+        7,
+        3,
+        3
+      ],
+      "to": [
+        9,
+        12,
+        5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#stone",
+          "uv": [
+            4.5,
+            3,
+            7,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#stone",
+          "uv": [
+            3,
+            8,
+            7,
+            14
+          ]
+        },
+        "north": {
+          "texture": "#stone",
+          "uv": [
+            9,
+            8,
+            11.5,
+            14
+          ]
+        },
+        "south": {
+          "texture": "#stone",
+          "uv": [
+            4.5,
+            8,
+            7,
+            14
+          ]
+        },
+        "up": {
+          "texture": "#stone",
+          "uv": [
+            4.5,
+            9,
+            7,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#stone",
+          "uv": [
+            9,
+            8,
+            13,
+            14
+          ]
+        }
+      },
+      "from": [
+        4.5,
+        2,
+        9
+      ],
+      "to": [
+        7,
+        8,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#stone",
+          "uv": [
+            3,
+            3,
+            4.5,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#stone",
+          "uv": [
+            3,
+            8,
+            7,
+            14
+          ]
+        },
+        "north": {
+          "texture": "#stone",
+          "uv": [
+            11.5,
+            8,
+            13,
+            14
+          ]
+        },
+        "south": {
+          "texture": "#stone",
+          "uv": [
+            3,
+            8,
+            4.5,
+            14
+          ]
+        },
+        "up": {
+          "texture": "#stone",
+          "uv": [
+            3,
+            9,
+            4.5,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#grille",
+          "uv": [
+            9,
+            8,
+            13,
+            14
+          ]
+        }
+      },
+      "from": [
+        3,
+        2,
+        9
+      ],
+      "to": [
+        4.5,
+        8,
+        13
+      ]
+    }
+  ],
+  "textures": {
+    "copper": "minecraft:block/copper_block",
+    "fan": "servus_foundation:block/electric_pump_fan",
+    "grille": "servus_foundation:block/electric_pump_grille",
+    "housing": "servus_foundation:block/electric_pump_housing",
+    "iron": "minecraft:block/iron_block",
+    "oxidized": "minecraft:block/oxidized_copper",
+    "particle": "servus_foundation:block/electric_pump_housing",
+    "stone": "minecraft:block/polished_blackstone",
+    "terminal": "servus_foundation:block/electric_pump_terminal",
+    "wheel": "servus_foundation:block/electric_pump_wheel"
+  }
+}

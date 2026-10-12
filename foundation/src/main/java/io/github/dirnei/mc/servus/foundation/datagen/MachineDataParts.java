@@ -36,7 +36,7 @@ final class MachineDataParts {
         machine(provider, MachineContent.COAL_GENERATOR.get(), "coal_generator");
         machine(provider, MachineContent.CHUNK_LOADER.get(), "chunk_loader");
         BurnerPumpModels.burnerPump(provider);
-        pump(provider, MachineContent.ELECTRIC_PUMP.get(), "electric_pump");
+        ElectricPumpModels.electricPump(provider);
         SinkModels.sink(provider);
         SinkModels.chimney(provider);
         SinkModels.sinkFan(provider);
@@ -146,28 +146,6 @@ final class MachineDataParts {
                 .save(output);
     }
 
-    /**
-     * The compact pump as a multipart: the body per facing and lit state, plus a
-     * pipe stub per connected absolute direction (unrotated, the stubs are symmetric).
-     */
-    static void pump(BlockStateProvider provider, Block block, String name) {
-        ModelFile unlit = pumpModel(provider, name, provider.modLoc("block/" + name + "_front"));
-        ModelFile lit = pumpModel(provider, name + "_lit", provider.modLoc("block/" + name + "_front_lit"));
-        MultiPartBlockStateBuilder builder = provider.getMultipartBuilder(block);
-        for (Direction facing : Direction.Plane.HORIZONTAL) {
-            for (boolean isLit : new boolean[] {false, true}) {
-                builder.part().modelFile(isLit ? lit : unlit).rotationY(((int) facing.toYRot() + 180) % 360).addModel()
-                        .condition(MachineBlock.FACING, facing).condition(MachineBlock.LIT, isLit).end();
-            }
-        }
-        for (Map.Entry<Direction, IntegerProperty> stub : PumpBlock.STUBS.entrySet()) {
-            for (int size = 1; size <= PumpBlock.MAX_STUB; size++) {
-                builder.part().modelFile(pumpStub(provider, stub.getKey(), size)).addModel().condition(stub.getValue(), size).end();
-            }
-        }
-        provider.simpleBlockItem(block, unlit);
-    }
-
     /** A short pipe from the pump body to the block edge, as thick as a duct arm with {@code size} lines; shared by both pumps. */
     static ModelFile pumpStub(BlockStateProvider provider, Direction direction, int size) {
         BlockModelBuilder model = provider.models()
@@ -182,30 +160,6 @@ final class MachineDataParts {
                 .allFaces((face, builder) -> builder.texture(face == direction || face == direction.getOpposite() ? "#top" : "#side")
                         .uvs(lo, lo, hi, hi))
                 .face(direction).cullface(direction).end();
-        return model;
-    }
-
-    private static ModelFile pumpModel(BlockStateProvider provider, String name, Identifier front) {
-        BlockModelBuilder model = provider.models().withExistingParent(name, provider.mcLoc("block/block"))
-                .texture("particle", provider.modLoc("block/machine_side"))
-                .texture("side", provider.modLoc("block/machine_side"))
-                .texture("top", provider.modLoc("block/machine_top"))
-                .texture("front", front);
-        model.element().from(1, 0, 1).to(15, 2, 15)
-                .allFaces((direction, face) -> face.texture(direction.getAxis() == Direction.Axis.Y ? "#top" : "#side")
-                        .uvs(1, 14, 15, 16))
-                .face(Direction.UP).uvs(1, 1, 15, 15).end()
-                .face(Direction.DOWN).uvs(1, 1, 15, 15).cullface(Direction.DOWN).end();
-        model.element().from(3, 2, 3).to(13, 12, 13)
-                .allFaces((direction, face) -> face.texture(direction.getAxis() == Direction.Axis.Y ? "#top" : "#side")
-                        .uvs(3, 4, 13, 14))
-                .face(Direction.NORTH).texture("#front").uvs(0, 0, 16, 16).end()
-                .face(Direction.UP).uvs(3, 3, 13, 13).end();
-        model.element().from(6, 12, 6).to(10, 15, 10)
-                .allFaces((direction, face) -> face.texture(direction.getAxis() == Direction.Axis.Y ? "#top" : "#side")
-                        .uvs(6, 1, 10, 4))
-                .face(Direction.UP).uvs(6, 6, 10, 10).end()
-                .face(Direction.DOWN).uvs(6, 6, 10, 10).end();
         return model;
     }
 

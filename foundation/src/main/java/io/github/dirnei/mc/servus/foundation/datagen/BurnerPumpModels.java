@@ -134,7 +134,7 @@ final class BurnerPumpModels {
         return model;
     }
 
-    private static void display(BlockModelBuilder model, ItemDisplayContext context, float rotX, float rotY, float scale) {
+    static void display(BlockModelBuilder model, ItemDisplayContext context, float rotX, float rotY, float scale) {
         model.transforms().transform(context).rotation(rotX, rotY, 0).translation(0, -8 * scale, 0).scale(scale).end();
     }
 
@@ -142,7 +142,7 @@ final class BurnerPumpModels {
      * A box with the UVs vanilla would pick for it at its own height, moved up
      * by {@code dy}: the side texture on the sides, {@code ends} on top and bottom.
      */
-    private static BlockModelBuilder.ElementBuilder box(BlockModelBuilder model, float[] b, float dy, String sides, String ends) {
+    static BlockModelBuilder.ElementBuilder box(BlockModelBuilder model, float[] b, float dy, String sides, String ends) {
         BlockModelBuilder.ElementBuilder element = model.element().from(b[0], b[1] + dy, b[2]).to(b[3], b[4] + dy, b[5]);
         element.face(Direction.DOWN).texture(ends).uvs(b[0], 16 - b[5], b[3], 16 - b[2]).end();
         element.face(Direction.UP).texture(ends).uvs(b[0], b[2], b[3], b[5]).end();
