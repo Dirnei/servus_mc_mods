@@ -29,7 +29,8 @@ public final class HollowRevealRenderer implements RevealRenderers.RevealRendere
             {0.7F, 0.4F, 1.02F}, {0.3F, 0.65F, 1.02F},
             {-0.02F, 0.3F, 0.65F}, {-0.02F, 0.7F, 0.25F},
     };
-    private static final ItemStack GNOME_CAP = new ItemStack(Items.RED_MUSHROOM);
+    /** Built on first draw: item components are not bound while client setup runs. */
+    private static ItemStack gnomeCap;
 
     @Override
     public void render(SubmitCustomGeometryEvent event) {
@@ -67,7 +68,10 @@ public final class HollowRevealRenderer implements RevealRenderers.RevealRendere
                 poseStack.translate(0.5F, 1.2F + bob, 0.5F);
                 poseStack.mulPose(Axis.YP.rotationDegrees(time * 720F));
                 poseStack.scale(0.6F, 0.6F, 0.6F);
-                RenderSubmit.item(poseStack, collector, GNOME_CAP, ItemDisplayContext.FIXED, minecraft.level, 99, LightCoordsUtil.FULL_BRIGHT);
+                if (gnomeCap == null) {
+                    gnomeCap = new ItemStack(Items.RED_MUSHROOM);
+                }
+                RenderSubmit.item(poseStack, collector, gnomeCap, ItemDisplayContext.FIXED, minecraft.level, 99, LightCoordsUtil.FULL_BRIGHT);
                 poseStack.popPose();
             }
             poseStack.popPose();
