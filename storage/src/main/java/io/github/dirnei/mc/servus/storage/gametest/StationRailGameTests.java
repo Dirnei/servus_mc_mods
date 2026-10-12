@@ -4,8 +4,8 @@ import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.network.StorageNodeBlockEntity;
@@ -27,7 +27,8 @@ public final class StationRailGameTests {
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
     private static final BlockPos STATION = new BlockPos(3, 1, 2);
-    private static final BlockPos CRATE = new BlockPos(2, 1, 3);
+    /** The rack {@link MiniWarehouse#under} puts west of the rail under the controller. */
+    private static final BlockPos RACK = new BlockPos(1, 0, 2);
 
     private StationRailGameTests() {
     }
@@ -38,10 +39,6 @@ public final class StationRailGameTests {
         return helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
     }
 
-    private static CrateBlockEntity crate(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        return helper.getBlockEntity(pos, CrateBlockEntity.class);
-    }
 
     private static boolean lit(GameTestHelper helper, BlockPos pos) {
         return helper.getBlockState(pos).getValue(StorageNodeBlocks.ONLINE);
@@ -53,10 +50,11 @@ public final class StationRailGameTests {
     }
 
     /** A station touching the controller stays out until a rail links it, and leaves again when the rail breaks. */
-    @ServusGameTest(timeoutTicks = 200)
+    @ServusGameTest(timeoutTicks = 400)
     public static void stationJoinsOnlyByRail(GameTestHelper helper) {
-        WarehouseControllerBlockEntity controller = controller(helper);
-        CrateBlockEntity crate = crate(helper, CRATE);
+        MiniWarehouse.under(helper, CONTROLLER);
+        WarehouseControllerBlockEntity controller = helper.getBlockEntity(CONTROLLER, WarehouseControllerBlockEntity.class);
+        HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         helper.setBlock(STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         InboundStationBlockEntity station = helper.getBlockEntity(STATION, InboundStationBlockEntity.class);
@@ -65,10 +63,10 @@ public final class StationRailGameTests {
             helper.assertTrue(!lit(helper, STATION), "the lamp is dark without a rail");
             Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
             helper.runAfterDelay(10, () -> {
-                helper.assertTrue(!station.isEmpty() && crate.count() == 0, "the cobblestone waits in the buffer");
-                TerminalWiring.railUnder(helper, STATION);
-                TerminalWiring.when(helper, () -> crate.count() == 64 && station.isEmpty(), 60,
-                        () -> "with a rail the cobblestone is put away, crate has " + crate.count(), () -> {
+                helper.assertTrue(!station.isEmpty() && rack.isEmpty(), "the cobblestone waits in the buffer");
+                TerminalWiring.rail(helper, STATION.below());
+                TerminalWiring.when(helper, () -> MiniWarehouse.count(rack, Items.COBBLESTONE) == 64 && station.isEmpty(), MiniWarehouse.TRIP_TICKS * 2,
+                        () -> "with a rail a shuttle puts the cobblestone away, rack has " + MiniWarehouse.count(rack, Items.COBBLESTONE), () -> {
                     helper.assertTrue(sameWarehouse(helper, controller, STATION) && lit(helper, STATION), "the rail links the station");
                     helper.setBlock(STATION.below(), Blocks.AIR.defaultBlockState());
                     TerminalWiring.when(helper, () -> !lit(helper, STATION), 20,
@@ -81,21 +79,20 @@ public final class StationRailGameTests {
         });
     }
 
-    /** A crate touching only a rail linked station does not join through it. */
+    /** A rack touching only a rail linked station does not join through it. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void crateBesideStationNotLinked(GameTestHelper helper) {
+    public static void rackBesideStationNotLinked(GameTestHelper helper) {
         WarehouseControllerBlockEntity controller = controller(helper);
         helper.setBlock(STATION, ServusStorageBlocks.INBOUND_STATION.get().defaultBlockState()
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         TerminalWiring.railUnder(helper, STATION);
         BlockPos beyond = STATION.east();
-        CrateBlockEntity bread = crate(helper, beyond);
-        bread.insert(new ItemStack(Items.BREAD, 12), false);
+        helper.setBlock(beyond, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
+        MiniWarehouse.stock(helper, beyond, new ItemStack(Items.BREAD, 12));
         helper.runAfterDelay(10, () -> {
             helper.assertTrue(sameWarehouse(helper, controller, STATION), "the station is linked by rail");
             long count = controller.network().orElseThrow().index().count(ItemKey.of(new ItemStack(Items.BREAD)));
             helper.assertTrue(count == 0, "bread beyond the station is not stock, counted " + count);
-            helper.assertTrue(!lit(helper, beyond), "the crate's lamp stays dark");
             helper.succeed();
         });
     }

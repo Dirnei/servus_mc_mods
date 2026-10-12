@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
@@ -70,14 +71,15 @@ public final class ControllerSiteGameTests {
     }
 
     /**
-     * Controller two blocks before the border, rails on both sides of it, a crate
-     * just past it: the site spans the controller's chunk and the next one.
+     * Controller two blocks before the border, rails on both sides of it, a rack
+     * just past it facing the last rail: the site spans the controller's chunk and the next one.
      */
     static WarehouseControllerBlockEntity acrossBorder(GameTestHelper helper, int border) {
         WarehouseControllerBlockEntity controller = controller(helper, new BlockPos(border - 2, 1, ROW_Z));
         rail(helper, new BlockPos(border - 1, 1, ROW_Z));
         rail(helper, new BlockPos(border, 1, ROW_Z));
-        crate(helper, new BlockPos(border + 1, 1, ROW_Z));
+        helper.setBlock(new BlockPos(border + 1, 1, ROW_Z), ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState()
+                .setValue(HeavyRackBlock.FACING, Direction.WEST));
         return controller;
     }
 

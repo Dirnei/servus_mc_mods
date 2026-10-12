@@ -5,8 +5,8 @@ import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.machine.loader.ChunkLoaderData;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.crate.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
@@ -41,7 +41,9 @@ public final class SiteWakeGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
-    private static final BlockPos CRATE = new BlockPos(3, 1, 2);
+    /** A rail east of the controller and a rack east of the rail, facing it. */
+    private static final BlockPos RAIL = new BlockPos(3, 1, 2);
+    private static final BlockPos RACK = new BlockPos(4, 1, 2);
     /** Every wake test runs with the same short grace time, set by each test because tests of a batch run at once. */
     private static final int GRACE = 20;
 
@@ -59,7 +61,9 @@ public final class SiteWakeGameTests {
         for (int i = 0; i < upgrades; i++) {
             controller.upgrades().insertItem(i, new ItemStack(ServusStorageItems.CHUNK_LOADER_UPGRADE.get()), false);
         }
-        helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        helper.setBlock(RAIL.below(), Blocks.STONE.defaultBlockState());
+        TerminalWiring.rail(helper, RAIL);
+        helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.WEST));
         return controller;
     }
 
@@ -84,8 +88,7 @@ public final class SiteWakeGameTests {
     public static void recordKeepsNameSpanAndStock(GameTestHelper helper) {
         StorageStatsManager.INSTANCE.setSiteSnapshotInterval(5);
         WarehouseControllerBlockEntity controller = site(helper, UUID.randomUUID(), 0);
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
-        crate.insert(new ItemStack(Items.IRON_INGOT, 40), false);
+        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.IRON_INGOT, 40));
         controller.setSiteName("Iron Outpost");
         TerminalWiring.when(helper, () -> record(helper).map(site -> site.stock().getOrDefault(ItemKey.of(new ItemStack(Items.IRON_INGOT)), 0L) == 40L)
                 .orElse(false), 100, () -> "the record lists 40 iron ingots, had " + record(helper).map(SiteRecord::stock), () -> {
@@ -187,7 +190,7 @@ public final class SiteWakeGameTests {
 
     private static final BlockPos SH_CONTROLLER = new BlockPos(2, 1, 6);
     private static final BlockPos SH_TERMINAL = new BlockPos(3, 1, 7);
-    private static final BlockPos SH_FAR_CRATE = new BlockPos(9, 1, 7);
+    private static final BlockPos SH_FAR_RACK = new BlockPos(9, 1, 7);
     private static final BlockPos SH_GARAGE = new BlockPos(3, 1, 5);
 
     /** A shuttle on its way keeps a woken site awake past the grace time; it sleeps once the work is done. */
@@ -205,9 +208,8 @@ public final class SiteWakeGameTests {
             helper.setBlock(new BlockPos(x, 0, 6), Blocks.STONE.defaultBlockState());
             helper.setBlock(new BlockPos(x, 1, 6), ServusStorageBlocks.RAIL.get().defaultBlockState());
         }
-        helper.setBlock(SH_FAR_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity far = helper.getBlockEntity(SH_FAR_CRATE, CrateBlockEntity.class);
-        far.insert(new ItemStack(Items.COBBLESTONE, 40), false);
+        helper.setBlock(SH_FAR_RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
+        MiniWarehouse.stock(helper, SH_FAR_RACK, new ItemStack(Items.COBBLESTONE, 40));
         helper.setBlock(SH_GARAGE, ServusStorageBlocks.SHUTTLE_GARAGE.get().defaultBlockState().setValue(ShuttleGarageBlock.FACING, Direction.NORTH));
         ShuttleGarageBlockEntity garage = helper.getBlockEntity(SH_GARAGE, ShuttleGarageBlockEntity.class);
         helper.assertTrue(garage.addShuttle(), "one shuttle fits");

@@ -88,9 +88,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 public final class ServusStorageGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
-    private static final BlockPos CRATE = new BlockPos(3, 1, 3);
-    private static final BlockPos CONTROLLER = new BlockPos(4, 1, 3);
-    private static final BlockPos TERMINAL = new BlockPos(5, 1, 3);
+    private static final BlockPos TR_ORIGIN = new BlockPos(3, 1, 3);
 
     private static final BlockPos RAIL_RACK = new BlockPos(2, 1, 3);
     private static final BlockPos RAIL_A = new BlockPos(3, 1, 3);
@@ -797,7 +795,7 @@ public final class ServusStorageGameTests {
     /** A request is brought by shuttle into the output slots, the player collects it, and a push stores a stack back. */
     @ServusGameTest(timeoutTicks = 600)
     public static void terminalRequestsAndPushes(GameTestHelper helper) {
-        MiniWarehouse warehouse = MiniWarehouse.build(helper, CRATE).withTerminal().stock(new ItemStack(Items.COBBLESTONE, 50));
+        MiniWarehouse warehouse = MiniWarehouse.build(helper, TR_ORIGIN).withTerminal().stock(new ItemStack(Items.COBBLESTONE, 50));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         helper.runAfterDelay(10, () -> {
@@ -1033,7 +1031,6 @@ public final class ServusStorageGameTests {
     private static final BlockPos ST_CONTROLLER = new BlockPos(9, 1, 3);
     private static final BlockPos ST_STATION = new BlockPos(10, 1, 3);
     private static final BlockPos ST_CRATE = new BlockPos(9, 1, 4);
-    private static final BlockPos ST_CRATE_2 = new BlockPos(8, 1, 3);
     private static final BlockPos ST_CHEST = new BlockPos(11, 1, 3);
 
     private static boolean blocked(GameTestHelper helper, BlockPos pos) {

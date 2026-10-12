@@ -13,8 +13,8 @@ import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.registry.ServusStorageBlocks;
 import java.util.Arrays;
 import java.util.List;
@@ -245,18 +245,19 @@ public final class DataCableGameTests {
         });
     }
 
-    /** A data duct linking a controller with planks and a sticks station moves nothing on its own. */
+    /** A data duct linking a controller and a sticks station moves nothing on its own; the planks in a rack beside stay. */
     @ServusGameTest(timeoutTicks = 200)
     public static void dataCableMovesNothing(GameTestHelper helper) {
-        BlockPos crate = new BlockPos(7, 1, 3);
-        helper.setBlock(crate, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity planks = helper.getBlockEntity(crate, CrateBlockEntity.class);
-        planks.insert(new ItemStack(Items.OAK_PLANKS, 32), false);
+        BlockPos rackPos = new BlockPos(7, 1, 3);
+        helper.setBlock(rackPos, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.EAST));
+        MiniWarehouse.stock(helper, rackPos, new ItemStack(Items.OAK_PLANKS, 32));
+        HeavyRackBlockEntity planks = helper.getBlockEntity(rackPos, HeavyRackBlockEntity.class);
         controller(helper, EAST_END);
         CraftingStationBlockEntity station = sticksStation(helper, WEST_END);
         dataRow(helper);
         helper.runAfterDelay(100, () -> {
-            helper.assertTrue(planks.count(0) == 32, "the planks should stay in the crate, got " + planks.count(0));
+            helper.assertTrue(MiniWarehouse.count(planks, Items.OAK_PLANKS) == 32, "the planks should stay in the rack, got "
+                    + MiniWarehouse.count(planks, Items.OAK_PLANKS));
             for (int slot = 0; slot < station.inputs().getSlots(); slot++) {
                 helper.assertTrue(station.inputs().getStackInSlot(slot).isEmpty(), "the station inputs should stay empty");
             }

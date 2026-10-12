@@ -9,8 +9,8 @@ import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuOrders;
 import io.github.dirnei.mc.servus.storage.cpu.CpuShape;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.storage.menu.StorageTerminalMenu;
 import io.github.dirnei.mc.servus.storage.network.ItemKey;
 import io.github.dirnei.mc.servus.storage.pattern.PatternStorageBlock;
@@ -34,7 +34,8 @@ public final class AdjacentDataGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
-    private static final BlockPos CRATE = new BlockPos(1, 1, 2);
+    /** The rack {@link MiniWarehouse#under} puts west of the rail under the controller. */
+    private static final BlockPos RACK = new BlockPos(1, 0, 2);
     private static final BlockPos ACCESS = new BlockPos(2, 1, 3);
     private static final BlockPos DUCT = new BlockPos(2, 2, 3);
     private static final BlockPos PATTERNS = new BlockPos(3, 2, 3);
@@ -100,12 +101,9 @@ public final class AdjacentDataGameTests {
     /** A request at a terminal in the row is crafted on the station of the row and lands in the terminal. */
     @ServusGameTest(timeoutTicks = 1000)
     public static void craftThroughStack(GameTestHelper helper) {
-        helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity planks = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
-        planks.insert(new ItemStack(Items.OAK_PLANKS, 10), false);
-        helper.setBlock(new BlockPos(1, 1, 3), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        MiniWarehouse.under(helper, CONTROLLER);
+        MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, 10));
+        HeavyRackBlockEntity planks = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         helper.setBlock(ACCESS, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
         TerminalWiring.railUnder(helper, ACCESS);
         TerminalWiring.dataDuct(helper, DUCT);
@@ -125,7 +123,8 @@ public final class AdjacentDataGameTests {
             helper.assertTrue(menu.stock().message().isEmpty(), "the request should be accepted, got " + menu.stock().message());
             TerminalWiring.when(helper, () -> terminal.outputCount(Items.STICK) == 8, 900,
                     () -> "eight sticks should reach the terminal, had " + terminal.outputCount(Items.STICK), () -> {
-                helper.assertTrue(planks.count() == 6, "four planks should have been used, crate has " + planks.count());
+                helper.assertTrue(MiniWarehouse.count(planks, Items.OAK_PLANKS) == 6, "four planks should have been used, rack has "
+                        + MiniWarehouse.count(planks, Items.OAK_PLANKS));
                 helper.succeed();
             });
         });
