@@ -3,7 +3,7 @@
 ## 1. Pure logic
 
 - [x] 1.1 `storage/src/main/java/io/github/dirnei/mc/servus/storage/site/WirelessReach.java` (capable = upgrade and powered, FE needed) per design.md; JUnit `WirelessReachTest` under `storage/src/test/java/io/github/dirnei/mc/servus/storage/site/` (upgrade and 500 FE capable; upgrade and 2 FE at 4 per item not capable, needs 4; no upgrade never capable; fractions round up; at least 1 FE at cost 0). Keep `WirelessCostTest` green. Run `gradlew :storage:test`.
-- [ ] 1.2 `storage/src/main/java/io/github/dirnei/mc/servus/storage/packing/ReceiverChoice.java` (fewest open incoming transfers, lowest position on a tie, empty list gives none); JUnit `ReceiverChoiceTest` under `storage/src/test/java/io/github/dirnei/mc/servus/storage/packing/` (two idle stations pick the lower; a busier station is skipped; tie by position; no station). Run `gradlew :storage:test`.
+- [x] 1.2 `storage/src/main/java/io/github/dirnei/mc/servus/storage/packing/ReceiverChoice.java` (fewest open incoming transfers, lowest position on a tie, empty list gives none); JUnit `ReceiverChoiceTest` under `storage/src/test/java/io/github/dirnei/mc/servus/storage/packing/` (two idle stations pick the lower; a busier station is skipped; tie by position; no station). Run `gradlew :storage:test`.
 
 ## 2. Controller: energy, upgrade, data
 
