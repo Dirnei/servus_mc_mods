@@ -2,7 +2,7 @@
 
 ## Why
 
-The 26.1.2 play test showed that the crates add little next to Heavy Duty Racks and shuttles, and that the warehouse's indexing of every inventory touching a storage node causes real bugs: a Storage Terminal beside the controller was indexed as storage and looped its own put-away. At the same time pipes show item arms toward blocks that refuse items (stations, terminal, Field Head), because those blocks register NeoForge's item capability only so that data line packets can reach them. Both questions are "what counts as an inventory", so they are answered together, and the Crafting CPU buffer (`m8-cpu-buffer`) needs the packet inlet this change introduces.
+The 26.1.2 play test showed that the crates add little next to Heavy Duty Racks and shuttles, and that the warehouse's indexing of every inventory touching a storage node causes real bugs: a Storage Terminal beside the controller was indexed as storage and looped its own put-away. At the same time pipes show item arms toward blocks that refuse items (Packing Station, terminal, Field Head), because those blocks register NeoForge's item capability only so that data line packets can reach them. Both questions are "what counts as an inventory", so they are answered together, and the Crafting CPU buffer (`m8-cpu-buffer`) needs the packet inlet this change introduces.
 
 ## What Changes
 
@@ -13,7 +13,7 @@ This change implements a follow-up to PLAN.md milestone **M11 Wireless and scale
 - **Early game is a normal warehouse.** The first warehouse is a Heavy Duty Rack, a Warehouse Rail, a Shuttle Garage and a Mk1 shuttle; nothing new is built for the start (no instant rack access without a garage, no starter storage in the controller). Without a shuttle a request is refused with "needs a shuttle".
 - **The controller's stock capabilities shrink.** The stock provider still counts, but taking from it gives nothing (items leave only by shuttle through a Packing Station); the controller no longer exposes a stock sink. `/servus_warehouse take` stays as an op tool.
 - **Storage Terminal pantry features go.** The crafting grid no longer refills from the warehouse and Alt click no longer pulls a stack, because both needed instant stock; JEI transfer fills the grid from the player inventory only.
-- **Pipe access only where pipes belong.** These blocks register no item capability any more, so item pipes show no arm and hoppers neither insert nor extract: Inbound Station, Outbound Station, Packing Station, Wireless Packing Station (while it exists), Storage Terminal (Input and Output rows; the "Automation inserts" requirement is dropped), Field Head and Crafting Station (the Crafting CPU already has none). The stations keep working because they act on their neighbours themselves: the Inbound Station pulls, the Outbound Station pushes, the Crafting Station pulls job inputs and pushes leftovers. Their side modes lose the passive modes (Input, Output, Both, Auto).
+- **Pipe access only where pipes belong.** These blocks register no item capability any more, so item pipes show no arm and hoppers neither insert nor extract: Packing Station, Wireless Packing Station (while it exists), Storage Terminal (Input and Output rows; the "Automation inserts" requirement is dropped), Field Head and Crafting Station (the Crafting CPU already has none). The Crafting Station keeps working because it acts on its neighbours itself (pulls job inputs, pushes leftovers); its side modes become Push, Pull and Off. The Inbound and Outbound Station keep their item capability and side modes, because pipes belong there (user decision during apply, 2026-10-12): they expose it on every side that is not Off, so a duct feeds an Inbound Station directly and shows an arm toward an Outbound Station that pushes into it.
 - **Heavy Duty Rack as a chest only while standalone.** A rack exposes its item capability (a big chest for hoppers and pipes) only while no warehouse rail docks to the front of any bay of its section; once a rail docks, the section is shuttles only. The switch is event driven: a rail placed or removed in front of a bay, or a section change, invalidates the capabilities of the section's bays.
 - **Servus packet inlet.** Foundation gets a packet inlet capability (`ServusFoundationCapabilities.PACKET_INLET`, an item resource handler under its own capability id). The data line delivers into and collects from a member through its packet inlet first, then its item capability (foreign machines, the Machine Adapter, Manufacturing machines), then its stock sink or provider. Item pipes and hoppers never see the inlet. Packing Station, Storage Terminal, Crafting Station, Field Head (anti-corrosion upkeep) and the future CPU buffer switch to it.
 - **No more pushed outputs into a Packing Station.** A producer can no longer push into a Packing Station face, so the "Pushed outputs count" crediting is removed; the CPU collects outputs as packets.
@@ -28,8 +28,8 @@ This change implements a follow-up to PLAN.md milestone **M11 Wireless and scale
 - `storage/crate`: every requirement removed.
 - `storage/warehouse-controller`: sources are only the warehouse's racks; no instant stock operations; the controller's stock provider counts but gives nothing and it has no stock sink; commands, chunk span and examples without crates.
 - `storage/storage-terminal`: requests and pushes by shuttle only; output and input rows get no pipe access and the automation inserts requirement goes; packets land through the inlet; grid refill and Alt pull removed; JEI fills from the player inventory.
-- `storage/inbound-station`: Pull or Off sides, no item capability; put-away only by shuttle.
-- `storage/outbound-station`: Push or Off sides, no item capability; restocked only by shuttle.
+- `storage/inbound-station`: item capability on Input and Pull sides, so pipes connect; put-away only by shuttle.
+- `storage/outbound-station`: item capability on Push and Output sides, so pipes connect; restocked only by shuttle.
 - `storage/packing-station`: packets enter through the inlet only; shipments only by shuttle.
 - `storage/crafting-station`: sides Pull, Push or Off, no item capability, packets through the inlet.
 - `storage/crafting-cpu`: the pushed outputs crediting goes.
@@ -47,7 +47,7 @@ This change implements a follow-up to PLAN.md milestone **M11 Wireless and scale
 ## Non-goals
 
 - Balance of the first shuttle setup (rack, rail, garage, Mk1 shuttle, controller, terminal, Packing Station recipes). The design notes what looks expensive; values change in the open M9 balance pass.
-- Bringing the grid refill, Alt pull or a warehouse fed JEI transfer back as shuttle requests.
+- Bringing the grid refill, Alt pull or a warehouse fed JEI transfer back as shuttle requests (planned as its own change after this one).
 - A starter storage in the controller or instant rack access without a garage (rejected by the user).
 - Changing the Machine Adapter, Manufacturing machines or Foundation machines: they keep their item capability and the data line keeps reaching them through it.
 - The CPU buffer itself (`m8-cpu-buffer` registers the CPU's inlet after this change).

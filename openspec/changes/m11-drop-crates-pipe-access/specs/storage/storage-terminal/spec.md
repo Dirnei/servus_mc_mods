@@ -173,4 +173,4 @@ Packets delivered to the terminal over the data line SHALL enter through its pac
 
 ### Requirement: Automation inserts
 **Reason**: The terminal registers no item capability any more, so hoppers and ducts cannot reach it. Packets use the packet inlet instead.
-**Migration**: Packets follow "Packets land in the terminal". Items from pipe lines go to an Inbound Station (it pulls from a chest or hopper beside it).
+**Migration**: Packets follow "Packets land in the terminal". Items from pipe lines go into an Inbound Station.

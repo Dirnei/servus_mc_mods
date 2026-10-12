@@ -43,7 +43,7 @@ A new public helper `PacketInlets.handler(level, pos, side)` in `foundation/data
 
 | Block | Item capability | Packet inlet |
 | --- | --- | --- |
-| Inbound Station, Outbound Station | removed | none (not data members) |
+| Inbound Station, Outbound Station | kept, offered on every side that is not Off (Inbound insert only, Outbound extract only) | none (not data members) |
 | Packing Station | removed (with `PushCredit`) | intake, rate limited as today |
 | Wireless Packing Station (while it exists) | removed | none (never on a data line) |
 | Storage Terminal | removed | `packetHandler()` (requested items to Output, the rest to Input) |
@@ -55,11 +55,11 @@ A new public helper `PacketInlets.handler(level, pos, side)` in `foundation/data
 
 The fluid capability of the Field Head and the energy capability of the Wireless Packing Station stay.
 
-### D4. Stations act on their neighbours; passive side modes go
+### D4. Stations keep pipe access; the Crafting Station acts on its neighbours
 
-`SideConfig.INBOUND_MODES` becomes Pull, Off (fallback Off; the Inbound Station sets its back to Pull in its constructor like the Outbound Station sets Push), `OUTBOUND_MODES` becomes Push, Off, and a new `STATION_MODES` (Push, Pull, Off, fallback Push) replaces `MACHINE_MODES` on the Crafting Station. `SideConfig.set` already maps a mode outside the list to the fallback, so saved dev configs load without special code. The existing pull and push loops (`InboundStationBlockEntity` line 181, `OutboundStationBlockEntity` line 258, `CraftingStationBlockEntity` line 439) keep using the neighbour's `Capabilities.Item.BLOCK`, so stations still work with chests, hoppers, machines and ducts that take items in. A duct gives nothing out (`DuctItemHandler.extractItem`), so a pipe line that should feed an Inbound Station ends in a chest or hopper beside it; this goes into the docs.
+Decided by the user on 2026-10-12 while this change was applied: Inbound and Outbound Station still connect to item pipes. `SideConfig.INBOUND_MODES` (Input, Pull, Off, default Input) and `OUTBOUND_MODES` (Push, Output, Off, back Push) stay as they are. `InboundStationBlockEntity.handlerFor` and `OutboundStationBlockEntity.handlerFor` return their insert only and extract only handler on every side whose mode is not `DISABLED`, instead of only on `allowsInsert` and `allowsExtract` sides. So a duct draws an arm toward an Inbound Station on Input and Pull sides and inserts straight into it, and draws an arm toward an Outbound Station on Push and Output sides; the station's push loop already inserts into the duct (`DuctItemHandler.insertItem` checks only the duct's side mode). An extract only handler on a Push side lets a hopper under that side drain the buffer, which matches pushing into it.
 
-Inbound default back Pull and the other sides Off: Input on all sides was harmless, Pull on all sides would drain every chest touching the station. The Outbound default stays back Push.
+A new `STATION_MODES` (Push, Pull, Off, fallback Push) replaces `MACHINE_MODES` on the Crafting Station, which loses its item capability. `SideConfig.set` already maps a mode outside the list to the fallback, so saved dev configs load without special code. The Crafting Station's pull and push loop (`CraftingStationBlockEntity` line 439) keeps using the neighbour's `Capabilities.Item.BLOCK`.
 
 ### D5. Rack pipe access follows its front rails
 
@@ -117,9 +117,7 @@ Current recipes (generated `data/servus_storage/recipe`): Heavy Duty Rack 4 iron
 
 - [Big test rewrite] About 200 GameTests change. → One shared helper, class by class tasks, each ending with the Storage GameTest run.
 - [Slower tests] Shuttle trips add ticks per test. → Short rails, raised timeouts only where a shuttle runs.
-- [Pipe lines into storage] A duct can no longer insert into an Inbound Station. → The station pulls from a chest or hopper the duct fills; docs explain the pattern.
-- [Outbound into a duct] The station pushes into a duct that shows no arm toward it, because the station has no item capability. → Accepted; the push works (`DuctItemHandler.insertItem` checks only the side mode).
-- [Lost conveniences] Grid refill, Alt pull and warehouse fed JEI transfer go. → Listed as a non-goal; may return as requests.
+- [Lost conveniences] Grid refill, Alt pull and warehouse fed JEI transfer go. → Listed as a non-goal; the user decided on 2026-10-12 that they return later as shuttle requests in their own change.
 - [Hoppers into a docked rack stop] Players who fed racks by hopper see it stop when they lay a rail. → Intended; the docs explain it.
 - [Ordering with other changes] See D11.
 

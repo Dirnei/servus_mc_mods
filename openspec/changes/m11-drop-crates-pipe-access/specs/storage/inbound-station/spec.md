@@ -1,31 +1,27 @@
 ## MODIFIED Requirements
 
 ### Requirement: Station block and buffer
-The Inbound Station SHALL be a block with a horizontal facing and an intake buffer of `inbound_buffer_slots` slots (example 9, from `data/<ns>/storage/warehouse.json`). It SHALL register no item capability, so hoppers, item pipes and machines can neither insert into nor extract from it and pipes show no item arm toward it. Every relative side but the front SHALL be Pull or Off; the back SHALL default to Pull and the other sides to Off; the front is fixed to Off. On Pull sides the station SHALL take stacks out of the neighbour's item handler every `push_interval` ticks while the buffer has room. The Configuration Carrot used on a face SHALL cycle that face's mode and the GUI SHALL show the Lib side panel. Breaking the station SHALL drop the buffer contents.
-
-#### Scenario: Pull from a chest
-- **WHEN** a chest behind the station holds 30 bread
-- **THEN** the bread moves into the buffer and on into the warehouse without a hopper
+The Inbound Station SHALL be a block with a horizontal facing and an intake buffer of `inbound_buffer_slots` slots (example 9, from `data/<ns>/storage/warehouse.json`). Every relative side but the front SHALL be in one of three modes of the Lib side configuration, Input, Pull or Off, all Input by default; the front is fixed to Off. On Input and Pull sides the buffer SHALL be exposed as an item handler that accepts inserts and refuses extraction, so hoppers, item pipes and machines feed it but never take from it, and item pipes show an item arm toward those sides. On Pull sides the station SHALL additionally take stacks out of the neighbour's item handler every `push_interval` ticks while the buffer has room. Off sides SHALL expose nothing. The Configuration Carrot used on a face SHALL cycle that face's mode and the GUI SHALL show the Lib side panel. Breaking the station SHALL drop the buffer contents.
 
 #### Scenario: Hopper feeds the station
-- **WHEN** the player sets the top side to Pull and a hopper above the station holds 20 cobblestone
+- **WHEN** a hopper above the station holds 20 cobblestone
 - **THEN** the cobblestone moves into the station's buffer
 
-#### Scenario: Hopper cannot feed it
-- **WHEN** a hopper points into the station from above while the top side is Off
-- **THEN** the hopper keeps its items
+#### Scenario: Item pipe feeds the station
+- **WHEN** a duct with the Item Pipe beside the station carries cobblestone toward it
+- **THEN** the duct shows an item arm toward the station and the cobblestone moves into the buffer
 
 #### Scenario: Hopper cannot drain it
 - **WHEN** a hopper under the station points into a chest and the buffer holds bread
 - **THEN** the bread stays in the buffer
 
-#### Scenario: Item pipe beside the station
-- **WHEN** a duct with the Item Pipe is placed beside the station
-- **THEN** the duct shows no item arm toward the station and pushes nothing into it
-
 #### Scenario: Side switched off
-- **WHEN** the player uses the carrot on the back face and a chest behind the station holds bread
-- **THEN** the back is Off and the bread stays in the chest until the back is set to Pull again
+- **WHEN** the player uses the carrot on the top face twice and a hopper above offers cobblestone
+- **THEN** the cobblestone stays in the hopper until the top is set to Input again, and a duct on that face shows no item arm
+
+#### Scenario: Pull from a chest
+- **WHEN** the player sets the back side to Pull and a chest behind the station holds 30 bread
+- **THEN** the bread moves into the buffer and on into the warehouse without a hopper
 
 #### Scenario: Front closed
 - **WHEN** a machine pushes against the station's front
