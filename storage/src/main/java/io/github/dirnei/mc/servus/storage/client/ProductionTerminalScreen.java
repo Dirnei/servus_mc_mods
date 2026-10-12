@@ -50,11 +50,11 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
     private static final int LIST_BOTTOM = Production.LIST.bottom();
     private static final int ORDER_ROW = 18;
     private static final int ROW = 10;
-    private static final int COLOUR_TEXT = 0x404040;
-    private static final int COLOUR_DIM = 0x707070;
-    private static final int COLOUR_ALERT = 0xB03030;
-    private static final int COLOUR_GOOD = 0x2E7D32;
-    private static final int COLOUR_HEAD = 0x1F4E5A;
+    private static final int COLOUR_TEXT = 0xFF404040;
+    private static final int COLOUR_DIM = 0xFF707070;
+    private static final int COLOUR_ALERT = 0xFFB03030;
+    private static final int COLOUR_GOOD = 0xFF2E7D32;
+    private static final int COLOUR_HEAD = 0xFF1F4E5A;
 
     /** Draws one line at its top edge. */
     private interface Painter {
@@ -207,7 +207,7 @@ public class ProductionTerminalScreen extends AbstractContainerScreen<Production
             graphics.fill(x, TAB_Y, x + TAB_WIDTH, TAB_Y + TAB_HEIGHT, active ? 0xFF8B8B8B : 0xFFC6C6C6);
             graphics.outline(x, TAB_Y, TAB_WIDTH, TAB_HEIGHT, 0xFF373737);
             Component label = Component.translatable("gui.servus_storage.production.tab." + tabs.get(i).key());
-            graphics.text(font, label, x + (TAB_WIDTH - font.width(label)) / 2, TAB_Y + 2, active ? 0xFFFFFF : COLOUR_TEXT, false);
+            graphics.text(font, label, x + (TAB_WIDTH - font.width(label)) / 2, TAB_Y + 2, active ? 0xFFFFFFFF : COLOUR_TEXT, false);
         }
     }
 

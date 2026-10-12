@@ -49,9 +49,9 @@ public class FieldHeadScreen extends AbstractContainerScreen<FieldHeadMenu> {
             Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/shuttle_garage.png");
     private static final int MARGIN = 8;
     private static final int WIDTH = 160;
-    private static final int COLOUR_TEXT = 0x404040;
-    private static final int COLOUR_DUE = 0x2E7D32;
-    private static final int COLOUR_WARN = 0xA04000;
+    private static final int COLOUR_TEXT = 0xFF404040;
+    private static final int COLOUR_DUE = 0xFF2E7D32;
+    private static final int COLOUR_WARN = 0xFFA04000;
     private static final int COLOUR_WATER = 0xFF3F76E4;
     private static final int COLOUR_DRY = 0xFF9A8F80;
     private static final int COLOUR_RIPE = 0xFFD8B33A;

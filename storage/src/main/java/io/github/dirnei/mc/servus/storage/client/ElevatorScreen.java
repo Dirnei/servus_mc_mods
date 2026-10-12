@@ -12,7 +12,7 @@ import net.minecraft.world.entity.player.Inventory;
 /** The shaft's Speed upgrade row with a label, and the player inventory. */
 public class ElevatorScreen extends AbstractContainerScreen<ElevatorMenu> {
 
-    private static final int COLOUR_TEXT = 0x404040;
+    private static final int COLOUR_TEXT = 0xFF404040;
     private static final int WIDTH = 176;
 
     public ElevatorScreen(ElevatorMenu menu, Inventory playerInventory, Component title) {

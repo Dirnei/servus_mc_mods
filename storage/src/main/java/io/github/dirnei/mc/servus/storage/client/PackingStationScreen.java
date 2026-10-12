@@ -14,8 +14,8 @@ import net.minecraft.world.entity.player.Inventory;
 /** Two read-only rows, To storage and To network, the upgrade row with the rate, a status line and the player inventory. */
 public class PackingStationScreen extends AbstractContainerScreen<PackingStationMenu> {
 
-    private static final int COLOUR_TEXT = 0x404040;
-    private static final int COLOUR_ALERT = 0xB03030;
+    private static final int COLOUR_TEXT = 0xFF404040;
+    private static final int COLOUR_ALERT = 0xFFB03030;
     private static final int WIDTH = 176;
 
     public PackingStationScreen(PackingStationMenu menu, Inventory playerInventory, Component title) {

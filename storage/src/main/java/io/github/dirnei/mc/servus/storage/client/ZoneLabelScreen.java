@@ -22,7 +22,7 @@ public class ZoneLabelScreen extends AbstractContainerScreen<ZoneLabelMenu> {
             Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/zone_label.png");
     private static final int NAME_Y = 18;
     private static final int TAGS_Y = 62;
-    private static final int COLOUR_TEXT = 0x404040;
+    private static final int COLOUR_TEXT = 0xFF404040;
 
     private EditBox name;
     private EditBox tags;

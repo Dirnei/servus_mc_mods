@@ -58,10 +58,10 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     private static final int COLUMNS = Storage.COLUMNS;
     private static final int CELL = TerminalLayout.CELL;
-    private static final int COLOUR_TEXT = 0x404040;
-    private static final int COLOUR_DIM = 0x707070;
-    private static final int COLOUR_ALERT = 0xB03030;
-    private static final int COLOUR_GOOD = 0x2E7D32;
+    private static final int COLOUR_TEXT = 0xFF404040;
+    private static final int COLOUR_DIM = 0xFF707070;
+    private static final int COLOUR_ALERT = 0xFFB03030;
+    private static final int COLOUR_GOOD = 0xFF2E7D32;
     private static final int PREVIEW_ROWS = 3;
     private static final float DIALOG_Z = 400;
 
@@ -643,7 +643,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
             Component text = !ClientStock.loaded() ? Component.translatable("gui.servus_storage.terminal.loading")
                     : Component.translatable("gui.servus_storage.terminal." + ClientStock.reason());
             Rect grid = layout.grid();
-            graphics.centeredText(font, text, leftPos + grid.x() + grid.w() / 2, topPos + grid.y() + grid.h() / 2 - 4, 0xFFFFFF);
+            graphics.centeredText(font, text, leftPos + grid.x() + grid.w() / 2, topPos + grid.y() + grid.h() / 2 - 4, 0xFFFFFFFF);
             return;
         }
         renderMessage(graphics);
@@ -785,7 +785,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         io.github.dirnei.mc.servus.storage.site.RemoteSite.State state = ClientStock.viewState();
         if (ClientStock.message().isEmpty() && state != null) {
             Component text = Component.translatable("gui.servus_storage.terminal.view." + state.name().toLowerCase(Locale.ROOT), ClientStock.viewName());
-            int colour = state == io.github.dirnei.mc.servus.storage.site.RemoteSite.State.UNREACHABLE ? COLOUR_ALERT : 0x404040;
+            int colour = state == io.github.dirnei.mc.servus.storage.site.RemoteSite.State.UNREACHABLE ? COLOUR_ALERT : 0xFF404040;
             graphics.text(font, font.plainSubstrByWidth(text.getString(), Storage.MESSAGE.w()),
                     leftPos + Storage.MESSAGE.x(), topPos + Storage.MESSAGE.y() + 1, colour, false);
             return;
@@ -924,7 +924,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
         String name = ClientStock.view().isEmpty() ? Component.translatable("gui.servus_storage.terminal.this_site").getString()
                 : ClientStock.viewName();
         String text = font.plainSubstrByWidth("< " + name, layout.title().w() - font.width(" >")) + " >";
-        int colour = overTitle(mouseX, mouseY) ? 0x2050A0 : 0x404040;
+        int colour = overTitle(mouseX, mouseY) ? 0xFF2050A0 : 0xFF404040;
         graphics.text(font, text, titleLabelX, titleLabelY, colour, false);
         graphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF404040, false);
     }

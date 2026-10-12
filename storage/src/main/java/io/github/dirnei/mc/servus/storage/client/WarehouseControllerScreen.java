@@ -22,10 +22,10 @@ import org.lwjgl.glfw.GLFW;
 /** The site GUI of a Warehouse Controller: name, status, chunk map and Chunk Loader Upgrades. */
 public class WarehouseControllerScreen extends AbstractContainerScreen<WarehouseControllerMenu> {
 
-    private static final int COLOUR_TEXT = 0x404040;
-    private static final int COLOUR_GOOD = 0x2E7D32;
-    private static final int COLOUR_BAD = 0xB71C1C;
-    private static final int COLOUR_DIM = 0x707070;
+    private static final int COLOUR_TEXT = 0xFF404040;
+    private static final int COLOUR_GOOD = 0xFF2E7D32;
+    private static final int COLOUR_BAD = 0xFFB71C1C;
+    private static final int COLOUR_DIM = 0xFF707070;
     private static final int CELL = 0xFF4E8A5A;
     private static final int CELL_OVER = 0xFFC0392B;
     private static final int CELL_HOME = 0xFFE0B040;

@@ -19,7 +19,7 @@ public class ShuttleGarageScreen extends AbstractContainerScreen<ShuttleGarageMe
     private static final int BUTTONS_Y = 64;
 
     private Button toggle;
-    private static final int COLOUR_TEXT = 0x404040;
+    private static final int COLOUR_TEXT = 0xFF404040;
     private static final int COLOUR_LOCKED = 0x80FF9A2E;
 
     public ShuttleGarageScreen(ShuttleGarageMenu menu, Inventory playerInventory, Component title) {

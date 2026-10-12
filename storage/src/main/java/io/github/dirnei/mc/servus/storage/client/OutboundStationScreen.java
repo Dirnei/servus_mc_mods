@@ -24,8 +24,8 @@ public class OutboundStationScreen extends AbstractContainerScreen<OutboundStati
 
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "textures/gui/outbound_station.png");
-    private static final int COLOUR_TEXT = 0x404040;
-    private static final int COLOUR_ALERT = 0xB03030;
+    private static final int COLOUR_TEXT = 0xFF404040;
+    private static final int COLOUR_ALERT = 0xFFB03030;
 
     private final SideConfigPanel panel = new SideConfigPanel(menu::sideMode, side -> side == io.github.dirnei.mc.servus.foundation.side.RelativeSide.FRONT, side -> {
         if (minecraft != null && minecraft.gameMode != null) {

@@ -43,9 +43,9 @@ import org.lwjgl.glfw.GLFW;
 public class ShuttleWorkshopScreen extends AbstractContainerScreen<ShuttleWorkshopMenu> {
 
     private static final int COLOUR_PANEL = 0xFFC6C6C6;
-    private static final int COLOUR_TEXT = 0x404040;
-    private static final int COLOUR_MISSING = 0xA02020;
-    private static final int COLOUR_DONE = 0x207020;
+    private static final int COLOUR_TEXT = 0xFF404040;
+    private static final int COLOUR_MISSING = 0xFFA02020;
+    private static final int COLOUR_DONE = 0xFF207020;
     private static final int COLOUR_CLOSED = 0x80373737;
     private static final int COLOUR_BOARD = 0xFF2B2B2B;
     private static final int COLOUR_BOLT_DONE = 0xFF8A8A8A;
