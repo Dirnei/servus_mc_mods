@@ -42,7 +42,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * Packing Stations between a warehouse and a data line. Rails run along z 6 from
- * x 2 to 9 with the controller at x 1 and a crate beside it at x 0, a garage
+ * x 2 to 9 with the controller at x 1, a garage
  * north of the rail at x 2, Packing Stations south of the rail at x 3 (far) and
  * x 7 (near), a rack at x 9 facing the rail, data ducts along z 8 from x 3 to
  * 7 and a Crafting Station south of the ducts at x 5.
@@ -50,7 +50,6 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 public final class PackingStationGameTests {
 
     private static final String EMPTY = "empty_12x6x12";
-    private static final BlockPos CRATE = new BlockPos(0, 1, 6);
     private static final BlockPos CONTROLLER = new BlockPos(1, 1, 6);
     private static final BlockPos GARAGE = new BlockPos(2, 1, 5);
     private static final BlockPos FAR = new BlockPos(3, 1, 7);
@@ -62,7 +61,7 @@ public final class PackingStationGameTests {
     private PackingStationGameTests() {
     }
 
-    private record Setup(CrateBlockEntity crate, CraftingStationBlockEntity station, HeavyRackBlockEntity rack) {
+    private record Setup(CraftingStationBlockEntity station, HeavyRackBlockEntity rack) {
     }
 
     private static void data(GameTestHelper helper, BlockPos pos) {
@@ -85,12 +84,7 @@ public final class PackingStationGameTests {
         helper.setBlock(pos, ServusStorageBlocks.PACKING_STATION.get().defaultBlockState());
     }
 
-    private static Setup setup(GameTestHelper helper, int cratePlanks, int rackPlanks, boolean far, boolean near) {
-        helper.setBlock(CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(CRATE, CrateBlockEntity.class);
-        if (cratePlanks > 0) {
-            crate.insert(new ItemStack(Items.OAK_PLANKS, cratePlanks), false);
-        }
+    private static Setup setup(GameTestHelper helper, int rackPlanks, boolean far, boolean near) {
         helper.setBlock(CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
                 .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
         for (int x = 2; x <= 9; x++) {
@@ -102,7 +96,7 @@ public final class PackingStationGameTests {
         helper.setBlock(RACK, ServusStorageBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.NORTH));
         HeavyRackBlockEntity rack = helper.getBlockEntity(RACK, HeavyRackBlockEntity.class);
         if (rackPlanks > 0) {
-            rack.items().insertItem(0, new ItemStack(Items.OAK_PLANKS, rackPlanks), false);
+            MiniWarehouse.stock(helper, RACK, new ItemStack(Items.OAK_PLANKS, rackPlanks));
         }
         if (far) {
             packingStation(helper, FAR);
@@ -120,7 +114,7 @@ public final class PackingStationGameTests {
         for (int x = 3; x <= 7; x++) {
             data(helper, new BlockPos(x, 1, 8));
         }
-        return new Setup(crate, station, rack);
+        return new Setup(station, rack);
     }
 
     private static int count(ItemSlots handler, Item item) {
@@ -141,7 +135,7 @@ public final class PackingStationGameTests {
     /** Both Packing Stations are link members of the data line. */
     @ServusGameTest(timeoutTicks = 60)
     public static void packingStationIsLinkMember(GameTestHelper helper) {
-        setup(helper, 0, 0, true, true);
+        setup(helper, 0, true, true);
         helper.runAfterDelay(5, () -> {
             DataNetwork network = DataNetworks.networkAt(helper.getLevel(), helper.absolutePos(DUCT)).orElseThrow();
             List<BlockPos> links = network.dataMembers(DataRole.LINK).stream().map(DataMember::pos).toList();
@@ -155,7 +149,7 @@ public final class PackingStationGameTests {
     /** A Packing Station belongs to the warehouse of the rail beside it and holds no stock. */
     @ServusGameTest(timeoutTicks = 60)
     public static void packingStationJoinsWarehouse(GameTestHelper helper) {
-        setup(helper, 8, 0, true, false);
+        setup(helper, 8, true, false);
         helper.runAfterDelay(10, () -> {
             PackingStationBlockEntity point = helper.getBlockEntity(FAR, PackingStationBlockEntity.class);
             point.outgoing().setStackInSlot(0, new ItemStack(Items.DIAMOND, 3));
@@ -167,16 +161,17 @@ public final class PackingStationGameTests {
         });
     }
 
-    /** Planks sent as packets into a Packing Station end up in the crate. */
+    /** Planks sent as packets into a Packing Station end up in the rack by shuttle. */
     @ServusGameTest(timeoutTicks = 300)
     public static void packetsArePutAway(GameTestHelper helper) {
-        Setup setup = setup(helper, 32, 0, true, false);
+        Setup setup = setup(helper, 32, true, false);
         helper.runAfterDelay(10, () -> {
             DataPackets.send(helper.getLevel(), helper.absolutePos(STATION), helper.absolutePos(FAR), new ItemStack(Items.OAK_PLANKS, 16))
                     .orElseThrow(() -> new AssertionError("the send should start"));
             PackingStationBlockEntity point = helper.getBlockEntity(FAR, PackingStationBlockEntity.class);
             helper.succeedWhen(() -> {
-                helper.assertTrue(setup.crate().count(0) == 48, "48 planks should be in the crate, got " + setup.crate().count(0));
+                helper.assertTrue(count(setup.rack().items(), Items.OAK_PLANKS) == 48, "48 planks should be in the rack, got "
+                        + count(setup.rack().items(), Items.OAK_PLANKS));
                 helper.assertTrue(point.isEmpty(), "the intake should be empty again");
             });
         });
@@ -185,8 +180,7 @@ public final class PackingStationGameTests {
     /** Bread put into a Storage Terminal's input travels to the Packing Station and a shuttle puts it into the rack. */
     @ServusGameTest(timeoutTicks = 600)
     public static void inputReachesRack(GameTestHelper helper) {
-        Setup setup = setup(helper, 0, 0, false, true);
-        setup.crate().insert(new ItemStack(Items.COBBLESTONE, setup.crate().capacity()), false);
+        Setup setup = setup(helper, 0, false, true);
         BlockPos terminalPos = new BlockPos(4, 1, 9);
         helper.setBlock(terminalPos, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
                 .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
@@ -201,10 +195,10 @@ public final class PackingStationGameTests {
         });
     }
 
-    /** Planks in a crate are shipped at once to the Packing Station and travel as packets to the station. */
-    @ServusGameTest(timeoutTicks = 300)
-    public static void shipFromCrate(GameTestHelper helper) {
-        Setup setup = setup(helper, 32, 0, true, false);
+    /** Planks in a rack ride a shuttle to the Packing Station and travel as packets to the station; the rest stays in the rack. */
+    @ServusGameTest(timeoutTicks = 600)
+    public static void shipFromRack(GameTestHelper helper) {
+        Setup setup = setup(helper, 32, true, false);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork.Shipping shipping = ship(helper, 16);
             helper.assertTrue(shipping.shipped(), "shipping should start, refused " + shipping.refusal());
@@ -213,7 +207,7 @@ public final class PackingStationGameTests {
             helper.succeedWhen(() -> {
                 helper.assertTrue(count(setup.station().inputs(), Items.OAK_PLANKS) == 16, "16 planks should reach the station");
                 helper.assertTrue(shipment.delivered() == 16 && shipment.ended(), "the shipment should end with 16 delivered");
-                helper.assertTrue(setup.crate().count(0) == 16, "16 planks stay in the crate");
+                helper.assertTrue(count(setup.rack().items(), Items.OAK_PLANKS) == 16, "16 planks stay in the rack");
             });
         });
     }
@@ -221,7 +215,7 @@ public final class PackingStationGameTests {
     /** Planks only in a rack ride a shuttle to the Packing Station first. */
     @ServusGameTest(timeoutTicks = 600)
     public static void shipFromRackByShuttle(GameTestHelper helper) {
-        Setup setup = setup(helper, 0, 16, false, true);
+        Setup setup = setup(helper, 16, false, true);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork.Shipping shipping = ship(helper, 16);
             helper.assertTrue(shipping.shipped(), "shipping should start, refused " + shipping.refusal());
@@ -236,7 +230,7 @@ public final class PackingStationGameTests {
     /** With two Packing Stations the one nearer to the rack serves the shipment. */
     @ServusGameTest(timeoutTicks = 600)
     public static void nearerPackingStationWins(GameTestHelper helper) {
-        Setup setup = setup(helper, 0, 16, true, true);
+        Setup setup = setup(helper, 16, true, true);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork.Shipping shipping = ship(helper, 16);
             helper.assertTrue(shipping.shipped(), "shipping should start, refused " + shipping.refusal());
@@ -250,11 +244,11 @@ public final class PackingStationGameTests {
     /** Without a Packing Station on the data line nothing leaves the warehouse. */
     @ServusGameTest(timeoutTicks = 60)
     public static void shipRefusedWithoutPackingStation(GameTestHelper helper) {
-        Setup setup = setup(helper, 32, 0, false, false);
+        Setup setup = setup(helper, 32, false, false);
         helper.runAfterDelay(10, () -> {
             WarehouseNetwork.Shipping shipping = ship(helper, 16);
             helper.assertTrue(shipping.refusal().equals("no_packing_station"), "refused with no_packing_station, got " + shipping.refusal());
-            helper.assertTrue(setup.crate().count(0) == 32, "the planks stay in the crate");
+            helper.assertTrue(count(setup.rack().items(), Items.OAK_PLANKS) == 32, "the planks stay in the rack");
             helper.succeed();
         });
     }
@@ -304,13 +298,12 @@ public final class PackingStationGameTests {
     /** A shipment of 64 planks leaves the Packing Station at about 8 per second. */
     @ServusGameTest(timeoutTicks = 400)
     public static void drainsAtEightPerSecond(GameTestHelper helper) {
-        Setup setup = setup(helper, 64, 0, true, false);
+        Setup setup = setup(helper, 0, true, false);
         helper.runAfterDelay(10, () -> {
             long start = helper.getTick();
-            WarehouseNetwork.Shipping shipping = ship(helper, 64);
-            helper.assertTrue(shipping.shipped(), "shipping should start, refused " + shipping.refusal());
+            preload(helper, FAR, 64);
             PackingStationBlockEntity point = helper.getBlockEntity(FAR, PackingStationBlockEntity.class);
-            helper.assertTrue(count(point.outgoing(), Items.OAK_PLANKS) == 64, "the picks wait in the To network buffer");
+            helper.assertTrue(count(point.outgoing(), Items.OAK_PLANKS) == 64, "the planks wait in the To network buffer");
             helper.runAfterDelay(80, () -> {
                 int arrived = count(setup.station().inputs(), Items.OAK_PLANKS);
                 helper.assertTrue(arrived >= atLeast(80) && arrived <= atMost(80),
@@ -328,7 +321,7 @@ public final class PackingStationGameTests {
     /** Two Packing Stations each add their own rate. */
     @ServusGameTest(timeoutTicks = 200)
     public static void twoStationsDoubleThroughput(GameTestHelper helper) {
-        setup(helper, 0, 0, true, true);
+        setup(helper, 0, true, true);
         helper.runAfterDelay(10, () -> {
             preload(helper, FAR, 64);
             preload(helper, NEAR, 64);
@@ -347,7 +340,7 @@ public final class PackingStationGameTests {
     /** Items into storage and items out of storage each move at the full rate. */
     @ServusGameTest(timeoutTicks = 200)
     public static void bothDirectionsAtOnce(GameTestHelper helper) {
-        setup(helper, 0, 0, true, false);
+        setup(helper, 0, true, false);
         helper.runAfterDelay(10, () -> {
             preload(helper, FAR, 64);
             io.github.dirnei.mc.servus.foundation.data.packet.Delivery in = DataPackets.send(helper.getLevel(),
@@ -401,7 +394,7 @@ public final class PackingStationGameTests {
     /** One Speed Upgrade doubles the station's rate: about 16 planks per second leave, and the GUI shows 16/s. */
     @ServusGameTest(timeoutTicks = 200)
     public static void speedUpgradeDoubles(GameTestHelper helper) {
-        setup(helper, 0, 0, true, false);
+        setup(helper, 0, true, false);
         PackingStationBlockEntity point = helper.getBlockEntity(FAR, PackingStationBlockEntity.class);
         net.minecraft.world.entity.player.Player player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         io.github.dirnei.mc.servus.storage.menu.PackingStationMenu menu =
@@ -446,7 +439,7 @@ public final class PackingStationGameTests {
     /** A station sending at its full rate shows 8 of 8 to network marked busy and 0 of 8 to storage. */
     @ServusGameTest(timeoutTicks = 200)
     public static void stationRowShowsUse(GameTestHelper helper) {
-        setup(helper, 0, 0, true, false);
+        setup(helper, 0, true, false);
         helper.runAfterDelay(10, () -> {
             preload(helper, FAR, 128);
             helper.runAfterDelay(60, () -> {
@@ -478,8 +471,7 @@ public final class PackingStationGameTests {
     }
 
     private static void inputStack(GameTestHelper helper, boolean wireless) {
-        Setup setup = setup(helper, 0, 0, false, true);
-        setup.crate().insert(new ItemStack(Items.COBBLESTONE, setup.crate().capacity()), false);
+        Setup setup = setup(helper, 0, false, true);
         if (wireless) {
             BlockPos at = new BlockPos(5, 1, 7);
             helper.setBlock(at, ServusStorageBlocks.WIRELESS_PACKING_STATION.get().defaultBlockState());
@@ -509,8 +501,10 @@ public final class PackingStationGameTests {
      */
     @ServusGameTest(timeoutTicks = 1200)
     public static void terminalBesideCrateIsNoStock(GameTestHelper helper) {
-        Setup setup = setup(helper, 0, 0, false, true);
-        setup.crate().insert(new ItemStack(Items.COBBLESTONE, setup.crate().capacity()), false);
+        Setup setup = setup(helper, 0, false, true);
+        helper.setBlock(new BlockPos(0, 1, 6), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
+        CrateBlockEntity crate = helper.getBlockEntity(new BlockPos(0, 1, 6), CrateBlockEntity.class);
+        crate.insert(new ItemStack(Items.COBBLESTONE, crate.capacity()), false);
         BlockPos terminalPos = new BlockPos(0, 1, 7);
         helper.setBlock(terminalPos, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
                 .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
@@ -536,14 +530,13 @@ public final class PackingStationGameTests {
 
     /**
      * A terminal touching the controller and a Wireless Packing Station
-     * touching the crate are no foreign inventories: neither the terminal's
+     * beside it are no foreign inventories: neither the terminal's
      * rows nor the station's buffers count as stock, and the Input row's logs
      * all reach the rack.
      */
     @ServusGameTest(timeoutTicks = 1200)
     public static void terminalBesideControllerIsNoStock(GameTestHelper helper) {
-        Setup setup = setup(helper, 0, 0, false, true);
-        setup.crate().insert(new ItemStack(Items.COBBLESTONE, setup.crate().capacity()), false);
+        Setup setup = setup(helper, 0, false, true);
         BlockPos terminalPos = new BlockPos(1, 1, 7);
         helper.setBlock(terminalPos, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
                 .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
