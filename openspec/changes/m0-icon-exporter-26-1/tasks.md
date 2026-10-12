@@ -8,7 +8,8 @@
 ## 2. Icons
 
 - [x] 2.1 Run `gradlew iconExport` from the worktree; check that every `servus_*` item of `gamedata.json` has a non empty 64x64 PNG, that icons of items unchanged since 1.21.1 match the committed ones in size and roughly in pixels, and that new items (Chunk Loader Upgrade, Wireless Packing Station, Field Head, Harvester) have icons. Commit `docs/src/icons/servus_*`; `git status` lists no vanilla icon.
-- [ ] 2.2 Per mod `runGameTestServer` for Foundation, Manufacturing and Storage stay green; docs tests if anything under `docs/` besides icons changed.
+- [x] 2.2 Per mod `runGameTestServer` for Foundation, Manufacturing and Storage stay green; docs tests if anything under `docs/` besides icons changed.
+  Result: Foundation 98, Manufacturing 174, Storage 463 required GameTests passed; only icons changed under `docs/`, so no docs tests.
 
 ## 3. Check
 
