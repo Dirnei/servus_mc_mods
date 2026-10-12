@@ -11,6 +11,7 @@ import io.github.dirnei.mc.servus.storage.rail.RailBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.outbound.OutboundStationBlock;
 import io.github.dirnei.mc.servus.storage.cpu.CpuBlock;
+import io.github.dirnei.mc.servus.storage.cpu.CpuBufferBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.station.InboundStationBlock;
 import io.github.dirnei.mc.servus.storage.terminal.StorageTerminalBlock;
@@ -144,6 +145,14 @@ public final class ServusStorageBlocks {
             BLOCKS.registerBlock("crafting_cpu", CpuBlock::new,
                     () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.COLOR_CYAN)
+                            .strength(3.0F)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL));
+
+    public static final DeferredBlock<CpuBufferBlock> CPU_BUFFER =
+            BLOCKS.registerBlock("crafting_cpu_buffer", CpuBufferBlock::new,
+                    () -> BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_ORANGE)
                             .strength(3.0F)
                             .requiresCorrectToolForDrops()
                             .sound(SoundType.METAL));

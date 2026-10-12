@@ -185,8 +185,8 @@ public class CpuBlock extends BaseEntityBlock implements Wrenchable {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                               InteractionHand hand, BlockHitResult hitResult) {
-        // The carrot forms the cube and a CPU block places the next one; any other item shows the
-        // summary like a chest, sneaking uses the item.
+        // The carrot forms the box and a CPU or Buffer block places the next one; any other item shows
+        // the summary like a chest, sneaking uses the item.
         boolean cpuBlock = stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof CpuBlock;
         return stack.getItem() instanceof ConfigurationCarrotItem || cpuBlock ? InteractionResult.PASS
                 : InteractionResult.TRY_WITH_EMPTY_HAND;

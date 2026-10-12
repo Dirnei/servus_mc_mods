@@ -57,7 +57,8 @@ public final class ServusStorageBlockEntities {
             BLOCK_ENTITIES.register("crafting_station", () -> new BlockEntityType<>(CraftingStationBlockEntity::new, ServusStorageBlocks.CRAFTING_STATION.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CpuBlockEntity>> CRAFTING_CPU =
-            BLOCK_ENTITIES.register("crafting_cpu", () -> new BlockEntityType<>(CpuBlockEntity::new, ServusStorageBlocks.CRAFTING_CPU.get()));
+            BLOCK_ENTITIES.register("crafting_cpu", () -> new BlockEntityType<>(CpuBlockEntity::new,
+                    ServusStorageBlocks.CRAFTING_CPU.get(), ServusStorageBlocks.CPU_BUFFER.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RailBlockEntity>> RAIL =
             BLOCK_ENTITIES.register("rail", () -> new BlockEntityType<>(RailBlockEntity::new, ServusStorageBlocks.RAIL.get(), ServusStorageBlocks.FARM_RAIL.get()));
