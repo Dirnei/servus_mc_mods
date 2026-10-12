@@ -7,6 +7,7 @@ import net.minecraft.world.level.storage.TagValueInput;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
 import net.minecraft.world.level.block.state.BlockState;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.structure.CopperDuctBlock;
 import io.github.dirnei.mc.servus.manufacturing.alchemy.athanor.AthanorTiers;
@@ -572,6 +573,22 @@ public final class AlchemyGameTests {
         helper.succeed();
     }
 
+    /** A real right click on the crown, through the server's packet handling, lays the item on and takes the result. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void athanorCrownByPlayerClick(GameTestHelper helper) {
+        AthanorBlockEntity athanor = athanor(helper);
+        net.minecraft.server.level.ServerPlayer player = PlayerClicks.player(helper, MACHINE, new ItemStack(Items.GUNPOWDER, 2));
+        PlayerClicks.use(helper, player, MACHINE.above());
+        helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_INPUT).getCount() == 2,
+                "a click on the crown lays the item on the Athanor");
+        helper.assertTrue(player.getMainHandItem().isEmpty(), "the item left the hand");
+        athanor.inventory().setStackInSlot(AthanorBlockEntity.SLOT_OUTPUT, new ItemStack(Items.BLAZE_POWDER));
+        PlayerClicks.use(helper, player, MACHINE.above());
+        helper.assertTrue(player.getInventory().countItem(Items.BLAZE_POWDER) == 1, "an empty hand on the crown takes the result");
+        helper.assertTrue(athanor.inventory().getStackInSlot(AthanorBlockEntity.SLOT_OUTPUT).isEmpty(), "the result is gone");
+        helper.succeed();
+    }
+
     /** Breaking the crown breaks the Athanor below. */
     @ServusGameTest(timeoutTicks = 20)
     public static void breakingTheCrownBreaksTheAthanor(GameTestHelper helper) {
@@ -611,7 +628,7 @@ public final class AlchemyGameTests {
     @ServusGameTest(timeoutTicks = 20)
     public static void elixirGivesElementalSight(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack left = ElementalSight.ELIXIR.get().finishUsingItem(new ItemStack(ElementalSight.ELIXIR.get()), helper.getLevel(), player);
+        ItemStack left = new ItemStack(ElementalSight.ELIXIR.get()).finishUsingItem(helper.getLevel(), player);
         helper.assertTrue(ElementalSight.active(player), "the drinker should have Elemental Sight");
         helper.assertTrue(player.getEffect(ElementalSight.EFFECT).getDuration() == ElementalSight.DURATION, "for three minutes");
         helper.assertTrue(left.is(Items.GLASS_BOTTLE), "a glass bottle should be left, got " + left);

@@ -25,7 +25,7 @@ public final class ElementalSight {
             });
 
     public static final DeferredItem<ElixirOfSightItem> ELIXIR = ITEMS.registerItem("elixir_of_sight", ElixirOfSightItem::new,
-            () -> new Item.Properties().stacksTo(16));
+            ElixirOfSightItem::properties);
 
     private ElementalSight() {
     }
