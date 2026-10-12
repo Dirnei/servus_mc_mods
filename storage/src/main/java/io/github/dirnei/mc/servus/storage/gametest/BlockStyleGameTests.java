@@ -44,6 +44,7 @@ public final class BlockStyleGameTests {
     private static final BlockPos AT = new BlockPos(5, 1, 5);
     private static final Identifier BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
     private static final Identifier SPRUCE = BuiltInRegistries.BLOCK.getKey(Blocks.SPRUCE_PLANKS);
+    private static final Identifier ACACIA = BuiltInRegistries.BLOCK.getKey(Blocks.ACACIA_PLANKS);
 
     private BlockStyleGameTests() {
     }
@@ -107,6 +108,41 @@ public final class BlockStyleGameTests {
                 null, new ItemStack(Items.IRON_PICKAXE));
         helper.assertTrue(drops.size() == 1 && BIRCH.equals(drops.get(0).get(WoodContent.WOOD.get())),
                 "the drop keeps birch, got " + drops);
+        helper.succeed();
+    }
+
+    /** Five acacia planks give an acacia Shuttle Workshop. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void workshopRecipeRecordsAcacia(GameTestHelper helper) {
+        ItemStack result = craft(helper, "shuttle_workshop", 3, 3, grid(
+                Items.IRON_INGOT, Items.IRON_INGOT, Items.IRON_INGOT,
+                Items.ACACIA_PLANKS, Items.CRAFTING_TABLE, Items.ACACIA_PLANKS,
+                Items.ACACIA_PLANKS, Items.ACACIA_PLANKS, Items.ACACIA_PLANKS));
+        helper.assertTrue(result.is(ServusStorageItems.SHUTTLE_WORKSHOP.get()), "a Shuttle Workshop");
+        helper.assertTrue(ACACIA.equals(result.get(WoodContent.WOOD.get())), "acacia planks give acacia, got " + result.get(WoodContent.WOOD.get()));
+        helper.succeed();
+    }
+
+    /** A birch workshop item places a birch workshop, and breaking it drops a birch workshop. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void workshopWoodSurvivesBreak(GameTestHelper helper) {
+        helper.setBlock(AT.below(), Blocks.STONE.defaultBlockState());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack stack = new ItemStack(ServusStorageItems.SHUTTLE_WORKSHOP.get());
+        stack.set(WoodContent.WOOD.get(), BIRCH);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        BlockPos floor = helper.absolutePos(AT.below());
+        stack.useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, stack,
+                new BlockHitResult(Vec3.atCenterOf(floor).add(0, 0.5, 0), Direction.UP, floor, false)));
+        helper.assertBlockPresent(ServusStorageBlocks.SHUTTLE_WORKSHOP.get(), AT);
+        WoodHolder placed = (WoodHolder) helper.getLevel().getBlockEntity(helper.absolutePos(AT));
+        helper.assertTrue(BIRCH.equals(placed.woodSlot().wood()), "the placed workshop is birch, got " + placed.woodSlot().wood());
+        BlockPos pos = helper.absolutePos(AT);
+        List<ItemStack> drops = Block.getDrops(helper.getBlockState(AT), helper.getLevel(), pos, helper.getLevel().getBlockEntity(pos),
+                null, new ItemStack(Items.IRON_AXE));
+        helper.assertTrue(drops.size() == 1 && drops.get(0).is(ServusStorageItems.SHUTTLE_WORKSHOP.get())
+                        && BIRCH.equals(drops.get(0).get(WoodContent.WOOD.get())),
+                "the drop is a birch workshop, got " + drops);
         helper.succeed();
     }
 

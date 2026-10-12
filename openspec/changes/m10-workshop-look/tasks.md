@@ -6,7 +6,7 @@ Paths are relative to `storage/src/main/java/io/github/dirnei/mc/servus/storage/
 
 - [x] 1.1 `shuttle/module/ShuttleWorkshopBlockEntity.java`: implement `WoodHolder` with a `WoodSlot` like `production/ProductionTerminalBlockEntity.java` (save, load, implicit components, `removeComponentsFromTag`, `getModelData`); `ServusStorage.java`: add `SHUTTLE_WORKSHOP` to the `Wood.register` list (design.md D3). Run `gradlew build`.
 - [x] 1.2 Datagen: `datagen/ServusStorageBlockLoot.java` moves the workshop from `SELF_DROPPING` to `WOODEN`; `datagen/ServusStorageRecipeProvider.java` saves the workshop recipe through `WoodRecipes.output(output, registries)`. Run `gradlew :storage:runData` and `gradlew build`.
-- [ ] 1.3 GameTest `gametest/BlockStyleGameTests.java`: `workshopRecipeRecordsAcacia`; extend `woodSurvivesPlaceAndBreak` (or add `workshopWoodSurvivesBreak`) for the workshop. Run the Storage GameTests.
+- [x] 1.3 GameTest `gametest/BlockStyleGameTests.java`: `workshopRecipeRecordsAcacia`; extend `woodSurvivesPlaceAndBreak` (or add `workshopWoodSurvivesBreak`) for the workshop. Run the Storage GameTests.
 
 ## 2. Carrot dismantle
 
