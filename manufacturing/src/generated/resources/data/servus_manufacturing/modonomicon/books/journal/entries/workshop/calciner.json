@@ -1,249 +1,28 @@
 {
-  "background_u_index": 0,
-  "background_v_index": 0,
-  "category": "workshop",
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_manufacturing:workshop",
+  "condition": {
+    "type": "modonomicon:none"
+  },
   "description": "book.servus_manufacturing.journal.workshop.calciner.description",
-  "hide_while_locked": false,
   "icon": {
-    "item": "servus_manufacturing:calciner"
+    "id": "servus_manufacturing:calciner"
+  },
+  "id": "servus_manufacturing:workshop/calciner",
+  "marker_condition": {
+    "type": "modonomicon:none"
   },
   "name": "book.servus_manufacturing.journal.workshop.calciner.name",
-  "pages": [
-    {
-      "type": "modonomicon:spotlight",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "item": {
-        "count": 1,
-        "item": "servus_manufacturing:calciner"
-      },
-      "text": "book.servus_manufacturing.journal.workshop.calciner.machine.text",
-      "title": "book.servus_manufacturing.journal.workshop.calciner.machine.title"
-    },
-    {
-      "type": "modonomicon:multiblock",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "multiblock_id": "calciner",
-      "multiblock_name": "book.servus_manufacturing.journal.workshop.calciner.build.title",
-      "show_visualize_button": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.build.text"
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.parts.text",
-      "title": "book.servus_manufacturing.journal.workshop.calciner.parts.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.parts_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.parts_3.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:crafting_recipe",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "recipe_id_1": "servus_manufacturing:calciner",
-      "recipe_id_2": "servus_manufacturing:calciner_firebox",
-      "text": "book.servus_manufacturing.journal.workshop.calciner.recipe.text",
-      "title1": "",
-      "title2": ""
-    },
-    {
-      "type": "modonomicon:crafting_recipe",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "recipe_id_1": "servus_manufacturing:calciner_ash_pan",
-      "recipe_id_2": "servus_manufacturing:alembic",
-      "text": "book.servus_manufacturing.journal.workshop.calciner.recipe_pan.text",
-      "title1": "",
-      "title2": ""
-    },
-    {
-      "type": "modonomicon:crafting_recipe",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "recipe_id_1": "servus_manufacturing:receiver",
-      "recipe_id_2": "servus_manufacturing:sulfur_hood",
-      "text": "book.servus_manufacturing.journal.workshop.calciner.recipe_receiver.text",
-      "title1": "",
-      "title2": ""
-    },
-    {
-      "type": "modonomicon:crafting_recipe",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "recipe_id_1": "servus_manufacturing:copper_duct",
-      "text": "book.servus_manufacturing.journal.workshop.calciner.recipe_duct.text",
-      "title1": "",
-      "title2": ""
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.waking.text",
-      "title": "book.servus_manufacturing.journal.workshop.calciner.waking.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.waking_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.firing.text",
-      "title": "book.servus_manufacturing.journal.workshop.calciner.firing.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.firing_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.emptying.text",
-      "title": "book.servus_manufacturing.journal.workshop.calciner.emptying.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.emptying_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.emptying_3.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.emptying_4.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.burns.text",
-      "title": "book.servus_manufacturing.journal.workshop.calciner.burns.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.burns_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.calciner.burns_3.text",
-      "title": "",
-      "use_markdown_in_title": false
-    }
-  ],
   "parents": [
     {
-      "draw_arrow": true,
-      "entry": "workshop/principles",
-      "line_enabled": true,
-      "line_reversed": false
+      "entry": "servus_manufacturing:workshop/principles"
     }
   ],
-  "show_when_any_parent_unlocked": false,
   "sort_number": 1,
   "x": -3,
   "y": -2

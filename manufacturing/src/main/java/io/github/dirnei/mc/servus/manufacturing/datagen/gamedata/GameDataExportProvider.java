@@ -251,6 +251,9 @@ public final class GameDataExportProvider implements DataProvider {
     }
 
     private static Stack result(JsonElement element) {
+        if (element.isJsonPrimitive()) {
+            return Stack.item(element.getAsString(), 1);
+        }
         JsonObject object = element.getAsJsonObject();
         return Stack.item(object.get("id").getAsString(), intOr(object, "count", 1));
     }

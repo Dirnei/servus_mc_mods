@@ -1,101 +1,28 @@
 {
-  "background_u_index": 0,
-  "background_v_index": 0,
-  "category": "opus",
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_manufacturing:opus",
+  "condition": {
+    "type": "modonomicon:none"
+  },
   "description": "book.servus_manufacturing.journal.opus.villach.description",
-  "hide_while_locked": false,
   "icon": {
-    "item": "servus_manufacturing:calciner"
+    "id": "servus_manufacturing:calciner"
+  },
+  "id": "servus_manufacturing:opus/villach",
+  "marker_condition": {
+    "type": "modonomicon:none"
   },
   "name": "book.servus_manufacturing.journal.opus.villach.name",
-  "pages": [
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.villach.story.text",
-      "title": "book.servus_manufacturing.journal.opus.villach.story.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.villach.story_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.villach.tasks.text",
-      "title": "book.servus_manufacturing.journal.opus.villach.tasks.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.villach.tasks_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.villach.athanor.text",
-      "title": "book.servus_manufacturing.journal.opus.villach.athanor.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.villach.athanor_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.villach.unlocks.text",
-      "title": "book.servus_manufacturing.journal.opus.villach.unlocks.title",
-      "use_markdown_in_title": false
-    }
-  ],
   "parents": [
     {
-      "draw_arrow": true,
-      "entry": "opus/preface",
-      "line_enabled": true,
-      "line_reversed": false
+      "entry": "servus_manufacturing:opus/preface"
     }
   ],
-  "show_when_any_parent_unlocked": false,
   "sort_number": 1,
   "x": -1,
   "y": 0

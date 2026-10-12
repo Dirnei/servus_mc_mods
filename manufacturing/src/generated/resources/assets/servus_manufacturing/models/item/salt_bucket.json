@@ -1,5 +1,0 @@
-{
-  "parent": "neoforge:item/bucket",
-  "fluid": "servus_manufacturing:salt",
-  "loader": "neoforge:fluid_container"
-}

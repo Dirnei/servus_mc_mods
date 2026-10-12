@@ -1,115 +1,28 @@
 {
-  "background_u_index": 0,
-  "background_v_index": 0,
-  "category": "workshop",
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_manufacturing:workshop",
+  "condition": {
+    "type": "modonomicon:none"
+  },
   "description": "book.servus_manufacturing.journal.workshop.purifier.description",
-  "hide_while_locked": false,
   "icon": {
-    "item": "servus_manufacturing:purifier"
+    "id": "servus_manufacturing:purifier"
+  },
+  "id": "servus_manufacturing:workshop/purifier",
+  "marker_condition": {
+    "type": "modonomicon:none"
   },
   "name": "book.servus_manufacturing.journal.workshop.purifier.name",
-  "pages": [
-    {
-      "type": "modonomicon:spotlight",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "item": {
-        "count": 1,
-        "item": "servus_manufacturing:purifier"
-      },
-      "text": "book.servus_manufacturing.journal.workshop.purifier.machine.text",
-      "title": "book.servus_manufacturing.journal.workshop.purifier.machine.title"
-    },
-    {
-      "type": "modonomicon:multiblock",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "multiblock_id": "purifier",
-      "multiblock_name": "book.servus_manufacturing.journal.workshop.purifier.build.title",
-      "show_visualize_button": true,
-      "text": "book.servus_manufacturing.journal.workshop.purifier.build.text"
-    },
-    {
-      "type": "modonomicon:crafting_recipe",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "recipe_id_1": "servus_manufacturing:purifier",
-      "recipe_id_2": "servus_manufacturing:catch_basin",
-      "text": "book.servus_manufacturing.journal.workshop.purifier.recipe.text",
-      "title1": "",
-      "title2": ""
-    },
-    {
-      "type": "modonomicon:crafting_recipe",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "recipe_id_1": "servus_manufacturing:residue_crock",
-      "text": "book.servus_manufacturing.journal.workshop.purifier.crock.text",
-      "title1": "",
-      "title2": ""
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.purifier.leaching.text",
-      "title": "book.servus_manufacturing.journal.workshop.purifier.leaching.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.purifier.leaching_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.purifier.leaching_3.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.purifier.washes.text",
-      "title": "book.servus_manufacturing.journal.workshop.purifier.washes.title",
-      "use_markdown_in_title": false
-    }
-  ],
   "parents": [
     {
-      "draw_arrow": true,
-      "entry": "workshop/calciner",
-      "line_enabled": true,
-      "line_reversed": false
+      "entry": "servus_manufacturing:workshop/calciner"
     }
   ],
-  "show_when_any_parent_unlocked": false,
   "sort_number": 2,
   "x": 1,
   "y": -2

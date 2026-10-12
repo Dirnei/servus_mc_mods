@@ -1,63 +1,29 @@
 {
-  "background_u_index": 0,
-  "background_v_index": 0,
-  "category": "workshop",
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_manufacturing:workshop",
   "condition": {
-    "type": "modonomicon:advancement",
-    "advancement_id": "servus_manufacturing:journal/villach"
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_manufacturing:journal/villach"
   },
   "description": "book.servus_manufacturing.journal.workshop.salt_crystal_block.description",
-  "hide_while_locked": false,
   "icon": {
-    "item": "servus_manufacturing:salt_crystal_block"
+    "id": "servus_manufacturing:salt_crystal_block"
+  },
+  "id": "servus_manufacturing:workshop/salt_crystal_block",
+  "marker_condition": {
+    "type": "modonomicon:none"
   },
   "name": "book.servus_manufacturing.journal.workshop.salt_crystal_block.name",
-  "pages": [
-    {
-      "type": "modonomicon:spotlight",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "item": {
-        "count": 1,
-        "item": "servus_manufacturing:salt_crystal_block"
-      },
-      "text": "book.servus_manufacturing.journal.workshop.salt_crystal_block.block.text",
-      "title": "book.servus_manufacturing.journal.workshop.salt_crystal_block.block.title"
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.salt_crystal_block.grow.text",
-      "title": "book.servus_manufacturing.journal.workshop.salt_crystal_block.grow.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:multiblock",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "multiblock_id": "athanor_albedo",
-      "multiblock_name": "book.servus_manufacturing.journal.workshop.salt_crystal_block.ring.title",
-      "show_visualize_button": true,
-      "text": "book.servus_manufacturing.journal.workshop.salt_crystal_block.ring.text"
-    }
-  ],
   "parents": [
     {
-      "draw_arrow": true,
-      "entry": "workshop/athanor",
-      "line_enabled": true,
-      "line_reversed": false
+      "entry": "servus_manufacturing:workshop/athanor"
     }
   ],
-  "show_when_any_parent_unlocked": false,
   "sort_number": 6,
   "x": 9,
   "y": 0

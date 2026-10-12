@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "fire",
+  "show_title_separator": true,
+  "sort_number": 8,
+  "text": "book.servus_manufacturing.journal.workshop.athanor.fire.text",
+  "title": "book.servus_manufacturing.journal.workshop.athanor.fire.title"
+}

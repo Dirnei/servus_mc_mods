@@ -2,19 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "minecraft:bricks"
-    },
-    "C": {
-      "item": "minecraft:copper_ingot"
-    }
+    "B": "minecraft:bricks",
+    "C": "minecraft:copper_ingot"
   },
   "pattern": [
     " C ",
     "CBC"
   ],
   "result": {
-    "count": 1,
     "id": "servus_manufacturing:sulfur_hood"
   }
 }

@@ -2,7 +2,7 @@
   "type": "servus_manufacturing:calcination",
   "input": {
     "count": 1,
-    "tag": "minecraft:leaves"
+    "ingredient": "#minecraft:leaves"
   },
   "output": {
     "mercury": 20,

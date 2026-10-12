@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.datagen;
 
+import net.minecraft.world.item.ItemStackTemplate;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.item.Item;
@@ -13,7 +14,6 @@ import io.github.dirnei.mc.servus.manufacturing.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.manufacturing.registry.ServusManufacturingItems;
 import java.util.List;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.common.Tags;
@@ -51,16 +51,16 @@ public final class AlchemyRecipeTable {
     }
 
     /** One coagulation: the principles it takes and what it makes. */
-    public record Coagulate(String name, String label, Principles input, ItemStack result) {
+    public record Coagulate(String name, String label, Principles input, ItemStackTemplate result) {
     }
 
     /** One Athanor craft: the item laid on it, the principles it burns, the stage it needs and the result. */
     public record AthanorCraft(String name, String inputLabel, String resultLabel, Input input, Principles principles,
-                               int tier, ItemStack result, int time) {
+                               int tier, ItemStackTemplate result, int time) {
     }
 
     /** One purification: an item leached with water into Salt. */
-    public record Purify(String name, String label, Input input, int count, int water, int salt, ItemStack residue, int time) {
+    public record Purify(String name, String label, Input input, int count, int water, int salt, ItemStackTemplate residue, int time) {
     }
 
     private AlchemyRecipeTable() {
@@ -88,37 +88,37 @@ public final class AlchemyRecipeTable {
     /** What the Purifier leaches into Salt: the Ash of the Calciner. */
     public static List<Purify> purification() {
         return List.of(new Purify("ash", "Ash", Input.of(ServusManufacturingItems.ASH.get()), 4, 400, 400,
-                new ItemStack(ServusManufacturingItems.CAPUT_MORTUUM.get()), 160));
+                new ItemStackTemplate(ServusManufacturingItems.CAPUT_MORTUUM.get()), 160));
     }
 
     /** What the Coagulator makes from the principles; no metal in Nigredo. */
     public static List<Coagulate> coagulation() {
         return List.of(
-                new Coagulate("salt_crystal", "Salt Crystal", new Principles(250, 0, 0), new ItemStack(ServusManufacturingItems.SALT_CRYSTAL.get())),
-                new Coagulate("sulfur", "Sulfur", new Principles(0, 250, 0), new ItemStack(ServusManufacturingItems.SULFUR.get())),
-                new Coagulate("quicksilver", "Quicksilver", new Principles(0, 0, 250), new ItemStack(ServusManufacturingItems.QUICKSILVER.get())),
-                new Coagulate("clay_ball", "Clay Ball", new Principles(100, 0, 50), new ItemStack(Items.CLAY_BALL)),
-                new Coagulate("flint", "Flint", new Principles(150, 0, 0), new ItemStack(Items.FLINT)),
-                new Coagulate("gunpowder", "Gunpowder", new Principles(50, 150, 0), new ItemStack(Items.GUNPOWDER)),
-                new Coagulate("redstone", "Redstone", new Principles(50, 0, 150), new ItemStack(Items.REDSTONE)),
-                new Coagulate("glowstone_dust", "Glowstone Dust", new Principles(0, 100, 100), new ItemStack(Items.GLOWSTONE_DUST)),
-                new Coagulate("bone_meal", "Bone Meal", new Principles(60, 20, 0), new ItemStack(Items.BONE_MEAL)),
-                new Coagulate("slime_ball", "Slimeball", new Principles(0, 50, 150), new ItemStack(Items.SLIME_BALL)));
+                new Coagulate("salt_crystal", "Salt Crystal", new Principles(250, 0, 0), new ItemStackTemplate(ServusManufacturingItems.SALT_CRYSTAL.get())),
+                new Coagulate("sulfur", "Sulfur", new Principles(0, 250, 0), new ItemStackTemplate(ServusManufacturingItems.SULFUR.get())),
+                new Coagulate("quicksilver", "Quicksilver", new Principles(0, 0, 250), new ItemStackTemplate(ServusManufacturingItems.QUICKSILVER.get())),
+                new Coagulate("clay_ball", "Clay Ball", new Principles(100, 0, 50), new ItemStackTemplate(Items.CLAY_BALL)),
+                new Coagulate("flint", "Flint", new Principles(150, 0, 0), new ItemStackTemplate(Items.FLINT)),
+                new Coagulate("gunpowder", "Gunpowder", new Principles(50, 150, 0), new ItemStackTemplate(Items.GUNPOWDER)),
+                new Coagulate("redstone", "Redstone", new Principles(50, 0, 150), new ItemStackTemplate(Items.REDSTONE)),
+                new Coagulate("glowstone_dust", "Glowstone Dust", new Principles(0, 100, 100), new ItemStackTemplate(Items.GLOWSTONE_DUST)),
+                new Coagulate("bone_meal", "Bone Meal", new Principles(60, 20, 0), new ItemStackTemplate(Items.BONE_MEAL)),
+                new Coagulate("slime_ball", "Slimeball", new Principles(0, 50, 150), new ItemStackTemplate(Items.SLIME_BALL)));
     }
 
     /** Crafts on the Athanor. */
     public static List<AthanorCraft> athanor() {
         return List.of(
                 new AthanorCraft("salt_crystal_block", "Salt Crystal", "Salt Crystal Block", Input.of(ServusManufacturingItems.SALT_CRYSTAL.get()),
-                        new Principles(1000, 0, 0), 0, new ItemStack(ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get()), AthanorRecipe.DEFAULT_TIME),
+                        new Principles(1000, 0, 0), 0, new ItemStackTemplate(ServusManufacturingItems.SALT_CRYSTAL_BLOCK.get()), AthanorRecipe.DEFAULT_TIME),
                 new AthanorCraft("blaze_powder", "Gunpowder", "Blaze Powder", Input.of(Items.GUNPOWDER),
-                        new Principles(0, 200, 0), 0, new ItemStack(Items.BLAZE_POWDER), AthanorRecipe.DEFAULT_TIME),
+                        new Principles(0, 200, 0), 0, new ItemStackTemplate(Items.BLAZE_POWDER), AthanorRecipe.DEFAULT_TIME),
                 new AthanorCraft("experience_bottle", "Glass Bottle", "Bottle o' Enchanting", Input.of(Items.GLASS_BOTTLE),
-                        new Principles(50, 0, 100), 1, new ItemStack(Items.EXPERIENCE_BOTTLE), AthanorRecipe.DEFAULT_TIME),
+                        new Principles(50, 0, 100), 1, new ItemStackTemplate(Items.EXPERIENCE_BOTTLE), AthanorRecipe.DEFAULT_TIME),
                 new AthanorCraft("elixir_of_sight", "Quicksilver", "Elixir of Sight", Input.of(ServusManufacturingItems.QUICKSILVER.get()),
-                        new Principles(100, 100, 250), 1, new ItemStack(ElementalSight.ELIXIR.get()), 200),
+                        new Principles(100, 100, 250), 1, new ItemStackTemplate(ElementalSight.ELIXIR.get()), 200),
                 new AthanorCraft("gnome_hollow", "Cracked Stone Bricks", "Gnome Hollow", Input.of(Items.CRACKED_STONE_BRICKS),
-                        new Principles(500, 0, 250), 1, new ItemStack(ServusManufacturingItems.GNOME_HOLLOW.get()), 200));
+                        new Principles(500, 0, 250), 1, new ItemStackTemplate(ServusManufacturingItems.GNOME_HOLLOW.get()), 200));
     }
 
     /** The English name of an Athanor stage. */
@@ -130,4 +130,18 @@ public final class AlchemyRecipeTable {
             default -> "Rubedo";
         };
     }
+
+    /** An item's English name from its id path, for the journal's tables: caput_mortuum gives Caput Mortuum. */
+    public static String label(ItemStackTemplate stack) {
+        String path = stack.item().unwrapKey().orElseThrow().identifier().getPath();
+        StringBuilder out = new StringBuilder();
+        for (String word : path.split("_")) {
+            if (!out.isEmpty()) {
+                out.append(' ');
+            }
+            out.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return out.toString();
+    }
+
 }

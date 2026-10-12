@@ -19,7 +19,6 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
-import io.github.dirnei.mc.servus.manufacturing.journal.JournalBookItem;
 import net.minecraft.world.item.Items;
 
 final class ServusManufacturingRecipeProvider extends RecipeProvider {
@@ -52,7 +51,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
         calcination(output);
         for (AlchemyRecipeTable.Purify row : AlchemyRecipeTable.purification()) {
             output.accept(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusManufacturingIds.MOD_ID, "purification/" + row.name())),
-                    new PurificationRecipe(new SizedIngredient(row.input().ingredient(items), row.count()), row.water(), row.salt(), row.residue(), row.time()), null);
+                    new PurificationRecipe(new SizedIngredient(row.input().ingredient(items), row.count()), row.water(), row.salt(), Optional.of(row.residue()), row.time()), null);
         }
         coagulation(output);
         athanor(output);
@@ -189,7 +188,7 @@ final class ServusManufacturingRecipeProvider extends RecipeProvider {
                 .save(output);
 
         // Paracelsus' Journal: a book and a piece of coal, the first fire.
-        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.MISC, net.minecraft.world.item.ItemStackTemplate.fromNonEmptyStack(JournalBookItem.create()))
+        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.MISC, ServusManufacturingItems.PARACELSUS_JOURNAL.get())
                 .requires(Items.BOOK)
                 .requires(ItemTags.COALS)
                 .unlockedBy("has_book", has(Items.BOOK))

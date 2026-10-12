@@ -56,13 +56,24 @@ public final class CraftingRecipeReader {
         return new Crafting(id, type, true, null, null, List.of(), List.of());
     }
 
-    /** An item or tag ingredient. A list keeps its first entry; other ingredient types give null. */
+    /**
+     * An item or tag ingredient: {@code "minecraft:stick"} or {@code "#minecraft:planks"} (1.21.2 and later),
+     * a sized {@code {"ingredient": ..., "count": n}} or the old {@code {"item": ...}} and {@code {"tag": ...}}
+     * objects. A list keeps its first entry; other ingredient types give null.
+     */
     static Stack ingredient(JsonElement element, int count) {
         if (element.isJsonArray()) {
             JsonArray array = element.getAsJsonArray();
             return array.isEmpty() ? null : ingredient(array.get(0), count);
         }
+        if (element.isJsonPrimitive()) {
+            String id = element.getAsString();
+            return id.startsWith("#") ? Stack.tag(id.substring(1), count) : Stack.item(id, count);
+        }
         JsonObject object = element.getAsJsonObject();
+        if (object.has("ingredient")) {
+            return ingredient(object.get("ingredient"), count);
+        }
         if (object.has("tag")) {
             return Stack.tag(object.get("tag").getAsString(), count);
         }
@@ -75,6 +86,9 @@ public final class CraftingRecipeReader {
     private static List<Stack> outputs(JsonObject json) {
         if (!json.has("result")) {
             return List.of();
+        }
+        if (json.get("result").isJsonPrimitive()) {
+            return List.of(Stack.item(json.get("result").getAsString(), 1));
         }
         JsonObject result = json.getAsJsonObject("result");
         int count = result.has("count") ? result.get("count").getAsInt() : 1;

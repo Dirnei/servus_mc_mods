@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:multiblock",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "build",
+  "multiblock_id": "servus_manufacturing:athanor_nigredo",
+  "multiblock_name": "book.servus_manufacturing.journal.workshop.athanor.build.title",
+  "show_visualize_button": true,
+  "sort_number": 1,
+  "text": "book.servus_manufacturing.journal.workshop.athanor.build.text"
+}

@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:crafting_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "crock",
+  "recipe_id_1": "servus_manufacturing:residue_crock",
+  "sort_number": 3,
+  "text": "book.servus_manufacturing.journal.workshop.purifier.crock.text"
+}

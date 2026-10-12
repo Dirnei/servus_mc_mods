@@ -2,13 +2,12 @@
   "type": "servus_manufacturing:athanor",
   "input": {
     "count": 1,
-    "item": "servus_manufacturing:salt_crystal"
+    "ingredient": "servus_manufacturing:salt_crystal"
   },
   "principles": {
     "salt": 1000
   },
   "result": {
-    "count": 1,
     "id": "servus_manufacturing:salt_crystal_block"
   }
 }

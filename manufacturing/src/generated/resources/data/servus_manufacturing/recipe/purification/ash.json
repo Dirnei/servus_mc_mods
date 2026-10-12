@@ -2,10 +2,9 @@
   "type": "servus_manufacturing:purification",
   "input": {
     "count": 4,
-    "item": "servus_manufacturing:ash"
+    "ingredient": "servus_manufacturing:ash"
   },
   "residue": {
-    "count": 1,
     "id": "servus_manufacturing:caput_mortuum"
   },
   "salt": 400,

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.athanor;
 
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.PlacementInfo;
@@ -26,10 +27,10 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
  * @param input      the item lying on the Athanor, with count
  * @param principles what the craft burns from the tanks
  * @param tier       the lowest tier of the structure that allows it
- * @param result     what it makes
+ * @param resultTemplate what it makes
  * @param time       ticks per craft
  */
-public record AthanorRecipe(SizedIngredient input, Principles principles, int tier, ItemStack result, int time)
+public record AthanorRecipe(SizedIngredient input, Principles principles, int tier, ItemStackTemplate resultTemplate, int time)
         implements Recipe<SingleRecipeInput> {
 
     public static final int DEFAULT_TIME = 100;
@@ -38,7 +39,7 @@ public record AthanorRecipe(SizedIngredient input, Principles principles, int ti
             SizedIngredient.NESTED_CODEC.fieldOf("input").forGetter(AthanorRecipe::input),
             PrincipleCodecs.CODEC.optionalFieldOf("principles", Principles.NONE).forGetter(AthanorRecipe::principles),
             Codec.intRange(0, 3).optionalFieldOf("tier", 0).forGetter(AthanorRecipe::tier),
-            ItemStack.CODEC.fieldOf("result").forGetter(AthanorRecipe::result),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(AthanorRecipe::resultTemplate),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(AthanorRecipe::time)
     ).apply(instance, AthanorRecipe::new));
 
@@ -46,9 +47,14 @@ public record AthanorRecipe(SizedIngredient input, Principles principles, int ti
             SizedIngredient.STREAM_CODEC, AthanorRecipe::input,
             PrincipleCodecs.STREAM_CODEC.cast(), AthanorRecipe::principles,
             ByteBufCodecs.VAR_INT, AthanorRecipe::tier,
-            ItemStack.STREAM_CODEC, AthanorRecipe::result,
+            ItemStackTemplate.STREAM_CODEC, AthanorRecipe::resultTemplate,
             ByteBufCodecs.VAR_INT, AthanorRecipe::time,
             AthanorRecipe::new);
+
+    /** A new stack of what it makes. Recipes hold templates since 1.21.5; stacks need bound item components. */
+    public ItemStack result() {
+        return resultTemplate.create();
+    }
 
     @Override
     public boolean matches(SingleRecipeInput recipeInput, Level level) {
@@ -63,7 +69,7 @@ public record AthanorRecipe(SizedIngredient input, Principles principles, int ti
 
     @Override
     public ItemStack assemble(SingleRecipeInput recipeInput) {
-        return result.copy();
+        return result();
     }
 
     @Override

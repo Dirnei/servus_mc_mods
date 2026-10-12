@@ -1,38 +1,23 @@
 {
-  "background_u_index": 0,
-  "background_v_index": 0,
-  "category": "opus",
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_manufacturing:opus",
+  "condition": {
+    "type": "modonomicon:none"
+  },
   "description": "book.servus_manufacturing.journal.opus.preface.description",
-  "hide_while_locked": false,
   "icon": {
-    "item": "minecraft:writable_book"
+    "id": "minecraft:writable_book"
+  },
+  "id": "servus_manufacturing:opus/preface",
+  "marker_condition": {
+    "type": "modonomicon:none"
   },
   "name": "book.servus_manufacturing.journal.opus.preface.name",
-  "pages": [
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.preface.intro.text",
-      "title": "book.servus_manufacturing.journal.opus.preface.intro.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.preface.intro_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    }
-  ],
-  "show_when_any_parent_unlocked": false,
   "sort_number": 0,
   "x": -5,
   "y": 0

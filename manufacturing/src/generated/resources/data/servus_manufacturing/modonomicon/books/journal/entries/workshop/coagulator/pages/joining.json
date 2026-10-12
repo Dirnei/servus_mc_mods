@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "joining",
+  "show_title_separator": true,
+  "sort_number": 5,
+  "text": "book.servus_manufacturing.journal.workshop.coagulator.joining.text",
+  "title": "book.servus_manufacturing.journal.workshop.coagulator.joining.title"
+}

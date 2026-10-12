@@ -2,19 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "minecraft:bricks"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    }
+    "B": "minecraft:bricks",
+    "I": "minecraft:iron_ingot"
   },
   "pattern": [
     "B B",
     "BIB"
   ],
   "result": {
-    "count": 1,
     "id": "servus_manufacturing:calciner_ash_pan"
   }
 }

@@ -1,60 +1,23 @@
 {
-  "background_u_index": 0,
-  "background_v_index": 0,
-  "category": "workshop",
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_manufacturing:workshop",
+  "condition": {
+    "type": "modonomicon:none"
+  },
   "description": "book.servus_manufacturing.journal.workshop.principles.description",
-  "hide_while_locked": false,
   "icon": {
-    "item": "servus_manufacturing:salt_bucket"
+    "id": "servus_manufacturing:salt_bucket"
+  },
+  "id": "servus_manufacturing:workshop/principles",
+  "marker_condition": {
+    "type": "modonomicon:none"
   },
   "name": "book.servus_manufacturing.journal.workshop.principles.name",
-  "pages": [
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.principles.three.text",
-      "title": "book.servus_manufacturing.journal.workshop.principles.three.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.principles.three_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.principles.keeping.text",
-      "title": "book.servus_manufacturing.journal.workshop.principles.keeping.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.principles.keeping_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    }
-  ],
-  "show_when_any_parent_unlocked": false,
   "sort_number": 0,
   "x": -7,
   "y": -2

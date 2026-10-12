@@ -1,105 +1,29 @@
 {
-  "background_u_index": 0,
-  "background_v_index": 0,
-  "category": "opus",
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_manufacturing:opus",
   "condition": {
-    "type": "modonomicon:advancement",
-    "advancement_id": "servus_manufacturing:journal/villach"
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_manufacturing:journal/villach"
   },
   "description": "book.servus_manufacturing.journal.opus.schwaz.description",
-  "hide_while_locked": false,
   "icon": {
-    "item": "minecraft:iron_pickaxe"
+    "id": "minecraft:iron_pickaxe"
+  },
+  "id": "servus_manufacturing:opus/schwaz",
+  "marker_condition": {
+    "type": "modonomicon:none"
   },
   "name": "book.servus_manufacturing.journal.opus.schwaz.name",
-  "pages": [
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.schwaz.story.text",
-      "title": "book.servus_manufacturing.journal.opus.schwaz.story.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.schwaz.story_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.schwaz.tasks.text",
-      "title": "book.servus_manufacturing.journal.opus.schwaz.tasks.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.schwaz.tasks_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.schwaz.tasks_3.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.schwaz.tasks_4.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.opus.schwaz.tasks_5.text",
-      "title": "",
-      "use_markdown_in_title": false
-    }
-  ],
   "parents": [
     {
-      "draw_arrow": true,
-      "entry": "opus/villach",
-      "line_enabled": true,
-      "line_reversed": false
+      "entry": "servus_manufacturing:opus/villach"
     }
   ],
-  "show_when_any_parent_unlocked": false,
   "sort_number": 2,
   "x": 3,
   "y": 0

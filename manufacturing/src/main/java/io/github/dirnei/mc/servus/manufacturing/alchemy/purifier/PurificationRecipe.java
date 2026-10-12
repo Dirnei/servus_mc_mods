@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy.purifier;
 
+import java.util.Optional;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.PlacementInfo;
@@ -24,10 +26,10 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
  * @param input what is consumed, with count
  * @param water mB of water it takes
  * @param salt    mB of Salt it makes
- * @param residue what stays behind in the vat, empty for nothing
+ * @param residueTemplate what stays behind in the vat, empty for nothing
  * @param time    ticks per cycle
  */
-public record PurificationRecipe(SizedIngredient input, int water, int salt, ItemStack residue, int time) implements Recipe<SingleRecipeInput> {
+public record PurificationRecipe(SizedIngredient input, int water, int salt, Optional<ItemStackTemplate> residueTemplate, int time) implements Recipe<SingleRecipeInput> {
 
     public static final int DEFAULT_TIME = 40;
 
@@ -35,7 +37,7 @@ public record PurificationRecipe(SizedIngredient input, int water, int salt, Ite
             SizedIngredient.NESTED_CODEC.fieldOf("input").forGetter(PurificationRecipe::input),
             Codec.INT.fieldOf("water").forGetter(PurificationRecipe::water),
             Codec.INT.fieldOf("salt").forGetter(PurificationRecipe::salt),
-            ItemStack.OPTIONAL_CODEC.optionalFieldOf("residue", ItemStack.EMPTY).forGetter(PurificationRecipe::residue),
+            ItemStackTemplate.CODEC.optionalFieldOf("residue").forGetter(PurificationRecipe::residueTemplate),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(PurificationRecipe::time)
     ).apply(instance, PurificationRecipe::new));
 
@@ -43,9 +45,14 @@ public record PurificationRecipe(SizedIngredient input, int water, int salt, Ite
             SizedIngredient.STREAM_CODEC, PurificationRecipe::input,
             ByteBufCodecs.VAR_INT, PurificationRecipe::water,
             ByteBufCodecs.VAR_INT, PurificationRecipe::salt,
-            ItemStack.OPTIONAL_STREAM_CODEC, PurificationRecipe::residue,
+            ByteBufCodecs.optional(ItemStackTemplate.STREAM_CODEC), PurificationRecipe::residueTemplate,
             ByteBufCodecs.VAR_INT, PurificationRecipe::time,
             PurificationRecipe::new);
+
+    /** A new stack of what stays behind, empty for nothing. */
+    public ItemStack residue() {
+        return residueTemplate.map(ItemStackTemplate::create).orElse(ItemStack.EMPTY);
+    }
 
     @Override
     public boolean matches(SingleRecipeInput recipeInput, Level level) {

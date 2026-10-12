@@ -2,7 +2,7 @@
   "type": "servus_manufacturing:calcination",
   "input": {
     "count": 1,
-    "tag": "minecraft:planks"
+    "ingredient": "#minecraft:planks"
   },
   "output": {
     "salt": 5,

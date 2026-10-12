@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "leaching",
+  "show_title_separator": true,
+  "sort_number": 4,
+  "text": "book.servus_manufacturing.journal.workshop.purifier.leaching.text",
+  "title": "book.servus_manufacturing.journal.workshop.purifier.leaching.title"
+}

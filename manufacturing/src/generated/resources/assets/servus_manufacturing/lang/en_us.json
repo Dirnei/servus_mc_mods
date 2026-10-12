@@ -162,7 +162,7 @@
   "book.servus_manufacturing.journal.workshop.purifier.machine.title": "The Purifier",
   "book.servus_manufacturing.journal.workshop.purifier.name": "The Purifier",
   "book.servus_manufacturing.journal.workshop.purifier.recipe.text": "The Leaching Vat and the Catch Basin.",
-  "book.servus_manufacturing.journal.workshop.purifier.washes.text": "- 4 Ash and 400 mB water: 400 Salt and 1 item.servus_manufacturing.caput_mortuum",
+  "book.servus_manufacturing.journal.workshop.purifier.washes.text": "- 4 Ash and 400 mB water: 400 Salt and 1 Caput Mortuum",
   "book.servus_manufacturing.journal.workshop.purifier.washes.title": "What It Washes",
   "book.servus_manufacturing.journal.workshop.salt_crystal_block.block.text": "A Salt Crystal grown whole on the Athanor. Twelve of them around its hearth make its flame white.",
   "book.servus_manufacturing.journal.workshop.salt_crystal_block.block.title": "Salt Crystal Block",
@@ -259,5 +259,6 @@
   "message.servus_manufacturing.purifier.at.itself": "here",
   "message.servus_manufacturing.purifier.at.on_the_other_side_of_the_log": "on the other side of the log",
   "message.servus_manufacturing.purifier.formed": "The Purifier is ready.",
-  "message.servus_manufacturing.purifier.missing": "The Purifier is not complete: %s needed %s. The Purifier page of Paracelsus' Journal shows the build."
+  "message.servus_manufacturing.purifier.missing": "The Purifier is not complete: %s needed %s. The Purifier page of Paracelsus' Journal shows the build.",
+  "research_node.servus_manufacturing.journal.villach": "The Villach chapter"
 }

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.manufacturing.alchemy;
 
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.PlacementInfo;
@@ -25,11 +26,11 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
  *
  * @param input      the principles it takes
  * @param ingredient the item it takes as well, if any
- * @param result     what it makes
+ * @param resultTemplate what it makes
  * @param time       ticks per cycle
  * @param chapter    the journal chapter a team must have finished to select this recipe, if any
  */
-public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingredient, ItemStack result, int time,
+public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingredient, ItemStackTemplate resultTemplate, int time,
                                 Optional<Identifier> chapter)
         implements Recipe<SingleRecipeInput> {
 
@@ -38,7 +39,7 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
     public static final MapCodec<CoagulationRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             PrincipleCodecs.CODEC.fieldOf("input").forGetter(CoagulationRecipe::input),
             SizedIngredient.NESTED_CODEC.optionalFieldOf("ingredient").forGetter(CoagulationRecipe::ingredient),
-            ItemStack.CODEC.fieldOf("result").forGetter(CoagulationRecipe::result),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(CoagulationRecipe::resultTemplate),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(CoagulationRecipe::time),
             Identifier.CODEC.optionalFieldOf("chapter").forGetter(CoagulationRecipe::chapter)
     ).apply(instance, CoagulationRecipe::new));
@@ -46,7 +47,7 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
     public static final StreamCodec<RegistryFriendlyByteBuf, CoagulationRecipe> STREAM_CODEC = StreamCodec.composite(
             PrincipleCodecs.STREAM_CODEC.cast(), CoagulationRecipe::input,
             ByteBufCodecs.optional(SizedIngredient.STREAM_CODEC), CoagulationRecipe::ingredient,
-            ItemStack.STREAM_CODEC, CoagulationRecipe::result,
+            ItemStackTemplate.STREAM_CODEC, CoagulationRecipe::resultTemplate,
             ByteBufCodecs.VAR_INT, CoagulationRecipe::time,
             ByteBufCodecs.optional(Identifier.STREAM_CODEC), CoagulationRecipe::chapter,
             CoagulationRecipe::new);
@@ -62,6 +63,11 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
         return ingredient.map(sized -> sized.ingredient().test(stack)).orElse(false);
     }
 
+    /** A new stack of what it makes. Recipes hold templates since 1.21.5; stacks need bound item components. */
+    public ItemStack result() {
+        return resultTemplate.create();
+    }
+
     @Override
     public boolean matches(SingleRecipeInput recipeInput, Level level) {
         return itemReady(recipeInput.item());
@@ -69,7 +75,7 @@ public record CoagulationRecipe(Principles input, Optional<SizedIngredient> ingr
 
     @Override
     public ItemStack assemble(SingleRecipeInput recipeInput) {
-        return result.copy();
+        return result();
     }
 
     @Override

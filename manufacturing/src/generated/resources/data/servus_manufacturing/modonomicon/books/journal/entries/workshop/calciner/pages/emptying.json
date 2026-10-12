@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "emptying",
+  "show_title_separator": true,
+  "sort_number": 13,
+  "text": "book.servus_manufacturing.journal.workshop.calciner.emptying.text",
+  "title": "book.servus_manufacturing.journal.workshop.calciner.emptying.title"
+}

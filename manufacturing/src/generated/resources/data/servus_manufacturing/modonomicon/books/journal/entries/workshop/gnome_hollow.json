@@ -1,74 +1,29 @@
 {
-  "background_u_index": 0,
-  "background_v_index": 0,
-  "category": "workshop",
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_manufacturing:workshop",
   "condition": {
-    "type": "modonomicon:advancement",
-    "advancement_id": "servus_manufacturing:journal/villach"
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "servus_manufacturing:journal/villach"
   },
   "description": "book.servus_manufacturing.journal.workshop.gnome_hollow.description",
-  "hide_while_locked": false,
   "icon": {
-    "item": "servus_manufacturing:gnome_hollow"
+    "id": "servus_manufacturing:gnome_hollow"
+  },
+  "id": "servus_manufacturing:workshop/gnome_hollow",
+  "marker_condition": {
+    "type": "modonomicon:none"
   },
   "name": "book.servus_manufacturing.journal.workshop.gnome_hollow.name",
-  "pages": [
-    {
-      "type": "modonomicon:spotlight",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "item": {
-        "count": 1,
-        "item": "servus_manufacturing:gnome_hollow"
-      },
-      "text": "book.servus_manufacturing.journal.workshop.gnome_hollow.hollow.text",
-      "title": "book.servus_manufacturing.journal.workshop.gnome_hollow.hollow.title"
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.gnome_hollow.making.text",
-      "title": "book.servus_manufacturing.journal.workshop.gnome_hollow.making.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.gnome_hollow.growing.text",
-      "title": "book.servus_manufacturing.journal.workshop.gnome_hollow.growing.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.gnome_hollow.growing_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    }
-  ],
   "parents": [
     {
-      "draw_arrow": true,
-      "entry": "workshop/elixir_of_sight",
-      "line_enabled": true,
-      "line_reversed": false
+      "entry": "servus_manufacturing:workshop/elixir_of_sight"
     }
   ],
-  "show_when_any_parent_unlocked": false,
   "sort_number": 8,
   "x": 9,
   "y": 2

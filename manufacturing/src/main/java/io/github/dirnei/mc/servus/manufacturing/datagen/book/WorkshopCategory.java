@@ -128,7 +128,7 @@ final class WorkshopCategory extends CategoryProvider {
                             + "Great Work is worthless forever.");
             e.list("washes", "What It Washes", AlchemyRecipeTable.purification().stream()
                     .map(row -> row.count() + " " + row.label() + " and " + row.water() + " mB water: " + row.salt() + " Salt"
-                            + (row.residue().isEmpty() ? "" : " and " + row.residue().getCount() + " " + row.residue().getHoverName().getString()))
+                            + " and " + row.residue().count() + " " + AlchemyRecipeTable.label(row.residue()))
                     .toList());
         });
     }

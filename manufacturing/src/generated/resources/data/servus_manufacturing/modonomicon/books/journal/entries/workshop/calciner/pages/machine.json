@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "machine",
+  "item": {
+    "id": "servus_manufacturing:calciner"
+  },
+  "sort_number": 0,
+  "text": "book.servus_manufacturing.journal.workshop.calciner.machine.text",
+  "title": "book.servus_manufacturing.journal.workshop.calciner.machine.title"
+}

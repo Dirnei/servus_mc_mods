@@ -2,14 +2,13 @@
   "type": "servus_manufacturing:athanor",
   "input": {
     "count": 1,
-    "item": "minecraft:glass_bottle"
+    "ingredient": "minecraft:glass_bottle"
   },
   "principles": {
     "mercury": 100,
     "salt": 50
   },
   "result": {
-    "count": 1,
     "id": "minecraft:experience_bottle"
   },
   "tier": 1

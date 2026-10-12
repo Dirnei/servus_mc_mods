@@ -1,0 +1,8 @@
+[
+  {
+    "id": "servus_manufacturing:journal/villach",
+    "required_facts": [
+      "servus_manufacturing:journal/villach_finished"
+    ]
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "hollow",
+  "item": {
+    "id": "servus_manufacturing:gnome_hollow"
+  },
+  "sort_number": 0,
+  "text": "book.servus_manufacturing.journal.workshop.gnome_hollow.hollow.text",
+  "title": "book.servus_manufacturing.journal.workshop.gnome_hollow.hollow.title"
+}

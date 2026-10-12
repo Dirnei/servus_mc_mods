@@ -98,7 +98,6 @@
       ]
     }
   ],
-  "render_type": "minecraft:cutout",
   "textures": {
     "cut": "minecraft:block/cut_copper",
     "glass": "minecraft:block/glass",

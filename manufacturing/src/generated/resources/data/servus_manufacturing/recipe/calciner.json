@@ -2,22 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "minecraft:bricks"
-    },
-    "C": {
-      "item": "minecraft:cauldron"
-    },
-    "I": {
-      "item": "minecraft:iron_bars"
-    }
+    "B": "minecraft:bricks",
+    "C": "minecraft:cauldron",
+    "I": "minecraft:iron_bars"
   },
   "pattern": [
     "BIB",
     "BCB"
   ],
   "result": {
-    "count": 1,
     "id": "servus_manufacturing:calciner"
   }
 }

@@ -1,126 +1,28 @@
 {
-  "background_u_index": 0,
-  "background_v_index": 0,
-  "category": "workshop",
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "servus_manufacturing:workshop",
+  "condition": {
+    "type": "modonomicon:none"
+  },
   "description": "book.servus_manufacturing.journal.workshop.coagulator.description",
-  "hide_while_locked": false,
   "icon": {
-    "item": "servus_manufacturing:coagulator"
+    "id": "servus_manufacturing:coagulator"
+  },
+  "id": "servus_manufacturing:workshop/coagulator",
+  "marker_condition": {
+    "type": "modonomicon:none"
   },
   "name": "book.servus_manufacturing.journal.workshop.coagulator.name",
-  "pages": [
-    {
-      "type": "modonomicon:spotlight",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "item": {
-        "count": 1,
-        "item": "servus_manufacturing:coagulator"
-      },
-      "text": "book.servus_manufacturing.journal.workshop.coagulator.machine.text",
-      "title": "book.servus_manufacturing.journal.workshop.coagulator.machine.title"
-    },
-    {
-      "type": "modonomicon:multiblock",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "multiblock_id": "coagulator",
-      "multiblock_name": "book.servus_manufacturing.journal.workshop.coagulator.build.title",
-      "show_visualize_button": true,
-      "text": "book.servus_manufacturing.journal.workshop.coagulator.build.text"
-    },
-    {
-      "type": "modonomicon:crafting_recipe",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "recipe_id_1": "servus_manufacturing:coagulator",
-      "recipe_id_2": "servus_manufacturing:principle_vat",
-      "text": "book.servus_manufacturing.journal.workshop.coagulator.recipe.text",
-      "title1": "",
-      "title2": ""
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.coagulator.building.text",
-      "title": "book.servus_manufacturing.journal.workshop.coagulator.building.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.coagulator.building_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.coagulator.joining.text",
-      "title": "book.servus_manufacturing.journal.workshop.coagulator.joining.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.coagulator.joining_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.coagulator.makes.text",
-      "title": "book.servus_manufacturing.journal.workshop.coagulator.makes.title",
-      "use_markdown_in_title": false
-    },
-    {
-      "type": "modonomicon:text",
-      "anchor": "",
-      "condition": {
-        "type": "modonomicon:none"
-      },
-      "show_title_separator": true,
-      "text": "book.servus_manufacturing.journal.workshop.coagulator.makes_2.text",
-      "title": "",
-      "use_markdown_in_title": false
-    }
-  ],
   "parents": [
     {
-      "draw_arrow": true,
-      "entry": "workshop/purifier",
-      "line_enabled": true,
-      "line_reversed": false
+      "entry": "servus_manufacturing:workshop/purifier"
     }
   ],
-  "show_when_any_parent_unlocked": false,
   "sort_number": 3,
   "x": 5,
   "y": -2

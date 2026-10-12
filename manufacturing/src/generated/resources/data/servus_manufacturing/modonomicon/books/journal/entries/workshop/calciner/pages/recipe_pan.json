@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:crafting_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "recipe_pan",
+  "recipe_id_1": "servus_manufacturing:calciner_ash_pan",
+  "recipe_id_2": "servus_manufacturing:alembic",
+  "sort_number": 6,
+  "text": "book.servus_manufacturing.journal.workshop.calciner.recipe_pan.text"
+}

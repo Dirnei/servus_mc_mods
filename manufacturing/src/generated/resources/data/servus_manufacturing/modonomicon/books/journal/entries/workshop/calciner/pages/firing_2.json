@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "firing_2",
+  "show_title_separator": true,
+  "sort_number": 12,
+  "text": "book.servus_manufacturing.journal.workshop.calciner.firing_2.text",
+  "title": ""
+}

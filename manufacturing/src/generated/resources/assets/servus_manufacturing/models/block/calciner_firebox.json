@@ -214,7 +214,6 @@
       ]
     }
   ],
-  "render_type": "minecraft:cutout",
   "textures": {
     "bars": "minecraft:block/iron_bars",
     "bricks": "minecraft:block/bricks",

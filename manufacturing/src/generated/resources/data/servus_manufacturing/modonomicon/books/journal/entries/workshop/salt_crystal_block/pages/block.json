@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "block",
+  "item": {
+    "id": "servus_manufacturing:salt_crystal_block"
+  },
+  "sort_number": 0,
+  "text": "book.servus_manufacturing.journal.workshop.salt_crystal_block.block.text",
+  "title": "book.servus_manufacturing.journal.workshop.salt_crystal_block.block.title"
+}

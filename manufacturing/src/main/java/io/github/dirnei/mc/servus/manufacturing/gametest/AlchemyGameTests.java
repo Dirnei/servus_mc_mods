@@ -239,7 +239,7 @@ public final class AlchemyGameTests {
         UUID team = UUID.randomUUID();
         CoagulatorBlockEntity coagulator = coagulator(helper, null);
         coagulator.setTeam(team);
-        CoagulationRecipe locked = new CoagulationRecipe(new Principles(10, 0, 0), Optional.empty(), new ItemStack(Items.FLINT),
+        CoagulationRecipe locked = new CoagulationRecipe(new Principles(10, 0, 0), Optional.empty(), new net.minecraft.world.item.ItemStackTemplate(Items.FLINT),
                 40, Optional.of(Identifier.parse(VILLACH)));
         helper.assertTrue(!coagulator.unlocked(locked), "a recipe of an unfinished chapter is locked");
         ServerLevel level = helper.getLevel();

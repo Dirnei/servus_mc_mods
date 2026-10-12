@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "machine",
+  "item": {
+    "id": "servus_manufacturing:athanor"
+  },
+  "sort_number": 0,
+  "text": "book.servus_manufacturing.journal.workshop.athanor.machine.text",
+  "title": "book.servus_manufacturing.journal.workshop.athanor.machine.title"
+}

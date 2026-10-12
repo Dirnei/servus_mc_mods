@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:crafting_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "recipe",
+  "recipe_id_1": "servus_manufacturing:calciner",
+  "recipe_id_2": "servus_manufacturing:calciner_firebox",
+  "sort_number": 5,
+  "text": "book.servus_manufacturing.journal.workshop.calciner.recipe.text"
+}

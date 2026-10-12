@@ -61,10 +61,10 @@ public final class PrincipleFluids {
         DeferredHolder<Fluid, BaseFlowingFluid.Source> source = FLUIDS.register(name, () -> new BaseFlowingFluid.Source(properties[0]));
         DeferredHolder<Fluid, BaseFlowingFluid.Flowing> flowing =
                 FLUIDS.register("flowing_" + name, () -> new BaseFlowingFluid.Flowing(properties[0]));
-        DeferredBlock<LiquidBlock> block = BLOCKS.register(name, () -> new LiquidBlock(source.get(),
-                BlockBehaviour.Properties.ofFullCopy(Blocks.WATER)));
-        DeferredItem<BucketItem> bucket = ITEMS.register(name + "_bucket", () -> new BucketItem(source.get(),
-                new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1)));
+        DeferredBlock<LiquidBlock> block = BLOCKS.registerBlock(name, props -> new LiquidBlock(source.get(), props),
+                () -> BlockBehaviour.Properties.ofFullCopy(Blocks.WATER));
+        DeferredItem<BucketItem> bucket = ITEMS.registerItem(name + "_bucket", props -> new BucketItem(source.get(), props),
+                () -> new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1));
         properties[0] = new BaseFlowingFluid.Properties(type, source, flowing).block(block).bucket(bucket)
                 .slopeFindDistance(2).levelDecreasePerBlock(2);
         return new Entry(principle, type, source, flowing, block, bucket);

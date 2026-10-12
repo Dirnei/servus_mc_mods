@@ -2,7 +2,7 @@
   "type": "servus_manufacturing:calcination",
   "input": {
     "count": 1,
-    "tag": "c:raw_materials"
+    "ingredient": "#c:raw_materials"
   },
   "output": {
     "mercury": 50,
