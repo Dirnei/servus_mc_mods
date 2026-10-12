@@ -6,7 +6,6 @@ import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
 import io.github.dirnei.mc.servus.storage.controller.SiteStatusPayload;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
 import io.github.dirnei.mc.servus.storage.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.menu.WarehouseControllerMenu;
@@ -60,10 +59,6 @@ public final class ControllerSiteGameTests {
         return helper.getBlockEntity(pos, WarehouseControllerBlockEntity.class);
     }
 
-    static void crate(GameTestHelper helper, BlockPos pos) {
-        helper.setBlock(pos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-    }
-
     /** A rail on stone. */
     static void rail(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos.below(), Blocks.STONE.defaultBlockState());
@@ -103,12 +98,11 @@ public final class ControllerSiteGameTests {
         });
     }
 
-    /** A chest across the border touching a crate counts its chunk until it is broken. */
+    /** A chest across the border touching the controller counts its chunk until it is broken. */
     @ServusGameTest(template = WIDE, timeoutTicks = 200)
     public static void foreignChestCountsItsChunk(GameTestHelper helper) {
         int border = border(helper);
-        WarehouseControllerBlockEntity controller = controller(helper, new BlockPos(border - 2, 1, ROW_Z));
-        crate(helper, new BlockPos(border - 1, 1, ROW_Z));
+        WarehouseControllerBlockEntity controller = controller(helper, new BlockPos(border - 1, 1, ROW_Z));
         BlockPos chest = new BlockPos(border, 1, ROW_Z);
         helper.setBlock(chest, Blocks.CHEST.defaultBlockState());
         TerminalWiring.when(helper, () -> controller.span().size() == 2, 80,

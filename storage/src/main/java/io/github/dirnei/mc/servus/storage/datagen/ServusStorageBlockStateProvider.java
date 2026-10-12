@@ -33,9 +33,6 @@ final class ServusStorageBlockStateProvider extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        oriented(ServusStorageBlocks.CRATE.get(), "crate", "crate");
-        oriented(ServusStorageBlocks.DOUBLE_CRATE.get(), "double_crate", "crate");
-        oriented(ServusStorageBlocks.QUAD_CRATE.get(), "quad_crate", "crate");
         station(ServusStorageBlocks.WAREHOUSE_CONTROLLER.get(), "warehouse_controller");
         woodOriented(ServusStorageBlocks.STORAGE_TERMINAL.get(), "storage_terminal");
         woodOriented(ServusStorageBlocks.PRODUCTION_TERMINAL.get(), "production_terminal");

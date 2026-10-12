@@ -54,27 +54,6 @@ final class ServusStorageRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes() {
-        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusStorageItems.CRATE.get())
-                .pattern("PPP")
-                .pattern("PCP")
-                .pattern("PPP")
-                .define('P', ItemTags.PLANKS)
-                .define('C', Items.CHEST)
-                .unlockedBy("has_chest", has(Items.CHEST))
-                .save(output);
-
-        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.DECORATIONS, ServusStorageItems.DOUBLE_CRATE.get())
-                .requires(ServusStorageItems.CRATE.get())
-                .requires(Items.STICK)
-                .unlockedBy("has_crate", has(ServusStorageItems.CRATE.get()))
-                .save(output);
-
-        ShapelessRecipeBuilder.shapeless(items, RecipeCategory.DECORATIONS, ServusStorageItems.QUAD_CRATE.get())
-                .requires(ServusStorageItems.CRATE.get())
-                .requires(Items.STICK, 2)
-                .unlockedBy("has_crate", has(ServusStorageItems.CRATE.get()))
-                .save(output);
-
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusStorageItems.WAREHOUSE_CONTROLLER.get())
                 .pattern("III")
                 .pattern("RCR")

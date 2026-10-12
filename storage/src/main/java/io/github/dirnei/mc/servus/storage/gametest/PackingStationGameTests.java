@@ -18,8 +18,6 @@ import io.github.dirnei.mc.servus.storage.packing.ServusStorageShipping;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
 import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
@@ -490,40 +488,6 @@ public final class PackingStationGameTests {
                         + count(setup.rack().items(), Items.OAK_LOG) + ", input " + terminal.input().getStackInSlot(0).getCount()
                         + ", near intake " + helper.getBlockEntity(NEAR, PackingStationBlockEntity.class).isEmpty());
                 helper.assertTrue(terminal.input().getStackInSlot(0).isEmpty(), "the input should be empty");
-            });
-        });
-    }
-
-    /**
-     * A terminal touching the crate is no foreign inventory: its Input and
-     * Output rows are no stock, and 64 logs in its Input row all reach the rack
-     * instead of being put away into the Input row again.
-     */
-    @ServusGameTest(timeoutTicks = 1200)
-    public static void terminalBesideCrateIsNoStock(GameTestHelper helper) {
-        Setup setup = setup(helper, 0, false, true);
-        helper.setBlock(new BlockPos(0, 1, 6), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(new BlockPos(0, 1, 6), CrateBlockEntity.class);
-        crate.insert(new ItemStack(Items.COBBLESTONE, crate.capacity()), false);
-        BlockPos terminalPos = new BlockPos(0, 1, 7);
-        helper.setBlock(terminalPos, ServusStorageBlocks.STORAGE_TERMINAL.get().defaultBlockState()
-                .setValue(StorageTerminalBlock.FACING, Direction.NORTH));
-        for (int x = 0; x <= 2; x++) {
-            data(helper, new BlockPos(x, 1, 8));
-        }
-        helper.runAfterDelay(10, () -> {
-            StorageTerminalBlockEntity terminal = helper.getBlockEntity(terminalPos, StorageTerminalBlockEntity.class);
-            terminal.output().setStackInSlot(0, new ItemStack(Items.DIAMOND, 5));
-            terminal.input().setStackInSlot(0, new ItemStack(Items.OAK_LOG, 64));
-            WarehouseNetwork network = helper.getBlockEntity(NEAR, PackingStationBlockEntity.class).network().orElseThrow();
-            io.github.dirnei.mc.servus.storage.network.ItemKey logs = io.github.dirnei.mc.servus.storage.network.ItemKey.of(new ItemStack(Items.OAK_LOG));
-            io.github.dirnei.mc.servus.storage.network.ItemKey diamonds = io.github.dirnei.mc.servus.storage.network.ItemKey.of(new ItemStack(Items.DIAMOND));
-            helper.succeedWhen(() -> {
-                helper.assertTrue(network.index().count(diamonds) == 0, "the Output row is no stock");
-                helper.assertTrue(count(setup.rack().items(), Items.OAK_LOG) == 64, "the rack should hold 64 logs, got "
-                        + count(setup.rack().items(), Items.OAK_LOG) + ", input " + terminal.input().getStackInSlot(0).getCount());
-                helper.assertTrue(terminal.input().getStackInSlot(0).isEmpty(), "the input should be empty");
-                helper.assertTrue(network.index().count(logs) == 64, "stock counts the 64 logs once, got " + network.index().count(logs));
             });
         });
     }

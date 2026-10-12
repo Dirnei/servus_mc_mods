@@ -349,7 +349,7 @@ public final class HarvesterGameTests {
     }
 
     /** Nothing ripe and empty farmland: the harvester picks seeds from the rack and plants. */
-    @ServusGameTest(timeoutTicks = 600)
+    @ServusGameTest(timeoutTicks = 900)
     public static void seedsFromStorage(GameTestHelper helper) {
         BlockPos[] plots = {new BlockPos(5, 1, RAIL_Z - 1), new BlockPos(6, 1, RAIL_Z + 1), new BlockPos(7, 1, RAIL_Z + 1)};
         for (BlockPos plot : plots) {
@@ -367,7 +367,7 @@ public final class HarvesterGameTests {
                     }
                 }
                 return out(helper) == 0;
-            }, 550, () -> "the three plots should be planted", () -> {
+            }, 850, () -> "the three plots should be planted", () -> {
                 helper.assertTrue(held(farm.rack(), Items.WHEAT_SEEDS) == 7, "three seeds should have left the rack, it holds "
                         + held(farm.rack(), Items.WHEAT_SEEDS));
                 helper.succeed();

@@ -22,7 +22,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_storage", "storage_stats_manager");
 
     public static final String DIRECTORY = "storage";
-    public static final int DEFAULT_CRATE_CAPACITY = 4096;
     public static final int DEFAULT_SOURCES_PER_TICK = 4;
     public static final int DEFAULT_RACK_SLOTS = 27;
     public static final int DEFAULT_GARAGE_CAPACITY = 4;
@@ -72,7 +71,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public static final double DEFAULT_FERTILIZE_SHARE = 0.5;
 
     private static final Gson GSON = new GsonBuilder().create();
-    private static final Identifier CRATE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crate");
     private static final Identifier WAREHOUSE = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "warehouse");
     private static final Identifier RACK = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "rack");
     private static final Identifier CRAFTING_STATION = Identifier.fromNamespaceAndPath(ServusStorageIds.MOD_ID, "crafting_station");
@@ -85,7 +83,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
 
     public static final StorageStatsManager INSTANCE = new StorageStatsManager();
 
-    private volatile int crateCapacity = DEFAULT_CRATE_CAPACITY;
     private volatile int sourcesPerTick = DEFAULT_SOURCES_PER_TICK;
     private volatile int rackSlots = DEFAULT_RACK_SLOTS;
     private volatile int garageCapacity = DEFAULT_GARAGE_CAPACITY;
@@ -141,7 +138,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
 
     @Override
     protected void apply(Map<Identifier, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
-        crateCapacity = intField(files.get(CRATE), "capacity", DEFAULT_CRATE_CAPACITY);
         sourcesPerTick = intField(files.get(WAREHOUSE), "sources_per_tick", DEFAULT_SOURCES_PER_TICK);
         rackSlots = intField(files.get(RACK), "slots", DEFAULT_RACK_SLOTS);
         garageCapacity = intField(files.get(WAREHOUSE), "garage_capacity", DEFAULT_GARAGE_CAPACITY);
@@ -190,7 +186,7 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         fertilizerReserve = countField(files.get(FIELD), "fertilizer_reserve", DEFAULT_FERTILIZER_RESERVE);
         fertilizeShare = Math.min(1.0, doubleField(files.get(FIELD), "fertilize_share", DEFAULT_FERTILIZE_SHARE));
         shuttleTiers = ShuttleStatsReader.read(files.get(SHUTTLE));
-        ServusStorage.LOGGER.info("Crate capacity {}, warehouse polls {} sources per tick", crateCapacity, sourcesPerTick);
+        ServusStorage.LOGGER.info("Warehouse polls {} sources per tick", sourcesPerTick);
     }
 
     private static double doubleField(JsonElement element, String field, double fallback) {
@@ -223,10 +219,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         return fallback;
     }
 
-    public int crateCapacity() {
-        return crateCapacity;
-    }
-
     public int sourcesPerTick() {
         return sourcesPerTick;
     }
@@ -234,7 +226,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public int garageCapacity() {
         return garageCapacity;
     }
-
 
     /** How many free and hung rails a gap between two holds may span. */
     public int railMaxSpan() {
@@ -291,7 +282,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
         packingItemsPerSecond = itemsPerSecond;
     }
 
-
     /** Blocks per tick the lift car of an elevator shaft moves. */
     public double liftSpeed() {
         return liftSpeed;
@@ -321,7 +311,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public double liftAccelPerUpgrade() {
         return liftAccelPerUpgrade;
     }
-
 
     /** Chunk Loader Upgrade slots of a Warehouse Controller. */
     public int chunkLoaderUpgradeSlots() {
@@ -443,7 +432,6 @@ public final class StorageStatsManager extends SimpleJsonResourceReloadListener<
     public void setFieldWorkTicks(int ticks) {
         fieldWorkTicks = ticks;
     }
-
 
     /** Ticks between two looks of a warehouse at the Field Heads of its fields. */
     public int fieldCheckInterval() {

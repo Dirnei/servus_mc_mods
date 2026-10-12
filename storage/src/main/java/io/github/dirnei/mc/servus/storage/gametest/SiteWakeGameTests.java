@@ -90,11 +90,13 @@ public final class SiteWakeGameTests {
         WarehouseControllerBlockEntity controller = site(helper, UUID.randomUUID(), 0);
         MiniWarehouse.stock(helper, RACK, new ItemStack(Items.IRON_INGOT, 40));
         controller.setSiteName("Iron Outpost");
-        TerminalWiring.when(helper, () -> record(helper).map(site -> site.stock().getOrDefault(ItemKey.of(new ItemStack(Items.IRON_INGOT)), 0L) == 40L)
-                .orElse(false), 100, () -> "the record lists 40 iron ingots, had " + record(helper).map(SiteRecord::stock), () -> {
+        // The rack may stand in the next chunk, so the span is compared, not counted.
+        TerminalWiring.when(helper, () -> record(helper).map(site -> site.stock().getOrDefault(ItemKey.of(new ItemStack(Items.IRON_INGOT)), 0L) == 40L
+                        && site.span().equals(controller.span())).orElse(false), 100,
+                () -> "the record lists 40 iron ingots and the span, had " + record(helper).map(SiteRecord::stock), () -> {
             SiteRecord site = record(helper).orElseThrow();
             helper.assertTrue(site.name().equals("Iron Outpost"), "the record carries the name");
-            helper.assertTrue(site.span().equals(controller.span()) && site.span().size() == 1, "the record carries the span");
+            helper.assertTrue(!site.span().isEmpty() && site.span().contains(controller.homeChunk()), "the record carries the span");
             helper.assertTrue(site.team().equals(controller.team()), "the record carries the team");
             StorageStatsManager.INSTANCE.setSiteSnapshotInterval(StorageStatsManager.DEFAULT_SITE_SNAPSHOT_INTERVAL);
             helper.succeed();

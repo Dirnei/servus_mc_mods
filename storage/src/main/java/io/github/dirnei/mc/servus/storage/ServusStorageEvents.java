@@ -3,8 +3,6 @@ package io.github.dirnei.mc.servus.storage;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.storage.packing.WarehouseSupplier;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationCreativeTabs;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import net.minecraft.network.chat.Component;
@@ -33,7 +31,7 @@ public final class ServusStorageEvents {
         event.addListener(StorageStatsManager.LISTENER_ID, StorageStatsManager.INSTANCE);
     }
 
-    /** Left click on a crate with items takes a stack (one when sneaking) instead of breaking. A garage with shuttles stays put. */
+    /** A garage with shuttles stays put when left clicked. */
     @SubscribeEvent
     public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
         if (ShuttleGarageBlock.occupied(event.getLevel(), event.getPos())) {
@@ -42,26 +40,6 @@ public final class ServusStorageEvents {
                 event.getEntity().sendOverlayMessage(Component.translatable("message.servus_storage.garage.occupied"));
             }
             return;
-        }
-        if (!(event.getLevel().getBlockEntity(event.getPos()) instanceof CrateBlockEntity crate) || crate.isEmpty()) {
-            return;
-        }
-        event.setCanceled(true);
-        if (event.getLevel().isClientSide() || event.getAction() != PlayerInteractEvent.LeftClickBlock.Action.START) {
-            return;
-        }
-        Player player = event.getEntity();
-        int compartment = 0;
-        if (player.pick(player.blockInteractionRange(), 1.0F, false) instanceof BlockHitResult hit && hit.getBlockPos().equals(event.getPos())) {
-            compartment = CrateBlock.compartmentAt(event.getLevel().getBlockState(event.getPos()), event.getPos(), hit.getDirection(), hit.getLocation());
-        }
-        if (crate.isEmpty(compartment)) {
-            return;
-        }
-        int amount = player.isShiftKeyDown() ? 1 : crate.type(compartment).getMaxStackSize();
-        ItemStack taken = crate.extract(compartment, amount, false);
-        if (!taken.isEmpty() && !player.getInventory().add(taken)) {
-            player.drop(taken, false);
         }
     }
 
@@ -87,8 +65,6 @@ public final class ServusStorageEvents {
                     (head, side) -> head.itemHandler());
             event.registerBlockEntity(ServusFoundationCapabilities.UPKEEP, ServusStorageBlockEntities.FIELD_HEAD.get(),
                     (head, side) -> head.upkeep());
-            event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.CRATE.get(),
-                    (crate, side) -> crate.handler());
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.HEAVY_RACK.get(),
                     (rack, side) -> rack.items());
             event.registerBlockEntity(Capabilities.Item.BLOCK, ServusStorageBlockEntities.INBOUND_STATION.get(),

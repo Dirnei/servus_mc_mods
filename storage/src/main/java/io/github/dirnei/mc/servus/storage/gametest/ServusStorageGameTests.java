@@ -24,8 +24,6 @@ import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlock;
-import io.github.dirnei.mc.servus.storage.crate.CrateBlockEntity;
 import io.github.dirnei.mc.servus.storage.stats.StorageStatsManager;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlock;
 import io.github.dirnei.mc.servus.storage.garage.ShuttleGarageBlockEntity;
@@ -233,40 +231,6 @@ public final class ServusStorageGameTests {
         helper.succeed();
     }
 
-    private static final BlockPos QUAD = new BlockPos(8, 1, 8);
-    private static final BlockPos QUAD_CONTROLLER = new BlockPos(9, 1, 8);
-    private static final BlockPos QUAD_TERMINAL = new BlockPos(10, 1, 8);
-
-    /** A quad crate keeps two types in two compartments, refuses a mismatch, and the terminal lists both. */
-    @ServusGameTest(timeoutTicks = 200)
-    public static void quadCrateCompartments(GameTestHelper helper) {
-        helper.setBlock(QUAD, ServusStorageBlocks.QUAD_CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        helper.setBlock(QUAD_CONTROLLER, ServusStorageBlocks.WAREHOUSE_CONTROLLER.get().defaultBlockState()
-                .setValue(WarehouseControllerBlock.FACING, Direction.NORTH));
-        TerminalWiring.place(helper, QUAD_TERMINAL);
-        CrateBlockEntity crate = helper.getBlockEntity(QUAD, CrateBlockEntity.class);
-        helper.assertTrue(crate.compartments() == 4, "quad crate should have four compartments");
-        helper.assertTrue(crate.insert(0, new ItemStack(Items.COBBLESTONE, 40), false) == 40, "compartment 0 takes cobblestone");
-        helper.assertTrue(crate.insert(3, new ItemStack(Items.DIRT, 12), false) == 12, "compartment 3 takes dirt");
-        helper.assertTrue(crate.insert(0, new ItemStack(Items.DIRT, 1), false) == 0, "compartment 0 refuses dirt");
-        helper.assertTrue(crate.handler().size() == 4, "handler exposes four slots");
-        helper.assertTrue(Transfer.stackInSlot(crate.handler(), 0).getCount() == 40, "slot 0 reports 40 cobblestone");
-        helper.assertTrue(Transfer.stackInSlot(crate.handler(), 3).is(Items.DIRT), "slot 3 reports dirt");
-        helper.assertTrue(Transfer.stackInSlot(crate.handler(), 1).isEmpty(), "slot 1 is empty");
-        helper.assertTrue(crate.insert(new ItemStack(Items.COBBLESTONE, 5), false) == 5 && crate.count(0) == 45,
-                "untargeted insert joins the cobblestone compartment");
-        helper.assertTrue(crate.capacityPerCompartment() * 4 == crate.capacity(), "compartments split the capacity");
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-
-        helper.runAfterDelay(10, () -> {
-            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, QUAD_TERMINAL);
-            StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), terminal);
-            helper.assertTrue(menu.stock().online(), "warehouse should be online");
-            helper.assertTrue(stockOf(menu, Items.COBBLESTONE) == 45, "terminal lists 45 cobblestone");
-            helper.assertTrue(stockOf(menu, Items.DIRT) == 12, "terminal lists 12 dirt");
-            helper.succeed();
-        });
-    }
 
     private static final BlockPos RACK = new BlockPos(8, 1, 2);
     private static final BlockPos RACK_CONTROLLER = new BlockPos(9, 1, 2);
@@ -1030,7 +994,6 @@ public final class ServusStorageGameTests {
 
     private static final BlockPos ST_CONTROLLER = new BlockPos(9, 1, 3);
     private static final BlockPos ST_STATION = new BlockPos(10, 1, 3);
-    private static final BlockPos ST_CRATE = new BlockPos(9, 1, 4);
     private static final BlockPos ST_CHEST = new BlockPos(11, 1, 3);
 
     private static boolean blocked(GameTestHelper helper, BlockPos pos) {
@@ -1044,26 +1007,6 @@ public final class ServusStorageGameTests {
                 .setValue(InboundStationBlock.FACING, Direction.NORTH));
         TerminalWiring.railUnder(helper, ST_STATION);
         return helper.getBlockEntity(ST_STATION, InboundStationBlockEntity.class);
-    }
-
-    /** A stack fed into the station lands in a crate within a few ticks when there are no shuttles. */
-    @ServusGameTest(timeoutTicks = 200)
-    public static void stationPutsAwayInstantly(GameTestHelper helper) {
-        InboundStationBlockEntity station = stationSetup(helper);
-        helper.setBlock(ST_CRATE, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(ST_CRATE, CrateBlockEntity.class);
-        helper.runAfterDelay(5, () -> {
-            ItemStack left = Transfer.insertItem(station.intake(), new ItemStack(Items.COBBLESTONE, 64), false);
-            helper.assertTrue(left.isEmpty(), "the intake should take a stack");
-            helper.assertTrue(station.intake().extractItem(0, 64, false).isEmpty(), "the intake must refuse extraction");
-            helper.runAfterDelay(10, () -> {
-                helper.assertTrue(crate.count() == 64, "cobblestone should be in the crate, had " + crate.count());
-                helper.assertTrue(station.isEmpty(), "the buffer should be empty");
-                helper.assertTrue(!blocked(helper, ST_STATION), "lamp must not be red");
-                helper.assertTrue(helper.getBlockState(ST_STATION).getValue(StorageNodeBlocks.ONLINE), "station shows the online lamp");
-                helper.succeed();
-            });
-        });
     }
 
     /** With its zone full and no unzoned storage the stack waits with a red lamp, and leaves once an unzoned rack appears. */
@@ -1591,17 +1534,16 @@ public final class ServusStorageGameTests {
         });
     }
 
-    /** A crate touching only the back of a connected rack is not linked through it. */
+    /** A chest touching only the back of a connected rack is not listed. */
     @ServusGameTest(timeoutTicks = 100)
-    public static void crateBehindRackNotLinked(GameTestHelper helper) {
+    public static void chestBehindRackNotLinked(GameTestHelper helper) {
         Player player = sectionRailSetup(helper);
-        BlockPos cratePos = new BlockPos(3, 1, SR_Z - 1);
-        helper.setBlock(cratePos, ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(cratePos, CrateBlockEntity.class);
-        crate.insert(new ItemStack(Items.APPLE, 7), false);
+        BlockPos chestPos = new BlockPos(3, 1, SR_Z - 1);
+        helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
+        helper.getBlockEntity(chestPos, ChestBlockEntity.class).setItem(0, new ItemStack(Items.APPLE, 7));
         helper.runAfterDelay(10, () -> {
             StorageTerminalMenu menu = new StorageTerminalMenu(1, player.getInventory(), TerminalWiring.at(helper, SR_TERMINAL));
-            helper.assertTrue(stockOf(menu, Items.APPLE) == 0, "the crate behind the rack is not listed");
+            helper.assertTrue(stockOf(menu, Items.APPLE) == 0, "the chest behind the rack is not listed");
             helper.succeed();
         });
     }
@@ -1806,26 +1748,6 @@ public final class ServusStorageGameTests {
         station.sideConfig().set(RelativeSide.TOP, SideMode.BOTH);
         helper.assertTrue(station.sideMode(Direction.UP) == SideMode.DISABLED, "an unsupported mode falls back to off");
         helper.succeed();
-    }
-
-    /** Feeding a station from a crate touching the controller is instant. */
-    @ServusGameTest(timeoutTicks = 100)
-    public static void feedOutboundFromCrate(GameTestHelper helper) {
-        OutboundStationBlockEntity station = outboundSetup(helper);
-        BlockPos controllerPos = OS_ORIGIN.east(2).north();
-        helper.setBlock(controllerPos.east(), ServusStorageBlocks.CRATE.get().defaultBlockState().setValue(CrateBlock.FACING, Direction.NORTH));
-        CrateBlockEntity crate = helper.getBlockEntity(controllerPos.east(), CrateBlockEntity.class);
-        crate.insert(new ItemStack(Items.IRON_INGOT, 10), false);
-        WarehouseControllerBlockEntity controller = helper.getBlockEntity(controllerPos, WarehouseControllerBlockEntity.class);
-        helper.runAfterDelay(10, () -> {
-            WarehouseNetwork network = controller.network().orElseThrow();
-            String refused = network.feedStation(station, ItemKey.of(new ItemStack(Items.IRON_INGOT)), 4);
-            helper.assertTrue(refused.isEmpty(), "the feed should go through, got " + refused);
-            helper.assertTrue(station.bufferCount(ItemKey.of(new ItemStack(Items.IRON_INGOT))) == 4, "4 ingots should be in the buffer at once");
-            helper.assertTrue(crate.count() == 6, "the crate should have 6 left");
-            helper.assertTrue(network.feedStation(station, ItemKey.of(new ItemStack(Items.BREAD)), 4).equals("out_of_stock"), "nothing in stock is refused");
-            helper.succeed();
-        });
     }
 
     private static final BlockPos FD_CONTROLLER = new BlockPos(1, 1, 7);
