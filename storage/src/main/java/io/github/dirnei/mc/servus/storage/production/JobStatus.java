@@ -24,9 +24,15 @@ public final class JobStatus {
      * @param outOfFuel whether the producer keeps upkeep and holds none
      * @param sending   the item the step hands straight to the next step's producer, empty when none
      * @param sendingTo the receiving producer's name, empty when none
+     * @param noPower   whether the producer is a Crafting Station whose craft waits for the warehouse's power
      */
     public record Step(String machine, String state, String reason, String verb, int done, int total, boolean outOfFuel,
-                       String sending, String sendingTo) {
+                       String sending, String sendingTo, boolean noPower) {
+
+        public Step(String machine, String state, String reason, String verb, int done, int total, boolean outOfFuel,
+                    String sending, String sendingTo) {
+            this(machine, state, reason, verb, done, total, outOfFuel, sending, sendingTo, false);
+        }
 
         public Step(String machine, String state, String reason, String verb, int done, int total, boolean outOfFuel) {
             this(machine, state, reason, verb, done, total, outOfFuel, "", "");
@@ -67,6 +73,9 @@ public final class JobStatus {
         }
         if (current.outOfFuel()) {
             return new Status("out_of_fuel", List.of(current.machine()));
+        }
+        if (current.noPower()) {
+            return new Status("no_power", List.of(current.machine()));
         }
         if (!current.reason().isEmpty()) {
             return new Status("blocked", List.of(current.reason()));

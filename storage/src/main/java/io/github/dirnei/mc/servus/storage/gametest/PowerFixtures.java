@@ -29,6 +29,14 @@ public final class PowerFixtures {
         controller.setFreeDrawsForTests(true);
     }
 
+    /**
+     * Lets a Crafting Station that stands without a warehouse on its data line
+     * craft, for tests of the station itself.
+     */
+    public static void freeStation(io.github.dirnei.mc.servus.storage.crafting.CraftingStationBlockEntity station) {
+        station.setFreePowerForTests(true);
+    }
+
     /** Fills a controller's buffer. */
     public static void fill(WarehouseControllerBlockEntity controller) {
         controller.setEnergy(controller.energy().capacity());

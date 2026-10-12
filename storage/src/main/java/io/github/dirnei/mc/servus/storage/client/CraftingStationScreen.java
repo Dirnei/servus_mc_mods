@@ -101,6 +101,9 @@ public class CraftingStationScreen extends AbstractContainerScreen<CraftingStati
                 ? Component.translatable("gui.servus_storage.crafting_station.idle")
                 : Component.translatable("gui.servus_storage.crafting_station.left", menu.station().clientJobLeft());
         graphics.text(font, text, x, y, TEXT, false);
+        if (!result.isEmpty() && menu.waitingForPower()) {
+            graphics.text(font, Component.translatable("gui.servus_storage.crafting_station.no_power"), x, y + 10, 0xFFB71C1C, false);
+        }
     }
 
     @Override

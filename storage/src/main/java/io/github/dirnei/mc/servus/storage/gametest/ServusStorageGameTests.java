@@ -1969,7 +1969,10 @@ public final class ServusStorageGameTests {
 
     private static CraftingStationBlockEntity plainStation(GameTestHelper helper, BlockPos pos) {
         helper.setBlock(pos, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        return helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
+        CraftingStationBlockEntity station = helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
+        // No warehouse on the station's line pays for its work here.
+        PowerFixtures.freeStation(station);
+        return station;
     }
 
     /** A station with a long sticks job, so it takes planks and crafts them. */

@@ -204,7 +204,8 @@ public final class ProductionView {
             String sendingTo = current.handing().map(handing -> machineName(level, handing.target())).orElse("");
             step = new JobStatus.Step(machineName(level, current.producer()), lower(current.state()), current.reason(),
                     verb(level, current.recipe().id()), done, current.batches(), outOfFuel(level, current.producer()),
-                    sending, sendingTo);
+                    sending, sendingTo, level.isLoaded(current.producer())
+                    && level.getBlockEntity(current.producer()) instanceof CraftingStationBlockEntity station && station.waitingForPower());
         }
         JobStatus.Status status = JobStatus.of(state, order.reason(), missingName, missingCount, step);
         List<ItemCount> overflow = new ArrayList<>();
@@ -246,6 +247,10 @@ public final class ProductionView {
         ItemStack icon = new ItemStack(level.getBlockState(pos).getBlock());
         if (level.getBlockEntity(pos) instanceof CraftingStationBlockEntity station) {
             // The CPU's hands: no recipe list, only the job it is crafting.
+            if (station.working() && station.waitingForPower()) {
+                return new MachineRow(pos, icon, name(level, pos), "blocked", station.job().orElseThrow().result().copyWithCount(1),
+                        station.jobLeft(), "no power", ItemStack.EMPTY, 0, 0, -1);
+            }
             if (station.working()) {
                 return new MachineRow(pos, icon, name(level, pos), "crafting", station.job().orElseThrow().result().copyWithCount(1),
                         station.jobLeft(), "", ItemStack.EMPTY, 0, 0, -1);

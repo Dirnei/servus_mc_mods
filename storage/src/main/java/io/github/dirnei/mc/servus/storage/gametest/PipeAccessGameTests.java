@@ -212,6 +212,8 @@ public final class PipeAccessGameTests {
     public static void craftingStationPullsAndPushes(GameTestHelper helper) {
         helper.setBlock(CRAFT, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState().setValue(CraftingStationBlock.FACING, Direction.NORTH));
         CraftingStationBlockEntity station = helper.getBlockEntity(CRAFT, CraftingStationBlockEntity.class);
+        // No warehouse on the station's line pays for its work here.
+        PowerFixtures.freeStation(station);
         helper.setBlock(CRAFT.west(), Blocks.CHEST.defaultBlockState());
         ChestBlockEntity source = helper.getBlockEntity(CRAFT.west(), ChestBlockEntity.class);
         source.setItem(0, new ItemStack(Items.OAK_PLANKS, 2));

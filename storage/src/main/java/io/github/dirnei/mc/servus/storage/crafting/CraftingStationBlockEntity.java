@@ -1,5 +1,10 @@
 package io.github.dirnei.mc.servus.storage.crafting;
 
+import io.github.dirnei.mc.servus.storage.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.storage.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.storage.power.StepPower;
+import io.github.dirnei.mc.servus.storage.terminal.TerminalWarehouses;
+
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.ResourceHandler;
@@ -110,6 +115,15 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
     /** How often the online lamp is refreshed. */
     private static final int LAMP_TICKS = 20;
     private int pushTimer;
+    /** Whether the last working tick could not be paid; the craft waits with its progress kept. Not saved. */
+    private boolean waitingForPower;
+    /** The controller that pays the station's work, looked up over the data line once a second. */
+    private BlockPos payer;
+    private int payerCheck;
+    /** For GameTests only, not saved: the station works without a warehouse paying for it. */
+    private boolean freePower;
+    /** How often the paying controller is looked up again. */
+    private static final int PAYER_TICKS = 20;
 
     private final SideConfig sides = SideConfig.station();
     private final LegacyItemHandler inlet = new InletHandler();
@@ -374,19 +388,67 @@ public class CraftingStationBlockEntity extends BlockEntity implements WoodHolde
         return true;
     }
 
+    /** For GameTests of stations without a warehouse on their line: work without paying. Not saved. */
+    public void setFreePowerForTests(boolean free) {
+        freePower = free;
+    }
+
+    /** Whether the station holds a craft it cannot pay for: its progress waits for FE. */
+    public boolean waitingForPower() {
+        return waitingForPower;
+    }
+
     /** @return whether the station is working */
     private boolean tick() {
         if (!working() || plan(job).isEmpty()) {
             progress = 0;
+            waitingForPower = false;
             return false;
         }
-        progress++;
+        boolean paid = payTick();
+        if (waitingForPower == paid) {
+            waitingForPower = !paid;
+            setChanged();
+        }
+        progress = StepPower.advance(progress, paid);
+        if (!paid) {
+            return false;
+        }
         if (progress >= workTicks()) {
             progress = 0;
             finish();
         }
         setChanged();
         return true;
+    }
+
+    /**
+     * Pays one working tick from the controller of the first warehouse the
+     * station's data line reaches (lowest controller position). The controller
+     * is looked up once a second; a line without an online warehouse cannot pay.
+     */
+    private boolean payTick() {
+        if (freePower) {
+            return true;
+        }
+        long cost = (long) Math.ceil(StorageStatsManager.INSTANCE.craftingStationFePerTick());
+        if (cost <= 0) {
+            return true;
+        }
+        if (!(level instanceof ServerLevel server)) {
+            return false;
+        }
+        if (payer == null || --payerCheck <= 0) {
+            payerCheck = PAYER_TICKS;
+            payer = TerminalWarehouses.reachable(server, worldPosition).stream().findFirst()
+                    .flatMap(WarehouseNetwork::controllerPos).orElse(null);
+        }
+        if (payer == null || !server.isLoaded(payer)
+                || !(server.getBlockEntity(payer) instanceof WarehouseControllerBlockEntity controller)) {
+            payer = null;
+            return false;
+        }
+        return controller.drawEnergy(cost);
     }
 
     private void finish() {

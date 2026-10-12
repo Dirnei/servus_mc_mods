@@ -54,6 +54,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.production.job.waiting_cpu", "Waiting for a CPU");
         add("gui.servus_storage.production.job.missing", "Waiting: %s %s missing");
         add("gui.servus_storage.production.job.out_of_fuel", "Waiting: %s out of fuel");
+        add("gui.servus_storage.production.job.no_power", "Waiting for power: %s");
         add("gui.servus_storage.production.job.blocked", "Waiting: %s");
         add("gui.servus_storage.production.job.waiting_machine", "Waiting for %s");
         add("gui.servus_storage.production.job.delivering", "%s: getting ingredients");
@@ -159,6 +160,7 @@ final class ServusStorageLanguageProvider extends LanguageProvider {
         add("gui.servus_storage.wake.reason.ftb_chunks", "use FTB Chunks");
         add("gui.servus_storage.wake.reason.team_limit", "team limit reached");
         add("gui.servus_storage.wake.reason.no_power", "no power");
+        add("gui.servus_storage.crafting_station.no_power", "Waiting for power");
         add("gui.servus_storage.controller.map.tooltip", "The chunks of this site. The gold square holds the controller");
         add(ServusStorageItems.HARVESTER.get(), "Harvester");
         add(ServusStorageItems.SPREADER.get(), "Spreader");

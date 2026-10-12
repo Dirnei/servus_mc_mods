@@ -76,4 +76,11 @@ class JobStatusTest {
         assertEquals(2, JobStatus.craftsDone(12, 4, 2));
         assertEquals(0, JobStatus.craftsDone(3, 0, 2));
     }
+
+    @Test
+    void stationWithoutPowerWaitsForPower() {
+        Step step = new Step("Crafting Station", "producing", "", "crafting", 1, 2, false, "", "", true);
+        org.junit.jupiter.api.Assertions.assertEquals(new JobStatus.Status("no_power", java.util.List.of("Crafting Station")),
+                JobStatus.of("running", "", "", 0, step));
+    }
 }

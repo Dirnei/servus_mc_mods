@@ -48,6 +48,7 @@ public class CraftingStationMenu extends AbstractContainerMenu {
     private final int inventoryStart;
     private final DataSlot progress = DataSlot.standalone();
     private final DataSlot workTicks = DataSlot.standalone();
+    private final DataSlot noPower = DataSlot.standalone();
 
     public CraftingStationMenu(int containerId, Inventory playerInventory, CraftingStationBlockEntity station) {
         super(ServusStorageMenus.CRAFTING_STATION.get(), containerId);
@@ -79,6 +80,7 @@ public class CraftingStationMenu extends AbstractContainerMenu {
         addDataSlot(progress);
         addDataSlots(new SideConfigData(station.sideConfig()));
         addDataSlot(workTicks);
+        addDataSlot(noPower);
     }
 
     public static CraftingStationMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -109,11 +111,17 @@ public class CraftingStationMenu extends AbstractContainerMenu {
         return workTicks.get();
     }
 
+    /** Whether the station's craft waits for power. */
+    public boolean waitingForPower() {
+        return noPower.get() != 0;
+    }
+
     @Override
     public void broadcastChanges() {
         if (!player.level().isClientSide()) {
             progress.set(station.progress());
             workTicks.set(station.workTicks());
+            noPower.set(station.waitingForPower() ? 1 : 0);
         }
         super.broadcastChanges();
     }
