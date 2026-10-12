@@ -42,15 +42,15 @@ A controller SHALL be wireless capable while it holds a Wireless Upgrade and is 
 - **THEN** it is not wireless capable
 
 ### Requirement: Transfers between sites
-A wireless capable site SHALL be able to send an amount of an item to another wireless capable site of the same team in the same dimension: it SHALL plan the picks like a shipment (instant from crates and foreign inventories, by shuttle from racks) into the To network buffer of its Packing Station with the shortest shuttle trip, and that station SHALL move the items to a Packing Station of the receiving site, whose warehouse puts them away. The transfer SHALL report planned and delivered amounts and whether it ended. It SHALL be refused when either site is not wireless capable, either site has no Packing Station, or the sending site has none of the item.
+A wireless capable site SHALL be able to send an amount of an item to another wireless capable site of the same team in the same dimension: it SHALL plan the picks like a shipment, by shuttle from its racks, into the To network buffer of its Packing Station with the shortest shuttle trip, and that station SHALL move the items to a Packing Station of the receiving site, whose warehouse puts them away into its racks by shuttle. The transfer SHALL report planned and delivered amounts and whether it ended. It SHALL be refused when either site is not wireless capable, either site has no Packing Station, the sending site has none of the item, or no shuttle of the sending site reaches the racks holding it.
 
 #### Scenario: Iron from the outpost
-- **WHEN** the outpost's crate holds 32 iron ingots and a transfer of 16 to the base is made, both controllers wireless capable and both sites with a Packing Station
-- **THEN** 16 iron ingots leave the outpost and end up in the base's storage, and the transfer reports 16 delivered and ended
+- **WHEN** a Heavy Duty Rack at the outpost served by a shuttle holds 32 iron ingots and a transfer of 16 to the base is made, both controllers wireless capable and both sites with a Packing Station
+- **THEN** a shuttle brings 16 iron ingots to the outpost's Packing Station, they go over the wireless line and end up in a rack of the base, and the transfer reports 16 delivered and ended
 
-#### Scenario: From a rack
-- **WHEN** the iron sits only in a Heavy Duty Rack at the outpost
-- **THEN** a shuttle brings it to the outpost's Packing Station first, then it goes over the wireless line
+#### Scenario: No shuttle at the outpost
+- **WHEN** the iron sits in a rack at the outpost and the outpost has no garage with a shuttle
+- **THEN** the transfer is refused because the outpost needs a shuttle and nothing leaves the outpost
 
 #### Scenario: No Packing Station at the outpost
 - **WHEN** the outpost's controller is wireless capable but the outpost has no Packing Station on its rails
@@ -105,29 +105,6 @@ The controller GUI SHALL have an "Other sites" panel. While the controller is wi
 #### Scenario: Upgrade without power here
 - **WHEN** the base's controller holds a Wireless Upgrade and no FE
 - **THEN** the panel lists no site and says the controller needs FE for wireless
-
-### Requirement: Sources are nodes and adjacent inventories
-The index SHALL include every storage node of the network that holds stock and every block with an item handler adjacent to such a node that is not itself a node. Connector nodes such as rails SHALL NOT be sources and their neighbours SHALL NOT be discovered. Adjacent inventories SHALL be discovered when a node is placed and when a neighbour of a node changes. Servus blocks whose slots are no stock SHALL never be discovered as adjacent inventories, whatever item capability they expose: the Storage Terminal (Input and Output rows), the Crafting Station, and every station (Inbound, Outbound and Packing Station buffers), so they are never stock, a put-away target or a source for picks.
-
-#### Scenario: Chest beside a crate
-- **WHEN** a chest with 10 bread is placed next to a crate of an online network
-- **THEN** the index soon reports 10 bread from that chest
-
-#### Scenario: Chest removed
-- **WHEN** that chest is broken
-- **THEN** the bread leaves the index
-
-#### Scenario: Chest beside a rail
-- **WHEN** a chest with 10 bread is placed next to a rail of an online network and touches no stock holding node
-- **THEN** the index does not report the bread
-
-#### Scenario: Terminal beside the controller
-- **WHEN** a Storage Terminal with 5 diamonds in its Output row stands directly beside the Warehouse Controller
-- **THEN** the index does not report the diamonds and put-away never chooses the terminal
-
-#### Scenario: Station beside a crate
-- **WHEN** a Packing Station with emeralds in its buffer touches a crate without a rail between them
-- **THEN** the index does not report the emeralds
 
 ### Requirement: Controller GUI
 Right clicking a controller with an empty hand SHALL open its GUI with the site name as title, a name field, the online state with the warehouse summary as its tooltip, the chunk count and capacity, a chunk map, the Chunk Loader Upgrade slots, the Wireless Upgrade slot, the FE stored with the capacity, the "Other sites" panel and the player inventory. The chunk map SHALL draw every chunk of the span as a square around the controller's chunk, mark the controller's chunk, and draw in red while over capacity. The GUI SHALL refresh while open and SHALL close when the player leaves reach.

@@ -25,7 +25,7 @@ This change implements `PLAN.md` M11 item 3 in its redefined form (the wireless 
 - SEND and KEEP rules between sites, an In transit view, Wireless Terminal, cross dimension transfers, shuttles or carts between sites (later per `PLAN.md` M11).
 - Range tiers or several Wireless Upgrades adding anything: one upgrade, presence only.
 - Delivering a transfer straight into the terminal's output slots: items still arrive in this site's storage.
-- Dropping the crates and adjacent inventory indexing (`drop-crates-decision`, its own change).
+- Dropping the crates and adjacent inventory indexing: done by `m11-drop-crates-pipe-access`, which archives before this change, so transfers pick only from racks by shuttle here.
 
 ## Capabilities
 
@@ -36,7 +36,7 @@ None.
 ### Modified Capabilities
 
 - `storage/wireless-packing-station`: every requirement removed; the block is gone.
-- `storage/warehouse-controller`: Wireless Upgrade slot, FE buffer, wireless capable rule, transfers between sites and their cost move to the controller, the "Other sites" panel only for a wireless capable controller with a hint otherwise, sources no longer name the removed block.
+- `storage/warehouse-controller`: Wireless Upgrade slot, FE buffer, wireless capable rule, transfers between sites and their cost move to the controller, the "Other sites" panel only for a wireless capable controller with a hint otherwise.
 - `storage/packing-station`: Packing Stations carry wireless transfers, work for wireless without a data line, status line and tooltip name the wireless line.
 - `storage/storage-terminal`: other sites listed only while this site's controller is wireless capable; transfers go Packing Station to Packing Station with the new refusals.
 - `storage/site-wake`: the site record keeps the controller's wireless state and whether the site has a Packing Station instead of the wireless teams.

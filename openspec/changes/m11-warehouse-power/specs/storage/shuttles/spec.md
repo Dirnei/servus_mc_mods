@@ -4,7 +4,7 @@
 A shuttle SHALL pay `shuttle_fe_per_block` (example 20, `storage/power.json`) from its warehouse's controller for every block of rail or farm rail it starts to drive, whatever its job: picks, put-aways, deliveries, field runs and the way home. A ride on the lift car SHALL cost the same per block of height, paid in full when the car takes the shuttle. Standing, loading, unloading, field work at a plot and waiting SHALL cost nothing.
 
 #### Scenario: Six rails out and back
-- **WHEN** a shuttle drives to a crate six rails away and back with 20 FE per block
+- **WHEN** a shuttle drives to a rack six rails away and back with 20 FE per block
 - **THEN** the controller pays 240 FE for the trip
 
 #### Scenario: Lift ride

@@ -28,18 +28,22 @@ The Crafting CPU block and the CPU Buffer block SHALL be craftable and SHALL dro
 - **THEN** nothing forms and the action bar says why
 
 ### Requirement: Breaking unforms and cancels
-Removing any block of a formed CPU SHALL turn its other blocks back into unformed blocks and SHALL cancel the CPU's open orders: their reservations are released and items already delivered stay where they are. Items waiting in the CPU's buffer SHALL be put into a warehouse reachable over the CPU's data line at once; what no warehouse takes SHALL drop as items at the removed block. When the CPU's chunk unloads its orders and its buffer SHALL pause instead and go on when it loads again. A master that loads unformed SHALL cancel the orders it saved and drop the buffered items it saved at its position.
+Removing any block of a formed CPU SHALL turn its other blocks back into unformed blocks and SHALL cancel the CPU's open orders: their reservations are released and items already delivered stay where they are. Items waiting in the CPU's buffer SHALL be sent as packets to a Packing Station of the CPU's data line in the same tick, before the blocks unform, and that station's warehouse SHALL put them away by shuttle like any packets it takes in; items the Packing Station cannot take SHALL drop as items beside it. When no Packing Station reaches the CPU's line, the buffered items SHALL drop as items at the removed block. When the CPU's chunk unloads its orders and its buffer SHALL pause instead and go on when it loads again. A master that loads unformed SHALL cancel the orders it saved and drop the buffered items it saved at its position.
 
 #### Scenario: Break one block
 - **WHEN** a formed CPU runs an order and a player breaks one of its blocks
 - **THEN** the other blocks show as unformed and the order is cancelled with its reservations released
 
 #### Scenario: Buffer goes to storage
-- **WHEN** a formed CPU holds 4 Oak Planks in its buffer, a warehouse with room is on its data line and a player breaks a Buffer block
-- **THEN** the 4 Oak Planks are in the warehouse and none are lost
+- **WHEN** a formed CPU holds 4 Oak Planks in its buffer, a Packing Station of a warehouse with a rack that takes planks and a garage with a shuttle is on its data line and a player breaks a Buffer block
+- **THEN** the 4 Oak Planks land in the Packing Station, a shuttle puts them into the rack and none are lost
 
-#### Scenario: No warehouse
-- **WHEN** a formed CPU holds 4 Oak Planks in its buffer, no warehouse is reachable and a player breaks one of its blocks
+#### Scenario: Packing Station full
+- **WHEN** a formed CPU holds 4 Oak Planks in its buffer, the only Packing Station on its data line has a full To storage buffer and a player breaks one of its blocks
+- **THEN** the 4 Oak Planks drop as items beside the Packing Station and none are lost
+
+#### Scenario: No Packing Station
+- **WHEN** a formed CPU holds 4 Oak Planks in its buffer, no Packing Station is on its data line and a player breaks one of its blocks
 - **THEN** the 4 Oak Planks drop as items at the broken block
 
 #### Scenario: Chunk unloads
@@ -253,4 +257,4 @@ Items in the buffer that belong to an order that is done or cancelled SHALL go a
 
 #### Scenario: Cancel with buffered planks
 - **WHEN** an order with 4 Oak Planks in the buffer is cancelled
-- **THEN** the 4 planks are put away in the warehouse and the buffer room is free again
+- **THEN** the 4 planks go as packets to the Packing Station, a shuttle puts them into a rack and the buffer room is free again

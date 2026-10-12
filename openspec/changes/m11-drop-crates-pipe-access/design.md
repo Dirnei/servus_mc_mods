@@ -100,9 +100,10 @@ A shared helper `gametest/MiniWarehouse` builds the smallest real warehouse: con
 ### D11. Archive order and the other open changes
 
 - After `m11-wireless-packing-station`: its MODIFIED "Sources are nodes and adjacent inventories" and "Input row" are the base. This change REMOVES the former and rewrites "Input row" on its wording.
-- Before `m8-cpu-buffer`: it registers the CPU's inlet through `PACKET_INLET`. It needs two follow-ups (not edited here): its D9 unform puts the buffer away with `WarehouseNetwork.insert`, which this change removes (send the buffer as packets to the collection Packing Station before the blocks unform, or drop at the block), and its Impact names `storage/crate/StorageStatsManager`, now `storage/stats/StorageStatsManager`.
-- `m11-controller-wireless` (open point, not edited): its MODIFIED "Sources are nodes and adjacent inventories" fails if it archives after this change and must be dropped; its ADDED "Transfers between sites" says picks are planned "instant from crates ..." and uses "the outpost's crate" in a scenario, both need racks and shuttles. If it archives first, nothing here breaks, and the Wireless Packing Station registration task here becomes moot.
-- `m11-warehouse-power`: its ADDED shuttles scenario "drives to a crate six rails away" should say rack; wording only.
+- Then the other open changes, in this order: `m8-cpu-buffer`, `m11-controller-wireless`, `m11-warehouse-power`. They were aligned with this change on 2026-10-12 and are written against the main specs as they are after it:
+  - `m8-cpu-buffer` registers the CPU's inlet through `PACKET_INLET`; its unform (D9 there) sends the buffer with `DataPackets.send` to the line's collection Packing Station instead of `WarehouseNetwork.insert`, dropping at the broken block only when no Packing Station reaches the line; its Impact names `storage/stats/StorageStatsManager`.
+  - `m11-controller-wireless` no longer modifies "Sources are nodes and adjacent inventories" ("Sources are the warehouse's own racks" already keeps every Servus block out of the index); its "Transfers between sites" picks by shuttle from racks; its terminal delta no longer names the pull to the cursor. The Wireless Packing Station registration task here still applies, because this change applies first.
+  - `m11-warehouse-power`: racks instead of crates in its wording, and no request is delivered without a shuttle.
 
 ### What is pure and what is tested how
 

@@ -48,7 +48,7 @@ On the carrot click (never per tick) the block collects the unformed CPU and Buf
 
 ### D3. One block entity type for both blocks
 
-`CpuBufferBlock` extends `CpuBlock` (same `FORMED`, `PART`, `ACTIVE`, carrot and summary behaviour) and shares the `crafting_cpu` block entity type: `new BlockEntityType<>(CpuBlockEntity::new, CRAFTING_CPU.get(), CPU_BUFFER.get())`, the form already used for the crate family and the rails in `ServusStorageBlockEntities`. Every formed block of either kind is a data link member and a data carrier as before. `CpuBlock.useItemOn` passes for the carrot and for a block item of any `CpuBlock`, so a Buffer block places against CPU blocks and the other way round.
+`CpuBufferBlock` extends `CpuBlock` (same `FORMED`, `PART`, `ACTIVE`, carrot and summary behaviour) and shares the `crafting_cpu` block entity type: `new BlockEntityType<>(CpuBlockEntity::new, CRAFTING_CPU.get(), CPU_BUFFER.get())`, the form already used for the rails in `ServusStorageBlockEntities`. Every formed block of either kind is a data link member and a data carrier as before. `CpuBlock.useItemOn` passes for the carrot and for a block item of any `CpuBlock`, so a Buffer block places against CPU blocks and the other way round.
 
 ### D4. Slots and room are sums over the blocks
 
@@ -68,11 +68,11 @@ The master wraps the book with `ItemKey` keys and saves it next to `Orders` in i
 
 ### D6. How items get in: a packet inlet, not an inventory
 
-Decided with the user: the CPU registers no item capability, so item pipes and hoppers never see it and no duct shows an item arm toward it. Packets reach it through a Servus packet inlet instead of `Capabilities.Item.BLOCK`. That inlet is introduced by the change that takes pipe access away from blocks not meant for pipes (stations, Packing Station, terminal, Field Head, Crafting Station; see the pipe access decisions), where `PacketIo.accepts` and `DataPackets.move` learn to deliver into a block's packet inlet; this change archives after it and only registers the CPU's inlet. The inlet:
+Decided with the user: the CPU registers no item capability, so item pipes and hoppers never see it and no duct shows an item arm toward it. Packets reach it through a Servus packet inlet instead of `Capabilities.Item.BLOCK`. That inlet is `ServusFoundationCapabilities.PACKET_INLET`, introduced by `m11-drop-crates-pipe-access` (its D1 to D3: a `ResourceHandler<ItemResource>` under its own sided capability id, which item pipes and hoppers never ask). There `PacketIo.accepts`, `insert`, `acceptable` and `settle` look up the target through the shared helper `PacketInlets.handler(level, pos, side)` (packet inlet first, then `Capabilities.Item.BLOCK`) before `STOCK_SINK`, and `available` and `extract` ask `STOCK_PROVIDER` first, then the same helper. This change archives after it and only registers the CPU's inlet with `RegisterCapabilitiesEvent.registerBlockEntity`. The inlet:
 
 - accepts a key only up to the items of that key still expected by open arrivals of the master's buffer,
 - gives nothing out,
-- is absent on unformed blocks, so `PacketIo.accepts` refuses them.
+- is absent on unformed blocks (the provider returns null), so `PacketIo.accepts` refuses them; `CpuBlock` calls `Level.invalidateCapabilities` on the blocks of the box when it forms and unforms.
 
 The collection to the buffer is `DataPackets.move(level, producer, cpuMember, like, count)` from the producer to the CPU block that is a member of the line (`memberPos`, cached on the master and checked again when it is no longer a member), booked as `ledger.open(count)` and `step.collecting(key, transfer, count, cpuPos)`. It counts as collected for the step when it lands, like a collection to a Packing Station; `DataPackets.move` takes items from the producer only as far as the CPU accepts them, so nothing is in flight.
 
@@ -96,7 +96,8 @@ A same producer dependant no longer makes outputs go to storage at once when the
 ### D9. Leftovers, cancel and unform
 
 - Done or cancelled orders: their entries become leftovers. On each order book run (every 20 ticks) the CPU moves leftovers as packets to its `collectionPoint` (lowest Packing Station that reaches it), booked in the ledger and removed from the buffer by the source view as they leave. The order's step `release` is unchanged.
-- Unforming (`CpuBlock.affectNeighborsAfterRemoval` then `unform`): before the blocks change state, the master cancels all orders and empties the buffer into the warehouses reachable from its line with `WarehouseNetwork.insert` (instant put-away, already used by the controller's stock sink), largest stock first like `Host.feed`; what does not fit drops at the removed block with `Containers.dropItemStack`. Packets are not used here because the CPU stops being a member in the same tick.
+- Unforming (`CpuBlock.affectNeighborsAfterRemoval` then `unform`): before the blocks change state, the master cancels all orders, takes every buffered stack out of the book and hands it to `DataPackets.send(level, memberPos, collectionPoint, stack)`, the form that sends a stack the caller holds. The send starts while the CPU is still a member, so the network owns the stack from then on. When the blocks unform in the same tick, the route from the CPU breaks and the shipment settles by the line's own rule (`Shipment.settle`, `PacketIo.settle`): back into the source (the unformed CPU has no inlet, so nothing), into the Packing Station's packet inlet as far as its To storage buffer takes it, and the rest dropped at the Packing Station, the first loaded place of that list. What lands in the To storage buffer is put away by shuttle like any packets. When no Packing Station reaches the line (`collectionPoint` empty) or the send fails at once, the master drops the stack at the removed block with `Containers.dropItemStack`.
+  - Decided in the update of 2026-10-12: `m11-drop-crates-pipe-access` removes `WarehouseNetwork.insert` and every instant put-away, so the buffer leaves by the only way into a warehouse that is left, a Packing Station and shuttles. Rejected: inserting straight into the Packing Station's inlet from the master (bypasses the line and its transfer gates for no gain), and keeping the CPU a member for one more tick to move the buffer with `DataPackets.move` (a formed state on blocks that are already unformed).
 - A master that loads unformed drops its saved buffer at its position in `onLoad` on the server, like it cancels its saved orders.
 
 ### D10. Production Terminal
@@ -107,7 +108,7 @@ A same producer dependant no longer makes outputs go to storage at once when the
 
 ### D11. Look
 
-The Buffer block reuses the frame of the CPU and has amber storage lights instead of teal data lights: textures `crafting_cpu_buffer` (casing, a crate like front in the riveted casing) and `crafting_cpu_buffer_{idle,active}_{tile}` for the 9 tiles, made by recolouring the CPU tile textures, with the same `.mcmeta` animations. Datagen builds its models like `cpu(...)`. `updateActive` walks the box from the saved size instead of `CpuShape.PARTS`.
+The Buffer block reuses the frame of the CPU and has amber storage lights instead of teal data lights: textures `crafting_cpu_buffer` (casing, a chest like front in the riveted casing) and `crafting_cpu_buffer_{idle,active}_{tile}` for the 9 tiles, made by recolouring the CPU tile textures, with the same `.mcmeta` animations. Datagen builds its models like `cpu(...)`. `updateActive` walks the box from the saved size instead of `CpuShape.PARTS`.
 
 ### D12. Which logic is pure and which is not
 
@@ -116,24 +117,25 @@ The Buffer block reuses the frame of the CPU and has amber storage lights instea
 
 ### D13. Archive order and PLAN.md
 
-This change archives after `m0-port-minecraft-26-1-2`, because both modify the "Order slots" requirement of `storage/crafting-cpu` and this delta's wording builds on the port's. The change settles no open decision of PLAN.md section 5; it changes the decided "Crafting CPU (Storage, 3x3x3 multiblock on the cable)" in section 2.4, so `PLAN.md` 2.4 and the docs site are updated in this change, and the Purpose line of `openspec/specs/storage/crafting-cpu/spec.md` ("a 3x3x3 multiblock") is edited at archive.
+This change archives after `m0-port-minecraft-26-1-2`, because both modify the "Order slots" requirement of `storage/crafting-cpu` and this delta's wording builds on the port's. It also archives after `m11-drop-crates-pipe-access`, which introduces `ServusFoundationCapabilities.PACKET_INLET` (D6), removes `WarehouseNetwork.insert` and every instant put-away (D9 relies on that) and removes the "Pushed outputs count" requirement of `storage/crafting-cpu`, which this delta does not touch. `m11-controller-wireless` and `m11-warehouse-power` archive after this change. The change settles no open decision of PLAN.md section 5; it changes the decided "Crafting CPU (Storage, 3x3x3 multiblock on the cable)" in section 2.4, so `PLAN.md` 2.4 and the docs site are updated in this change, and the Purpose line of `openspec/specs/storage/crafting-cpu/spec.md` ("a 3x3x3 multiblock") is edited at archive.
 
 ### APIs used (checked in the 26.1.2 worktree)
 
-- The packet inlet registration from the pipe access change: `storage/ServusStorageEvents.java`.
+- `ServusFoundationCapabilities.PACKET_INLET` and `PacketInlets.handler` from `m11-drop-crates-pipe-access` (D1, D2 there); the CPU's registration goes into `storage/ServusStorageEvents.java`.
 - `ResourceHandler<ItemResource>` through `foundation/transfer/LegacyItemHandler` and `ItemView`.
 - `DataPackets.move` (both forms) and `Delivery.onEnd`: `foundation/data/packet/DataPackets.java`; target check `PacketIo.accepts`.
 - `ProductionLedger.open`, `delivered`, `end`, `transfer`: `storage/order/ProductionLedger.java`.
-- `WarehouseNetwork.insert(ItemStack)`: `storage/network/WarehouseNetwork.java`.
+- `DataPackets.send(ServerLevel, BlockPos, BlockPos, ItemStack)`, `Shipment.settle` and `PacketIo.settle`: `foundation/data/packet/`.
 - `Block.affectNeighborsAfterRemoval(BlockState, ServerLevel, BlockPos, boolean)`, `Level.invalidateCapabilities`, `Containers.dropItemStack`, `ItemStack.getMaxStackSize`, `Player.sendOverlayMessage`: used in `CpuBlock`, `PacketIo` and the screens of this worktree.
-- `BlockEntityType` with several blocks: `storage/registry/ServusStorageBlockEntities.java` (crate, rail).
+- `BlockEntityType` with several blocks: `storage/registry/ServusStorageBlockEntities.java` (rails).
 
 ## Risks / Trade-offs
 
 - [Balance] A 2x2x2 of CPU blocks runs 8 orders where a 3x3x3 cube ran 2, with a recipe that gives 4 blocks. → Values live in `cpu.json`; the CPU block recipe and values are part of the open M9 balance pass. Start values: `orders_per_cpu_block` 1, `stacks_per_buffer_block` 1.
 - [Small buffer] One stack per Buffer block is little for big chains. → Overflow falls back to today's behaviour and the terminal shows it, so players see when to add Buffer blocks.
 - [One order fills the buffer] First come first served lets one big order take all room. → Accepted; oldest orders run first anyway. A per order quota can follow if play tests ask for it.
-- [Depends on the packet inlet] The CPU buffer needs the packet inlet from the pipe access change. → Apply that change first; until then this change cannot be applied.
+- [Depends on the packet inlet] The CPU buffer needs `PACKET_INLET` from `m11-drop-crates-pipe-access`. → Apply and archive that change first; until then this change cannot be applied.
+- [Buffer drops at the Packing Station] On unform, what the Packing Station's To storage buffer cannot take drops beside that station, not at the broken CPU block. → Accepted: nothing is lost and the items lie where storage would have taken them.
 - [Flood fill cost] A click on a huge wall of CPU blocks. → Bounded by `max_blocks`, only on a click.
 - [Member lookup] `memberPos` walked 27 blocks and would walk up to `max_blocks` now. → Cache the member block on the master and look again only when it is no longer a member.
 - [Ledger forgets an arrival] A transfer into the buffer the ledger forgot counts as collected for the step but the buffer holds only what arrived. → The later step feeds the rest from storage, as for handoffs today.
