@@ -224,8 +224,7 @@ tasks.register('iconExport') {
     dependsOn 'runIconExport'
 }
 
-// The combined runs carry the same dev only mods as the Manufacturing runs.
-// Skipped while Manufacturing is out of the build: these are still 1.21.1 versions.
+// The combined runs carry the same dev only mods as the Manufacturing runs (only when Manufacturing is in the build).
 if (findProject(':manufacturing') != null) dependencies {
     // Manufacturing's journal is a Modonomicon book; the combined runs need the mod.
     runtimeOnly "com.klikli_dev:modonomicon-${minecraft_version}-neoforge:${modonomicon_version}"

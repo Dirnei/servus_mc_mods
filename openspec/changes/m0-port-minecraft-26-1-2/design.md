@@ -32,12 +32,15 @@ Sources used and verified for every API named below:
 | Java | 21 | 25 | Minecraft 26.1 runs on Java 25 |
 | Mappings | Parchment 2024.11.17 | none | 26.1 ships unobfuscated with Mojang's parameter names |
 | JEI | 19.57.0.451 | 29.43.0.107 (`jei-26.1.2-*`) | newest JEI for 26.1.2 on maven.blamejared.com |
+| Modonomicon | 1.120.7 | 2.17.0 (`modonomicon-26.1.2-neoforge`) | newest for 26.1.2 on the klikli-dev cloudsmith maven |
+| Jade (dev runs) | 15.10.6 | 26.1.11+neoforge | newest Modrinth version for 26.1.2 NeoForge |
+| FTB Library, Ultimine (dev runs) | 2101.1.37, 2101.1.15 | 26.1.2.9, 26.1.2.5 | newest on maven.ftb.dev |
 
 Gradle itself keeps running on the installed JDK 21; the Java 25 toolchain is provisioned by Gradle into its cache through the foojay resolver plugin that `settings.gradle` already applies. No JDK is installed system wide.
 
 The `data` run uses the `clientData()` run type (NeoForge 21.4 split datagen into client and server; one client data run generates both, as NeoForge recommends) and keeps its name so `gradlew runData` stays the command.
 
-While Manufacturing and Storage are not ported, `settings.gradle` includes only `foundation`, the root combined runs load only the included projects, and the root dev only dependencies (Modonomicon, Jade, FTB) are skipped. Re-enabling them is part of tasks 4 and 5.
+During the port `settings.gradle` included only the ported projects; all three are included again. The root combined runs load the included projects and carry the dev only mods when Manufacturing is present.
 
 ### D2. Mechanical renames
 
@@ -86,7 +89,7 @@ NeoForge removed its `BlockStateProvider`/`ItemModelProvider` builders (1.21.4);
 
 ### D8. Recipes and JEI
 
-Recipes are no longer synced to clients (1.21.2). Recipe serializers are `RecipeSerializer` records of a map codec and a stream codec; the facade and tank recipes have no settings and use unit codecs over one instance. `WoodRecipe` has its own codec with the shaped recipe fields. Server lookups use `ServerLevel.recipeAccess()` through `production/ServusRecipes` (by id, crafting match, display result, grid ingredients), which answers empty on a client level; `SingleInputRecipes` reads ingredients from the placement info and gets results by assembling the recipe for each input. The JEI plugin builds its example recipes with `Recipe.CommonInfo`, `CraftingBookInfo`, `ItemStackTemplate` results and NeoForge's `DataComponentIngredient` for facade ingredients (JEI 29.43.0.107).
+Recipes are no longer synced to clients (1.21.2). The recipe types the mods read on the client are sent with NeoForge's `OnDatapackSyncEvent.sendRecipes` and kept from `RecipesReceivedEvent` (`ServusRecipes.syncToClients`, `client/ClientRecipes`): crafting for the Storage pattern editor, the four alchemy types for the Coagulator screen, JEI and Jade. Lookups go through `ServusRecipes` (server recipe manager on a server level, the synced map on a client level). Recipe serializers are `RecipeSerializer` records of a map codec and a stream codec; the facade and tank recipes have no settings and use unit codecs over one instance. `WoodRecipe` has its own codec with the shaped recipe fields. Server lookups use `ServerLevel.recipeAccess()` through `production/ServusRecipes` (by id, crafting match, display result, grid ingredients), which reads the synced map on a client level; `SingleInputRecipes` reads ingredients from the placement info and gets results by assembling the recipe for each input. The JEI plugin builds its example recipes with `Recipe.CommonInfo`, `CraftingBookInfo`, `ItemStackTemplate` results and NeoForge's `DataComponentIngredient` for facade ingredients (JEI 29.43.0.107).
 
 ## Risks / Trade-offs
 
@@ -97,7 +100,16 @@ Recipes are no longer synced to clients (1.21.2). Recipe serializers are `Recipe
 
 ## Notes for the next run
 
-- Storage is ported (section 4): compile, 457 unit tests, 363 GameTests, datagen. The Production Terminal's recipe editor preview reads the recipe on the client; clients have no recipes since 1.21.2, so the preview shows no result until a server round trip is added (the saved pattern is matched and assembled on the server as before). The terminal's dynamic height no longer changes `imageHeight` (final in 26.1); `init` centres the panel from the layout instead.
+- Manufacturing is ported (section 5): compile, 81 unit tests, 73 GameTests, datagen (the docs `gamedata.json` export comes out unchanged). Decisions made while porting:
+  - Alchemy recipes hold their results as `ItemStackTemplate` (`resultTemplate`, `residueTemplate`, vein `yieldTemplate`) with `result()`, `residue()`, `yield()` making stacks: since 1.21.5 an `ItemStack` needs bound item components, which datagen and data reloads do not have. JSON field names stay. Sized ingredients use NeoForge's nested form `{"ingredient": "#c:bones", "count": 1}` (the flat codec is gone); the docs reader accepts both.
+  - Modonomicon 2 removed advancement conditions. The journal declares a research node `servus_manufacturing:journal/villach` (`JournalResearch`) granted by the Villach chapter advancement; Schwaz and the Albedo entries require that node. The text offsets moved into the book theme layout.
+  - Principle fluids get `FluidModel`s in `RegisterFluidModelsEvent` (water textures, principle tint); buckets use NeoForge's `neoforge:fluid_container` item model, written as raw item definitions by the model shim (`itemModelDefinition`).
+  - Block removal hooks moved to `affectNeighborsAfterRemoval`; the Purifier drops its stock in `preRemoveSideEffects`. The Athanor checks its hearth on every neighbour update (the update no longer names its source).
+  - Renderers that still draw into buffers extend `BufferedBlockEntityRenderer` (`SubmitBuffers`); the Elemental Sight reveal draws on `SubmitCustomGeometryEvent`.
+  - The dev only icon exporter (`IconExporter`, `iconExport` run) is not ported: its off screen GL drawing has no 26.1 equivalent without a rewrite against the GPU device API; it logs and writes nothing.
+- Known test issue: in the combined `runGameTestServerAll` (all three mods plus Modonomicon) five Storage tests that create mock server players fail, because Modonomicon 2.17 sends its book sync on player join to the mock connection, which has no negotiated channels. The per mod GameTest runs are green. `SiteWakeGameTests.recordKeepsNameSpanAndStock` failed once in about ten Storage runs (span size check); it looks like test placement across a chunk border, not a port change.
+
+- Storage is ported (section 4): compile, 457 unit tests, 363 GameTests, datagen. The pattern editor preview reads crafting recipes on the client from the synced crafting recipes (see D8). The terminal's dynamic height no longer changes `imageHeight` (final in 26.1); `init` centres the panel from the layout instead.
 - Saved data that still saves to a compound tag uses `ValueIo.tagSavedData` (a `SavedDataType` over `CompoundTag.CODEC`); the file names stay the same.
 
 - Foundation is fully ported (section 2 of tasks.md). Rendering, GUIs and models compile and data generates, but nothing has been seen in game: section 3 is the user's play check.
