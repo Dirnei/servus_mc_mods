@@ -98,3 +98,7 @@ Recorded on 2026-10-12 while applying, where the code differs from or adds to th
 Answered by the user on 2026-10-12:
 - Wireless Upgrade recipe: ender eye in the middle, iron ingots, redstone and a copper ingot.
 - Sites stay limited to the same team internally; only the GUI never says "team".
+
+## Decision after the play check: transfers land in the terminal's output (2026-10-12)
+
+The user asked during the play check that a request from another site is delivered into the terminal's output slots and not stored at this site. `RemoteTransfers.receiver` picks only Packing Stations of the first warehouse that reach the requesting terminal by data line (fewest incoming, lowest position). A wireless shipment carries its requesting terminal position (saved with it; none for operator and test shipments). On arrival `PackingStationBlockEntity.shipWireless` puts a terminal bound transfer into the receiver's To network buffer and the receiver opens a normal data line shipment to the terminal (`addShipment(terminal, key, planned)`), which `DataPackets` delivers through the terminal's packet inlet into its output slots, matched to the request like a local request. The terminal request tracks that second leg and ends when the items are in the output. Room is checked against the To network buffer. Transfers without a terminal keep landing in To storage for put-away.

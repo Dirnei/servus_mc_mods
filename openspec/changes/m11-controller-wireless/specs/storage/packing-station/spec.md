@@ -1,14 +1,18 @@
 ## ADDED Requirements
 
 ### Requirement: Packing Stations carry wireless transfers
-Every Packing Station on a site's rails SHALL be able to send and receive wireless transfers, with or without a data line. A sending station SHALL take the picked items from its To network buffer and hand them to the receiving station's To storage buffer, only while that buffer has room; the receiving warehouse SHALL put them away by its zone rules. A transfer SHALL use one sending and one receiving station. The receiving station SHALL be the one of its site with the fewest open incoming transfers, the lowest position on a tie.
+Every Packing Station on a site's rails SHALL be able to send and receive wireless transfers, with or without a data line. A sending station SHALL take the picked items from its To network buffer and hand them to the receiving station. A transfer requested at a Storage Terminal SHALL land in the receiving station's To network buffer, only while that buffer has room, and leave from there as packets to the requesting terminal like a data line delivery of a local request; it SHALL NOT be put away. A transfer without a requesting terminal (operator commands, tests) SHALL land in the To storage buffer, only while that buffer has room, and be put away by the zone rules. A transfer SHALL use one sending and one receiving station. The receiving station SHALL be, among the stations of its site that reach the requesting terminal by data line, the one with the fewest open incoming transfers, the lowest position on a tie.
 
 #### Scenario: Station without a data line
 - **WHEN** a Packing Station stands on the outpost's rails with no duct touching it and the base requests iron from the outpost
 - **THEN** the iron is picked into that station and sent to a Packing Station of the base
 
+#### Scenario: Passed on to the terminal
+- **WHEN** 16 iron ingots from the outpost arrive at the base's Packing Station for a terminal request
+- **THEN** they go on as packets into that terminal's output slots and no shuttle puts them away
+
 #### Scenario: Receiver full
-- **WHEN** the receiving station's To storage buffer is full because no shuttle is free
+- **WHEN** the receiving station's To network buffer is full
 - **THEN** the sending station keeps the items in its To network buffer until the buffer has room
 
 #### Scenario: Two receivers
