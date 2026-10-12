@@ -30,6 +30,8 @@ Move everything about halves out of `BurnerPumpBlock` into a new abstract `machi
 
 Alternative: copy the half logic into `ElectricPumpBlock` (two places to keep in step; rejected).
 
+The half logic itself (placement with room above, putting and keeping the partner, creative and wrong tool breaking, forwarding use and carrot) goes into a static helper `machine/TwoHalves` that `BeamPumpBlock` calls, because `m9-coal-generator-chimney` needs the same behaviour on a `MachineBlock` that is not a pump. `BeamPumpBlock` keeps only what is pump specific (shapes, faces, `HALF` in its state definition). Whichever of the two changes is applied first extracts the helper; this change is meant to go first.
+
 ### D2. Parts: shared frame, own electric parts
 
 Split `BurnerPumpParts` into the shared frame and per pump parts: the frame (base, socket, post, beam, pivot, pump rod, `ROD_X`, `PISTON_X`, `rotated`, `rotatedPoint`) moves to a new `BeamPumpParts`; `BurnerPumpParts` keeps firebox, drums, cylinder, piston, chimney, smoke point; a new `ElectricPumpParts` adds, facing north in pixels (starting values from the concept page, tuned in game):
