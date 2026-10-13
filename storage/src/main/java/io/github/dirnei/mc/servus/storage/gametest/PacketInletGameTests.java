@@ -146,17 +146,17 @@ public final class PacketInletGameTests {
     /** A CPU order's sticks are collected from the station through its inlet and a shuttle puts them away. */
     @ServusGameTest(timeoutTicks = 1200)
     public static void cpuCollectsThroughInlet(GameTestHelper helper) {
-        CraftingCpuGameTests.setup(helper, true);
-        CraftingCpuGameTests.stock(helper, CraftingCpuGameTests.RACK_A, Items.OAK_PLANKS, 10);
-        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), CraftingCpuGameTests.line(helper)).size() == 1, 60,
+        CpuLine.setup(helper, true);
+        CpuLine.stock(helper, CpuLine.RACK_A, Items.OAK_PLANKS, 10);
+        Waits.when(helper, () -> CpuOrders.cpus(helper.getLevel(), CpuLine.line(helper)).size() == 1, 60,
                 () -> "the CPU should be on the line", () -> {
-            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.STICK, 8, 0);
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CpuLine.line(helper), CpuLine.STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             Waits.when(helper, () -> order.state() == WorkOrder.State.DONE
-                            && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK) == 8, 1100,
+                            && CpuLine.warehouse(helper).available(CpuLine.STICK) == 8, 1100,
                     () -> "the order should finish with 8 sticks in storage, state " + order.state() + ", stock "
-                            + CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK), helper::succeed);
+                            + CpuLine.warehouse(helper).available(CpuLine.STICK), helper::succeed);
         });
     }
 }

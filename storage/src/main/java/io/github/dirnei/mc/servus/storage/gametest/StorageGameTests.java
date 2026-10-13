@@ -12,6 +12,7 @@ public final class StorageGameTests {
             ChainHandoffGameTests.class,
             ControllerSiteGameTests.class,
             ControllerWirelessGameTests.class,
+            CpuBufferGameTests.class,
             CraftingCpuGameTests.class,
             CraftingGridGameTests.class,
             CraftingStationGameTests.class,

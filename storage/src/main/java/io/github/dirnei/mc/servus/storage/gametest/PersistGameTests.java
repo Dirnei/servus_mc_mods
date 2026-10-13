@@ -66,19 +66,19 @@ public final class PersistGameTests {
     /** Planks in the buffer survive a reload of the CPU's master, and the crafting table is made. */
     @ServusGameTest(timeoutTicks = 1400)
     public static void reloadKeepsBuffer(GameTestHelper helper) {
-        CpuBlockEntity cpu = CraftingCpuGameTests.bufferedSetup(helper, 6, 1);
-        Waits.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
-            WorkOrder order = cpu.book().create(CraftingCpuGameTests.CRAFTING_TABLE, 1, 0).order();
+        CpuBlockEntity cpu = CpuLine.bufferedSetup(helper, 6, 1);
+        Waits.when(helper, () -> CpuLine.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+            WorkOrder order = cpu.book().create(CpuLine.CRAFTING_TABLE, 1, 0).order();
             int id = order.id();
-            CraftingCpuGameTests.whenBuffered(helper, cpu, order, CraftingCpuGameTests.PLANKS, () -> {
-                int held = cpu.buffer().held(id, CraftingCpuGameTests.PLANKS);
+            CpuLine.whenBuffered(helper, cpu, order, CpuLine.PLANKS, () -> {
+                int held = cpu.buffer().held(id, CpuLine.PLANKS);
                 CpuBlockEntity loaded = reload(helper, cpu.getBlockPos().subtract(helper.absolutePos(BlockPos.ZERO)));
-                helper.assertTrue(loaded != cpu && loaded.buffer().held(id, CraftingCpuGameTests.PLANKS) == held,
+                helper.assertTrue(loaded != cpu && loaded.buffer().held(id, CpuLine.PLANKS) == held,
                         "the buffer keeps " + held + " planks, has " + loaded.buffer());
                 WorkOrder reloaded = loaded.book().order(id);
                 helper.assertTrue(reloaded != null, "the order survives the reload");
                 Waits.when(helper, () -> reloaded.state() == WorkOrder.State.DONE
-                                && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.CRAFTING_TABLE) == 1, 1200,
+                                && CpuLine.warehouse(helper).available(CpuLine.CRAFTING_TABLE) == 1, 1200,
                         () -> "the crafting table should be made, " + reloaded.state() + " " + reloaded.steps().stream()
                                 .map(step -> step.state() + "/" + step.reason()).toList() + " buffer " + loaded.buffer(), helper::succeed);
             });

@@ -43,12 +43,12 @@ public final class ChainHandoffGameTests {
 
     /** The CPU test line with a second Crafting Station and the planks pattern next to the sticks pattern. */
     private static void twoStations(GameTestHelper helper) {
-        CraftingCpuGameTests.setup(helper, true);
+        CpuLine.setup(helper, true);
         helper.setBlock(STATION_B, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState()
                 .setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(CraftingCpuGameTests.PATTERNS, PatternStorageBlockEntity.class);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(CpuLine.PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, StationJobs.planks());
-        CraftingCpuGameTests.stock(helper, CraftingCpuGameTests.RACK_A, Items.OAK_LOG, 2);
+        CpuLine.stock(helper, CpuLine.RACK_A, Items.OAK_LOG, 2);
     }
 
     private static boolean twoProducers(GameTestHelper helper) {
@@ -68,9 +68,9 @@ public final class ChainHandoffGameTests {
 
     /** Waits until a shuttle has put {@code count} sticks away, then succeeds. */
     private static void putAway(GameTestHelper helper, int count) {
-        Waits.when(helper, () -> CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK) == count,
+        Waits.when(helper, () -> CpuLine.warehouse(helper).available(CpuLine.STICK) == count,
                 MiniWarehouse.TRIP_TICKS * 2, () -> count + " sticks should be put away, warehouse has "
-                        + CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.STICK), helper::succeed);
+                        + CpuLine.warehouse(helper).available(CpuLine.STICK), helper::succeed);
     }
 
     private static String steps(WorkOrder order) {
@@ -83,13 +83,13 @@ public final class ChainHandoffGameTests {
     @ServusGameTest(timeoutTicks = 1400)
     public static void planksHandedToSecondStation(GameTestHelper helper) {
         twoStations(helper);
-        int[] planks = watch(helper, CraftingCpuGameTests.CONTROLLER, CraftingCpuGameTests.PLANKS);
+        int[] planks = watch(helper, CpuLine.CONTROLLER, CpuLine.PLANKS);
         WorkOrder[] placedOrder = {null};
         boolean[] handed = {false};
         helper.onEachTick(() -> handed[0] |= placedOrder[0] != null && placedOrder[0].steps().get(0).handing().isPresent());
         Waits.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
-            DataNetwork line = CraftingCpuGameTests.line(helper);
-            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line, CraftingCpuGameTests.STICK, 8, 0);
+            DataNetwork line = CpuLine.line(helper);
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line, CpuLine.STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             placedOrder[0] = order;
@@ -165,18 +165,18 @@ public final class ChainHandoffGameTests {
      */
     @ServusGameTest(timeoutTicks = 1400)
     public static void chainOnOneStationUsesBuffer(GameTestHelper helper) {
-        CpuBlockEntity cpu = CraftingCpuGameTests.bufferedSetup(helper, 6, 1);
-        int[] planks = CraftingCpuGameTests.watchStorage(helper, Items.OAK_PLANKS);
+        CpuBlockEntity cpu = CpuLine.bufferedSetup(helper, 6, 1);
+        int[] planks = CpuLine.watchStorage(helper, Items.OAK_PLANKS);
         int[] buffered = {0};
         helper.onEachTick(() -> buffered[0] = Math.max(buffered[0], cpu.bufferUsed()));
-        Waits.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
-            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.CRAFTING_TABLE, 1, 0);
+        Waits.when(helper, () -> CpuLine.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CpuLine.line(helper), CpuLine.CRAFTING_TABLE, 1, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             helper.assertTrue(order.steps().size() == 2 && order.steps().get(0).producer().equals(order.steps().get(1).producer()),
                     "a planks step and a table step on the one station, got " + steps(order));
             Waits.when(helper, () -> order.state() == WorkOrder.State.DONE
-                            && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.CRAFTING_TABLE) == 1,
+                            && CpuLine.warehouse(helper).available(CpuLine.CRAFTING_TABLE) == 1,
                     1300, () -> "the crafting table should be made and put away, " + steps(order), () -> {
                         helper.assertTrue(buffered[0] > 0, "the planks should wait in the buffer");
                         helper.assertTrue(planks[0] == 0, "no planks at the Packing Station or in the warehouse, saw " + planks[0]);
@@ -190,26 +190,26 @@ public final class ChainHandoffGameTests {
     /** The second station stays busy past the wait: with buffer room the planks wait in the buffer, not at the station or in storage. */
     @ServusGameTest(timeoutTicks = 1600)
     public static void busyProducerUsesBuffer(GameTestHelper helper) {
-        CraftingCpuGameTests.setup(helper, false);
-        CpuBuild.formSlotted(helper, CraftingCpuGameTests.CPU_A);
+        CpuLine.setup(helper, false);
+        CpuBuild.formSlotted(helper, CpuLine.CPU_A);
         helper.setBlock(STATION_B, ServusStorageBlocks.CRAFTING_STATION.get().defaultBlockState()
                 .setValue(CraftingStationBlock.FACING, Direction.NORTH));
-        PatternStorageBlockEntity patterns = helper.getBlockEntity(CraftingCpuGameTests.PATTERNS, PatternStorageBlockEntity.class);
+        PatternStorageBlockEntity patterns = helper.getBlockEntity(CpuLine.PATTERNS, PatternStorageBlockEntity.class);
         patterns.set(1, StationJobs.planks());
-        CraftingCpuGameTests.stock(helper, CraftingCpuGameTests.RACK_A, Items.OAK_LOG, 2);
+        CpuLine.stock(helper, CpuLine.RACK_A, Items.OAK_LOG, 2);
         CraftingStationBlockEntity second = helper.getBlockEntity(STATION_B, CraftingStationBlockEntity.class);
         Object owner = StationJobs.sticksJob(second, 1);
-        int[] planks = watch(helper, CraftingCpuGameTests.CONTROLLER, CraftingCpuGameTests.PLANKS);
+        int[] planks = watch(helper, CpuLine.CONTROLLER, CpuLine.PLANKS);
         Waits.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
-            CpuBlockEntity cpu = CraftingCpuGameTests.cpu(helper, CraftingCpuGameTests.CPU_A);
-            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.STICK, 8, 0);
+            CpuBlockEntity cpu = CpuLine.cpu(helper, CpuLine.CPU_A);
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CpuLine.line(helper), CpuLine.STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
-            Waits.when(helper, () -> cpu.buffer().held(order.id(), CraftingCpuGameTests.PLANKS) >= 4, 900,
+            Waits.when(helper, () -> cpu.buffer().held(order.id(), CpuLine.PLANKS) >= 4, 900,
                     () -> "the planks should wait in the buffer, " + steps(order), () -> {
                         // Well past the wait: still in the buffer, nothing held at the station, nothing in storage.
                         helper.runAfterDelay(StorageStatsManager.INSTANCE.handoffWaitTicks() + 60, () -> {
-                            helper.assertTrue(cpu.buffer().held(order.id(), CraftingCpuGameTests.PLANKS) >= 4,
+                            helper.assertTrue(cpu.buffer().held(order.id(), CpuLine.PLANKS) >= 4,
                                     "the planks stay in the buffer, " + steps(order));
                             helper.assertTrue(planks[0] == 0, "no planks in storage, saw " + planks[0]);
                             helper.assertTrue(order.overflowed().isEmpty(), "nothing overflowed: " + order.overflowed());
@@ -230,7 +230,7 @@ public final class ChainHandoffGameTests {
      */
     @ServusGameTest(timeoutTicks = 3600)
     public static void fullBufferOverflowsToStorage(GameTestHelper helper) {
-        CpuBlockEntity cpu = CraftingCpuGameTests.bufferedSetup(helper, 1, 20);
+        CpuBlockEntity cpu = CpuLine.bufferedSetup(helper, 1, 20);
         int[] most = {0};
         helper.onEachTick(() -> {
             if (cpu.buffer() != null) {
@@ -239,18 +239,18 @@ public final class ChainHandoffGameTests {
                 }
             }
         });
-        Waits.when(helper, () -> CraftingCpuGameTests.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
+        Waits.when(helper, () -> CpuLine.lineReady(helper), 60, () -> "the station and the CPU should join the line", () -> {
             helper.assertTrue(cpu.room() == 1, "one stack of room, got " + cpu.room());
-            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CraftingCpuGameTests.line(helper), CraftingCpuGameTests.CRAFTING_TABLE, 20, 0);
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), CpuLine.line(helper), CpuLine.CRAFTING_TABLE, 20, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             Waits.when(helper, () -> order.state() == WorkOrder.State.DONE
-                            && CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.CRAFTING_TABLE) == 20,
+                            && CpuLine.warehouse(helper).available(CpuLine.CRAFTING_TABLE) == 20,
                     3400, () -> "20 crafting tables should be made, " + steps(order) + " overflow " + order.overflowed(), () -> {
                         helper.assertTrue(most[0] == 64, "the buffer held one full stack, most " + most[0]);
-                        helper.assertTrue(order.overflowed().getOrDefault(CraftingCpuGameTests.PLANKS, 0) == 16,
+                        helper.assertTrue(order.overflowed().getOrDefault(CpuLine.PLANKS, 0) == 16,
                                 "16 planks overflowed, got " + order.overflowed());
-                        helper.assertTrue(CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.PLANKS) == 0,
+                        helper.assertTrue(CpuLine.warehouse(helper).available(CpuLine.PLANKS) == 0,
                                 "the stored planks were used");
                         helper.succeed();
                     });
@@ -263,10 +263,10 @@ public final class ChainHandoffGameTests {
         twoStations(helper);
         CraftingStationBlockEntity second = helper.getBlockEntity(STATION_B, CraftingStationBlockEntity.class);
         Object owner = StationJobs.sticksJob(second, 1);
-        int[] planks = watch(helper, CraftingCpuGameTests.CONTROLLER, CraftingCpuGameTests.PLANKS);
+        int[] planks = watch(helper, CpuLine.CONTROLLER, CpuLine.PLANKS);
         Waits.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
-            DataNetwork line = CraftingCpuGameTests.line(helper);
-            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line, CraftingCpuGameTests.STICK, 8, 0);
+            DataNetwork line = CpuLine.line(helper);
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line, CpuLine.STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder order = placed.created().order();
             Waits.when(helper, () -> planks[0] > 0, 900, () -> "the planks should go to storage after the wait, " + steps(order), () -> {
@@ -283,21 +283,21 @@ public final class ChainHandoffGameTests {
     public static void reloadMidHandoffCompletes(GameTestHelper helper) {
         twoStations(helper);
         Waits.when(helper, () -> twoProducers(helper), 60, () -> "both stations and the CPU should join the line", () -> {
-            DataNetwork line = CraftingCpuGameTests.line(helper);
-            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line, CraftingCpuGameTests.STICK, 8, 0);
+            DataNetwork line = CpuLine.line(helper);
+            CpuOrders.Placed placed = CpuOrders.create(helper.getLevel(), line, CpuLine.STICK, 8, 0);
             helper.assertTrue(placed.made(), "the order should be made, refused " + placed.refusal());
             WorkOrder before = placed.created().order();
             int id = before.id();
             Waits.when(helper, () -> before.steps().get(0).handing().isPresent(), 900, () -> "a handoff should start, " + steps(before), () -> {
-                CpuBlockEntity cpu = CraftingCpuGameTests.cpu(helper, CraftingCpuGameTests.CPU_A);
+                CpuBlockEntity cpu = CpuLine.cpu(helper, CpuLine.CPU_A);
                 BlockPos cpuRel = cpu.getBlockPos().subtract(helper.absolutePos(BlockPos.ZERO));
                 CpuBlockEntity loaded = PersistGameTests.reload(helper, cpuRel);
-                PersistGameTests.reload(helper, CraftingCpuGameTests.STATION);
+                PersistGameTests.reload(helper, CpuLine.STATION);
                 PersistGameTests.reload(helper, STATION_B);
                 WorkOrder order = loaded.book().order(id);
                 helper.assertTrue(order != null, "the order should survive the reload");
                 Waits.when(helper, () -> order.state() == WorkOrder.State.DONE, 1300, () -> "the order should finish, " + steps(order), () -> {
-                    long planks = CraftingCpuGameTests.warehouse(helper).available(CraftingCpuGameTests.PLANKS);
+                    long planks = CpuLine.warehouse(helper).available(CpuLine.PLANKS);
                     helper.assertTrue(planks == 0, "no planks should be left over in storage, has " + planks);
                     putAway(helper, 8);
                 });

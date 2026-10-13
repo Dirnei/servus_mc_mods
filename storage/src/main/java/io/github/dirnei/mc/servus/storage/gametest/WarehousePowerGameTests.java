@@ -207,8 +207,8 @@ public final class WarehousePowerGameTests {
 
     /** A station on the CPU test line, with the sticks job and planks for {@code crafts} crafts. */
     private static CraftingStationBlockEntity craftingLine(GameTestHelper helper, int planks, int crafts) {
-        CraftingCpuGameTests.setup(helper, false);
-        CraftingStationBlockEntity station = helper.getBlockEntity(CraftingCpuGameTests.STATION, CraftingStationBlockEntity.class);
+        CpuLine.setup(helper, false);
+        CraftingStationBlockEntity station = helper.getBlockEntity(CpuLine.STATION, CraftingStationBlockEntity.class);
         if (planks > 0) {
             station.inputs().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, planks));
         }
@@ -217,7 +217,7 @@ public final class WarehousePowerGameTests {
     }
 
     private static WarehouseControllerBlockEntity cpuController(GameTestHelper helper) {
-        return helper.getBlockEntity(CraftingCpuGameTests.CONTROLLER, WarehouseControllerBlockEntity.class);
+        return helper.getBlockEntity(CpuLine.CONTROLLER, WarehouseControllerBlockEntity.class);
     }
 
     /** One craft of sticks pays every working tick: work ticks times the FE per tick. */
@@ -247,7 +247,7 @@ public final class WarehousePowerGameTests {
                 helper.assertTrue(station.progress() == kept, "the progress stays at " + kept + ", is " + station.progress());
                 helper.assertTrue(station.waitingForPower(), "the station says it waits for power");
                 helper.assertTrue(station.outputs().getStackInSlot(0).isEmpty(), "nothing crafted yet");
-                helper.assertTrue(!helper.getBlockState(CraftingCpuGameTests.STATION).getValue(
+                helper.assertTrue(!helper.getBlockState(CpuLine.STATION).getValue(
                         CraftingStationBlock.LIT), "the working face is off");
                 PowerFixtures.fill(controller);
                 Waits.when(helper, () -> station.outputs().getStackInSlot(0).getCount() == 4, station.workTicks() - kept + 10,
@@ -275,14 +275,14 @@ public final class WarehousePowerGameTests {
     /** A CPU step on a station waits for power with its order kept, the Production Terminal says so, and it finishes. */
     @ServusGameTest(timeoutTicks = 1200)
     public static void cpuStepWaitsForPowerAndFinishes(GameTestHelper helper) {
-        CraftingCpuGameTests.setup(helper, true);
-        WarehouseFixtures.stock(helper, CraftingCpuGameTests.RACK_A, new ItemStack(Items.OAK_PLANKS, 10));
-        CraftingStationBlockEntity station = helper.getBlockEntity(CraftingCpuGameTests.STATION, CraftingStationBlockEntity.class);
+        CpuLine.setup(helper, true);
+        WarehouseFixtures.stock(helper, CpuLine.RACK_A, new ItemStack(Items.OAK_PLANKS, 10));
+        CraftingStationBlockEntity station = helper.getBlockEntity(CpuLine.STATION, CraftingStationBlockEntity.class);
         WarehouseControllerBlockEntity controller = cpuController(helper);
         helper.runAfterDelay(10, () -> {
-            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, CraftingCpuGameTests.ACCESS);
-            menu(helper, terminal).request(CraftingCpuGameTests.STICK, 4);
-            CpuBlockEntity cpu = CraftingCpuGameTests.cpu(helper, CraftingCpuGameTests.CPU_A);
+            StorageTerminalBlockEntity terminal = TerminalWiring.at(helper, CpuLine.ACCESS);
+            menu(helper, terminal).request(CpuLine.STICK, 4);
+            CpuBlockEntity cpu = CpuLine.cpu(helper, CpuLine.CPU_A);
             helper.assertTrue(cpu.book().orders().size() == 1, "one order, got " + cpu.book().orders());
             WorkOrder order = cpu.book().orders().get(0);
             Waits.when(helper, () -> station.progress() >= 5, 900, () -> "the station should start the step", () -> {
