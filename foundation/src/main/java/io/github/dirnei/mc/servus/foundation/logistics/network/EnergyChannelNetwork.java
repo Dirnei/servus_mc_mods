@@ -1,31 +1,26 @@
 package io.github.dirnei.mc.servus.foundation.logistics.network;
 
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.energy.EnergyDistributor;
 import io.github.dirnei.mc.servus.foundation.energy.EnergySink;
 import io.github.dirnei.mc.servus.foundation.energy.EnergySource;
-import io.github.dirnei.mc.servus.foundation.graph.NodePos;
-import io.github.dirnei.mc.servus.foundation.network.Conversions;
-import io.github.dirnei.mc.servus.foundation.network.NetworkType;
-import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
-import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctStatsManager;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
+import io.github.dirnei.mc.servus.foundation.network.NetworkType;
+import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
 /**
  * The Power Cable network of a set of connected utility ducts. Every tick it
@@ -33,72 +28,23 @@ import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
  * output sides of the same channel, water filling, within the configured
  * rate. Carries no buffer.
  */
-public final class EnergyChannelNetwork extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent> {
+public final class EnergyChannelNetwork extends LineNetwork<EnergyChannelNetwork.Endpoint> {
 
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "energy_channel");
 
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, EnergyChannelNetwork> TYPE =
-            new NetworkType<>(ID, (from, fromNode, side, to, toNode) -> UtilityDuctBlockEntity.sideOpen(fromNode, side), EnergyChannelNetwork::new);
+            new NetworkType<>(ID, RULE, EnergyChannelNetwork::new);
 
-    private record Endpoint(SideMode mode, int channel, BlockCapabilityCache<EnergyHandler, Direction> cache) {
+    record Endpoint(SideMode mode, int channel, BlockCapabilityCache<EnergyHandler, Direction> cache) {
     }
-
-    private final Map<NodePos, List<Endpoint>> endpoints = new HashMap<>();
-    private ServerLevel level;
 
     public EnergyChannelNetwork(int id, NetworkSet<UtilityDuctBlockEntity, DuctEvent, ?> owner) {
-        super(id, owner);
+        super(id, owner, Line.ENERGY, new HashMap<>());
     }
 
     @Override
-    protected void handle(DuctEvent event) {
-        if (event instanceof DuctEvent.ConfigChanged changed && level != null
-                && level.getBlockEntity(Conversions.toBlockPos(changed.pos())) instanceof UtilityDuctBlockEntity duct) {
-            rebuild(changed.pos(), duct);
-        }
-    }
-
-    @Override
-    protected void onNodeAdded(NodePos pos, UtilityDuctBlockEntity duct) {
-        if (!(duct.getLevel() instanceof ServerLevel server)) {
-            return;
-        }
-        level = server;
-        rebuild(pos, duct);
-    }
-
-    private void rebuild(NodePos pos, UtilityDuctBlockEntity duct) {
-        BlockPos blockPos = Conversions.toBlockPos(pos);
-        List<Endpoint> list = new ArrayList<>(6);
-        for (Direction direction : Direction.values()) {
-            SideMode mode = duct.mode(Line.ENERGY, direction);
-            if (mode == SideMode.DISABLED) {
-                continue;
-            }
-            list.add(new Endpoint(mode, duct.channel(Line.ENERGY, direction), BlockCapabilityCache.create(
-                    Capabilities.Energy.BLOCK, level, blockPos.relative(direction), direction.getOpposite())));
-        }
-        endpoints.put(pos, list);
-    }
-
-    @Override
-    protected void onNodeRemoved(NodePos pos, UtilityDuctBlockEntity duct) {
-        endpoints.remove(pos);
-    }
-
-    @Override
-    protected void onAbsorb(ServusNetwork<UtilityDuctBlockEntity, DuctEvent> other) {
-        if (other instanceof EnergyChannelNetwork that) {
-            endpoints.putAll(that.endpoints);
-            if (level == null) {
-                level = that.level;
-            }
-        }
-    }
-
-    @Override
-    protected void onDisposed() {
-        endpoints.clear();
+    protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel) {
+        return new Endpoint(mode, channel, BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, target, side.getOpposite()));
     }
 
     @Override

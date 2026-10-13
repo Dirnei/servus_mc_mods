@@ -41,9 +41,7 @@ public final class PanelHit {
             return false;
         }
         for (DuctShapes.Box box : DuctShapes.panel(side, !solid)) {
-            if (x >= box.x0() - EPSILON && x <= box.x1() + EPSILON
-                    && y >= box.y0() - EPSILON && y <= box.y1() + EPSILON
-                    && z >= box.z0() - EPSILON && z <= box.z1() + EPSILON) {
+            if (box.contains(x, y, z, EPSILON)) {
                 return true;
             }
         }

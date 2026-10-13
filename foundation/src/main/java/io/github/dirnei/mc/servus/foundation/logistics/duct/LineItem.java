@@ -50,7 +50,6 @@ public class LineItem extends BlockItem implements AssistedItem {
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
         boolean sneaking = player != null && player.isSecondaryUseActive();
-        // A duct that already carries this line places a new duct against the clicked face; a sneak click walks the run.
         if (!sneaking && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct && !duct.has(line)) {
             if (!level.isClientSide()) {
                 if (!addTo(duct)) {

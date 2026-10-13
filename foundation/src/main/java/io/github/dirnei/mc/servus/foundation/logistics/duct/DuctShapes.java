@@ -28,15 +28,27 @@ public final class DuctShapes {
     public record Box(float x0, float y0, float z0, float x1, float y1, float z1) {
 
         public boolean contains(double x, double y, double z) {
-            return x >= x0 && x <= x1 && y >= y0 && y <= y1 && z >= z0 && z <= z1;
+            return contains(x, y, z, 0);
         }
-    }
 
-    private DuctShapes() {
+        /** Whether the point lies in the box grown by {@code tolerance} on every side. */
+        public boolean contains(double x, double y, double z, double tolerance) {
+            return x >= x0 - tolerance && x <= x1 + tolerance
+                    && y >= y0 - tolerance && y <= y1 + tolerance
+                    && z >= z0 - tolerance && z <= z1 + tolerance;
+        }
     }
 
     /** How much a junction cube of two or more lines grows beyond the run centre, so it reads as a fitting. */
     public static final int JUNCTION_EXTRA = 1;
+
+    /** Panel thickness in pixels. */
+    public static final int PANEL_THICKNESS = 1;
+    /** The hole of a hollow panel runs from this pixel to {@code 16 - HOLE_EDGE}, wide enough for the thickest arm. */
+    public static final int HOLE_EDGE = 8 - THICKEST_RADIUS;
+
+    private DuctShapes() {
+    }
 
     /** Radius by line count: one line is thin, two lines thick, three or more lines thickest. */
     public static int radius(int lineCount) {
@@ -85,11 +97,6 @@ public final class DuctShapes {
             default -> throw new IllegalArgumentException("side " + side);
         };
     }
-
-    /** Panel thickness in pixels. */
-    public static final int PANEL_THICKNESS = 1;
-    /** The hole of a hollow panel runs from this pixel to {@code 16 - HOLE_EDGE}, wide enough for the thickest arm. */
-    public static final int HOLE_EDGE = 8 - THICKEST_RADIUS;
 
     /**
      * The boxes of a panel on a side: one full slab when solid, four boxes

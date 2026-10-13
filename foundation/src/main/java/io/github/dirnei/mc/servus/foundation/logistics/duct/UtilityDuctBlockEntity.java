@@ -1,19 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import com.mojang.serialization.Codec;
 import io.github.dirnei.mc.servus.foundation.data.CableTier;
 import io.github.dirnei.mc.servus.foundation.data.CableTiersManager;
 import io.github.dirnei.mc.servus.foundation.data.DataMembership;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNode;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
-import io.github.dirnei.mc.servus.foundation.network.Conversions;
-import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
-import io.github.dirnei.mc.servus.foundation.network.NetworkNode;
-import io.github.dirnei.mc.servus.foundation.network.NetworkType;
-import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.foundation.logistics.network.DuctEvent;
@@ -22,7 +15,14 @@ import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwo
 import io.github.dirnei.mc.servus.foundation.logistics.network.ItemChannelNetwork;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlockEntities;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
-import com.mojang.serialization.Codec;
+import io.github.dirnei.mc.servus.foundation.network.Conversions;
+import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
+import io.github.dirnei.mc.servus.foundation.network.NetworkNode;
+import io.github.dirnei.mc.servus.foundation.network.NetworkType;
+import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
+import io.github.dirnei.mc.servus.foundation.save.ValueIo;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -54,13 +54,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.model.data.ModelData;
-import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
 
 /**
  * A utility duct: a set of lines (Item Pipe, Power Cable, Fluid Pipe, data line), each with a mode
@@ -69,8 +69,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemSlots;
  * graphs through the same blocks. The duct also keeps which sides carry an
  * arm per line and which arms end at an inventory or machine, synced to the
  * client for the model. The data line has no channels; its sides are only on
- * (both) or off (disabled), and it joins the Foundation data network as a
- * {@link DataNode}.
+ * (both) or off (disabled), and it joins the data network as a {@link DataNode}.
  */
 public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
@@ -116,8 +115,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             nodes.put(line, line == Line.DATA ? new DataLineNode() : new LineNode(line));
         }
     }
-
-    // Lines
 
     public Set<Line> lines() {
         return lines;
@@ -188,8 +185,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         return true;
     }
 
-    // Modes
-
     public SideMode mode(Line line, Direction side) {
         return modes[line.ordinal()][side.ordinal()];
     }
@@ -199,7 +194,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             mode = SideMode.BOTH;
         }
         if (line == Line.DATA && mode != SideMode.DISABLED) {
-            // The data line is only on or off.
             mode = SideMode.BOTH;
         }
         if (modes[line.ordinal()][side.ordinal()] == mode) {
@@ -219,8 +213,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         };
     }
 
-    // Channels
-
     /** The channel of a line's side, 0 to {@link DuctChannels#COUNT} minus one. */
     public int channel(Line line, Direction side) {
         return channels[line.ordinal()][side.ordinal()];
@@ -234,8 +226,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         channels[line.ordinal()][side.ordinal()] = clamped;
         configChanged();
     }
-
-    // Arms and endpoints
 
     /** Six bit mask of the sides that carry an arm of the line, {@code 1 << side.ordinal()}. */
     public int arms(Line line) {
@@ -344,8 +334,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
     }
 
-    // Panels
-
     /** The panel block on a side, or null. */
     public BlockState panel(Direction side) {
         return panels[side.ordinal()];
@@ -406,7 +394,7 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         if (panel == null) {
             return ItemStack.EMPTY;
         }
-        ItemStack item = FacadeItem.of(panel.getBlock(), 1, isHollow(side));
+        ItemStack item = panelItem(side);
         panels[side.ordinal()] = null;
         hollowPanels &= ~DuctModelData.bit(side);
         panelsChanged();
@@ -414,10 +402,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     }
 
     /**
-     * A panel came or went: arms, handlers and endpoints follow through the
-     * config path, and the graph edges are read again, because a solid panel
-     * closes the side for the item, energy and fluid graphs too. The graph asks
-     * both nodes of an edge, so refreshing this duct covers the neighbour.
+     * A panel came or went: a solid panel closes the side for the graphs too,
+     * so their edges are read again. The graph asks both nodes of an edge, so
+     * refreshing this duct covers the neighbour.
      */
     private void panelsChanged() {
         configChanged();
@@ -439,14 +426,17 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     public List<ItemStack> dropPanels() {
         List<ItemStack> items = new ArrayList<>();
         for (Direction side : DIRECTIONS) {
-            BlockState panel = panels[side.ordinal()];
-            if (panel != null) {
-                items.add(FacadeItem.of(panel.getBlock(), 1, isHollow(side)));
+            if (panels[side.ordinal()] != null) {
+                items.add(panelItem(side));
                 panels[side.ordinal()] = null;
             }
         }
         hollowPanels = 0;
         return items;
+    }
+
+    private ItemStack panelItem(Direction side) {
+        return FacadeItem.of(panels[side.ordinal()].getBlock(), 1, isHollow(side));
     }
 
     @Override
@@ -480,8 +470,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         return mask;
     }
 
-    // Filters and priorities (item line)
-
     public ItemSlots filter(Direction side) {
         return filters[side.ordinal()];
     }
@@ -508,12 +496,16 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     }
 
     public void setPriority(Direction side, int priority) {
-        int clamped = Math.max(MIN_PRIORITY, Math.min(MAX_PRIORITY, priority));
+        int clamped = clampPriority(priority);
         if (priorities[side.ordinal()] == clamped) {
             return;
         }
         priorities[side.ordinal()] = clamped;
         configChanged();
+    }
+
+    private static int clampPriority(int priority) {
+        return Math.max(MIN_PRIORITY, Math.min(MAX_PRIORITY, priority));
     }
 
     private void configChanged() {
@@ -540,14 +532,12 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
     private void changed() {
         setChanged();
         if (level != null && !level.isClientSide()) {
-            // Which sides expose item and fluid handlers depends on the lines and modes.
             level.invalidateCapabilities(worldPosition);
             recomputeArms();
             if (getBlockState().getBlock() instanceof UtilityDuctBlock duct) {
                 duct.refreshConnections(level, worldPosition);
             }
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
-            // Neighbours that draw something toward the duct (a pump's pipe stub) learn about the new handlers.
             level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
             for (Direction side : DIRECTIONS) {
                 if (level.getBlockEntity(worldPosition.relative(side)) instanceof UtilityDuctBlockEntity neighbour) {
@@ -556,8 +546,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             }
         }
     }
-
-    // Capabilities
 
     /** Item handler shown to the neighbour on {@code side}, null without an Item Pipe. */
     public ResourceHandler<ItemResource> itemHandler(Direction side) {
@@ -574,8 +562,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
         return fluidHandlers.computeIfAbsent(side, s -> new DuctFluidHandler(this, s));
     }
-
-    // Networks
 
     @SuppressWarnings("unchecked")
     public <T extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent>> Optional<T> network(Line line) {
@@ -602,8 +588,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
         return NetworkManager.of(server).set(DataNetwork.TYPE).networkAt(Conversions.toNodePos(worldPosition));
     }
-
-    // DataNode
 
     @Override
     public Level dataLevel() {
@@ -651,16 +635,17 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
 
     @Override
     public void setRemoved() {
-        DuctTracker.remove(this);
-        for (Line line : Line.VALUES) {
-            leave(line);
-        }
+        leaveAll();
         super.setRemoved();
     }
 
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
+        leaveAll();
+    }
+
+    private void leaveAll() {
         DuctTracker.remove(this);
         for (Line line : Line.VALUES) {
             leave(line);
@@ -701,8 +686,6 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
     }
 
-    // Menu
-
     /** The name of the block the side touches, for the endpoint GUI title. */
     public Component touchedBlockName(Direction side) {
         if (level == null) {
@@ -742,12 +725,24 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
     }
 
-    // Persistence and sync
-
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         output.store("Lines", Codec.STRING.listOf(), lines.stream().map(Line::id).toList());
+        saveModesAndChannels(output);
+        saveFiltersAndPriorities(output);
+        output.putIntArray("Arms", arms.clone());
+        output.putInt("Endpoints", endpoints);
+        if (hasPanels()) {
+            savePanels(output);
+        }
+        if (has(Line.DATA) && !dataTier.equals(CableTiersManager.BASE_TIER)) {
+            output.putString("DataTier", dataTier.toString());
+        }
+    }
+
+    /** Only modes other than both and channels other than 0 are written. */
+    private void saveModesAndChannels(ValueOutput output) {
         CompoundTag modeTag = new CompoundTag();
         CompoundTag channelTag = new CompoundTag();
         for (Line line : Line.VALUES) {
@@ -772,6 +767,9 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
         }
         ValueIo.putTag(output, "Modes", modeTag);
         ValueIo.putTag(output, "Channels", channelTag);
+    }
+
+    private void saveFiltersAndPriorities(ValueOutput output) {
         ValueOutput filterOut = output.child("Filters");
         CompoundTag priorityTag = new CompoundTag();
         for (Direction direction : DIRECTIONS) {
@@ -788,24 +786,20 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
             }
         }
         ValueIo.putTag(output, "Priorities", priorityTag);
-        output.putIntArray("Arms", arms.clone());
-        output.putInt("Endpoints", endpoints);
-        if (hasPanels()) {
-            CompoundTag panelTag = new CompoundTag();
-            for (Direction side : DIRECTIONS) {
-                BlockState panel = panels[side.ordinal()];
-                if (panel != null) {
-                    CompoundTag entry = new CompoundTag();
-                    entry.put("State", NbtUtils.writeBlockState(panel));
-                    entry.putBoolean("Hollow", isHollow(side));
-                    panelTag.put(side.getSerializedName(), entry);
-                }
+    }
+
+    private void savePanels(ValueOutput output) {
+        CompoundTag panelTag = new CompoundTag();
+        for (Direction side : DIRECTIONS) {
+            BlockState panel = panels[side.ordinal()];
+            if (panel != null) {
+                CompoundTag entry = new CompoundTag();
+                entry.put("State", NbtUtils.writeBlockState(panel));
+                entry.putBoolean("Hollow", isHollow(side));
+                panelTag.put(side.getSerializedName(), entry);
             }
-            ValueIo.putTag(output, "Panels", panelTag);
         }
-        if (has(Line.DATA) && !dataTier.equals(CableTiersManager.BASE_TIER)) {
-            output.putString("DataTier", dataTier.toString());
-        }
+        ValueIo.putTag(output, "Panels", panelTag);
     }
 
     @Override
@@ -818,11 +812,33 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
                 lines.add(line);
             }
         }
+        loadModesAndChannels(input);
+        ValueInput filterIn = input.childOrEmpty("Filters");
+        CompoundTag priorityTag = ValueIo.getTag(input, "Priorities");
+        for (Direction direction : DIRECTIONS) {
+            filters[direction.ordinal()].load(filterIn, direction.getSerializedName());
+            priorities[direction.ordinal()] = clampPriority(priorityTag.getIntOr(direction.getSerializedName(), 0));
+        }
+        int[] savedArms = input.getIntArray("Arms").orElse(new int[0]);
+        Arrays.fill(arms, 0);
+        System.arraycopy(savedArms, 0, arms, 0, Math.min(arms.length, savedArms.length));
+        endpoints = input.getIntOr("Endpoints", 0);
+        loadPanels(input);
+        Identifier savedTier = input.getString("DataTier").map(Identifier::tryParse).orElse(null);
+        dataTier = savedTier == null ? CableTiersManager.BASE_TIER : savedTier;
+        if (level != null && level.isClientSide()) {
+            requestModelDataUpdate();
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+        }
+        if (level instanceof ServerLevel) {
+            reconcileMemberships();
+        }
+    }
+
+    /** Unknown mode names load as both. */
+    private void loadModesAndChannels(ValueInput input) {
         for (SideMode[] row : modes) {
             Arrays.fill(row, SideMode.BOTH);
-        }
-        for (byte[] row : channels) {
-            Arrays.fill(row, (byte) 0);
         }
         CompoundTag modeTag = ValueIo.getTag(input, "Modes");
         CompoundTag channelTag = ValueIo.getTag(input, "Channels");
@@ -835,61 +851,44 @@ public class UtilityDuctBlockEntity extends BlockEntity implements DataNode {
                     try {
                         modes[line.ordinal()][direction.ordinal()] = SideMode.valueOf(name.toUpperCase(Locale.ROOT));
                     } catch (IllegalArgumentException ignored) {
-                        // Unknown mode names fall back to BOTH.
                     }
                 }
                 channels[line.ordinal()][direction.ordinal()] =
                         (byte) DuctChannels.clamp(perSideChannels.getIntOr(direction.getSerializedName(), 0));
             }
         }
-        ValueInput filterIn = input.childOrEmpty("Filters");
-        CompoundTag priorityTag = ValueIo.getTag(input, "Priorities");
-        for (Direction direction : DIRECTIONS) {
-            // Missing filters load as empty slots.
-            filters[direction.ordinal()].load(filterIn, direction.getSerializedName());
-            priorities[direction.ordinal()] = Math.max(MIN_PRIORITY, Math.min(MAX_PRIORITY,
-                    priorityTag.getIntOr(direction.getSerializedName(), 0)));
-        }
-        int[] savedArms = input.getIntArray("Arms").orElse(new int[0]);
-        Arrays.fill(arms, 0);
-        for (int i = 0; i < arms.length && i < savedArms.length; i++) {
-            arms[i] = savedArms[i];
-        }
-        endpoints = input.getIntOr("Endpoints", 0);
+    }
+
+    private void loadPanels(ValueInput input) {
         Arrays.fill(panels, null);
         hollowPanels = 0;
         CompoundTag panelTag = ValueIo.getTag(input, "Panels");
         for (Direction side : DIRECTIONS) {
-            if (panelTag.contains(side.getSerializedName())) {
-                CompoundTag entry = panelTag.getCompoundOrEmpty(side.getSerializedName());
-                BlockState panel = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, entry.getCompoundOrEmpty("State"));
-                if (!panel.isAir()) {
-                    panels[side.ordinal()] = panel;
-                    if (entry.getBooleanOr("Hollow", false)) {
-                        hollowPanels |= DuctModelData.bit(side);
-                    }
+            if (!panelTag.contains(side.getSerializedName())) {
+                continue;
+            }
+            CompoundTag entry = panelTag.getCompoundOrEmpty(side.getSerializedName());
+            BlockState panel = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, entry.getCompoundOrEmpty("State"));
+            if (!panel.isAir()) {
+                panels[side.ordinal()] = panel;
+                if (entry.getBooleanOr("Hollow", false)) {
+                    hollowPanels |= DuctModelData.bit(side);
                 }
             }
         }
-        Identifier savedTier = input.getString("DataTier").map(Identifier::tryParse).orElse(null);
-        dataTier = savedTier == null ? CableTiersManager.BASE_TIER : savedTier;
-        if (level != null && level.isClientSide()) {
-            requestModelDataUpdate();
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
-        }
-        if (level instanceof ServerLevel) {
-            // A data merge or reload changed the configuration while loaded: reconcile memberships.
-            for (Line line : Line.VALUES) {
-                if (lines.contains(line)) {
-                    join(line);
-                    network(line).ifPresent(network ->
-                            network.post(new DuctEvent.ConfigChanged(Conversions.toNodePos(worldPosition))));
-                    if (line == Line.DATA) {
-                        refreshData();
-                    }
-                } else {
-                    leave(line);
-                }
+    }
+
+    /** A data merge or reload changed the configuration of a loaded duct: join and leave networks to match. */
+    private void reconcileMemberships() {
+        for (Line line : Line.VALUES) {
+            if (!lines.contains(line)) {
+                leave(line);
+                continue;
+            }
+            join(line);
+            network(line).ifPresent(network -> network.post(new DuctEvent.ConfigChanged(Conversions.toNodePos(worldPosition))));
+            if (line == Line.DATA) {
+                refreshData();
             }
         }
     }

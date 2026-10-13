@@ -1,7 +1,5 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
-import org.jspecify.annotations.Nullable;
-import net.minecraft.world.level.redstone.Orientation;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.foundation.block.ConnectableBlock;
 import io.github.dirnei.mc.servus.foundation.data.DataSummary;
@@ -18,19 +16,21 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.BlockAndLightGetter;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility duct block. The six connection flags are the union of the per line
@@ -110,7 +110,7 @@ public class UtilityDuctBlock extends ConnectableBlock {
     /**
      * The shape follows the lines: a centre as thick as the line count and,
      * per side, an arm as thick as the lines connected there, plus a slab or a
-     * frame per panel. Without a block entity the state flags decide, as in Lib.
+     * frame per panel. Without a block entity the state flags decide.
      */
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
@@ -118,11 +118,6 @@ public class UtilityDuctBlock extends ConnectableBlock {
             return shape(duct.linesMask(), duct.armMasks(), duct.solidPanelMask(), duct.hollowPanelMask());
         }
         return super.getShape(state, level, pos, context);
-    }
-
-    /** The shape for a line set and the per line arm masks (indexed by line ordinal), cached. */
-    public static VoxelShape shape(int linesMask, int[] arms) {
-        return shape(linesMask, arms, 0, 0);
     }
 
     /** The shape for a line set, the per line arm masks and the six bit solid and hollow panel masks, cached. */
@@ -210,9 +205,9 @@ public class UtilityDuctBlock extends ConnectableBlock {
         BlockPos pos = context.getClickedPos();
         if (player != null && player.isShiftKeyDown()) {
             if (!level.isClientSide()) {
-                Direction panel = level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct
-                        ? hitPanel(duct, context.getClickLocation(), pos, context.getClickedFace()) : null;
-                if (panel != null && level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity duct) {
+                UtilityDuctBlockEntity duct = level.getBlockEntity(pos) instanceof UtilityDuctBlockEntity d ? d : null;
+                Direction panel = duct == null ? null : hitPanel(duct, context.getClickLocation(), pos, context.getClickedFace());
+                if (panel != null) {
                     Block.popResource(level, pos, duct.removePanel(panel));
                 } else {
                     level.removeBlock(pos, false);

@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import io.github.dirnei.mc.servus.foundation.logistics.network.ItemChannelNetwork;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -52,10 +52,5 @@ public final class DuctItemHandler extends LegacyItemHandler {
     @Override
     public int getSlotLimit(int slot) {
         return 64;
-    }
-
-    @Override
-    public boolean isItemValid(int slot, ItemStack stack) {
-        return true;
     }
 }

@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
-import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork;
+import io.github.dirnei.mc.servus.foundation.transfer.LegacyFluidHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -35,11 +35,6 @@ public final class DuctFluidHandler extends LegacyFluidHandler {
     @Override
     public int getTankCapacity(int tank) {
         return 0;
-    }
-
-    @Override
-    public boolean isFluidValid(int tank, FluidStack stack) {
-        return true;
     }
 
     @Override

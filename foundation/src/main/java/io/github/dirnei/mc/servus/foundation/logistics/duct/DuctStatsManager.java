@@ -1,24 +1,24 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
-import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.util.ExtraCodecs;
-import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.logistics.ServusLogisticsContent;
 import java.util.Map;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 /** Loads duct stats from {@code data/<ns>/duct/<name>.json}. */
 public final class DuctStatsManager extends SimpleJsonResourceReloadListener<JsonElement> {
 
     /** Key of this listener in the reload event. */
-    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath("servus_foundation", "duct_stats_manager");
+    public static final Identifier LISTENER_ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "duct_stats_manager");
 
     public static final String DIRECTORY = "duct";
 
@@ -27,10 +27,15 @@ public final class DuctStatsManager extends SimpleJsonResourceReloadListener<Jso
 
     public static final DuctStatsManager INSTANCE = new DuctStatsManager();
 
-    private volatile int itemsPerTick = 16;
-    private volatile int itemsPerPull = 8;
-    private volatile int pullInterval = 8;
-    private volatile int energyPerTick = 512;
+    private static final int DEFAULT_ITEMS_PER_TICK = 16;
+    private static final int DEFAULT_ITEMS_PER_PULL = 8;
+    private static final int DEFAULT_PULL_INTERVAL = 8;
+    private static final int DEFAULT_ENERGY_PER_TICK = 512;
+
+    private volatile int itemsPerTick = DEFAULT_ITEMS_PER_TICK;
+    private volatile int itemsPerPull = DEFAULT_ITEMS_PER_PULL;
+    private volatile int pullInterval = DEFAULT_PULL_INTERVAL;
+    private volatile int energyPerTick = DEFAULT_ENERGY_PER_TICK;
 
     private DuctStatsManager() {
         super(ExtraCodecs.JSON, FileToIdConverter.json(DIRECTORY));
@@ -39,10 +44,10 @@ public final class DuctStatsManager extends SimpleJsonResourceReloadListener<Jso
     @Override
     protected void apply(Map<Identifier, JsonElement> files, ResourceManager resourceManager, ProfilerFiller profiler) {
         JsonElement duct = files.get(UTILITY_DUCT);
-        itemsPerTick = intField(duct, "items_per_tick", 16);
-        itemsPerPull = intField(duct, "items_per_pull", 8);
-        pullInterval = intField(duct, "pull_interval", 8);
-        energyPerTick = intField(duct, "energy_per_tick", 512);
+        itemsPerTick = intField(duct, "items_per_tick", DEFAULT_ITEMS_PER_TICK);
+        itemsPerPull = intField(duct, "items_per_pull", DEFAULT_ITEMS_PER_PULL);
+        pullInterval = intField(duct, "pull_interval", DEFAULT_PULL_INTERVAL);
+        energyPerTick = intField(duct, "energy_per_tick", DEFAULT_ENERGY_PER_TICK);
         ServusLogisticsContent.LOGGER.info("Utility duct: {} items/t, pulls {} every {} t, {} FE/t",
                 itemsPerTick, itemsPerPull, pullInterval, energyPerTick);
     }

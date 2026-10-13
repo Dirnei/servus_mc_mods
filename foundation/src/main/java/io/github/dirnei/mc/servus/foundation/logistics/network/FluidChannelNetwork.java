@@ -1,19 +1,15 @@
 package io.github.dirnei.mc.servus.foundation.logistics.network;
 
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.fluid.FluidRouting;
-import io.github.dirnei.mc.servus.foundation.graph.NodePos;
-import io.github.dirnei.mc.servus.foundation.network.Conversions;
-import io.github.dirnei.mc.servus.foundation.network.NetworkType;
-import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
-import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctChannels;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctFluidHandler;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
+import io.github.dirnei.mc.servus.foundation.network.NetworkType;
+import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -23,11 +19,11 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /**
  * The Fluid Pipe network of a set of connected utility ducts. Every tick it
@@ -42,12 +38,12 @@ import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
  * until that duct's configuration changes, so two tanks on in and out sides
  * never trade fluid back and forth.
  */
-public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent> {
+public final class FluidChannelNetwork extends LineNetwork<FluidChannelNetwork.Endpoint> {
 
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "fluid_channel");
 
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, FluidChannelNetwork> TYPE =
-            new NetworkType<>(ID, (from, fromNode, side, to, toNode) -> UtilityDuctBlockEntity.sideOpen(fromNode, side), FluidChannelNetwork::new);
+            new NetworkType<>(ID, RULE, FluidChannelNetwork::new);
 
     /** A fluid with its components, compared without the amount. */
     public static final class FluidKey {
@@ -78,7 +74,7 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
     }
 
     /** One duct side with its neighbour's fluid handler. */
-    private static final class Endpoint {
+    static final class Endpoint {
         final BlockPos target;
         final SideMode mode;
         final int channel;
@@ -118,7 +114,7 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
 
         @Override
         public int fill(FluidKey key, int amount, boolean simulate) {
-            int filled = handler.fill(key.stack(amount), simulate ? true : false);
+            int filled = handler.fill(key.stack(amount), simulate);
             if (!simulate && filled > 0 && endpoint.inAndOut()) {
                 endpoint.receiving = true;
             }
@@ -126,63 +122,13 @@ public final class FluidChannelNetwork extends ServusNetwork<UtilityDuctBlockEnt
         }
     }
 
-    private final Map<NodePos, List<Endpoint>> endpoints = new HashMap<>();
-    private ServerLevel level;
-
     public FluidChannelNetwork(int id, NetworkSet<UtilityDuctBlockEntity, DuctEvent, ?> owner) {
-        super(id, owner);
+        super(id, owner, Line.FLUID, new HashMap<>());
     }
 
     @Override
-    protected void handle(DuctEvent event) {
-        if (event instanceof DuctEvent.ConfigChanged changed && level != null
-                && level.getBlockEntity(Conversions.toBlockPos(changed.pos())) instanceof UtilityDuctBlockEntity duct) {
-            rebuild(changed.pos(), duct);
-        }
-    }
-
-    @Override
-    protected void onNodeAdded(NodePos pos, UtilityDuctBlockEntity duct) {
-        if (!(duct.getLevel() instanceof ServerLevel server)) {
-            return;
-        }
-        level = server;
-        rebuild(pos, duct);
-    }
-
-    private void rebuild(NodePos pos, UtilityDuctBlockEntity duct) {
-        BlockPos blockPos = Conversions.toBlockPos(pos);
-        List<Endpoint> list = new ArrayList<>(6);
-        for (Direction direction : Direction.values()) {
-            SideMode mode = duct.mode(Line.FLUID, direction);
-            if (mode == SideMode.DISABLED) {
-                continue;
-            }
-            BlockPos target = blockPos.relative(direction);
-            list.add(new Endpoint(target, mode, duct.channel(Line.FLUID, direction), BlockCapabilityCache.create(
-                    Capabilities.Fluid.BLOCK, level, target, direction.getOpposite())));
-        }
-        endpoints.put(pos, list);
-    }
-
-    @Override
-    protected void onNodeRemoved(NodePos pos, UtilityDuctBlockEntity duct) {
-        endpoints.remove(pos);
-    }
-
-    @Override
-    protected void onAbsorb(ServusNetwork<UtilityDuctBlockEntity, DuctEvent> other) {
-        if (other instanceof FluidChannelNetwork that) {
-            endpoints.putAll(that.endpoints);
-            if (level == null) {
-                level = that.level;
-            }
-        }
-    }
-
-    @Override
-    protected void onDisposed() {
-        endpoints.clear();
+    protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel) {
+        return new Endpoint(target, mode, channel, BlockCapabilityCache.create(Capabilities.Fluid.BLOCK, level, target, side.getOpposite()));
     }
 
     @Override

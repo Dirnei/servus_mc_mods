@@ -1,31 +1,26 @@
 package io.github.dirnei.mc.servus.foundation.logistics.network;
 
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.ResourceHandler;
 import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
-import io.github.dirnei.mc.servus.foundation.graph.NodePos;
-import io.github.dirnei.mc.servus.foundation.network.Conversions;
-import io.github.dirnei.mc.servus.foundation.network.NetworkType;
-import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
-import io.github.dirnei.mc.servus.foundation.network.core.ServusNetwork;
-import io.github.dirnei.mc.servus.foundation.side.SideMode;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctItemHandler;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.DuctStatsManager;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.UtilityDuctBlockEntity;
 import io.github.dirnei.mc.servus.foundation.logistics.routing.RoundRobinPlan;
+import io.github.dirnei.mc.servus.foundation.network.NetworkType;
+import io.github.dirnei.mc.servus.foundation.network.core.NetworkSet;
+import io.github.dirnei.mc.servus.foundation.side.SideMode;
+import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * The Item Pipe network of a set of connected utility ducts. Holds no items.
@@ -34,14 +29,14 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
  * filters, and pulls from inventories on pull in sides every few ticks onto
  * the pulling side's channel.
  */
-public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEntity, DuctEvent> {
+public final class ItemChannelNetwork extends LineNetwork<ItemChannelNetwork.Endpoint> {
 
     public static final Identifier ID = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "item_channel");
 
     public static final NetworkType<UtilityDuctBlockEntity, DuctEvent, ItemChannelNetwork> TYPE =
-            new NetworkType<>(ID, (from, fromNode, side, to, toNode) -> UtilityDuctBlockEntity.sideOpen(fromNode, side), ItemChannelNetwork::new);
+            new NetworkType<>(ID, RULE, ItemChannelNetwork::new);
 
-    private record Endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int priority,
+    record Endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int priority,
                             int channel, BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> cache) {
 
         boolean allows(ItemStack stack) {
@@ -49,70 +44,29 @@ public final class ItemChannelNetwork extends ServusNetwork<UtilityDuctBlockEnti
         }
     }
 
-    private final Map<NodePos, List<Endpoint>> endpoints = new LinkedHashMap<>();
     private final RoundRobinPlan<Endpoint> plan = new RoundRobinPlan<>();
     private boolean planDirty = true;
-    private ServerLevel level;
     private int budget;
     private int pullTimer;
 
     public ItemChannelNetwork(int id, NetworkSet<UtilityDuctBlockEntity, DuctEvent, ?> owner) {
-        super(id, owner);
+        super(id, owner, Line.ITEM, new LinkedHashMap<>());
     }
 
     @Override
-    protected void handle(DuctEvent event) {
-        if (event instanceof DuctEvent.ConfigChanged changed && level != null
-                && level.getBlockEntity(Conversions.toBlockPos(changed.pos())) instanceof UtilityDuctBlockEntity duct) {
-            rebuild(changed.pos(), duct);
-        }
+    protected Endpoint endpoint(UtilityDuctBlockEntity duct, Direction side, BlockPos target, SideMode mode, int channel) {
+        return new Endpoint(duct, side, target, mode, duct.priority(side), channel,
+                BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, target, side.getOpposite()));
     }
 
     @Override
-    protected void onNodeAdded(NodePos pos, UtilityDuctBlockEntity duct) {
-        if (!(duct.getLevel() instanceof ServerLevel server)) {
-            return;
-        }
-        level = server;
-        rebuild(pos, duct);
-    }
-
-    private void rebuild(NodePos pos, UtilityDuctBlockEntity duct) {
-        BlockPos blockPos = Conversions.toBlockPos(pos);
-        List<Endpoint> list = new ArrayList<>(6);
-        for (Direction direction : Direction.values()) {
-            SideMode mode = duct.mode(Line.ITEM, direction);
-            if (mode == SideMode.DISABLED) {
-                continue;
-            }
-            BlockPos target = blockPos.relative(direction);
-            list.add(new Endpoint(duct, direction, target, mode, duct.priority(direction), duct.channel(Line.ITEM, direction),
-                    BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, target, direction.getOpposite())));
-        }
-        endpoints.put(pos, list);
+    protected void endpointsChanged() {
         planDirty = true;
-    }
-
-    @Override
-    protected void onNodeRemoved(NodePos pos, UtilityDuctBlockEntity duct) {
-        endpoints.remove(pos);
-        planDirty = true;
-    }
-
-    @Override
-    protected void onAbsorb(ServusNetwork<UtilityDuctBlockEntity, DuctEvent> other) {
-        if (other instanceof ItemChannelNetwork that) {
-            endpoints.putAll(that.endpoints);
-            if (level == null) {
-                level = that.level;
-            }
-            planDirty = true;
-        }
     }
 
     @Override
     protected void onDisposed() {
-        endpoints.clear();
+        super.onDisposed();
         plan.clear();
     }
 

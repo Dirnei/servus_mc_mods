@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.duct;
 
+import net.minecraft.core.Direction;
 import net.neoforged.neoforge.model.data.ModelProperty;
 
 /**
@@ -33,11 +34,11 @@ public final class DuctModelData {
     private DuctModelData() {
     }
 
-    public static int bit(net.minecraft.core.Direction side) {
+    public static int bit(Direction side) {
         return 1 << side.ordinal();
     }
 
-    public static int channelIndex(Line line, net.minecraft.core.Direction side) {
+    public static int channelIndex(Line line, Direction side) {
         return line.ordinal() * 6 + side.ordinal();
     }
 }

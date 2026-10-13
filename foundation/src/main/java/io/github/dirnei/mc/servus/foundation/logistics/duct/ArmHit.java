@@ -29,16 +29,10 @@ public final class ArmHit {
      */
     public static int hit(double x, double y, double z, int centerRadius, int[] armRadius) {
         for (int side = 0; side < 6 && side < armRadius.length; side++) {
-            if (armRadius[side] > 0 && contains(DuctShapes.arm(side, armRadius[side]), x, y, z)) {
+            if (armRadius[side] > 0 && DuctShapes.arm(side, armRadius[side]).contains(x, y, z, EPSILON)) {
                 return side;
             }
         }
-        return contains(DuctShapes.center(centerRadius), x, y, z) ? CENTER : NONE;
-    }
-
-    private static boolean contains(DuctShapes.Box box, double x, double y, double z) {
-        return x >= box.x0() - EPSILON && x <= box.x1() + EPSILON
-                && y >= box.y0() - EPSILON && y <= box.y1() + EPSILON
-                && z >= box.z0() - EPSILON && z <= box.z1() + EPSILON;
+        return DuctShapes.center(centerRadius).contains(x, y, z, EPSILON) ? CENTER : NONE;
     }
 }
